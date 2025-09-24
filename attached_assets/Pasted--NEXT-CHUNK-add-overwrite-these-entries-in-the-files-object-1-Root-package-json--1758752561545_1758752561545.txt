@@ -1,0 +1,82 @@
+// ---- NEXT CHUNK: add/overwrite these entries in the `files` object ----
+
+// 1) Root package.json: ensure client build runs automatically
+files["package.json"] = `
+{
+  "name": "abraxas-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development node server/index.js",
+    "build": "cd client && npm ci && npm run build",
+    "start": "NODE_ENV=production node server/index.js",
+    "postinstall": "cd client && npm ci && npm run build"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.6.0",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "rss-parser": "^3.13.0",
+    "uuid": "^9.0.1",
+    "ws": "^8.18.0"
+  }
+}
+`;
+
+// 2) Client package.json: React, Vite, React plugin, TS types
+files["client/package.json"] = `
+{
+  "name": "abraxas-client",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5173"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8"
+  }
+}
+`;
+
+// 3) (Optional) Slightly friendlier README so future-you remembers how to run
+files["README.md"] = `
+# Abraxas — Financial Cyber Priest
+
+## One-time setup
+1. Run the bootstrap to unpack files (already done if you're reading this in the project):
+   \`\`\`
+   node bootstrap.js
+   \`\`\`
+
+2. Go into the app:
+   \`\`\`
+   cd abraxas-app
+   npm install
+   \`\`\`
+   This installs server deps and automatically builds the client (via postinstall).
+
+3. Add Replit Secrets:
+   - GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, OAUTH_CALLBACK_URL
+   - SESSION_SECRET
+   - Optional: OPENAI_API_KEY, ANTHROPIC_API_KEY, X_BEARER
+
+4. Run:
+   \`\`\`
+   npm run dev
+   \`\`\`
+
+Open the webview. You'll see the login portal at **/login**, then the full app: Ritual casting, Equities/FX picks, VC (Athena) tab, Grimoire, History, stats & social drift.
+`
