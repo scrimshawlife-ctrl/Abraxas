@@ -1,0 +1,1038 @@
+// bootstrap.js
+// Run once: node bootstrap.js
+// Writes the entire Abraxas project into ./abraxas-app
+
+import fs from "fs";
+import path from "path";
+
+const ROOT = "abraxas-app";
+
+// helper
+function writeFile(relPath, content) {
+  const filePath = path.join(ROOT, relPath);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content.trimStart(), "utf8");
+  console.log("Wrote", relPath);
+}
+
+const files = {
+"package.json": `
+{
+  "name": "abraxas-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development node server/index.js",
+    "build": "cd client && npm ci && npm run build",
+    "start": "NODE_ENV=production node server/index.js",
+    "postinstall": "cd client && npm ci"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.6.0",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "rss-parser": "^3.13.0",
+    "uuid": "^9.0.1",
+    "ws": "^8.18.0"
+  }
+}
+`,
+"server/index.js": `
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import http from "http";
+import passport from "passport";
+import { runRitual, getTodayRunes } from "./runes.js";
+import { scoreWatchlists } from "./abraxas.js";
+import metrics, { persistAllSnapshots } from "./metrics.js";
+import { seal, fingerprint } from "./crypto.js";
+import { installRealtime } from "./realtime.js";
+import db, { q } from "./db.js";
+import { sessionMiddleware, googlePassport, ensureAuthed } from "./auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { runSocialScan, getSocialTrends } from "./social_scan.js";
+import { forgeSigil } from "./sigil.js";
+import { analyzeVC, VC_PERSONA } from "./vc_oracle.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const server = http.createServer(app);
+const rt = installRealtime(server);
+
+app.use(express.json());
+app.use(sessionMiddleware());
+app.use(googlePassport().initialize());
+app.use(googlePassport().session());
+
+// Public login portal
+app.get("/login", (req,res)=> res.sendFile(path.join(__dirname, "..", "client", "dist", "login.html")));
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile","email"] }));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req,res)=> res.redirect("/"));
+app.get("/logout", (req,res)=>{ req.logout(()=>res.redirect("/login")); });
+
+// Guard everything else
+app.use(ensureAuthed);
+
+// Self/user endpoints
+app.get("/api/me", (req,res)=>{
+  const u = db.prepare("SELECT id,email,name,picture,created_at FROM users WHERE id=?").get(req.user?.id);
+  res.json(u || {});
+});
+app.get("/api/history", (req,res)=>{
+  const rows = db.prepare("SELECT id,date,seed,created_at FROM ritual_runs WHERE user_id=? ORDER BY created_at DESC LIMIT 20").all(req.user?.id);
+  res.json(rows);
+});
+app.get("/api/history/:id", (req,res)=>{
+  const row = db.prepare("SELECT * FROM ritual_runs WHERE id=? AND user_id=?").get(req.params.id, req.user?.id);
+  if(!row) return res.status(404).json({error:"not found"});
+  res.json({ ...row, runes: JSON.parse(row.runes_json), results: JSON.parse(row.results_json) });
+});
+app.get("/api/grimoire", (req,res)=>{
+  const rows = db.prepare("SELECT id,core,seed,method,created_at FROM sigils WHERE owner_id=? ORDER BY created_at DESC LIMIT 100").all(req.user?.id);
+  res.json(rows);
+});
+
+// Ritual core
+app.get("/api/runes", (req,res)=> res.json(getTodayRunes()));
+app.get("/api/stats", (req,res)=> res.json(metrics.snapshot()));
+app.get("/api/daily-oracle", (req,res)=>{
+  const s = metrics.snapshot();
+  const conf = s.lifetime.accuracy.acc===null ? 0.5 : s.lifetime.accuracy.acc;
+  const tone = conf>0.6 ? "ascending" : conf>0.52 ? "tempered" : "probing";
+  const b = Buffer.from(JSON.stringify({ day:new Date().toISOString().slice(0,10), tone }), "utf8").toString("base64").replace(/=/g,"");
+  const glyph = b.match(/.{1,8}/g)?.join("·") || b;
+  res.json({ ciphergram: \`⟟Σ \${glyph} Σ⟟\`, note:\`Litany (\${tone}): “Vectors converge; witnesses veiled.”\` });
+});
+
+app.post("/api/ritual", async (req, res) => {
+  const { equities = [], fx = [] } = req.body || {};
+  const ritual = runRitual();
+  const results = scoreWatchlists({ equities, fx }, ritual);
+
+  ["federal_register:DFARS:2025-2191","sam.gov:notice:W91:modP00043","uspto:ptab:IPR-2025-1234"].forEach(s=>metrics.addSource(fingerprint(s)));
+  ["rule:dfars:display","mod:sam:scope","ipr:ptab:oled"].forEach(s=>metrics.addSignal(fingerprint(s)));
+
+  [...(results.equities.conservative||[]), ...(results.equities.risky||[])]
+    .forEach((x,i)=>metrics.addPrediction({ kind:"equity", id:\`eq-\${Date.now()}-\${i}\`, tickerOrPair:x.ticker, edge:x.edge }));
+  [...(results.fx.conservative||[]), ...(results.fx.risky||[])]
+    .forEach((x,i)=>{ metrics.addPrediction({ kind:"fx", id:\`fx-\${Date.now()}-\${i}\`, tickerOrPair:x.pair, edge:x.edge }); metrics.addFxShiftMagnitude(Math.abs(x.edge)); });
+
+  rt.broadcast("results", { results });
+
+  const runId = uuidv4();
+  q.insertRun.run({ id: runId, user_id: req.user?.id || null, date: ritual.date, seed: String(ritual.seed),
+    runes_json: JSON.stringify(ritual.runes), results_json: JSON.stringify(results), created_at: Date.now() });
+  q.insertRecs.run({ id: uuidv4(), user_id: req.user?.id || null, payload_json: JSON.stringify(results), created_at: Date.now() });
+
+  const persistFor = (phrase)=>{ const s=forgeSigil(phrase); q.insertSigil.run({ id: uuidv4(), owner_id: req.user?.id || null, core: s.core, seed: s.seed, method:"traditional_strip+grid3x3+seeded_quadratic", created_at: Date.now() }); };
+  (results.equities.conservative||[]).forEach(x=>persistFor(x.ticker));
+  (results.equities.risky||[]).forEach(x=>persistFor(x.ticker));
+  (results.fx.conservative||[]).forEach(x=>persistFor(x.pair));
+  (results.fx.risky||[]).forEach(x=>persistFor(x.pair));
+
+  const sealed = seal({ ritual, results });
+  res.json({ ritual, results, sealed, disclaimer:"Abraxas persona is fictional; sources & methods sealed. Not financial advice." });
+});
+
+// Social trends (twice daily scheduler)
+app.get("/api/social-trends", (req,res)=> res.json(getSocialTrends()));
+app.post("/api/social-trends/scan", async (req,res)=>{
+  const out=await runSocialScan(); rt.broadcast("social_trends", out);
+  try { q.insertTrends.run({ id: uuidv4(), payload_json: JSON.stringify(out), created_at: Date.now() }); } catch {}
+  res.json(out);
+});
+
+// VC Oracle (Athena)
+app.post("/api/vc/analyze", async (req, res)=>{
+  const { industry="Technology", region="US", horizonDays=90 } = req.body || {};
+  try { const out = await analyzeVC({ industry, region, horizonDays }); res.json(out); }
+  catch(e){ res.status(500).json({ error:"vc_oracle_failed", details:String(e) }); }
+});
+app.get("/api/vc/persona", (req,res)=> res.json(VC_PERSONA));
+
+// Serve client
+const clientDir = path.join(__dirname, "..", "client");
+const distDir = path.join(clientDir, "dist");
+app.use(express.static(distDir));
+app.get("*", (req,res)=> res.sendFile(path.join(distDir, "index.html")));
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, ()=> console.log(\`Abraxas listening on http://localhost:\${PORT}\`));
+
+// Schedulers
+(async()=>{ try { await runSocialScan(); rt.broadcast("social_trends", getSocialTrends()); } catch{} })();
+setInterval(async()=>{ try { const out=await runSocialScan(); rt.broadcast("social_trends", out);} catch{} }, 12*60*60*1000);
+setInterval(()=>{ try { persistAllSnapshots(); } catch{} }, 3*60*60*1000);
+`,
+"server/auth.js": `
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import expressSession from "express-session";
+import SQLiteStore from "./sessionStore.js";
+import { q } from "./db.js";
+
+export function sessionMiddleware() {
+  return expressSession({
+    secret: process.env.SESSION_SECRET || "dev-secret",
+    resave: false,
+    saveUninitialized: false,
+    store: new SQLiteStore({ ttl: 7*24*60*60*1000 }),
+    cookie: { maxAge: 7*24*60*60*1000, sameSite: "lax" }
+  });
+}
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => done(null, { id }));
+
+export function googlePassport() {
+  const strat = new GoogleStrategy(
+    { clientID: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET, callbackURL: process.env.OAUTH_CALLBACK_URL },
+    async (accessToken, refreshToken, profile, done) => {
+      const user = {
+        id: profile.id,
+        email: profile.emails?.[0]?.value,
+        name: profile.displayName,
+        picture: profile.photos?.[0]?.value,
+        created_at: Date.now()
+      };
+      q.upsertUser.run(user);
+      return done(null, { id: user.id, email: user.email });
+    }
+  );
+  passport.use(strat);
+  return passport;
+}
+
+export function ensureAuthed(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated()) return next();
+  if (req.path.startsWith("/auth") || req.path.startsWith("/login")) return next();
+  return res.redirect("/login");
+}
+`,
+"server/sessionStore.js": `
+import { Store } from "express-session";
+import db from "./db.js";
+export default class SQLiteStore extends Store {
+  constructor(opts={}){ super(); this.ttl=opts.ttl||7*24*60*60*1000; }
+  get(sid,cb){ try{ const r=db.prepare("SELECT data,expires_at FROM sessions WHERE sid=?").get(sid);
+    if(!r||r.expires_at<Date.now()) return cb(null,null);
+    cb(null, JSON.parse(r.data)); }catch(e){ cb(e); } }
+  set(sid,sess,cb){ try{
+    const exp=sess.cookie?.expires? new Date(sess.cookie.expires).getTime(): Date.now()+this.ttl;
+    const data=JSON.stringify(sess);
+    db.prepare("INSERT INTO sessions (sid,user_id,data,expires_at) VALUES (?,?,?,?) ON CONFLICT(sid) DO UPDATE SET data=excluded.data, expires_at=excluded.expires_at")
+      .run(sid, sess.passport?.user||null, data, exp);
+    cb&&cb(null); }catch(e){ cb&&cb(e);} }
+  destroy(sid,cb){ try{ db.prepare("DELETE FROM sessions WHERE sid=?").run(sid); cb&&cb(null);}catch(e){ cb&&cb(e);} }
+}
+`,
+"server/db.js": `
+import Database from "better-sqlite3";
+const url = process.env.DATABASE_URL || "file:./abraxas.db";
+const db = new Database(url.replace("file:",""), {});
+
+db.exec(\`
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE, name TEXT, picture TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, user_id TEXT, data TEXT, expires_at INTEGER);
+CREATE TABLE IF NOT EXISTS ritual_runs (id TEXT PRIMARY KEY, user_id TEXT, date TEXT, seed TEXT, runes_json TEXT, results_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS sigils (id TEXT PRIMARY KEY, owner_id TEXT, core TEXT, seed TEXT, method TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS stats_snapshots (id TEXT PRIMARY KEY, scope TEXT, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS social_trends (id TEXT PRIMARY KEY, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS recommendations (id TEXT PRIMARY KEY, user_id TEXT, payload_json TEXT, created_at INTEGER);
+\`);
+
+export default db;
+export const q = {
+  upsertUser: db.prepare(\`
+    INSERT INTO users (id,email,name,picture,created_at) VALUES (@id,@email,@name,@picture,@created_at)
+    ON CONFLICT(email) DO UPDATE SET name=@name, picture=@picture
+  \`),
+  insertRun: db.prepare(\`INSERT INTO ritual_runs (id,user_id,date,seed,runes_json,results_json,created_at) VALUES (@id,@user_id,@date,@seed,@runes_json,@results_json,@created_at)\`),
+  insertSigil: db.prepare(\`INSERT INTO sigils (id,owner_id,core,seed,method,created_at) VALUES (@id,@owner_id,@core,@seed,@method,@created_at)\`),
+  insertStats: db.prepare(\`INSERT INTO stats_snapshots (id,scope,payload_json,created_at) VALUES (@id,@scope,@payload_json,@created_at)\`),
+  insertTrends: db.prepare(\`INSERT INTO social_trends (id,payload_json,created_at) VALUES (@id,@payload_json,@created_at)\`),
+  insertRecs: db.prepare(\`INSERT INTO recommendations (id,user_id,payload_json,created_at) VALUES (@id,@user_id,@payload_json,@created_at)\`)
+};
+`,
+"server/abraxas.js": `
+import crypto from "crypto";
+import { esotericFeatures } from "./esoterica.js";
+
+const FEATURE_WEIGHTS = {
+  nightlights_z: 0.8, port_dwell_delta: -0.6, sam_mod_scope_delta: 0.9, ptab_ipr_burst: -0.7,
+  fr_waiver_absence: 0.4, jobs_clearance_burst: 0.5, hs_code_volume_z: 0.6, fx_basis_z: -0.4,
+  numerology_reduced: 0.08, numerology_master: 0.12, gematria_alignment: 0.1, astro_rul_align: 0.1, astro_waxing: 0.05
+};
+function hseed(str){ return parseInt(crypto.createHash("sha256").update(str).digest("hex").slice(0,8),16); }
+function applyTransientDelta(base, fmap, delta){ const w={...base}; fmap.forEach(f=>{ if(w[f]!==undefined) w[f]=+(w[f]+delta).toFixed(4); }); return w; }
+
+function demoFeaturesForTicker(ticker, seed){
+  const r = (x)=>(((hseed(ticker+x+seed)%200)-100)/50);
+  return { nightlights_z:r("nl")/2, port_dwell_delta:r("pd")/3, sam_mod_scope_delta:Math.max(0,r("sam")),
+    ptab_ipr_burst:r("ipr")/4, fr_waiver_absence:r("fr")>0?1:0, jobs_clearance_burst:r("jobs")>0.5?1:0, hs_code_volume_z:r("hs")/2 };
+}
+function demoFeaturesForPair(pair, seed){
+  const r=(x)=>(((hseed(pair+x+seed)%200)-100)/50);
+  return { fx_basis_z:r("basis")/2, port_dwell_delta:r("port")/3, hs_code_volume_z:r("hs")/2, nightlights_z:r("nl")/3 };
+}
+function scoreEntity(feats, w){ let s=0; for(const k in feats){ s+=(w[k]||0)*(feats[k]??0);} return s; }
+function sectorGuess(t){ if(/(LMT|NOC|RTX|GD|BA)/.test(t)) return "Aerospace & Defense"; if(/(CVX|XOM|VLO|MPC)/.test(t)) return "Energy"; if(/(JPM|GS|MS|BAC)/.test(t)) return "Financials"; if(/(AMGN|PFE|UNH)/.test(t)) return "Healthcare"; return "Tech"; }
+
+export function scoreWatchlists({ equities=[], fx=[] }, ritual){
+  const seed = ritual.seed.toString();
+  let weights={...FEATURE_WEIGHTS};
+  ritual.deltas.forEach(({feature_map,delta})=>{ weights=applyTransientDelta(weights, feature_map, delta); });
+
+  const eq = equities.map(ticker=>{
+    const feats = demoFeaturesForTicker(ticker, seed);
+    const sector=sectorGuess(ticker);
+    const esoteric = esotericFeatures({ name:ticker, sector, now:new Date() });
+    const merged = { ...feats, ...esoteric };
+    const edge = +scoreEntity(merged, weights).toFixed(3);
+    const conf = Math.max(0.1, Math.min(0.95, (Math.abs(edge)/3)+0.05*esoteric.numerology_master+0.05*esoteric.gematria_alignment));
+    const risk = edge>0 ? 1/(1+(feats.ptab_ipr_burst**2)) : 1.15+Math.max(0,feats.ptab_ipr_burst);
+    return { ticker, sector, edge, confidence:+conf.toFixed(2), riskClass:risk<1?"low":"high", features:merged };
+  });
+  const sortedEq=[...eq].sort((a,b)=>b.edge-a.edge);
+  const conservative = sortedEq.filter(x=>x.confidence>=0.6).slice(0,6);
+  const risky = sortedEq.filter(x=>!conservative.includes(x)).slice(0,6);
+
+  const fxList = fx.map(pair=>{
+    const feats = demoFeaturesForPair(pair, seed);
+    const base=pair.slice(0,3), quote=pair.slice(3);
+    const eBase = esotericFeatures({ name:base, sector:"Financials" });
+    const eQuote = esotericFeatures({ name:quote, sector:"Financials" });
+    const eTilt = (eBase.astro_rul_align - eQuote.astro_rul_align) + 0.05*(eBase.numerology_master - eQuote.numerology_master);
+    const merged = { ...feats, astro_rul_align:eTilt, gematria_alignment:0 };
+    const edge = +scoreEntity(merged, weights).toFixed(3);
+    const conf = Math.max(0.1, Math.min(0.95, Math.abs(edge)/3 + Math.max(0,eTilt)/3));
+    return { pair, edge, confidence:+conf.toFixed(2), features:merged };
+  });
+  const sortedFx=[...fxList].sort((a,b)=>b.edge-a.edge);
+  const conservativeFx=sortedFx.filter(x=>x.confidence>=0.6).slice(0,6);
+  const riskyFx=sortedFx.filter(x=>!conservativeFx.includes(x)).slice(0,6);
+
+  function rationaleEq(x){ const ch=[]; if(x.features.sam_mod_scope_delta>0.5) ch.push("Contract scope ↑");
+    if(x.features.nightlights_z>0.8) ch.push("Night-lights ↑");
+    if(x.features.ptab_ipr_burst<-0.2) ch.push("IPR pressure easing");
+    if(x.features.numerology_master) ch.push("Master number");
+    if(x.features.astro_rul_align>0.3) ch.push("Planetary align");
+    return ch.slice(0,4); }
+  function rationaleFx(x){ const ch=[]; if(x.features.fx_basis_z<-0.2) ch.push("Funding stress ↓");
+    if(x.features.port_dwell_delta>0.5) ch.push("Trade flow ↑");
+    if(x.features.astro_rul_align>0.2) ch.push("Planetary align");
+    return ch.slice(0,4); }
+
+  return {
+    equities: { conservative: conservative.map(x=>({ ...x, rationale:rationaleEq(x) })), risky: risky.map(x=>({ ...x, rationale:rationaleEq(x) })) },
+    fx: { conservative: conservativeFx.map(x=>({ ...x, rationale:rationaleFx(x) })), risky: riskyFx.map(x=>({ ...x, rationale:rationaleFx(x) })) },
+    weights
+  };
+}
+`,
+"server/runes.js": `
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const todayPattern = path.join(__dirname, "patterns", "2025-09-24.json");
+
+const BASE_RUNES = [
+  { id:"aether", name:"Aether", color:"#FFD166", svgPath:"M50 10 L70 60 L30 60 Z", feature_map:["nightlights_z","hs_code_volume_z"] },
+  { id:"tide", name:"Tide", color:"#4CC9F0", svgPath:"M10 50 C20 30, 80 30, 90 50 C80 70, 20 70, 10 50 Z", feature_map:["port_dwell_delta","fx_basis_z"] },
+  { id:"glyph", name:"Glyph", color:"#C6F6D5", svgPath:"M20 20 H80 V30 H20 Z M35 40 H65 V80 H35 Z", feature_map:["sam_mod_scope_delta","fr_waiver_absence"] },
+  { id:"ward", name:"Ward", color:"#F87171", svgPath:"M50 20 L80 50 L50 80 L20 50 Z", feature_map:["ptab_ipr_burst"] },
+  { id:"summon", name:"Summon", color:"#A78BFA", svgPath:"M50 15 A35 35 0 1 1 49.9 15 M30 50 L70 50", feature_map:["jobs_clearance_burst"] }
+];
+export function getTodayRunes(){
+  let extra=[]; try{ const raw=fs.readFileSync(todayPattern,"utf-8"); extra=[JSON.parse(raw)]; }catch{}
+  return [...BASE_RUNES, ...extra];
+}
+function dseed(s){ return parseInt(crypto.createHash("sha256").update(s).digest("hex").slice(0,8),16); }
+export function runRitual(){
+  const runes = getTodayRunes(); const day = new Date().toISOString().slice(0,10);
+  const seed = dseed(day + ":" + runes.map(r=>r.id).join(","));
+  const deltas = runes.map(r=>{ const h=dseed(r.id+":"+seed); const delta=((h%120)-60)/1000; return { id:r.id, delta, feature_map:r.feature_map }; });
+  return { date:day, seed, runes, deltas };
+}
+`,
+"server/patterns/2025-09-24.json": `
+{ "id":"sigil-noctua", "name":"Sigil of Noctua", "color":"#22D3EE",
+  "svgPath":"M50 8 L92 50 L50 92 L8 50 Z M35 50 A15 15 0 1 0 65 50 A15 15 0 1 0 35 50 Z",
+  "feature_map": ["nightlights_z","sam_mod_scope_delta","ptab_ipr_burst"] }
+`,
+"server/sigil.js": `
+import crypto from "crypto";
+const GRID=[["A","B","C"],["D","E","F"],["G","H","I"]];
+const LETTER_MAP = (()=>{ const coords={}; const flat=GRID.flat(); for(let i=0;i<26;i++){ const ch=String.fromCharCode(65+i); const pos=flat[i%flat.length]; const y=Math.floor((flat.indexOf(pos))/3); const x=GRID[y].indexOf(pos); coords[ch]={x,y}; } return coords;})();
+function normalize(phrase){ return phrase.toUpperCase().replace(/[^A-Z]/g,""); }
+function strip(phrase){ const p=normalize(phrase).replace(/[AEIOU]/g,""); let out=""; const seen=new Set(); for(const ch of p){ if(!seen.has(ch)){ out+=ch; seen.add(ch);} } return out||"SIGIL"; }
+function hashFloat(seed,mod=1){ const h = crypto.createHash("sha256").update(seed).digest("hex").slice(0,8); const v=parseInt(h,16)/0xffffffff; return v*mod; }
+export function forgeSigil(phrase){
+  const core=strip(phrase); const seed=crypto.createHash("sha256").update(core).digest("hex").slice(0,16);
+  const pts=[]; for(const ch of core){ const base=LETTER_MAP[ch]||{x:1,y:1}; const jx=(hashFloat(seed+ch,0.28)-0.14); const jy=(hashFloat(ch+seed,0.28)-0.14);
+    const x=(base.x+0.5+jx)*100/3; const y=(base.y+0.5+jy)*100/3; pts.push({x,y}); }
+  const start=pts[0]||{x:50,y:50}; let d=\`M \${start.x.toFixed(2)} \${start.y.toFixed(2)} \`;
+  for(let i=1;i<pts.length;i++){ const p0=pts[i-1], p1=pts[i]; const cx=(p0.x+p1.x)/2 + (hashFloat(seed+i,14)-7); const cy=(p0.y+p1.y)/2 + (hashFloat(seed+i+"b",14)-7);
+    d += \`Q \${cx.toFixed(2)} \${cy.toFixed(2)}, \${p1.x.toFixed(2)} \${p1.y.toFixed(2)} \`; }
+  const end=pts[pts.length-1]||start; const r=2.8+hashFloat(seed+"r",3.2); const bind=\`M \${end.x.toFixed(2)} \${end.y.toFixed(2)} m -\${r} 0 a \${r} \${r} 0 1 0 \${r*2} 0 a \${r} \${r} 0 1 0 -\${r*2} 0\`;
+  const path=\`\${d} \${bind}\`; return { path, nodes:pts, seed, core };
+}
+`,
+"server/sigil_registry.js": `
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const dir = path.join(__dirname, "patterns", "sigils");
+if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true});
+export function persistSigilAlgorithm({ seed, core }){
+  const rec={ method:"traditional_strip+grid3x3+seeded_quadratic", seed, core, version:1 };
+  const file=path.join(dir, \`\${Date.now()}_\${seed}.json\`);
+  fs.writeFileSync(file, JSON.stringify(rec,null,2), "utf8");
+  return file;
+}
+`,
+"server/metrics.js": `
+const DAY=86400000; const now=()=>Date.now();
+function newWindow(){ return { start:now(), uniqueSources:new Set(), uniqueSignals:new Set(), fxShiftAbs:0, preds:[] }; }
+const windows={ day:newWindow(), week:newWindow(), month:newWindow(), life:newWindow() };
+function roll(){ const d=windows.day; if(now()-d.start>DAY) windows.day=newWindow(); if(now()-windows.week.start>7*DAY) windows.week=newWindow(); if(now()-windows.month.start>30*DAY) windows.month=newWindow(); }
+function addSource(h){ roll(); Object.values(windows).forEach(w=>w.uniqueSources.add(h)); }
+function addSignal(h){ roll(); Object.values(windows).forEach(w=>w.uniqueSignals.add(h)); }
+function addPrediction({kind,id,tickerOrPair,edge}){ roll(); const dir=edge>=0?1:-1; const rec={t:now(),kind,id,tickerOrPair,edge,dir}; Object.values(windows).forEach(w=>w.preds.push(rec)); }
+function addFxShiftMagnitude(a){ roll(); Object.values(windows).forEach(w=>w.fxShiftAbs+=Math.abs(a)); }
+function recordRealization({id,outcome}){ Object.values(windows).forEach(w=>{ const p=w.preds.find(r=>r.id===id); if(p) p.realized=outcome;}); }
+function acc(w){ const done=w.preds.filter(p=>typeof p.realized!=="undefined"); if(!done.length) return {acc:null,n:0}; const hits=done.filter(p=>p.realized===+1).length; return {acc:+(hits/done.length).toFixed(3), n:done.length}; }
+function snapshot(){ roll(); const pack=(w)=>({ uniqueSources:w.uniqueSources.size, uniqueSignals:w.uniqueSignals.size, fxShiftAbs:+w.fxShiftAbs.toFixed(2), accuracy:acc(w) });
+  return { day:pack(windows.day), week:pack(windows.week), month:pack(windows.month), lifetime:pack(windows.life) }; }
+export function persistAllSnapshots(){ /* optional persistence hook already wired in index */ }
+export default { addSource, addSignal, addPrediction, addFxShiftMagnitude, recordRealization, snapshot, persistAllSnapshots };
+`,
+"server/crypto.js": `
+import crypto from "crypto";
+const KEY = crypto.createHash("sha256").update(process.env.ABRAXAS_SECRET || crypto.randomBytes(32).toString("hex")).digest();
+export function seal(obj){ const iv=crypto.randomBytes(12); const c=crypto.createCipheriv("aes-256-gcm", KEY, iv); const pt=Buffer.from(JSON.stringify(obj),"utf8");
+  const enc=Buffer.concat([c.update(pt),c.final()]); const tag=c.getAuthTag(); return Buffer.concat([iv,tag,enc]).toString("base64"); }
+export function fingerprint(s){ return crypto.createHash("sha256").update(s).digest("hex").slice(0,24); }
+`,
+"server/realtime.js": `
+import { WebSocketServer } from "ws";
+export function installRealtime(server){ const wss=new WebSocketServer({ server }); function broadcast(type,payload){ const msg=JSON.stringify({type,payload,ts:Date.now()});
+  wss.clients.forEach(c=>{ try{ c.send(msg);}catch{} }); } return { wss, broadcast }; }
+`,
+"server/alchemy.js": `
+async function askOpenAI(prompt){ if(!process.env.OPENAI_API_KEY) return {model:"openai:none",text:""}; const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",
+  headers:{ "Content-Type":"application/json","Authorization":\`Bearer \${process.env.OPENAI_API_KEY}\` },
+  body:JSON.stringify({ model:"gpt-4o-mini", messages:[{role:"system",content:"You are a market analyst with terse clarity."},{role:"user",content:prompt}], temperature:0.2 })});
+  const j=await r.json(); return { model:j.model||"openai", text: j.choices?.[0]?.message?.content || "" }; }
+async function askAnthropic(prompt){ if(!process.env.ANTHROPIC_API_KEY) return {model:"anthropic:none",text:""}; const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+  headers:{ "Content-Type":"application/json","x-api-key":process.env.ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01" },
+  body:JSON.stringify({ model:"claude-3-5-sonnet-20240620", max_tokens:600, temperature:0.2, system:"You are a market analyst with rigorous sourcing and crisp language.", messages:[{role:"user",content:prompt}]}) });
+  const j=await r.json(); return { model:j.model||"anthropic", text: j.content?.[0]?.text || "" }; }
+function jacc(a,b){ const A=new Set((a.toLowerCase().match(/\\b[a-z0-9]+\\b/g)||[])); const B=new Set((b.toLowerCase().match(/\\b[a-z0-9]+\\b/g)||[]));
+  const I=new Set([...A].filter(x=>B.has(x))); const U=new Set([...A,...B]); return U.size? I.size/U.size:0; }
+function pickConsensus(t1,t2){ if(!t1&&!t2) return ""; if(!t2) return t1; if(!t1) return t2; const s1=t1.split(/(?<=[.!?])\\s+/), s2=t2.split(/(?<=[.!?])\\s+/);
+  const keep=[]; for(const s of s1){ if(s2.some(u=>jacc(s,u)>0.5)) keep.push(s);} if(!keep.length) keep.push(s1[0]||"", s2[0]||""); return keep.join(" "); }
+export async function alchemize(prompt){ const [o,a]=await Promise.all([askOpenAI(prompt), askAnthropic(prompt)]); const fused=pickConsensus(o.text||"", a.text||""); return { fused, sources:[o.model,a.model] }; }
+`,
+"server/social_scan.js": `
+import Parser from "rss-parser"; const parser=new Parser();
+const STOP=new Set(["the","a","an","and","or","but","if","to","of","in","on","for","by","with","is","are","was","were","this","that","these","those","it","as","at","from","be","has","have","had","not","into","we","you","i","they","their","our","your","will","can","should","could","would","about","over","under","per","vs","via","new","update","how","why","what"]);
+let LAST={ ts:0, sources:{ x:{topNumbers:[],topTopics:[]}, reddit:{topNumbers:[],topTopics:[]}, stackexchange:{topNumbers:[],topTopics:[]}, blogs:{topNumbers:[],topTopics:[]} } };
+function clean(t=""){ return (t||"").replace(/\\s+/g," ").replace(/https?:\\/\\/\\S+/g,"").trim(); }
+function extractNumbers(t){ const out=[]; const re=/\\b\\d{1,3}(?:[,._]\\d{3})*|\\b\\d+(?:\\.\\d+)?\\b/g; const m=t.match(re)||[]; for(const s of m){ const n=+s.replace(/[,_]/g,""); if(!isFinite(n)) continue; if(n<0) continue; if(n>=1e10) continue; out.push(String(n)); } return out; }
+function ngrams(words,k){ const out=[]; for(let i=0;i<=words.length-k;i++){ const g=words.slice(i,i+k); if(g.some(w=>STOP.has(w))) continue; out.push(g.join(" ")); } return out; }
+function extractTopics(t){ const words=clean(t).toLowerCase().replace(/[^a-z0-9\\s-]/g,"").split(/\\s+/).filter(Boolean); return [...ngrams(words,2), ...ngrams(words,3)]; }
+function topK(counts,k=2){ return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,k).map(([key,count])=>({key,count})); }
+function tally(items){ const numC=Object.create(null), topicC=Object.create(null); for(const t of items){ for(const n of extractNumbers(t)) numC[n]=(numC[n]||0)+1; for(const g of extractTopics(t)) topicC[g]=(topicC[g]||0)+1; } return { topNumbers:topK(numC), topTopics:topK(topicC) }; }
+async function scanReddit(){ const subs=["wallstreetbets","stocks","investing","technology"]; const texts=[]; for(const s of subs){ const url=\`https://www.reddit.com/r/\${s}/new.json?limit=25\`; const r=await fetch(url,{headers:{ "User-Agent":"Abraxas/1.0"}}); if(!r.ok) continue; const j=await r.json(); (j.data?.children||[]).forEach(p=>{ const d=p.data||{}; texts.push(\`\${d.title||""} \${d.selftext||""}\`);}); } return tally(texts); }
+async function scanStackExchange(){ const sites=["money","quant","economics"]; const texts=[]; const since=Math.floor(Date.now()/1000)-48*3600; for(const site of sites){ const url=\`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=activity&site=\${site}&fromdate=\${since}&pagesize=50\`; const r=await fetch(url); if(!r.ok) continue; const j=await r.json(); (j.items||[]).forEach(q=>texts.push(\`\${q.title} \${q.tags?.join(" ")||""}\`)); } return tally(texts); }
+async function scanBlogs(){ const feeds=["https://feeds.feedburner.com/CalculatedRisk","https://www.bitsaboutmoney.com/archive/rss/","https://stratechery.com/feed/","https://www.nasdaq.com/feed/rssoutbound?category=Market%20Insights"]; const texts=[]; for(const f of feeds){ try{ const feed=await parser.parseURL(f); (feed.items||[]).slice(0,25).forEach(i=>texts.push(\`\${i.title||""} \${i.contentSnippet||i.content||""}\`)); } catch{} } return tally(texts); }
+async function scanX(){ if(!process.env.X_BEARER) return { topNumbers:[], topTopics:[] }; const q=encodeURIComponent("(market OR stocks OR economy OR currency) lang:en -is:reply -is:retweet"); const url=\`https://api.x.com/2/tweets/search/recent?max_results=50&tweet.fields=text&query=\${q}\`;
+  const r=await fetch(url,{ headers:{ Authorization:\`Bearer \${process.env.X_BEARER}\` }}); if(!r.ok) return {topNumbers:[], topTopics:[]}; const j=await r.json(); const texts=(j.data||[]).map(t=>t.text); return tally(texts); }
+export async function runSocialScan(){ const [reddit,stackexchange,blogs,x]=await Promise.all([scanReddit().catch(()=>({topNumbers:[],topTopics:[] })), scanStackExchange().catch(()=>({topNumbers:[],topTopics:[] })), scanBlogs().catch(()=>({topNumbers:[],topTopics:[] })), scanX().catch(()=>({topNumbers:[],topTopics:[] })) ]);
+  LAST={ ts:Date.now(), sources:{ reddit, stackexchange, blogs, x } }; return LAST; }
+export function getSocialTrends(){ return LAST; }
+`,
+"server/esoterica.js": `
+const LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const ORDINAL=Object.fromEntries([...LETTERS].map((c,i)=>[c,i+1]));
+const PYTH=Object.fromEntries([...LETTERS].map((c,i)=>[c,((i%9)+1)]));
+function digitsum(n){ return n.toString().split("").reduce((a,b)=>a+(+b),0); }
+function reduce(n,keep=true){ while(n>9 && !(keep&&(n===11||n===22||n===33))) n=digitsum(n); return n; }
+export function numerologyOfString(s,{system="pyth"}={}){ const map=system==="ordinal"?ORDINAL:PYTH; const cleaned=(s||"").toUpperCase().replace(/[^A-Z0-9]/g,""); let sum=0; for(const ch of cleaned){ if(map[ch]) sum+=map[ch]; else if(/\\d/.test(ch)) sum+=+ch; } return { raw:sum, reduced:reduce(sum), isMaster:[11,22,33].includes(sum) }; }
+export function numerologyOfDate(d=new Date()){ const y=d.getUTCFullYear(), m=d.getUTCMonth()+1, day=d.getUTCDate(); const raw=digitsum(y)+digitsum(m)+digitsum(day); return { raw, reduced:reduce(raw), y, m, day, isMaster:[11,22,33].includes(raw) }; }
+export function gematriaOrdinal(s){ return (s||"").toUpperCase().replace(/[^A-Z]/g,"").split("").reduce((a,c)=>a+(ORDINAL[c]||0),0); }
+export function gematriaReduced(s){ return (s||"").toUpperCase().replace(/[^A-Z]/g,"").split("").reduce((a,c)=>a+(PYTH[c]||0),0); }
+export function gematriaAlignment(a,b){ const ra=reduce(a), rb=reduce(b); return ra===rb?1.0:(Math.abs(ra-rb)<=1?0.6:0.0); }
+function sunLongitude(d){ const JD=(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())/86400000)+2440587.5; const n=JD-2451545.0; const L=(280.46+0.9856474*n)%360; const g=(357.528+0.9856003*n)*Math.PI/180; const lam=(L+1.915*Math.sin(g)+0.020*Math.sin(2*g))%360; return (lam+360)%360; }
+const SIGNS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+const RULERS={Aries:"Mars",Taurus:"Venus",Gemini:"Mercury",Cancer:"Moon",Leo:"Sun",Virgo:"Mercury",Libra:"Venus",Scorpio:"Mars",Sagittarius:"Jupiter",Capricorn:"Saturn",Aquarius:"Saturn",Pisces:"Jupiter"};
+const SECTOR_RULERS={"Semiconductors":"Mercury","Aerospace & Defense":"Mars","Energy":"Sun","Financials":"Jupiter","Healthcare":"Moon","Consumer Discretionary":"Venus","Utilities":"Saturn","Tech":"Mercury","Communication Services":"Mercury","Industrials":"Mars"};
+function sunSign(d){ const lon=sunLongitude(d); return SIGNS[Math.floor(((lon%360)+360)%360/30)]; }
+function moonPhase(d){ const syn=29.53058867; const ref=Date.UTC(2000,0,6,18,14); const age=((d.getTime()-ref)/86400000)%syn; return ((age+syn)%syn)/syn; }
+function planetaryHourRuler(d){ const rulers=["Sun","Venus","Mercury","Moon","Saturn","Jupiter","Mars"]; const h=d.getUTCHours(); return rulers[h%7]; }
+export function astrologySignals({ sector, ticker, now=new Date() }){ const sign=sunSign(now); const sunRuler=RULERS[sign]; const ph=moonPhase(now); const waxing=ph<0.5?1:-1; const hourRuler=planetaryHourRuler(now); const sectorRuler=SECTOR_RULERS[sector||"Tech"]||"Mercury"; const rulAlign=(sunRuler===sectorRuler?0.5:0)+(hourRuler===sectorRuler?0.3:0)+(hourRuler===sunRuler?0.2:0); return { sign, sunRuler, hourRuler, moonPhase:+ph.toFixed(3), waxing, sectorRuler, rulAlign:+rulAlign.toFixed(2) }; }
+export function esotericFeatures({ name, sector, now=new Date() }){ const numS=numerologyOfString(name); const numD=numerologyOfDate(now); const gemS=gematriaOrdinal(name); const gemD=gematriaOrdinal(\`\${numD.y}\${numD.m}\${numD.day}\`); const gemAlign=gematriaAlignment(reduce(gemS,false), reduce(gemD,false)); const astro=astrologySignals({ sector, ticker:name, now });
+  return { numerology_reduced:numS.reduced, numerology_master:+numS.isMaster, gematria_ordinal:gemS, gematria_alignment:gemAlign, astro_rul_align:astro.rulAlign, astro_waxing:astro.waxing, astro_sign:astro.sign, astro_hour_ruler:astro.hourRuler }; }
+`,
+"server/vc_oracle.js": `
+import db from "./db.js";
+import { getSocialTrends } from "./social_scan.js";
+import { alchemize } from "./alchemy.js";
+
+function normalize(s=""){ return s.toLowerCase().replace(/[^a-z0-9\\s-]/g,"").trim(); }
+function freqMap(arr){ const m=Object.create(null); for(const x of arr){ m[x]=(m[x]||0)+1; } return m; }
+function computeGaps(industry, horizonDays=90){
+  const trends=getSocialTrends(); const topics=[];
+  for(const src of ["reddit","blogs","x","stackexchange"]){
+    const t=trends?.sources?.[src]?.topTopics||[]; t.forEach(({key,count})=>{ if(industry && !key.includes(normalize(industry))) return; topics.push(...Array(count).fill(normalize(key))); });
+  }
+  const ambient=freqMap(topics);
+  const rows=db.prepare("SELECT payload_json FROM recommendations ORDER BY created_at DESC LIMIT 200").all();
+  const internalHits=Object.create(null);
+  for(const r of rows){ try{ const j=JSON.parse(r.payload_json); const list=[...(j?.equities?.conservative||[]),...(j?.equities?.risky||[]),...(j?.fx?.conservative||[]),...(j?.fx?.risky||[])];
+    for(const it of list){ const blob=JSON.stringify(it).toLowerCase(); for(const term in ambient){ if(blob.includes(term)) internalHits[term]=(internalHits[term]||0)+1; } } }catch{} }
+  const gaps=[]; for(const term in ambient){ const amb=ambient[term]; const inr=internalHits[term]||0; const score=amb-inr; if(score>0) gaps.push({ term, ambient:amb, internal:inr, score }); }
+  gaps.sort((a,b)=>b.score-a.score); return gaps.slice(0,8);
+}
+async function proposeModels(industry, region, terms){
+  const prompt=\`
+For industry "\${industry}" in "\${region}", given gaps: \${terms.map(t=>t.term).join(", ")}.
+Propose 2–3 very specific startup models: product, ICP, GTM channel, first-year pricing, why now, path to $1–3M ARR in 18 months.
+Concise bullets only. No sources.\`;
+  const { fused }=await alchemize(prompt); return fused||"";
+}
+
+export const VC_PERSONA = {
+  id:"ATHENA-POLYMETIS-01",
+  name:"Athena Venture Oracle",
+  style:"strategic, lucid, unsentimental; cyber-owl sigil; bronze-neon palette",
+  mannerisms:["Terse aphorisms","Gap sigils","Sources veiled"]
+};
+
+export async function analyzeVC({ industry="Technology", region="US", horizonDays=90 }){
+  const gaps=computeGaps(industry,horizonDays); const top=gaps.slice(0,3);
+  const proposals=await proposeModels(industry,region,top);
+  const chant=\`⚔ Athena notes asymmetry across: \${top.map(t=>t.term).join(" • ")} — weave where capital thins.\`;
+  return { persona:VC_PERSONA, industry, region, horizonDays, gaps:top, proposals, chant };
+}
+`,
+"client/index.html": `
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Abraxas — Financial Cyber Priest</title></head>
+<body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+`,
+"client/login.html": `
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Abraxas — Initiation</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Grotesk:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{ --bg:#05060f; --fg:#e8ebff; --muted:#95a3cd; --gold:#f6c177; --acid:#66ffe6; --magenta:#ff4dd2; }
+*{box-sizing:border-box} body{margin:0;height:100vh;background:radial-gradient(1200px 700px at 50% -10%, #13163a, transparent 70%), radial-gradient(1000px 600px at 100% 0%, #0a0f23, transparent 60%), linear-gradient(#070912,#05060f); color:var(--fg); font-family:"Space Grotesk",sans-serif; display:grid; place-items:center;}
+.card{ width:min(560px,92vw); background:linear-gradient(180deg,#0b0f21,#090c19); border:1px solid #223061; border-radius:18px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 0 40px rgba(102,255,230,.06); text-align:center; position:relative; overflow:hidden;}
+h1{ font-family:"Black Ops One",sans-serif; letter-spacing:.03em; margin:0 0 6px; background: conic-gradient(from 90deg, var(--gold), var(--magenta), var(--acid), var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:42px; }
+.cap{ color:var(--muted); margin-bottom:16px}
+.seal{ position:absolute; inset:auto auto -50px 50%; transform:translateX(-50%); width:520px; height:520px; opacity:.15; background:radial-gradient(closest-side, rgba(102,255,230,.12), transparent 70%), conic-gradient(from 0deg, rgba(255,77,210,.12), rgba(102,255,230,.12), rgba(255,209,102,.12), rgba(255,77,210,.12)); border-radius:50%; filter:blur(18px); pointer-events:none;}
+.btn{ display:inline-flex; align-items:center; gap:10px; margin-top:12px; padding:12px 18px; font-weight:700; border-radius:12px; border:1px solid #2a3568; background: linear-gradient(90deg,#3b1a9c,#0a7ea4); color:#fff; text-decoration:none; text-transform:uppercase; letter-spacing:.06em; }
+.note{ margin-top:10px; font-size:12px; color:#b6c2ea }
+.avatar{ margin:12px auto; width:160px; height:160px; filter: drop-shadow(0 0 12px rgba(0,255,255,.15));}
+</style></head>
+<body>
+  <div class="card">
+    <div class="seal"></div>
+    <svg class="avatar" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0%" stop-color="#0ff"/><stop offset="60%" stop-color="#f0f"/><stop offset="100%" stop-color="#ffd166"/></linearGradient></defs>
+      <circle cx="100" cy="100" r="82" fill="none" stroke="url(#g)" stroke-width="1.5" opacity="0.8"/>
+      <rect x="55" y="80" width="90" height="22" rx="6" fill="#0b1026" stroke="#6ee7b7" stroke-width="1"/>
+      <circle cx="85" cy="91" r="4" fill="#22d3ee"/><circle cx="115" cy="91" r="3" fill="#f472b6"/>
+      <path d="M65 120 L135 120 L130 140 L70 140 Z" fill="#0f1430" stroke="#64748b" stroke-width="1"/>
+    </svg>
+    <h1>ABRAXAS</h1><div class="cap">Financial Cyber Priest — Enter the Rite</div>
+    <a class="btn" href="/auth/google">Sign in with Google</a>
+    <div class="note">Authorized users only. Ritual logs are sealed & audited.</div>
+  </div>
+</body></html>
+`,
+"client/vite.config.ts": `
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+export default defineConfig({ plugins:[react()], server:{ port:5173 }, build:{ outDir:"dist" }});
+`,
+"client/tsconfig.json": `
+{ "compilerOptions": { "target":"ES2020","useDefineForClassFields":true,"lib":["ES2020","DOM","DOM.Iterable"],"module":"ESNext","skipLibCheck":true,"moduleResolution":"Bundler","resolveJsonModule":true,"isolatedModules":true,"noEmit":true,"jsx":"react-jsx" }, "include":["src"] }
+`,
+"client/src/main.tsx": `
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./styles.css";
+createRoot(document.getElementById("root")!).render(<React.StrictMode><App/></React.StrictMode>);
+`,
+"client/src/api.ts": `
+export async function fetchRunes(){ const r=await fetch("/api/runes"); return r.json(); }
+export async function postRitual(payload:{equities:string[];fx:string[]}){ const r=await fetch("/api/ritual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); return r.json(); }
+export async function fetchStats(){ const r=await fetch("/api/stats"); return r.json(); }
+export async function fetchDailyOracle(){ const r=await fetch("/api/daily-oracle"); return r.json(); }
+export async function fetchSocialTrends(){ const r=await fetch("/api/social-trends"); return r.json(); }
+`,
+"client/src/audio.ts": `
+export function playChime(i:number){ try{ const ctx=new (window.AudioContext||(window as any).webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain();
+  o.type="sine"; o.frequency.value=440+60*i; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination);
+  o.start(); const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.06, t+0.01); g.gain.exponentialRampToValueAtTime(0.0001, t+0.35); o.stop(t+0.4);
+}catch{}}
+`,
+"client/src/sigil.ts": `
+export function forgeSigilClient(phrase: string){
+  const core=phrase.toUpperCase().replace(/[^A-Z]/g,"").replace(/[AEIOU]/g,"")||"SIGIL";
+  const seed=core.split("").reduce((a,c)=>((a*31 + c.charCodeAt(0))>>>0),7).toString(16);
+  const grid=[["A","B","C"],["D","E","F"],["G","H","I"]]; const flat=grid.flat(); const pos:Record<string,{x:number,y:number}>={};
+  for(let i=0;i<26;i++){ const ch=String.fromCharCode(65+i); const p=flat[i%flat.length]; const y=Math.floor(flat.indexOf(p)/3); const x=grid[y].indexOf(p); pos[ch]={x,y};}
+  const jit=(s:string,m=0.28)=>{ let h=0; for(const ch of (seed+s)) h=(h*33 + ch.charCodeAt(0))>>>0; return ((h%10000)/10000)*m - m/2; };
+  const pts=core.split("").filter((v,i,a)=>a.indexOf(v)===i).map(ch=>{ const b=pos[ch]||{x:1,y:1}; const x=(b.x+0.5+jit(ch,0.28))*100/3; const y=(b.y+0.5+jit(ch+"y",0.28))*100/3; return {x,y}; });
+  const start=pts[0]||{x:50,y:50}; let d=\`M \${start.x.toFixed(2)} \${start.y.toFixed(2)} \`;
+  for(let i=1;i<pts.length;i++){ const p0=pts[i-1],p1=pts[i]; const cx=(p0.x+p1.x)/2 + jit("c"+i,14); const cy=(p0.y+p1.y)/2 + jit("d"+i,14); d+=\`Q \${cx.toFixed(2)} \${cy.toFixed(2)}, \${p1.x.toFixed(2)} \${p1.y.toFixed(2)} \`; }
+  const end=pts[pts.length-1]||start; const r=3.6; const bind=\`M \${end.x.toFixed(2)} \${end.y.toFixed(2)} m -\${r} 0 a \${r} \${r} 0 1 0 \${r*2} 0 a \${r} \${r} 0 1 0 -\${r*2} 0\`;
+  return { path:\`\${d} \${bind}\`, seed, core };
+}
+`,
+"client/src/components/Tabs.tsx": `
+import { ReactNode, useState } from "react";
+export default function Tabs({ tabs }:{ tabs:{ id:string; title:string; content:ReactNode }[] }){
+  const [active,setActive]=useState(tabs[0]?.id);
+  return (<div>
+    <div className="tabbar">{tabs.map(t=>(<button key={t.id} className={\`tab \${active===t.id?"active":""}\`} onClick={()=>setActive(t.id)}>{t.title}</button>))}</div>
+    <div className="tabbody">{tabs.find(t=>t.id===active)?.content}</div>
+  </div>);
+}
+`,
+"client/src/components/RuneCaster.tsx": `
+"use client";
+import { useEffect, useState } from "react";
+import { playChime } from "../audio";
+type Rune={ id:string; name:string; svgPath:string; color:string; annotation?:string; confidence?:number };
+export default function RuneCaster({ runes, onComplete }:{ runes:Rune[]; onComplete:()=>void }){
+  const [idx,setIdx]=useState(0);
+  useEffect(()=>{ if(idx>=runes.length){ const t=setTimeout(onComplete,600); return ()=>clearTimeout(t);}
+    const t=setTimeout(()=>{ playChime(idx); setIdx(i=>i+1); },900); return ()=>clearTimeout(t);
+  },[idx,runes.length,onComplete]);
+  return (
+    <div className="rune-stage"><div className="rune-inner">
+      {runes.slice(0,idx).map((r,i)=>(
+        <div className="rune-item" key={r.id} style={{ top:\`\${18+i*8}%\` }}>
+          <svg width="140" height="140" viewBox="0 0 100 100" className="rune-svg">
+            <defs><filter id={\`glow-\${r.id}\`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5" result="blur"/><feMerge><feMergeNode in="blur"/></feMerge></filter></defs>
+            <path d={r.svgPath} fill={r.color} stroke="#111" strokeWidth="0.5" filter={\`url(#glow-\${r.id})\`}><animate attributeName="opacity" values="0;1;0.9" dur="0.7s" fill="freeze"/></path>
+          </svg>
+          <div className="rune-caption"><div className="rune-name">{r.name}</div><div className="rune-anno">{r.annotation??"Casting…"}</div></div>
+        </div>
+      ))}
+      {idx===runes.length && (<div className="rune-finale">The ritual completes. Abraxas speaks.</div>)}
+    </div></div>
+  );
+}
+`,
+"client/src/components/PicksPanel.tsx": `
+import { forgeSigilClient } from "../sigil";
+type EqItem={ ticker:string; edge:number; confidence:number; riskClass:string; features:Record<string,number>; rationale?:string[] };
+type FxItem={ pair:string; edge:number; confidence:number; features:Record<string,number>; rationale?:string[] };
+
+function Sigil({ phrase, color="#ff4dd2" }:{ phrase:string; color?:string }){
+  const { path }=forgeSigilClient(phrase);
+  return (<svg viewBox="0 0 100 100" width="56" height="56" style={{filter:"drop-shadow(0 0 8px rgba(255,77,210,.3))"}}>
+    <defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0%" stopColor={color}/><stop offset="100%" stopColor="#66ffe6"/></linearGradient></defs>
+    <rect x="1" y="1" width="98" height="98" rx="8" fill="#0a0f20" stroke="#1e2a58"/><path d={path} fill="none" stroke="url(#sg)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>);
+}
+
+export default function PicksPanel({ title, equities, fx }:{ title:string; equities?:EqItem[]; fx?:FxItem[] }){
+  return (<div className="panel">
+    <h3>{title}</h3>
+    {equities && (<><h4>Equities</h4><ul className="list">{equities.map(x=>(
+      <li key={x.ticker} className="card">
+        <div style={{display:"grid",gridTemplateColumns:"56px 1fr",gap:10}}>
+          <Sigil phrase={x.ticker}/><div>
+            <div className="row"><strong className="mono">{x.ticker}</strong><span className={\`chip \${x.edge>=0?"bull":"bear"}\`}>{x.edge}</span></div>
+            <div className="row"><span className="muted">Confidence {Math.round(x.confidence*100)}%</span><span className={\`chip \${x.riskClass==="low"?"low":"high"}\`}>{x.riskClass}</span></div>
+            <div className="feats">{Object.entries(x.features).slice(0,4).map(([k,v])=>(<span key={k} className="feat">{k}:{(v as number).toFixed(2)}</span>))}</div>
+            {x.rationale?.length? (<div className="feats" style={{marginTop:6}}>{x.rationale.map((r,i)=>(<span key={i} className="feat" style={{borderColor:"#7c3aed",color:"#e9d5ff"}}>{r}</span>))}</div>):null}
+          </div>
+        </div>
+      </li>))}</ul></>)}
+    {fx && (<><h4>FX</h4><ul className="list">{fx.map(x=>(
+      <li key={x.pair} className="card">
+        <div style={{display:"grid",gridTemplateColumns:"56px 1fr",gap:10}}>
+          <Sigil phrase={x.pair}/><div>
+            <div className="row"><strong className="mono">{x.pair}</strong><span className={\`chip \${x.edge>=0?"bull":"bear"}\`}>{x.edge}</span></div>
+            <div className="row"><span className="muted">Confidence {Math.round(x.confidence*100)}%</span></div>
+            <div className="feats">{Object.entries(x.features).slice(0,4).map(([k,v])=>(<span key={k} className="feat">{k}:{(v as number).toFixed(2)}</span>))}</div>
+            {x.rationale?.length? (<div className="feats" style={{marginTop:6}}>{x.rationale.map((r,i)=>(<span key={i} className="feat" style={{borderColor:"#7c3aed",color:"#e9d5ff"}}>{r}</span>))}</div>):null}
+          </div>
+        </div>
+      </li>))}</ul></>)}
+  </div>);
+}
+`,
+"client/src/components/StatsPanel.tsx": `
+export default function StatsPanel({ stats, trends }:{ stats:any; trends:any }){
+  const Row=({title,s}:{title:string; s:any})=>(
+    <div className="stat-card"><div className="stat-title">{title}</div>
+      <div className="stat-grid">
+        <div><div className="k">Unique Sources</div><div className="v">{s.uniqueSources}</div></div>
+        <div><div className="k">Unique Signals</div><div className="v">{s.uniqueSignals}</div></div>
+        <div><div className="k">FX Shift (abs)</div><div className="v">{s.fxShiftAbs}</div></div>
+        <div><div className="k">Accuracy</div><div className="v">{s.accuracy.acc===null?"—":\`\${(s.accuracy.acc*100).toFixed(1)}%\`}{s.accuracy?.n? <span className="n"> n={s.accuracy.n}</span>:null}</div></div>
+      </div>
+    </div>
+  );
+  const TrendBlock=({name,data}:{name:string;data:any})=>{
+    const nums=data?.topNumbers||[]; const topics=data?.topTopics||[];
+    return (<div className="trend"><div className="trend-title">{name}</div>
+      <div className="trend-row">
+        <div className="trend-col"><div className="k">Numbers</div><div className="v mono">{nums.map((n:any)=>\`\${n.key} (\${n.count})\`).slice(0,2).join("  •  ")||"—"}</div></div>
+        <div className="trend-col"><div className="k">Topics</div><div className="v">{topics.map((t:any)=>\`\${t.key} (\${t.count})\`).slice(0,2).join("  •  ")||"—"}</div></div>
+      </div></div>);
+  };
+  return (<section className="panel">
+    <h3>Abraxas — Self-Stats</h3>
+    <div className="stats"><Row title="Today" s={stats.day}/><Row title="This Week" s={stats.week}/><Row title="This Month" s={stats.month}/><Row title="Lifetime" s={stats.lifetime}/></div>
+    <div className="stat-title" style={{marginTop:12}}>Cultural Drift (Twice Daily)</div>
+    <div className="trend-grid"><TrendBlock name="X" data={trends?.sources?.x}/><TrendBlock name="Reddit" data={trends?.sources?.reddit}/><TrendBlock name="Stack Exchange" data={trends?.sources?.stackexchange}/><TrendBlock name="Blogs" data={trends?.sources?.blogs}/></div>
+  </section>);
+}
+`,
+"client/src/components/OracleAvatar.tsx": `
+export default function OracleAvatar(){
+  return (<div className="avatar">
+    <svg viewBox="0 0 200 200" className="avatar-svg">
+      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0%" stopColor="#0ff"/><stop offset="60%" stopColor="#f0f"/><stop offset="100%" stopColor="#ffd166"/></linearGradient></defs>
+      <circle cx="100" cy="100" r="82" fill="none" stroke="url(#g)" strokeWidth="1.5" opacity="0.8"/>
+      <circle cx="100" cy="100" r="58" fill="none" stroke="#14b8a6" strokeWidth="1" strokeDasharray="2 4" />
+      <rect x="55" y="80" width="90" height="22" rx="6" fill="#0b1026" stroke="#6ee7b7" strokeWidth="1"/>
+      <circle cx="85" cy="91" r="4" fill="#22d3ee"><animate attributeName="r" values="3;4;3" dur="1.6s" repeatCount="indefinite"/></circle>
+      <circle cx="115" cy="91" r="3" fill="#f472b6"><animate attributeName="r" values="2;3;2" dur="1.2s" repeatCount="indefinite"/></circle>
+      <path d="M65 120 L135 120 L130 140 L70 140 Z" fill="#0f1430" stroke="#64748b" strokeWidth="1"/>
+      <path d="M70 140 L70 150 M130 140 L130 150" stroke="#94a3b8" />
+      <path d="M35 105 C40 140, 50 160, 75 170" stroke="#6366f1" fill="none"/>
+      <path d="M165 105 C160 140, 150 160, 125 170" stroke="#09f" fill="none"/>
+    </svg>
+    <div className="avatar-cap">The Financial Cyber Priest</div>
+  </div>);
+}
+`,
+"client/src/components/UserBar.tsx": `
+import { useEffect, useState } from "react";
+export default function UserBar(){
+  const [me,setMe]=useState<any>(null);
+  useEffect(()=>{ fetch("/api/me").then(r=>r.json()).then(setMe); },[]);
+  if(!me) return null;
+  return (<div style={{display:"flex",gap:10, alignItems:"center", justifyContent:"center", marginTop:8}}>
+    {me.picture && <img src={me.picture} alt="pfp" width="28" height="28" style={{borderRadius:999}}/>}
+    <div className="mono" style={{fontSize:12, color:"#9aa1b2"}}>{me.email}</div>
+    <a className="btn" href="/logout" style={{padding:"6px 10px", fontSize:12}}>Logout</a>
+  </div>);
+}
+`,
+"client/src/components/Controls.tsx": `
+import { useEffect, useRef, useState } from "react";
+export function ScrollDropdown({ label, options, value, onChange, height=160 }:{ label:string; options:string[]; value:string; onChange:(v:string)=>void; height?:number }){
+  const [open,setOpen]=useState(false); const ref=useRef<HTMLDivElement>(null);
+  useEffect(()=>{ const h=(e:any)=>{ if(ref.current && !ref.current.contains(e.target)) setOpen(false); }; document.addEventListener("click",h); return ()=>document.removeEventListener("click",h); },[]);
+  return (<div className="ctrl" ref={ref}><div className="ctrl-label">{label}</div><button className="ctrl-btn" onClick={()=>setOpen(o=>!o)}>{value||"Select…"}</button>
+    {open && (<div className="ctrl-menu" style={{maxHeight:height}}>{options.map(opt=>(
+      <div key={opt} className={\`ctrl-item \${opt===value?"active":""}\`} onClick={()=>{onChange(opt); setOpen(false);}}>{opt}</div> ))}</div>)}
+  </div>);
+}
+export function Slider({ label, min, max, step=1, value, onChange }:{ label:string; min:number; max:number; step?:number; value:number; onChange:(v:number)=>void }){
+  return (<div className="ctrl"><div className="ctrl-label">{label} <span className="mono" style={{marginLeft:6, color:"#a5b4fc"}}>{value}</span></div>
+    <input className="ctrl-slider" type="range" min={min} max={max} step={step} value={value} onChange={(e)=>onChange(parseInt((e.target as HTMLInputElement).value))} /></div>);
+}
+`,
+"client/src/components/VCOracle.tsx": `
+import { useState } from "react";
+import { ScrollDropdown, Slider } from "./Controls";
+
+const INDUSTRIES=["Technology","Semiconductors","Aerospace & Defense","Energy","Healthcare","Fintech","Supply Chain","Biotech","Climate Tech","Cybersecurity","AI Infrastructure","Computer Vision","Industrial Automation","Geospatial","Developer Tools","SaaS"];
+const REGIONS=["US","EU","UK","MENA","APAC","LatAm","Global"];
+
+function AthenaAvatar(){
+  return (<div style={{display:"flex",gap:12,alignItems:"center", margin:"6px 0 10px"}}>
+    <svg viewBox="0 0 220 120" width="260" height="140" style={{filter:"drop-shadow(0 0 10px rgba(102,255,230,.2))"}}>
+      <defs><linearGradient id="owl" x1="0" x2="1"><stop offset="0%" stopColor="#ffd166"/><stop offset="60%" stopColor="#66ffe6"/><stop offset="100%" stopColor="#ff4dd2"/></linearGradient></defs>
+      <ellipse cx="70" cy="60" rx="36" ry="22" fill="#0b1026" stroke="#66ffe6" strokeWidth="1.5"/>
+      <circle cx="58" cy="60" r="6" fill="#66ffe6"/><circle cx="82" cy="60" r="6" fill="#ff4dd2"/>
+      <path d="M20 95 L120 95" stroke="#30418a"/>
+      <path d="M140 20 L200 20 L210 35 L140 35 Z" fill="#0f1430" stroke="#7aa0ff"/><path d="M140 35 L210 35 L195 70 L155 70 Z" fill="#0a0f1f" stroke="#7aa0ff"/>
+      <circle cx="175" cy="52" r="5" fill="url(#owl)"/>
+    </svg>
+    <div><div style={{fontFamily:"Black Ops One", fontSize:20, letterSpacing:1}}>Athena Venture Oracle</div>
+      <div className="mono" style={{fontSize:12, color:"#9aa1b2"}}>ID: ATHENA-POLYMETIS-01 — “strategy is compassion sharpened”</div></div>
+  </div>);
+}
+
+export default function VCOracle(){
+  const [industry,setIndustry]=useState("Technology"); const [region,setRegion]=useState("US"); const [horizon,setHorizon]=useState(90);
+  const [loading,setLoading]=useState(false); const [resp,setResp]=useState<any>(null);
+  async function run(){ setLoading(true);
+    const r=await fetch("/api/vc/analyze",{method:"POST",headers:{ "Content-Type":"application/json" },body:JSON.stringify({ industry, region, horizonDays:horizon })}).then(r=>r.json());
+    setResp(r); setLoading(false); }
+  return (<section className="panel"><AthenaAvatar/>
+    <div className="grid2"><ScrollDropdown label="Industry" options={INDUSTRIES} value={industry} onChange={setIndustry}/>
+      <ScrollDropdown label="Region" options={REGIONS} value={region} onChange={setRegion}/></div>
+    <Slider label="Horizon (days)" min={30} max={180} step={15} value={horizon} onChange={setHorizon}/>
+    <button className="btn" onClick={run} disabled={loading}>{loading? "Consulting the Pallas Matrix…" : "Consult Athena"}</button>
+    {resp && (<div style={{marginTop:12}}>
+      <div className="oracle"><div className="oracle-title">Athena’s Chant</div><div className="oracle-body">{resp.chant}</div></div>
+      <div className="panel" style={{marginTop:10}}><h3>Funding Gaps Detected</h3><ul className="list">{resp.gaps.map((g:any)=>(
+        <li key={g.term} className="card"><div className="row"><strong style={{fontFamily:"Black Ops One"}}>{g.term}</strong>
+          <span className="chip">ambient {g.ambient}</span><span className="chip">internal {g.internal}</span><span className="chip bull">gap {g.score}</span></div></li>))}</ul></div>
+      <div className="panel" style={{marginTop:10}}><h3>Startable Business Models (2–3)</h3><pre style={{whiteSpace:"pre-wrap"}}>{resp.proposals}</pre>
+        <div className="disc">Claude × ChatGPT alchemy fused; sources & methods sealed.</div></div>
+    </div>)}
+  </section>);
+}
+`,
+"client/src/components/Grimoire.tsx": `
+import { useEffect, useState } from "react";
+export default function Grimoire(){
+  const [items,setItems]=useState<any[]>([]); useEffect(()=>{ fetch("/api/grimoire").then(r=>r.json()).then(setItems); },[]);
+  return (<section className="panel"><h3>Grimoire — Sigil Algorithms</h3>
+    <div className="grim-grid">{items.map(x=>(
+      <div key={x.id} className="grim-card"><div className="mono" style={{fontSize:12,color:"#a5b4fc"}}>{x.core}</div>
+      <div className="mono" style={{fontSize:12,color:"#66ffe6"}}>{x.seed}</div></div>
+    ))}</div></section>);
+}
+`,
+"client/src/components/History.tsx": `
+import { useEffect, useState } from "react";
+export default function History(){
+  const [rows,setRows]=useState<any[]>([]); const [detail,setDetail]=useState<any>(null);
+  useEffect(()=>{ fetch("/api/history").then(r=>r.json()).then(setRows); },[]);
+  async function open(id:string){ const j=await fetch(\`/api/history/\${id}\`).then(r=>r.json()); setDetail(j); }
+  return (<section className="panel"><h3>Ritual History</h3>
+    <div className="list">{rows.map(r=>(
+      <div key={r.id} className="card" onClick={()=>open(r.id)} style={{cursor:"pointer"}}>
+        <div className="row"><strong className="mono">{r.date}</strong><span className="mono">seed {r.seed}</span></div>
+      </div>))}</div>
+    {detail && (<div className="panel" style={{marginTop:10}}><div className="mono" style={{fontSize:12,color:"#9aa1b2"}}>Run {detail.id}</div>
+      <pre style={{whiteSpace:"pre-wrap"}}>{JSON.stringify(detail.results,null,2)}</pre></div>)}
+  </section>);
+}
+`,
+"client/src/components/StatsHeaderControls.tsx": `
+import { ScrollDropdown, Slider } from "./Controls";
+export default function StatsHeaderControls({ selTicker, setSelTicker, selPair, setSelPair, pickCount, setPickCount }:{
+  selTicker:string; setSelTicker:(v:string)=>void; selPair:string; setSelPair:(v:string)=>void; pickCount:number; setPickCount:(n:number)=>void;
+}){
+  const TICKER_SET=["NVDA","INTC","AAPL","TSLA","VLO","MPC","OLED","LRCX","MSFT","AMZN","META"];
+  const PAIRS=["USDJPY","EURUSD","USDMXN","USDNOK","USDTHB","GBPUSD","AUDUSD"];
+  return (<div className="grid2" style={{marginTop:8}}>
+    <ScrollDropdown label="Focus Ticker" options={TICKER_SET} value={selTicker} onChange={setSelTicker}/>
+    <ScrollDropdown label="Focus FX Pair" options={PAIRS} value={selPair} onChange={setSelPair}/>
+    <div style={{gridColumn:"1 / -1"}}><Slider label="# Picks to Show" min={4} max={12} step={2} value={pickCount} onChange={setPickCount}/></div>
+  </div>);
+}
+`,
+"client/src/App.tsx": `
+import { useEffect, useRef, useState } from "react";
+import Tabs from "./components/Tabs";
+import RuneCaster from "./components/RuneCaster";
+import PicksPanel from "./components/PicksPanel";
+import StatsPanel from "./components/StatsPanel";
+import OracleAvatar from "./components/OracleAvatar";
+import VCOracle from "./components/VCOracle";
+import Grimoire from "./components/Grimoire";
+import History from "./components/History";
+import UserBar from "./components/UserBar";
+import StatsHeaderControls from "./components/StatsHeaderControls";
+import { fetchRunes, postRitual, fetchStats, fetchDailyOracle, fetchSocialTrends } from "./api";
+import { annotateRunes } from "./data/runes";
+
+export default function App(){
+  const [runes,setRunes]=useState<any[]>([]);
+  const [casting,setCasting]=useState(false);
+  const [results,setResults]=useState<any>(null);
+  const [note,setNote]=useState("");
+  const [disclaimer,setDisclaimer]=useState("");
+  const [stats,setStats]=useState<any>({ day:{}, week:{}, month:{}, lifetime:{} });
+  const [trends,setTrends]=useState<any>(null);
+  const [ciphergram,setCiphergram]=useState<string>("");
+  const [theme,setTheme]=useState<"midnight"|"dawn">("midnight");
+  const wsRef=useRef<WebSocket|null>(null);
+
+  const [selTicker,setSelTicker]=useState("NVDA");
+  const [selPair,setSelPair]=useState("USDJPY");
+  const [pickCount,setPickCount]=useState(6);
+
+  useEffect(()=>{ document.documentElement.dataset.theme=theme; },[theme]);
+
+  useEffect(()=>{ (async()=>{
+      setRunes(annotateRunes(await fetchRunes()));
+      const oracle=await fetchDailyOracle(); setCiphergram(oracle.ciphergram);
+      setStats(await fetchStats()); setTrends(await fetchSocialTrends());
+    })();
+    const proto=location.protocol==="https:"?"wss":"ws"; const ws=new WebSocket(\`\${proto}://\${location.host}\`);
+    ws.onmessage=(ev)=>{ try{ const { type, payload }=JSON.parse(ev.data); if(type==="results") setResults(payload.results); if(type==="social_trends") setTrends(payload);}catch{} };
+    wsRef.current=ws; return()=>{ ws.close(); };
+  },[]);
+
+  async function run(){
+    setCasting(true); setResults(null);
+    const equities=Array.from(new Set([selTicker,"INTC","AAPL","TSLA","VLO","MPC","OLED","LRCX","MSFT","AMZN","META"])).slice(0,pickCount);
+    const fx=Array.from(new Set([selPair,"EURUSD","USDMXN","USDNOK","USDTHB","GBPUSD","AUDUSD"])).slice(0,pickCount);
+    const { ritual, results } = await postRitual({ equities, fx });
+    setTimeout(()=>{ setCasting(false); setResults(results); setNote("Ritual complete. Abraxas whispers: ‘Guard the seam; ride the curve.’"); setDisclaimer("Abraxas is a fictional persona. Sources & methods sealed."); },400);
+    setStats(await fetchStats());
+  }
+
+  return (<div className="wrap">
+    <header className="hdr">
+      <h1>Abraxas</h1>
+      <div className="sub">Financial Cyber Priest — ritual market scanner</div>
+      <UserBar/>
+      <OracleAvatar/>
+      <div className="mono" style={{opacity:.8, fontSize:12, marginTop:6}}>Conjunction: <span style={{color:"#66ffe6"}}>OpenAI</span> × <span style={{color:"#ff4dd2"}}>Anthropic</span> — alchemical fusion</div>
+      <div className="ciphergram">Daily Ciphergram: <span className="cipher">{ciphergram}</span></div>
+      <div style={{marginTop:8}}><button className="btn" onClick={()=> setTheme(theme==="midnight"?"dawn":"midnight")} style={{padding:"6px 10px", fontSize:12}}>Theme: {theme==="midnight"?"Midnight Rite":"Dawn Rite"}</button></div>
+      <StatsHeaderControls selTicker={selTicker} setSelTicker={setSelTicker} selPair={selPair} setSelPair={setSelPair} pickCount={pickCount} setPickCount={setPickCount}/>
+      <button className="btn" onClick={run} disabled={casting} style={{marginTop:8}}>{casting? "Casting…" : "Cast Today's Ritual"}</button>
+    </header>
+
+    {casting && <RuneCaster runes={runes} onComplete={()=>{}}/>}
+    <StatsPanel stats={stats} trends={trends}/>
+
+    {!casting && results && (<>
+      <section className="oracle"><div className="oracle-title">Oracular Note</div><div className="oracle-body">{note}</div><div className="disc">{disclaimer}</div></section>
+      <Tabs tabs={[
+        { id:"eq", title:"Equities", content:(<div className="grid2"><PicksPanel title="Conservative Picks" equities={results.equities.conservative}/><PicksPanel title="Risky Picks" equities={results.equities.risky}/></div>) },
+        { id:"fx", title:"FX", content:(<div className="grid2"><PicksPanel title="Conservative Picks" fx={results.fx.conservative}/><PicksPanel title="Risky Picks" fx={results.fx.risky}/></div>) },
+        { id:"vc", title:"Venture", content:(<VCOracle/>) },
+        { id:"grim", title:"Grimoire", content:(<Grimoire/>) },
+        { id:"hist", title:"History", content:(<History/>) }
+      ]}/>
+    </>)}
+
+    {!casting && !results && (<section className="hint">Press “Cast Today’s Ritual” to animate runes and stream live picks.</section>)}
+    <footer className="ftr">© {new Date().getFullYear()} Abraxas — data-driven ritual UX. Not financial advice.</footer>
+  </div>);
+}
+`,
+"client/src/data/runes.ts": `
+export type FrontRune={ id:string; name:string; svgPath:string; color:string; annotation?:string; confidence?:number };
+export const annotateRunes=(runes:FrontRune[])=> runes.map((r)=>({ ...r, annotation:
+  r.id==="aether"?"Novel IP spike": r.id==="tide"?"Port dwell delta": r.id==="glyph"?"Contract scope change": r.id==="ward"?"Import risk (IPR)": r.id==="summon"?"Clearance hiring burst":"Daily sigil"
+}));
+`,
+"client/src/styles.css": `
+@import url("https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Grotesk:wght@400;700&family=Share+Tech+Mono&display=swap");
+
+:root[data-theme="midnight"] { --bg:#05060f; --bg2:#0b0f21; --ink:#f5f7ff; --muted:#8fa0c7; --gold:#f6c177; --acid:#66ffe6; --magenta:#ff4dd2; --red:#ff3b3b; --cobalt:#5aa2ff; --emerald:#12ffd2; }
+:root[data-theme="dawn"] { --bg:#0b0f1c; --bg2:#10162b; --ink:#fefcf9; --muted:#b7c2e0; --gold:#ffd29a; --acid:#9fffe6; --magenta:#ff84ea; --red:#ff6b6b; --cobalt:#79b3ff; --emerald:#4bffe6; }
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{ margin:0; color:var(--ink);
+  background: radial-gradient(1200px 700px at 50% -10%, #13163a, transparent 70%), radial-gradient(1000px 600px at 100% 0%, #0a0f23, transparent 60%), linear-gradient(var(--bg), #05060f);
+  font-family:"Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+h1,h2,h3{font-family:"Black Ops One", sans-serif; letter-spacing:.03em}
+
+.wrap{max-width:1200px;margin:0 auto;padding:24px}
+.hdr{text-align:center;margin-bottom:18px}
+.hdr h1{ margin:0; font-size:44px; background:conic-gradient(from 90deg, var(--gold), var(--magenta), var(--acid), var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; filter: drop-shadow(0 0 20px rgba(255,77,210,.15)); }
+.sub{color:var(--muted);margin-top:4px}
+
+.btn{ margin-top:12px;padding:12px 18px; background: linear-gradient(90deg, #3b1a9c, #0a7ea4); color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700; text-transform:uppercase; letter-spacing:.06em; box-shadow: 0 10px 20px rgba(0,0,0,.35), inset 0 0 20px rgba(102,255,230,.15); }
+.btn:disabled{opacity:.6;cursor:not-allowed}
+
+.panel{ background: linear-gradient(180deg, var(--bg2), #090c19); border:1px solid #223061;border-radius:14px;padding:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+.chip{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #374151}
+.chip.bull{background:#062923;color:#9effe6;border-color:#0a7f6d}
+.chip.bear{background:#2a0b17;color:#ffc2d6;border-color:#8d123b}
+.chip.low{background:#0f2d10;color:#bbf7d0;border-color:#14532d}
+.chip.high{background:#2e150f;color:#fed7aa;border-color:#7c2d12}
+
+.rune-stage{ background: linear-gradient(180deg, #0b0e1e, #070812); border: 1px solid #1b1f39; border-radius: 12px; height: 280px; margin: 18px 0; position: relative; overflow: hidden; }
+.rune-inner{ height:100%; position:relative; }
+.rune-item{ position:absolute; left:50%; transform:translateX(-50%) rotate(-2deg); text-align:center; }
+.rune-svg{ filter: drop-shadow(0 0 10px rgba(255, 209, 102, 0.25)); }
+.rune-caption{ color:#d1d5db; font-size:12px; margin-top:6px; }
+.rune-name{ font-weight:600; }
+.rune-anno{ opacity:0.8; }
+.rune-finale{ position:absolute; bottom:10px; left:50%; transform:translateX(-50%); color: var(--emerald); font-size:14px; }
+
+.oracle{ background: linear-gradient(180deg, #0c1226, #0a0d1a); border: 1px solid #1c2140; border-radius: 12px; padding: 16px; margin: 16px 0; }
+.oracle-title{ font-weight:700; margin-bottom:6px; color:#eab308; }
+.oracle-body{ font-size:14px; color:#e5e7eb; }
+.disc{ font-size:11px; color:#9aa1b2; margin-top:8px; }
+
+.tabbar{ display:flex; gap:8px; margin-top:6px; }
+.tab{ background:#12142a; color:#cbd5e1; border:1px solid #1e233f; border-radius:8px; padding:8px 12px; cursor:pointer; }
+.tab.active{ background:#1a1f3a; color:#fff; border-color:#2d3565; }
+.tabbody{ margin-top:12px; }
+
+.grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+.list{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+.card{ background:#0f1430; border:1px solid #23316a; border-radius:10px; padding:10px; }
+.row{ display:flex; justify-content:space-between; gap:8px; }
+
+.muted{ color:#9aa1b2; font-size:12px; }
+.feats{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.feat{ background:#0b122b; padding:2px 6px; border-radius:6px; color:#c7d2fe; border:1px solid #1e3a8a; font-size:11px; }
+
+.avatar{ display:flex; flex-direction:column; align-items:center; margin:10px 0 6px; }
+.avatar-svg{ width:160px; height:160px; filter: drop-shadow(0 0 12px rgba(0,255,255,.15)); }
+.avatar-cap{ font-size:12px; color:#a5b4fc; opacity:.9; margin-top:4px; letter-spacing:.5px; }
+
+.ciphergram{ margin-top:8px; font-family:"Share Tech Mono", monospace; color:var(--gold); background:#0a0e1f; border:1px solid #2a3568; padding:8px 12px; border-radius:10px; display:inline-block; box-shadow: inset 0 0 30px rgba(102,255,230,.06); }
+.cipher{ color:var(--acid) }
+
+.stats{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+.stat-card{ background:#0a0f1f; border:1px solid #1d274a; border-radius:10px; padding:10px; }
+.stat-title{ color:#f59e0b; font-weight:600; margin-bottom:6px; }
+.stat-grid{ display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:8px; }
+.k{ color:#9aa1b2; font-size:12px; } .v{ font-size:14px; color:#e5e7eb; } .n{ color:#94a3b8; margin-left:6px; }
+
+.trend-grid{ display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px; }
+.trend{ background:#0a0f1f; border:1px solid #1d274a; border-radius:10px; padding:10px; }
+.trend-title{ color:#a5b4fc; font-weight:700; margin-bottom:6px; }
+.trend-row{ display:flex; gap:16px; justify-content:space-between; }
+.trend-col{ flex:1; }
+
+.grim-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:10px; }
+.grim-card{ background:#0a0f1f; border:1px solid #1d274a; border-radius:10px; padding:10px; min-height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+
+.hint{ text-align:center; color:#9aa1b2; margin:24px 0; }
+.ftr{ margin-top:20px; text-align:center; color:#8b94b0; font-size:12px; }
+
+/* Controls */
+.ctrl{ margin:8px 0; }
+.ctrl-label{ font-size:12px; color:var(--muted); margin-bottom:4px; }
+.ctrl-btn{ width:100%; text-align:left; padding:10px; border:1px solid #2a3568; background:#0b0f21; color:var(--ink); border-radius:10px; cursor:pointer; }
+.ctrl-menu{ margin-top:6px; border:1px solid #2a3568; background:#090c19; border-radius:10px; overflow:auto; }
+.ctrl-item{ padding:8px 10px; border-bottom:1px solid #131a39; cursor:pointer; }
+.ctrl-item:last-child{ border-bottom:none; }
+.ctrl-item.active,.ctrl-item:hover{ background:#10173a; }
+.ctrl-slider{ width:100%; accent-color:#66ffe6; }
+
+@media (max-width: 900px){ .grid2{ grid-template-columns:1fr; } }
+`
+};
+
+// write files
+fs.mkdirSync(ROOT, { recursive: true });
+for (const [rel, content] of Object.entries(files)) writeFile(rel, content);
+
+console.log("✅ Project written to ./abraxas-app");
+console.log("Next steps:");
+console.log("1) cd abraxas-app");
+console.log("2) npm install");
+console.log("3) npm run dev");
+console.log("4) Add Google OAuth + session secrets in Replit (and optional LLM/X keys).");
