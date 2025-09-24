@@ -1,6 +1,11 @@
 node_modules
-dist
+client/node_modules
+*.log
 .DS_Store
+.env
+abraxas.db
+client/dist
+dist
 server/public
 vite.config.ts.*
 *.tar.gz

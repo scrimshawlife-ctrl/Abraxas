@@ -327,3 +327,17 @@
     inset: -1px;
   }
 }
+
+/* Loading shimmer (optional) */
+.loading {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #0b0f21 25%, #0f1430 37%, #0b0f21 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s infinite;
+  color: transparent;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 0 }
+  100% { background-position: -100% 0 }
+}

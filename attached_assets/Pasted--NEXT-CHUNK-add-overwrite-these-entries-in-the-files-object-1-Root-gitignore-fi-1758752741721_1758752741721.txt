@@ -1,0 +1,223 @@
+// ---- NEXT CHUNK: add/overwrite these entries in the `files` object ----
+
+// 1) Root .gitignore
+files[".gitignore"] = `
+node_modules
+client/node_modules
+*.log
+.DS_Store
+.env
+abraxas.db
+client/dist
+`;
+
+// 2) Example env file (docs)
+files[".env.example"] = `
+# --- Google OAuth ---
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+OAUTH_CALLBACK_URL=http://localhost:3000/auth/google/callback
+
+# --- Sessions ---
+SESSION_SECRET=change-me-long-random
+
+# --- Optional LLMs + X ---
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+X_BEARER=
+
+# --- Database (SQLite default) ---
+DATABASE_URL=file:./abraxas.db
+`;
+
+// 3) Replit config (optional but handy)
+files[".replit"] = `
+run = "node server/index.js"
+hidden = [".npmrc"]
+`;
+
+files["replit.nix"] = `
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs_20
+  ];
+}
+`;
+
+// 4) Health & readiness endpoints (server)
+files["server/health.js"] = `
+import db from "./db.js";
+
+export function healthRouter(app){
+  app.get("/healthz", (req,res)=> res.status(200).json({ ok:true, ts: Date.now() }));
+  app.get("/readyz", (req,res)=>{
+    try {
+      db.prepare("SELECT 1").get();
+      res.status(200).json({ ready:true, ts: Date.now() });
+    } catch (e) {
+      res.status(503).json({ ready:false, error: String(e) });
+    }
+  });
+}
+`;
+
+// 5) Wire health routes + stricter static check (server/index.js patch)
+files["server/index.js"] = `
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import http from "http";
+import passport from "passport";
+import { runRitual, getTodayRunes } from "./runes.js";
+import { scoreWatchlists } from "./abraxas.js";
+import metrics, { persistAllSnapshots } from "./metrics.js";
+import { seal, fingerprint } from "./crypto.js";
+import { installRealtime } from "./realtime.js";
+import db, { q } from "./db.js";
+import { sessionMiddleware, googlePassport, ensureAuthed } from "./auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { runSocialScan, getSocialTrends } from "./social_scan.js";
+import { forgeSigil } from "./sigil.js";
+import { analyzeVC, VC_PERSONA } from "./vc_oracle.js";
+import { healthRouter } from "./health.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const server = http.createServer(app);
+const rt = installRealtime(server);
+
+app.use(express.json());
+
+// Health + readiness (before auth)
+healthRouter(app);
+
+// Sessions + Google SSO
+app.use(sessionMiddleware());
+app.use(googlePassport().initialize());
+app.use(googlePassport().session());
+
+// Public login portal
+app.get("/login", (req,res)=> res.sendFile(path.join(__dirname, "..", "client", "dist", "login.html")));
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile","email"] }));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req,res)=> res.redirect("/"));
+app.get("/logout", (req,res)=>{ req.logout(()=>res.redirect("/login")); });
+
+// Guard everything else
+app.use(ensureAuthed);
+
+// Self/user endpoints
+app.get("/api/me", (req,res)=>{
+  const u = db.prepare("SELECT id,email,name,picture,created_at FROM users WHERE id=?").get(req.user?.id);
+  res.json(u || {});
+});
+app.get("/api/history", (req,res)=>{
+  const rows = db.prepare("SELECT id,date,seed,created_at FROM ritual_runs WHERE user_id=? ORDER BY created_at DESC LIMIT 20").all(req.user?.id);
+  res.json(rows);
+});
+app.get("/api/history/:id", (req,res)=>{
+  const row = db.prepare("SELECT * FROM ritual_runs WHERE id=? AND user_id=?").get(req.params.id, req.user?.id);
+  if(!row) return res.status(404).json({error:"not found"});
+  res.json({ ...row, runes: JSON.parse(row.runes_json), results: JSON.parse(row.results_json) });
+});
+app.get("/api/grimoire", (req,res)=>{
+  const rows = db.prepare("SELECT id,core,seed,method,created_at FROM sigils WHERE owner_id=? ORDER BY created_at DESC LIMIT 100").all(req.user?.id);
+  res.json(rows);
+});
+
+// Ritual core
+app.get("/api/runes", (req,res)=> res.json(getTodayRunes()));
+app.get("/api/stats", (req,res)=> res.json(metrics.snapshot()));
+app.get("/api/daily-oracle", (req,res)=>{
+  const s = metrics.snapshot();
+  const conf = s.lifetime.accuracy.acc===null ? 0.5 : s.lifetime.accuracy.acc;
+  const tone = conf>0.6 ? "ascending" : conf>0.52 ? "tempered" : "probing";
+  const b = Buffer.from(JSON.stringify({ day:new Date().toISOString().slice(0,10), tone }), "utf8").toString("base64").replace(/=/g,"");
+  const glyph = b.match(/.{1,8}/g)?.join("·") || b;
+  res.json({ ciphergram: \`⟟Σ \${glyph} Σ⟟\`, note:\`Litany (\${tone}): “Vectors converge; witnesses veiled.”\` });
+});
+
+app.post("/api/ritual", async (req, res) => {
+  const { equities = [], fx = [] } = req.body || {};
+  const ritual = runRitual();
+  const results = scoreWatchlists({ equities, fx }, ritual);
+
+  ["federal_register:DFARS:2025-2191","sam.gov:notice:W91:modP00043","uspto:ptab:IPR-2025-1234"].forEach(s=>metrics.addSource(fingerprint(s)));
+  ["rule:dfars:display","mod:sam:scope","ipr:ptab:oled"].forEach(s=>metrics.addSignal(fingerprint(s)));
+
+  [...(results.equities.conservative||[]), ...(results.equities.risky||[])]
+    .forEach((x,i)=>metrics.addPrediction({ kind:"equity", id:\`eq-\${Date.now()}-\${i}\`, tickerOrPair:x.ticker, edge:x.edge }));
+  [...(results.fx.conservative||[]), ...(results.fx.risky||[])]
+    .forEach((x,i)=>{ metrics.addPrediction({ kind:"fx", id:\`fx-\${Date.now()}-\${i}\`, tickerOrPair:x.pair, edge:x.edge }); metrics.addFxShiftMagnitude(Math.abs(x.edge)); });
+
+  rt.broadcast("results", { results });
+
+  const runId = uuidv4();
+  q.insertRun.run({ id: runId, user_id: req.user?.id || null, date: ritual.date, seed: String(ritual.seed),
+    runes_json: JSON.stringify(ritual.runes), results_json: JSON.stringify(results), created_at: Date.now() });
+  q.insertRecs.run({ id: uuidv4(), user_id: req.user?.id || null, payload_json: JSON.stringify(results), created_at: Date.now() });
+
+  const persistFor = (phrase)=>{ const s=forgeSigil(phrase); q.insertSigil.run({ id: uuidv4(), owner_id: req.user?.id || null, core: s.core, seed: s.seed, method:"traditional_strip+grid3x3+seeded_quadratic", created_at: Date.now() }); };
+  (results.equities.conservative||[]).forEach(x=>persistFor(x.ticker));
+  (results.equities.risky||[]).forEach(x=>persistFor(x.ticker));
+  (results.fx.conservative||[]).forEach(x=>persistFor(x.pair));
+  (results.fx.risky||[]).forEach(x=>persistFor(x.pair));
+
+  const sealed = seal({ ritual, results });
+  res.json({ ritual, results, sealed, disclaimer:"Abraxas persona is fictional; sources & methods sealed. Not financial advice." });
+});
+
+// Social trends
+app.get("/api/social-trends", (req,res)=> res.json(getSocialTrends()));
+app.post("/api/social-trends/scan", async (req,res)=>{
+  const out=await runSocialScan(); rt.broadcast("social_trends", out);
+  try { q.insertTrends.run({ id: uuidv4(), payload_json: JSON.stringify(out), created_at: Date.now() }); } catch {}
+  res.json(out);
+});
+
+// VC Oracle (Athena)
+app.post("/api/vc/analyze", async (req, res)=>{
+  const { industry="Technology", region="US", horizonDays=90 } = req.body || {};
+  try { const out = await analyzeVC({ industry, region, horizonDays }); res.json(out); }
+  catch(e){ res.status(500).json({ error:"vc_oracle_failed", details:String(e) }); }
+});
+app.get("/api/vc/persona", (req,res)=> res.json(VC_PERSONA));
+
+// Serve client
+const clientDir = path.join(__dirname, "..", "client");
+const distDir = path.join(clientDir, "dist");
+app.use(express.static(distDir));
+app.get("*", (req,res)=> res.sendFile(path.join(distDir, "index.html")));
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, ()=> console.log(\`Abraxas listening on http://localhost:\${PORT}\`));
+
+// Schedulers
+(async()=>{ try { await runSocialScan(); rt.broadcast("social_trends", getSocialTrends()); } catch{} })();
+setInterval(async()=>{ try { const out=await runSocialScan(); rt.broadcast("social_trends", out);} catch{} }, 12*60*60*1000);
+setInterval(()=>{ try { persistAllSnapshots(); } catch{} }, 3*60*60*1000);
+`;
+
+// 6) Tiny client polish: add a light “loading” shimmer class (optional)
+files["client/src/styles.css"] += `
+
+/* Loading shimmer (optional) */
+.loading {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #0b0f21 25%, #0f1430 37%, #0b0f21 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s infinite;
+  color: transparent;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 0 }
+  100% { background-position: -100% 0 }
+}
+`;
+
+// 7) Optional: /client/src/env.d.ts (TS quiets down DOM imports)
+files["client/src/env.d.ts"] = `
+/// <reference types="vite/client" />
+`;
