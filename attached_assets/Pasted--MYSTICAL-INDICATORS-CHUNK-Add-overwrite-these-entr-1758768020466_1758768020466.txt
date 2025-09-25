@@ -1,0 +1,557 @@
+// ===================== MYSTICAL INDICATORS CHUNK =====================
+// Add/overwrite these entries in the `files` object in bootstrap.js
+// ====================================================================
+
+// 1) DB: add indicators table + small cache
+files["server/db.js"] = `
+import Database from "better-sqlite3";
+const url = process.env.DATABASE_URL || "file:./abraxas.db";
+const db = new Database(url.replace("file:",""), {});
+
+db.exec(\`
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE, name TEXT, picture TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, user_id TEXT, data TEXT, expires_at INTEGER);
+CREATE TABLE IF NOT EXISTS ritual_runs (id TEXT PRIMARY KEY, user_id TEXT, date TEXT, seed TEXT, runes_json TEXT, results_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS sigils (id TEXT PRIMARY KEY, owner_id TEXT, core TEXT, seed TEXT, method TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS stats_snapshots (id TEXT PRIMARY KEY, scope TEXT, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS social_trends (id TEXT PRIMARY KEY, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS recommendations (id TEXT PRIMARY KEY, user_id TEXT, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS configs (key TEXT PRIMARY KEY, value TEXT, updated_at INTEGER);
+-- New: registered mystical indicators
+CREATE TABLE IF NOT EXISTS indicators (
+  id TEXT PRIMARY KEY,
+  ikey TEXT UNIQUE,         -- weight key: 'ind:<slug>'
+  name TEXT,                -- display name
+  svg_path TEXT,            -- rune path
+  created_at INTEGER
+);
+-- Optional cache for indicator outputs (opaque)
+CREATE TABLE IF NOT EXISTS indicator_cache (
+  id TEXT PRIMARY KEY,
+  ikey TEXT,
+  subject TEXT,             -- ticker/pair/etc
+  value REAL,
+  created_at INTEGER
+);
+\`);
+
+export default db;
+export const q = {
+  upsertUser: db.prepare(\`
+    INSERT INTO users (id,email,name,picture,created_at) VALUES (@id,@email,@name,@picture,@created_at)
+    ON CONFLICT(email) DO UPDATE SET name=@name, picture=@picture
+  \`),
+  insertRun: db.prepare(\`INSERT INTO ritual_runs (id,user_id,date,seed,runes_json,results_json,created_at) VALUES (@id,@user_id,@date,@seed,@runes_json,@results_json,@created_at)\`),
+  insertSigil: db.prepare(\`INSERT INTO sigils (id,owner_id,core,seed,method,created_at) VALUES (@id,@owner_id,@core,@seed,@method,@created_at)\`),
+  insertStats: db.prepare(\`INSERT INTO stats_snapshots (id,scope,payload_json,created_at) VALUES (@id,@scope,@payload_json,@created_at)\`),
+  insertTrends: db.prepare(\`INSERT INTO social_trends (id,payload_json,created_at) VALUES (@id,@payload_json,@created_at)\`),
+  insertRecs: db.prepare(\`INSERT INTO recommendations (id,user_id,payload_json,created_at) VALUES (@id,@user_id,@payload_json,@created_at)\`),
+
+  // configs
+  getConfig: db.prepare("SELECT value FROM configs WHERE key = ?"),
+  setConfig: db.prepare(\`
+    INSERT INTO configs (key, value, updated_at)
+    VALUES (@key, @value, @updated_at)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+  \`),
+
+  // indicators
+  allIndicators: db.prepare("SELECT * FROM indicators ORDER BY created_at DESC"),
+  getIndicatorByKey: db.prepare("SELECT * FROM indicators WHERE ikey = ?"),
+  insertIndicator: db.prepare(\`
+    INSERT INTO indicators (id, ikey, name, svg_path, created_at)
+    VALUES (@id, @ikey, @name, @svg_path, @created_at)
+  \`),
+
+  cachePut: db.prepare(\`
+    INSERT INTO indicator_cache (id, ikey, subject, value, created_at)
+    VALUES (@id, @ikey, @subject, @value, @created_at)
+  \`),
+  cacheGet: db.prepare(\`
+    SELECT value FROM indicator_cache
+    WHERE ikey = ? AND subject = ?
+    ORDER BY created_at DESC LIMIT 1
+  \`)
+};
+`;
+
+// 2) Secret indicator engine (intentionally opaque). Do not expose internals.
+files["server/indicators_secret.js"] = `
+// Indicators Secret — intentionally minimal & opaque.
+// The evaluation blends hashed microstructure with seasonal voodoo.
+// Returned values are normalized ~[-1, +1] and treated like any other feature.
+
+import crypto from "crypto";
+
+function h(seed){ return parseInt(crypto.createHash("sha256").update(seed).digest("hex").slice(0,8),16); }
+function n(seed,scale=1){ const v=((h(seed)%2000)-1000)/1000; return Math.max(-1,Math.min(1, v*scale)); }
+
+// DO NOT REVEAL: toy placeholder
+export function evalIndicator(ikey, subject, ctx){
+  // subject = ticker or fx pair
+  // ctx: { date, seed, aux? }
+  const day = ctx?.date || new Date().toISOString().slice(0,10);
+  const salt = ctx?.seed ?? "Σ";
+  // blend: day, key, subject → quasi-stable signal
+  const base = n(\`\${day}|~|\${ikey}|~|\${subject}|~|\${salt}\`, 0.9);
+  // a tiny lunar-ish wobble
+  const wob = n(\`\${ikey}:wob:\${day}\`, 0.2);
+  return +(base + wob).toFixed(4);
+}
+`;
+
+// 3) Public indicator registry facade (safe APIs, adds dynamic weights).
+files["server/indicators.js"] = `
+import { v4 as uuidv4 } from "uuid";
+import db, { q } from "./db.js";
+import { evalIndicator } from "./indicators_secret.js";
+
+// Rune factory — generate a simple occult-tinged SVG path for a new indicator
+function runePathFromKey(ikey){
+  // aesthetic: concentric diamond + curl; deterministic from key
+  const seed = ikey.split(":").pop() || "x";
+  const hash = [...seed].reduce((a,c)=> (a*33 + c.charCodeAt(0))>>>0, 7);
+  const t = (p)=> (hash % p) / p;
+  const r1 = 10 + (t(97)*20), r2 = 28 + (t(89)*20);
+  const cx = 50 + (t(83)*6 - 3), cy = 50 + (t(79)*6 - 3);
+  const d1 = \`M \${cx} \${cy-r2} L \${cx+r2} \${cy} L \${cx} \${cy+r2} L \${cx-r2} \${cy} Z\`;
+  const d2 = \`M \${cx} \${cy-r1} L \${cx+r1} \${cy} L \${cx} \${cy+r1} L \${cx-r1} \${cy} Z\`;
+  const curl = \`M \${cx-8} \${cy+8} C \${cx-18} \${cy-8}, \${cx+18} \${cy-8}, \${cx+8} \${cy+8}\`;
+  return \`\${d1} \${d2} \${curl}\`;
+}
+
+// Register a new indicator (adds weight key 'ind:<slug>')
+export function registerIndicator({ name, slug }){
+  const ikey = \`ind:\${slug.toLowerCase().replace(/[^a-z0-9-]/g,"-")}\`;
+  const exists = q.getIndicatorByKey.get(ikey);
+  if (exists) return exists;
+  const rec = {
+    id: uuidv4(), ikey, name, svg_path: runePathFromKey(ikey), created_at: Date.now()
+  };
+  q.insertIndicator.run(rec);
+  // Ensure config weight exists (default small positive tilt)
+  try {
+    const row = q.getConfig.get("feature_weights");
+    const current = row?.value ? JSON.parse(row.value) : {};
+    if (typeof current[ikey] !== "number") {
+      current[ikey] = 0.2;
+      q.setConfig.run({ key:"feature_weights", value: JSON.stringify(current), updated_at: Date.now() });
+    }
+  } catch {}
+  return rec;
+}
+
+// Discover routine: occasionally mint 0–2 fresh, esoteric indicators
+export function discoverIndicators(){
+  const day = new Date().toISOString().slice(0,10);
+  const salt = day.replace(/-/g,"");
+  const may = (n)=> ((parseInt(salt.slice(-2),10) + n) % 3)===0; // pseudo randomness
+  const minted = [];
+  if (may(1)) minted.push(registerIndicator({ name:"Chaldean Phase Drift", slug: \`chaldean-phase-\${salt.slice(-3)}\` }));
+  if (may(2)) minted.push(registerIndicator({ name:"Heron's Market Spiral", slug: \`heron-spiral-\${salt.slice(0,3)}\` }));
+  return minted.filter(Boolean);
+}
+
+// Evaluate all dynamic indicator values for a subject (ticker/fx pair)
+export function evalDynamicIndicators(subject, ctx){
+  const out = {};
+  const rows = q.allIndicators.all();
+  for (const ind of rows) {
+    try {
+      const v = evalIndicator(ind.ikey, subject, ctx);
+      out[ind.ikey] = v;
+      // tiny cache (optional)
+      try { q.cachePut.run({ id: uuidv4(), ikey: ind.ikey, subject, value: v, created_at: Date.now() }); } catch {}
+    } catch {}
+  }
+  return out;
+}
+
+// API wiring for server
+export function indicatorRoutes(app){
+  // list indicators (safe: no code)
+  app.get("/api/indicators", (req,res)=>{
+    const rows = q.allIndicators.all();
+    res.json({ items: rows });
+  });
+  // manual register (authed). Keep path obscure.
+  app.post("/api/indicators/_register", (req,res)=>{
+    const { name, slug } = req.body || {};
+    if (!name || !slug) return res.status(400).json({ error:"missing_name_or_slug" });
+    const rec = registerIndicator({ name, slug });
+    res.json({ ok:true, indicator: rec });
+  });
+  // trigger discovery now
+  app.post("/api/indicators/discover", (req,res)=>{
+    const minted = discoverIndicators();
+    res.json({ ok:true, minted });
+  });
+}
+`;
+
+// 4) Abraxis scoring: include dynamic indicator values + allow dynamic weights
+files["server/abraxas.js"] = `
+import crypto from "crypto";
+import { esotericFeatures } from "./esoterica.js";
+import { evalDynamicIndicators } from "./indicators.js";
+
+const DEFAULT_WEIGHTS = {
+  nightlights_z: 0.8, port_dwell_delta: -0.6, sam_mod_scope_delta: 0.9, ptab_ipr_burst: -0.7,
+  fr_waiver_absence: 0.4, jobs_clearance_burst: 0.5, hs_code_volume_z: 0.6, fx_basis_z: -0.4,
+  numerology_reduced: 0.08, numerology_master: 0.12, gematria_alignment: 0.1, astro_rul_align: 0.1, astro_waxing: 0.05
+};
+let CURRENT_WEIGHTS = { ...DEFAULT_WEIGHTS };
+
+export function getWeights(){ return { ...CURRENT_WEIGHTS }; }
+// Allow dynamic keys (prefix "ind:")
+export function setWeights(next){
+  const w = { ...CURRENT_WEIGHTS };
+  for (const k of Object.keys(next||{})) {
+    const allow = (k in DEFAULT_WEIGHTS) || k.startsWith("ind:");
+    const v = next[k];
+    if (allow && typeof v === "number" && isFinite(v) && Math.abs(v) <= 5) w[k] = +v;
+  }
+  CURRENT_WEIGHTS = w;
+  return getWeights();
+}
+
+function hseed(str){ return parseInt(crypto.createHash("sha256").update(str).digest("hex").slice(0,8),16); }
+function applyTransientDelta(base, fmap, delta){ const w={...base}; fmap.forEach(f=>{ if(w[f]!==undefined) w[f]=+(w[f]+delta).toFixed(4); }); return w; }
+
+function demoFeaturesForTicker(ticker, seed){
+  const r = (x)=>(((hseed(ticker+x+seed)%200)-100)/50);
+  return { nightlights_z:r("nl")/2, port_dwell_delta:r("pd")/3, sam_mod_scope_delta:Math.max(0,r("sam")),
+    ptab_ipr_burst:r("ipr")/4, fr_waiver_absence:r("fr")>0?1:0, jobs_clearance_burst:r("jobs")>0.5?1:0, hs_code_volume_z:r("hs")/2 };
+}
+function demoFeaturesForPair(pair, seed){
+  const r=(x)=>(((hseed(pair+x+seed)%200)-100)/50);
+  return { fx_basis_z:r("basis")/2, port_dwell_delta:r("port")/3, hs_code_volume_z:r("hs")/2, nightlights_z:r("nl")/3 };
+}
+function scoreEntity(feats, w){ let s=0; for(const k in feats){ s+=(w[k]||0)*(feats[k]??0);} return s; }
+function sectorGuess(t){ if(/(LMT|NOC|RTX|GD|BA)/.test(t)) return "Aerospace & Defense"; if(/(CVX|XOM|VLO|MPC)/.test(t)) return "Energy"; if(/(JPM|GS|MS|BAC)/.test(t)) return "Financials"; if(/(AMGN|PFE|UNH)/.test(t)) return "Healthcare"; return "Tech"; }
+
+export function scoreWatchlists({ equities=[], fx=[] }, ritual){
+  const seed = ritual.seed.toString();
+  let weights={...CURRENT_WEIGHTS};
+  ritual.deltas.forEach(({feature_map,delta})=>{ weights=applyTransientDelta(weights, feature_map, delta); });
+
+  const eq = equities.map(ticker=>{
+    const feats = demoFeaturesForTicker(ticker, seed);
+    const sector=sectorGuess(ticker);
+    const esoteric = esotericFeatures({ name:ticker, sector, now:new Date() });
+    const dyn = evalDynamicIndicators(ticker, { date: ritual.date, seed });
+    const merged = { ...feats, ...esoteric, ...dyn };
+    const edge = +scoreEntity(merged, weights).toFixed(3);
+    const conf = Math.max(0.1, Math.min(0.95, (Math.abs(edge)/3)+0.05*esoteric.numerology_master+0.05*esoteric.gematria_alignment));
+    const risk = edge>0 ? 1/(1+(feats.ptab_ipr_burst**2)) : 1.15+Math.max(0,feats.ptab_ipr_burst);
+    return { ticker, sector, edge, confidence:+conf.toFixed(2), riskClass:risk<1?"low":"high", features:merged };
+  });
+  const sortedEq=[...eq].sort((a,b)=>b.edge-a.edge);
+  const conservative = sortedEq.filter(x=>x.confidence>=0.6).slice(0,6);
+  const risky = sortedEq.filter(x=>!conservative.includes(x)).slice(0,6);
+
+  const fxList = fx.map(pair=>{
+    const feats = demoFeaturesForPair(pair, seed);
+    const base=pair.slice(0,3), quote=pair.slice(3);
+    const eBase = esotericFeatures({ name:base, sector:"Financials" });
+    const eQuote = esotericFeatures({ name:quote, sector:"Financials" });
+    const eTilt = (eBase.astro_rul_align - eQuote.astro_rul_align) + 0.05*(eBase.numerology_master - eQuote.numerology_master);
+    const dyn = evalDynamicIndicators(pair, { date: ritual.date, seed });
+    const merged = { ...feats, astro_rul_align:eTilt, gematria_alignment:0, ...dyn };
+    const edge = +scoreEntity(merged, weights).toFixed(3);
+    const conf = Math.max(0.1, Math.min(0.95, Math.abs(edge)/3 + Math.max(0,eTilt)/3));
+    return { pair, edge, confidence:+conf.toFixed(2), features:merged };
+  });
+  const sortedFx=[...fxList].sort((a,b)=>b.edge-a.edge);
+  const conservativeFx=sortedFx.filter(x=>x.confidence>=0.6).slice(0,6);
+  const riskyFx=sortedFx.filter(x=>!conservativeFx.includes(x)).slice(0,6);
+
+  function rationaleEq(x){ const ch=[]; if(x.features.sam_mod_scope_delta>0.5) ch.push("Contract scope ↑");
+    if(x.features.nightlights_z>0.8) ch.push("Night-lights ↑");
+    if(x.features.ptab_ipr_burst<-0.2) ch.push("IPR pressure easing");
+    if(Object.keys(x.features).some(k=>k.startsWith("ind:") && x.features[k]>0.5)) ch.push("Arcane tilt");
+    if(x.features.numerology_master) ch.push("Master number");
+    if(x.features.astro_rul_align>0.3) ch.push("Planetary align");
+    return ch.slice(0,4); }
+  function rationaleFx(x){ const ch=[]; if(x.features.fx_basis_z<-0.2) ch.push("Funding stress ↓");
+    if(x.features.port_dwell_delta>0.5) ch.push("Trade flow ↑");
+    if(Object.keys(x.features).some(k=>k.startsWith("ind:") && x.features[k]>0.5)) ch.push("Arcane tilt");
+    if(x.features.astro_rul_align>0.2) ch.push("Planetary align");
+    return ch.slice(0,4); }
+
+  return {
+    equities: { conservative: conservative.map(x=>({ ...x, rationale:rationaleEq(x) })), risky: risky.map(x=>({ ...x, rationale:rationaleEq(x) })) },
+    fx: { conservative: conservativeFx.map(x=>({ ...x, rationale:rationaleFx(x) })), risky: riskyFx.map(x=>({ ...x, rationale:rationaleFx(x) })) },
+    weights
+  };
+}
+export const DEFAULT_FEATURE_WEIGHTS = DEFAULT_WEIGHTS;
+`;
+
+// 5) Runes: include dynamic indicator runes in the daily casting
+files["server/runes.js"] = `
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
+import db, { q } from "./db.js";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const todayPattern = path.join(__dirname, "patterns", "2025-09-24.json");
+
+const BASE_RUNES = [
+  { id:"aether", name:"Aether", color:"#FFD166", svgPath:"M50 10 L70 60 L30 60 Z", feature_map:["nightlights_z","hs_code_volume_z"] },
+  { id:"tide", name:"Tide", color:"#4CC9F0", svgPath:"M10 50 C20 30, 80 30, 90 50 C80 70, 20 70, 10 50 Z", feature_map:["port_dwell_delta","fx_basis_z"] },
+  { id:"glyph", name:"Glyph", color:"#C6F6D5", svgPath:"M20 20 H80 V30 H20 Z M35 40 H65 V80 H35 Z", feature_map:["sam_mod_scope_delta","fr_waiver_absence"] },
+  { id:"ward", name:"Ward", color:"#F87171", svgPath:"M50 20 L80 50 L50 80 L20 50 Z", feature_map:["ptab_ipr_burst"] },
+  { id:"summon", name:"Summon", color:"#A78BFA", svgPath:"M50 15 A35 35 0 1 1 49.9 15 M30 50 L70 50", feature_map:["jobs_clearance_burst"] }
+];
+
+export function getTodayRunes(){
+  let extra=[]; try{ const raw=fs.readFileSync(todayPattern,"utf-8"); extra=[JSON.parse(raw)]; }catch{}
+  // dynamic indicator runes
+  const inds = q.allIndicators.all().map(ind => ({
+    id: ind.ikey, name: ind.name, color:"#66ffe6",
+    svgPath: ind.svg_path,
+    feature_map: [ind.ikey]     // weight key == indicator key
+  }));
+  return [...BASE_RUNES, ...extra, ...inds];
+}
+
+function dseed(s){ return parseInt(crypto.createHash("sha256").update(s).digest("hex").slice(0,8),16); }
+export function runRitual(){
+  const runes = getTodayRunes(); const day = new Date().toISOString().slice(0,10);
+  const seed = dseed(day + ":" + runes.map(r=>r.id).join(","));
+  const deltas = runes.map(r=>{ const h=dseed(r.id+":"+seed); const delta=((h%120)-60)/1000; return { id:r.id, delta, feature_map:r.feature_map }; });
+  return { date:day, seed, runes, deltas };
+}
+`;
+
+// 6) Server: wire routes + auto-discovery daily
+files["server/index.js"] = `
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import http from "http";
+import passport from "passport";
+import { runRitual, getTodayRunes } from "./runes.js";
+import { scoreWatchlists, getWeights, setWeights, DEFAULT_FEATURE_WEIGHTS } from "./abraxas.js";
+import metrics, { persistAllSnapshots } from "./metrics.js";
+import { seal, fingerprint } from "./crypto.js";
+import { installRealtime } from "./realtime.js";
+import db, { q } from "./db.js";
+import { sessionMiddleware, googlePassport, ensureAuthed } from "./auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { runSocialScan, getSocialTrends } from "./social_scan.js";
+import { forgeSigil } from "./sigil.js";
+import { analyzeVC, VC_PERSONA } from "./vc_oracle.js";
+import { healthRouter } from "./health.js";
+import { indicatorRoutes, discoverIndicators } from "./indicators.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const server = http.createServer(app);
+const rt = installRealtime(server);
+
+app.use(express.json());
+
+// Health + readiness
+healthRouter(app);
+
+// Sessions + Google SSO
+app.use(sessionMiddleware());
+app.use(googlePassport().initialize());
+app.use(googlePassport().session());
+
+// Public login portal
+app.get("/login", (req,res)=> res.sendFile(path.join(__dirname, "..", "client", "dist", "login.html")));
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile","email"] }));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req,res)=> res.redirect("/"));
+app.get("/logout", (req,res)=>{ req.logout(()=>res.redirect("/login")); });
+
+// Guard everything else
+app.use(ensureAuthed);
+
+// Indicators API (safe)
+indicatorRoutes(app);
+
+// Config API
+app.get("/api/config", (req,res)=>{
+  const row = q.getConfig.get("feature_weights");
+  let weights = getWeights();
+  if (row?.value) { try { weights = { ...weights, ...JSON.parse(row.value) }; } catch {} }
+  // defaults include dynamic keys (0.2) from indicators table for UI
+  const dyn = Object.fromEntries(q.allIndicators.all().map(ind => [ind.ikey, 0.2]));
+  const defaults = { ...DEFAULT_FEATURE_WEIGHTS, ...dyn };
+  res.json({ weights, defaults });
+});
+app.post("/api/config", (req,res)=>{
+  const { weights } = req.body || {};
+  if (!weights || typeof weights !== "object") return res.status(400).json({ error:"invalid_payload" });
+  const applied = setWeights(weights);
+  q.setConfig.run({ key:"feature_weights", value: JSON.stringify(applied), updated_at: Date.now() });
+  res.json({ ok:true, weights: applied });
+});
+app.post("/api/config/preview", (req,res)=>{
+  const { weights } = req.body || {};
+  const ritual = runRitual();
+  const original = getWeights();
+  const previewed = setWeights(weights||{});
+  const results = scoreWatchlists({ equities:["NVDA","AAPL","TSLA"], fx:["USDJPY","EURUSD"] }, ritual);
+  setWeights(original);
+  res.json({ previewed, results });
+});
+
+// Self/user endpoints
+app.get("/api/me", (req,res)=>{
+  const u = db.prepare("SELECT id,email,name,picture,created_at FROM users WHERE id=?").get(req.user?.id);
+  res.json(u || {});
+});
+app.get("/api/history", (req,res)=>{
+  const rows = db.prepare("SELECT id,date,seed,created_at FROM ritual_runs WHERE user_id=? ORDER BY created_at DESC LIMIT 20").all(req.user?.id);
+  res.json(rows);
+});
+app.get("/api/history/:id", (req,res)=>{
+  const row = db.prepare("SELECT * FROM ritual_runs WHERE id=? AND user_id=?").get(req.params.id, req.user?.id);
+  if(!row) return res.status(404).json({error:"not_found"});
+  res.json({ ...row, runes: JSON.parse(row.runes_json), results: JSON.parse(row.results_json) });
+});
+app.get("/api/grimoire", (req,res)=>{
+  const rows = q.allIndicators.all();
+  const sigils = db.prepare("SELECT id,core,seed,method,created_at FROM sigils WHERE owner_id=? ORDER BY created_at DESC LIMIT 100").all(req.user?.id);
+  res.json({ runes: rows, sigils });
+});
+
+// Ritual core
+app.get("/api/runes", (req,res)=> res.json(getTodayRunes()));
+app.get("/api/stats", (req,res)=> res.json(metrics.snapshot()));
+app.get("/api/daily-oracle", (req,res)=>{
+  const s = metrics.snapshot();
+  const conf = s.lifetime.accuracy.acc===null ? 0.5 : s.lifetime.accuracy.acc;
+  const tone = conf>0.6 ? "ascending" : conf>0.52 ? "tempered" : "probing";
+  const b = Buffer.from(JSON.stringify({ day:new Date().toISOString().slice(0,10), tone }), "utf8").toString("base64").replace(/=/g,"");
+  const glyph = b.match(/.{1,8}/g)?.join("·") || b;
+  res.json({ ciphergram: \`⟟Σ \${glyph} Σ⟟\`, note:\`Litany (\${tone}): “Vectors converge; witnesses veiled.”\` });
+});
+
+app.post("/api/ritual", async (req, res) => {
+  const { equities = [], fx = [] } = req.body || {};
+  const ritual = runRitual();
+  const results = scoreWatchlists({ equities, fx }, ritual);
+
+  ["federal_register:DFARS:2025-2191","sam.gov:notice:W91:modP00043","uspto:ptab:IPR-2025-1234"].forEach(s=>metrics.addSource(fingerprint(s)));
+  ["rule:dfars:display","mod:sam:scope","ipr:ptab:oled"].forEach(s=>metrics.addSignal(fingerprint(s)));
+
+  [...(results.equities.conservative||[]), ...(results.equities.risky||[])]
+    .forEach((x,i)=>metrics.addPrediction({ kind:"equity", id:\`eq-\${Date.now()}-\${i}\`, tickerOrPair:x.ticker, edge:x.edge }));
+  [...(results.fx.conservative||[]), ...(results.fx.risky||[])]
+    .forEach((x,i)=>{ metrics.addPrediction({ kind:"fx", id:\`fx-\${Date.now()}-\${i}\`, tickerOrPair:x.pair, edge:x.edge }); metrics.addFxShiftMagnitude(Math.abs(x.edge)); });
+
+  rt.broadcast("results", { results });
+
+  const runId = uuidv4();
+  q.insertRun.run({ id: runId, user_id: req.user?.id || null, date: ritual.date, seed: String(ritual.seed),
+    runes_json: JSON.stringify(ritual.runes), results_json: JSON.stringify(results), created_at: Date.now() });
+  q.insertRecs.run({ id: uuidv4(), user_id: req.user?.id || null, payload_json: JSON.stringify(results), created_at: Date.now() });
+
+  const persistFor = (phrase)=>{ const s=forgeSigil(phrase); db.prepare("INSERT INTO sigils (id,owner_id,core,seed,method,created_at) VALUES (?,?,?,?,?,?)")
+    .run(uuidv4(), req.user?.id || null, s.core, s.seed, "traditional_strip+grid3x3+seeded_quadratic", Date.now()); };
+  (results.equities.conservative||[]).forEach(x=>persistFor(x.ticker));
+  (results.equities.risky||[]).forEach(x=>persistFor(x.ticker));
+  (results.fx.conservative||[]).forEach(x=>persistFor(x.pair));
+  (results.fx.risky||[]).forEach(x=>persistFor(x.pair));
+
+  const sealed = seal({ ritual, results });
+  res.json({ ritual, results, sealed, disclaimer:"Abraxas persona is fictional; sources & methods sealed. Not financial advice." });
+});
+
+// Social trends
+app.get("/api/social-trends", (req,res)=> res.json(getSocialTrends()));
+app.post("/api/social-trends/scan", async (req,res)=>{
+  const out=await runSocialScan(); rt.broadcast("social_trends", out);
+  try { q.insertTrends.run({ id: uuidv4(), payload_json: JSON.stringify(out), created_at: Date.now() }); } catch {}
+  res.json(out);
+});
+
+// VC Oracle (Athena)
+app.post("/api/vc/analyze", async (req, res)=>{
+  const { industry="Technology", region="US", horizonDays=90 } = req.body || {};
+  try { const out = await analyzeVC({ industry, region, horizonDays }); res.json(out); }
+  catch(e){ res.status(500).json({ error:"vc_oracle_failed", details:String(e) }); }
+});
+app.get("/api/vc/persona", (req,res)=> res.json(VC_PERSONA));
+
+// Serve client
+const clientDir = path.join(__dirname, "..", "client");
+const distDir = path.join(clientDir, "dist");
+app.use(express.static(distDir));
+app.get("*", (req,res)=> res.sendFile(path.join(distDir, "index.html")));
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, ()=> console.log(\`Abraxas listening on http://localhost:\${PORT}\`));
+
+// Schedulers
+(async()=>{
+  try { discoverIndicators(); } catch {}
+  try { await runSocialScan(); rt.broadcast("social_trends", getSocialTrends()); } catch{}
+})();
+setInterval(()=>{ try { discoverIndicators(); } catch{} }, 24*60*60*1000);  // daily
+setInterval(async()=>{ try { const out=await runSocialScan(); rt.broadcast("social_trends", out);} catch{} }, 12*60*60*1000);
+setInterval(()=>{ try { persistAllSnapshots(); } catch{} }, 3*60*60*1000);
+
+// Load persisted weights on boot
+try {
+  const row = q.getConfig.get("feature_weights");
+  if (row?.value) { const parsed = JSON.parse(row.value); setWeights(parsed); console.log("[config] loaded feature_weights from DB"); }
+} catch {}
+`;
+
+// 7) Client Grimoire: show runes + old sigils
+files["client/src/components/Grimoire.tsx"] = `
+import { useEffect, useState } from "react";
+
+function Rune({ r }:{ r:any }){
+  return (
+    <div className="grim-card">
+      <svg viewBox="0 0 100 100" width="72" height="72" style={{filter:"drop-shadow(0 0 8px rgba(102,255,230,.25))"}}>
+        <path d={r.svg_path} fill="none" stroke="#66ffe6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <div className="mono" style={{fontSize:12, color:"#a5b4fc"}}>{r.name}</div>
+      <div className="mono" style={{fontSize:11, color:"#66ffe6"}}>{r.ikey}</div>
+    </div>
+  );
+}
+
+function SigilCard({ x }:{ x:any }){
+  return (
+    <div className="grim-card">
+      <div className="mono" style={{fontSize:12, color:"#a5b4fc"}}>{x.core}</div>
+      <div className="mono" style={{fontSize:12, color:"#66ffe6"}}>{x.seed}</div>
+    </div>
+  );
+}
+
+export default function Grimoire(){
+  const [runes,setRunes] = useState<any[]>([]);
+  const [sigils,setSigils] = useState<any[]>([]);
+  useEffect(()=>{ fetch("/api/grimoire").then(r=>r.json()).then(j=>{ setRunes(j.runes||[]); setSigils(j.sigils||[]); }); },[]);
+  return (
+    <section className="panel">
+      <h3>Grimoire — Runes & Sigils</h3>
+      <div className="stat-title" style={{marginTop:6}}>Runes (Discovered Indicators)</div>
+      <div className="grim-grid">{runes.map((r:any)=>(<Rune key={r.id} r={r}/>))}</div>
+      <div className="stat-title" style={{marginTop:12}}>Sigils (Picks & Rituals)</div>
+      <div className="grim-grid">{sigils.map((x:any)=>(<SigilCard key={x.id} x={x}/>))}</div>
+    </section>
+  );
+}
+`;
+
+// 8) Styles: tiny tweak for rune grid visual
+files["client/src/styles.css"] += `
+
+/* Runes */
+.grim-card svg { margin-bottom:6px; }
+`;
