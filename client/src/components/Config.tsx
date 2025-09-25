@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Slider } from "./Controls";
 import { getConfig, setConfig, previewConfig } from "../api";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 
 const FEATURE_EXPLANATIONS: Record<string, string> = {
   nightlights_z: "Satellite nighttime illumination patterns - economic activity correlation",
@@ -115,30 +116,32 @@ export default function Config(){
         <h4 style={{marginBottom:8}}>Presets</h4>
         <div style={{display:"flex", gap:6, flexWrap:"wrap", marginBottom:8}}>
           {Object.keys(PRESETS).map(preset => (
+            <SimpleTooltip key={preset} content={getPresetDescription(preset)} side="bottom">
+              <button 
+                className="btn" 
+                onClick={() => applyPreset(preset)}
+                style={{
+                  fontSize:"0.85em",
+                  background: currentPreset === preset ? "linear-gradient(90deg,#4a90e2,#357abd)" : undefined
+                }}
+                data-testid={`preset-${preset.toLowerCase()}`}
+              >
+                {preset}
+              </button>
+            </SimpleTooltip>
+          ))}
+          <SimpleTooltip content="Manual configuration with custom weight adjustments" side="bottom">
             <button 
-              key={preset} 
               className="btn" 
-              onClick={() => applyPreset(preset)}
               style={{
                 fontSize:"0.85em",
-                background: currentPreset === preset ? "linear-gradient(90deg,#4a90e2,#357abd)" : undefined
+                background: currentPreset === "Custom" ? "linear-gradient(90deg,#4a90e2,#357abd)" : undefined
               }}
-              data-testid={`preset-${preset.toLowerCase()}`}
-              title={getPresetDescription(preset)}
+              data-testid="preset-custom"
             >
-              {preset}
+              Custom
             </button>
-          ))}
-          <button 
-            className="btn" 
-            style={{
-              fontSize:"0.85em",
-              background: currentPreset === "Custom" ? "linear-gradient(90deg,#4a90e2,#357abd)" : undefined
-            }}
-            data-testid="preset-custom"
-          >
-            Custom
-          </button>
+          </SimpleTooltip>
         </div>
         <div className="mono" style={{fontSize:"0.75em", color:"#7a8394"}}>
           Current: {currentPreset}
@@ -150,25 +153,39 @@ export default function Config(){
             value={Math.round(((weights[key]??0)*100))}
             onChange={(v: number)=> onSliderChange(key, v)}
           />
-          <div 
-            className="mono" 
-            style={{
-              fontSize:"0.75em", 
-              color:"#7a8394", 
-              marginTop:2, 
-              marginLeft:4,
-              fontStyle:"italic"
-            }}
-            title={FEATURE_EXPLANATIONS[key]}
-          >
-            {FEATURE_EXPLANATIONS[key]}
-          </div>
+          <SimpleTooltip content={FEATURE_EXPLANATIONS[key]} side="right">
+            <div 
+              className="mono" 
+              style={{
+                fontSize:"0.75em", 
+                color:"#7a8394", 
+                marginTop:2, 
+                marginLeft:4,
+                fontStyle:"italic",
+                cursor:"help"
+              }}
+            >
+              {FEATURE_EXPLANATIONS[key]}
+            </div>
+          </SimpleTooltip>
         </div>
       ))}
       <div style={{display:"flex", gap:8, marginTop:10, flexWrap:"wrap"}}>
-        <button className="btn" onClick={save} disabled={saving}>{saving? "Saving…" : "Save Weights"}</button>
-        <button className="btn" onClick={reset} style={{background:"linear-gradient(90deg,#7a1a1a,#7a430a)"}}>Reset</button>
-        <button className="btn" onClick={runPreview} style={{background:"linear-gradient(90deg,#0a7a5c,#0a7a2e)"}}>Preview Impact</button>
+        <SimpleTooltip content="Save current weights to persistent storage" side="top">
+          <button className="btn" onClick={save} disabled={saving}>
+            {saving? "Saving…" : "Save Weights"}
+          </button>
+        </SimpleTooltip>
+        <SimpleTooltip content="Reset all weights to default values" side="top">
+          <button className="btn" onClick={reset} style={{background:"linear-gradient(90deg,#7a1a1a,#7a430a)"}}>
+            Reset
+          </button>
+        </SimpleTooltip>
+        <SimpleTooltip content="Test current weights against sample data without saving" side="top">
+          <button className="btn" onClick={runPreview} style={{background:"linear-gradient(90deg,#0a7a5c,#0a7a2e)"}}>
+            Preview Impact
+          </button>
+        </SimpleTooltip>
       </div>
       {preview && (
         <div className="panel" style={{marginTop:12}}>

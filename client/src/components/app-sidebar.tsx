@@ -8,6 +8,7 @@ import {
   SidebarMenuButton, 
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import { 
   PlayCircle, 
   Eye, 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, SimpleTooltip } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Moon, Sun } from "lucide-react";
 
@@ -67,20 +67,26 @@ function App() {
             <div className="flex flex-col flex-1">
               <header className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center gap-4">
-                  <SidebarTrigger data-testid="button-sidebar-toggle" />
-                  <div className="text-lg font-bold text-primary">
-                    ⟟ ABRAXAS ⟟
-                  </div>
+                  <SimpleTooltip content="Toggle navigation sidebar" side="bottom">
+                    <SidebarTrigger data-testid="button-sidebar-toggle" />
+                  </SimpleTooltip>
+                  <SimpleTooltip content="Abraxas Mystical Trading Oracle - Sources & methods sealed" side="bottom">
+                    <div className="text-lg font-bold text-primary cursor-help">
+                      ⟟ ABRAXAS ⟟
+                    </div>
+                  </SimpleTooltip>
                 </div>
                 
-                <Button 
-                  onClick={toggleTheme}
-                  size="icon"
-                  variant="ghost"
-                  data-testid="button-theme-toggle"
-                >
-                  {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </Button>
+                <SimpleTooltip content={`Switch to ${darkMode ? 'light' : 'dark'} mode`} side="bottom">
+                  <Button 
+                    onClick={toggleTheme}
+                    size="icon"
+                    variant="ghost"
+                    data-testid="button-theme-toggle"
+                  >
+                    {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  </Button>
+                </SimpleTooltip>
               </header>
               
               <main className="flex-1 overflow-auto p-6 bg-background">
