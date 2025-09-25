@@ -9,10 +9,13 @@ import {
   insertPredictionSchema,
   insertMysticalMetricsSchema,
   insertUserSessionSchema,
-  insertIndicatorSchema
+  insertIndicatorSchema,
+  insertWatchlistSchema,
+  insertWatchlistItemSchema
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { registerIndicator, discoverIndicators } from "./indicators";
+import { analyzeSymbolPool, updateWatchlistAnalysis } from "./market-analysis";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -471,6 +474,304 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ ok: true, minted });
     } catch (error) {
       res.status(500).json({ error: "Failed to discover indicators" });
+    }
+  });
+
+  // ============================================================================
+  // DYNAMIC WATCHLIST API ENDPOINTS
+  // ============================================================================
+
+  // Get all watchlists (optionally filtered by user)
+  app.get("/api/watchlists", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const watchlists = await storage.getWatchlists(userId as string);
+      res.json({ watchlists });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch watchlists" });
+    }
+  });
+
+  // Get specific watchlist with items
+  app.get("/api/watchlists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const watchlist = await storage.getWatchlistById(id);
+      
+      if (!watchlist) {
+        return res.status(404).json({ error: "Watchlist not found" });
+      }
+      
+      const items = await storage.getWatchlistItems(id);
+      res.json({ watchlist, items });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch watchlist" });
+    }
+  });
+
+  // Create new watchlist
+  app.post("/api/watchlists", async (req, res) => {
+    try {
+      const validation = insertWatchlistSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "validation_failed", 
+          details: validation.error.errors 
+        });
+      }
+      
+      const watchlist = await storage.createWatchlist(validation.data);
+      res.status(201).json({ watchlist });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create watchlist" });
+    }
+  });
+
+  // Update watchlist
+  app.put("/api/watchlists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validation = insertWatchlistSchema.partial().safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "validation_failed", 
+          details: validation.error.errors 
+        });
+      }
+      
+      const watchlist = await storage.updateWatchlist(id, validation.data);
+      
+      if (!watchlist) {
+        return res.status(404).json({ error: "Watchlist not found" });
+      }
+      
+      res.json({ watchlist });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update watchlist" });
+    }
+  });
+
+  // Delete watchlist
+  app.delete("/api/watchlists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteWatchlist(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Watchlist not found" });
+      }
+      
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete watchlist" });
+    }
+  });
+
+  // Get watchlist items
+  app.get("/api/watchlists/:id/items", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const items = await storage.getWatchlistItems(id);
+      res.json(items);
+    } catch (error) {
+      console.error("Get watchlist items error:", error);
+      res.status(500).json({ error: "Failed to get watchlist items" });
+    }
+  });
+
+  // Add item to watchlist
+  app.post("/api/watchlists/:id/items", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validation = insertWatchlistItemSchema.safeParse({
+        ...req.body,
+        watchlistId: id
+      });
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "validation_failed", 
+          details: validation.error.errors 
+        });
+      }
+      
+      const item = await storage.addWatchlistItem(validation.data);
+      res.status(201).json({ item });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add item to watchlist" });
+    }
+  });
+
+  // Update watchlist item
+  app.put("/api/watchlists/:watchlistId/items/:itemId", async (req, res) => {
+    try {
+      const { itemId } = req.params;
+      const validation = insertWatchlistItemSchema.partial().safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "validation_failed", 
+          details: validation.error.errors 
+        });
+      }
+      
+      const item = await storage.updateWatchlistItem(itemId, validation.data);
+      
+      if (!item) {
+        return res.status(404).json({ error: "Watchlist item not found" });
+      }
+      
+      res.json({ item });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update watchlist item" });
+    }
+  });
+
+  // Remove item from watchlist
+  app.delete("/api/watchlists/:watchlistId/items/:itemId", async (req, res) => {
+    try {
+      const { itemId } = req.params;
+      const success = await storage.removeWatchlistItem(itemId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Watchlist item not found" });
+      }
+      
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove item from watchlist" });
+    }
+  });
+
+  // Analyze symbols and suggest candidates for watchlist
+  app.post("/api/watchlists/analyze", async (req, res) => {
+    try {
+      const { symbols, analysisType, limit = 10 } = req.body;
+      
+      if (!symbols || !Array.isArray(symbols)) {
+        return res.status(400).json({ error: "symbols array is required" });
+      }
+      
+      if (!analysisType || !["growth", "short"].includes(analysisType)) {
+        return res.status(400).json({ error: "analysisType must be 'growth' or 'short'" });
+      }
+      
+      // Validate symbol format
+      for (const item of symbols) {
+        if (!item.symbol || !item.type || !["equity", "fx"].includes(item.type)) {
+          return res.status(400).json({ 
+            error: "Each symbol must have 'symbol' and 'type' ('equity' or 'fx')" 
+          });
+        }
+      }
+      
+      const candidates = await analyzeSymbolPool(symbols, analysisType, limit);
+      res.json({ candidates, analysisType });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze symbols" });
+    }
+  });
+
+  // Refresh analysis for watchlist
+  app.post("/api/watchlists/:id/refresh", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await updateWatchlistAnalysis(id);
+      
+      // Return updated watchlist with items
+      const watchlist = await storage.getWatchlistById(id);
+      const items = await storage.getWatchlistItems(id);
+      
+      res.json({ watchlist, items, refreshed: true });
+    } catch (error) {
+      if (error instanceof Error && error.message === "Watchlist not found") {
+        return res.status(404).json({ error: "Watchlist not found" });
+      }
+      res.status(500).json({ error: "Failed to refresh watchlist analysis" });
+    }
+  });
+
+  // Automatically generate growth/short watchlists
+  app.post("/api/watchlists/auto-generate", async (req, res) => {
+    console.log("Auto-generate endpoint called with body:", req.body);
+    try {
+      const { userId, analysisType = "growth", symbolPool, limit = 10 } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+      }
+      
+      if (!["growth", "short"].includes(analysisType)) {
+        return res.status(400).json({ error: "analysisType must be 'growth' or 'short'" });
+      }
+      
+      // Default symbol pool if not provided
+      const defaultSymbolPool = [
+        { symbol: "AAPL", type: "equity" }, { symbol: "MSFT", type: "equity" },
+        { symbol: "GOOGL", type: "equity" }, { symbol: "TSLA", type: "equity" },
+        { symbol: "NVDA", type: "equity" }, { symbol: "AMZN", type: "equity" },
+        { symbol: "META", type: "equity" }, { symbol: "JPM", type: "equity" },
+        { symbol: "EURUSD", type: "fx" }, { symbol: "GBPUSD", type: "fx" },
+        { symbol: "USDJPY", type: "fx" }, { symbol: "AUDUSD", type: "fx" }
+      ];
+      
+      const symbols = symbolPool || defaultSymbolPool;
+      
+      // Check if user already has a watchlist of this type
+      let watchlist = await storage.getWatchlistByType(userId, analysisType);
+      
+      if (!watchlist) {
+        // Create new watchlist
+        watchlist = await storage.createWatchlist({
+          userId,
+          name: analysisType === "growth" ? "Growth Opportunities" : "Short Candidates",
+          type: analysisType,
+          description: `Automatically generated ${analysisType} watchlist based on market analysis`
+        });
+      }
+      
+      // Clear existing items
+      const existingItems = await storage.getWatchlistItems(watchlist.id);
+      for (const item of existingItems) {
+        await storage.removeWatchlistItem(item.id);
+      }
+      
+      // Analyze symbols and add top candidates
+      console.log("About to call analyzeSymbolPool with:", { symbols: symbols.length, analysisType, limit });
+      const candidates = await analyzeSymbolPool(symbols, analysisType, limit);
+      console.log("AnalyzeSymbolPool returned:", candidates.length, "candidates");
+      
+      for (const candidate of candidates) {
+        await storage.addWatchlistItem({
+          watchlistId: watchlist.id,
+          symbol: candidate.symbol,
+          symbolType: candidate.symbolType,
+          analysisScore: candidate.analysisScore,
+          confidence: candidate.confidence,
+          growthPotential: candidate.growthPotential,
+          shortPotential: candidate.shortPotential,
+          riskLevel: candidate.riskLevel,
+          sector: candidate.sector,
+          rationale: candidate.rationale,
+          metadata: candidate.metadata
+        });
+      }
+      
+      // Update watchlist analysis timestamp
+      await storage.updateWatchlist(watchlist.id, {
+        lastAnalyzed: new Date()
+      });
+      
+      const items = await storage.getWatchlistItems(watchlist.id);
+      res.json({ watchlist, items, generated: true });
+    } catch (error) {
+      console.error("Auto-generate watchlist error:", error);
+      res.status(500).json({ 
+        error: "Failed to auto-generate watchlist",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

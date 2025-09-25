@@ -16,6 +16,7 @@ import SigilGenerator from "@/components/SigilGenerator";
 import MetricsPanel from "@/components/MetricsPanel";
 import GrimoireView from "@/components/GrimoireView";
 import Config from "@/components/Config";
+import DynamicWatchlist from "@/components/DynamicWatchlist";
 
 function App() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -47,6 +48,8 @@ function App() {
         return <MetricsPanel />;
       case "/grimoire":
         return <GrimoireView />;
+      case "/watchlist":
+        return <DynamicWatchlist />;
       case "/config":
         return <Config />;
       default:

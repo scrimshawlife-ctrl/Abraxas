@@ -17,7 +17,8 @@ import {
   Activity, 
   History,
   Sparkles,
-  Settings
+  Settings,
+  TrendingUp
 } from "lucide-react";
 
 const menuItems = [
@@ -56,6 +57,12 @@ const menuItems = [
     url: "/grimoire",
     icon: History,
     description: "Historical ritual records"
+  },
+  {
+    title: "Market Watchlist",
+    url: "/watchlist",
+    icon: TrendingUp,
+    description: "Dynamic equity & FX analysis"
   },
   {
     title: "Config",
