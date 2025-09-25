@@ -2,6 +2,22 @@ import { useEffect, useState } from "react";
 import { Slider } from "./Controls";
 import { getConfig, setConfig, previewConfig } from "../api";
 
+const FEATURE_EXPLANATIONS: Record<string, string> = {
+  nightlights_z: "Satellite nighttime illumination patterns - economic activity correlation",
+  port_dwell_delta: "Shipping container dwell time changes - supply chain efficiency indicator", 
+  sam_mod_scope_delta: "Strategic market scope modulation - breadth vs depth trading focus",
+  ptab_ipr_burst: "Patent Trial & Appeal Board activity bursts - innovation cycle timing",
+  fr_waiver_absence: "Federal Register waiver absence patterns - regulatory environment shifts",
+  jobs_clearance_burst: "Employment clearance processing spikes - economic momentum signals",
+  hs_code_volume_z: "Harmonized System trade code volume anomalies - sector rotation hints",
+  fx_basis_z: "Foreign exchange basis point deviations - currency flow irregularities",
+  numerology_reduced: "Pythagorean number reduction of ticker symbols - mystical resonance",
+  numerology_master: "Master number detection (11, 22, 33) - amplified mystical influence",
+  gematria_alignment: "Hebrew/Greek letter-number correspondences - ancient wisdom encoding",
+  astro_rul_align: "Planetary ruler alignments with market sectors - celestial governance",
+  astro_waxing: "Lunar phase influence on market psychology - emotional tide patterns"
+};
+
 const ORDER = [
   "nightlights_z","port_dwell_delta","sam_mod_scope_delta","ptab_ipr_burst","fr_waiver_absence","jobs_clearance_burst","hs_code_volume_z","fx_basis_z",
   "numerology_reduced","numerology_master","gematria_alignment","astro_rul_align","astro_waxing"
@@ -78,6 +94,17 @@ export default function Config(){
     setWeights(w=>({ ...w, [key]: value/100 }));
     setCurrentPreset("Custom"); // Switch to custom when manually adjusting
   }
+  
+  function getPresetDescription(preset: string): string {
+    const descriptions = {
+      Conservative: "Lower risk weights emphasizing stability and traditional indicators",
+      Aggressive: "High weights across all features for maximum market impact sensitivity", 
+      Mystical: "Emphasizes esoteric features: numerology, gematria, and astrological influences",
+      Technical: "Focuses on data-driven indicators with minimal mystical influence",
+      Balanced: "Moderate weights providing equilibrium between all feature types"
+    };
+    return descriptions[preset as keyof typeof descriptions] || "";
+  }
 
   return (
     <section className="panel">
@@ -97,6 +124,7 @@ export default function Config(){
                 background: currentPreset === preset ? "linear-gradient(90deg,#4a90e2,#357abd)" : undefined
               }}
               data-testid={`preset-${preset.toLowerCase()}`}
+              title={getPresetDescription(preset)}
             >
               {preset}
             </button>
@@ -117,10 +145,25 @@ export default function Config(){
         </div>
       </div>
       {ORDER.map(key=>(
-        <Slider key={key} label={key} min={-200} max={200} step={1}
-          value={Math.round(((weights[key]??0)*100))}
-          onChange={(v: number)=> onSliderChange(key, v)}
-        />
+        <div key={key} style={{marginBottom:8}}>
+          <Slider label={key} min={-200} max={200} step={1}
+            value={Math.round(((weights[key]??0)*100))}
+            onChange={(v: number)=> onSliderChange(key, v)}
+          />
+          <div 
+            className="mono" 
+            style={{
+              fontSize:"0.75em", 
+              color:"#7a8394", 
+              marginTop:2, 
+              marginLeft:4,
+              fontStyle:"italic"
+            }}
+            title={FEATURE_EXPLANATIONS[key]}
+          >
+            {FEATURE_EXPLANATIONS[key]}
+          </div>
+        </div>
       ))}
       <div style={{display:"flex", gap:8, marginTop:10, flexWrap:"wrap"}}>
         <button className="btn" onClick={save} disabled={saving}>{saving? "Saving…" : "Save Weights"}</button>
