@@ -15,6 +15,7 @@ import SocialTrendsPanel from "@/components/SocialTrendsPanel";
 import SigilGenerator from "@/components/SigilGenerator";
 import MetricsPanel from "@/components/MetricsPanel";
 import GrimoireView from "@/components/GrimoireView";
+import Config from "@/components/Config";
 
 function App() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -46,6 +47,8 @@ function App() {
         return <MetricsPanel />;
       case "/grimoire":
         return <GrimoireView />;
+      case "/config":
+        return <Config />;
       default:
         return <RitualRunner />;
     }

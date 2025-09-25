@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import http from "http";
 import passport from "passport";
 import { runRitual, getTodayRunes } from "./runes.js";
-import { scoreWatchlists } from "./abraxas.js";
+import { scoreWatchlists, getWeights, setWeights, DEFAULT_FEATURE_WEIGHTS } from "./abraxas.js";
 import metrics, { persistAllSnapshots } from "./metrics.js";
 import { seal, fingerprint } from "./crypto.js";
 import { installRealtime } from "./realtime.js";
@@ -41,6 +41,28 @@ app.get("/logout", (req,res)=>{ req.logout(()=>res.redirect("/login")); });
 
 // Guard everything else
 app.use(ensureAuthed);
+
+// ---- Config API (weights, persisted)
+app.get("/api/config", (req,res)=>{
+  const row = q.getConfig.get("feature_weights");
+  let weights = { ...DEFAULT_FEATURE_WEIGHTS }; // Start with defaults
+  if (row?.value) {
+    try { 
+      const parsed = JSON.parse(row.value); 
+      weights = { ...weights, ...parsed }; // Merge saved weights with defaults
+    } catch {}
+  }
+  res.json({ weights, defaults: DEFAULT_FEATURE_WEIGHTS });
+});
+app.post("/api/config", (req,res)=>{
+  const { weights } = req.body || {};
+  if (!weights || typeof weights !== "object") return res.status(400).json({ error:"invalid_payload" });
+  const applied = setWeights(weights);
+  try {
+    q.setConfig.run({ key:"feature_weights", value: JSON.stringify(applied), updated_at: Date.now() });
+  } catch {}
+  res.json({ ok:true, weights: applied });
+});
 
 // Self/user endpoints
 app.get("/api/me", (req,res)=>{
@@ -132,3 +154,15 @@ server.listen(PORT, ()=> console.log(`Abraxas listening on http://localhost:${PO
 (async()=>{ try { await runSocialScan(); rt.broadcast("social_trends", getSocialTrends()); } catch{} })();
 setInterval(async()=>{ try { const out=await runSocialScan(); rt.broadcast("social_trends", out);} catch{} }, 12*60*60*1000);
 setInterval(()=>{ try { persistAllSnapshots(); } catch{} }, 3*60*60*1000);
+
+// Load weights on boot (if present)
+try {
+  const row = q.getConfig.get("feature_weights");
+  if (row?.value) {
+    const parsed = JSON.parse(row.value);
+    setWeights(parsed);
+    console.log("[config] loaded feature_weights from DB");
+  }
+} catch (e) {
+  console.log("[config] no persisted weights yet");
+}

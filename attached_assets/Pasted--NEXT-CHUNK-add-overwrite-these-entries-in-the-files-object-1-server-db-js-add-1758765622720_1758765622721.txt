@@ -1,0 +1,446 @@
+// ---- NEXT CHUNK: add/overwrite these entries in the `files` object ----
+
+// 1) server/db.js — add a tiny configs table + helpers
+files["server/db.js"] = `
+import Database from "better-sqlite3";
+const url = process.env.DATABASE_URL || "file:./abraxas.db";
+const db = new Database(url.replace("file:",""), {});
+
+db.exec(\`
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE, name TEXT, picture TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, user_id TEXT, data TEXT, expires_at INTEGER);
+CREATE TABLE IF NOT EXISTS ritual_runs (id TEXT PRIMARY KEY, user_id TEXT, date TEXT, seed TEXT, runes_json TEXT, results_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS sigils (id TEXT PRIMARY KEY, owner_id TEXT, core TEXT, seed TEXT, method TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS stats_snapshots (id TEXT PRIMARY KEY, scope TEXT, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS social_trends (id TEXT PRIMARY KEY, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS recommendations (id TEXT PRIMARY KEY, user_id TEXT, payload_json TEXT, created_at INTEGER);
+CREATE TABLE IF NOT EXISTS configs (key TEXT PRIMARY KEY, value TEXT, updated_at INTEGER);
+\`);
+
+export default db;
+export const q = {
+  upsertUser: db.prepare(\`
+    INSERT INTO users (id,email,name,picture,created_at) VALUES (@id,@email,@name,@picture,@created_at)
+    ON CONFLICT(email) DO UPDATE SET name=@name, picture=@picture
+  \`),
+  insertRun: db.prepare(\`INSERT INTO ritual_runs (id,user_id,date,seed,runes_json,results_json,created_at) VALUES (@id,@user_id,@date,@seed,@runes_json,@results_json,@created_at)\`),
+  insertSigil: db.prepare(\`INSERT INTO sigils (id,owner_id,core,seed,method,created_at) VALUES (@id,@owner_id,@core,@seed,@method,@created_at)\`),
+  insertStats: db.prepare(\`INSERT INTO stats_snapshots (id,scope,payload_json,created_at) VALUES (@id,@scope,@payload_json,@created_at)\`),
+  insertTrends: db.prepare(\`INSERT INTO social_trends (id,payload_json,created_at) VALUES (@id,@payload_json,@created_at)\`),
+  insertRecs: db.prepare(\`INSERT INTO recommendations (id,user_id,payload_json,created_at) VALUES (@id,@user_id,@payload_json,@created_at)\`),
+
+  // configs
+  getConfig: db.prepare("SELECT value FROM configs WHERE key = ?"),
+  setConfig: db.prepare(\`
+    INSERT INTO configs (key, value, updated_at)
+    VALUES (@key, @value, @updated_at)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+  \`)
+};
+`;
+
+// 2) server/abraxas.js — make weights live-configurable with get/set
+files["server/abraxas.js"] = `
+import crypto from "crypto";
+import { esotericFeatures } from "./esoterica.js";
+
+const DEFAULT_WEIGHTS = {
+  nightlights_z: 0.8, port_dwell_delta: -0.6, sam_mod_scope_delta: 0.9, ptab_ipr_burst: -0.7,
+  fr_waiver_absence: 0.4, jobs_clearance_burst: 0.5, hs_code_volume_z: 0.6, fx_basis_z: -0.4,
+  numerology_reduced: 0.08, numerology_master: 0.12, gematria_alignment: 0.1, astro_rul_align: 0.1, astro_waxing: 0.05
+};
+let CURRENT_WEIGHTS = { ...DEFAULT_WEIGHTS };
+
+export function getWeights(){ return { ...CURRENT_WEIGHTS }; }
+export function setWeights(next){
+  const w = { ...CURRENT_WEIGHTS };
+  for (const k of Object.keys(DEFAULT_WEIGHTS)) {
+    if (typeof next[k] === "number" && isFinite(next[k]) && Math.abs(next[k]) <= 5) w[k] = +next[k];
+  }
+  CURRENT_WEIGHTS = w;
+  return getWeights();
+}
+
+function hseed(str){ return parseInt(crypto.createHash("sha256").update(str).digest("hex").slice(0,8),16); }
+function applyTransientDelta(base, fmap, delta){ const w={...base}; fmap.forEach(f=>{ if(w[f]!==undefined) w[f]=+(w[f]+delta).toFixed(4); }); return w; }
+
+function demoFeaturesForTicker(ticker, seed){
+  const r = (x)=>(((hseed(ticker+x+seed)%200)-100)/50);
+  return { nightlights_z:r("nl")/2, port_dwell_delta:r("pd")/3, sam_mod_scope_delta:Math.max(0,r("sam")),
+    ptab_ipr_burst:r("ipr")/4, fr_waiver_absence:r("fr")>0?1:0, jobs_clearance_burst:r("jobs")>0.5?1:0, hs_code_volume_z:r("hs")/2 };
+}
+function demoFeaturesForPair(pair, seed){
+  const r=(x)=>(((hseed(pair+x+seed)%200)-100)/50);
+  return { fx_basis_z:r("basis")/2, port_dwell_delta:r("port")/3, hs_code_volume_z:r("hs")/2, nightlights_z:r("nl")/3 };
+}
+function scoreEntity(feats, w){ let s=0; for(const k in feats){ s+=(w[k]||0)*(feats[k]??0);} return s; }
+function sectorGuess(t){ if(/(LMT|NOC|RTX|GD|BA)/.test(t)) return "Aerospace & Defense"; if(/(CVX|XOM|VLO|MPC)/.test(t)) return "Energy"; if(/(JPM|GS|MS|BAC)/.test(t)) return "Financials"; if(/(AMGN|PFE|UNH)/.test(t)) return "Healthcare"; return "Tech"; }
+
+export function scoreWatchlists({ equities=[], fx=[] }, ritual){
+  const seed = ritual.seed.toString();
+  let weights={...CURRENT_WEIGHTS};
+  ritual.deltas.forEach(({feature_map,delta})=>{ weights=applyTransientDelta(weights, feature_map, delta); });
+
+  const eq = equities.map(ticker=>{
+    const feats = demoFeaturesForTicker(ticker, seed);
+    const sector=sectorGuess(ticker);
+    const esoteric = esotericFeatures({ name:ticker, sector, now:new Date() });
+    const merged = { ...feats, ...esoteric };
+    const edge = +scoreEntity(merged, weights).toFixed(3);
+    const conf = Math.max(0.1, Math.min(0.95, (Math.abs(edge)/3)+0.05*esoteric.numerology_master+0.05*esoteric.gematria_alignment));
+    const risk = edge>0 ? 1/(1+(feats.ptab_ipr_burst**2)) : 1.15+Math.max(0,feats.ptab_ipr_burst);
+    return { ticker, sector, edge, confidence:+conf.toFixed(2), riskClass:risk<1?"low":"high", features:merged };
+  });
+  const sortedEq=[...eq].sort((a,b)=>b.edge-a.edge);
+  const conservative = sortedEq.filter(x=>x.confidence>=0.6).slice(0,6);
+  const risky = sortedEq.filter(x=>!conservative.includes(x)).slice(0,6);
+
+  const fxList = fx.map(pair=>{
+    const feats = demoFeaturesForPair(pair, seed);
+    const base=pair.slice(0,3), quote=pair.slice(3);
+    const eBase = esotericFeatures({ name:base, sector:"Financials" });
+    const eQuote = esotericFeatures({ name:quote, sector:"Financials" });
+    const eTilt = (eBase.astro_rul_align - eQuote.astro_rul_align) + 0.05*(eBase.numerology_master - eQuote.numerology_master);
+    const merged = { ...feats, astro_rul_align:eTilt, gematria_alignment:0 };
+    const edge = +scoreEntity(merged, weights).toFixed(3);
+    const conf = Math.max(0.1, Math.min(0.95, Math.abs(edge)/3 + Math.max(0,eTilt)/3));
+    return { pair, edge, confidence:+conf.toFixed(2), features:merged };
+  });
+  const sortedFx=[...fxList].sort((a,b)=>b.edge-a.edge);
+  const conservativeFx=sortedFx.filter(x=>x.confidence>=0.6).slice(0,6);
+  const riskyFx=sortedFx.filter(x=>!conservativeFx.includes(x)).slice(0,6);
+
+  function rationaleEq(x){ const ch=[]; if(x.features.sam_mod_scope_delta>0.5) ch.push("Contract scope ↑");
+    if(x.features.nightlights_z>0.8) ch.push("Night-lights ↑");
+    if(x.features.ptab_ipr_burst<-0.2) ch.push("IPR pressure easing");
+    if(x.features.numerology_master) ch.push("Master number");
+    if(x.features.astro_rul_align>0.3) ch.push("Planetary align");
+    return ch.slice(0,4); }
+  function rationaleFx(x){ const ch=[]; if(x.features.fx_basis_z<-0.2) ch.push("Funding stress ↓");
+    if(x.features.port_dwell_delta>0.5) ch.push("Trade flow ↑");
+    if(x.features.astro_rul_align>0.2) ch.push("Planetary align");
+    return ch.slice(0,4); }
+
+  return {
+    equities: { conservative: conservative.map(x=>({ ...x, rationale:rationaleEq(x) })), risky: risky.map(x=>({ ...x, rationale:rationaleEq(x) })) },
+    fx: { conservative: conservativeFx.map(x=>({ ...x, rationale:rationaleFx(x) })), risky: riskyFx.map(x=>({ ...x, rationale:rationaleFx(x) })) },
+    weights
+  };
+}
+export const DEFAULT_FEATURE_WEIGHTS = DEFAULT_WEIGHTS;
+`;
+
+// 3) server/index.js — add /api/config get/set and load weights on boot
+files["server/index.js"] = `
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import http from "http";
+import passport from "passport";
+import { runRitual, getTodayRunes } from "./runes.js";
+import { scoreWatchlists, getWeights, setWeights, DEFAULT_FEATURE_WEIGHTS } from "./abraxas.js";
+import metrics, { persistAllSnapshots } from "./metrics.js";
+import { seal, fingerprint } from "./crypto.js";
+import { installRealtime } from "./realtime.js";
+import db, { q } from "./db.js";
+import { sessionMiddleware, googlePassport, ensureAuthed } from "./auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { runSocialScan, getSocialTrends } from "./social_scan.js";
+import { forgeSigil } from "./sigil.js";
+import { analyzeVC, VC_PERSONA } from "./vc_oracle.js";
+import { healthRouter } from "./health.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const server = http.createServer(app);
+const rt = installRealtime(server);
+
+app.use(express.json());
+
+// Health + readiness
+healthRouter(app);
+
+// Sessions + Google SSO
+app.use(sessionMiddleware());
+app.use(googlePassport().initialize());
+app.use(googlePassport().session());
+
+// Public login portal
+app.get("/login", (req,res)=> res.sendFile(path.join(__dirname, "..", "client", "dist", "login.html")));
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile","email"] }));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req,res)=> res.redirect("/"));
+app.get("/logout", (req,res)=>{ req.logout(()=>res.redirect("/login")); });
+
+// Guard everything else
+app.use(ensureAuthed);
+
+// ---- Config API (weights, persisted)
+app.get("/api/config", (req,res)=>{
+  const row = q.getConfig.get("feature_weights");
+  let weights = getWeights();
+  if (row?.value) {
+    try { const parsed = JSON.parse(row.value); weights = { ...weights, ...parsed }; } catch {}
+  }
+  res.json({ weights, defaults: DEFAULT_FEATURE_WEIGHTS });
+});
+app.post("/api/config", (req,res)=>{
+  const { weights } = req.body || {};
+  if (!weights || typeof weights !== "object") return res.status(400).json({ error:"invalid_payload" });
+  const applied = setWeights(weights);
+  try {
+    q.setConfig.run({ key:"feature_weights", value: JSON.stringify(applied), updated_at: Date.now() });
+  } catch {}
+  res.json({ ok:true, weights: applied });
+});
+
+// Self/user endpoints
+app.get("/api/me", (req,res)=>{
+  const u = db.prepare("SELECT id,email,name,picture,created_at FROM users WHERE id=?").get(req.user?.id);
+  res.json(u || {});
+});
+app.get("/api/history", (req,res)=>{
+  const rows = db.prepare("SELECT id,date,seed,created_at FROM ritual_runs WHERE user_id=? ORDER BY created_at DESC LIMIT 20").all(req.user?.id);
+  res.json(rows);
+});
+app.get("/api/history/:id", (req,res)=>{
+  const row = db.prepare("SELECT * FROM ritual_runs WHERE id=? AND user_id=?").get(req.params.id, req.user?.id);
+  if(!row) return res.status(404).json({error:"not_found"});
+  res.json({ ...row, runes: JSON.parse(row.runes_json), results: JSON.parse(row.results_json) });
+});
+app.get("/api/grimoire", (req,res)=>{
+  const rows = db.prepare("SELECT id,core,seed,method,created_at FROM sigils WHERE owner_id=? ORDER BY created_at DESC LIMIT 100").all(req.user?.id);
+  res.json(rows);
+});
+
+// Ritual core
+app.get("/api/runes", (req,res)=> res.json(getTodayRunes()));
+app.get("/api/stats", (req,res)=> res.json(metrics.snapshot()));
+app.get("/api/daily-oracle", (req,res)=>{
+  const s = metrics.snapshot();
+  const conf = s.lifetime.accuracy.acc===null ? 0.5 : s.lifetime.accuracy.acc;
+  const tone = conf>0.6 ? "ascending" : conf>0.52 ? "tempered" : "probing";
+  const b = Buffer.from(JSON.stringify({ day:new Date().toISOString().slice(0,10), tone }), "utf8").toString("base64").replace(/=/g,"");
+  const glyph = b.match(/.{1,8}/g)?.join("·") || b;
+  res.json({ ciphergram: \`⟟Σ \${glyph} Σ⟟\`, note:\`Litany (\${tone}): “Vectors converge; witnesses veiled.”\` });
+});
+
+app.post("/api/ritual", async (req, res) => {
+  const { equities = [], fx = [] } = req.body || {};
+  const ritual = runRitual();
+  const results = scoreWatchlists({ equities, fx }, ritual);
+
+  ["federal_register:DFARS:2025-2191","sam.gov:notice:W91:modP00043","uspto:ptab:IPR-2025-1234"].forEach(s=>metrics.addSource(fingerprint(s)));
+  ["rule:dfars:display","mod:sam:scope","ipr:ptab:oled"].forEach(s=>metrics.addSignal(fingerprint(s)));
+
+  [...(results.equities.conservative||[]), ...(results.equities.risky||[])]
+    .forEach((x,i)=>metrics.addPrediction({ kind:"equity", id:\`eq-\${Date.now()}-\${i}\`, tickerOrPair:x.ticker, edge:x.edge }));
+  [...(results.fx.conservative||[]), ...(results.fx.risky||[])]
+    .forEach((x,i)=>{ metrics.addPrediction({ kind:"fx", id:\`fx-\${Date.now()}-\${i}\`, tickerOrPair:x.pair, edge:x.edge }); metrics.addFxShiftMagnitude(Math.abs(x.edge)); });
+
+  rt.broadcast("results", { results });
+
+  const runId = uuidv4();
+  q.insertRun.run({ id: runId, user_id: req.user?.id || null, date: ritual.date, seed: String(ritual.seed),
+    runes_json: JSON.stringify(ritual.runes), results_json: JSON.stringify(results), created_at: Date.now() });
+  q.insertRecs.run({ id: uuidv4(), user_id: req.user?.id || null, payload_json: JSON.stringify(results), created_at: Date.now() });
+
+  const persistFor = (phrase)=>{ const s=forgeSigil(phrase); q.insertSigil.run({ id: uuidv4(), owner_id: req.user?.id || null, core: s.core, seed: s.seed, method:"traditional_strip+grid3x3+seeded_quadratic", created_at: Date.now() }); };
+  (results.equities.conservative||[]).forEach(x=>persistFor(x.ticker));
+  (results.equities.risky||[]).forEach(x=>persistFor(x.ticker));
+  (results.fx.conservative||[]).forEach(x=>persistFor(x.pair));
+  (results.fx.risky||[]).forEach(x=>persistFor(x.pair));
+
+  const sealed = seal({ ritual, results });
+  res.json({ ritual, results, sealed, disclaimer:"Abraxas persona is fictional; sources & methods sealed. Not financial advice." });
+});
+
+// Social trends
+app.get("/api/social-trends", (req,res)=> res.json(getSocialTrends()));
+app.post("/api/social-trends/scan", async (req,res)=>{
+  const out=await runSocialScan(); rt.broadcast("social_trends", out);
+  try { q.insertTrends.run({ id: uuidv4(), payload_json: JSON.stringify(out), created_at: Date.now() }); } catch {}
+  res.json(out);
+});
+
+// VC Oracle (Athena)
+app.post("/api/vc/analyze", async (req, res)=>{
+  const { industry="Technology", region="US", horizonDays=90 } = req.body || {};
+  try { const out = await analyzeVC({ industry, region, horizonDays }); res.json(out); }
+  catch(e){ res.status(500).json({ error:"vc_oracle_failed", details:String(e) }); }
+});
+app.get("/api/vc/persona", (req,res)=> res.json(VC_PERSONA));
+
+// Serve client
+const clientDir = path.join(__dirname, "..", "client");
+const distDir = path.join(clientDir, "dist");
+app.use(express.static(distDir));
+app.get("*", (req,res)=> res.sendFile(path.join(distDir, "index.html")));
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, ()=> console.log(\`Abraxas listening on http://localhost:\${PORT}\`));
+
+// Schedulers
+(async()=>{ try { await runSocialScan(); rt.broadcast("social_trends", getSocialTrends()); } catch{} })();
+setInterval(async()=>{ try { const out=await runSocialScan(); rt.broadcast("social_trends", out);} catch{} }, 12*60*60*1000);
+setInterval(()=>{ try { persistAllSnapshots(); } catch{} }, 3*60*60*1000);
+
+// Load weights on boot (if present)
+try {
+  const row = q.getConfig.get("feature_weights");
+  if (row?.value) {
+    const parsed = JSON.parse(row.value);
+    setWeights(parsed);
+    console.log("[config] loaded feature_weights from DB");
+  }
+} catch (e) {
+  console.log("[config] no persisted weights yet");
+}
+`;
+
+// 4) client/src/api.ts — add config helpers
+files["client/src/api.ts"] = `
+export async function fetchRunes(){ const r=await fetch("/api/runes"); return r.json(); }
+export async function postRitual(payload:{equities:string[];fx:string[]}){ const r=await fetch("/api/ritual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); return r.json(); }
+export async function fetchStats(){ const r=await fetch("/api/stats"); return r.json(); }
+export async function fetchDailyOracle(){ const r=await fetch("/api/daily-oracle"); return r.json(); }
+export async function fetchSocialTrends(){ const r=await fetch("/api/social-trends"); return r.json(); }
+
+export async function getConfig(){ const r=await fetch("/api/config"); return r.json(); }
+export async function setConfig(weights:Record<string,number>){ const r=await fetch("/api/config",{ method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ weights }) }); return r.json(); }
+`;
+
+// 5) client/src/components/Config.tsx — sliders for all weights (+ reset)
+files["client/src/components/Config.tsx"] = `
+import { useEffect, useState } from "react";
+import { Slider } from "./Controls";
+import { getConfig, setConfig } from "../api";
+
+const ORDER = [
+  "nightlights_z","port_dwell_delta","sam_mod_scope_delta","ptab_ipr_burst","fr_waiver_absence","jobs_clearance_burst","hs_code_volume_z","fx_basis_z",
+  "numerology_reduced","numerology_master","gematria_alignment","astro_rul_align","astro_waxing"
+];
+
+export default function Config(){
+  const [weights,setWeights]=useState<Record<string,number>>({});
+  const [defaults,setDefaults]=useState<Record<string,number>>({});
+  const [saving,setSaving]=useState(false);
+
+  useEffect(()=>{ (async()=>{ const cfg=await getConfig(); setWeights(cfg.weights||{}); setDefaults(cfg.defaults||{}); })(); },[]);
+
+  async function save(){
+    setSaving(true);
+    const out=await setConfig(weights);
+    setWeights(out.weights||weights);
+    setSaving(false);
+  }
+  function reset(){ const w={...weights}; for(const k of Object.keys(defaults)) w[k]=defaults[k]; setWeights(w); }
+
+  return (
+    <section className="panel">
+      <h3>Config — Model Weights</h3>
+      <div className="mono" style={{color:"#9aa1b2", marginBottom:8}}>Tune Abraxas' feature weights. Changes persist and apply immediately to new rituals.</div>
+      {ORDER.map(key=>(
+        <Slider key={key} label={key} min={-200} max={200} step={1}
+          value={Math.round(((weights[key]??0)*100))}
+          onChange={(v)=> setWeights(w=>({ ...w, [key]: v/100 }))}
+        />
+      ))}
+      <div style={{display:"flex", gap:8, marginTop:10}}>
+        <button className="btn" onClick={save} disabled={saving}>{saving? "Saving…" : "Save Weights"}</button>
+        <button className="btn" onClick={reset} style={{background:"linear-gradient(90deg,#7a1a1a,#7a430a)"}}>Reset to Defaults</button>
+      </div>
+      <div className="disc" style={{marginTop:8}}>Range: -2.00 to +2.00 (internally clamped to [-5, +5]). Esoteric weights are modest by design; push carefully.</div>
+    </section>
+  );
+}
+`;
+
+// 6) client/src/App.tsx — add a “Config” tab
+files["client/src/App.tsx"] = `
+import { useEffect, useRef, useState } from "react";
+import Tabs from "./components/Tabs";
+import RuneCaster from "./components/RuneCaster";
+import PicksPanel from "./components/PicksPanel";
+import StatsPanel from "./components/StatsPanel";
+import OracleAvatar from "./components/OracleAvatar";
+import VCOracle from "./components/VCOracle";
+import Grimoire from "./components/Grimoire";
+import History from "./components/History";
+import UserBar from "./components/UserBar";
+import StatsHeaderControls from "./components/StatsHeaderControls";
+import Config from "./components/Config";
+import { fetchRunes, postRitual, fetchStats, fetchDailyOracle, fetchSocialTrends } from "./api";
+import { annotateRunes } from "./data/runes";
+
+export default function App(){
+  const [runes,setRunes]=useState<any[]>([]);
+  const [casting,setCasting]=useState(false);
+  const [results,setResults]=useState<any>(null);
+  const [note,setNote]=useState("");
+  const [disclaimer,setDisclaimer]=useState("");
+  const [stats,setStats]=useState<any>({ day:{}, week:{}, month:{}, lifetime:{} });
+  const [trends,setTrends]=useState<any>(null);
+  const [ciphergram,setCiphergram]=useState<string>("");
+  const [theme,setTheme]=useState<"midnight"|"dawn">("midnight");
+  const wsRef=useRef<WebSocket|null>(null);
+
+  const [selTicker,setSelTicker]=useState("NVDA");
+  const [selPair,setSelPair]=useState("USDJPY");
+  const [pickCount,setPickCount]=useState(6);
+
+  useEffect(()=>{ document.documentElement.dataset.theme=theme; },[theme]);
+
+  useEffect(()=>{ (async()=>{
+      setRunes(annotateRunes(await fetchRunes()));
+      const oracle=await fetchDailyOracle(); setCiphergram(oracle.ciphergram);
+      setStats(await fetchStats()); setTrends(await fetchSocialTrends());
+    })();
+    const proto=location.protocol==="https:"?"wss":"ws"; const ws=new WebSocket(\`\${proto}://\${location.host}\`);
+    ws.onmessage=(ev)=>{ try{ const { type, payload }=JSON.parse(ev.data); if(type==="results") setResults(payload.results); if(type==="social_trends") setTrends(payload);}catch{} };
+    wsRef.current=ws; return()=>{ ws.close(); };
+  },[]);
+
+  async function run(){
+    setCasting(true); setResults(null);
+    const equities=Array.from(new Set([selTicker,"INTC","AAPL","TSLA","VLO","MPC","OLED","LRCX","MSFT","AMZN","META"])).slice(0,pickCount);
+    const fx=Array.from(new Set([selPair,"EURUSD","USDMXN","USDNOK","USDTHB","GBPUSD","AUDUSD"])).slice(0,pickCount);
+    const { ritual, results } = await postRitual({ equities, fx });
+    setTimeout(()=>{ setCasting(false); setResults(results); setNote("Ritual complete. Abraxas whispers: ‘Guard the seam; ride the curve.’"); setDisclaimer("Abraxas is a fictional persona. Sources & methods sealed."); },400);
+    setStats(await fetchStats());
+  }
+
+  return (<div className="wrap">
+    <header className="hdr">
+      <h1>Abraxas</h1>
+      <div className="sub">Financial Cyber Priest — ritual market scanner</div>
+      <UserBar/>
+      <OracleAvatar/>
+      <div className="mono" style={{opacity:.8, fontSize:12, marginTop:6}}>Conjunction: <span style={{color:"#66ffe6"}}>OpenAI</span> × <span style={{color:"#ff4dd2"}}>Anthropic</span> — alchemical fusion</div>
+      <div className="ciphergram">Daily Ciphergram: <span className="cipher">{ciphergram}</span></div>
+      <div style={{marginTop:8}}><button className="btn" onClick={()=> setTheme(theme==="midnight"?"dawn":"midnight")} style={{padding:"6px 10px", fontSize:12}}>Theme: {theme==="midnight"?"Midnight Rite":"Dawn Rite"}</button></div>
+      <StatsHeaderControls selTicker={selTicker} setSelTicker={setSelTicker} selPair={selPair} setSelPair={setSelPair} pickCount={pickCount} setPickCount={setPickCount}/>
+      <button className="btn" onClick={run} disabled={casting} style={{marginTop:8}}>{casting? "Casting…" : "Cast Today's Ritual"}</button>
+    </header>
+
+    {casting && <RuneCaster runes={runes} onComplete={()=>{}}/>}
+    <StatsPanel stats={stats} trends={trends}/>
+
+    {!casting && results && (<>
+      <section className="oracle"><div className="oracle-title">Oracular Note</div><div className="oracle-body">{note}</div><div className="disc">{disclaimer}</div></section>
+      <Tabs tabs={[
+        { id:"eq", title:"Equities", content:(<div className="grid2"><PicksPanel title="Conservative Picks" equities={results.equities.conservative}/><PicksPanel title="Risky Picks" equities={results.equities.risky}/></div>) },
+        { id:"fx", title:"FX", content:(<div className="grid2"><PicksPanel title="Conservative Picks" fx={results.fx.conservative}/><PicksPanel title="Risky Picks" fx={results.fx.risky}/></div>) },
+        { id:"vc", title:"Venture", content:(<VCOracle/>) },
+        { id:"grim", title:"Grimoire", content:(<Grimoire/>) },
+        { id:"hist", title:"History", content:(<History/>) },
+        { id:"cfg", title:"Config", content:(<Config/>) }
+      ]}/>
+    </>)}
+
+    {!casting && !results && (<section className="hint">Press “Cast Today’s Ritual” to animate runes and stream live picks.</section>)}
+    <footer className="ftr">© {new Date().getFullYear()} Abraxas — data-driven ritual UX. Not financial advice.</footer>
+  </div>);
+}
+`;

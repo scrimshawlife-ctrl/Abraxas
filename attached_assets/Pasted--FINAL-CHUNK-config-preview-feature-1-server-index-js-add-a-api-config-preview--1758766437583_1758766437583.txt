@@ -1,0 +1,143 @@
+// ---- FINAL CHUNK: config preview feature ----
+
+// 1) server/index.js — add a /api/config/preview route
+files["server/index.js"] = `
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import http from "http";
+import passport from "passport";
+import { runRitual, getTodayRunes } from "./runes.js";
+import { scoreWatchlists, getWeights, setWeights, DEFAULT_FEATURE_WEIGHTS } from "./abraxas.js";
+import metrics, { persistAllSnapshots } from "./metrics.js";
+import { seal, fingerprint } from "./crypto.js";
+import { installRealtime } from "./realtime.js";
+import db, { q } from "./db.js";
+import { sessionMiddleware, googlePassport, ensureAuthed } from "./auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { runSocialScan, getSocialTrends } from "./social_scan.js";
+import { forgeSigil } from "./sigil.js";
+import { analyzeVC, VC_PERSONA } from "./vc_oracle.js";
+import { healthRouter } from "./health.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const server = http.createServer(app);
+const rt = installRealtime(server);
+
+app.use(express.json());
+
+// Health
+healthRouter(app);
+
+// Auth
+app.use(sessionMiddleware());
+app.use(googlePassport().initialize());
+app.use(googlePassport().session());
+
+app.get("/login", (req,res)=> res.sendFile(path.join(__dirname, "..", "client", "dist", "login.html")));
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile","email"] }));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req,res)=> res.redirect("/"));
+app.get("/logout", (req,res)=>{ req.logout(()=>res.redirect("/login")); });
+
+app.use(ensureAuthed);
+
+// Config API
+app.get("/api/config", (req,res)=>{
+  const row = q.getConfig.get("feature_weights");
+  let weights = getWeights();
+  if (row?.value) { try { weights = { ...weights, ...JSON.parse(row.value) }; } catch {} }
+  res.json({ weights, defaults: DEFAULT_FEATURE_WEIGHTS });
+});
+app.post("/api/config", (req,res)=>{
+  const { weights } = req.body || {};
+  if (!weights || typeof weights !== "object") return res.status(400).json({ error:"invalid_payload" });
+  const applied = setWeights(weights);
+  q.setConfig.run({ key:"feature_weights", value: JSON.stringify(applied), updated_at: Date.now() });
+  res.json({ ok:true, weights: applied });
+});
+
+// NEW: preview config without persisting
+app.post("/api/config/preview", (req,res)=>{
+  const { weights } = req.body || {};
+  const ritual = runRitual();
+  // temp apply (don’t persist)
+  const original = getWeights();
+  const previewed = setWeights(weights||{});
+  const results = scoreWatchlists({ equities:["NVDA","AAPL","TSLA"], fx:["USDJPY","EURUSD"] }, ritual);
+  // restore original
+  setWeights(original);
+  res.json({ previewed, results });
+});
+
+// ... keep rest of server (ritual, history, social, VC, serve client) unchanged ...
+`;
+
+// 2) client/src/api.ts — add preview call
+files["client/src/api.ts"] = `
+export async function fetchRunes(){ const r=await fetch("/api/runes"); return r.json(); }
+export async function postRitual(payload){ const r=await fetch("/api/ritual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); return r.json(); }
+export async function fetchStats(){ const r=await fetch("/api/stats"); return r.json(); }
+export async function fetchDailyOracle(){ const r=await fetch("/api/daily-oracle"); return r.json(); }
+export async function fetchSocialTrends(){ const r=await fetch("/api/social-trends"); return r.json(); }
+
+export async function getConfig(){ const r=await fetch("/api/config"); return r.json(); }
+export async function setConfig(weights){ const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({weights})}); return r.json(); }
+export async function previewConfig(weights){ const r=await fetch("/api/config/preview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({weights})}); return r.json(); }
+`;
+
+// 3) client/src/components/Config.tsx — add Preview button + panel
+files["client/src/components/Config.tsx"] = `
+import { useEffect, useState } from "react";
+import { Slider } from "./Controls";
+import { getConfig, setConfig, previewConfig } from "../api";
+
+const ORDER = ["nightlights_z","port_dwell_delta","sam_mod_scope_delta","ptab_ipr_burst","fr_waiver_absence","jobs_clearance_burst","hs_code_volume_z","fx_basis_z","numerology_reduced","numerology_master","gematria_alignment","astro_rul_align","astro_waxing"];
+
+export default function Config(){
+  const [weights,setWeights]=useState({});
+  const [defaults,setDefaults]=useState({});
+  const [saving,setSaving]=useState(false);
+  const [preview,setPreview]=useState(null);
+
+  useEffect(()=>{ (async()=>{ const cfg=await getConfig(); setWeights(cfg.weights||{}); setDefaults(cfg.defaults||{}); })(); },[]);
+
+  async function save(){
+    setSaving(true);
+    const out=await setConfig(weights);
+    setWeights(out.weights||weights);
+    setSaving(false);
+  }
+  function reset(){ const w={...weights}; for(const k of Object.keys(defaults)) w[k]=defaults[k]; setWeights(w); }
+  async function runPreview(){
+    const out=await previewConfig(weights);
+    setPreview(out);
+  }
+
+  return (
+    <section className="panel">
+      <h3>Config — Model Weights</h3>
+      <div className="mono" style={{color:"#9aa1b2", marginBottom:8}}>Tune Abraxas' feature weights. You can preview effects before saving.</div>
+      {ORDER.map(key=>(
+        <Slider key={key} label={key} min={-200} max={200} step={1}
+          value={Math.round(((weights[key]??0)*100))}
+          onChange={(v)=> setWeights(w=>({ ...w, [key]: v/100 }))}
+        />
+      ))}
+      <div style={{display:"flex", gap:8, marginTop:10, flexWrap:"wrap"}}>
+        <button className="btn" onClick={save} disabled={saving}>{saving? "Saving…" : "Save Weights"}</button>
+        <button className="btn" onClick={reset} style={{background:"linear-gradient(90deg,#7a1a1a,#7a430a)"}}>Reset</button>
+        <button className="btn" onClick={runPreview} style={{background:"linear-gradient(90deg,#0a7a5c,#0a7a2e)"}}>Preview Impact</button>
+      </div>
+      {preview && (
+        <div className="panel" style={{marginTop:12}}>
+          <h4>Preview Results (not saved)</h4>
+          <pre style={{whiteSpace:"pre-wrap", fontSize:12}}>{JSON.stringify(preview.results,null,2)}</pre>
+        </div>
+      )}
+    </section>
+  );
+}
+`;

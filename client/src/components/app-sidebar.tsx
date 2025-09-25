@@ -15,7 +15,8 @@ import {
   Hash, 
   Activity, 
   History,
-  Sparkles 
+  Sparkles,
+  Settings
 } from "lucide-react";
 
 const menuItems = [
@@ -54,6 +55,12 @@ const menuItems = [
     url: "/grimoire",
     icon: History,
     description: "Historical ritual records"
+  },
+  {
+    title: "Config",
+    url: "/config",
+    icon: Settings,
+    description: "Tune mystical algorithm weights"
   }
 ];
 
