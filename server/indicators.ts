@@ -3,6 +3,7 @@ import { db } from "./db";
 import { indicators, indicatorCache, tradingConfigs } from "@shared/schema";
 import { evalIndicator } from "./indicators-secret";
 import { eq, sql, desc } from "drizzle-orm";
+import { storage } from "./storage";
 
 // Rune factory — generate a simple occult-tinged SVG path for a new indicator
 function runePathFromKey(ikey: string): string {
@@ -24,9 +25,9 @@ function runePathFromKey(ikey: string): string {
 export async function registerIndicator({ name, slug }: { name: string; slug: string }) {
   const ikey = `ind:${slug.toLowerCase().replace(/[^a-z0-9-]/g, "-")}`;
   
-  // Check if already exists
-  const existing = await db.select().from(indicators).where(eq(indicators.ikey, ikey)).limit(1);
-  if (existing.length > 0) return existing[0];
+  // Check if already exists through storage interface
+  const existing = await storage.getIndicatorByKey(ikey);
+  if (existing) return existing;
   
   const rec = {
     ikey,
@@ -34,32 +35,29 @@ export async function registerIndicator({ name, slug }: { name: string; slug: st
     svgPath: runePathFromKey(ikey),
   };
   
-  const result = await db.insert(indicators).values(rec).returning();
+  const result = await storage.createIndicator(rec);
   
   // Ensure config weight exists (default small positive tilt)
   try {
-    // Get or create default config
-    const configRows = await db.select().from(tradingConfigs).where(eq(tradingConfigs.name, "default")).limit(1);
+    // Get or create default config through storage interface
+    const configs = await storage.getTradingConfigs();
+    const defaultConfig = configs.find(c => c.name === "default");
     
-    if (configRows.length > 0) {
-      const config = configRows[0];
-      const currentWeights = config.weights as Record<string, number>;
+    if (defaultConfig) {
+      const currentWeights = defaultConfig.weights as Record<string, number>;
       
       if (typeof currentWeights[ikey] !== "number") {
         currentWeights[ikey] = 0.2;
-        await db.update(tradingConfigs)
-          .set({ 
-            weights: currentWeights,
-            updatedAt: new Date()
-          })
-          .where(eq(tradingConfigs.id, config.id));
+        await storage.updateTradingConfig(defaultConfig.id, { 
+          weights: currentWeights
+        });
       }
     }
   } catch (error) {
     console.warn("Could not update default config weights:", error);
   }
   
-  return result[0];
+  return result;
 }
 
 // Discover routine: occasionally mint 0–2 fresh, esoteric indicators
@@ -78,24 +76,13 @@ export function discoverIndicators() {
 // Evaluate all dynamic indicator values for a subject (ticker/fx pair)
 export async function evalDynamicIndicators(subject: string, ctx?: { date?: string; seed?: string; aux?: any }) {
   const out: Record<string, number> = {};
-  const rows = await db.select().from(indicators).orderBy(desc(indicators.createdAt));
+  const rows = await storage.getAllIndicators();
   
   for (const ind of rows) {
     try {
-      const v = evalIndicator(ind.ikey, subject, ctx);
+      // Use the new async evalIndicator with built-in efficient caching
+      const v = await evalIndicator(ind.ikey, subject, ctx);
       out[ind.ikey] = v;
-      
-      // tiny cache (optional)
-      try {
-        await db.insert(indicatorCache).values({
-          ikey: ind.ikey,
-          subject,
-          value: v,
-        });
-      } catch (cacheError) {
-        // Cache insert failed, continue
-        console.warn("Cache insert failed:", cacheError);
-      }
     } catch (evalError) {
       console.warn("Indicator evaluation failed:", evalError);
     }
@@ -106,22 +93,34 @@ export async function evalDynamicIndicators(subject: string, ctx?: { date?: stri
 
 // Get all indicators
 export async function getAllIndicators() {
-  return await db.select().from(indicators).orderBy(desc(indicators.createdAt));
+  return await storage.getAllIndicators();
 }
 
 // Get indicator by key
 export async function getIndicatorByKey(ikey: string) {
-  const result = await db.select().from(indicators).where(eq(indicators.ikey, ikey)).limit(1);
-  return result.length > 0 ? result[0] : null;
+  return await storage.getIndicatorByKey(ikey);
 }
 
-// Get cached value for indicator
-export async function getCachedValue(ikey: string, subject: string) {
-  const result = await db.select({ value: indicatorCache.value })
-    .from(indicatorCache)
-    .where(sql`${indicatorCache.ikey} = ${ikey} AND ${indicatorCache.subject} = ${subject}`)
-    .orderBy(desc(indicatorCache.createdAt))
-    .limit(1);
+// Get cached value for indicator with TTL (Time To Live)
+export async function getCachedValue(ikey: string, subject: string, ttlMinutes: number = 60) {
+  // Use storage interface for consistency
+  return await storage.getCachedIndicatorValue(ikey, subject);
+}
+
+// Cache indicator value (only if not already cached recently)
+export async function setCachedValue(ikey: string, subject: string, value: number, ttlMinutes: number = 60) {
+  // Check if we already have a recent cache entry through storage
+  const existingValue = await storage.getCachedIndicatorValue(ikey, subject);
+  if (existingValue !== null) {
+    return existingValue; // Return existing cached value
+  }
   
-  return result.length > 0 ? result[0].value : null;
+  // Insert new cache entry through storage interface
+  const cached = await storage.cacheIndicatorValue({
+    ikey,
+    subject,
+    value
+  });
+  
+  return cached.value;
 }

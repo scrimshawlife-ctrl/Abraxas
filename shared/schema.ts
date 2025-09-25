@@ -128,6 +128,10 @@ export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
 export const insertIndicatorSchema = createInsertSchema(indicators).omit({
   id: true,
   createdAt: true,
+}).extend({
+  ikey: z.string().regex(/^ind:[a-z0-9-]{1,64}$/, "Indicator key must be format 'ind:slug' where slug is alphanumeric with dashes, 1-64 characters"),
+  name: z.string().min(1).max(128, "Name must be 1-128 characters"),
+  svgPath: z.string().min(1).max(2000, "SVG path must be 1-2000 characters")
 });
 
 export const insertIndicatorCacheSchema = createInsertSchema(indicatorCache).omit({

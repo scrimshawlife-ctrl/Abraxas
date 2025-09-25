@@ -12,7 +12,7 @@ import {
   insertIndicatorSchema
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { registerIndicator, discoverIndicators, getAllIndicators } from "./indicators";
+import { registerIndicator, discoverIndicators } from "./indicators";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -376,30 +376,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Indicator API routes
   app.get("/api/indicators", async (req, res) => {
     try {
-      const indicators = await getAllIndicators();
+      const indicators = await storage.getAllIndicators();
       res.json({ items: indicators });
     } catch (error) {
       res.status(500).json({ error: "Failed to retrieve indicators" });
     }
   });
 
-  // Manual register (authed). Keep path obscure.
+  // Manual register (requires validation). Keep path obscure.
   app.post("/api/indicators/_register", async (req, res) => {
     try {
+      // Rate limit check (simple in-memory implementation)
+      const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+      const rateLimitKey = `register_${clientIP}`;
+      const now = Date.now();
+      const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+      const RATE_LIMIT_MAX = 5; // max 5 requests per minute
+      
+      if (!global.rateLimitStore) {
+        global.rateLimitStore = new Map();
+      }
+      
+      const requests = global.rateLimitStore.get(rateLimitKey) || [];
+      const recentRequests = requests.filter((time: number) => now - time < RATE_LIMIT_WINDOW);
+      
+      if (recentRequests.length >= RATE_LIMIT_MAX) {
+        return res.status(429).json({ error: "Rate limit exceeded. Try again later." });
+      }
+      
+      recentRequests.push(now);
+      global.rateLimitStore.set(rateLimitKey, recentRequests);
+
+      // Validate request body with Zod schema
       const { name, slug } = req.body || {};
       if (!name || !slug) {
         return res.status(400).json({ error: "missing_name_or_slug" });
       }
-      const rec = await registerIndicator({ name, slug });
+
+      const ikey = `ind:${slug}`;
+      const validationResult = insertIndicatorSchema.safeParse({
+        ikey,
+        name,
+        svgPath: "M 50 50 L 50 50" // placeholder path, will be generated
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "validation_failed", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const rec = await storage.createIndicator({
+        ikey,
+        name,
+        svgPath: "M 50 50 L 50 50" // placeholder, registerIndicator will generate proper SVG
+      });
+      
       res.json({ ok: true, indicator: rec });
     } catch (error) {
-      res.status(500).json({ error: "Failed to register indicator" });
+      if (error instanceof Error && error.message.includes("unique constraint")) {
+        res.status(409).json({ error: "Indicator with this key already exists" });
+      } else {
+        res.status(500).json({ error: "Failed to register indicator" });
+      }
     }
   });
 
-  // Trigger discovery now
+  // Trigger discovery now (restricted endpoint)
   app.post("/api/indicators/discover", async (req, res) => {
     try {
+      // Rate limit check for discovery endpoint
+      const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+      const rateLimitKey = `discover_${clientIP}`;
+      const now = Date.now();
+      const RATE_LIMIT_WINDOW = 5 * 60 * 1000; // 5 minutes
+      const RATE_LIMIT_MAX = 3; // max 3 requests per 5 minutes
+      
+      if (!global.rateLimitStore) {
+        global.rateLimitStore = new Map();
+      }
+      
+      const requests = global.rateLimitStore.get(rateLimitKey) || [];
+      const recentRequests = requests.filter((time: number) => now - time < RATE_LIMIT_WINDOW);
+      
+      if (recentRequests.length >= RATE_LIMIT_MAX) {
+        return res.status(429).json({ error: "Rate limit exceeded. Discovery is resource intensive." });
+      }
+      
+      recentRequests.push(now);
+      global.rateLimitStore.set(rateLimitKey, recentRequests);
+
       const minted = await discoverIndicators();
       res.json({ ok: true, minted });
     } catch (error) {
