@@ -18,7 +18,8 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { users, tradingConfigs, ritualHistory, predictions, mysticalMetrics, userSessions, indicators, indicatorCache } from "@shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
+import crypto from "crypto";
 
 export interface IStorage {
   // User operations
@@ -56,7 +57,7 @@ export interface IStorage {
   getAllIndicators(): Promise<Indicator[]>;
   getIndicatorByKey(ikey: string): Promise<Indicator | undefined>;
   createIndicator(indicator: InsertIndicator): Promise<Indicator>;
-  getCachedIndicatorValue(ikey: string, subject: string): Promise<number | null>;
+  getCachedIndicatorValue(ikey: string, subject: string, day: string, seed: string, ttlMinutes?: number): Promise<number | null>;
   cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache>;
 }
 
@@ -239,10 +240,18 @@ export class PostgresStorage implements IStorage {
     return result[0];
   }
 
-  async getCachedIndicatorValue(ikey: string, subject: string): Promise<number | null> {
+  async getCachedIndicatorValue(ikey: string, subject: string, day: string, seed: string, ttlMinutes: number = 60): Promise<number | null> {
+    const cutoffTime = new Date(Date.now() - ttlMinutes * 60 * 1000);
+    
     const result = await db.select({ value: indicatorCache.value })
       .from(indicatorCache)
-      .where(and(eq(indicatorCache.ikey, ikey), eq(indicatorCache.subject, subject)))
+      .where(and(
+        eq(indicatorCache.ikey, ikey), 
+        eq(indicatorCache.subject, subject),
+        eq(indicatorCache.day, day),
+        eq(indicatorCache.seed, seed),
+        sql`${indicatorCache.createdAt} > ${cutoffTime}`
+      ))
       .orderBy(desc(indicatorCache.createdAt))
       .limit(1);
     
@@ -302,7 +311,7 @@ export class MemStorage implements IStorage {
   async getAllIndicators(): Promise<Indicator[]> { return []; }
   async getIndicatorByKey(ikey: string): Promise<Indicator | undefined> { return undefined; }
   async createIndicator(indicator: InsertIndicator): Promise<Indicator> { throw new Error("Not implemented in MemStorage"); }
-  async getCachedIndicatorValue(ikey: string, subject: string): Promise<number | null> { return null; }
+  async getCachedIndicatorValue(ikey: string, subject: string, day: string, seed: string, ttlMinutes?: number): Promise<number | null> { return null; }
   async cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache> { throw new Error("Not implemented in MemStorage"); }
 }
 

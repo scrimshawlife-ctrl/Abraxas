@@ -3,7 +3,7 @@
 // Returned values are normalized ~[-1, +1] and treated like any other feature.
 
 import crypto from "crypto";
-import { setCachedValue, getCachedValue } from "./indicators";
+import { getCachedIndicatorValue, setCachedIndicatorValue } from "./indicator-cache";
 
 function h(seed: string): number { 
   return parseInt(crypto.createHash("sha256").update(seed).digest("hex").slice(0,8), 16); 
@@ -21,9 +21,8 @@ export async function evalIndicator(ikey: string, subject: string, ctx?: { date?
   const day = ctx?.date || new Date().toISOString().slice(0, 10);
   const salt = ctx?.seed ?? "Σ";
   
-  // Check cache first (60-minute TTL)
-  const cacheKey = `${ikey}:${subject}:${day}:${salt}`;
-  const cached = await getCachedValue(cacheKey, subject, 60);
+  // Check cache first (60-minute TTL) - use proper ikey with day/seed scoping
+  const cached = await getCachedIndicatorValue(ikey, subject, day, salt, 60);
   if (cached !== null) {
     return cached;
   }
@@ -36,8 +35,8 @@ export async function evalIndicator(ikey: string, subject: string, ctx?: { date?
   
   const result = +(base + wob).toFixed(4);
   
-  // Cache the result with efficient read-through strategy
-  await setCachedValue(cacheKey, subject, result, 60);
+  // Cache the result with efficient read-through strategy using proper ikey with day/seed
+  await setCachedIndicatorValue(ikey, subject, day, salt, result, 60);
   
   return result;
 }

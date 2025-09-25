@@ -407,31 +407,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       recentRequests.push(now);
       global.rateLimitStore.set(rateLimitKey, recentRequests);
 
-      // Validate request body with Zod schema
+      // Validate request body with basic checks first
       const { name, slug } = req.body || {};
       if (!name || !slug) {
         return res.status(400).json({ error: "missing_name_or_slug" });
       }
 
-      const ikey = `ind:${slug}`;
-      const validationResult = insertIndicatorSchema.safeParse({
-        ikey,
-        name,
-        svgPath: "M 50 50 L 50 50" // placeholder path, will be generated
-      });
-
-      if (!validationResult.success) {
+      // Validate slug format separately before passing to registerIndicator
+      const slugRegex = /^[a-z0-9-]{1,64}$/;
+      if (!slugRegex.test(slug)) {
         return res.status(400).json({ 
-          error: "validation_failed", 
-          details: validationResult.error.errors 
+          error: "invalid_slug", 
+          details: "Slug must be alphanumeric with dashes, 1-64 characters" 
         });
       }
 
-      const rec = await storage.createIndicator({
-        ikey,
-        name,
-        svgPath: "M 50 50 L 50 50" // placeholder, registerIndicator will generate proper SVG
-      });
+      // Validate name length
+      if (name.length < 1 || name.length > 128) {
+        return res.status(400).json({ 
+          error: "invalid_name", 
+          details: "Name must be 1-128 characters" 
+        });
+      }
+
+      // Call registerIndicator to get proper SVG generation and config updates
+      const rec = await registerIndicator({ name, slug });
       
       res.json({ ok: true, indicator: rec });
     } catch (error) {

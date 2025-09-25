@@ -88,6 +88,8 @@ export const indicatorCache = pgTable("indicator_cache", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   ikey: text("ikey").notNull().references(() => indicators.ikey),
   subject: text("subject").notNull(), // ticker/pair/etc
+  day: text("day").notNull(), // date string for day scoping
+  seed: text("seed").notNull(), // seed for deterministic scoping
   value: real("value").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -137,6 +139,9 @@ export const insertIndicatorSchema = createInsertSchema(indicators).omit({
 export const insertIndicatorCacheSchema = createInsertSchema(indicatorCache).omit({
   id: true,
   createdAt: true,
+}).extend({
+  day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Day must be YYYY-MM-DD format"),
+  seed: z.string().min(1).max(64, "Seed must be 1-64 characters")
 });
 
 // Export types

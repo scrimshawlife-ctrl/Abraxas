@@ -101,26 +101,6 @@ export async function getIndicatorByKey(ikey: string) {
   return await storage.getIndicatorByKey(ikey);
 }
 
-// Get cached value for indicator with TTL (Time To Live)
-export async function getCachedValue(ikey: string, subject: string, ttlMinutes: number = 60) {
-  // Use storage interface for consistency
-  return await storage.getCachedIndicatorValue(ikey, subject);
-}
-
-// Cache indicator value (only if not already cached recently)
-export async function setCachedValue(ikey: string, subject: string, value: number, ttlMinutes: number = 60) {
-  // Check if we already have a recent cache entry through storage
-  const existingValue = await storage.getCachedIndicatorValue(ikey, subject);
-  if (existingValue !== null) {
-    return existingValue; // Return existing cached value
-  }
-  
-  // Insert new cache entry through storage interface
-  const cached = await storage.cacheIndicatorValue({
-    ikey,
-    subject,
-    value
-  });
-  
-  return cached.value;
-}
+// Caching functions moved to indicator-cache.ts to avoid circular imports
+// These are re-exported for backward compatibility if needed
+export { getCachedIndicatorValue, setCachedIndicatorValue } from "./indicator-cache";
