@@ -10,10 +10,14 @@ import {
   type MysticalMetrics,
   type InsertMysticalMetrics,
   type UserSession,
-  type InsertUserSession
+  type InsertUserSession,
+  type Indicator,
+  type InsertIndicator,
+  type IndicatorCache,
+  type InsertIndicatorCache
 } from "@shared/schema";
 import { db } from "./db";
-import { users, tradingConfigs, ritualHistory, predictions, mysticalMetrics, userSessions } from "@shared/schema";
+import { users, tradingConfigs, ritualHistory, predictions, mysticalMetrics, userSessions, indicators, indicatorCache } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -47,6 +51,13 @@ export interface IStorage {
   getUserSessions(userId: string, limit?: number): Promise<UserSession[]>;
   createUserSession(session: InsertUserSession): Promise<UserSession>;
   endUserSession(id: string, outcome: string, actions?: any[]): Promise<UserSession | undefined>;
+  
+  // Indicator operations
+  getAllIndicators(): Promise<Indicator[]>;
+  getIndicatorByKey(ikey: string): Promise<Indicator | undefined>;
+  createIndicator(indicator: InsertIndicator): Promise<Indicator>;
+  getCachedIndicatorValue(ikey: string, subject: string): Promise<number | null>;
+  cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache>;
 }
 
 export class PostgresStorage implements IStorage {
@@ -212,6 +223,36 @@ export class PostgresStorage implements IStorage {
       .returning();
     return result[0];
   }
+
+  // Indicator operations
+  async getAllIndicators(): Promise<Indicator[]> {
+    return await db.select().from(indicators).orderBy(desc(indicators.createdAt));
+  }
+
+  async getIndicatorByKey(ikey: string): Promise<Indicator | undefined> {
+    const result = await db.select().from(indicators).where(eq(indicators.ikey, ikey));
+    return result[0];
+  }
+
+  async createIndicator(indicator: InsertIndicator): Promise<Indicator> {
+    const result = await db.insert(indicators).values(indicator).returning();
+    return result[0];
+  }
+
+  async getCachedIndicatorValue(ikey: string, subject: string): Promise<number | null> {
+    const result = await db.select({ value: indicatorCache.value })
+      .from(indicatorCache)
+      .where(and(eq(indicatorCache.ikey, ikey), eq(indicatorCache.subject, subject)))
+      .orderBy(desc(indicatorCache.createdAt))
+      .limit(1);
+    
+    return result.length > 0 ? result[0].value : null;
+  }
+
+  async cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache> {
+    const result = await db.insert(indicatorCache).values(cache).returning();
+    return result[0];
+  }
 }
 
 // Legacy MemStorage for compatibility (if needed)
@@ -258,6 +299,11 @@ export class MemStorage implements IStorage {
   async getUserSessions(userId: string, limit?: number): Promise<UserSession[]> { return []; }
   async createUserSession(session: InsertUserSession): Promise<UserSession> { throw new Error("Not implemented in MemStorage"); }
   async endUserSession(id: string, outcome: string, actions?: any[]): Promise<UserSession | undefined> { return undefined; }
+  async getAllIndicators(): Promise<Indicator[]> { return []; }
+  async getIndicatorByKey(ikey: string): Promise<Indicator | undefined> { return undefined; }
+  async createIndicator(indicator: InsertIndicator): Promise<Indicator> { throw new Error("Not implemented in MemStorage"); }
+  async getCachedIndicatorValue(ikey: string, subject: string): Promise<number | null> { return null; }
+  async cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache> { throw new Error("Not implemented in MemStorage"); }
 }
 
 // Use PostgreSQL storage by default, fallback to MemStorage if needed

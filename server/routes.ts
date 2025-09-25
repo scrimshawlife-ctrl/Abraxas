@@ -8,9 +8,11 @@ import {
   insertRitualHistorySchema,
   insertPredictionSchema,
   insertMysticalMetricsSchema,
-  insertUserSessionSchema
+  insertUserSessionSchema,
+  insertIndicatorSchema
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
+import { registerIndicator, discoverIndicators, getAllIndicators } from "./indicators";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -368,6 +370,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: "Database connection failed", 
         details: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+
+  // Indicator API routes
+  app.get("/api/indicators", async (req, res) => {
+    try {
+      const indicators = await getAllIndicators();
+      res.json({ items: indicators });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to retrieve indicators" });
+    }
+  });
+
+  // Manual register (authed). Keep path obscure.
+  app.post("/api/indicators/_register", async (req, res) => {
+    try {
+      const { name, slug } = req.body || {};
+      if (!name || !slug) {
+        return res.status(400).json({ error: "missing_name_or_slug" });
+      }
+      const rec = await registerIndicator({ name, slug });
+      res.json({ ok: true, indicator: rec });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to register indicator" });
+    }
+  });
+
+  // Trigger discovery now
+  app.post("/api/indicators/discover", async (req, res) => {
+    try {
+      const minted = await discoverIndicators();
+      res.json({ ok: true, minted });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to discover indicators" });
     }
   });
 

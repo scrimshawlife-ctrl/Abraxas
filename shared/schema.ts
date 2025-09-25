@@ -74,6 +74,24 @@ export const userSessions = pgTable("user_sessions", {
   outcome: text("outcome"), // "successful", "terminated", "error"
 });
 
+// Mystical indicators registry
+export const indicators = pgTable("indicators", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ikey: text("ikey").notNull().unique(), // weight key: 'ind:<slug>'
+  name: text("name").notNull(), // display name
+  svgPath: text("svg_path").notNull(), // rune path for visualization
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Indicator value cache for performance
+export const indicatorCache = pgTable("indicator_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ikey: text("ikey").notNull().references(() => indicators.ikey),
+  subject: text("subject").notNull(), // ticker/pair/etc
+  value: real("value").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -107,6 +125,16 @@ export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
   startTime: true,
 });
 
+export const insertIndicatorSchema = createInsertSchema(indicators).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertIndicatorCacheSchema = createInsertSchema(indicatorCache).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -120,3 +148,7 @@ export type InsertMysticalMetrics = z.infer<typeof insertMysticalMetricsSchema>;
 export type MysticalMetrics = typeof mysticalMetrics.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
+export type InsertIndicator = z.infer<typeof insertIndicatorSchema>;
+export type Indicator = typeof indicators.$inferSelect;
+export type InsertIndicatorCache = z.infer<typeof insertIndicatorCacheSchema>;
+export type IndicatorCache = typeof indicatorCache.$inferSelect;
