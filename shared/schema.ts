@@ -94,6 +94,37 @@ export const indicatorCache = pgTable("indicator_cache", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Dynamic watchlists for equity and FX analysis
+export const watchlists = pgTable("watchlists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  name: text("name").notNull(), // "Growth Opportunities", "Short Candidates", etc
+  type: text("type").notNull(), // "growth", "short", "custom"
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  lastAnalyzed: timestamp("last_analyzed"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Items within watchlists with analysis data
+export const watchlistItems = pgTable("watchlist_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  watchlistId: varchar("watchlist_id").notNull().references(() => watchlists.id),
+  symbol: text("symbol").notNull(), // ticker or FX pair
+  symbolType: text("symbol_type").notNull(), // "equity" or "fx"
+  analysisScore: real("analysis_score").notNull(), // -1 to 1 (negative for short, positive for growth)
+  confidence: real("confidence").notNull(), // 0-1 confidence in the analysis
+  growthPotential: real("growth_potential"), // 0-1 score for growth opportunity
+  shortPotential: real("short_potential"), // 0-1 score for short opportunity
+  riskLevel: text("risk_level").notNull(), // "low", "medium", "high"
+  sector: text("sector"), // market sector for equities
+  rationale: text("rationale"), // explanation of why it's on the watchlist
+  metadata: json("metadata"), // additional analysis data
+  addedAt: timestamp("added_at").defaultNow().notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -144,6 +175,32 @@ export const insertIndicatorCacheSchema = createInsertSchema(indicatorCache).omi
   seed: z.string().min(1).max(64, "Seed must be 1-64 characters")
 });
 
+export const insertWatchlistSchema = createInsertSchema(watchlists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1).max(128, "Name must be 1-128 characters"),
+  type: z.enum(["growth", "short", "custom"], { required_error: "Type must be growth, short, or custom" }),
+  description: z.string().max(500).optional()
+});
+
+export const insertWatchlistItemSchema = createInsertSchema(watchlistItems).omit({
+  id: true,
+  addedAt: true,
+  lastUpdated: true,
+}).extend({
+  symbol: z.string().min(1).max(20, "Symbol must be 1-20 characters"),
+  symbolType: z.enum(["equity", "fx"], { required_error: "Symbol type must be equity or fx" }),
+  analysisScore: z.number().min(-1).max(1, "Analysis score must be between -1 and 1"),
+  confidence: z.number().min(0).max(1, "Confidence must be between 0 and 1"),
+  growthPotential: z.number().min(0).max(1).optional(),
+  shortPotential: z.number().min(0).max(1).optional(),
+  riskLevel: z.enum(["low", "medium", "high"], { required_error: "Risk level must be low, medium, or high" }),
+  sector: z.string().max(100).optional(),
+  rationale: z.string().max(1000).optional()
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -161,3 +218,7 @@ export type InsertIndicator = z.infer<typeof insertIndicatorSchema>;
 export type Indicator = typeof indicators.$inferSelect;
 export type InsertIndicatorCache = z.infer<typeof insertIndicatorCacheSchema>;
 export type IndicatorCache = typeof indicatorCache.$inferSelect;
+export type InsertWatchlist = z.infer<typeof insertWatchlistSchema>;
+export type Watchlist = typeof watchlists.$inferSelect;
+export type InsertWatchlistItem = z.infer<typeof insertWatchlistItemSchema>;
+export type WatchlistItem = typeof watchlistItems.$inferSelect;

@@ -14,10 +14,14 @@ import {
   type Indicator,
   type InsertIndicator,
   type IndicatorCache,
-  type InsertIndicatorCache
+  type InsertIndicatorCache,
+  type Watchlist,
+  type InsertWatchlist,
+  type WatchlistItem,
+  type InsertWatchlistItem
 } from "@shared/schema";
 import { db } from "./db";
-import { users, tradingConfigs, ritualHistory, predictions, mysticalMetrics, userSessions, indicators, indicatorCache } from "@shared/schema";
+import { users, tradingConfigs, ritualHistory, predictions, mysticalMetrics, userSessions, indicators, indicatorCache, watchlists, watchlistItems } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -59,6 +63,18 @@ export interface IStorage {
   createIndicator(indicator: InsertIndicator): Promise<Indicator>;
   getCachedIndicatorValue(ikey: string, subject: string, day: string, seed: string, ttlMinutes?: number): Promise<number | null>;
   cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache>;
+  
+  // Watchlist operations
+  getWatchlists(userId?: string): Promise<Watchlist[]>;
+  getWatchlistById(id: string): Promise<Watchlist | undefined>;
+  createWatchlist(watchlist: InsertWatchlist): Promise<Watchlist>;
+  updateWatchlist(id: string, updates: Partial<InsertWatchlist>): Promise<Watchlist | undefined>;
+  deleteWatchlist(id: string): Promise<boolean>;
+  getWatchlistItems(watchlistId: string): Promise<WatchlistItem[]>;
+  addWatchlistItem(item: InsertWatchlistItem): Promise<WatchlistItem>;
+  updateWatchlistItem(id: string, updates: Partial<InsertWatchlistItem>): Promise<WatchlistItem | undefined>;
+  removeWatchlistItem(id: string): Promise<boolean>;
+  getWatchlistByType(userId: string, type: string): Promise<Watchlist | undefined>;
 }
 
 export class PostgresStorage implements IStorage {
@@ -262,6 +278,69 @@ export class PostgresStorage implements IStorage {
     const result = await db.insert(indicatorCache).values(cache).returning();
     return result[0];
   }
+
+  // Watchlist operations
+  async getWatchlists(userId?: string): Promise<Watchlist[]> {
+    if (userId) {
+      return await db.select().from(watchlists).where(eq(watchlists.userId, userId));
+    }
+    return await db.select().from(watchlists);
+  }
+
+  async getWatchlistById(id: string): Promise<Watchlist | undefined> {
+    const result = await db.select().from(watchlists).where(eq(watchlists.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createWatchlist(watchlist: InsertWatchlist): Promise<Watchlist> {
+    const result = await db.insert(watchlists).values(watchlist).returning();
+    return result[0];
+  }
+
+  async updateWatchlist(id: string, updates: Partial<InsertWatchlist>): Promise<Watchlist | undefined> {
+    const result = await db.update(watchlists)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(watchlists.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteWatchlist(id: string): Promise<boolean> {
+    // First delete all items in the watchlist
+    await db.delete(watchlistItems).where(eq(watchlistItems.watchlistId, id));
+    // Then delete the watchlist
+    const result = await db.delete(watchlists).where(eq(watchlists.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getWatchlistItems(watchlistId: string): Promise<WatchlistItem[]> {
+    return await db.select().from(watchlistItems).where(eq(watchlistItems.watchlistId, watchlistId));
+  }
+
+  async addWatchlistItem(item: InsertWatchlistItem): Promise<WatchlistItem> {
+    const result = await db.insert(watchlistItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateWatchlistItem(id: string, updates: Partial<InsertWatchlistItem>): Promise<WatchlistItem | undefined> {
+    const result = await db.update(watchlistItems)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(watchlistItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async removeWatchlistItem(id: string): Promise<boolean> {
+    const result = await db.delete(watchlistItems).where(eq(watchlistItems.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getWatchlistByType(userId: string, type: string): Promise<Watchlist | undefined> {
+    const result = await db.select().from(watchlists)
+      .where(and(eq(watchlists.userId, userId), eq(watchlists.type, type)))
+      .limit(1);
+    return result[0];
+  }
 }
 
 // Legacy MemStorage for compatibility (if needed)
@@ -313,6 +392,18 @@ export class MemStorage implements IStorage {
   async createIndicator(indicator: InsertIndicator): Promise<Indicator> { throw new Error("Not implemented in MemStorage"); }
   async getCachedIndicatorValue(ikey: string, subject: string, day: string, seed: string, ttlMinutes?: number): Promise<number | null> { return null; }
   async cacheIndicatorValue(cache: InsertIndicatorCache): Promise<IndicatorCache> { throw new Error("Not implemented in MemStorage"); }
+  
+  // Watchlist operations (not implemented in MemStorage)
+  async getWatchlists(userId?: string): Promise<Watchlist[]> { return []; }
+  async getWatchlistById(id: string): Promise<Watchlist | undefined> { return undefined; }
+  async createWatchlist(watchlist: InsertWatchlist): Promise<Watchlist> { throw new Error("Not implemented in MemStorage"); }
+  async updateWatchlist(id: string, updates: Partial<InsertWatchlist>): Promise<Watchlist | undefined> { return undefined; }
+  async deleteWatchlist(id: string): Promise<boolean> { return false; }
+  async getWatchlistItems(watchlistId: string): Promise<WatchlistItem[]> { return []; }
+  async addWatchlistItem(item: InsertWatchlistItem): Promise<WatchlistItem> { throw new Error("Not implemented in MemStorage"); }
+  async updateWatchlistItem(id: string, updates: Partial<InsertWatchlistItem>): Promise<WatchlistItem | undefined> { return undefined; }
+  async removeWatchlistItem(id: string): Promise<boolean> { return false; }
+  async getWatchlistByType(userId: string, type: string): Promise<Watchlist | undefined> { return undefined; }
 }
 
 // Use PostgreSQL storage by default, fallback to MemStorage if needed
