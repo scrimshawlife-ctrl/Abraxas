@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupAbraxasRoutes } from "./abraxas-server";
 import { 
   insertUserSchema, 
@@ -21,8 +22,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
+  // Setup authentication
+  await setupAuth(app);
+
   // Setup Abraxas mystical trading routes
   setupAbraxasRoutes(app, httpServer);
+
+  // Auth endpoint
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
 
   // Health endpoints
   app.get("/api/health", (req, res) => {
@@ -481,24 +497,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // DYNAMIC WATCHLIST API ENDPOINTS
   // ============================================================================
 
-  // Get all watchlists (optionally filtered by user)
-  app.get("/api/watchlists", async (req, res) => {
+  // Get all watchlists for authenticated user
+  app.get("/api/watchlists", isAuthenticated, async (req: any, res) => {
     try {
-      const { userId } = req.query;
-      const watchlists = await storage.getWatchlists(userId as string);
+      const userId = req.user.claims.sub;
+      const watchlists = await storage.getWatchlists(userId);
       res.json({ watchlists });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch watchlists" });
     }
   });
 
-  // Get specific watchlist with items
-  app.get("/api/watchlists/:id", async (req, res) => {
+  // Get specific watchlist with items (authenticated)
+  app.get("/api/watchlists/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
       const watchlist = await storage.getWatchlistById(id);
       
-      if (!watchlist) {
+      if (!watchlist || watchlist.userId !== userId) {
         return res.status(404).json({ error: "Watchlist not found" });
       }
       
@@ -509,10 +526,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new watchlist
-  app.post("/api/watchlists", async (req, res) => {
+  // Create new watchlist (authenticated)
+  app.post("/api/watchlists", isAuthenticated, async (req: any, res) => {
     try {
-      const validation = insertWatchlistSchema.safeParse(req.body);
+      const userId = req.user.claims.sub;
+      const validation = insertWatchlistSchema.safeParse({
+        ...req.body,
+        userId
+      });
       
       if (!validation.success) {
         return res.status(400).json({ 
@@ -569,10 +590,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get watchlist items
-  app.get("/api/watchlists/:id/items", async (req, res) => {
+  // Get watchlist items (authenticated)
+  app.get("/api/watchlists/:id/items", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // Verify the watchlist belongs to the authenticated user
+      const watchlist = await storage.getWatchlistById(id);
+      if (!watchlist || watchlist.userId !== userId) {
+        return res.status(404).json({ error: "Watchlist not found" });
+      }
+      
       const items = await storage.getWatchlistItems(id);
       res.json(items);
     } catch (error) {
@@ -693,15 +722,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Automatically generate growth/short watchlists
-  app.post("/api/watchlists/auto-generate", async (req, res) => {
+  // Automatically generate growth/short watchlists (authenticated)
+  app.post("/api/watchlists/auto-generate", isAuthenticated, async (req: any, res) => {
     console.log("Auto-generate endpoint called with body:", req.body);
     try {
-      const { userId, analysisType = "growth", symbolPool, limit = 10 } = req.body;
+      const userId = req.user.claims.sub; // Get user ID from authenticated session
+      const { analysisType = "growth", symbolPool, limit = 10 } = req.body;
       
-      if (!userId) {
-        return res.status(400).json({ error: "userId is required" });
-      }
       
       if (!["growth", "short"].includes(analysisType)) {
         return res.status(400).json({ error: "analysisType must be 'growth' or 'short'" });

@@ -1,6 +1,7 @@
 import { 
   type User, 
-  type InsertUser, 
+  type InsertUser,
+  type UpsertUser,
   type TradingConfig, 
   type InsertTradingConfig,
   type RitualHistory,
@@ -30,6 +31,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   
   // Trading config operations
   getTradingConfig(id: string): Promise<TradingConfig | undefined>;
@@ -91,6 +93,33 @@ export class PostgresStorage implements IStorage {
 
   async createUser(user: InsertUser): Promise<User> {
     const result = await db.insert(users).values(user).returning();
+    return result[0];
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    // Prepare the user data, ensuring we handle required legacy fields
+    const userDataWithDefaults = {
+      ...userData,
+      // If username is missing and we have an email, derive username from email
+      username: userData.email ? userData.email.split('@')[0] : undefined,
+      // For Replit Auth users, password is not needed, so provide a placeholder
+      password: '!REPLIT_AUTH', // Placeholder for external auth users
+    };
+
+    const result = await db
+      .insert(users)
+      .values(userDataWithDefaults)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email: userDataWithDefaults.email,
+          firstName: userDataWithDefaults.firstName,
+          lastName: userDataWithDefaults.lastName,
+          profileImageUrl: userDataWithDefaults.profileImageUrl,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
     return result[0];
   }
 
@@ -364,8 +393,24 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id: crypto.randomUUID(),
-      createdAt: new Date()
+      email: null,
+      firstName: null,
+      lastName: null,
+      profileImageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
+    this.users.set(user.id, user);
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existingUser = this.users.get(userData.id!);
+    const user: User = {
+      ...existingUser,
+      ...userData,
+      updatedAt: new Date()
+    } as User;
     this.users.set(user.id, user);
     return user;
   }

@@ -8,6 +8,18 @@ Abraxas is a mystical trading application that combines financial market analysi
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### September 28, 2025
+- **Authentication Migration Complete**: Successfully replaced mock user authentication with proper Replit Auth integration using Google OAuth 2.0
+- **Security Enhancement**: All watchlist API endpoints now properly authenticated and scoped to logged-in users
+- **Database Updates**: Updated users table with OAuth profile fields (email, firstName, lastName, profileImageUrl) while preserving watchlist relationships
+- **Frontend Authentication**: Implemented useAuth hook, Landing page for logged-out users, and conditional rendering based on authentication state
+- **User Experience**: App now properly handles login/logout flow with redirect to /api/login and /api/logout endpoints
+- **Session Security**: Added secure cookie configuration with SameSite protection and proper session management
+- **Data Model Updates**: Enhanced watchlist system with user-specific access control and proper ownership validation
+- **Code Quality**: Fixed QueryClientProvider double-wrapping and improved overall authentication architecture
+
 ## System Architecture
 
 ### Frontend Architecture

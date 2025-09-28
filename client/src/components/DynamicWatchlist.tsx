@@ -39,7 +39,7 @@ interface WatchlistWithItems {
   items: WatchlistItem[];
 }
 
-const MOCK_USER_ID = "test-user"; // For demo purposes
+// User ID is now handled automatically by authenticated session
 
 function WatchlistCard({ watchlistData, onRefresh }: { watchlistData: WatchlistWithItems; onRefresh: () => void }) {
   const { watchlist, items } = watchlistData;
@@ -158,11 +158,11 @@ export default function DynamicWatchlist() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("growth");
 
-  // Fetch all watchlists
+  // Fetch all watchlists for authenticated user
   const { data: watchlistsData, isLoading, error } = useQuery({
     queryKey: ["/api/watchlists"],
     queryFn: async () => {
-      const response = await fetch(`/api/watchlists?userId=${MOCK_USER_ID}`);
+      const response = await fetch("/api/watchlists");
       if (!response.ok) {
         throw new Error("Failed to fetch watchlists");
       }
@@ -206,7 +206,6 @@ export default function DynamicWatchlist() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: MOCK_USER_ID,
           analysisType,
           limit: 8
         })
