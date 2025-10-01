@@ -3,7 +3,7 @@ import { Strategy, type VerifyFunction } from "openid-client/passport";
 
 import passport from "passport";
 import session from "express-session";
-import type { Express, RequestHandler } from "express";
+import type { Express, RequestHandler, Request, Response, NextFunction } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
@@ -67,7 +67,7 @@ async function upsertUser(
   });
 }
 
-export async function setupAuth(app: Express) {
+export async function setupAuth(app: Express, authRateLimiter?: any) {
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -82,6 +82,9 @@ export async function setupAuth(app: Express) {
     const user = {};
     updateUserSession(user, tokens);
     await upsertUser(tokens.claims());
+    
+    // Session regeneration will be handled by passport after verification
+    // This prevents session fixation attacks
     verified(null, user);
   };
 
@@ -102,19 +105,67 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-  app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
-  });
+  // Apply rate limiting to login and callback endpoints
+  const loginHandler = authRateLimiter 
+    ? [authRateLimiter, (req: Request, res: Response, next: NextFunction) => {
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          prompt: "login consent",
+          scope: ["openid", "email", "profile", "offline_access"],
+        })(req, res, next);
+      }]
+    : (req: Request, res: Response, next: NextFunction) => {
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          prompt: "login consent",
+          scope: ["openid", "email", "profile", "offline_access"],
+        })(req, res, next);
+      };
 
-  app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
-    })(req, res, next);
-  });
+  const callbackHandler = authRateLimiter
+    ? [authRateLimiter, (req: Request, res: Response, next: NextFunction) => {
+        passport.authenticate(`replitauth:${req.hostname}`, (err: any, user: any) => {
+          if (err || !user) {
+            return res.redirect("/api/login");
+          }
+          // Regenerate session to prevent session fixation attacks
+          req.session.regenerate((regErr) => {
+            if (regErr) {
+              console.error("Session regeneration error:", regErr);
+              return res.redirect("/api/login");
+            }
+            req.login(user, (loginErr) => {
+              if (loginErr) {
+                console.error("Login error:", loginErr);
+                return res.redirect("/api/login");
+              }
+              return res.redirect("/");
+            });
+          });
+        })(req, res, next);
+      }]
+    : (req: Request, res: Response, next: NextFunction) => {
+        passport.authenticate(`replitauth:${req.hostname}`, (err: any, user: any) => {
+          if (err || !user) {
+            return res.redirect("/api/login");
+          }
+          // Regenerate session to prevent session fixation attacks
+          req.session.regenerate((regErr) => {
+            if (regErr) {
+              console.error("Session regeneration error:", regErr);
+              return res.redirect("/api/login");
+            }
+            req.login(user, (loginErr) => {
+              if (loginErr) {
+                console.error("Login error:", loginErr);
+                return res.redirect("/api/login");
+              }
+              return res.redirect("/");
+            });
+          });
+        })(req, res, next);
+      };
+
+  app.get("/api/login", loginHandler);
+  app.get("/api/callback", callbackHandler);
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {

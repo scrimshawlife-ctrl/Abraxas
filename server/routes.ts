@@ -17,13 +17,23 @@ import {
 import { sql } from "drizzle-orm";
 import { registerIndicator, discoverIndicators } from "./indicators";
 import { analyzeSymbolPool, updateWatchlistAnalysis } from "./market-analysis";
+import rateLimit from "express-rate-limit";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // Setup authentication
-  await setupAuth(app);
+  // Rate limiting for authentication endpoints
+  const authRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 login requests per window
+    message: { error: "Too many authentication attempts, please try again later" },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // Setup authentication with rate limiting
+  await setupAuth(app, authRateLimiter);
 
   // Setup Abraxas mystical trading routes
   setupAbraxasRoutes(app, httpServer);
@@ -62,14 +72,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     astro_waxing: 0.00
   };
 
-  app.get("/api/config", (req, res) => {
+  app.get("/api/config", isAuthenticated, (req, res) => {
     res.json({ 
       weights: configStore, 
       defaults: configStore
     });
   });
 
-  app.post("/api/config", (req, res) => {
+  app.post("/api/config", isAuthenticated, (req, res) => {
     const { weights } = req.body || {};
     if (!weights || typeof weights !== "object") {
       return res.status(400).json({ error: "invalid_payload" });
@@ -80,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Config preview - test weights without persisting
-  app.post("/api/config/preview", (req, res) => {
+  app.post("/api/config/preview", isAuthenticated, (req, res) => {
     const { weights } = req.body || {};
     if (!weights || typeof weights !== "object") {
       return res.status(400).json({ error: "invalid_payload" });

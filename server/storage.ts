@@ -32,6 +32,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserProfile(id: string, updates: Partial<User>): Promise<User | undefined>;
   
   // Trading config operations
   getTradingConfig(id: string): Promise<TradingConfig | undefined>;
