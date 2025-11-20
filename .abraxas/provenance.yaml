@@ -1,0 +1,68 @@
+# Abraxas Provenance Tracking
+# SEED Framework Compliance - Operation Lineage
+
+version: "1.0.0"
+last_updated: "2025-11-20"
+
+# Provenance Markers
+operations:
+  - id: "op-001"
+    type: "ritual_execution"
+    module: "runes"
+    deterministic: true
+    entropy_delta: 0.02
+    timestamp: "2025-11-20T00:00:00Z"
+
+  - id: "op-002"
+    type: "watchlist_scoring"
+    module: "abraxas"
+    deterministic: true
+    entropy_delta: 0.15
+    timestamp: "2025-11-20T00:00:00Z"
+
+  - id: "op-003"
+    type: "indicator_registration"
+    module: "indicators"
+    deterministic: true
+    entropy_delta: 0.05
+    timestamp: "2025-11-20T00:00:00Z"
+
+# Capability Sandbox Boundaries
+capabilities:
+  runes:
+    read: ["date", "seed"]
+    write: ["ritual_state"]
+    network: false
+
+  abraxas:
+    read: ["weights", "features", "indicators"]
+    write: ["scores", "confidence"]
+    network: false
+
+  indicators:
+    read: ["registry", "cache"]
+    write: ["indicator_values", "cache"]
+    network: false
+
+  market_analysis:
+    read: ["symbols", "watchlists"]
+    write: ["analysis_results"]
+    network: true  # Allowed for data fetching
+
+# Entropy Tracking
+entropy_log:
+  - timestamp: "2025-11-20T00:00:00Z"
+    module: "abraxas"
+    operation: "scoreWatchlists"
+    entropy_before: 0.45
+    entropy_after: 0.47
+    delta: 0.02
+    acceptable: true
+
+  - timestamp: "2025-11-20T00:00:00Z"
+    module: "indicators"
+    operation: "evalDynamicIndicators"
+    entropy_before: 0.32
+    entropy_after: 0.35
+    delta: 0.03
+    acceptable: true

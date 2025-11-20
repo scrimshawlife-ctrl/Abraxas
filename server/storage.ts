@@ -93,7 +93,12 @@ export class PostgresStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(user).returning();
+    // Legacy users need email field (derive from username if needed)
+    const userWithEmail = {
+      ...user,
+      email: user.username || "legacy@example.com"
+    };
+    const result = await db.insert(users).values(userWithEmail).returning();
     return result[0];
   }
 
@@ -120,6 +125,15 @@ export class PostgresStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
+      .returning();
+    return result[0];
+  }
+
+  async updateUserProfile(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const result = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
       .returning();
     return result[0];
   }
@@ -391,13 +405,15 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = { 
-      ...insertUser, 
+    const user: User = {
       id: crypto.randomUUID(),
-      email: null,
+      username: insertUser.username ?? null,
+      password: insertUser.password ?? null,
+      email: insertUser.username || "unknown@example.com",
       firstName: null,
       lastName: null,
       profileImageUrl: null,
+      themePreference: "dark",
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -414,6 +430,14 @@ export class MemStorage implements IStorage {
     } as User;
     this.users.set(user.id, user);
     return user;
+  }
+
+  async updateUserProfile(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updated = { ...user, ...updates, updatedAt: new Date() };
+    this.users.set(id, updated);
+    return updated;
   }
 
   // Stub implementations for other methods (not used in memory mode)

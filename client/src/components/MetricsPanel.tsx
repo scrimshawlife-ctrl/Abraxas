@@ -119,7 +119,7 @@ export default function MetricsPanel() {
               Daily Oracle
             </h2>
             <Badge variant="secondary" className="text-xs">
-              {getConfidenceTone(metrics?.lifetime.accuracy.acc)}
+              {getConfidenceTone(metrics?.lifetime.accuracy.acc ?? null)}
             </Badge>
           </div>
           
