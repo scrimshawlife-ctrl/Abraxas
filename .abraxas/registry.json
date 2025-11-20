@@ -2,6 +2,71 @@
   "version": "1.2.0",
   "generated": "2025-11-20T00:00:00Z",
   "modules": {
+    "abraxas/core/kernel": {
+      "path": "server/abraxas/core/kernel.ts",
+      "type": "symbolic-kernel",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "computeSymbolicMetrics",
+        "aggregateQualityScore",
+        "computeSDR",
+        "computeMSI",
+        "computeARF",
+        "computeNMC",
+        "computeRFR",
+        "computeHσ",
+        "computeλN",
+        "computeITC",
+        "diagnoseVector"
+      ],
+      "provenance_id": "mod-kernel-001",
+      "version": "1.2.0"
+    },
+    "abraxas/core/archetype": {
+      "path": "server/abraxas/core/archetype.ts",
+      "type": "archetype-system",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "mapToArchetype",
+        "computeArchetypeResonance",
+        "selectArchetypesForRunes",
+        "generateArchetypeNarrative",
+        "ARCHETYPES"
+      ],
+      "provenance_id": "mod-archetype-001",
+      "version": "1.0.0"
+    },
+    "abraxas/integrations/runes-adapter": {
+      "path": "server/abraxas/integrations/runes-adapter.ts",
+      "type": "integration-adapter",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "initializeRitual",
+        "getTodaysRunes",
+        "ritualToContext",
+        "createFeatureVector",
+        "mergeVectors"
+      ],
+      "provenance_id": "mod-runes-adapter-001",
+      "version": "1.0.0"
+    },
+    "abraxas/pipelines/watchlist-scorer": {
+      "path": "server/abraxas/pipelines/watchlist-scorer.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "scoreWatchlists",
+        "getWeights",
+        "setWeights"
+      ],
+      "provenance_id": "mod-watchlist-scorer-001",
+      "version": "2.0.0",
+      "note": "Refactored with symbolic kernel integration"
+    },
     "runes": {
       "path": "server/runes.js",
       "type": "symbolic",
