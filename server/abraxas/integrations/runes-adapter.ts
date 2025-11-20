@@ -13,6 +13,7 @@ import type { Rune, RitualInput, RitualContext } from "../models/ritual";
 import type { FeatureVector, VectorProvenance } from "../models/vector";
 
 // Import rune system from existing module
+// @ts-ignore - Legacy JS module, type declarations pending
 import { getTodayRunes, runRitual } from "../../runes";
 
 /**
