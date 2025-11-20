@@ -11,3 +11,4 @@ export * from "./components/AalButton";
 export * from "./components/AalTag";
 export * from "./components/AalDivider";
 export * from "./components/AalSigilFrame";
+export * from "./components/AalMetricCard";

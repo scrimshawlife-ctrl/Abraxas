@@ -30,6 +30,11 @@ export interface AalSigilFrameProps {
    * Additional CSS class names
    */
   className?: string;
+
+  /**
+   * Inline styles
+   */
+  style?: React.CSSProperties;
 }
 
 export function AalSigilFrame({
@@ -37,6 +42,7 @@ export function AalSigilFrame({
   tone = "cyan",
   size = 40,
   className = "",
+  style: inlineStyle,
 }: AalSigilFrameProps) {
   const toneClass = tone !== "cyan" ? `aal-sigil-frame--${tone}` : "";
   const combinedClassName = `aal-sigil-frame ${toneClass} ${className}`.trim();
@@ -46,6 +52,7 @@ export function AalSigilFrame({
     height: `${size}px`,
     minWidth: `${size}px`,
     minHeight: `${size}px`,
+    ...inlineStyle,
   };
 
   return (
