@@ -3,8 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupAbraxasRoutes } from "./abraxas-server";
-import { 
-  insertUserSchema, 
+import {
+  insertUserSchema,
   insertTradingConfigSchema,
   insertRitualHistorySchema,
   insertPredictionSchema,
@@ -18,6 +18,11 @@ import { sql } from "drizzle-orm";
 import { registerIndicator, discoverIndicators } from "./indicators";
 import { analyzeSymbolPool, updateWatchlistAnalysis } from "./market-analysis";
 import rateLimit from "express-rate-limit";
+
+// Extend global type for rate limiting
+declare global {
+  var rateLimitStore: Map<string, number[]>;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server

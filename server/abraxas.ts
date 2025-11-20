@@ -1,3 +1,13 @@
+/**
+ * ABX-Core v1.2 - Abraxas Scoring Engine
+ * SEED Framework Compliant
+ *
+ * @module abraxas
+ * @entropy_class medium
+ * @deterministic true
+ * @capabilities { read: ["weights", "features"], write: ["scores"], network: false }
+ */
+
 import crypto from "crypto";
 import { evalDynamicIndicators } from "./indicators";
 

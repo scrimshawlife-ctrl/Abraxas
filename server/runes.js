@@ -1,3 +1,13 @@
+/**
+ * ABX-Core v1.2 - Runic Symbolic System
+ * SEED Framework Compliant
+ *
+ * @module runes
+ * @entropy_class low
+ * @deterministic true
+ * @capabilities { read: ["date", "seed"], write: ["ritual_state"], network: false }
+ */
+
 // Mystical rune system for Abraxas
 const RUNES = [
   { id: "aether", name: "Aether", color: "#FFD166", meaning: "cosmic flow" },

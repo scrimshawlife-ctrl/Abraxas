@@ -1,3 +1,13 @@
+/**
+ * ABX-Core v1.2 - Dynamic Indicator Registry
+ * SEED Framework Compliant
+ *
+ * @module indicators
+ * @entropy_class medium
+ * @deterministic true
+ * @capabilities { read: ["registry", "cache"], write: ["indicator_values", "cache"], network: false }
+ */
+
 import { v4 as uuidv4 } from "uuid";
 import { db } from "./db";
 import { indicators, indicatorCache, tradingConfigs } from "@shared/schema";

@@ -1,0 +1,73 @@
+# ABX-Core v1.2 Configuration
+# Abraxas Symbolic Trading System - Core Runtime Manifest
+
+version: "1.2.0"
+framework: "SEED"
+generated: "2025-11-20"
+
+# Core Principles
+principles:
+  deterministic_ir: true
+  provenance_tracking: true
+  entropy_minimization: true
+  typed_operations: true
+  capability_sandbox: true
+  rolling_optimization: true
+
+# Module Registry
+modules:
+  runes:
+    path: "server/runes.js"
+    type: "symbolic"
+    exports: ["getTodayRunes", "runRitual"]
+    entropy_class: "low"
+
+  abraxas:
+    path: "server/abraxas.ts"
+    type: "core"
+    exports: ["scoreWatchlists", "getWeights", "setWeights"]
+    entropy_class: "medium"
+
+  indicators:
+    path: "server/indicators.ts"
+    type: "dynamic"
+    exports: ["registerIndicator", "evalDynamicIndicators", "discoverIndicators"]
+    entropy_class: "medium"
+
+  market_analysis:
+    path: "server/market-analysis.ts"
+    type: "analysis"
+    exports: ["analyzeSymbolPool", "updateWatchlistAnalysis"]
+    entropy_class: "high"
+
+# Renderers (Client Components)
+renderers:
+  - name: "RitualRunner"
+    path: "client/src/components/RitualRunner.tsx"
+    binding: "runes"
+
+  - name: "VCOracle"
+    path: "client/src/components/VCOracle.tsx"
+    binding: "market_analysis"
+
+  - name: "MetricsPanel"
+    path: "client/src/components/MetricsPanel.tsx"
+    binding: "abraxas"
+
+  - name: "DynamicWatchlist"
+    path: "client/src/components/DynamicWatchlist.tsx"
+    binding: "abraxas"
+
+# SEED Framework Compliance
+seed:
+  symbolic_integrity: true
+  deterministic_execution: true
+  provenance_chain: true
+  entropy_bounded: true
+  capability_isolation: true
+
+# Runtime Configuration
+runtime:
+  scheduler: "ERS"  # Event-driven Ritual Scheduler
+  cache_strategy: "deterministic"
+  optimization_window: 86400  # 24 hours in seconds

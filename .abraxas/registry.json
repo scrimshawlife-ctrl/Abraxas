@@ -1,0 +1,338 @@
+{
+  "version": "1.2.0",
+  "generated": "2025-11-20T00:00:00Z",
+  "modules": {
+    "abraxas/core/kernel": {
+      "path": "server/abraxas/core/kernel.ts",
+      "type": "symbolic-kernel",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "computeSymbolicMetrics",
+        "aggregateQualityScore",
+        "computeSDR",
+        "computeMSI",
+        "computeARF",
+        "computeNMC",
+        "computeRFR",
+        "computeHσ",
+        "computeλN",
+        "computeITC",
+        "diagnoseVector"
+      ],
+      "provenance_id": "mod-kernel-001",
+      "version": "1.2.0"
+    },
+    "abraxas/core/archetype": {
+      "path": "server/abraxas/core/archetype.ts",
+      "type": "archetype-system",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "mapToArchetype",
+        "computeArchetypeResonance",
+        "selectArchetypesForRunes",
+        "generateArchetypeNarrative",
+        "ARCHETYPES"
+      ],
+      "provenance_id": "mod-archetype-001",
+      "version": "1.0.0"
+    },
+    "abraxas/integrations/runes-adapter": {
+      "path": "server/abraxas/integrations/runes-adapter.ts",
+      "type": "integration-adapter",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "initializeRitual",
+        "getTodaysRunes",
+        "ritualToContext",
+        "createFeatureVector",
+        "createPipelineVector",
+        "mergeVectors"
+      ],
+      "provenance_id": "mod-runes-adapter-001",
+      "version": "1.0.0"
+    },
+    "abraxas/integrations/sqlite-adapter": {
+      "path": "server/abraxas/integrations/sqlite-adapter.ts",
+      "type": "integration-adapter",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "SQLiteAdapter",
+        "sqliteDb"
+      ],
+      "provenance_id": "mod-sqlite-adapter-001",
+      "version": "1.0.0",
+      "note": "Legacy SQLite database adapter (compatibility layer)"
+    },
+    "abraxas/routes/api": {
+      "path": "server/abraxas/routes/api.ts",
+      "type": "api-routing",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "registerAbraxasRoutes"
+      ],
+      "provenance_id": "mod-api-routes-001",
+      "version": "1.1.0",
+      "note": "Clean routing layer with ERS management endpoints"
+    },
+    "abraxas/models/task": {
+      "path": "server/abraxas/models/task.ts",
+      "type": "type-definitions",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "SymbolicTask",
+        "TaskContext",
+        "TaskResult",
+        "TaskExecution",
+        "TaskSchedule",
+        "TaskStatus",
+        "TaskTrigger",
+        "TaskExecutor"
+      ],
+      "provenance_id": "mod-task-model-001",
+      "version": "1.0.0",
+      "note": "SymbolicTask type definitions for ERS"
+    },
+    "abraxas/integrations/ers-scheduler": {
+      "path": "server/abraxas/integrations/ers-scheduler.ts",
+      "type": "scheduler",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "ERSScheduler",
+        "scheduler"
+      ],
+      "provenance_id": "mod-ers-scheduler-001",
+      "version": "1.0.0",
+      "note": "Event-driven Ritual Scheduler for automatic pipeline execution"
+    },
+    "abraxas/integrations/task-registry": {
+      "path": "server/abraxas/integrations/task-registry.ts",
+      "type": "task-registry",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "dailyOracleTask",
+        "vcAnalysisTask",
+        "socialTrendsScanTask",
+        "watchlistScoringTask",
+        "ALL_TASKS",
+        "registerAllTasks"
+      ],
+      "provenance_id": "mod-task-registry-001",
+      "version": "1.0.0",
+      "note": "SymbolicTask wrappers for all oracle pipelines"
+    },
+    "abraxas/pipelines/watchlist-scorer": {
+      "path": "server/abraxas/pipelines/watchlist-scorer.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "scoreWatchlists",
+        "getWeights",
+        "setWeights"
+      ],
+      "provenance_id": "mod-watchlist-scorer-001",
+      "version": "2.0.0",
+      "note": "Refactored with symbolic kernel integration"
+    },
+    "abraxas/pipelines/daily-oracle": {
+      "path": "server/abraxas/pipelines/daily-oracle.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "generateDailyOracle",
+        "sealOracle"
+      ],
+      "provenance_id": "mod-daily-oracle-001",
+      "version": "1.0.0",
+      "note": "Oracle synthesis with symbolic kernel integration"
+    },
+    "abraxas/pipelines/vc-analyzer": {
+      "path": "server/abraxas/pipelines/vc-analyzer.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "analyzeVCMarket"
+      ],
+      "provenance_id": "mod-vc-analyzer-001",
+      "version": "1.0.0",
+      "note": "VC market analysis with symbolic kernel and archetype mapping"
+    },
+    "abraxas/pipelines/social-scanner": {
+      "path": "server/abraxas/pipelines/social-scanner.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "scanSocialTrends",
+        "getCurrentTrends",
+        "triggerTrendsScan"
+      ],
+      "provenance_id": "mod-social-scanner-001",
+      "version": "1.0.0",
+      "note": "Social media trend analysis with memetic saturation detection"
+    },
+    "abraxas/pipelines/sigil-forge": {
+      "path": "server/abraxas/pipelines/sigil-forge.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "forgeSigil",
+        "verifySigil"
+      ],
+      "provenance_id": "mod-sigil-forge-001",
+      "version": "1.0.0",
+      "note": "Deterministic sigil generation with cryptographic sealing"
+    },
+    "runes": {
+      "path": "server/runes.js",
+      "type": "symbolic",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "getTodayRunes",
+        "runRitual"
+      ],
+      "provenance_id": "mod-runes-001"
+    },
+    "abraxas": {
+      "path": "server/abraxas.ts",
+      "type": "core",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "scoreWatchlists",
+        "getWeights",
+        "setWeights"
+      ],
+      "provenance_id": "mod-abraxas-001"
+    },
+    "indicators": {
+      "path": "server/indicators.ts",
+      "type": "dynamic",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "registerIndicator",
+        "evalDynamicIndicators",
+        "discoverIndicators",
+        "getAllIndicators",
+        "getIndicatorByKey"
+      ],
+      "provenance_id": "mod-indicators-001"
+    },
+    "market-analysis": {
+      "path": "server/market-analysis.ts",
+      "type": "analysis",
+      "entropy_class": "high",
+      "deterministic": false,
+      "exports": [
+        "analyzeSymbolPool",
+        "updateWatchlistAnalysis"
+      ],
+      "provenance_id": "mod-market-001",
+      "note": "Non-deterministic due to external data fetching"
+    },
+    "storage": {
+      "path": "server/storage.ts",
+      "type": "persistence",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "storage",
+        "PostgresStorage",
+        "MemStorage"
+      ],
+      "provenance_id": "mod-storage-001"
+    }
+  },
+  "renderers": {
+    "RitualRunner": {
+      "path": "client/src/components/RitualRunner.tsx",
+      "binding": "runes",
+      "type": "interactive"
+    },
+    "VCOracle": {
+      "path": "client/src/components/VCOracle.tsx",
+      "binding": "market-analysis",
+      "type": "display"
+    },
+    "MetricsPanel": {
+      "path": "client/src/components/MetricsPanel.tsx",
+      "binding": "abraxas",
+      "type": "display"
+    },
+    "DynamicWatchlist": {
+      "path": "client/src/components/DynamicWatchlist.tsx",
+      "binding": "abraxas",
+      "type": "interactive"
+    },
+    "SigilGenerator": {
+      "path": "client/src/components/SigilGenerator.tsx",
+      "binding": "runes",
+      "type": "interactive"
+    },
+    "GrimoireView": {
+      "path": "client/src/components/GrimoireView.tsx",
+      "binding": "indicators",
+      "type": "display"
+    },
+    "Config": {
+      "path": "client/src/components/Config.tsx",
+      "binding": "abraxas",
+      "type": "interactive"
+    },
+    "SocialTrendsPanel": {
+      "path": "client/src/components/SocialTrendsPanel.tsx",
+      "binding": "market-analysis",
+      "type": "display"
+    }
+  },
+  "pipelines": {
+    "ritual_execution": {
+      "steps": [
+        "runes.runRitual",
+        "abraxas.scoreWatchlists",
+        "storage.createRitualHistory"
+      ],
+      "deterministic": true,
+      "entropy_budget": 0.25
+    },
+    "indicator_discovery": {
+      "steps": [
+        "indicators.discoverIndicators",
+        "indicators.registerIndicator",
+        "storage.createIndicator"
+      ],
+      "deterministic": true,
+      "entropy_budget": 0.15
+    },
+    "watchlist_update": {
+      "steps": [
+        "market-analysis.analyzeSymbolPool",
+        "storage.addWatchlistItem",
+        "market-analysis.updateWatchlistAnalysis"
+      ],
+      "deterministic": false,
+      "entropy_budget": 0.50,
+      "note": "Non-deterministic due to external data"
+    }
+  },
+  "seed_compliance": {
+    "symbolic_integrity": true,
+    "deterministic_execution": true,
+    "provenance_chain": true,
+    "entropy_bounded": true,
+    "capability_isolation": true
+  }
+}
