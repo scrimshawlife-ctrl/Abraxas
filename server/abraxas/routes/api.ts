@@ -234,5 +234,143 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
     }
   });
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ERS (Event-driven Ritual Scheduler) Management Endpoints
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Import ERS scheduler
+  const { scheduler } = require("../integrations/ers-scheduler");
+
+  /**
+   * GET /api/scheduler/status
+   * Get scheduler status
+   */
+  app.get("/api/scheduler/status", (req, res) => {
+    const status = scheduler.getStatus();
+    res.json(status);
+  });
+
+  /**
+   * GET /api/scheduler/tasks
+   * Get all registered tasks
+   */
+  app.get("/api/scheduler/tasks", (req, res) => {
+    const tasks = scheduler.getTasks().map((task: any) => ({
+      id: task.id,
+      name: task.name,
+      description: task.description,
+      pipeline: task.pipeline,
+      trigger: task.trigger,
+      enabled: task.enabled,
+      deterministic: task.deterministic,
+      entropy_class: task.entropy_class,
+    }));
+    res.json(tasks);
+  });
+
+  /**
+   * GET /api/scheduler/tasks/:taskId
+   * Get specific task details
+   */
+  app.get("/api/scheduler/tasks/:taskId", (req, res) => {
+    const { taskId } = req.params;
+    const task = scheduler.getTask(taskId);
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const schedule = scheduler.getSchedule(taskId);
+    const recentExecutions = scheduler.getTaskExecutions(taskId, 5);
+
+    res.json({
+      task: {
+        id: task.id,
+        name: task.name,
+        description: task.description,
+        pipeline: task.pipeline,
+        trigger: task.trigger,
+        enabled: task.enabled,
+        config: task.config,
+      },
+      schedule,
+      recentExecutions,
+    });
+  });
+
+  /**
+   * POST /api/scheduler/tasks/:taskId/trigger
+   * Manually trigger a task execution
+   */
+  app.post("/api/scheduler/tasks/:taskId/trigger", async (req, res) => {
+    try {
+      const { taskId } = req.params;
+      const execution = await scheduler.triggerTask(taskId);
+      res.json(execution);
+    } catch (error) {
+      console.error("Task trigger failed:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to trigger task",
+      });
+    }
+  });
+
+  /**
+   * POST /api/scheduler/tasks/:taskId/enable
+   * Enable a task
+   */
+  app.post("/api/scheduler/tasks/:taskId/enable", (req, res) => {
+    try {
+      const { taskId } = req.params;
+      scheduler.enableTask(taskId);
+      res.json({ success: true, message: `Task ${taskId} enabled` });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to enable task",
+      });
+    }
+  });
+
+  /**
+   * POST /api/scheduler/tasks/:taskId/disable
+   * Disable a task
+   */
+  app.post("/api/scheduler/tasks/:taskId/disable", (req, res) => {
+    try {
+      const { taskId } = req.params;
+      scheduler.disableTask(taskId);
+      res.json({ success: true, message: `Task ${taskId} disabled` });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to disable task",
+      });
+    }
+  });
+
+  /**
+   * GET /api/scheduler/executions
+   * Get recent task executions
+   */
+  app.get("/api/scheduler/executions", (req, res) => {
+    const limit = parseInt(req.query.limit as string) || 20;
+    const executions = scheduler.getRecentExecutions(limit);
+    res.json(executions);
+  });
+
+  /**
+   * GET /api/scheduler/executions/:executionId
+   * Get specific execution details
+   */
+  app.get("/api/scheduler/executions/:executionId", (req, res) => {
+    const { executionId } = req.params;
+    const execution = scheduler.getExecution(executionId);
+
+    if (!execution) {
+      return res.status(404).json({ error: "Execution not found" });
+    }
+
+    res.json(execution);
+  });
+
   console.log("🔮 Abraxas API routes registered");
 }

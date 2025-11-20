@@ -1,0 +1,120 @@
+# ABX-Core v1.2 - ERS Schedule Configuration
+# SEED Framework Compliant
+#
+# Defines scheduled execution patterns for oracle pipelines
+
+version: "1.0"
+scheduler: "ERS"
+timezone: "UTC"
+
+# Scheduled Tasks
+tasks:
+  # Daily Oracle - Runs every day at ritual reset (midnight)
+  daily-oracle:
+    enabled: true
+    trigger:
+      type: "ritual"
+      event: "daily"
+    description: "Generate daily oracle ciphergram with symbolic analysis"
+    pipeline: "daily-oracle"
+    deterministic: true
+    entropy_class: "medium"
+
+  # VC Analysis - Disabled by default (manual trigger)
+  vc-analysis:
+    enabled: false
+    trigger:
+      type: "cron"
+      expression: "0 0 * * *"  # Daily at midnight
+    description: "Analyze venture capital market trends"
+    pipeline: "vc-analyzer"
+    deterministic: true
+    entropy_class: "medium"
+    config:
+      industry: "Technology"
+      region: "US"
+      horizonDays: 90
+
+  # Social Trends Scanner - Disabled by default
+  social-trends-scan:
+    enabled: false
+    trigger:
+      type: "interval"
+      milliseconds: 3600000  # 1 hour
+    description: "Scan social media platforms for trending keywords"
+    pipeline: "social-scanner"
+    deterministic: true
+    entropy_class: "medium"
+
+  # Watchlist Scoring - Disabled by default (API-triggered)
+  watchlist-scoring:
+    enabled: false
+    trigger:
+      type: "ritual"
+      event: "daily"
+    description: "Score equity and FX watchlists"
+    pipeline: "watchlist-scorer"
+    deterministic: true
+    entropy_class: "medium"
+    config:
+      equities: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"]
+      fx: ["USD/JPY", "EUR/USD", "GBP/USD"]
+
+# Scheduler Configuration
+scheduler_config:
+  # Maximum concurrent task executions
+  max_concurrent: 3
+
+  # Task execution timeout (milliseconds)
+  execution_timeout: 300000  # 5 minutes
+
+  # Execution history retention
+  retention:
+    max_executions: 1000
+    max_age_days: 30
+
+  # Retry policy for failed tasks
+  retry:
+    enabled: false  # Manual retry only
+    max_attempts: 3
+    backoff: "exponential"
+
+# Monitoring
+monitoring:
+  # Log execution results
+  log_executions: true
+
+  # Track symbolic metrics
+  track_metrics: true
+
+  # Alert on failures
+  alert_on_failure: false
+
+# SEED Compliance
+seed_enforcement:
+  # Require deterministic execution
+  require_deterministic: true
+
+  # Maximum entropy threshold
+  max_entropy: 0.8
+
+  # Validate provenance chain
+  validate_provenance: true
+
+# Notes
+notes: |
+  ERS (Event-driven Ritual Scheduler) Configuration
+
+  Task Triggers:
+  - ritual: Triggered by ritual events (daily, weekly, monthly)
+  - cron: Standard cron expressions (minute hour day month weekday)
+  - interval: Fixed millisecond intervals
+  - manual: No automatic scheduling (API-triggered only)
+
+  Enabled Tasks:
+  - daily-oracle: Generates daily ciphergrams automatically
+
+  Disabled Tasks (manual trigger recommended):
+  - vc-analysis: Resource-intensive, run on-demand
+  - social-trends-scan: High frequency, enable if needed
+  - watchlist-scoring: Typically triggered via /api/ritual endpoint

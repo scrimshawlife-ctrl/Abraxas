@@ -76,8 +76,57 @@
         "registerAbraxasRoutes"
       ],
       "provenance_id": "mod-api-routes-001",
+      "version": "1.1.0",
+      "note": "Clean routing layer with ERS management endpoints"
+    },
+    "abraxas/models/task": {
+      "path": "server/abraxas/models/task.ts",
+      "type": "type-definitions",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "SymbolicTask",
+        "TaskContext",
+        "TaskResult",
+        "TaskExecution",
+        "TaskSchedule",
+        "TaskStatus",
+        "TaskTrigger",
+        "TaskExecutor"
+      ],
+      "provenance_id": "mod-task-model-001",
       "version": "1.0.0",
-      "note": "Clean routing layer with zero business logic"
+      "note": "SymbolicTask type definitions for ERS"
+    },
+    "abraxas/integrations/ers-scheduler": {
+      "path": "server/abraxas/integrations/ers-scheduler.ts",
+      "type": "scheduler",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "ERSScheduler",
+        "scheduler"
+      ],
+      "provenance_id": "mod-ers-scheduler-001",
+      "version": "1.0.0",
+      "note": "Event-driven Ritual Scheduler for automatic pipeline execution"
+    },
+    "abraxas/integrations/task-registry": {
+      "path": "server/abraxas/integrations/task-registry.ts",
+      "type": "task-registry",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "dailyOracleTask",
+        "vcAnalysisTask",
+        "socialTrendsScanTask",
+        "watchlistScoringTask",
+        "ALL_TASKS",
+        "registerAllTasks"
+      ],
+      "provenance_id": "mod-task-registry-001",
+      "version": "1.0.0",
+      "note": "SymbolicTask wrappers for all oracle pipelines"
     },
     "abraxas/pipelines/watchlist-scorer": {
       "path": "server/abraxas/pipelines/watchlist-scorer.ts",
