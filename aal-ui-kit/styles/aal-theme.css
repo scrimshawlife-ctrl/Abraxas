@@ -1,0 +1,390 @@
+/**
+ * AAL UI Kit v1.0 - Theme & Component Styles
+ * Applied Alchemy Labs Design System
+ *
+ * Myth-tech aesthetic: neon-on-black, mystical meets modern
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS Custom Properties (Design Tokens)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Background & Surface Colors */
+  --aal-color-bg: #0A0A0A;
+  --aal-color-surface: #1C1C1E;
+  --aal-color-surface-soft: #151518;
+  --aal-color-border: #2A2A2F;
+
+  /* Text Colors */
+  --aal-color-text: #F7F8FB;
+  --aal-color-muted: #DADDE2;
+
+  /* Accent Colors (Neon Myth-tech) */
+  --aal-color-cyan: #00D4FF;
+  --aal-color-yellow: #F8FF59;
+  --aal-color-magenta: #FF3EF6;
+
+  /* Border Radius */
+  --aal-radius-sm: 6px;
+  --aal-radius-md: 10px;
+  --aal-radius-lg: 16px;
+
+  /* Shadows */
+  --aal-shadow-soft: 0 0 40px rgba(0, 212, 255, 0.18);
+  --aal-shadow-strong: 0 0 60px rgba(0, 212, 255, 0.32);
+
+  /* Typography */
+  --aal-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif;
+  --aal-line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Global Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html {
+  background: linear-gradient(
+    135deg,
+    var(--aal-color-bg) 0%,
+    #0D0D10 50%,
+    var(--aal-color-bg) 100%
+  );
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--aal-font-sans);
+  color: var(--aal-color-text);
+  line-height: var(--aal-line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Layout Utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+.aal-page-inner {
+  width: 100%;
+  max-width: 1120px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .aal-page {
+    padding: 40px 24px;
+  }
+
+  .aal-page-inner {
+    gap: 32px;
+  }
+}
+
+/* Stack (vertical spacing) */
+.aal-stack-md > * + * {
+  margin-top: 12px;
+}
+
+.aal-stack-lg > * + * {
+  margin-top: 20px;
+}
+
+/* Row (horizontal spacing) */
+.aal-row-sm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aal-row-md {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Typography
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-heading-xl {
+  font-size: clamp(32px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--aal-color-text);
+  margin: 0;
+}
+
+.aal-heading-md {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--aal-color-text);
+  margin: 0;
+}
+
+.aal-body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--aal-color-muted);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Card Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-card {
+  position: relative;
+  background: radial-gradient(
+    circle at top left,
+    rgba(0, 212, 255, 0.08) 0%,
+    var(--aal-color-surface) 40%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--aal-radius-lg);
+  padding: 18px;
+  box-shadow: var(--aal-shadow-soft);
+  overflow: hidden;
+}
+
+.aal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--aal-color-cyan) 50%,
+    transparent 100%
+  );
+  opacity: 0.3;
+}
+
+.aal-card--ghost {
+  background: rgba(28, 28, 30, 0.4);
+  border-color: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  .aal-card {
+    padding: 24px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Button Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--aal-font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  white-space: nowrap;
+}
+
+.aal-button:focus-visible {
+  outline: 2px solid var(--aal-color-cyan);
+  outline-offset: 2px;
+}
+
+.aal-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Primary Button (Cyan Gradient) */
+.aal-button--primary {
+  background: linear-gradient(
+    135deg,
+    var(--aal-color-cyan) 0%,
+    #00A8CC 100%
+  );
+  color: var(--aal-color-bg);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.aal-button--primary:hover:not(:disabled) {
+  box-shadow: var(--aal-shadow-strong);
+  transform: translateY(-1px);
+}
+
+.aal-button--primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Secondary Button (Bordered) */
+.aal-button--secondary {
+  background: var(--aal-color-surface-soft);
+  color: var(--aal-color-text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.aal-button--secondary:hover:not(:disabled) {
+  border-color: var(--aal-color-cyan);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+/* Ghost Button (Minimal) */
+.aal-button--ghost {
+  background: transparent;
+  color: var(--aal-color-muted);
+  border: 1px solid transparent;
+}
+
+.aal-button--ghost:hover:not(:disabled) {
+  color: var(--aal-color-text);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tag Component (Badge/Pill)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--aal-color-text);
+  background: var(--aal-color-surface-soft);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.aal-tag svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Divider Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-divider {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Sigil Frame Component (Icon Container)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-sigil-frame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--aal-color-cyan);
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 255, 0.15) 0%,
+    transparent 70%
+  );
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
+}
+
+.aal-sigil-frame::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  pointer-events: none;
+}
+
+.aal-sigil-frame svg,
+.aal-sigil-frame img {
+  width: 20px;
+  height: 20px;
+  color: var(--aal-color-cyan);
+}
+
+/* Yellow Variant (Analytics/Forecasting) */
+.aal-sigil-frame--yellow {
+  border-color: var(--aal-color-yellow);
+  background: radial-gradient(
+    circle,
+    rgba(248, 255, 89, 0.15) 0%,
+    transparent 70%
+  );
+  box-shadow: 0 0 20px rgba(248, 255, 89, 0.25);
+}
+
+.aal-sigil-frame--yellow::before {
+  border-color: rgba(248, 255, 89, 0.3);
+}
+
+.aal-sigil-frame--yellow svg,
+.aal-sigil-frame--yellow img {
+  color: var(--aal-color-yellow);
+}
+
+/* Magenta Variant (Creative/Music/Emotional) */
+.aal-sigil-frame--magenta {
+  border-color: var(--aal-color-magenta);
+  background: radial-gradient(
+    circle,
+    rgba(255, 62, 246, 0.15) 0%,
+    transparent 70%
+  );
+  box-shadow: 0 0 20px rgba(255, 62, 246, 0.25);
+}
+
+.aal-sigil-frame--magenta::before {
+  border-color: rgba(255, 62, 246, 0.3);
+}
+
+.aal-sigil-frame--magenta svg,
+.aal-sigil-frame--magenta img {
+  color: var(--aal-color-magenta);
+}
