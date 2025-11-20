@@ -76,6 +76,34 @@ export function createFeatureVector(
 }
 
 /**
+ * Create feature vector for pipeline operations
+ * Generalized version for non-equity/fx subjects
+ */
+export function createPipelineVector(
+  features: Record<string, number>,
+  subject: string,
+  seed: string,
+  module: string
+): FeatureVector {
+  const provenance: VectorProvenance = {
+    source: "abraxas",
+    module,
+    operation: `generate_features`,
+    generatedAt: Date.now(),
+  };
+
+  return {
+    id: `pipeline-${subject}-${seed}-${Date.now()}`,
+    type: "equity", // Generic type for pipeline vectors
+    subject,
+    features,
+    timestamp: Date.now(),
+    seed,
+    provenance,
+  };
+}
+
+/**
  * Merge multiple feature vectors with provenance chain
  */
 export function mergeVectors(

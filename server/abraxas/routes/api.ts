@@ -19,10 +19,11 @@ import crypto from "crypto";
 // @ts-ignore - Legacy JS modules, type declarations pending
 import { getTodayRunes, runRitual } from "../../runes";
 import { scoreWatchlists } from "../pipelines/watchlist-scorer";
+import { generateDailyOracle, type OracleSnapshot } from "../pipelines/daily-oracle";
+import { analyzeVCMarket } from "../pipelines/vc-analyzer";
+import { getCurrentTrends, triggerTrendsScan } from "../pipelines/social-scanner";
 // @ts-ignore - Legacy JS module
 import metrics from "../../metrics";
-// @ts-ignore - Legacy JS module
-import { analyzeVC } from "../../vc_oracle";
 import { sqliteDb } from "../integrations/sqlite-adapter";
 import { initializeRitual } from "../integrations/runes-adapter";
 
@@ -77,25 +78,30 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
 
   /**
    * GET /api/daily-oracle
-   * Generates daily oracle ciphergram
+   * Generates daily oracle ciphergram with symbolic analysis
    */
   app.get("/api/daily-oracle", (req, res) => {
-    const s = metrics.snapshot();
-    const conf = s.lifetime.accuracy.acc || 0.5;
-    const tone = conf > 0.6 ? "ascending" : conf > 0.52 ? "tempered" : "probing";
+    const ritual = initializeRitual();
+    const snapshot = metrics.snapshot();
 
-    // Generate ciphergram
-    const b = Buffer.from(
-      JSON.stringify({ day: new Date().toISOString().slice(0, 10), tone })
-    )
-      .toString("base64")
-      .replace(/=/g, "");
+    // Create oracle snapshot from metrics
+    const oracleSnapshot: OracleSnapshot = {
+      sources: snapshot.lifetime.sources.count || 0,
+      signals: snapshot.lifetime.signals.count || 0,
+      predictions: snapshot.lifetime.predictions.count || 0,
+      accuracy: snapshot.lifetime.accuracy.acc || null,
+    };
 
-    const glyph = b.match(/.{1,8}/g)?.join("·") || b;
+    // Generate oracle using pipeline
+    const oracle = generateDailyOracle(ritual, oracleSnapshot);
 
     res.json({
-      ciphergram: `⟟Σ ${glyph} Σ⟟`,
-      note: `Litany (${tone}): "Vectors converge; witnesses veiled."`,
+      ciphergram: oracle.ciphergram,
+      note: `Litany (${oracle.tone}): "${oracle.litany}"`,
+      tone: oracle.tone,
+      analysis: oracle.analysis,
+      archetypes: oracle.archetypes,
+      provenance: oracle.provenance,
     });
   });
 
@@ -179,52 +185,21 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
 
   /**
    * GET /api/social-trends
-   * Returns mock social media trends
+   * Returns current social media trends analysis
    */
   app.get("/api/social-trends", (req, res) => {
-    const trends = [
-      {
-        platform: "Twitter/X",
-        trends: [
-          { keyword: "AI", momentum: 0.85, sentiment: 0.72, volume: 125000 },
-          {
-            keyword: "blockchain",
-            momentum: 0.43,
-            sentiment: 0.58,
-            volume: 89000,
-          },
-        ],
-        timestamp: Date.now(),
-      },
-    ];
+    const ritual = initializeRitual();
+    const trends = getCurrentTrends(ritual);
     res.json(trends);
   });
 
   /**
    * POST /api/social-trends/scan
-   * Triggers social trends scan (mock implementation)
+   * Triggers fresh social trends scan
    */
   app.post("/api/social-trends/scan", async (req, res) => {
-    const trends = [
-      {
-        platform: "Twitter/X",
-        trends: [
-          {
-            keyword: "AI",
-            momentum: Math.random(),
-            sentiment: Math.random(),
-            volume: Math.floor(Math.random() * 200000),
-          },
-          {
-            keyword: "DeFi",
-            momentum: Math.random(),
-            sentiment: Math.random(),
-            volume: Math.floor(Math.random() * 100000),
-          },
-        ],
-        timestamp: Date.now(),
-      },
-    ];
+    const ritual = initializeRitual();
+    const trends = triggerTrendsScan(ritual);
 
     broadcast("social_trends", trends);
     res.json(trends);
@@ -236,7 +211,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
 
   /**
    * POST /api/vc/analyze
-   * Venture capital analysis and forecasting
+   * Venture capital analysis and forecasting with symbolic kernel
    */
   app.post("/api/vc/analyze", async (req, res) => {
     try {
@@ -246,7 +221,11 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
         horizonDays = 90,
       } = req.body || {};
 
-      const analysis = await analyzeVC({ industry, region, horizonDays });
+      const ritual = initializeRitual();
+      const analysis = await analyzeVCMarket(
+        { industry, region, horizonDays },
+        ritual
+      );
 
       res.json(analysis);
     } catch (error) {

@@ -48,10 +48,36 @@
         "getTodaysRunes",
         "ritualToContext",
         "createFeatureVector",
+        "createPipelineVector",
         "mergeVectors"
       ],
       "provenance_id": "mod-runes-adapter-001",
       "version": "1.0.0"
+    },
+    "abraxas/integrations/sqlite-adapter": {
+      "path": "server/abraxas/integrations/sqlite-adapter.ts",
+      "type": "integration-adapter",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "SQLiteAdapter",
+        "sqliteDb"
+      ],
+      "provenance_id": "mod-sqlite-adapter-001",
+      "version": "1.0.0",
+      "note": "Legacy SQLite database adapter (compatibility layer)"
+    },
+    "abraxas/routes/api": {
+      "path": "server/abraxas/routes/api.ts",
+      "type": "api-routing",
+      "entropy_class": "low",
+      "deterministic": false,
+      "exports": [
+        "registerAbraxasRoutes"
+      ],
+      "provenance_id": "mod-api-routes-001",
+      "version": "1.0.0",
+      "note": "Clean routing layer with zero business logic"
     },
     "abraxas/pipelines/watchlist-scorer": {
       "path": "server/abraxas/pipelines/watchlist-scorer.ts",
@@ -66,6 +92,58 @@
       "provenance_id": "mod-watchlist-scorer-001",
       "version": "2.0.0",
       "note": "Refactored with symbolic kernel integration"
+    },
+    "abraxas/pipelines/daily-oracle": {
+      "path": "server/abraxas/pipelines/daily-oracle.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "generateDailyOracle",
+        "sealOracle"
+      ],
+      "provenance_id": "mod-daily-oracle-001",
+      "version": "1.0.0",
+      "note": "Oracle synthesis with symbolic kernel integration"
+    },
+    "abraxas/pipelines/vc-analyzer": {
+      "path": "server/abraxas/pipelines/vc-analyzer.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "analyzeVCMarket"
+      ],
+      "provenance_id": "mod-vc-analyzer-001",
+      "version": "1.0.0",
+      "note": "VC market analysis with symbolic kernel and archetype mapping"
+    },
+    "abraxas/pipelines/social-scanner": {
+      "path": "server/abraxas/pipelines/social-scanner.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "scanSocialTrends",
+        "getCurrentTrends",
+        "triggerTrendsScan"
+      ],
+      "provenance_id": "mod-social-scanner-001",
+      "version": "1.0.0",
+      "note": "Social media trend analysis with memetic saturation detection"
+    },
+    "abraxas/pipelines/sigil-forge": {
+      "path": "server/abraxas/pipelines/sigil-forge.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": [
+        "forgeSigil",
+        "verifySigil"
+      ],
+      "provenance_id": "mod-sigil-forge-001",
+      "version": "1.0.0",
+      "note": "Deterministic sigil generation with cryptographic sealing"
     },
     "runes": {
       "path": "server/runes.js",
