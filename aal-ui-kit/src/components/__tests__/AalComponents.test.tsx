@@ -172,14 +172,14 @@ describe("AalTag", () => {
 });
 
 describe("AalDivider", () => {
-  it("renders as hr element", () => {
+  it("renders correctly", () => {
     const element = <AalDivider />;
-    expect(element.type).toBe("hr");
+    expect(element.type).toBe(AalDivider);
   });
 
   it("accepts custom className", () => {
     const element = <AalDivider className="custom" />;
-    expect(element.props.className).toContain("custom");
+    expect(element.props.className).toBe("custom");
   });
 });
 

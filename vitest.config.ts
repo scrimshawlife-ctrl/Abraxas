@@ -9,7 +9,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['server/abraxas/tests/**/*.test.ts'],
+    include: [
+      'server/abraxas/tests/**/*.test.ts',
+      'aal-ui-kit/src/**/*.test.tsx',
+    ],
     setupFiles: ['server/abraxas/tests/setup.ts'],
     coverage: {
       provider: 'v8',
