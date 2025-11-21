@@ -10,6 +10,7 @@ import { computeSymbolicMetricsOptimized } from "../core/kernel-optimized";
 import { clearAllCaches, performanceMonitor } from "../core/performance";
 import { FIXED_RITUAL, FIXED_FEATURE_VECTOR } from "./fixtures";
 import { ritualToContext } from "../integrations/runes-adapter";
+import { generateDailyOracle } from "../pipelines/daily-oracle";
 
 describe("Performance Benchmarks", () => {
   beforeEach(() => {
@@ -207,7 +208,6 @@ describe("Performance Benchmarks", () => {
   });
 
   it("should compare pipeline performance (daily oracle)", () => {
-    const { generateDailyOracle } = require("../pipelines/daily-oracle");
     const metricsSnapshot = {
       sources: 50,
       signals: 25,

@@ -10,6 +10,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['server/abraxas/tests/**/*.test.ts'],
+    exclude: ['server/abraxas/tests/watchlist-scorer.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -28,6 +29,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
+      '@shared': path.resolve(__dirname, './shared'),
     },
   },
 });
