@@ -38,12 +38,21 @@ The AAL UI Kit provides a cohesive visual language for Applied Alchemy Labs appl
 
 **All components are fully typed with TypeScript and designed for composition.**
 
+**Layout & Structure:**
 - **`AalShell`** - Page layout wrapper with optional title/subtitle
 - **`AalCard`** - Panel/container component with subtle cyan glow
-- **`AalButton`** - Primary, secondary, and ghost button variants
-- **`AalTag`** - Small badge/pill for labels and categories
 - **`AalDivider`** - Subtle horizontal separator
-- **`AalSigilFrame`** - Circular frame for icons/glyphs with tone variants (cyan/yellow/magenta)
+- **`AalTabs`** - Tab navigation with content panels
+
+**Interactive:**
+- **`AalButton`** - Primary, secondary, and ghost button variants
+- **`AalInput`** - Text input with label, icons, and error states
+- **`AalSpinner`** - Loading indicator with tone variants
+
+**Display:**
+- **`AalTag`** - Small badge/pill for labels and categories
+- **`AalSigilFrame`** - Circular frame for icons/glyphs with tone variants
+- **`AalMetricCard`** - Standardized metric display with icon, value, and trend
 
 ---
 
@@ -69,6 +78,10 @@ import {
   AalTag,
   AalDivider,
   AalSigilFrame,
+  AalInput,
+  AalSpinner,
+  AalTabs,
+  AalMetricCard,
 } from "../aal-ui-kit/src";
 ```
 
@@ -159,6 +172,62 @@ Circular frame for icons/glyphs with colored tone.
 - `tone?: "cyan" | "yellow" | "magenta"` - Color theme (default: `"cyan"`)
 - `size?: number` - Diameter in pixels (default: `40`)
 - `className?: string`
+- `style?: React.CSSProperties`
+
+### `<AalInput>`
+
+Text input field with optional label and icons.
+
+**Props:**
+- `label?: string` - Input label
+- `leftIcon?: React.ReactNode` - Icon before input
+- `rightIcon?: React.ReactNode` - Icon after input
+- `size?: "sm" | "md" | "lg"` - Size variant (default: `"md"`)
+- `error?: boolean` - Error state styling
+- `helperText?: string` - Helper or error message
+- ...all standard `<input>` HTML attributes
+
+### `<AalSpinner>`
+
+Loading indicator.
+
+**Props:**
+- `size?: number` - Size in pixels (default: `24`)
+- `tone?: "cyan" | "yellow" | "magenta"` - Color (default: `"cyan"`)
+- `className?: string`
+- `style?: React.CSSProperties`
+
+### `<AalTabs>`
+
+Tab navigation component.
+
+**Props:**
+- `tabs: AalTab[]` - Array of tab definitions
+- `defaultTab?: string` - Initial active tab ID
+- `activeTab?: string` - Controlled active tab
+- `onTabChange?: (tabId: string) => void` - Tab change callback
+- `className?: string`
+- `style?: React.CSSProperties`
+
+**`AalTab` type:**
+- `id: string` - Unique identifier
+- `label: React.ReactNode` - Tab label
+- `icon?: React.ReactNode` - Tab icon
+- `content: React.ReactNode` - Tab panel content
+- `disabled?: boolean`
+
+### `<AalMetricCard>`
+
+Standardized metric display card.
+
+**Props:**
+- `icon?: React.ReactNode` - Metric icon
+- `label: string` - Metric label
+- `value: string | number` - Metric value
+- `trend?: "up" | "down" | "neutral"` - Trend indicator
+- `tag?: string` - Optional tag/badge
+- `description?: string` - Additional description
+- `tone?: "cyan" | "yellow" | "magenta"` - Color theme
 
 ---
 
@@ -185,6 +254,19 @@ All components use BEM-style classes:
 - `.aal-tag`
 - `.aal-divider`
 - `.aal-sigil-frame`, `.aal-sigil-frame--yellow`, `.aal-sigil-frame--magenta`
+- `.aal-input`, `.aal-input--sm`, `.aal-input--lg`, `.aal-input--error`
+- `.aal-spinner`, `.aal-spinner--yellow`, `.aal-spinner--magenta`
+- `.aal-tabs`, `.aal-tab`, `.aal-tab--active`
+
+### Responsive Grid
+
+- `.aal-grid` - Base grid container
+- `.aal-grid-2` - 2-column grid (1 col on mobile)
+- `.aal-grid-3` - 3-column grid (1-2 cols on smaller screens)
+- `.aal-grid-4` - 4-column grid (1-2 cols on smaller screens)
+- `.aal-hide-mobile` / `.aal-show-mobile` - Mobile visibility
+- `.aal-hide-tablet` / `.aal-show-tablet` - Tablet visibility
+- `.aal-hide-desktop` / `.aal-show-desktop` - Desktop visibility
 
 ---
 
@@ -213,6 +295,16 @@ Proprietary - Applied Alchemy Labs © 2025
 ---
 
 ## Changelog
+
+### v1.1 (2025-11-21)
+- Added `AalInput` component with label, icons, error states
+- Added `AalSpinner` loading indicator
+- Added `AalTabs` navigation component
+- Added `AalMetricCard` for standardized metric display
+- Added responsive grid utilities (`.aal-grid-2/3/4`)
+- Added visibility utilities for responsive design
+- Added `style` prop to `AalTag`, `AalCard`, `AalSigilFrame`
+- Added `onClick` prop to `AalCard`
 
 ### v1.0 (2025-01-15)
 - Initial release

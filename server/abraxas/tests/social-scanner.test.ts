@@ -19,10 +19,10 @@ describe("Social Scanner Pipeline", () => {
     it("golden snapshot for fixed ritual", () => {
       const trends = scanSocialTrends(FIXED_RITUAL);
 
-      expect(trends.meta.totalKeywords).toMatchInlineSnapshot();
-      expect(trends.meta.avgMomentum).toMatchInlineSnapshot();
-      expect(trends.meta.avgSentiment).toMatchInlineSnapshot();
-      expect(trends.symbolicAnalysis.memetic_saturation).toMatchInlineSnapshot();
+      expect(trends.meta.totalKeywords).toMatchInlineSnapshot(`15`);
+      expect(trends.meta.avgMomentum).toMatchInlineSnapshot(`0.4366666666666666`);
+      expect(trends.meta.avgSentiment).toMatchInlineSnapshot(`0.5559999999999999`);
+      expect(trends.symbolicAnalysis.memetic_saturation).toMatchInlineSnapshot(`0.04`);
     });
 
     it("produces different trends for different rituals", () => {

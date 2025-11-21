@@ -65,14 +65,14 @@ describe("Symbolic Kernel", () => {
       expect(metrics.Hσ).toBeLessThanOrEqual(1);
 
       // Golden snapshot: These values should never change for same input
-      expect(metrics.SDR).toMatchInlineSnapshot();
-      expect(metrics.MSI).toMatchInlineSnapshot();
-      expect(metrics.ARF).toMatchInlineSnapshot();
-      expect(metrics.NMC).toMatchInlineSnapshot();
-      expect(metrics.RFR).toMatchInlineSnapshot();
-      expect(metrics.Hσ).toMatchInlineSnapshot();
-      expect(metrics.λN).toMatchInlineSnapshot();
-      expect(metrics.ITC).toMatchInlineSnapshot();
+      expect(metrics.SDR).toMatchInlineSnapshot(`0.6709396694189426`);
+      expect(metrics.MSI).toMatchInlineSnapshot(`0.0298`);
+      expect(metrics.ARF).toMatchInlineSnapshot(`0.5389599944865746`);
+      expect(metrics.NMC).toMatchInlineSnapshot(`-0.11664`);
+      expect(metrics.RFR).toMatchInlineSnapshot(`1`);
+      expect(metrics.Hσ).toMatchInlineSnapshot(`0.9860472875963129`);
+      expect(metrics.λN).toMatchInlineSnapshot(`2.0461256909668077e-135`);
+      expect(metrics.ITC).toMatchInlineSnapshot(`0.95`);
     });
 
     it("produces reproducible metrics for same ritual", () => {
@@ -146,7 +146,7 @@ describe("Symbolic Kernel", () => {
       expect(metrics.Hσ).toBeGreaterThanOrEqual(0);
 
       // Low feature density should result in certain patterns
-      expect(metrics.SDR).toMatchInlineSnapshot(); // Should be low
+      expect(metrics.SDR).toMatchInlineSnapshot(`0.06380000000000002`); // Should be low
     });
 
     it("handles maximum feature vector", () => {
@@ -166,8 +166,8 @@ describe("Symbolic Kernel", () => {
       const metrics = computeSymbolicMetrics(symbolicVector, context);
 
       // Should produce valid metrics
-      expect(metrics.MSI).toMatchInlineSnapshot(); // High saturation expected
-      expect(metrics.Hσ).toMatchInlineSnapshot(); // May have low entropy (all max)
+      expect(metrics.MSI).toMatchInlineSnapshot(`0.04`); // High saturation expected
+      expect(metrics.Hσ).toMatchInlineSnapshot(`1`); // May have low entropy (all max)
     });
   });
 
@@ -212,7 +212,7 @@ describe("Symbolic Kernel", () => {
       const quality2 = aggregateQualityScore(metrics);
 
       expect(quality1).toBe(quality2);
-      expect(quality1).toMatchInlineSnapshot();
+      expect(quality1).toMatchInlineSnapshot(`0.3262673369430733`);
     });
 
     it("produces higher quality for low drift and entropy", () => {

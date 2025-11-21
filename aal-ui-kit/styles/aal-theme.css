@@ -388,3 +388,288 @@ body {
 .aal-sigil-frame--magenta img {
   color: var(--aal-color-magenta);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Input Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.aal-input-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--aal-color-muted);
+}
+
+.aal-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.aal-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--aal-font-sans);
+  font-size: 14px;
+  color: var(--aal-color-text);
+  background: var(--aal-color-surface);
+  border: 1px solid var(--aal-color-border);
+  border-radius: var(--aal-radius-md);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.aal-input::placeholder {
+  color: rgba(218, 221, 226, 0.5);
+}
+
+.aal-input:focus {
+  border-color: var(--aal-color-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+}
+
+.aal-input--sm {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.aal-input--lg {
+  padding: 14px 18px;
+  font-size: 16px;
+}
+
+.aal-input--error {
+  border-color: var(--aal-color-magenta);
+}
+
+.aal-input--error:focus {
+  border-color: var(--aal-color-magenta);
+  box-shadow: 0 0 0 3px rgba(255, 62, 246, 0.15);
+}
+
+.aal-input-container.has-left-icon .aal-input {
+  padding-left: 40px;
+}
+
+.aal-input-container.has-right-icon .aal-input {
+  padding-right: 40px;
+}
+
+.aal-input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aal-color-muted);
+}
+
+.aal-input-icon--left {
+  left: 12px;
+}
+
+.aal-input-icon--right {
+  right: 12px;
+}
+
+.aal-input-helper {
+  font-size: 12px;
+  color: var(--aal-color-muted);
+}
+
+.aal-input-helper--error {
+  color: var(--aal-color-magenta);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Spinner Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-spinner {
+  display: inline-flex;
+  color: var(--aal-color-cyan);
+  animation: aal-spin 1s linear infinite;
+}
+
+.aal-spinner svg {
+  width: 100%;
+  height: 100%;
+}
+
+.aal-spinner--yellow {
+  color: var(--aal-color-yellow);
+}
+
+.aal-spinner--magenta {
+  color: var(--aal-color-magenta);
+}
+
+@keyframes aal-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tabs Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aal-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.aal-tabs-list {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--aal-color-border);
+  padding-bottom: 4px;
+}
+
+.aal-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-family: var(--aal-font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--aal-color-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--aal-radius-sm) var(--aal-radius-sm) 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.aal-tab:hover:not(:disabled) {
+  color: var(--aal-color-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.aal-tab--active {
+  color: var(--aal-color-cyan);
+}
+
+.aal-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--aal-color-cyan);
+  border-radius: 1px;
+}
+
+.aal-tab--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.aal-tab__icon {
+  display: flex;
+}
+
+.aal-tabs-content {
+  padding-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Responsive Breakpoints & Grid Utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Grid utilities */
+.aal-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.aal-grid-2 {
+  grid-template-columns: 1fr;
+}
+
+.aal-grid-3 {
+  grid-template-columns: 1fr;
+}
+
+.aal-grid-4 {
+  grid-template-columns: 1fr;
+}
+
+/* Tablet breakpoint (768px+) */
+@media (min-width: 768px) {
+  .aal-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .aal-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .aal-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .aal-hide-tablet {
+    display: none;
+  }
+
+  .aal-show-tablet {
+    display: block;
+  }
+}
+
+/* Desktop breakpoint (1024px+) */
+@media (min-width: 1024px) {
+  .aal-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .aal-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .aal-hide-desktop {
+    display: none;
+  }
+
+  .aal-show-desktop {
+    display: block;
+  }
+}
+
+/* Mobile-only utilities */
+@media (max-width: 767px) {
+  .aal-hide-mobile {
+    display: none;
+  }
+
+  .aal-stack-mobile > * + * {
+    margin-top: 16px;
+  }
+
+  /* Make tabs scrollable on mobile */
+  .aal-tabs-list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .aal-tabs-list::-webkit-scrollbar {
+    display: none;
+  }
+}

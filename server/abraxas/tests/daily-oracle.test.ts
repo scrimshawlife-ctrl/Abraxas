@@ -33,14 +33,14 @@ describe("Daily Oracle Pipeline", () => {
       const oracle = generateDailyOracle(FIXED_RITUAL, FIXED_METRICS_SNAPSHOT);
 
       // Golden snapshot - should never change
-      expect(oracle.ciphergram).toMatchInlineSnapshot();
-      expect(oracle.tone).toMatchInlineSnapshot();
-      expect(oracle.litany).toMatchInlineSnapshot();
-      expect(oracle.analysis.quality).toMatchInlineSnapshot();
-      expect(oracle.analysis.drift).toMatchInlineSnapshot();
-      expect(oracle.analysis.entropy).toMatchInlineSnapshot();
-      expect(oracle.analysis.resonance).toMatchInlineSnapshot();
-      expect(oracle.analysis.confidence).toMatchInlineSnapshot();
+      expect(oracle.ciphergram).toMatchInlineSnapshot(`"⟟Σ eyJkYXki·OiIyMDI1·LTAxLTE1·IiwidG9u·ZSI6InBy·b2Jpbmci·LCJydW5l·cyI6ImFl·dGhlci1m·bHV4LW5l·eHVzIiwi·cXVhbGl0·eSI6MC4z·NTh9 Σ⟟"`);
+      expect(oracle.tone).toMatchInlineSnapshot(`"probing"`);
+      expect(oracle.litany).toMatchInlineSnapshot(`"Patterns shift; truth obscured. The Warrior presides."`);
+      expect(oracle.analysis.quality).toMatchInlineSnapshot(`0.3584012633841397`);
+      expect(oracle.analysis.drift).toMatchInlineSnapshot(`0.5357708838673487`);
+      expect(oracle.analysis.entropy).toMatchInlineSnapshot(`0.9050214153687253`);
+      expect(oracle.analysis.resonance).toMatchInlineSnapshot(`0.5245277559264258`);
+      expect(oracle.analysis.confidence).toMatchInlineSnapshot(`0.6325203790152418`);
     });
 
     it("generates different ciphergrams for different rituals", () => {
@@ -56,8 +56,8 @@ describe("Daily Oracle Pipeline", () => {
       const highConfOracle = generateDailyOracle(FIXED_RITUAL, HIGH_CONFIDENCE_METRICS);
 
       // Tones should differ based on confidence
-      expect(lowConfOracle.tone).toMatchInlineSnapshot();
-      expect(highConfOracle.tone).toMatchInlineSnapshot();
+      expect(lowConfOracle.tone).toMatchInlineSnapshot(`"probing"`);
+      expect(highConfOracle.tone).toMatchInlineSnapshot(`"probing"`);
 
       // High confidence should produce better tone
       const tonePriority = {
@@ -209,7 +209,7 @@ describe("Daily Oracle Pipeline", () => {
       const oracle = generateDailyOracle(FIXED_RITUAL, FIXED_METRICS_SNAPSHOT);
       const seal = sealOracle(oracle);
 
-      expect(seal).toMatchInlineSnapshot();
+      expect(seal).toMatchInlineSnapshot(`"7bd9a6035e1859c9"`);
     });
   });
 
