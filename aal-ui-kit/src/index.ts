@@ -1,5 +1,5 @@
 /**
- * AAL UI Kit v1.0
+ * AAL UI Kit v1.2
  * Applied Alchemy Labs Design System
  *
  * Export all components for easy import
@@ -15,3 +15,6 @@ export * from "./components/AalMetricCard";
 export * from "./components/AalInput";
 export * from "./components/AalSpinner";
 export * from "./components/AalTabs";
+export * from "./components/AalThemeSwitch";
+export * from "./components/AalToast";
+export * from "./components/AalModal";
