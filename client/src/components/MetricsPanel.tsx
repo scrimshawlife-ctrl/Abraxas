@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { Activity, Target, TrendingUp, Clock, Zap, RefreshCw } from "lucide-react";
+import { Activity, Target, Clock, Zap, RefreshCw } from "lucide-react";
+import {
+  AalCard,
+  AalButton,
+  AalTag,
+  AalDivider,
+  AalSigilFrame,
+} from "../../../aal-ui-kit/src";
 
 interface MetricsSnapshot {
   day: {
@@ -14,7 +17,7 @@ interface MetricsSnapshot {
   };
   week: {
     uniqueSources: number;
-    uniqueSignals: number; 
+    uniqueSignals: number;
     fxShiftAbs: number;
     accuracy: { acc: number | null; n: number };
   };
@@ -45,7 +48,7 @@ export default function MetricsPanel() {
   const fetchMetrics = () => {
     setIsRefreshing(true);
     console.log('Fetching metrics and oracle...');
-    
+
     setTimeout(() => {
       // Mock metrics data
       const mockMetrics: MetricsSnapshot = {
@@ -90,11 +93,18 @@ export default function MetricsPanel() {
     fetchMetrics();
   }, []);
 
+  const getAccuracyTone = (acc: number | null): "cyan" | "yellow" | "magenta" => {
+    if (acc === null) return "yellow";
+    if (acc >= 0.7) return "cyan";
+    if (acc >= 0.6) return "yellow";
+    return "magenta";
+  };
+
   const getAccuracyColor = (acc: number | null) => {
-    if (acc === null) return "text-muted-foreground";
-    if (acc >= 0.7) return "text-green-400";
-    if (acc >= 0.6) return "text-yellow-400";
-    return "text-red-400";
+    if (acc === null) return "var(--aal-color-muted)";
+    if (acc >= 0.7) return "var(--aal-color-cyan)";
+    if (acc >= 0.6) return "var(--aal-color-yellow)";
+    return "var(--aal-color-magenta)";
   };
 
   const getConfidenceTone = (acc: number | null) => {
@@ -108,176 +118,124 @@ export default function MetricsPanel() {
     return acc ? `${(acc * 100).toFixed(1)}%` : "—";
   };
 
+  const renderMetricBlock = (
+    label: string,
+    value: string | number,
+    color: string,
+    subLabel?: string
+  ) => (
+    <AalCard variant="ghost" padding="12px" style={{ textAlign: "center" }}>
+      <div
+        className="aal-heading-md"
+        style={{ fontSize: "20px", fontFamily: "monospace", color }}
+      >
+        {value}
+      </div>
+      <div className="aal-body" style={{ fontSize: "11px" }}>
+        {label}
+        {subLabel && <span> ({subLabel})</span>}
+      </div>
+    </AalCard>
+  );
+
+  const renderPeriodColumn = (
+    title: string,
+    data: MetricsSnapshot["day"],
+    icon?: React.ReactNode
+  ) => (
+    <div className="aal-stack-md">
+      <h3
+        className="aal-heading-md"
+        style={{ fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}
+      >
+        {icon}
+        {title}
+      </h3>
+      <div className="aal-stack-md">
+        {renderMetricBlock("Sources", data.uniqueSources, "var(--aal-color-cyan)")}
+        {renderMetricBlock("Signals", data.uniqueSignals, "var(--aal-color-magenta)")}
+        {renderMetricBlock(
+          "Accuracy",
+          formatPercentage(data.accuracy.acc),
+          getAccuracyColor(data.accuracy.acc),
+          data.accuracy.n.toLocaleString()
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="aal-stack-lg">
       {/* Daily Oracle */}
       {oracle && (
-        <Card className="p-6 bg-gradient-to-r from-primary/5 to-accent/5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              Daily Oracle
-            </h2>
-            <Badge variant="secondary" className="text-xs">
-              {getConfidenceTone(metrics?.lifetime.accuracy.acc ?? null)}
-            </Badge>
-          </div>
-          
-          <div className="text-center">
-            <div className="font-mono text-accent text-lg mb-3 break-all">
-              {oracle.ciphergram}
+        <AalCard>
+          <div className="aal-stack-md">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <AalSigilFrame tone="yellow" size={40}>
+                  <Zap size={20} />
+                </AalSigilFrame>
+                <h2 className="aal-heading-md">Daily Oracle</h2>
+              </div>
+              <AalTag>{getConfidenceTone(metrics?.lifetime.accuracy.acc ?? null)}</AalTag>
             </div>
-            <p className="text-sm text-muted-foreground italic">
-              {oracle.note}
-            </p>
+
+            <AalDivider />
+
+            <div style={{ textAlign: "center", padding: "16px 0" }}>
+              <div
+                className="aal-heading-md"
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: "18px",
+                  color: "var(--aal-color-yellow)",
+                  wordBreak: "break-all",
+                  marginBottom: "12px"
+                }}
+              >
+                {oracle.ciphergram}
+              </div>
+              <p className="aal-body" style={{ fontStyle: "italic", fontSize: "13px" }}>
+                {oracle.note}
+              </p>
+            </div>
           </div>
-        </Card>
+        </AalCard>
       )}
 
-      {/* Metrics */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            System Metrics
-          </h2>
-          <Button 
-            onClick={fetchMetrics}
-            disabled={isRefreshing}
-            size="sm"
-            variant="outline"
-            data-testid="button-refresh-metrics"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
-
-        {metrics && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Day */}
-            <div>
-              <h3 className="font-semibold mb-3 text-primary flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                24h
-              </h3>
-              <div className="space-y-3">
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-cyan-400">
-                    {metrics.day.uniqueSources}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Sources</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-purple-400">
-                    {metrics.day.uniqueSignals}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Signals</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className={`text-xl font-mono ${getAccuracyColor(metrics.day.accuracy.acc)}`}>
-                    {formatPercentage(metrics.day.accuracy.acc)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Accuracy ({metrics.day.accuracy.n})
-                  </div>
-                </div>
-              </div>
+      {/* System Metrics */}
+      <AalCard>
+        <div className="aal-stack-md">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <AalSigilFrame tone="cyan" size={40}>
+                <Activity size={20} />
+              </AalSigilFrame>
+              <h2 className="aal-heading-md">System Metrics</h2>
             </div>
-
-            {/* Week */}
-            <div>
-              <h3 className="font-semibold mb-3 text-primary">7d</h3>
-              <div className="space-y-3">
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-cyan-400">
-                    {metrics.week.uniqueSources}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Sources</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-purple-400">
-                    {metrics.week.uniqueSignals}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Signals</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className={`text-xl font-mono ${getAccuracyColor(metrics.week.accuracy.acc)}`}>
-                    {formatPercentage(metrics.week.accuracy.acc)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Accuracy ({metrics.week.accuracy.n})
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Month */}
-            <div>
-              <h3 className="font-semibold mb-3 text-primary">30d</h3>
-              <div className="space-y-3">
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-cyan-400">
-                    {metrics.month.uniqueSources}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Sources</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-purple-400">
-                    {metrics.month.uniqueSignals}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Signals</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className={`text-xl font-mono ${getAccuracyColor(metrics.month.accuracy.acc)}`}>
-                    {formatPercentage(metrics.month.accuracy.acc)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Accuracy ({metrics.month.accuracy.n})
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Lifetime */}
-            <div>
-              <h3 className="font-semibold mb-3 text-primary flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                All Time
-              </h3>
-              <div className="space-y-3">
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-cyan-400">
-                    {metrics.lifetime.uniqueSources.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Sources</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className="text-xl font-mono text-purple-400">
-                    {metrics.lifetime.uniqueSignals.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Signals</div>
-                </div>
-                
-                <div className="text-center p-3 bg-card/50 rounded-lg">
-                  <div className={`text-xl font-mono ${getAccuracyColor(metrics.lifetime.accuracy.acc)}`}>
-                    {formatPercentage(metrics.lifetime.accuracy.acc)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Accuracy ({metrics.lifetime.accuracy.n.toLocaleString()})
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AalButton
+              onClick={fetchMetrics}
+              disabled={isRefreshing}
+              variant="secondary"
+              leftIcon={<RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />}
+              data-testid="button-refresh-metrics"
+            >
+              Refresh
+            </AalButton>
           </div>
-        )}
-      </Card>
+
+          <AalDivider />
+
+          {metrics && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}>
+              {renderPeriodColumn("24h", metrics.day, <Clock size={14} />)}
+              {renderPeriodColumn("7d", metrics.week)}
+              {renderPeriodColumn("30d", metrics.month)}
+              {renderPeriodColumn("All Time", metrics.lifetime, <Target size={14} />)}
+            </div>
+          )}
+        </div>
+      </AalCard>
     </div>
   );
 }

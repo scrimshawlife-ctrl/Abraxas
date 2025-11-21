@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { History, Calendar, Sparkles, Eye } from "lucide-react";
+import { History, Sparkles, Eye } from "lucide-react";
+import {
+  AalCard,
+  AalTag,
+  AalDivider,
+  AalSigilFrame,
+} from "../../../aal-ui-kit/src";
 
 interface RitualRecord {
   id: string;
@@ -70,7 +73,7 @@ export default function GrimoireView() {
         }
       },
       {
-        id: "ritual-002", 
+        id: "ritual-002",
         date: "2025-01-14",
         seed: "592847",
         created_at: Date.now() - 172800000,
@@ -92,7 +95,7 @@ export default function GrimoireView() {
       {
         id: "sigil-002",
         core: "GRWTH",
-        seed: "f1e8d2c9b3a7", 
+        seed: "f1e8d2c9b3a7",
         method: "traditional_strip+grid3x3+seeded_quadratic",
         created_at: Date.now() - 7200000
       }
@@ -122,153 +125,208 @@ export default function GrimoireView() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <History className="w-6 h-6 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold text-primary">Grimoire</h1>
-            <p className="text-sm text-muted-foreground">
-              Archive of rituals, sigils, and mystical workings
-            </p>
+    <div className="aal-stack-lg">
+      <AalCard>
+        <div className="aal-stack-md">
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <AalSigilFrame tone="yellow" size={48}>
+              <History size={24} />
+            </AalSigilFrame>
+            <div>
+              <h1 className="aal-heading-xl">Grimoire</h1>
+              <p className="aal-body" style={{ fontSize: "13px", marginTop: "4px" }}>
+                Archive of rituals, sigils, and mystical workings
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* Ritual History */}
-          <div>
-            <h2 className="font-semibold mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Ritual Records
-            </h2>
-            
-            <div className="space-y-3">
-              {rituals.map((ritual) => (
-                <Card 
-                  key={ritual.id}
-                  className={`p-4 cursor-pointer hover-elevate ${
-                    selectedRitual?.id === ritual.id ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => setSelectedRitual(ritual)}
-                  data-testid={`ritual-record-${ritual.id}`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="font-medium text-sm">{ritual.date}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Seed: {ritual.seed}
+          <AalDivider />
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+            {/* Ritual History */}
+            <div className="aal-stack-md">
+              <h2 className="aal-heading-md" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Sparkles size={16} />
+                Ritual Records
+              </h2>
+
+              <div className="aal-stack-md">
+                {rituals.map((ritual) => (
+                  <AalCard
+                    key={ritual.id}
+                    variant="ghost"
+                    padding="16px"
+                    onClick={() => setSelectedRitual(ritual)}
+                    style={{
+                      cursor: "pointer",
+                      border: selectedRitual?.id === ritual.id ? "1px solid var(--aal-color-cyan)" : undefined
+                    }}
+                    data-testid={`ritual-record-${ritual.id}`}
+                  >
+                    <div className="aal-stack-md">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                        <div>
+                          <div className="aal-heading-md" style={{ fontSize: "14px" }}>{ritual.date}</div>
+                          <div className="aal-body" style={{ fontSize: "12px" }}>
+                            Seed: {ritual.seed}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div className="aal-body" style={{ fontSize: "11px" }}>
+                            {formatDate(ritual.created_at)}
+                          </div>
+                          {ritual.results && (
+                            <AalTag style={{ marginTop: "4px" }}>
+                              {getTotalPredictions(ritual)} predictions
+                            </AalTag>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground">
-                        {formatDate(ritual.created_at)}
-                      </div>
-                      {ritual.results && (
-                        <Badge variant="secondary" className="text-xs mt-1">
-                          {getTotalPredictions(ritual)} predictions
-                        </Badge>
+
+                      {ritual.runes && (
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {ritual.runes.map((rune) => (
+                            <div
+                              key={rune.id}
+                              style={{
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                backgroundColor: rune.color
+                              }}
+                            />
+                          ))}
+                        </div>
                       )}
                     </div>
-                  </div>
-                  
-                  {ritual.runes && (
-                    <div className="flex gap-1">
-                      {ritual.runes.map((rune) => (
-                        <div 
-                          key={rune.id}
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: rune.color }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </Card>
-              ))}
+                  </AalCard>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Sigil Archive */}
-          <div>
-            <h2 className="font-semibold mb-4 flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              Sigil Archive
-            </h2>
-            
-            <div className="space-y-3">
-              {sigils.map((sigil) => (
-                <Card key={sigil.id} className="p-4" data-testid={`sigil-record-${sigil.id}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-mono text-primary font-medium">
-                      {sigil.core}
+            {/* Sigil Archive */}
+            <div className="aal-stack-md">
+              <h2 className="aal-heading-md" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Eye size={16} />
+                Sigil Archive
+              </h2>
+
+              <div className="aal-stack-md">
+                {sigils.map((sigil) => (
+                  <AalCard key={sigil.id} variant="ghost" padding="16px" data-testid={`sigil-record-${sigil.id}`}>
+                    <div className="aal-stack-md">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div
+                          className="aal-heading-md"
+                          style={{ fontFamily: "monospace", color: "var(--aal-color-magenta)" }}
+                        >
+                          {sigil.core}
+                        </div>
+                        <div className="aal-body" style={{ fontSize: "11px" }}>
+                          {formatDate(sigil.created_at)}
+                        </div>
+                      </div>
+
+                      <div className="aal-body" style={{ fontSize: "11px", wordBreak: "break-all" }}>
+                        {sigil.seed}
+                      </div>
+
+                      <AalTag>Grid 3x3 + Quadratic</AalTag>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDate(sigil.created_at)}
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground mb-2 break-all">
-                    {sigil.seed}
-                  </div>
-                  
-                  <Badge variant="outline" className="text-xs">
-                    Grid 3x3 + Quadratic
-                  </Badge>
-                </Card>
-              ))}
+                  </AalCard>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </Card>
+      </AalCard>
 
       {/* Ritual Details */}
       {selectedRitual && selectedRitual.results && (
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4 text-primary">
-            Ritual Details • {selectedRitual.date}
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium mb-3">Equity Predictions</h4>
-              <div className="space-y-2">
-                {selectedRitual.results.equities.conservative.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm p-2 bg-green-950/20 rounded">
-                    <span>{item.ticker}</span>
-                    <div className="flex gap-2">
-                      <span className="text-green-400">+{item.edge.toFixed(3)}</span>
-                      <span className="text-muted-foreground">({item.confidence.toFixed(2)})</span>
+        <AalCard>
+          <div className="aal-stack-md">
+            <h3 className="aal-heading-md" style={{ color: "var(--aal-color-cyan)" }}>
+              Ritual Details - {selectedRitual.date}
+            </h3>
+
+            <AalDivider />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+              <div className="aal-stack-md">
+                <h4 className="aal-heading-md" style={{ fontSize: "14px" }}>Equity Predictions</h4>
+                <div className="aal-stack-md">
+                  {selectedRitual.results.equities.conservative.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "8px 12px",
+                        background: "rgba(0, 212, 255, 0.08)",
+                        border: "1px solid rgba(0, 212, 255, 0.2)",
+                        borderRadius: "6px",
+                        fontSize: "13px"
+                      }}
+                    >
+                      <span>{item.ticker}</span>
+                      <div style={{ display: "flex", gap: "12px" }}>
+                        <span style={{ color: "var(--aal-color-cyan)" }}>+{item.edge.toFixed(3)}</span>
+                        <span className="aal-body">({item.confidence.toFixed(2)})</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                
-                {selectedRitual.results.equities.risky.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm p-2 bg-red-950/20 rounded">
-                    <span>{item.ticker}</span>
-                    <div className="flex gap-2">
-                      <span className="text-red-400">{item.edge.toFixed(3)}</span>
-                      <span className="text-muted-foreground">({item.confidence.toFixed(2)})</span>
+                  ))}
+
+                  {selectedRitual.results.equities.risky.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "8px 12px",
+                        background: "rgba(255, 62, 246, 0.08)",
+                        border: "1px solid rgba(255, 62, 246, 0.2)",
+                        borderRadius: "6px",
+                        fontSize: "13px"
+                      }}
+                    >
+                      <span>{item.ticker}</span>
+                      <div style={{ display: "flex", gap: "12px" }}>
+                        <span style={{ color: "var(--aal-color-magenta)" }}>{item.edge.toFixed(3)}</span>
+                        <span className="aal-body">({item.confidence.toFixed(2)})</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <h4 className="font-medium mb-3">FX Predictions</h4>
-              <div className="space-y-2">
-                {selectedRitual.results.fx.conservative.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm p-2 bg-green-950/20 rounded">
-                    <span>{item.pair}</span>
-                    <div className="flex gap-2">
-                      <span className="text-green-400">+{item.edge.toFixed(3)}</span>
-                      <span className="text-muted-foreground">({item.confidence.toFixed(2)})</span>
+
+              <div className="aal-stack-md">
+                <h4 className="aal-heading-md" style={{ fontSize: "14px" }}>FX Predictions</h4>
+                <div className="aal-stack-md">
+                  {selectedRitual.results.fx.conservative.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "8px 12px",
+                        background: "rgba(0, 212, 255, 0.08)",
+                        border: "1px solid rgba(0, 212, 255, 0.2)",
+                        borderRadius: "6px",
+                        fontSize: "13px"
+                      }}
+                    >
+                      <span>{item.pair}</span>
+                      <div style={{ display: "flex", gap: "12px" }}>
+                        <span style={{ color: "var(--aal-color-cyan)" }}>+{item.edge.toFixed(3)}</span>
+                        <span className="aal-body">({item.confidence.toFixed(2)})</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </Card>
+        </AalCard>
       )}
     </div>
   );

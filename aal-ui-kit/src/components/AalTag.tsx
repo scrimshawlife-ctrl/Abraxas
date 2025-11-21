@@ -20,13 +20,18 @@ export interface AalTagProps {
    * Additional CSS class names
    */
   className?: string;
+
+  /**
+   * Inline styles
+   */
+  style?: React.CSSProperties;
 }
 
-export function AalTag({ children, icon, className = "" }: AalTagProps) {
+export function AalTag({ children, icon, className = "", style }: AalTagProps) {
   const combinedClassName = `aal-tag ${className}`.trim();
 
   return (
-    <span className={combinedClassName}>
+    <span className={combinedClassName} style={style}>
       {icon && <span className="aal-tag__icon">{icon}</span>}
       {children}
     </span>
