@@ -220,3 +220,127 @@ describe("Accessibility", () => {
     expect(element.props["aria-describedby"]).toBe("help-text");
   });
 });
+
+// New components tests
+import { AalSelect } from "../AalSelect";
+import { AalSkeleton, AalSkeletonCard } from "../AalSkeleton";
+import { AalAvatar, AalAvatarGroup } from "../AalAvatar";
+
+describe("AalSelect", () => {
+  const options = [
+    { value: "a", label: "Option A" },
+    { value: "b", label: "Option B" },
+    { value: "c", label: "Option C", disabled: true },
+  ];
+
+  it("renders with options", () => {
+    const element = <AalSelect options={options} />;
+    expect(element.props.options).toHaveLength(3);
+  });
+
+  it("supports placeholder", () => {
+    const element = <AalSelect options={options} placeholder="Choose..." />;
+    expect(element.props.placeholder).toBe("Choose...");
+  });
+
+  it("supports label", () => {
+    const element = <AalSelect options={options} label="Category" />;
+    expect(element.props.label).toBe("Category");
+  });
+
+  it("supports controlled value", () => {
+    const onChange = vi.fn();
+    const element = <AalSelect options={options} value="b" onChange={onChange} />;
+    expect(element.props.value).toBe("b");
+  });
+
+  it("supports error state", () => {
+    const element = <AalSelect options={options} error helperText="Required" />;
+    expect(element.props.error).toBe(true);
+    expect(element.props.helperText).toBe("Required");
+  });
+});
+
+describe("AalSkeleton", () => {
+  it("renders with default variant", () => {
+    const element = <AalSkeleton />;
+    expect(element.props.variant).toBeUndefined(); // defaults to "text"
+  });
+
+  it("supports variant types", () => {
+    const text = <AalSkeleton variant="text" />;
+    const circular = <AalSkeleton variant="circular" />;
+    const rectangular = <AalSkeleton variant="rectangular" />;
+
+    expect(text.props.variant).toBe("text");
+    expect(circular.props.variant).toBe("circular");
+    expect(rectangular.props.variant).toBe("rectangular");
+  });
+
+  it("supports custom dimensions", () => {
+    const element = <AalSkeleton width={100} height={20} />;
+    expect(element.props.width).toBe(100);
+    expect(element.props.height).toBe(20);
+  });
+
+  it("supports multiple lines", () => {
+    const element = <AalSkeleton lines={3} />;
+    expect(element.props.lines).toBe(3);
+  });
+
+  it("can disable animation", () => {
+    const element = <AalSkeleton animate={false} />;
+    expect(element.props.animate).toBe(false);
+  });
+});
+
+describe("AalSkeletonCard", () => {
+  it("renders preset skeleton card", () => {
+    const element = <AalSkeletonCard />;
+    expect(element).toBeTruthy();
+  });
+});
+
+describe("AalAvatar", () => {
+  it("renders with name", () => {
+    const element = <AalAvatar name="John Doe" />;
+    expect(element.props.name).toBe("John Doe");
+  });
+
+  it("renders with image src", () => {
+    const element = <AalAvatar src="/avatar.jpg" alt="User" />;
+    expect(element.props.src).toBe("/avatar.jpg");
+  });
+
+  it("supports size prop", () => {
+    const element = <AalAvatar name="JD" size={60} />;
+    expect(element.props.size).toBe(60);
+  });
+
+  it("supports tone variants", () => {
+    const cyan = <AalAvatar name="A" tone="cyan" />;
+    const yellow = <AalAvatar name="B" tone="yellow" />;
+    const magenta = <AalAvatar name="C" tone="magenta" />;
+
+    expect(cyan.props.tone).toBe("cyan");
+    expect(yellow.props.tone).toBe("yellow");
+    expect(magenta.props.tone).toBe("magenta");
+  });
+});
+
+describe("AalAvatarGroup", () => {
+  it("renders children", () => {
+    const element = (
+      <AalAvatarGroup>
+        <AalAvatar name="A" />
+        <AalAvatar name="B" />
+      </AalAvatarGroup>
+    );
+    expect(element.props.children).toHaveLength(2);
+  });
+
+  it("supports max prop", () => {
+    const element = <AalAvatarGroup max={3}><span /></AalAvatarGroup>;
+    expect(element.props.max).toBe(3);
+  });
+});
