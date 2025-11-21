@@ -10,7 +10,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['server/abraxas/tests/**/*.test.ts'],
-    exclude: ['server/abraxas/tests/watchlist-scorer.test.ts'],
+    setupFiles: ['server/abraxas/tests/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
