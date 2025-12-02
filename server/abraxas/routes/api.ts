@@ -22,6 +22,11 @@ import { scoreWatchlists } from "../pipelines/watchlist-scorer";
 import { generateDailyOracle, type OracleSnapshot } from "../pipelines/daily-oracle";
 import { analyzeVCMarket } from "../pipelines/vc-analyzer";
 import { getCurrentTrends, triggerTrendsScan } from "../pipelines/social-scanner";
+import {
+  generateWeatherOracle,
+  generateStandaloneWeather,
+  exportWeather,
+} from "../pipelines/weather-oracle";
 // @ts-ignore - Legacy JS module
 import metrics from "../../metrics";
 import { sqliteDb } from "../integrations/sqlite-adapter";
@@ -231,6 +236,74 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
     } catch (error) {
       console.error("VC analysis failed:", error);
       res.status(500).json({ error: "Failed to analyze VC data" });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Weather Engine Endpoints
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * GET /api/weather
+   * Get current semiotic weather forecast (standalone)
+   */
+  app.get("/api/weather", async (req, res) => {
+    try {
+      const format = (req.query.format as string) || "json";
+      const ritual = initializeRitual();
+      const weather = await generateStandaloneWeather(ritual);
+
+      if (format === "markdown") {
+        res.type("text/markdown").send(exportWeather(weather, "markdown"));
+      } else {
+        res.json(weather);
+      }
+    } catch (error) {
+      console.error("Weather generation failed:", error);
+      res.status(500).json({ error: "Failed to generate weather forecast" });
+    }
+  });
+
+  /**
+   * GET /api/weather/oracle
+   * Get combined Oracle → Weather forecast
+   */
+  app.get("/api/weather/oracle", async (req, res) => {
+    try {
+      const format = (req.query.format as string) || "json";
+      const ritual = initializeRitual();
+      const result = await generateWeatherOracle(ritual);
+
+      if (format === "markdown") {
+        const markdown = exportWeather(result.weather, "markdown");
+        res.type("text/markdown").send(markdown);
+      } else {
+        res.json(result);
+      }
+    } catch (error) {
+      console.error("Weather oracle failed:", error);
+      res.status(500).json({ error: "Failed to generate weather oracle" });
+    }
+  });
+
+  /**
+   * POST /api/weather/forecast
+   * Generate weather forecast with custom ritual
+   */
+  app.post("/api/weather/forecast", async (req, res) => {
+    try {
+      const format = (req.body?.format as string) || "json";
+      const ritual = initializeRitual();
+      const weather = await generateStandaloneWeather(ritual);
+
+      if (format === "markdown") {
+        res.type("text/markdown").send(exportWeather(weather, "markdown"));
+      } else {
+        res.json(weather);
+      }
+    } catch (error) {
+      console.error("Weather forecast failed:", error);
+      res.status(500).json({ error: "Failed to generate weather forecast" });
     }
   });
 

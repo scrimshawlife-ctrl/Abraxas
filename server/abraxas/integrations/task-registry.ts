@@ -14,6 +14,7 @@ import { generateDailyOracle, type OracleSnapshot } from "../pipelines/daily-ora
 import { analyzeVCMarket, type VCAnalysisInput } from "../pipelines/vc-analyzer";
 import { scanSocialTrends } from "../pipelines/social-scanner";
 import { scoreWatchlists } from "../pipelines/watchlist-scorer";
+import { generateWeatherOracle } from "../pipelines/weather-oracle";
 // @ts-ignore - Legacy JS module
 import metrics from "../../metrics";
 
@@ -304,6 +305,65 @@ export const watchlistScoringTask: SymbolicTask = {
 };
 
 /**
+ * Weather Oracle Task
+ * Runs Oracle → Weather Engine pipeline
+ */
+export const weatherOracleTask: SymbolicTask = {
+  id: "weather-oracle",
+  name: "Weather Oracle",
+  description: "Generate semiotic weather forecast from oracle output",
+  pipeline: "weather-oracle",
+  trigger: { type: "ritual", event: "daily" },
+  enabled: true,
+  deterministic: true,
+  entropy_class: "high",
+  capabilities: {
+    read: ["oracle_output", "symbolic_metrics"],
+    write: ["weather_forecast"],
+    network: false,
+  },
+
+  async executor(context: TaskContext): Promise<TaskResult> {
+    const startTime = Date.now();
+
+    try {
+      const result = await generateWeatherOracle(context.ritual);
+
+      const duration = Date.now() - startTime;
+
+      return {
+        success: true,
+        data: result,
+        metrics: {
+          duration,
+          quality: result.weather.metadata.qualityScore,
+          processingTime: result.weather.metadata.processingTime,
+        },
+        provenance: {
+          taskId: context.taskId,
+          executionId: context.executionId,
+          seed: context.ritual.seed,
+          timestamp: Date.now(),
+        },
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        metrics: { duration },
+        provenance: {
+          taskId: context.taskId,
+          executionId: context.executionId,
+          seed: context.ritual.seed,
+          timestamp: Date.now(),
+        },
+      };
+    }
+  },
+};
+
+/**
  * All registered tasks
  */
 export const ALL_TASKS: SymbolicTask[] = [
@@ -311,6 +371,7 @@ export const ALL_TASKS: SymbolicTask[] = [
   vcAnalysisTask,
   socialTrendsScanTask,
   watchlistScoringTask,
+  weatherOracleTask,
 ];
 
 /**
