@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "generated": "2025-11-20T00:00:00Z",
+  "version": "4.2.0",
+  "generated": "2025-12-02T00:00:00Z",
   "modules": {
     "abraxas/core/kernel": {
       "path": "server/abraxas/core/kernel.ts",
@@ -121,12 +121,13 @@
         "vcAnalysisTask",
         "socialTrendsScanTask",
         "watchlistScoringTask",
+        "weatherOracleTask",
         "ALL_TASKS",
         "registerAllTasks"
       ],
       "provenance_id": "mod-task-registry-001",
-      "version": "1.0.0",
-      "note": "SymbolicTask wrappers for all oracle pipelines"
+      "version": "1.1.0",
+      "note": "SymbolicTask wrappers for all oracle pipelines including Weather Engine"
     },
     "abraxas/pipelines/watchlist-scorer": {
       "path": "server/abraxas/pipelines/watchlist-scorer.ts",
@@ -193,6 +194,169 @@
       "provenance_id": "mod-sigil-forge-001",
       "version": "1.0.0",
       "note": "Deterministic sigil generation with cryptographic sealing"
+    },
+    "abraxas/pipelines/weather-oracle": {
+      "path": "server/abraxas/pipelines/weather-oracle.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": [
+        "generateWeatherOracle",
+        "generateStandaloneWeather",
+        "exportWeather"
+      ],
+      "provenance_id": "mod-weather-oracle-001",
+      "version": "4.2.0",
+      "note": "Oracle → Weather Engine pipeline integration"
+    },
+    "abraxas/weather_engine/core/orchestrator": {
+      "path": "server/abraxas/weather_engine/core/orchestrator.ts",
+      "type": "weather-orchestrator",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": [
+        "generateSemioticWeather",
+        "weatherToJSON",
+        "weatherToMarkdown"
+      ],
+      "provenance_id": "mod-weather-orchestrator-001",
+      "version": "4.2.0",
+      "note": "Semiotic Weather Engine orchestrator - combines 15 weather modules"
+    },
+    "abraxas/weather_engine/modules/event-microbursts": {
+      "path": "server/abraxas/weather_engine/modules/event-microbursts.ts",
+      "type": "weather-module",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": ["detectEventMicrobursts"],
+      "provenance_id": "mod-weather-microbursts-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/geometric-drift": {
+      "path": "server/abraxas/weather_engine/modules/geometric-drift.ts",
+      "type": "weather-module",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": ["detectGeometricDrift"],
+      "provenance_id": "mod-weather-geometric-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/body-temperature": {
+      "path": "server/abraxas/weather_engine/modules/body-temperature.ts",
+      "type": "weather-module",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": ["scanBodyTemperature"],
+      "provenance_id": "mod-weather-bodytemp-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/forecast-inversion": {
+      "path": "server/abraxas/weather_engine/modules/forecast-inversion.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["detectForecastInversion"],
+      "provenance_id": "mod-weather-inversion-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/bifurcation": {
+      "path": "server/abraxas/weather_engine/modules/bifurcation.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["detectBifurcation"],
+      "provenance_id": "mod-weather-bifurcation-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/symbolic-chimera": {
+      "path": "server/abraxas/weather_engine/modules/symbolic-chimera.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["detectSymbolicChimera"],
+      "provenance_id": "mod-weather-chimera-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/temporal-decay": {
+      "path": "server/abraxas/weather_engine/modules/temporal-decay.ts",
+      "type": "weather-module",
+      "entropy_class": "low",
+      "deterministic": true,
+      "exports": ["computeTemporalDecay"],
+      "provenance_id": "mod-weather-decay-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/shadow-predictive": {
+      "path": "server/abraxas/weather_engine/modules/shadow-predictive.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["detectShadowPressure"],
+      "provenance_id": "mod-weather-shadow-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/slang-mutation": {
+      "path": "server/abraxas/weather_engine/modules/slang-mutation.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["forecastSlangMutation"],
+      "provenance_id": "mod-weather-slang-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/meme-barometric": {
+      "path": "server/abraxas/weather_engine/modules/meme-barometric.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["computeMemeBarometer"],
+      "provenance_id": "mod-weather-meme-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/mythic-gate": {
+      "path": "server/abraxas/weather_engine/modules/mythic-gate.ts",
+      "type": "weather-module",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": ["computeMythicGateIndex"],
+      "provenance_id": "mod-weather-mythic-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/symbolic-jetstream": {
+      "path": "server/abraxas/weather_engine/modules/symbolic-jetstream.ts",
+      "type": "weather-module",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": ["calculateSymbolicJetStream"],
+      "provenance_id": "mod-weather-jetstream-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/archetypal-crosswinds": {
+      "path": "server/abraxas/weather_engine/modules/archetypal-crosswinds.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["detectArchetypalCrosswinds"],
+      "provenance_id": "mod-weather-crosswinds-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/veilbreaker-gravity": {
+      "path": "server/abraxas/weather_engine/modules/veilbreaker-gravity.ts",
+      "type": "weather-module",
+      "entropy_class": "high",
+      "deterministic": true,
+      "exports": ["computeVeilbreakerGravity"],
+      "provenance_id": "mod-weather-veilbreaker-001",
+      "version": "4.2.0"
+    },
+    "abraxas/weather_engine/modules/identity-phase": {
+      "path": "server/abraxas/weather_engine/modules/identity-phase.ts",
+      "type": "weather-module",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": ["trackIdentityPhase", "getPhaseDescription"],
+      "provenance_id": "mod-weather-identity-001",
+      "version": "4.2.0"
     },
     "runes": {
       "path": "server/runes.js",
