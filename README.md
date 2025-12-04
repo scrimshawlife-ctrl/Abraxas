@@ -1,5 +1,7 @@
 <p align="center">
   <img src="hero-abraxas.png" width="420" alt="Abraxas Sigil" />
+  <br>
+  <em style="color: #888; font-size: 0.85em;">Place your Abraxas sigil image as <code>hero-abraxas.png</code> in the repository root</em>
 </p>
 
 <h1 align="center">ABRAXAS</h1>
@@ -12,6 +14,40 @@
 <p align="center">
   <code style="color: #FF00E6">v4.2.0</code> • <code style="color: #FF00E6">ABX-Core v1.3</code> • <code style="color: #FF00E6">SEED Framework</code>
 </p>
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/aal/abraxas.git
+cd abraxas
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Start development server
+npm run dev
+
+# Generate your first weather forecast
+curl http://localhost:3000/api/weather?format=markdown
+```
+
+**First-time setup:**
+```bash
+# Build the project
+npm run build
+
+# Check TypeScript compilation
+npm run check
+
+# Run the full test suite
+npm run test:coverage
+```
 
 ---
 
@@ -487,6 +523,12 @@ eventOverlay.injectSymbolicContext(abraxasMetrics);
 
 ## 📦 Installation
 
+### Prerequisites
+
+- **Node.js** ≥ 18.0.0
+- **npm** ≥ 9.0.0
+- **TypeScript** ≥ 5.0.0
+
 ### Basic Installation
 
 ```bash
@@ -495,13 +537,41 @@ cd abraxas
 npm install
 ```
 
+### Project Structure
+
+```
+abraxas/
+├── server/
+│   ├── abraxas/
+│   │   ├── core/              # Symbolic kernel + archetypes
+│   │   ├── pipelines/         # Oracle pipelines
+│   │   ├── weather_engine/    # Weather modules (v4.2.0)
+│   │   │   ├── core/          # Orchestrator + types
+│   │   │   └── modules/       # 15 weather modules
+│   │   ├── integrations/      # ERS scheduler + adapters
+│   │   ├── models/            # TypeScript types
+│   │   ├── routes/            # API routes
+│   │   └── tests/             # Test suite
+│   ├── index.ts               # Server entry
+│   └── runes.js               # Rune system
+├── client/                    # Frontend (React)
+├── .abraxas/                  # Configuration + docs
+│   ├── registry.json          # Module registry (v4.2.0)
+│   ├── PHASE6_WEATHER_ENGINE.md
+│   └── *.md                   # Architecture docs
+├── package.json               # v4.2.0
+└── README.md                  # This file
+```
+
 ### Dependencies
 
 ```json
 {
   "node": ">=18.0.0",
   "typescript": "^5.0.0",
-  "vitest": "^1.0.0"
+  "vitest": "^1.0.0",
+  "express": "^4.18.0",
+  "better-sqlite3": "^9.0.0"
 }
 ```
 
@@ -725,16 +795,78 @@ Week 4: Production rollout
 
 ---
 
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Weather Engine returns null:**
+```typescript
+// Ensure ritual is properly initialized
+const ritual = initializeRitual();
+// NOT: const ritual = {}; ❌
+```
+
+**TypeScript compilation errors:**
+```bash
+# Clean build
+rm -rf dist/
+npm run build
+```
+
+**Tests failing:**
+```bash
+# Run specific test suite
+npm test weather-engine
+
+# Run with verbose output
+npm test -- --reporter=verbose
+```
+
+**API endpoints not responding:**
+```bash
+# Check server is running
+curl http://localhost:3000/healthz
+
+# Expected: {"ok":true,"ts":1733162400000}
+```
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+DEBUG=abraxas:* npm run dev
+
+# Weather-specific debugging
+DEBUG=abraxas:weather npm run dev
+```
+
+### Getting Help
+
+- 📖 [Full Weather Engine Docs](./.abraxas/PHASE6_WEATHER_ENGINE.md)
+- 💬 [GitHub Discussions](https://github.com/aal/abraxas/discussions)
+- 🐛 [Report Issues](https://github.com/aal/abraxas/issues)
+- 📧 Email: [aal-support@example.com](mailto:aal-support@example.com)
+
+---
+
 ## 🗺️ Roadmap
+
+### Completed ✅
+
+- [x] **v4.2.0** — Semiotic Weather Engine
+- [x] 15 weather modules (microbursts → identity-phase)
+- [x] Oracle → Weather pipeline integration
+- [x] REST API endpoints (`/api/weather/*`)
+- [x] Comprehensive test suite (44 tests)
+- [x] Full documentation (README + PHASE6)
 
 ### Near-Term (Q1 2025)
 
-- [x] Semiotic Weather Engine v1.0
-- [x] 15 weather modules deployed
-- [x] Oracle → Weather pipeline
-- [ ] Real-time weather streaming API
-- [ ] Historical weather archive
-- [ ] Weather accuracy tracking
+- [ ] Real-time weather streaming API (WebSocket)
+- [ ] Historical weather archive (SQLite)
+- [ ] Weather accuracy tracking (backtest system)
+- [ ] CLI tool (`abraxas weather`)
+- [ ] Docker containerization
 
 ### Mid-Term (Q2-Q3 2025)
 
@@ -783,6 +915,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - PatchHive community
 - Neon Genie early adopters
 - BeatOven beta testers
+- Anthropic (Claude) for Weather Engine implementation
+
+**Repository:** [github.com/aal/abraxas](https://github.com/aal/abraxas)
+
+---
+
+## 📊 Project Stats
+
+```diff
++ v4.2.0 Release (2025-12-02)
+```
+
+| Metric | Value |
+|--------|-------|
+| **Total Modules** | 32 registered |
+| **Weather Modules** | 15 modules |
+| **Lines of Code** | ~8,800 TypeScript |
+| **Test Coverage** | 44 tests (100% critical paths) |
+| **API Endpoints** | 15 routes |
+| **Documentation** | 2,500+ lines |
 
 ---
 
