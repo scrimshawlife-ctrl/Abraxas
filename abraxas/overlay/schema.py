@@ -3,8 +3,11 @@
 Defines schemas and validation for overlay operations.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Literal
 from dataclasses import dataclass, field
+
+# Phase type definition
+Phase = Literal["OPEN", "ALIGN", "CLEAR", "SEAL", "ASCEND"]
 
 
 @dataclass
