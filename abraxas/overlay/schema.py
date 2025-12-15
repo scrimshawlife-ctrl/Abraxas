@@ -11,6 +11,28 @@ Phase = Literal["OPEN", "ALIGN", "CLEAR", "SEAL", "ASCEND"]
 
 
 @dataclass
+class OverlayRequest:
+    """Request structure for overlay operations."""
+    overlay: str
+    version: str
+    phase: Phase
+    request_id: str
+    timestamp_ms: int
+    payload: Dict[str, Any]
+
+
+@dataclass
+class OverlayResponse:
+    """Response structure for overlay operations."""
+    ok: bool
+    overlay: str
+    phase: Phase
+    request_id: str
+    output: Dict[str, Any]
+    error: Optional[str]
+
+
+@dataclass
 class OverlaySchema:
     """Schema definition for overlay operations."""
 
