@@ -1,14 +1,32 @@
 """Phase Management
 
-Manages phases in overlay operations.
+Overlay phase dispatcher that routes phase execution to the kernel.
+Maintains backward compatibility with legacy PhaseManager.
 """
 
+from __future__ import annotations
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
+from .schema import Phase
+from abraxas.kernel.entry import run_phase
 
 
-class Phase(Enum):
-    """Enumeration of overlay phases."""
+def dispatch(phase: Phase, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Dispatch a phase execution request to the kernel.
+
+    Args:
+        phase: The phase to execute (OPEN, ALIGN, ASCEND, CLEAR, SEAL)
+        payload: Input data for the phase
+
+    Returns:
+        Result dictionary from the kernel phase execution
+    """
+    return run_phase(phase, payload)
+
+
+# Legacy PhaseManager for backward compatibility with OverlayRunner
+class LegacyPhase(Enum):
+    """Legacy enumeration of overlay phases."""
     INIT = "init"
     PROCESS = "process"
     TRANSFORM = "transform"
@@ -16,15 +34,18 @@ class Phase(Enum):
 
 
 class PhaseManager:
-    """Manages phase transitions and execution."""
+    """Legacy phase manager for backward compatibility.
+
+    Note: New code should use the dispatch() function with kernel phases.
+    """
 
     def __init__(self):
         """Initialize the phase manager."""
-        self.current_phase: Optional[Phase] = None
-        self.phase_history: List[Phase] = []
+        self.current_phase: Optional[LegacyPhase] = None
+        self.phase_history: List[LegacyPhase] = []
         self.handlers = {}
 
-    def register_handler(self, phase: Phase, handler_fn):
+    def register_handler(self, phase: LegacyPhase, handler_fn):
         """Register a handler for a specific phase.
 
         Args:
@@ -33,7 +54,7 @@ class PhaseManager:
         """
         self.handlers[phase] = handler_fn
 
-    def transition(self, phase: Phase):
+    def transition(self, phase: LegacyPhase):
         """Transition to a new phase.
 
         Args:
@@ -43,7 +64,7 @@ class PhaseManager:
             self.phase_history.append(self.current_phase)
         self.current_phase = phase
 
-    def execute(self, phase: Phase, *args, **kwargs):
+    def execute(self, phase: LegacyPhase, *args, **kwargs):
         """Execute a phase handler.
 
         Args:

@@ -4,7 +4,14 @@ Provides overlay adaptation and phase management capabilities.
 """
 
 from .adapter import OverlayAdapter
-from .phases import PhaseManager
-from .schema import OverlaySchema
+from .phases import dispatch
+from .schema import OverlaySchema, Phase
+from .run import OverlayRunner
 
-__all__ = ["OverlayAdapter", "PhaseManager", "OverlaySchema"]
+__all__ = [
+    "OverlayAdapter",
+    "dispatch",
+    "OverlaySchema",
+    "Phase",
+    "OverlayRunner",
+]
