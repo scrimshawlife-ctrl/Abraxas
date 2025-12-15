@@ -418,6 +418,34 @@
         "MemStorage"
       ],
       "provenance_id": "mod-storage-001"
+    },
+    "abraxas/integrations/sco-bridge": {
+      "path": "server/abraxas/integrations/sco-bridge.ts",
+      "type": "integration-adapter",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "scoBridge",
+        "detectCompressionEvents",
+        "extractWeatherSignals"
+      ],
+      "provenance_id": "mod-sco-bridge-001",
+      "version": "1.0.0",
+      "note": "TypeScript bridge to Python SCO/ECO stack"
+    },
+    "abraxas/pipelines/sco-analyzer": {
+      "path": "server/abraxas/pipelines/sco-analyzer.ts",
+      "type": "oracle-pipeline",
+      "entropy_class": "medium",
+      "deterministic": true,
+      "exports": [
+        "analyzeSCO",
+        "batchAnalyzeSCO",
+        "scoToWeatherSignals"
+      ],
+      "provenance_id": "mod-sco-analyzer-001",
+      "version": "1.0.0",
+      "note": "Symbolic Compression Analysis pipeline with Weather Engine integration"
     }
   },
   "renderers": {
@@ -490,6 +518,16 @@
       "deterministic": false,
       "entropy_budget": 0.50,
       "note": "Non-deterministic due to external data"
+    },
+    "sco_slang_scan": {
+      "steps": [
+        "sco-analyzer.analyzeSCO",
+        "sco-analyzer.scoToWeatherSignals",
+        "weather-oracle.ingestSignals"
+      ],
+      "deterministic": true,
+      "entropy_budget": 0.35,
+      "note": "Symbolic compression scan with Weather Engine integration"
     }
   },
   "seed_compliance": {
