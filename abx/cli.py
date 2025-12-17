@@ -12,6 +12,7 @@ Subcommands:
 - ingest: Run always-on Decodo ingestion scheduler
 - ui: Start chat-like UI server
 - admin: Print admin handshake (module discovery)
+- log: Deterministic logging operations (append/compact/vacuum/verify)
 """
 
 from __future__ import annotations
@@ -35,6 +36,8 @@ from abx.runtime.updater import update_atomic
 from abx.ingest.scheduler import run_ingest_forever
 from abx.ui.server import build_ui_app
 from abx.ui.admin_handshake import admin_prompt
+from abx.store.sqlite_store import connect
+from abx.log import ledger, compactor, policy
 
 def _cmd_ok(msg: str) -> None:
     """Print success message."""
@@ -201,6 +204,83 @@ def admin_cmd(args: argparse.Namespace) -> int:
     print(dumps_stable(result))
     return 0
 
+def log_cmd(args: argparse.Namespace) -> int:
+    """Handle log subcommands."""
+    con = connect()
+    ledger.init_ledger(con)
+    compactor.init_compactor_tables(con)
+
+    if args.log_action == "append":
+        # Development command to append a test event
+        event_id = ledger.append_event(
+            con,
+            kind=args.kind or "test",
+            module=args.module or "cli",
+            frame_id=args.frame_id or "",
+            payload={"message": args.message or "test event"}
+        )
+        _cmd_ok(f"Appended event {event_id}")
+        return 0
+
+    if args.log_action == "compact":
+        # Compact events
+        stats = ledger.get_stats(con)
+        if stats["total_events"] == 0:
+            _cmd_ok("No events to compact")
+            return 0
+
+        # Use policy to calculate range
+        comp_range = policy.calculate_compaction_range(stats)
+        if comp_range is None:
+            _cmd_ok(f"Not enough events to compact (have {stats['total_events']}, need {policy.COMPACT_INTERVAL_EVENTS})")
+            return 0
+
+        start_id, end_id = comp_range
+        segment_id = compactor.compact(con, start_id, end_id, top_k=policy.DICT_TOPK)
+
+        segment = compactor.get_segment(con, segment_id)
+        _cmd_ok(f"Compacted events [{start_id}, {end_id}] -> segment {segment_id}")
+        print(dumps_stable(segment))
+        return 0
+
+    if args.log_action == "vacuum":
+        # Vacuum old events based on retention policy
+        cutoff_ts = policy.get_vacuum_cutoff_ts()
+
+        # Count events to vacuum
+        cur = con.execute("SELECT COUNT(*) FROM log_events WHERE ts < ?;", (cutoff_ts,))
+        count = cur.fetchone()[0]
+
+        if count == 0:
+            _cmd_ok("No events to vacuum")
+            return 0
+
+        # Delete old events
+        con.execute("DELETE FROM log_events WHERE ts < ?;", (cutoff_ts,))
+        con.commit()
+
+        _cmd_ok(f"Vacuumed {count} events older than retention period")
+        return 0
+
+    if args.log_action == "verify":
+        # Verify hash chain integrity
+        result = ledger.verify_chain(con)
+        print(dumps_stable(result))
+        return 0 if result["ok"] else 1
+
+    if args.log_action == "stats":
+        # Show ledger statistics
+        stats = ledger.get_stats(con)
+        segments = compactor.list_segments(con)
+        result = {
+            "ledger": stats,
+            "segments": segments,
+        }
+        print(dumps_stable(result))
+        return 0
+
+    raise RuntimeError("unknown log action")
+
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""
     cfg = load_config()
@@ -272,6 +352,13 @@ def main() -> None:
     sub.add_parser("ui", help="Start chat-like UI server")
     sub.add_parser("admin", help="Print admin handshake (module discovery)")
 
+    p_log = sub.add_parser("log", help="Deterministic logging operations")
+    p_log.add_argument("log_action", choices=["append", "compact", "vacuum", "verify", "stats"], help="Log action")
+    p_log.add_argument("--kind", default="", help="Event kind (for append)")
+    p_log.add_argument("--module", default="", help="Module name (for append)")
+    p_log.add_argument("--frame-id", default="", help="Frame ID (for append)")
+    p_log.add_argument("--message", default="", help="Event message (for append)")
+
     args = p.parse_args()
 
     if args.cmd == "doctor":
@@ -300,6 +387,8 @@ def main() -> None:
         raise SystemExit(ui_cmd(args))
     if args.cmd == "admin":
         raise SystemExit(admin_cmd(args))
+    if args.cmd == "log":
+        raise SystemExit(log_cmd(args))
 
 if __name__ == "__main__":
     main()
