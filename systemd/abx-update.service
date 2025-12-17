@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly Abraxas atomic update
+After=network.target
+
+[Service]
+Type=oneshot
+User=orin
+WorkingDirectory=/opt/aal/abraxas_current
+Environment=ABX_PROFILE=orin
+ExecStart=/usr/bin/env python -m abx.cli update --repo-url REPLACE_ME --branch main

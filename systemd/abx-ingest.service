@@ -1,0 +1,19 @@
+[Unit]
+Description=Abraxas Decodo Ingest Scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=orin
+WorkingDirectory=/opt/aal/abraxas_current
+Environment=ABX_PROFILE=orin
+Environment=ABX_INGEST_INTERVAL=60
+Environment=ABX_INGEST_JOBS=/opt/aal/abraxas_current/.aal/jobs/ingest.jobs.json
+# DECODO vars must be provided in a secure env file:
+EnvironmentFile=-/etc/abraxas/decodo.env
+ExecStart=/usr/bin/env python -m abx.cli ingest
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

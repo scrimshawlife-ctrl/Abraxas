@@ -6,6 +6,12 @@ Subcommands:
 - smoke: Run deterministic smoke test
 - assets sync: Generate asset manifest
 - overlay: Manage overlay lifecycle (list/status/install/start/stop)
+- drift: Detect configuration and code drift (snapshot/check)
+- watchdog: Health monitoring with auto-restart
+- update: Atomic update with rollback
+- ingest: Run always-on Decodo ingestion scheduler
+- ui: Start chat-like UI server
+- admin: Print admin handshake (module discovery)
 """
 
 from __future__ import annotations
@@ -23,6 +29,12 @@ from abx.runtime.provenance import make_provenance, compute_config_hash
 from abx.core.pipeline import run_oracle
 from abx.util.jsonutil import dumps_stable, dump_file
 from abx.overlays.manager import OverlayManager
+from abx.runtime.drift import take_snapshot, save_snapshot, check_drift
+from abx.runtime.watchdog import watchdog_loop
+from abx.runtime.updater import update_atomic
+from abx.ingest.scheduler import run_ingest_forever
+from abx.ui.server import build_ui_app
+from abx.ui.admin_handshake import admin_prompt
 
 def _cmd_ok(msg: str) -> None:
     """Print success message."""
@@ -131,6 +143,64 @@ def up() -> int:
         serve()
         return 0
 
+def drift_cmd(args: argparse.Namespace) -> int:
+    """Handle drift detection subcommands."""
+    if args.drift_action == "snapshot":
+        s = take_snapshot()
+        p = save_snapshot(s)
+        _cmd_ok(f"Saved snapshot to {p}")
+        print(dumps_stable(s.to_dict()))
+        return 0
+
+    if args.drift_action == "check":
+        result = check_drift()
+        print(dumps_stable(result))
+        return 0 if result["ok"] else 1
+
+    raise RuntimeError("unknown drift action")
+
+def watchdog_cmd(args: argparse.Namespace) -> int:
+    """Run watchdog loop (does not return under normal operation)."""
+    watchdog_loop(
+        ready_url=args.ready_url,
+        unit_name=args.unit,
+        interval_s=args.interval,
+        fail_threshold=args.fail_threshold,
+    )
+    return 0
+
+def update_cmd(args: argparse.Namespace) -> int:
+    """Run atomic update with rollback."""
+    result = update_atomic(repo_url=args.repo_url, branch=args.branch)
+    print(dumps_stable(result))
+    return 0 if result["ok"] else 1
+
+def ingest_cmd(args: argparse.Namespace) -> int:
+    """Run always-on Decodo ingestion scheduler."""
+    jobs_path = os.environ.get("ABX_INGEST_JOBS", "/opt/aal/abraxas/.aal/jobs/ingest.jobs.json")
+    interval_s = int(os.environ.get("ABX_INGEST_INTERVAL", "60"))
+    run_ingest_forever(jobs_path, interval_s)
+    return 0
+
+def ui_cmd(args: argparse.Namespace) -> int:
+    """Start chat-like UI server."""
+    cfg = load_config()
+    try:
+        import uvicorn  # type: ignore
+        app = build_ui_app()
+        port = int(os.environ.get("ABX_UI_PORT", str(cfg.http_port)))
+        uvicorn.run(app, host=cfg.http_host, port=port, log_level=cfg.log_level.lower())
+        return 0
+    except ImportError:
+        _cmd_err("FastAPI/uvicorn not installed; install with: pip install fastapi uvicorn")
+        return 2
+
+def admin_cmd(args: argparse.Namespace) -> int:
+    """Print admin handshake (module discovery)."""
+    result = admin_prompt()
+    print(dumps_stable(result))
+    return 0
+
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""
     cfg = load_config()
@@ -185,6 +255,23 @@ def main() -> None:
     p_ov.add_argument("--manifest-file", default="")
     p_ov.add_argument("--manifest-json", default="")
 
+    p_drift = sub.add_parser("drift", help="Drift detection")
+    p_drift.add_argument("drift_action", choices=["snapshot", "check"], help="Drift action")
+
+    p_wd = sub.add_parser("watchdog", help="Health monitoring with auto-restart")
+    p_wd.add_argument("--ready-url", required=True, help="Health endpoint URL")
+    p_wd.add_argument("--unit", required=True, help="Systemd unit name to restart")
+    p_wd.add_argument("--interval", type=int, default=5, help="Check interval in seconds")
+    p_wd.add_argument("--fail-threshold", type=int, default=3, help="Failures before restart")
+
+    p_upd = sub.add_parser("update", help="Atomic update with rollback")
+    p_upd.add_argument("--repo-url", required=True, help="Git repository URL")
+    p_upd.add_argument("--branch", default="main", help="Git branch to clone")
+
+    sub.add_parser("ingest", help="Run always-on Decodo ingestion scheduler")
+    sub.add_parser("ui", help="Start chat-like UI server")
+    sub.add_parser("admin", help="Print admin handshake (module discovery)")
+
     args = p.parse_args()
 
     if args.cmd == "doctor":
@@ -201,6 +288,18 @@ def main() -> None:
             _cmd_err("--name is required for this action")
             raise SystemExit(2)
         raise SystemExit(overlay_cmd(args))
+    if args.cmd == "drift":
+        raise SystemExit(drift_cmd(args))
+    if args.cmd == "watchdog":
+        raise SystemExit(watchdog_cmd(args))
+    if args.cmd == "update":
+        raise SystemExit(update_cmd(args))
+    if args.cmd == "ingest":
+        raise SystemExit(ingest_cmd(args))
+    if args.cmd == "ui":
+        raise SystemExit(ui_cmd(args))
+    if args.cmd == "admin":
+        raise SystemExit(admin_cmd(args))
 
 if __name__ == "__main__":
     main()

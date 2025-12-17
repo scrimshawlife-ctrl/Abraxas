@@ -1,0 +1,22 @@
+{
+  "jobs": [
+    {
+      "name": "ip_check",
+      "kind": "url",
+      "url": "https://ip.decodo.com",
+      "every_s": 3600,
+      "enabled": true,
+      "target": "universal",
+      "headless": "html"
+    },
+    {
+      "name": "news_seed",
+      "kind": "url",
+      "url": "https://example.com",
+      "every_s": 900,
+      "enabled": false,
+      "target": "universal",
+      "headless": "html"
+    }
+  ]
+}

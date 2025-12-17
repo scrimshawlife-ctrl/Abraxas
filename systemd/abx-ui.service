@@ -1,0 +1,17 @@
+[Unit]
+Description=Abraxas UI (Chat-like)
+After=network.target
+
+[Service]
+Type=simple
+User=orin
+WorkingDirectory=/opt/aal/abraxas_current
+Environment=ABX_PROFILE=orin
+Environment=ABX_HOST=0.0.0.0
+Environment=ABX_UI_PORT=8780
+ExecStart=/usr/bin/env python -m abx.cli ui
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
