@@ -1,0 +1,17 @@
+[Unit]
+Description=AAL Overlay (%i)
+After=network.target
+
+[Service]
+Type=simple
+User=orin
+WorkingDirectory=/opt/aal/abraxas
+Environment=ABX_ROOT=/opt/aal/abraxas
+Environment=ABX_PROFILE=orin
+ExecStart=/usr/bin/env python -m abx.cli overlay start --name %i
+ExecStop=/usr/bin/env python -m abx.cli overlay stop --name %i
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
