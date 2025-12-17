@@ -9,6 +9,9 @@ Subcommands:
 - drift: Detect configuration and code drift (snapshot/check)
 - watchdog: Health monitoring with auto-restart
 - update: Atomic update with rollback
+- ingest: Run always-on Decodo ingestion scheduler
+- ui: Start chat-like UI server
+- admin: Print admin handshake (module discovery)
 """
 
 from __future__ import annotations
@@ -29,6 +32,9 @@ from abx.overlays.manager import OverlayManager
 from abx.runtime.drift import take_snapshot, save_snapshot, check_drift
 from abx.runtime.watchdog import watchdog_loop
 from abx.runtime.updater import update_atomic
+from abx.ingest.scheduler import run_ingest_forever
+from abx.ui.server import build_ui_app
+from abx.ui.admin_handshake import admin_prompt
 
 def _cmd_ok(msg: str) -> None:
     """Print success message."""
@@ -169,6 +175,32 @@ def update_cmd(args: argparse.Namespace) -> int:
     print(dumps_stable(result))
     return 0 if result["ok"] else 1
 
+def ingest_cmd(args: argparse.Namespace) -> int:
+    """Run always-on Decodo ingestion scheduler."""
+    jobs_path = os.environ.get("ABX_INGEST_JOBS", "/opt/aal/abraxas/.aal/jobs/ingest.jobs.json")
+    interval_s = int(os.environ.get("ABX_INGEST_INTERVAL", "60"))
+    run_ingest_forever(jobs_path, interval_s)
+    return 0
+
+def ui_cmd(args: argparse.Namespace) -> int:
+    """Start chat-like UI server."""
+    cfg = load_config()
+    try:
+        import uvicorn  # type: ignore
+        app = build_ui_app()
+        port = int(os.environ.get("ABX_UI_PORT", str(cfg.http_port)))
+        uvicorn.run(app, host=cfg.http_host, port=port, log_level=cfg.log_level.lower())
+        return 0
+    except ImportError:
+        _cmd_err("FastAPI/uvicorn not installed; install with: pip install fastapi uvicorn")
+        return 2
+
+def admin_cmd(args: argparse.Namespace) -> int:
+    """Print admin handshake (module discovery)."""
+    result = admin_prompt()
+    print(dumps_stable(result))
+    return 0
+
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""
     cfg = load_config()
@@ -236,6 +268,10 @@ def main() -> None:
     p_upd.add_argument("--repo-url", required=True, help="Git repository URL")
     p_upd.add_argument("--branch", default="main", help="Git branch to clone")
 
+    sub.add_parser("ingest", help="Run always-on Decodo ingestion scheduler")
+    sub.add_parser("ui", help="Start chat-like UI server")
+    sub.add_parser("admin", help="Print admin handshake (module discovery)")
+
     args = p.parse_args()
 
     if args.cmd == "doctor":
@@ -258,6 +294,12 @@ def main() -> None:
         raise SystemExit(watchdog_cmd(args))
     if args.cmd == "update":
         raise SystemExit(update_cmd(args))
+    if args.cmd == "ingest":
+        raise SystemExit(ingest_cmd(args))
+    if args.cmd == "ui":
+        raise SystemExit(ui_cmd(args))
+    if args.cmd == "admin":
+        raise SystemExit(admin_cmd(args))
 
 if __name__ == "__main__":
     main()
