@@ -28,6 +28,7 @@ class SlangEngine:
         enable_oasis: bool = True,
         builtin_operators: bool = True,
         enable_vbm_casebook: bool = True,
+        enable_tdd: bool = True,
     ):
         """
         Initialize SEE.
@@ -37,10 +38,12 @@ class SlangEngine:
             enable_oasis: Enable OAS integration
             builtin_operators: Load built-in operators (like CTD)
             enable_vbm_casebook: Enable VBM drift detection (default True)
+            enable_tdd: Enable Temporal Drift Detection (default True)
         """
         self.registry = OperatorRegistry(registry_path)
         self.enable_oasis = enable_oasis
         self.enable_vbm_casebook = enable_vbm_casebook
+        self.enable_tdd = enable_tdd
         self.operators: list[Operator] = []
 
         # Load VBM registry if enabled
@@ -55,6 +58,14 @@ class SlangEngine:
                 self.enable_vbm_casebook = False
         else:
             self.vbm_registry = None
+
+        # Load TDD detector if enabled
+        if self.enable_tdd:
+            from abraxas.temporal.detector import get_detector
+
+            self.tdd_detector = get_detector()
+        else:
+            self.tdd_detector = None
 
         # Load operators
         if builtin_operators:
@@ -186,15 +197,53 @@ class SlangEngine:
 
         return clusters
 
+    def apply_temporal_drift_detection(self, clusters: list[SlangCluster]) -> list[SlangCluster]:
+        """
+        Apply Temporal Drift Detection (TDD) to clusters.
+
+        Adds temporal_mode, sovereignty_risk, and TDD operator hits.
+        Enforces de-escalate response mode for high sovereignty risk.
+        """
+        if not self.enable_tdd or not self.tdd_detector:
+            return clusters
+
+        from abraxas.temporal.models import SovereigntyRisk
+
+        for cluster in clusters:
+            # Reconstruct cluster text
+            text = " ".join([t.token for t in cluster.tokens])
+
+            # Collect operator hits from cluster
+            operator_hits = [readout.operator_id for readout in cluster.operator_readouts]
+
+            # Analyze for temporal drift
+            tdd_result = self.tdd_detector.analyze(text, operator_hits)
+
+            # Always annotate temporal mode and sovereignty risk
+            cluster.temporal_mode = tdd_result.temporal_mode.value
+            cluster.sovereignty_risk = tdd_result.sovereignty_risk.value
+            cluster.tdd_operator_hits = tdd_result.operator_hits
+
+            # Tag if temporal drift detected
+            if tdd_result.temporal_mode.value in ["inverted", "eschatological"]:
+                cluster.drift_tags.append("TEMPORAL_DRIFT")
+
+            # Enforce de-escalate mode for high sovereignty risk
+            if tdd_result.sovereignty_risk in [SovereigntyRisk.HIGH, SovereigntyRisk.CRITICAL]:
+                cluster.response_mode = "de-escalate"
+
+        return clusters
+
     def process_frames(self, frames: list[ResonanceFrame]) -> list[SlangCluster]:
         """
-        Full processing pipeline: frames -> clusters -> operator application -> VBM drift tagging.
+        Full processing pipeline: frames -> clusters -> operator application -> VBM + TDD drift tagging.
 
         Returns annotated clusters.
         """
         clusters = self.detect_clusters(frames)
         clusters = self.apply_operators(clusters, frames)
         clusters = self.apply_vbm_drift_tagging(clusters)
+        clusters = self.apply_temporal_drift_detection(clusters)
         return clusters
 
     def trigger_oasis_cycle(

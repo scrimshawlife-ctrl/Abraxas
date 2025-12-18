@@ -1,0 +1,36 @@
+{
+  "expected_results": [
+    {
+      "episode_id": "numogram_08",
+      "temporal_mode": "eschatological",
+      "causality_status": "inverted",
+      "diagram_role": "commanding",
+      "sovereignty_risk": "critical",
+      "operator_hits": ["RTI", "DTA", "HSE", "UCS"],
+      "description": "Retrónic Time exhibits maximum temporal drift across all dimensions"
+    }
+  ],
+  "test_texts": [
+    {
+      "text": "Time flows backwards from the future through retrocausal loops",
+      "expected_temporal_mode": "inverted",
+      "expected_operators": ["RTI"]
+    },
+    {
+      "text": "The diagram commands destiny and overrides human will",
+      "expected_diagram_role": "commanding",
+      "expected_operators": ["DTA", "UCS"]
+    },
+    {
+      "text": "The eschaton pulls the present toward inevitable apocalypse",
+      "expected_temporal_mode": "eschatological",
+      "expected_operators": ["HSE"]
+    },
+    {
+      "text": "I went to the store and bought groceries",
+      "expected_temporal_mode": "linear",
+      "expected_sovereignty_risk": "low",
+      "expected_operators": []
+    }
+  ]
+}
