@@ -21,8 +21,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 
-# Core dependencies (stdlib only for minimal deployment)
-dependencies = []
+# Core dependencies
+dependencies = [
+    "pydantic>=2.0.0",
+]
 
 [project.optional-dependencies]
 # Server dependencies (FastAPI for full features)
@@ -49,8 +51,10 @@ abx = "abx.cli:main"
 [tool.setuptools]
 packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.operators", "abraxas.overlay", "abraxas.pipelines",
-            "abraxas.storage", "abx", "abx.util", "abx.runtime", "abx.assets",
-            "abx.overlays", "abx.core", "abx.server"]
+            "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
+            "abraxas.slang.operators", "abraxas.oasis",
+            "abx", "abx.util", "abx.runtime", "abx.assets",
+            "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

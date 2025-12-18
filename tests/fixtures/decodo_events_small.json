@@ -1,0 +1,162 @@
+[
+  {
+    "event_id": "evt_001",
+    "timestamp": "2025-01-15T10:00:00Z",
+    "source_url": "https://example.social/post/1",
+    "source_type": "social",
+    "content": "rawr xD this is so cute",
+    "metadata": {"user": "user1", "likes": 5}
+  },
+  {
+    "event_id": "evt_002",
+    "timestamp": "2025-01-15T10:05:00Z",
+    "source_url": "https://example.social/post/2",
+    "source_type": "social",
+    "content": "lol that's hilarious",
+    "metadata": {"user": "user2", "likes": 3}
+  },
+  {
+    "event_id": "evt_003",
+    "timestamp": "2025-01-15T10:10:00Z",
+    "source_url": "https://example.social/post/3",
+    "source_type": "social",
+    "content": "just normal conversation here",
+    "metadata": {"user": "user3", "likes": 1}
+  },
+  {
+    "event_id": "evt_004",
+    "timestamp": "2025-01-15T10:15:00Z",
+    "source_url": "https://example.social/post/4",
+    "source_type": "social",
+    "content": "raar nyaa :3 uwu",
+    "metadata": {"user": "user4", "likes": 12}
+  },
+  {
+    "event_id": "evt_005",
+    "timestamp": "2025-01-15T10:20:00Z",
+    "source_url": "https://example.social/post/5",
+    "source_type": "social",
+    "content": "bonk! gonna yeet this lmao xD",
+    "metadata": {"user": "user5", "likes": 8}
+  },
+  {
+    "event_id": "evt_006",
+    "timestamp": "2025-01-15T10:25:00Z",
+    "source_url": "https://example.social/post/6",
+    "source_type": "social",
+    "content": "owo what's this?? rawr",
+    "metadata": {"user": "user1", "likes": 15}
+  },
+  {
+    "event_id": "evt_007",
+    "timestamp": "2025-01-15T10:30:00Z",
+    "source_url": "https://example.social/post/7",
+    "source_type": "social",
+    "content": "regular message without patterns",
+    "metadata": {"user": "user6", "likes": 2}
+  },
+  {
+    "event_id": "evt_008",
+    "timestamp": "2025-01-15T10:35:00Z",
+    "source_url": "https://example.social/post/8",
+    "source_type": "social",
+    "content": "*bonks* you're so silly lol",
+    "metadata": {"user": "user2", "likes": 6}
+  },
+  {
+    "event_id": "evt_009",
+    "timestamp": "2025-01-15T10:40:00Z",
+    "source_url": "https://example.social/post/9",
+    "source_type": "social",
+    "content": "this is serious business discussion",
+    "metadata": {"user": "user7", "likes": 1}
+  },
+  {
+    "event_id": "evt_010",
+    "timestamp": "2025-01-15T10:45:00Z",
+    "source_url": "https://example.social/post/10",
+    "source_type": "social",
+    "content": "rawr means I love you in dinosaur xD",
+    "metadata": {"user": "user8", "likes": 25}
+  },
+  {
+    "event_id": "evt_011",
+    "timestamp": "2025-01-15T10:50:00Z",
+    "source_url": "https://example.social/post/11",
+    "source_type": "social",
+    "content": "nyaa~ :3",
+    "metadata": {"user": "user4", "likes": 10}
+  },
+  {
+    "event_id": "evt_012",
+    "timestamp": "2025-01-15T10:55:00Z",
+    "source_url": "https://example.social/post/12",
+    "source_type": "social",
+    "content": "another neutral comment",
+    "metadata": {"user": "user9", "likes": 1}
+  },
+  {
+    "event_id": "evt_013",
+    "timestamp": "2025-01-15T11:00:00Z",
+    "source_url": "https://example.social/post/13",
+    "source_type": "social",
+    "content": "yeet that negativity away lol!!!",
+    "metadata": {"user": "user5", "likes": 7}
+  },
+  {
+    "event_id": "evt_014",
+    "timestamp": "2025-01-15T11:05:00Z",
+    "source_url": "https://example.social/post/14",
+    "source_type": "social",
+    "content": "uwu rawr *nuzzles*",
+    "metadata": {"user": "user1", "likes": 18}
+  },
+  {
+    "event_id": "evt_015",
+    "timestamp": "2025-01-15T11:10:00Z",
+    "source_url": "https://example.social/post/15",
+    "source_type": "social",
+    "content": "plain text message",
+    "metadata": {"user": "user10", "likes": 0}
+  },
+  {
+    "event_id": "evt_016",
+    "timestamp": "2025-01-15T11:15:00Z",
+    "source_url": "https://example.social/post/16",
+    "source_type": "social",
+    "content": "xD this is funny rofl",
+    "metadata": {"user": "user2", "likes": 4}
+  },
+  {
+    "event_id": "evt_017",
+    "timestamp": "2025-01-15T11:20:00Z",
+    "source_url": "https://example.social/post/17",
+    "source_type": "social",
+    "content": "*destroys* but in a playful way lmao",
+    "metadata": {"user": "user5", "likes": 9}
+  },
+  {
+    "event_id": "evt_018",
+    "timestamp": "2025-01-15T11:25:00Z",
+    "source_url": "https://example.social/post/18",
+    "source_type": "social",
+    "content": "raar!! >:3",
+    "metadata": {"user": "user4", "likes": 11}
+  },
+  {
+    "event_id": "evt_019",
+    "timestamp": "2025-01-15T11:30:00Z",
+    "source_url": "https://example.social/post/19",
+    "source_type": "social",
+    "content": "another boring message",
+    "metadata": {"user": "user11", "likes": 1}
+  },
+  {
+    "event_id": "evt_020",
+    "timestamp": "2025-01-15T11:35:00Z",
+    "source_url": "https://example.social/post/20",
+    "source_type": "social",
+    "content": "rawr xD owo nyaa this has everything lol!!!",
+    "metadata": {"user": "user1", "likes": 30}
+  }
+]
