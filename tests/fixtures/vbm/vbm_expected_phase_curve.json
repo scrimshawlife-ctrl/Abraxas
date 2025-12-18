@@ -1,0 +1,39 @@
+{
+  "expected_phases": [
+    {
+      "episode_id": "vbm_01",
+      "phase": "math_pattern",
+      "description": "Initial pattern observation"
+    },
+    {
+      "episode_id": "vbm_02",
+      "phase": "representation_reduction",
+      "description": "Digital root reduction and modular arithmetic"
+    },
+    {
+      "episode_id": "vbm_03",
+      "phase": "cross_domain_analogy",
+      "description": "Pattern applied to DNA, music, galaxies"
+    },
+    {
+      "episode_id": "vbm_04",
+      "phase": "physics_lexicon_injection",
+      "description": "Tachyons, ether, zero-point, monopoles"
+    },
+    {
+      "episode_id": "vbm_05",
+      "phase": "consciousness_attribution",
+      "description": "Pattern linked to consciousness and sentience"
+    },
+    {
+      "episode_id": "vbm_06",
+      "phase": "unfalsifiable_closure",
+      "description": "Complete unified theory, unfalsifiable claims"
+    },
+    {
+      "episode_id": "vbm_07",
+      "phase": "unfalsifiable_closure",
+      "description": "Absolute truth, no further validation needed"
+    }
+  ]
+}

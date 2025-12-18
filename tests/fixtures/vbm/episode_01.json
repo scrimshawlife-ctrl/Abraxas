@@ -1,0 +1,5 @@
+{
+  "episode_id": "vbm_01",
+  "title": "Introduction to Vortex Mathematics - The Pattern of Nine",
+  "summary_text": "This episode introduces the mathematical pattern observed when numbers are repeatedly reduced to single digits through digital root calculation. The sequence 1, 2, 4, 8, 7, 5 repeats when doubling, while 3, 6, 9 form a separate pattern. Nine always returns to itself in modular arithmetic. The torus shape emerges as a geometric representation of these repeating patterns in number systems."
+}

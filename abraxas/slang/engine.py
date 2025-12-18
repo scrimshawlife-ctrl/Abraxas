@@ -27,6 +27,7 @@ class SlangEngine:
         registry_path: str | None = None,
         enable_oasis: bool = True,
         builtin_operators: bool = True,
+        enable_vbm_casebook: bool = True,
     ):
         """
         Initialize SEE.
@@ -35,10 +36,25 @@ class SlangEngine:
             registry_path: Path to operator registry
             enable_oasis: Enable OAS integration
             builtin_operators: Load built-in operators (like CTD)
+            enable_vbm_casebook: Enable VBM drift detection (default True)
         """
         self.registry = OperatorRegistry(registry_path)
         self.enable_oasis = enable_oasis
+        self.enable_vbm_casebook = enable_vbm_casebook
         self.operators: list[Operator] = []
+
+        # Load VBM registry if enabled
+        if self.enable_vbm_casebook:
+            from abraxas.casebooks.vbm.registry import get_vbm_registry
+
+            self.vbm_registry = get_vbm_registry()
+            try:
+                self.vbm_registry.load_casebook()
+            except Exception:
+                # Casebook not available, disable VBM
+                self.enable_vbm_casebook = False
+        else:
+            self.vbm_registry = None
 
         # Load operators
         if builtin_operators:
@@ -139,14 +155,46 @@ class SlangEngine:
 
         return clusters
 
+    def apply_vbm_drift_tagging(self, clusters: list[SlangCluster]) -> list[SlangCluster]:
+        """
+        Apply VBM drift tagging to clusters.
+
+        Adds VBM_CLASS tag, phase, score, and lattice hits to clusters that
+        score above threshold.
+        """
+        if not self.enable_vbm_casebook or not self.vbm_registry:
+            return clusters
+
+        VBM_THRESHOLD = 0.65  # Score threshold for VBM_CLASS tag
+
+        for cluster in clusters:
+            # Reconstruct cluster text
+            text = " ".join([t.token for t in cluster.tokens])
+
+            # Collect operator hits from cluster
+            operator_hits = [readout.operator_id for readout in cluster.operator_readouts]
+
+            # Score against VBM
+            drift_score = self.vbm_registry.score_text(text, operator_hits)
+
+            # Tag if score >= threshold
+            if drift_score.score >= VBM_THRESHOLD:
+                cluster.drift_tags.append("VBM_CLASS")
+                cluster.vbm_phase = drift_score.phase.value
+                cluster.vbm_score = drift_score.score
+                cluster.vbm_lattice_hits = drift_score.lattice_hits
+
+        return clusters
+
     def process_frames(self, frames: list[ResonanceFrame]) -> list[SlangCluster]:
         """
-        Full processing pipeline: frames -> clusters -> operator application.
+        Full processing pipeline: frames -> clusters -> operator application -> VBM drift tagging.
 
         Returns annotated clusters.
         """
         clusters = self.detect_clusters(frames)
         clusters = self.apply_operators(clusters, frames)
+        clusters = self.apply_vbm_drift_tagging(clusters)
         return clusters
 
     def trigger_oasis_cycle(

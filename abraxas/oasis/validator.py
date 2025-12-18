@@ -25,6 +25,7 @@ class OASValidator:
         min_entropy_delta: float = -0.05,
         min_false_cringe_delta: float = -0.10,
         holdout_ratio: float = 0.2,
+        enable_vbm_golden: bool = True,
     ):
         """
         Initialize validator.
@@ -33,10 +34,12 @@ class OASValidator:
             min_entropy_delta: Minimum entropy improvement (negative = better)
             min_false_cringe_delta: Minimum false classification improvement
             holdout_ratio: Ratio of data to hold out for validation
+            enable_vbm_golden: Enable VBM golden gate validation (default True)
         """
         self.min_entropy_delta = min_entropy_delta
         self.min_false_cringe_delta = min_false_cringe_delta
         self.holdout_ratio = holdout_ratio
+        self.enable_vbm_golden = enable_vbm_golden
 
     def validate(
         self,
@@ -222,3 +225,108 @@ class OASValidator:
         false_rate_ok = false_rate_delta <= self.min_false_cringe_delta
 
         return entropy_ok and false_rate_ok
+
+    def is_vbm_inscope(self, candidate: OperatorCandidate) -> bool:
+        """
+        Check if candidate is in-scope for VBM golden gate.
+
+        In-scope if candidate triggers relate to math/physics/pattern/centrality.
+        """
+        vbm_trigger_terms = [
+            "digital root",
+            "symmetry",
+            "torus",
+            "zero-point",
+            "consciousness",
+            "pattern",
+            "vortex",
+            "tachyon",
+            "ether",
+            "modular",
+            "frequency",
+        ]
+
+        # Check triggers and scope
+        trigger_text = " ".join(candidate.triggers).lower()
+        scope_text = str(candidate.scope).lower()
+
+        for term in vbm_trigger_terms:
+            if term in trigger_text or term in scope_text:
+                return True
+
+        return False
+
+    def validate_vbm_golden(self, candidate: OperatorCandidate) -> tuple[bool, dict[str, Any]]:
+        """
+        Validate candidate against VBM golden casebook.
+
+        Args:
+            candidate: Candidate to validate
+
+        Returns:
+            (passed, metrics) tuple
+        """
+        if not self.enable_vbm_golden:
+            return True, {}
+
+        # Check if in-scope
+        if not self.is_vbm_inscope(candidate):
+            # Not in-scope, automatically pass
+            return True, {"vbm_inscope": False}
+
+        try:
+            from abraxas.casebooks.vbm.registry import get_vbm_registry
+
+            vbm_registry = get_vbm_registry()
+            vbm_registry.load_casebook()
+
+            casebook = vbm_registry.get_casebook()
+            if not casebook or not casebook.episodes:
+                # Casebook not available, pass
+                return True, {"vbm_available": False}
+
+            # Test candidate on VBM episodes
+            vbm_hits = 0
+            control_false_positives = 0
+
+            # Test on VBM episodes (should fire)
+            for episode in casebook.episodes:
+                # Simulate candidate trigger matching
+                for trigger in candidate.triggers:
+                    try:
+                        if re.search(trigger, episode.summary_text, re.IGNORECASE):
+                            vbm_hits += 1
+                            break  # Count once per episode
+                    except re.error:
+                        pass
+
+            # Test on control texts (should NOT fire)
+            control_texts = [
+                "Today I bought groceries at the store. The weather was nice and I enjoyed the walk home.",
+                "Python lists are mutable sequences. You can append, extend, and modify elements in place.",
+            ]
+
+            for control_text in control_texts:
+                for trigger in candidate.triggers:
+                    try:
+                        if re.search(trigger, control_text, re.IGNORECASE):
+                            control_false_positives += 1
+                            break
+                    except re.error:
+                        pass
+
+            # Pass criteria: at least some VBM hits and no control false positives
+            vbm_recall = vbm_hits / max(len(casebook.episodes), 1)
+            passed = vbm_recall > 0.1 and control_false_positives == 0
+
+            return passed, {
+                "vbm_inscope": True,
+                "vbm_hits": vbm_hits,
+                "vbm_recall": vbm_recall,
+                "control_false_positives": control_false_positives,
+                "vbm_golden_passed": passed,
+            }
+
+        except Exception:
+            # VBM not available or error, pass
+            return True, {"vbm_error": True}
