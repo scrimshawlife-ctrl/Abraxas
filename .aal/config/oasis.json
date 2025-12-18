@@ -1,0 +1,21 @@
+{
+  "stabilization_cycles_required": 3,
+  "min_entropy_delta": -0.05,
+  "min_false_cringe_delta": -0.10,
+  "max_time_regression_pct": 10,
+  "quarantine_mode": true,
+  "miner": {
+    "min_frequency": 3,
+    "min_confidence": 0.5
+  },
+  "validator": {
+    "holdout_ratio": 0.2
+  },
+  "stabilizer": {
+    "consistency_threshold": 0.8
+  },
+  "canonizer": {
+    "enable_complexity_gate": true,
+    "enable_non_poisoning_gate": true
+  }
+}

@@ -1,0 +1,73 @@
+[
+  {
+    "cluster_id": "cluster_ctd_001",
+    "tokens": [
+      {"token": "rawr", "position": 0, "features": {}},
+      {"token": "xD", "position": 1, "features": {}}
+    ],
+    "features": {
+      "phonetic_softening": 1.0,
+      "irony_checksum": 1.0
+    },
+    "window": ["2025-01-15T10:00:00Z", "2025-01-15T11:35:00Z"],
+    "evidence_refs": ["evt_001", "evt_010", "evt_020"],
+    "operator_readouts": [],
+    "metadata": {
+      "pattern_type": "affiliative",
+      "frequency": 3
+    }
+  },
+  {
+    "cluster_id": "cluster_ctd_002",
+    "tokens": [
+      {"token": "bonk", "position": 0, "features": {}},
+      {"token": "lmao", "position": 1, "features": {}},
+      {"token": "xD", "position": 2, "features": {}}
+    ],
+    "features": {
+      "play_aggression": 1.0,
+      "irony_checksum": 2.0
+    },
+    "window": ["2025-01-15T10:20:00Z", "2025-01-15T10:20:00Z"],
+    "evidence_refs": ["evt_005"],
+    "operator_readouts": [],
+    "metadata": {
+      "pattern_type": "play_aggression",
+      "frequency": 1
+    }
+  },
+  {
+    "cluster_id": "cluster_ctd_003",
+    "tokens": [
+      {"token": "nyaa", "position": 0, "features": {}},
+      {"token": ":3", "position": 1, "features": {}},
+      {"token": "uwu", "position": 2, "features": {}}
+    ],
+    "features": {
+      "phonetic_softening": 2.0,
+      "irony_checksum": 1.0
+    },
+    "window": ["2025-01-15T10:15:00Z", "2025-01-15T11:20:00Z"],
+    "evidence_refs": ["evt_004", "evt_011", "evt_018"],
+    "operator_readouts": [],
+    "metadata": {
+      "pattern_type": "affiliative",
+      "frequency": 3
+    }
+  },
+  {
+    "cluster_id": "cluster_neutral_001",
+    "tokens": [
+      {"token": "normal", "position": 0, "features": {}},
+      {"token": "conversation", "position": 1, "features": {}}
+    ],
+    "features": {},
+    "window": ["2025-01-15T10:10:00Z", "2025-01-15T10:10:00Z"],
+    "evidence_refs": ["evt_003"],
+    "operator_readouts": [],
+    "metadata": {
+      "pattern_type": "neutral",
+      "frequency": 1
+    }
+  }
+]
