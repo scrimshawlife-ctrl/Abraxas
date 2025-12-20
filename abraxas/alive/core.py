@@ -1,11 +1,10 @@
 """
 ALIVE Engine - Core computation entry point.
 
-IMPORTANT: This module is intentionally DUMB at this stage.
-It proves the plumbing works before intelligence exists.
+INTENTIONALLY DUMB at this stage. Proves plumbing before intelligence.
 
 The core entrypoint is alive_run():
-    artifact → field signature (shape-correct, placeholder math)
+    artifact → AliveRunResult (shape-correct, placeholder math)
 """
 
 from __future__ import annotations
@@ -13,253 +12,100 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from datetime import datetime, timezone
-from typing import Any, Optional
+import time
+import uuid
+from typing import Any, Dict, List, Optional
 
-from abraxas.alive.models import (
-    ALIVEArtifact,
-    ALIVEFieldSignature,
-    ALIVEProfile,
-    ALIVERunInput,
-    CompositeScore,
-    CorpusProvenance,
-    InfluenceMetric,
-    LifeLogisticsMetric,
-    MetricStatus,
-    MetricStrain,
-    VitalityMetric,
-)
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# CORE ENTRYPOINT: alive_run()
-# ═══════════════════════════════════════════════════════════════════════════
+def _sha256(obj: Any) -> str:
+    """Generate SHA-256 hash of object."""
+    blob = json.dumps(obj, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
 
 
 def alive_run(
-    artifact: ALIVEArtifact | dict,
+    artifact: Dict[str, Any],
     tier: str,
-    profile: ALIVEProfile | dict | None = None,
-) -> dict:
+    profile: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
-    ALIVE core entrypoint: accepts artifact, returns field signature.
+    ALIVE core entrypoint: returns a schema-correct AliveRunResult.
 
-    This is INTENTIONALLY DUMB. It proves plumbing before intelligence.
+    INTENTIONALLY DUMB. Proves plumbing before intelligence.
 
     Args:
-        artifact: Normalized text/media object
-        tier: "psychonaut" | "academic" | "enterprise"
-        profile: Onboarding-derived weights (optional)
+        artifact: Normalized artifact bundle (text/url/meta)
+        tier: 'psychonaut' | 'academic' | 'enterprise'
+        profile: Onboarding weights/traits (optional)
 
     Returns:
-        ALIVE Field Signature as dict (shape-correct, placeholder math)
+        AliveRunResult as dict (shape-correct, placeholder math)
     """
-    # Normalize inputs
-    if isinstance(artifact, dict):
-        artifact = ALIVEArtifact(**artifact)
-    if profile is None:
-        profile = ALIVEProfile(profileId="default")
-    elif isinstance(profile, dict):
-        profile = ALIVEProfile(**profile)
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    input_hash = _sha256(artifact)
+    profile_hash = _sha256(profile) if profile else None
 
-    # Generate analysis ID (deterministic)
-    analysis_id = _generate_analysis_id(artifact, tier)
+    run_id = str(uuid.uuid4())
 
-    # Generate placeholder field signature (STUB)
-    field_signature = _generate_stub_field_signature(
-        analysis_id=analysis_id,
-        artifact=artifact,
-        tier=tier,
-        profile=profile,
-    )
+    # Minimal signature: empty lists + aggregates
+    signature = {
+        "influence": [],
+        "vitality": [],
+        "life_logistics": [],
+        "aggregates": {
+            "influence_intensity": {"value": 0.0, "confidence": 0.0},
+            "vitality_charge": {"value": 0.0, "confidence": 0.0},
+            "logistics_friction": {"value": 0.0, "confidence": 0.0},
+        },
+    }
 
-    # Return as dict
-    return field_signature.model_dump(mode="json")
+    # Minimal translated states (psychonaut safe defaults)
+    translated = {
+        "pressure": 0.0,
+        "pull": 0.0,
+        "agency_delta": 0.0,
+        "drift_risk": 0.0,
+        "notes": ["ALIVE stub active: pipeline validated; metrics not yet populated."]
+    }
 
+    result = {
+        "provenance": {
+            "run_id": run_id,
+            "created_at": now,
+            "schema_version": "alive-schema@1.0.0",
+            "engine_version": "alive-core@0.1.0",
+            "metric_registry_hash": "unwired",
+            "input_hash": input_hash,
+            "profile_hash": profile_hash,
+            "corpus_context": {
+                "corpus_version": "meta-corpus@1.0",
+                "decay_policy_hash": "unwired",
+            },
+        },
+        "artifact": {
+            "artifact_id": artifact.get("artifact_id", input_hash[:12]),
+            "kind": artifact.get("kind", "text"),
+            "source": artifact.get("source", "user_upload"),
+            "title": artifact.get("title"),
+            "url": artifact.get("url"),
+            "language": artifact.get("language", "en"),
+            "timestamp": artifact.get("timestamp"),
+            "notes": artifact.get("notes"),
+        },
+        "signature": signature,
+        "view": {
+            "tier": tier,
+            "translated": translated,
+            "metrics": signature if tier != "psychonaut" else None,
+            "explanations": [],
+            "alerts": [],
+        },
+        "strain": {
+            "signals": [],
+            "notes": ["No strain computed in stub mode."]
+        }
+    }
 
-def _generate_analysis_id(artifact: ALIVEArtifact, tier: str) -> str:
-    """Generate deterministic analysis ID."""
-    now = datetime.now(timezone.utc).isoformat()
-    payload = f"{artifact.artifactId}:{tier}:{now}"
-    return hashlib.sha256(payload.encode()).hexdigest()[:16]
-
-
-def _generate_stub_field_signature(
-    analysis_id: str,
-    artifact: ALIVEArtifact,
-    tier: str,
-    profile: ALIVEProfile,
-) -> ALIVEFieldSignature:
-    """
-    Generate stub field signature with correct shape.
-
-    PLACEHOLDER MATH ONLY. Shape correctness, not intelligence.
-    """
-    now = datetime.now(timezone.utc)
-
-    # Stub influence metrics
-    influence_metrics = [
-        InfluenceMetric(
-            metricId="influence.network_position",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.65,
-            confidence=0.8,
-            timestamp=now,
-        ),
-        InfluenceMetric(
-            metricId="influence.persuasive_reach",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.72,
-            confidence=0.75,
-            timestamp=now,
-        ),
-    ]
-
-    # Stub vitality metrics
-    vitality_metrics = [
-        VitalityMetric(
-            metricId="vitality.creative_momentum",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.58,
-            confidence=0.7,
-            timestamp=now,
-        ),
-        VitalityMetric(
-            metricId="vitality.discourse_velocity",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.82,
-            confidence=0.85,
-            timestamp=now,
-        ),
-        VitalityMetric(
-            metricId="vitality.engagement_coherence",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.69,
-            confidence=0.8,
-            timestamp=now,
-        ),
-    ]
-
-    # Stub life-logistics metrics
-    life_logistics_metrics = [
-        LifeLogisticsMetric(
-            metricId="life_logistics.time_debt",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.45,  # Inverted: lower is better
-            confidence=0.65,
-            timestamp=now,
-        ),
-        LifeLogisticsMetric(
-            metricId="life_logistics.material_runway",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.55,
-            confidence=0.7,
-            timestamp=now,
-        ),
-        LifeLogisticsMetric(
-            metricId="life_logistics.operational_friction",
-            metricVersion="1.0.0",
-            status=MetricStatus.PROMOTED,
-            value=0.38,  # Inverted: lower is better
-            confidence=0.6,
-            timestamp=now,
-        ),
-    ]
-
-    # Stub composite score (using profile weights)
-    composite = CompositeScore(
-        overall=0.62,
-        influenceWeight=profile.influenceWeight,
-        vitalityWeight=profile.vitalityWeight,
-        lifeLogisticsWeight=profile.lifeLogisticsWeight,
-    )
-
-    # Stub corpus provenance
-    provenance = [
-        CorpusProvenance(
-            sourceId=artifact.artifactId,
-            sourceType=artifact.artifactType,
-            weight=1.0,
-            timestamp=now,
-        ),
-    ]
-
-    # Metric strain (academic tier only)
-    metric_strain = None
-    if tier == "academic":
-        metric_strain = MetricStrain(
-            detected=False,
-            strainReport=None,
-        )
-
-    return ALIVEFieldSignature(
-        analysisId=analysis_id,
-        subjectId=artifact.artifactId,
-        timestamp=now,
-        influence=influence_metrics,
-        vitality=vitality_metrics,
-        lifeLogistics=life_logistics_metrics,
-        compositeScore=composite,
-        corpusProvenance=provenance,
-        metricStrain=metric_strain,
-    )
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# LEGACY WRAPPER (for backward compatibility)
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-class ALIVEEngine:
-    """
-    ALIVE: Autonomous Life-Influence Vitality Engine
-
-    This class wraps alive_run() for compatibility with existing code.
-    New code should call alive_run() directly.
-    """
-
-    def __init__(self, registry_path: str | None = None):
-        """
-        Initialize ALIVE engine.
-
-        Args:
-            registry_path: Path to metric registry (optional for now)
-        """
-        self.registry_path = registry_path
-
-    def run(self, input_data: ALIVERunInput | dict) -> ALIVEFieldSignature:
-        """
-        Run ALIVE analysis and return field signature.
-
-        Args:
-            input_data: ALIVERunInput or dict with analysis parameters
-
-        Returns:
-            ALIVEFieldSignature with computed metrics
-        """
-        # Normalize input
-        if isinstance(input_data, dict):
-            input_data = ALIVERunInput(**input_data)
-
-        # Create artifact from input (temporary until we refactor to artifact-first)
-        artifact = ALIVEArtifact(
-            artifactId=input_data.subjectId,
-            artifactType="text",
-            content=f"Placeholder content for {input_data.subjectId}",
-        )
-
-        # Call alive_run
-        result = alive_run(artifact, input_data.tier, profile=None)
-
-        # Return as model
-        return ALIVEFieldSignature(**result)
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -272,7 +118,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python -m abraxas.alive.core <artifact_json> [tier]")
         print("\nExample:")
-        print('  python -m abraxas.alive.core \'{"artifactId": "test", "artifactType": "text", "content": "Hello world"}\' psychonaut')
+        print('  python -m abraxas.alive.core \'{"artifact_id": "test", "kind": "text", "content": "Hello world"}\' psychonaut')
         sys.exit(1)
 
     # Parse artifact from command line

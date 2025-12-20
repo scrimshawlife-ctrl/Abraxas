@@ -2,155 +2,66 @@
  * ALIVE Tier Policy Enforcement
  *
  * CRITICAL: Server-side enforcement. Client NEVER decides what a tier can see.
- * This protects against accidental overexposure and client-side tampering.
- *
- * Tier filtering must happen server-side before data leaves the API.
+ * 
+ * Non-negotiable rule: server decides visibility.
  */
 
-import type { ALIVEFieldSignature } from "@shared/alive/schema";
-import {
-  getTierVisibility,
-  getTierExport,
-  getTierIntegrations,
-  ALIVETier,
-} from "@shared/alive/tier-policy";
+import type { AliveRunResult, AliveTier } from "@shared/alive/schema";
 
 /**
- * Apply tier-based filtering to field signature.
+ * Apply tier-based filtering to ALIVE run result.
  *
  * SECURITY: This function MUST be called before returning data to client.
  *
- * @param signature - Full ALIVE field signature
+ * @param result - Full ALIVE run result
  * @param tier - User's tier level (validated server-side)
- * @returns Filtered view according to tier policy
+ * @returns Tier-filtered result
  */
-export function applyTierFilter(
-  signature: ALIVEFieldSignature,
-  tier: string
-): Partial<ALIVEFieldSignature> {
-  const tierEnum = tier as ALIVETier;
-  const policy = getTierVisibility(tierEnum);
+export function applyTierPolicy(result: AliveRunResult, tier: AliveTier): AliveRunResult {
+  // Deep clone to avoid mutations
+  const r: AliveRunResult = structuredClone(result);
 
-  // Base fields (always included)
-  const filtered: Partial<ALIVEFieldSignature> = {
-    analysisId: signature.analysisId,
-    subjectId: signature.subjectId,
-    timestamp: signature.timestamp,
-    schemaVersion: signature.schemaVersion,
-    compositeScore: signature.compositeScore,
-  };
+  // Always set view.tier
+  r.view.tier = tier;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // METRIC FILTERING (status-based)
-  // ═══════════════════════════════════════════════════════════════════════════
+  if (tier === "psychonaut") {
+    // Psychonaut: translated states only, no raw metrics by default
+    if (r.view.metrics) {
+      // Redact: keep only aggregates, drop per-metric list
+      r.view.metrics = {
+        influence: [],
+        vitality: [],
+        life_logistics: [],
+        aggregates: r.signature.aggregates,
+      };
+    }
 
-  filtered.influence = filterMetrics(
-    signature.influence,
-    policy.canViewProvisionalMetrics,
-    policy.showInternalMetricIds
-  );
-
-  filtered.vitality = filterMetrics(
-    signature.vitality,
-    policy.canViewProvisionalMetrics,
-    policy.showInternalMetricIds
-  );
-
-  filtered.lifeLogistics = filterMetrics(
-    signature.lifeLogistics,
-    policy.canViewProvisionalMetrics,
-    policy.showInternalMetricIds
-  );
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PROVENANCE FILTERING (redaction for non-academic tiers)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  if (policy.canViewFullProvenance) {
-    // Academic: full provenance visibility
-    filtered.corpusProvenance = signature.corpusProvenance;
-  } else {
-    // Psychonaut/Enterprise: redacted provenance
-    filtered.corpusProvenance = signature.corpusProvenance.map((p) => ({
-      sourceId: "[redacted]",
-      sourceType: p.sourceType,
-      weight: p.weight,
-      timestamp: p.timestamp,
-    }));
+    // Hide strain details (show gentle notes only)
+    if (r.strain) {
+      r.strain = {
+        signals: [],
+        notes: ["Metric strain detected (details reserved by tier)."],
+      };
+    }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // METRIC STRAIN (academic only)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  if (policy.canViewStrainReports && signature.metricStrain) {
-    filtered.metricStrain = signature.metricStrain;
-  } else {
-    // Strip metric strain for non-academic tiers
-    filtered.metricStrain = undefined;
+  if (tier === "academic") {
+    // Academic: full metrics + strain visibility
+    // (No filtering needed - they see everything)
   }
 
-  return filtered;
-}
-
-/**
- * Filter metrics based on status visibility and internal ID exposure.
- *
- * @param metrics - Array of metrics
- * @param includeProvisional - Include provisional/shadowed metrics
- * @param showMetricIds - Show full metric IDs (academic only)
- */
-function filterMetrics<T extends { status: string; metricId?: string }>(
-  metrics: T[],
-  includeProvisional: boolean,
-  showMetricIds: boolean
-): T[] {
-  let filtered = metrics;
-
-  // Filter by status
-  if (!includeProvisional) {
-    filtered = filtered.filter((m) => m.status === "promoted");
+  if (tier === "enterprise") {
+    // Enterprise: full metrics, redacted strain
+    if (r.strain) {
+      // Enterprise sees strain exists but not full analysis
+      r.strain = {
+        signals: [],
+        notes: r.strain.notes || ["Strain analysis available in academic tier."],
+      };
+    }
   }
 
-  // Redact metric IDs for non-academic tiers
-  if (!showMetricIds) {
-    filtered = filtered.map((m) => {
-      const redacted = { ...m };
-      if (redacted.metricId) {
-        // Keep only the last part of the metric ID (e.g., "network_position")
-        const parts = redacted.metricId.split(".");
-        redacted.metricId = parts[parts.length - 1];
-      }
-      return redacted;
-    });
-  }
-
-  return filtered;
-}
-
-/**
- * Check if user can export in given format.
- *
- * SECURITY: Validate export permissions server-side.
- */
-export function canExport(tier: string, format: string): boolean {
-  const tierEnum = tier as ALIVETier;
-  const policy = getTierExport(tierEnum);
-  return policy.allowedFormats.includes(format as any);
-}
-
-/**
- * Check if user can use integration.
- *
- * SECURITY: Validate integration permissions server-side.
- */
-export function canIntegrate(
-  tier: string,
-  integration: "slack" | "email" | "webhook" | "api"
-): boolean {
-  const tierEnum = tier as ALIVETier;
-  const integrations = getTierIntegrations(tierEnum);
-  return integrations[integration];
+  return r;
 }
 
 /**
@@ -158,7 +69,7 @@ export function canIntegrate(
  *
  * SECURITY: Always validate tier before using it.
  */
-export function validateTier(tier: string): tier is ALIVETier {
+export function validateTier(tier: string): tier is AliveTier {
   return ["psychonaut", "academic", "enterprise"].includes(tier);
 }
 
@@ -170,10 +81,10 @@ export function validateTier(tier: string): tier is ALIVETier {
  *
  * SECURITY: NEVER trust tier from client request. Always look it up server-side.
  */
-export async function getUserTier(userId: string): Promise<ALIVETier> {
+export async function getUserTier(userId: string): Promise<AliveTier> {
   // TODO: Look up from database
   // const user = await db.users.findOne({ id: userId });
-  // return user.tier || ALIVETier.PSYCHONAUT;
+  // return user.tier || "psychonaut";
 
-  return ALIVETier.PSYCHONAUT;
+  return "psychonaut";
 }

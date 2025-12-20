@@ -1,194 +1,88 @@
-import { z } from "zod";
+/**
+ * ALIVE Metric Registry
+ *
+ * Central registry of all ALIVE metrics with tier-specific copy.
+ * This is the "grammar" that lets ALIVE explain metrics per tier.
+ */
+
+import type { AliveMetricAxis, AliveMetricStatus } from "./schema";
+
+export interface AliveMetricRegistryEntry {
+  metric_id: string; // "IM.NCR"
+  axis: AliveMetricAxis;
+  name: string;
+  status: AliveMetricStatus;
+  version: string; // semver
+  normalize: { min: number; max: number }; // standardizing assumptions
+
+  tier_copy: {
+    psychonaut: { summary: string; prompts?: string[] };
+    academic: { summary: string; operational_definition: string; failure_modes?: string[] };
+    enterprise: { summary: string; business_risk_notes?: string[]; decision_uses?: string[] };
+  };
+}
 
 /**
  * ALIVE Metric Registry
  *
- * Central registry of all ALIVE metrics with IDs, versions, and lifecycle status.
- * Supports metric evolution: provisional → shadowed → promoted.
+ * Start with 2-3 metrics only:
+ * - IM.NCR (Narrative Compression Ratio)
+ * - VM.GI (Generativity Index) - TODO
+ * - LL.LFC (Life-Logistics Friction Coefficient) - TODO
  */
-
-// ═══════════════════════════════════════════════════════════════════════════
-// METRIC STATUS LIFECYCLE
-// ═══════════════════════════════════════════════════════════════════════════
-
-export enum MetricStatus {
-  PROVISIONAL = "provisional", // New metric, under evaluation
-  SHADOWED = "shadowed",       // Running in shadow mode, not affecting scores
-  PROMOTED = "promoted",        // Promoted to production, affects composite scores
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// METRIC AXIS
-// ═══════════════════════════════════════════════════════════════════════════
-
-export enum MetricAxis {
-  INFLUENCE = "influence",           // I axis
-  VITALITY = "vitality",            // V axis
-  LIFE_LOGISTICS = "life_logistics", // L axis
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// METRIC DEFINITION
-// ═══════════════════════════════════════════════════════════════════════════
-
-export interface MetricDefinition {
-  metricId: string;           // e.g., "influence.network_position"
-  metricVersion: string;      // Semver: "1.0.0", "1.1.0", etc.
-  axis: MetricAxis;
-  status: MetricStatus;
-  name: string;
-  description: string;
-
-  // Computation metadata
-  computationModule: string;  // Python module path
-  dependencies: string[];     // Other metric IDs this depends on
-
-  // Lifecycle
-  createdAt: string;
-  promotedAt?: string;
-  deprecatedAt?: string;
-
-  // Versioning
-  previousVersion?: string;
-  nextVersion?: string;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// METRIC REGISTRY (seed with initial metrics)
-// ═══════════════════════════════════════════════════════════════════════════
-
-export const METRIC_REGISTRY: MetricDefinition[] = [
-  // ─────────────────────────────────────────────────────────────────────────
-  // INFLUENCE METRICS (I)
-  // ─────────────────────────────────────────────────────────────────────────
+export const ALIVE_METRIC_REGISTRY: AliveMetricRegistryEntry[] = [
   {
-    metricId: "influence.network_position",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.INFLUENCE,
-    status: MetricStatus.PROMOTED,
-    name: "Network Position",
-    description: "Measures centrality and reach within social network graph",
-    computationModule: "abraxas.alive.metrics.influence.network_position",
-    dependencies: [],
-    createdAt: new Date().toISOString(),
-  },
-
-  {
-    metricId: "influence.persuasive_reach",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.INFLUENCE,
-    status: MetricStatus.PROMOTED,
-    name: "Persuasive Reach",
-    description: "Capacity to shift opinion and activate discourse",
-    computationModule: "abraxas.alive.metrics.influence.persuasive_reach",
-    dependencies: ["influence.network_position"],
-    createdAt: new Date().toISOString(),
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // VITALITY METRICS (V)
-  // ─────────────────────────────────────────────────────────────────────────
-  {
-    metricId: "vitality.creative_momentum",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.VITALITY,
-    status: MetricStatus.PROMOTED,
-    name: "Creative Momentum",
-    description: "Sustained creative output velocity and consistency",
-    computationModule: "abraxas.alive.metrics.vitality.creative_momentum",
-    dependencies: [],
-    createdAt: new Date().toISOString(),
-  },
-
-  {
-    metricId: "vitality.discourse_velocity",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.VITALITY,
-    status: MetricStatus.PROMOTED,
-    name: "Discourse Velocity",
-    description: "Rate of participation in active discourse threads",
-    computationModule: "abraxas.alive.metrics.vitality.discourse_velocity",
-    dependencies: [],
-    createdAt: new Date().toISOString(),
-  },
-
-  {
-    metricId: "vitality.engagement_coherence",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.VITALITY,
-    status: MetricStatus.PROMOTED,
-    name: "Engagement Coherence",
-    description: "Consistency and quality of engagement over time",
-    computationModule: "abraxas.alive.metrics.vitality.engagement_coherence",
-    dependencies: ["vitality.discourse_velocity"],
-    createdAt: new Date().toISOString(),
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // LIFE-LOGISTICS METRICS (L)
-  // ─────────────────────────────────────────────────────────────────────────
-  {
-    metricId: "life_logistics.time_debt",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.LIFE_LOGISTICS,
-    status: MetricStatus.PROMOTED,
-    name: "Time Debt",
-    description: "Obligation load vs. available capacity (inverted score)",
-    computationModule: "abraxas.alive.metrics.life_logistics.time_debt",
-    dependencies: [],
-    createdAt: new Date().toISOString(),
-  },
-
-  {
-    metricId: "life_logistics.material_runway",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.LIFE_LOGISTICS,
-    status: MetricStatus.PROMOTED,
-    name: "Material Runway",
-    description: "Financial stability and resource access horizon",
-    computationModule: "abraxas.alive.metrics.life_logistics.material_runway",
-    dependencies: [],
-    createdAt: new Date().toISOString(),
-  },
-
-  {
-    metricId: "life_logistics.operational_friction",
-    metricVersion: "1.0.0",
-    axis: MetricAxis.LIFE_LOGISTICS,
-    status: MetricStatus.PROMOTED,
-    name: "Operational Friction",
-    description: "Drag from systemic constraints (health, care, bureaucracy)",
-    computationModule: "abraxas.alive.metrics.life_logistics.operational_friction",
-    dependencies: [],
-    createdAt: new Date().toISOString(),
+    metric_id: "IM.NCR",
+    axis: "influence",
+    name: "Narrative Compression Ratio",
+    status: "promoted",
+    version: "1.0.0",
+    normalize: { min: 0, max: 1 },
+    tier_copy: {
+      psychonaut: {
+        summary: "How much the message collapses complexity into one frame.",
+        prompts: [
+          "Notice urgency and certainty spikes.",
+          "Track whether alternatives feel impossible.",
+        ],
+      },
+      academic: {
+        summary: "Compression of causal complexity into a single explanatory frame.",
+        operational_definition:
+          "Estimate proportion of claims explained by a single cause/agent; higher implies reduced causal plurality.",
+        failure_modes: [
+          "Dense but nuanced writing can look compressed.",
+          "Satire can spike compression cues.",
+        ],
+      },
+      enterprise: {
+        summary: "Single-frame narratives increase short-term alignment but raise long-term brittleness.",
+        business_risk_notes: [
+          "High NCR can mask operational constraints.",
+          "Raises backlash sensitivity if reality diverges.",
+        ],
+        decision_uses: ["Comms review", "Risk gating on public narratives"],
+      },
+    },
   },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS
-// ═══════════════════════════════════════════════════════════════════════════
-
-export function getMetric(metricId: string, version?: string): MetricDefinition | undefined {
-  if (version) {
-    return METRIC_REGISTRY.find(m => m.metricId === metricId && m.metricVersion === version);
-  }
-  // Get latest promoted version
-  const metrics = METRIC_REGISTRY.filter(m => m.metricId === metricId && m.status === MetricStatus.PROMOTED);
-  return metrics.sort((a, b) => b.metricVersion.localeCompare(a.metricVersion))[0];
+export function getMetricDef(metric_id: string): AliveMetricRegistryEntry | undefined {
+  return ALIVE_METRIC_REGISTRY.find((m) => m.metric_id === metric_id);
 }
 
-export function getMetricsByAxis(axis: MetricAxis, status?: MetricStatus): MetricDefinition[] {
-  let metrics = METRIC_REGISTRY.filter(m => m.axis === axis);
-  if (status) {
-    metrics = metrics.filter(m => m.status === status);
-  }
-  return metrics;
+export function getMetricsByAxis(axis: AliveMetricAxis): AliveMetricRegistryEntry[] {
+  return ALIVE_METRIC_REGISTRY.filter((m) => m.axis === axis);
 }
 
-export function getPromotedMetrics(): MetricDefinition[] {
-  return METRIC_REGISTRY.filter(m => m.status === MetricStatus.PROMOTED);
+export function getPromotedMetrics(): AliveMetricRegistryEntry[] {
+  return ALIVE_METRIC_REGISTRY.filter((m) => m.status === "promoted");
 }
 
-export function getProvisionalMetrics(): MetricDefinition[] {
-  return METRIC_REGISTRY.filter(m => m.status === MetricStatus.PROVISIONAL);
+export function getMetricCopy(
+  metric_id: string,
+  tier: "psychonaut" | "academic" | "enterprise"
+): AliveMetricRegistryEntry["tier_copy"][typeof tier] | undefined {
+  const metric = getMetricDef(metric_id);
+  return metric?.tier_copy[tier];
 }
