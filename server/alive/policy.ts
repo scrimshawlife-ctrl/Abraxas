@@ -25,16 +25,13 @@ export function applyTierPolicy(result: AliveRunResult, tier: AliveTier): AliveR
   r.view.tier = tier;
 
   if (tier === "psychonaut") {
-    // Psychonaut: translated states only, no raw metrics by default
-    if (r.view.metrics) {
-      // Redact: keep only aggregates, drop per-metric list
-      r.view.metrics = {
-        influence: [],
-        vitality: [],
-        life_logistics: [],
-        aggregates: r.signature.aggregates,
-      };
-    }
+    // Psychonaut: translated states ONLY, no raw metrics
+    // Philosophy: prevent "metric self-harm" (overfocusing on numbers)
+    // User gets felt-state guidance (pressure/pull/agency/drift) without enterprise internals
+
+    // Remove all metric details, including aggregates
+    // Psychonaut relies solely on translated view
+    r.view.metrics = null;
 
     // Hide strain details (show gentle notes only)
     if (r.strain) {
@@ -43,6 +40,9 @@ export function applyTierPolicy(result: AliveRunResult, tier: AliveTier): AliveR
         notes: ["Metric strain detected (details reserved by tier)."],
       };
     }
+
+    // CRITICAL: Ensure signature components never leak
+    // (signature itself remains in result for server-side use, but client should ignore)
   }
 
   if (tier === "academic") {

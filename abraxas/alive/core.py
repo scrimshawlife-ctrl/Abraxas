@@ -23,6 +23,13 @@ except ImportError:
     # Graceful fallback if metrics not available
     compute_ll_lfc = None
 
+# Import lens translators
+try:
+    from abraxas.alive.lens.psychonaut import psychonaut_translate
+except ImportError:
+    # Graceful fallback if lens not available
+    psychonaut_translate = None
+
 def _sha256(obj: Any) -> str:
     """Generate SHA-256 hash of object."""
     blob = json.dumps(obj, sort_keys=True, ensure_ascii=False).encode("utf-8")
@@ -81,14 +88,22 @@ def alive_run(
             "confidence": lfc["confidence"],
         }
 
-    # Minimal translated states (psychonaut safe defaults)
-    translated = {
-        "pressure": 0.0,
-        "pull": 0.0,
-        "agency_delta": 0.0,
-        "drift_risk": 0.0,
-        "notes": ["ALIVE stub active: pipeline validated; metrics not yet populated."]
-    }
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TRANSLATE TO TIER-SPECIFIC VIEW
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # Psychonaut felt-state translation
+    if psychonaut_translate:
+        translated = psychonaut_translate(signature=signature, profile=profile)
+    else:
+        # Fallback if translator not available
+        translated = {
+            "pressure": 0.0,
+            "pull": 0.0,
+            "agency_delta": 0.0,
+            "drift_risk": 0.0,
+            "notes": ["ALIVE stub active: pipeline validated; metrics not yet populated."]
+        }
 
     result = {
         "provenance": {
@@ -139,17 +154,19 @@ def alive_run(
 def main():
     """CLI entrypoint for testing alive_run()."""
     if len(sys.argv) < 2:
-        print("Usage: python -m abraxas.alive.core <artifact_json> [tier]")
+        print("Usage: python -m abraxas.alive.core <artifact_json> [tier] [profile_json]")
         print("\nExample:")
         print('  python -m abraxas.alive.core \'{"artifact_id": "test", "kind": "text", "content": "Hello world"}\' psychonaut')
+        print('  python -m abraxas.alive.core \'{"content": "urgent crisis"}\' psychonaut \'{"capacity": {"time": 0.2}}\'')
         sys.exit(1)
 
     # Parse artifact from command line
     artifact_data = json.loads(sys.argv[1])
     tier = sys.argv[2] if len(sys.argv) > 2 else "psychonaut"
+    profile = json.loads(sys.argv[3]) if len(sys.argv) > 3 else None
 
     # Run ALIVE
-    result = alive_run(artifact=artifact_data, tier=tier)
+    result = alive_run(artifact=artifact_data, tier=tier, profile=profile)
 
     # Output result as JSON
     print(json.dumps(result, indent=2, default=str))

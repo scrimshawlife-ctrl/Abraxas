@@ -134,7 +134,7 @@ export const aliveLensViewSchema = z.object({
       notes: z.array(z.string()).optional(),
     })
     .optional(),
-  metrics: aliveFieldSignatureSchema.optional(),
+  metrics: aliveFieldSignatureSchema.nullish(), // Psychonaut tier receives null
   explanations: z
     .array(
       z.object({
