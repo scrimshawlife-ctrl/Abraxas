@@ -77,6 +77,10 @@ def psychonaut_translate(
     # Extract susceptibility
     susc_vol = float(susc.get("volatility", 0.5))
 
+    # Get IM.NCR (Narrative Compression Ratio)
+    ncr = _get_metric(signature, "IM.NCR") or {"value": 0.0}
+    ncr_val = float(ncr.get("value", 0.0))
+
     # Get LL.LFC (Life-Logistics Friction Coefficient)
     lfc = _get_metric(signature, "LL.LFC") or {
         "value": 0.0,
@@ -85,26 +89,29 @@ def psychonaut_translate(
     lfc_val = float(lfc.get("value", 0.0))
     loads = (lfc.get("components") or {}).get("loads", {}) or {}
 
-    # A) PRESSURE: "push" + "life cost"
-    # If your life bandwidth is low, even moderate logistics friction feels like pressure
-    pressure = _clamp(0.65 * lfc_val + 0.35 * vuln)
+    # A) PRESSURE: "push" + "cognitive narrowing pressure" + "life cost"
+    # Pressure now includes compression push (NCR), not just logistics burden
+    pressure = _clamp(0.50 * lfc_val + 0.25 * ncr_val + 0.25 * vuln)
 
     # B) PULL: conservative until vitality metrics exist
     # High-cost narrative can still be attractive, but we don't infer attraction without vitality
     pull = _clamp(0.15 * (1.0 - lfc_val))
 
     # C) AGENCY DELTA: narrowing vs expanding
-    # High friction + high vulnerability tends to narrow options (fatigue makes choices collapse)
-    # low LFC + high capacity → positive delta (space opens)
-    # high LFC + low capacity → negative delta (space collapses)
-    agency_delta = _clamp_m11(0.40 - (0.90 * lfc_val + 0.60 * vuln))
+    # Agency delta tightens when compression is high (NCR narrows cognitive space)
+    # High friction + high compression + high vulnerability → negative delta (space collapses)
+    # low LFC + low NCR + high capacity → positive delta (space opens)
+    agency_delta = _clamp_m11(0.45 - (0.75 * lfc_val + 0.55 * ncr_val + 0.55 * vuln))
 
     # D) DRIFT RISK: probability of slow capture
-    # Based on pressure (push) + vulnerability + volatility susceptibility
-    drift_risk = _clamp(0.50 * pressure + 0.30 * vuln + 0.20 * susc_vol)
+    # Drift risk now includes compression as capture accelerant
+    # High NCR makes it easier to get pulled into a single-frame reality
+    drift_risk = _clamp(0.45 * pressure + 0.20 * vuln + 0.20 * susc_vol + 0.15 * ncr_val)
 
     # Generate deterministic prompts based on thresholds
     notes: List[str] = []
+    if ncr_val > 0.60:
+        notes.append("Totalizing frame detected: check for missing causes and alternative explanations.")
     if pressure > 0.65:
         notes.append("High life-demand signal: check sleep/time capacity before engaging.")
     if agency_delta < -0.35:

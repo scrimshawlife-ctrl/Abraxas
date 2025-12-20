@@ -23,6 +23,12 @@ except ImportError:
     # Graceful fallback if metrics not available
     compute_ll_lfc = None
 
+try:
+    from abraxas.alive.metrics.im_ncr import compute_im_ncr
+except ImportError:
+    # Graceful fallback if metrics not available
+    compute_im_ncr = None
+
 # Import lens translators
 try:
     from abraxas.alive.lens.psychonaut import psychonaut_translate
@@ -78,6 +84,12 @@ def alive_run(
     # ═══════════════════════════════════════════════════════════════════════════
     # COMPUTE METRICS (if available)
     # ═══════════════════════════════════════════════════════════════════════════
+
+    # Influence: IM.NCR
+    if compute_im_ncr and text:
+        ncr = compute_im_ncr(text=text)
+        signature["influence"].append(ncr)
+        # Note: influence_intensity aggregate will be a blend later; keep empty for now
 
     # Life-Logistics: LL.LFC
     if compute_ll_lfc and text:

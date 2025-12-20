@@ -35,33 +35,39 @@ export const ALIVE_METRIC_REGISTRY: AliveMetricRegistryEntry[] = [
     metric_id: "IM.NCR",
     axis: "influence",
     name: "Narrative Compression Ratio",
-    status: "promoted",
-    version: "1.0.0",
+    status: "shadow", // start shadow; promote after stabilization window
+    version: "0.1.0",
     normalize: { min: 0, max: 1 },
     tier_copy: {
       psychonaut: {
-        summary: "How much the message collapses complexity into one frame.",
+        summary: "How much the message collapses complex reality into one simple frame.",
         prompts: [
-          "Notice urgency and certainty spikes.",
-          "Track whether alternatives feel impossible.",
+          "Notice if everything starts having only one cause.",
+          "Watch for certainty spikes: 'it's always this' / 'it's all because of that.'",
         ],
       },
       academic: {
-        summary: "Compression of causal complexity into a single explanatory frame.",
+        summary: "Degree of causal reduction: the extent to which many phenomena are explained by a single frame or agent.",
         operational_definition:
-          "Estimate proportion of claims explained by a single cause/agent; higher implies reduced causal plurality.",
+          "Estimate ratio of total explanatory claims attributable to a dominant cause/agent frame versus plural causes; higher implies reduced causal plurality.",
         failure_modes: [
-          "Dense but nuanced writing can look compressed.",
-          "Satire can spike compression cues.",
+          "Short texts can appear compressed by brevity.",
+          "Satire and slogans can inflate compression cues.",
+          "Some technical summaries are compressed but not propagandistic.",
         ],
       },
       enterprise: {
-        summary: "Single-frame narratives increase short-term alignment but raise long-term brittleness.",
+        summary:
+          "High NCR accelerates alignment but increases brittleness when reality diverges; useful for rallying, risky for long-term trust.",
         business_risk_notes: [
-          "High NCR can mask operational constraints.",
-          "Raises backlash sensitivity if reality diverges.",
+          "High NCR can hide operational constraints and failure modes.",
+          "High NCR narratives are backlash-prone when outcomes contradict framing.",
         ],
-        decision_uses: ["Comms review", "Risk gating on public narratives"],
+        decision_uses: [
+          "Comms review / narrative risk gating",
+          "Culture drift monitoring",
+          "Crisis messaging evaluation",
+        ],
       },
     },
   },
