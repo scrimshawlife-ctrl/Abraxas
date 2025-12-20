@@ -29,12 +29,25 @@ except ImportError:
     # Graceful fallback if metrics not available
     compute_im_ncr = None
 
+try:
+    from abraxas.alive.metrics.vm_gi import compute_vm_gi
+except ImportError:
+    # Graceful fallback if metrics not available
+    compute_vm_gi = None
+
 # Import lens translators
 try:
     from abraxas.alive.lens.psychonaut import psychonaut_translate
 except ImportError:
     # Graceful fallback if lens not available
     psychonaut_translate = None
+
+# Import strain detection
+try:
+    from abraxas.alive.strain.v0_1 import compute_strain
+except ImportError:
+    # Graceful fallback if strain not available
+    compute_strain = None
 
 def _sha256(obj: Any) -> str:
     """Generate SHA-256 hash of object."""
@@ -91,6 +104,15 @@ def alive_run(
         signature["influence"].append(ncr)
         # Note: influence_intensity aggregate will be a blend later; keep empty for now
 
+    # Vitality: VM.GI
+    if compute_vm_gi and text:
+        gi = compute_vm_gi(text=text)
+        signature["vitality"].append(gi)
+        signature["aggregates"]["vitality_charge"] = {
+            "value": gi["value"],
+            "confidence": gi["confidence"],
+        }
+
     # Life-Logistics: LL.LFC
     if compute_ll_lfc and text:
         lfc = compute_ll_lfc(text=text, profile=profile)
@@ -99,6 +121,20 @@ def alive_run(
             "value": lfc["value"],
             "confidence": lfc["confidence"],
         }
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TRANSLATE TO TIER-SPECIFIC VIEW
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # COMPUTE STRAIN (metric discovery)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # Strain signals detect when current metrics are insufficient
+    if compute_strain:
+        strain = compute_strain(signature=signature)
+    else:
+        strain = {"signals": [], "notes": ["No strain computed in stub mode."]}
 
     # ═══════════════════════════════════════════════════════════════════════════
     # TRANSLATE TO TIER-SPECIFIC VIEW
@@ -149,10 +185,7 @@ def alive_run(
             "explanations": [],
             "alerts": [],
         },
-        "strain": {
-            "signals": [],
-            "notes": ["No strain computed in stub mode."]
-        }
+        "strain": strain,
     }
 
     return result

@@ -73,6 +73,51 @@ export const ALIVE_METRIC_REGISTRY: AliveMetricRegistryEntry[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────
+  // VITALITY METRICS (V)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  {
+    metric_id: "VM.GI",
+    axis: "vitality",
+    name: "Generativity Index",
+    status: "shadow", // promote after stabilization window
+    version: "0.1.0",
+    normalize: { min: 0, max: 1 },
+    tier_copy: {
+      psychonaut: {
+        summary: "How much this produces new meaning (ideas, experiments, remix) instead of repeating loops.",
+        prompts: [
+          "Does this invite creation or demand recitation?",
+          "After reading, do you want to build something—or join a chant?",
+        ],
+      },
+      academic: {
+        summary: "Degree of novelty production: capacity to generate new interpretations, artifacts, forks, and internal debate.",
+        operational_definition:
+          "Estimate presence of open-ended inquiry, multiple pathways, prompts for experimentation, and tolerance for variation versus rigid repetition and purity enforcement.",
+        failure_modes: [
+          "Poetic novelty can look generative without being actionable.",
+          "Technical docs can be highly generative but domain-specific.",
+          "A manipulative movement can appear generative during recruitment.",
+        ],
+      },
+      enterprise: {
+        summary:
+          "Signals whether a narrative/culture generates solutions or locks teams into repetition; strong GI supports innovation but may reduce short-term alignment.",
+        business_risk_notes: [
+          "High GI with high compression can indicate 'creative capture' risk.",
+          "Low GI in high-pressure environments predicts stagnation and burnout.",
+        ],
+        decision_uses: [
+          "Innovation health monitoring",
+          "Culture diagnostics",
+          "Campaign creative risk review",
+        ],
+      },
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
   // LIFE-LOGISTICS METRICS (L)
   // ─────────────────────────────────────────────────────────────────────────
 

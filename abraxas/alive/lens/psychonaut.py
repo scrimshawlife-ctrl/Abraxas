@@ -81,6 +81,10 @@ def psychonaut_translate(
     ncr = _get_metric(signature, "IM.NCR") or {"value": 0.0}
     ncr_val = float(ncr.get("value", 0.0))
 
+    # Get VM.GI (Generativity Index)
+    gi = _get_metric(signature, "VM.GI") or {"value": 0.0}
+    gi_val = float(gi.get("value", 0.0))
+
     # Get LL.LFC (Life-Logistics Friction Coefficient)
     lfc = _get_metric(signature, "LL.LFC") or {
         "value": 0.0,
@@ -93,9 +97,9 @@ def psychonaut_translate(
     # Pressure now includes compression push (NCR), not just logistics burden
     pressure = _clamp(0.50 * lfc_val + 0.25 * ncr_val + 0.25 * vuln)
 
-    # B) PULL: conservative until vitality metrics exist
-    # High-cost narrative can still be attractive, but we don't infer attraction without vitality
-    pull = _clamp(0.15 * (1.0 - lfc_val))
+    # B) PULL: attracted to generativity, damped by high friction and low capacity
+    # Pull is now REAL: driven by vitality (GI), moderated by logistics and capacity
+    pull = _clamp(0.60 * gi_val + 0.20 * (1.0 - lfc_val) + 0.20 * cap_floor)
 
     # C) AGENCY DELTA: narrowing vs expanding
     # Agency delta tightens when compression is high (NCR narrows cognitive space)
@@ -106,12 +110,32 @@ def psychonaut_translate(
     # D) DRIFT RISK: probability of slow capture
     # Drift risk now includes compression as capture accelerant
     # High NCR makes it easier to get pulled into a single-frame reality
-    drift_risk = _clamp(0.45 * pressure + 0.20 * vuln + 0.20 * susc_vol + 0.15 * ncr_val)
+    # IGNITION: High GI + High NCR = creative capture (fun capture)
+    ignite = _clamp(ncr_val * gi_val)  # 0..1
+    drift_risk = _clamp(
+        0.40 * pressure + 0.20 * vuln + 0.15 * susc_vol + 0.15 * ncr_val + 0.10 * ignite
+    )
 
     # Generate deterministic prompts based on thresholds
     notes: List[str] = []
+
+    # Creative ignition (high GI + high NCR)
+    if ignite > 0.55:
+        notes.append(
+            "Creative ignition detected: high novelty + high compression—watch for 'fun capture'."
+        )
+
+    # High generativity with low friction
+    if gi_val > 0.65 and lfc_val < 0.35:
+        notes.append("High generativity, low friction: fertile—build something.")
+
+    # Compression warnings
     if ncr_val > 0.60:
-        notes.append("Totalizing frame detected: check for missing causes and alternative explanations.")
+        notes.append(
+            "Totalizing frame detected: check for missing causes and alternative explanations."
+        )
+
+    # Standard warnings
     if pressure > 0.65:
         notes.append("High life-demand signal: check sleep/time capacity before engaging.")
     if agency_delta < -0.35:
