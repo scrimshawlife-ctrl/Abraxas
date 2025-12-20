@@ -2,6 +2,9 @@
 ALIVE data models (Pydantic).
 
 Mirror the TypeScript schemas from shared/alive/schema.ts
+
+SCHEMA VERSION: 1.0.0
+LOCKED: 2025-12-20
 """
 
 from __future__ import annotations
@@ -11,6 +14,9 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+# Schema version (must match TypeScript)
+ALIVE_SCHEMA_VERSION = "1.0.0"
 
 
 class MetricStatus(str, Enum):
@@ -84,11 +90,15 @@ class ALIVEFieldSignature(BaseModel):
     Canonical ALIVE field signature output.
 
     Same structure across all tiers; filtering happens at presentation layer.
+
+    LOCKED v1.0.0 - do not modify without major version bump.
     """
 
+    # Meta
     analysisId: str
     subjectId: str
     timestamp: datetime
+    schemaVersion: str = ALIVE_SCHEMA_VERSION
 
     # The three axes
     influence: list[InfluenceMetric]
@@ -112,3 +122,35 @@ class ALIVERunInput(BaseModel):
     tier: str  # "psychonaut" | "academic" | "enterprise"
     corpusConfig: dict
     metricConfig: Optional[dict] = None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NEW: Artifact-first input models
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class ALIVEArtifact(BaseModel):
+    """
+    Normalized artifact input for ALIVE analysis.
+
+    This is the single unit of analysis (text, media, etc.)
+    """
+
+    artifactId: str
+    artifactType: str  # "text" | "media" | "composite"
+    content: str  # Normalized text content
+    metadata: Optional[dict] = None
+
+
+class ALIVEProfile(BaseModel):
+    """
+    User profile with onboarding-derived weights.
+
+    Influences how metrics are weighted in composite score.
+    """
+
+    profileId: str
+    influenceWeight: float = 0.33
+    vitalityWeight: float = 0.34
+    lifeLogisticsWeight: float = 0.33
+    preferences: Optional[dict] = None

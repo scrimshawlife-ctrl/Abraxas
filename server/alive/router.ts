@@ -8,7 +8,8 @@ import type { Express } from "express";
 import { aliveRunInputSchema } from "@shared/alive/schema";
 import { exportRequestSchema } from "@shared/alive/exports";
 import { runALIVEPipeline } from "./pipeline";
-import { canExport, canIntegrate } from "./policy";
+import { canExport, canIntegrate, validateTier, getUserTier } from "./policy";
+import { createSignedExport, exportAsJSON } from "./export";
 import { isAuthenticated } from "../replitAuth";
 
 export function setupALIVERoutes(app: Express) {
@@ -75,15 +76,25 @@ export function setupALIVERoutes(app: Express) {
 
   /**
    * POST /api/alive/export
-   * Export analysis in specified format
+   * Export analysis in signed JSON format (golden artifact)
    */
   app.post("/api/alive/export", isAuthenticated, async (req: any, res) => {
     try {
       // Validate request
       const exportReq = exportRequestSchema.parse(req.body);
 
-      // TODO: Get user tier from session
-      const userTier = exportReq.tier;
+      // SECURITY: Get user tier from session/database (never trust client)
+      // TODO: Implement getUserTier with actual DB lookup
+      const userId = req.user?.claims?.sub || "unknown";
+      const userTier = await getUserTier(userId);
+
+      // Validate tier
+      if (!validateTier(userTier)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid tier",
+        });
+      }
 
       // Check export permission
       if (!canExport(userTier, exportReq.format)) {
@@ -93,17 +104,45 @@ export function setupALIVERoutes(app: Express) {
         });
       }
 
-      // TODO: Generate export file and return download URL
-      res.json({
-        success: true,
-        data: {
-          exportId: `export_${Date.now()}`,
-          format: exportReq.format,
-          downloadUrl: "/api/alive/downloads/stub",
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          createdAt: new Date().toISOString(),
+      // TODO: Fetch field signature from database by analysisId
+      // For now, return stub
+      const fieldSignature: any = {
+        analysisId: exportReq.analysisId,
+        subjectId: "stub",
+        timestamp: new Date().toISOString(),
+        schemaVersion: "1.0.0",
+        influence: [],
+        vitality: [],
+        lifeLogistics: [],
+        compositeScore: {
+          overall: 0.5,
+          influenceWeight: 0.33,
+          vitalityWeight: 0.34,
+          lifeLogisticsWeight: 0.33,
         },
-      });
+        corpusProvenance: [],
+      };
+
+      // Create signed export (golden artifact)
+      const signedExport = createSignedExport(
+        fieldSignature,
+        userTier,
+        exportReq.options
+      );
+
+      // Return as JSON (only format supported for now)
+      if (exportReq.format === "json") {
+        res.json({
+          success: true,
+          data: signedExport,
+        });
+      } else {
+        // TODO: Implement CSV/PDF formats (derived from golden artifact)
+        res.status(501).json({
+          success: false,
+          error: `Format '${exportReq.format}' not yet implemented`,
+        });
+      }
     } catch (error: any) {
       console.error("Error exporting ALIVE report:", error);
       res.status(500).json({

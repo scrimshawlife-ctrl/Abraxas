@@ -5,7 +5,18 @@ import { z } from "zod";
  *
  * Core schema definitions for ALIVE field signatures.
  * Same engine, different lens across tiers (Psychonaut/Academic/Enterprise).
+ *
+ * SCHEMA VERSION: 1.0.0
+ * LOCKED: 2025-12-20
+ *
+ * BREAKING CHANGE POLICY:
+ * - Do NOT modify existing fields without major version bump
+ * - Add new optional fields only
+ * - Deprecate fields with warnings, remove in next major version
+ * - Version format: MAJOR.MINOR.PATCH
  */
+
+export const ALIVE_SCHEMA_VERSION = "1.0.0" as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AXIS DEFINITIONS
@@ -55,16 +66,24 @@ export const lifeLogisticsMetricSchema = z.object({
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const aliveFieldSignatureSchema = z.object({
+  // ═══════════════════════════════════════════════════════════════════════════
+  // META (LOCKED v1.0.0 - do not modify without major version bump)
+  // ═══════════════════════════════════════════════════════════════════════════
   analysisId: z.string(),
   subjectId: z.string(),
   timestamp: z.string().datetime(),
+  schemaVersion: z.string().default(ALIVE_SCHEMA_VERSION),
 
-  // The three axes
+  // ═══════════════════════════════════════════════════════════════════════════
+  // THE THREE AXES (LOCKED v1.0.0)
+  // ═══════════════════════════════════════════════════════════════════════════
   influence: z.array(influenceMetricSchema),
   vitality: z.array(vitalityMetricSchema),
   lifeLogistics: z.array(lifeLogisticsMetricSchema),
 
-  // Composite scores
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPOSITE SCORE (LOCKED v1.0.0)
+  // ═══════════════════════════════════════════════════════════════════════════
   compositeScore: z.object({
     overall: z.number().min(0).max(1),
     influenceWeight: z.number(),
@@ -72,7 +91,9 @@ export const aliveFieldSignatureSchema = z.object({
     lifeLogisticsWeight: z.number(),
   }),
 
-  // Provenance & strain
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROVENANCE & STRAIN (LOCKED v1.0.0)
+  // ═══════════════════════════════════════════════════════════════════════════
   corpusProvenance: z.array(z.object({
     sourceId: z.string(),
     sourceType: z.string(),
