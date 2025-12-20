@@ -65,6 +65,54 @@ export const ALIVE_METRIC_REGISTRY: AliveMetricRegistryEntry[] = [
       },
     },
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // LIFE-LOGISTICS METRICS (L)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  {
+    metric_id: "LL.LFC",
+    axis: "life_logistics",
+    name: "Life-Logistics Friction Coefficient",
+    status: "shadow", // start shadow, promote after stabilization
+    version: "0.1.0",
+    normalize: { min: 0, max: 1 },
+    tier_copy: {
+      psychonaut: {
+        summary: "How much this would tax your real life (time, energy, money, social stability).",
+        prompts: [
+          "What would you have to stop doing to sustain this?",
+          "Which part of your life breaks first: sleep, money, relationships, time?",
+          "If you tried this for 30 days, what becomes fragile?",
+        ],
+      },
+      academic: {
+        summary: "Material enactment cost: the practice-burden required to live inside a narrative/system.",
+        operational_definition:
+          "Estimate the weighted burden across time/cognitive/social/resource/compliance/volatility/embodiment loads implied by the artifact's demands and constraints.",
+        failure_modes: [
+          "Satire can spike urgency/compliance cues.",
+          "Technical manuals can imply compliance burden even when rarely enacted.",
+          "Disciplined voluntary practices (athletics/spirituality) can resemble coercive load.",
+        ],
+      },
+      enterprise: {
+        summary:
+          "Execution friction: predicts rollout drag, burnout pressure, and operational brittleness if adopted as policy/culture/campaign.",
+        business_risk_notes: [
+          "High LFC increases decision latency and error rates under stress.",
+          "High volatility load tends to burn teams quickly (culture burn-rate).",
+          "Hidden resource load can create budget surprises and trust loss.",
+        ],
+        decision_uses: [
+          "Policy feasibility gating",
+          "Culture change survivability",
+          "Campaign risk review",
+          "Operational load forecasting",
+        ],
+      },
+    },
+  },
 ];
 
 export function getMetricDef(metric_id: string): AliveMetricRegistryEntry | undefined {

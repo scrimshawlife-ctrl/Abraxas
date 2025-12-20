@@ -16,6 +16,13 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
+# Import metric implementations
+try:
+    from abraxas.alive.metrics.ll_lfc import compute_ll_lfc
+except ImportError:
+    # Graceful fallback if metrics not available
+    compute_ll_lfc = None
+
 def _sha256(obj: Any) -> str:
     """Generate SHA-256 hash of object."""
     blob = json.dumps(obj, sort_keys=True, ensure_ascii=False).encode("utf-8")
@@ -46,7 +53,10 @@ def alive_run(
 
     run_id = str(uuid.uuid4())
 
-    # Minimal signature: empty lists + aggregates
+    # Extract text content from artifact
+    text = artifact.get("text", artifact.get("content", ""))
+
+    # Initialize signature
     signature = {
         "influence": [],
         "vitality": [],
@@ -57,6 +67,19 @@ def alive_run(
             "logistics_friction": {"value": 0.0, "confidence": 0.0},
         },
     }
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # COMPUTE METRICS (if available)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # Life-Logistics: LL.LFC
+    if compute_ll_lfc and text:
+        lfc = compute_ll_lfc(text=text, profile=profile)
+        signature["life_logistics"].append(lfc)
+        signature["aggregates"]["logistics_friction"] = {
+            "value": lfc["value"],
+            "confidence": lfc["confidence"],
+        }
 
     # Minimal translated states (psychonaut safe defaults)
     translated = {
