@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupAbraxasRoutes } from "./abraxas-server";
+import { setupALIVERoutes } from "./alive/router";
 import {
   insertUserSchema,
   insertTradingConfigSchema,
@@ -42,6 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup Abraxas mystical trading routes
   setupAbraxasRoutes(app, httpServer);
+
+  // Setup ALIVE routes
+  setupALIVERoutes(app);
 
   // Auth endpoint
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
