@@ -37,6 +37,7 @@ class SymbolicCompressionEvent:
     observed_frequency: int
     status: CompressionStatus
     provenance_sha256: str  # Deterministic record hash
+    transparency_lexicon_prov: str = ""
 
 class SymbolicCompressionOperator:
     """
@@ -44,7 +45,7 @@ class SymbolicCompressionOperator:
     """
     PHONETIC_THRESHOLD = 0.75
     INTENT_THRESHOLD = 0.70
-    TRANSPARENCY_DELTA_THRESHOLD = 0.12
+    TRANSPARENCY_DELTA_THRESHOLD = 0.02
 
     def __init__(self, transparency: TransparencyLexicon):
         self.transparency = transparency

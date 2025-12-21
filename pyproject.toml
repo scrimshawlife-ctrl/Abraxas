@@ -52,7 +52,7 @@ abx = "abx.cli:main"
 packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.operators", "abraxas.overlay", "abraxas.pipelines",
             "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
-            "abraxas.slang.operators", "abraxas.oasis",
+            "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
             "abx", "abx.util", "abx.runtime", "abx.assets",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
 

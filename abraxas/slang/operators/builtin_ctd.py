@@ -72,7 +72,7 @@ class CTDOperator(Operator):
             return None
 
         # Classification logic
-        if softening_hits > 0 and irony_hits > 0:
+        if softening_hits > 0 and (irony_hits > 0 or softening_hits >= 2):
             label = "affiliative"
             confidence = min(0.9, 0.5 + (softening_hits + irony_hits) * 0.1)
         elif aggression_hits > 0 and (softening_hits > 0 or irony_hits > 0):

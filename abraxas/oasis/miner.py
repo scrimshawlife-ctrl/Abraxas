@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from datetime import datetime
 from typing import Any
 
 from abraxas.core.resonance_frame import ResonanceFrame
@@ -101,7 +102,15 @@ class OASMiner:
             if not cluster.window:
                 continue
 
-            timestamp = cluster.window[0].timestamp()
+            ts_value = cluster.window[0]
+            if isinstance(ts_value, str):
+                try:
+                    ts_value = datetime.fromisoformat(ts_value.replace("Z", "+00:00"))
+                except Exception:
+                    continue
+            if not hasattr(ts_value, "timestamp"):
+                continue
+            timestamp = ts_value.timestamp()
             for token in cluster.tokens:
                 token_lower = token.token.lower()
                 if token_lower not in token_timeline:
