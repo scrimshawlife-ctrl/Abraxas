@@ -1,0 +1,43 @@
+{
+  "id": "ϟ₆",
+  "name": "Anchor Drift Detector",
+  "short_name": "ADD",
+  "layer": "Governance",
+  "motto": "When the center moves, meaning decays.",
+  "function": "Continuously monitors semantic anchor positions and detects drift. Logs drift events immutably and triggers conservative recentering when thresholds are exceeded.",
+  "inputs": [
+    "anchor_position",
+    "historical_positions",
+    "drift_threshold",
+    "entropy_metric"
+  ],
+  "outputs": [
+    "drift_magnitude",
+    "drift_log_entry",
+    "recenter_signal"
+  ],
+  "constraints": [
+    "immutable_drift_logging",
+    "conservative_recentering",
+    "entropy_increase_detection"
+  ],
+  "hooks": [
+    "anchor_monitoring",
+    "drift_detection",
+    "recenter_trigger",
+    "governance_logging"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Drift/entropy governance principles in AAL doctrine",
+    "Semantic stability monitoring",
+    "Star Gauge / Xuanji Tu traversal logic"
+  ],
+  "canonical_statement": "Detect drift from the anchor; log immutably; recenter conservatively.",
+  "introduced_version": "1.4.0",
+  "metadata": {
+    "first_deployed": "2025-Q1",
+    "stability_class": "high",
+    "integration_priority": "critical"
+  }
+}
