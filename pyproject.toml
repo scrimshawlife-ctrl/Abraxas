@@ -31,6 +31,12 @@ dependencies = [
 server = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
+    "websockets>=12.0",
+]
+
+# PostgreSQL support
+postgres = [
+    "psycopg2-binary>=2.9.0",
 ]
 
 # Development dependencies
@@ -45,14 +51,16 @@ full = [
 ]
 
 [project.scripts]
-# CLI entry point
+# CLI entry points
 abx = "abx.cli:main"
+abraxas-oracle = "abraxas.oracle.cli:main"
 
 [tool.setuptools]
 packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.operators", "abraxas.overlay", "abraxas.pipelines",
             "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
             "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
+            "abraxas.oracle", "abraxas.lexicon", "abraxas.events", "abraxas.api",
             "abx", "abx.util", "abx.runtime", "abx.assets",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
 
