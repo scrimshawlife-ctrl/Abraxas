@@ -53,18 +53,18 @@ class TestManifestIntegrity:
 
     def test_all_sigil_files_exist(self, manifest: SigilManifest):
         """Test that all referenced sigil files exist."""
-        repo_root = Path(__file__).parent.parent
+        runes_root = Path(__file__).parent.parent / "abraxas" / "runes"
 
         for entry in manifest.entries:
-            file_path = repo_root / entry.svg_path
+            file_path = runes_root / entry.svg_path
             assert file_path.exists(), f"Sigil file must exist: {entry.svg_path}"
 
     def test_all_hashes_match(self, manifest: SigilManifest):
         """Test that all manifest hashes match file contents."""
-        repo_root = Path(__file__).parent.parent
+        runes_root = Path(__file__).parent.parent / "abraxas" / "runes"
 
         for entry in manifest.entries:
-            file_path = repo_root / entry.svg_path
+            file_path = runes_root / entry.svg_path
 
             with open(file_path, "r", encoding="utf-8") as f:
                 svg_content = f.read()
@@ -86,10 +86,10 @@ class TestManifestIntegrity:
 
     def test_svg_well_formed(self, manifest: SigilManifest):
         """Test that all SVG files are well-formed."""
-        repo_root = Path(__file__).parent.parent
+        runes_root = Path(__file__).parent.parent / "abraxas" / "runes"
 
         for entry in manifest.entries:
-            file_path = repo_root / entry.svg_path
+            file_path = runes_root / entry.svg_path
 
             with open(file_path, "r", encoding="utf-8") as f:
                 svg_content = f.read()
@@ -148,27 +148,19 @@ class TestRegistryReferences:
 
 
 class TestRegeneration:
-    """Test that sigils can be regenerated deterministically."""
+    """Test that sigils can be regenerated deterministically using builder."""
 
-    def test_regeneration_matches_manifest(self):
-        """Test that regenerating a sigil produces same hash as manifest."""
-        import sys
-
-        sys.path.insert(0, str(Path(__file__).parent.parent))
-
-        from abraxas.runes.sigil_generator import generate_sigil
+    def test_builder_check_passes(self):
+        """Test that builder --check validation passes."""
+        import subprocess
 
         repo_root = Path(__file__).parent.parent
-        manifest_path = repo_root / "abraxas" / "runes" / "sigils" / "manifest.json"
+        result = subprocess.run(
+            ["python", "scripts/abx_runes_build.py", "--check"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
 
-        # Load manifest
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest_data = json.load(f)
-        manifest = SigilManifest(**manifest_data)
-
-        # Test regeneration for first rune (ϟ₁)
-        entry = manifest.entries[0]
-        regenerated_svg = generate_sigil(entry.id, entry.seed_material)
-        regenerated_hash = hashlib.sha256(regenerated_svg.encode("utf-8")).hexdigest()
-
-        assert regenerated_hash == entry.sha256, f"Regenerated sigil hash mismatch for {entry.id}"
+        assert result.returncode == 0, f"Builder check failed: {result.stderr}"
+        assert "[OK]" in result.stdout, "Builder check should output [OK]"

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<g id="sigil">
+<circle cx="256.000" cy="256.000" r="192.848" stroke="#000" stroke-width="4" fill="none"/>
+<circle cx="256.000" cy="256.000" r="92.947" stroke="#000" stroke-width="3" fill="none"/>
+<circle cx="256.000" cy="256.000" r="6.000" stroke="#000" stroke-width="0" fill="#000"/>
+<line x1="198.303" y1="181.818" x2="198.303" y2="330.182" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+<line x1="313.697" y1="181.818" x2="313.697" y2="330.182" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+<path d="M 308.225 210.545 A 69.236 69.236 0 0 1 308.225 301.455" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
