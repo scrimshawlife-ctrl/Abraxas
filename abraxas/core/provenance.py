@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -59,3 +60,23 @@ def hash_string(s: str) -> str:
 def hash_bytes(b: bytes) -> str:
     """Compute SHA256 hash of bytes."""
     return hashlib.sha256(b).hexdigest()
+
+
+@dataclass(frozen=True)
+class Provenance:
+    """
+    Lightweight provenance record for deterministic pipeline runs.
+    Used by Lexicon and Oracle systems for tracking execution metadata.
+    """
+
+    run_id: str
+    started_at_utc: str  # ISO8601 Z
+    inputs_hash: str
+    config_hash: str
+    git_sha: Optional[str] = None
+    host: Optional[str] = None
+
+    @staticmethod
+    def now_iso_z() -> str:
+        """Generate ISO8601 timestamp with Zulu timezone (no microseconds)."""
+        return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
