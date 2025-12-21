@@ -1,0 +1,60 @@
+{
+  "generated_at_utc": "2025-12-21T07:55:02.309723+00:00",
+  "generator_version": "1.0.0",
+  "entries": [
+    {
+      "id": "ϟ₁",
+      "short_name": "RFA",
+      "svg_path": "abraxas/runes/sigils/rune1_RFA.svg",
+      "sha256": "781031f5c72cbca65efd05e6b36d69efa9f9474a10cb9915594a0a1b036cc8f9",
+      "seed_material": "ϟ₁:RFA:1.0.0:Stabilize meaning by fixing the center, not the path.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₂",
+      "short_name": "TAM",
+      "svg_path": "abraxas/runes/sigils/rune2_TAM.svg",
+      "sha256": "e78d68eeb43d11ed9947690933faff565fbcb13b2bd82a729618d3406cfca203",
+      "seed_material": "ϟ₂:TAM:1.0.0:Meaning emerges from path selection, not linear transmission.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₃",
+      "short_name": "WSSS",
+      "svg_path": "abraxas/runes/sigils/rune3_WSSS.svg",
+      "sha256": "4452546d5ee8d8e1ed4b49c85ee3f9f568084a3f0416d633bf21258809c51401",
+      "seed_material": "ϟ₃:WSSS:1.0.0:Effects must scale with structure, not amplitude.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₄",
+      "short_name": "SDS",
+      "svg_path": "abraxas/runes/sigils/rune4_SDS.svg",
+      "sha256": "f15fd4849bacaf4b71fbbb7fd72248d56ecfaa5f05ec2c8aefdb14949df9d186",
+      "seed_material": "ϟ₄:SDS:1.4.0:Outputs are gated by receiver state; no escalation when closed.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₅",
+      "short_name": "IPL",
+      "svg_path": "abraxas/runes/sigils/rune5_IPL.svg",
+      "sha256": "11da2cfb98dc67fdc80c4e774d3ec2b2d9626d689bb69fd86b97bdf830dbdd07",
+      "seed_material": "ϟ₅:IPL:1.4.0:Resonance occurs in bounded windows with enforced refractory periods.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₆",
+      "short_name": "ADD",
+      "svg_path": "abraxas/runes/sigils/rune6_ADD.svg",
+      "sha256": "d8f5a7302f6d063fa18afe25b89fb55936aec65bcc5ae39c272e00a93a955211",
+      "seed_material": "ϟ₆:ADD:1.4.0:Detect drift from the anchor; log immutably; recenter conservatively.",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

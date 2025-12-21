@@ -1,0 +1,42 @@
+{
+  "id": "ϟ₄",
+  "name": "State-Dependent Susceptibility",
+  "short_name": "SDS",
+  "layer": "Core",
+  "motto": "The system only resonates when the receiver is phase-open.",
+  "function": "Gates signal reception and processing based on receiver state. Ensures that outputs are conditional on phase-alignment rather than signal strength alone.",
+  "inputs": [
+    "receiver_state",
+    "phase_alignment",
+    "incoming_signal",
+    "susceptibility_threshold"
+  ],
+  "outputs": [
+    "gated_signal",
+    "reception_status",
+    "state_classification"
+  ],
+  "constraints": [
+    "no_escalation_when_closed",
+    "phase_alignment_required",
+    "state_must_be_measurable"
+  ],
+  "hooks": [
+    "pre_reception",
+    "state_evaluation",
+    "phase_gating"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "EEG phase synchronization (pilot) framing",
+    "Schumann resonance physics corpus",
+    "AAL phase-gating doctrine"
+  ],
+  "canonical_statement": "Outputs are gated by receiver state; no escalation when closed.",
+  "introduced_version": "1.4.0",
+  "metadata": {
+    "first_deployed": "2025-Q1",
+    "stability_class": "high",
+    "integration_priority": "critical"
+  }
+}
