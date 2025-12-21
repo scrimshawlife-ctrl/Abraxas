@@ -1,89 +1,54 @@
-import { z } from "zod";
-import { ALIVETier } from "./tier-policy";
+import { AliveTier } from "./schema";
 
-/**
- * ALIVE Export Manifests
- *
- * Defines export formats and integration payloads per tier.
- */
+export type AliveExportFormat =
+  | "json"
+  | "csv"
+  | "pdf"
+  | "md"
+  | "html"
+  | "webhook"
+  | "slack"
+  | "email"
+  | "bi_table";
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EXPORT FORMAT SCHEMAS
-// ═══════════════════════════════════════════════════════════════════════════
+export type AliveIntegration = "slack" | "email" | "webhook" | "teams" | "notion" | "jira";
 
-export const exportRequestSchema = z.object({
-  analysisId: z.string(),
-  format: z.enum(["json", "csv", "pdf"]),
-  tier: z.enum(["psychonaut", "academic", "enterprise"]),
-  options: z.object({
-    includeProvenance: z.boolean().default(false),
-    includeStrainReport: z.boolean().default(false),
-  }).optional(),
-});
+export interface AliveExportCapability {
+  tier: AliveTier;
+  allowed_formats: AliveExportFormat[];
+  allowed_integrations: AliveIntegration[];
+  max_exports_per_day?: number;
+  include_raw_metrics: boolean;
+  include_components: boolean;
+  include_strain_details: boolean;
+}
 
-export const exportResponseSchema = z.object({
-  exportId: z.string(),
-  format: z.string(),
-  downloadUrl: z.string(),
-  expiresAt: z.string().datetime(),
-  createdAt: z.string().datetime(),
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// INTEGRATION SCHEMAS
-// ═══════════════════════════════════════════════════════════════════════════
-
-// Slack integration (enterprise only)
-export const slackIntegrationSchema = z.object({
-  enabled: z.boolean(),
-  webhookUrl: z.string().url(),
-  channel: z.string(),
-  notifyOn: z.object({
-    analysisComplete: z.boolean().default(true),
-    metricStrain: z.boolean().default(true),
-    anomalyDetected: z.boolean().default(false),
-  }),
-});
-
-// Email integration (enterprise only)
-export const emailIntegrationSchema = z.object({
-  enabled: z.boolean(),
-  recipients: z.array(z.string().email()),
-  notifyOn: z.object({
-    analysisComplete: z.boolean().default(true),
-    metricStrain: z.boolean().default(true),
-  }),
-});
-
-// Webhook integration (enterprise only)
-export const webhookIntegrationSchema = z.object({
-  enabled: z.boolean(),
-  url: z.string().url(),
-  secret: z.string().optional(),
-  events: z.array(z.enum(["analysis.complete", "metric.strain", "export.ready"])),
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// INTEGRATION MANIFEST
-// ═══════════════════════════════════════════════════════════════════════════
-
-export const integrationManifestSchema = z.object({
-  userId: z.string(),
-  tier: z.enum(["psychonaut", "academic", "enterprise"]),
-  slack: slackIntegrationSchema.optional(),
-  email: emailIntegrationSchema.optional(),
-  webhook: webhookIntegrationSchema.optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// EXPORT TYPES
-// ═══════════════════════════════════════════════════════════════════════════
-
-export type ExportRequest = z.infer<typeof exportRequestSchema>;
-export type ExportResponse = z.infer<typeof exportResponseSchema>;
-export type SlackIntegration = z.infer<typeof slackIntegrationSchema>;
-export type EmailIntegration = z.infer<typeof emailIntegrationSchema>;
-export type WebhookIntegration = z.infer<typeof webhookIntegrationSchema>;
-export type IntegrationManifest = z.infer<typeof integrationManifestSchema>;
+export const ALIVE_EXPORT_CAPS: AliveExportCapability[] = [
+  {
+    tier: "psychonaut",
+    allowed_formats: ["json", "md", "pdf"],
+    allowed_integrations: [],
+    max_exports_per_day: 10,
+    include_raw_metrics: false,
+    include_components: false,
+    include_strain_details: false,
+  },
+  {
+    tier: "academic",
+    allowed_formats: ["json", "csv", "md", "pdf", "html", "bi_table"],
+    allowed_integrations: ["webhook"],
+    max_exports_per_day: 50,
+    include_raw_metrics: true,
+    include_components: false,
+    include_strain_details: true,
+  },
+  {
+    tier: "enterprise",
+    allowed_formats: ["json", "csv", "pdf", "html", "bi_table", "webhook", "slack", "email"],
+    allowed_integrations: ["slack", "email", "webhook", "teams", "notion", "jira"],
+    max_exports_per_day: 500,
+    include_raw_metrics: true,
+    include_components: true,
+    include_strain_details: true,
+  },
+];
