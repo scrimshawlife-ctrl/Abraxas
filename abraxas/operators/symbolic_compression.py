@@ -36,6 +36,7 @@ class SymbolicCompressionEvent:
 
     observed_frequency: int
     status: CompressionStatus
+    transparency_lexicon_prov: str
     provenance_sha256: str  # Deterministic record hash
     transparency_lexicon_prov: str = ""
 
@@ -66,6 +67,9 @@ class SymbolicCompressionOperator:
         sti1 = self.transparency.sti(replacement_token)
         dt = round(sti1 - sti0, 6)
 
+        if dt <= 0:
+            return None
+
         if not self._passes_thresholds(ps, dt, ips):
             return None
 
@@ -93,6 +97,7 @@ class SymbolicCompressionOperator:
             replacement_direction_vector=rdv,
             observed_frequency=int(observed_frequency),
             status=status,
+            transparency_lexicon_prov=self.transparency.provenance_sha256,
             provenance_sha256=""  # filled below
         )
         return self._with_provenance(event)
@@ -132,7 +137,7 @@ class SymbolicCompressionOperator:
             "replacement_direction_vector": e.replacement_direction_vector,
             "observed_frequency": e.observed_frequency,
             "status": e.status,
-            "transparency_lexicon_prov": self.transparency.provenance_sha256,
+            "transparency_lexicon_prov": e.transparency_lexicon_prov,
         }
         s = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         prov = hashlib.sha256(s).hexdigest()
