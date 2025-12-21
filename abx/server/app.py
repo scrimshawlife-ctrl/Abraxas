@@ -15,6 +15,7 @@ except ImportError:
 from abx.runtime.config import load_config
 from abx.assets.manifest import read_manifest
 from abx.runtime.provenance import make_provenance, compute_config_hash
+from abraxas.fn_exports import router as fn_router
 
 def build_app() -> Any:
     """Build FastAPI application with health endpoints."""
@@ -23,6 +24,10 @@ def build_app() -> Any:
         raise RuntimeError("FastAPI not installed. Install fastapi+uvicorn or use minhttp server.")
 
     app = FastAPI(title="Abraxas Core", version="0.1.0-orin-spine")
+
+    # Include function exports router
+    if fn_router is not None:
+        app.include_router(fn_router)
 
     @app.get("/healthz")
     def healthz() -> Dict[str, Any]:
