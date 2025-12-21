@@ -1,0 +1,43 @@
+{
+  "rune_id": "ABX_BELL_CONSTRAINT",
+  "name": "Bell Constraint Rune",
+  "family": "constraint",
+  "version": "1.0.0",
+  "bindings": {
+    "applies_to": [
+      "abx.symbolic.metrics",
+      "abx.rune.semantics",
+      "abx.interpretation.pipeline",
+      "abx.module.composition"
+    ],
+    "invariants": [
+      "Do not assume fixed symbol meaning independent of context",
+      "Do not assume strict module independence for high-coherence events",
+      "Flag latent-cause narratives as classical approximations",
+      "Allow globally-coupled metrics when coherence exceeds classical bounds",
+      "Permit non-commutative interpretation ordering where required"
+    ],
+    "failure_modes": [
+      "Reductionist overfit (false certainty)",
+      "Local-module decomposition loss (semantic shear)",
+      "Spurious hidden-variable attribution"
+    ]
+  },
+  "glyph_hint": {
+    "render": "vector",
+    "style": "flat-geometric",
+    "motif": "broken-factorization",
+    "geometry": {
+      "nodes": 3,
+      "edges": 2,
+      "constraint_mark": "slash"
+    },
+    "description": "Triad node glyph with a severed edge indicating impossibility of keeping all three assumptions."
+  },
+  "canon_refs": ["CANON_BELL_CONSTRAINT"],
+  "provenance": {
+    "spec": "abx.codex.rune.v1",
+    "created_utc": "2025-12-21T00:00:00Z",
+    "author": "Abraxas Kernel"
+  }
+}
