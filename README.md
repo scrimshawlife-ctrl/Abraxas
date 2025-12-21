@@ -184,6 +184,68 @@ Transform compression events into memetic weather patterns:
 - **RDV Tracking** — Humor, aggression, authority, intimacy, nihilism, irony
 - **Compression Stability** — Eggcorn formation rate
 
+### Lexicon Engine v1
+
+Domain-scoped, versioned token-weight mapping with deterministic compression:
+
+```python
+from abraxas.lexicon import LexiconEngine, LexiconPack, LexiconEntry, InMemoryLexiconRegistry
+
+# Create a lexicon pack
+pack = LexiconPack(
+    domain="slang",
+    version="1.0.0",
+    entries=(
+        LexiconEntry("cap", 0.9, {"tag": "negation"}),
+        LexiconEntry("no_cap", 1.1, {"tag": "assertion"}),
+    ),
+    created_at_utc="2025-12-20T00:00:00Z",
+)
+
+# Register and compress
+registry = InMemoryLexiconRegistry()
+engine = LexiconEngine(registry)
+engine.register(pack)
+
+result = engine.compress(
+    "slang",
+    ["cap", "no_cap", "unknown"],
+    run_id="RUN-123"
+)
+# result.matched == ("cap", "no_cap")
+# result.weights_out == {"cap": 0.9, "no_cap": 1.1}
+# result.provenance.inputs_hash — SHA256 of inputs
+```
+
+### Oracle Pipeline v1
+
+Deterministic daily oracle generation from correlation deltas:
+
+```python
+from datetime import date
+from abraxas.oracle import DeterministicOracleRunner, OracleConfig, CorrelationDelta
+
+runner = DeterministicOracleRunner(git_sha="abc123", host="prod-01")
+config = OracleConfig(half_life_hours=24.0, top_k=10)
+
+deltas = [
+    CorrelationDelta("slang", "crypto", "diamond_hands", 1.5, "2025-12-20T12:00:00Z"),
+    CorrelationDelta("idiom", "tech", "move_fast", 0.7, "2025-12-19T18:00:00Z"),
+]
+
+artifact = runner.run_for_date(date(2025, 12, 20), deltas, config)
+# artifact.output — ranked signals with decay weighting
+# artifact.signature — deterministic SHA256 signature
+# artifact.provenance — full execution metadata
+```
+
+**Features:**
+- **Deterministic signatures** — Same inputs always produce same artifact signature
+- **Time-weighted decay** — Recent signals weighted higher with configurable half-life
+- **Provenance-embedded** — Every artifact includes inputs hash, config hash, git SHA
+- **Modular design** — Composable transforms: decay, score_deltas, render_oracle
+- **Golden test coverage** — 26 tests including signature stability verification
+
 ### Always-On Daemon
 
 Run Abraxas as a persistent service:
@@ -215,6 +277,8 @@ Production-grade reliability for edge deployment:
 - [x] **Always-On Daemon** — Ingestion engine and chat UI
 - [x] **Self-Healing Layer** — Drift detection, watchdog, atomic updates
 - [x] **Systemd Services** — Production deployment units
+- [x] **Lexicon Engine v1** — Domain-scoped, versioned token-weight mapping
+- [x] **Oracle Pipeline v1** — Deterministic oracle generation from correlation deltas
 
 ### 🚧 In Progress
 
@@ -226,7 +290,7 @@ Production-grade reliability for edge deployment:
 
 ### 🎯 Roadmap
 
-- [ ] **Oracle Pipeline** — Daily oracle generation from drift signals
+- [ ] **Oracle Pipeline v2** — Multi-domain correlation detection and scoring
 - [ ] **Ritual System** — Rune-based symbolic modulation
 - [ ] **Multi-Domain Analysis** — Crypto, idiom, slang, technical jargon
 - [ ] **Event Correlation** — Cross-domain drift pattern detection
