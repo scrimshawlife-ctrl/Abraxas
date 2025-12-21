@@ -81,6 +81,14 @@ def psychonaut_translate(
     ncr = _get_metric(signature, "IM.NCR") or {"value": 0.0}
     ncr_val = float(ncr.get("value", 0.0))
 
+    # Get IM.RCF (Resonance Compression Factor)
+    rcf = _get_metric(signature, "IM.RCF") or {"value": 0.0}
+    rcf_val = float(rcf.get("value", 0.0))
+
+    # Get IM.RFC (Reality Friction Coefficient)
+    rfc = _get_metric(signature, "IM.RFC") or {"value": 0.5}
+    rfc_val = float(rfc.get("value", 0.5))
+
     # Get VM.GI (Generativity Index)
     gi = _get_metric(signature, "VM.GI") or {"value": 0.0}
     gi_val = float(gi.get("value", 0.0))
@@ -112,8 +120,15 @@ def psychonaut_translate(
     # High NCR makes it easier to get pulled into a single-frame reality
     # IGNITION: High GI + High NCR = creative capture (fun capture)
     ignite = _clamp(ncr_val * gi_val)  # 0..1
+    seal_risk = _clamp(1.0 - rfc_val)
     drift_risk = _clamp(
-        0.40 * pressure + 0.20 * vuln + 0.15 * susc_vol + 0.15 * ncr_val + 0.10 * ignite
+        0.30 * pressure
+        + 0.16 * vuln
+        + 0.12 * susc_vol
+        + 0.12 * ncr_val
+        + 0.10 * rcf_val
+        + 0.12 * seal_risk
+        + 0.08 * ignite
     )
 
     # Generate deterministic prompts based on thresholds
@@ -133,6 +148,15 @@ def psychonaut_translate(
     if ncr_val > 0.60:
         notes.append(
             "Totalizing frame detected: check for missing causes and alternative explanations."
+        )
+
+    if rfc_val < 0.35:
+        notes.append(
+            "Low reality-friction detected: claims may be immune to disproof—treat as a spell, not a map."
+        )
+    if rfc_val > 0.70:
+        notes.append(
+            "High reality-friction detected: claims present testable hooks—good for learning loops."
         )
 
     # Standard warnings

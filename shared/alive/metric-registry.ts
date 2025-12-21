@@ -71,6 +71,47 @@ export const ALIVE_METRIC_REGISTRY: AliveMetricRegistryEntry[] = [
       },
     },
   },
+  {
+    metric_id: "IM.RFC",
+    axis: "influence",
+    name: "Reality Friction Coefficient",
+    status: "shadow",
+    version: "0.1.0",
+    normalize: { min: 0, max: 1 },
+    tier_copy: {
+      psychonaut: {
+        summary: "Does this meet reality honestly, or does it dodge disproof?",
+        prompts: [
+          "What observation would change the claim?",
+          "If nothing could falsify it, treat it as a spell—not a map.",
+        ],
+      },
+      academic: {
+        summary:
+          "Falsifiability / disconfirmation tolerance: whether a claim permits decisive counterevidence or self-seals against refutation.",
+        operational_definition:
+          "Estimate presence of testable claims, measurable predictions, and disconfirming pathways versus immunity clauses, moving goalposts, and ‘any outcome proves us right’ logic.",
+        failure_modes: [
+          "Short texts may lack test language without being self-sealing.",
+          "Poetry/fiction can appear non-falsifiable by genre.",
+          "Some ethical claims are normative rather than empirical.",
+        ],
+      },
+      enterprise: {
+        summary:
+          "Predicts whether narratives create learning loops or trap teams in non-correctable beliefs; low friction can create costly persistence.",
+        business_risk_notes: [
+          "Low RFC increases decision inertia (can’t admit error).",
+          "Low RFC cultures punish disconfirming signals and hide bad news.",
+        ],
+        decision_uses: [
+          "Crisis comms integrity check",
+          "Culture learning-loop diagnostics",
+          "Strategy narrative risk gating",
+        ],
+      },
+    },
+  },
 
   // ─────────────────────────────────────────────────────────────────────────
   // VITALITY METRICS (V)

@@ -16,43 +16,27 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
-# Import metric implementations
-try:
-    from abraxas.alive.metrics.ll_lfc import compute_ll_lfc
-except ImportError:
-    # Graceful fallback if metrics not available
-    compute_ll_lfc = None
+from abraxas.alive.lens.psychonaut import psychonaut_translate
+from abraxas.alive.metrics.im_ncr import compute_im_ncr
+from abraxas.alive.metrics.im_rfc import compute_im_rfc
+from abraxas.alive.metrics.ll_lfc import compute_ll_lfc
+from abraxas.alive.metrics.vm_gi import compute_vm_gi
+from abraxas.alive.strain.v0_1 import compute_strain
 
-try:
-    from abraxas.alive.metrics.im_ncr import compute_im_ncr
-except ImportError:
-    # Graceful fallback if metrics not available
-    compute_im_ncr = None
-
-try:
-    from abraxas.alive.metrics.vm_gi import compute_vm_gi
-except ImportError:
-    # Graceful fallback if metrics not available
-    compute_vm_gi = None
-
-# Import lens translators
-try:
-    from abraxas.alive.lens.psychonaut import psychonaut_translate
-except ImportError:
-    # Graceful fallback if lens not available
-    psychonaut_translate = None
-
-# Import strain detection
-try:
-    from abraxas.alive.strain.v0_1 import compute_strain
-except ImportError:
-    # Graceful fallback if strain not available
-    compute_strain = None
 
 def _sha256(obj: Any) -> str:
     """Generate SHA-256 hash of object."""
     blob = json.dumps(obj, sort_keys=True, ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
+
+
+def _get_metric_value(signature: Dict[str, Any], metric_id: str) -> float:
+    """Extract metric value from signature by ID."""
+    for axis in ("influence", "vitality", "life_logistics"):
+        for m in signature.get(axis, []) or []:
+            if m.get("metric_id") == metric_id:
+                return float(m.get("value", 0.0))
+    return 0.0
 
 
 def alive_run(
@@ -99,13 +83,18 @@ def alive_run(
     # ═══════════════════════════════════════════════════════════════════════════
 
     # Influence: IM.NCR
-    if compute_im_ncr and text:
+    if text:
         ncr = compute_im_ncr(text=text)
         signature["influence"].append(ncr)
         # Note: influence_intensity aggregate will be a blend later; keep empty for now
 
+    # Influence: IM.RFC
+    if text:
+        rfc = compute_im_rfc(text=text)
+        signature["influence"].append(rfc)
+
     # Vitality: VM.GI
-    if compute_vm_gi and text:
+    if text:
         gi = compute_vm_gi(text=text)
         signature["vitality"].append(gi)
         signature["aggregates"]["vitality_charge"] = {
@@ -114,7 +103,7 @@ def alive_run(
         }
 
     # Life-Logistics: LL.LFC
-    if compute_ll_lfc and text:
+    if text:
         lfc = compute_ll_lfc(text=text, profile=profile)
         signature["life_logistics"].append(lfc)
         signature["aggregates"]["logistics_friction"] = {
@@ -131,27 +120,39 @@ def alive_run(
     # ═══════════════════════════════════════════════════════════════════════════
 
     # Strain signals detect when current metrics are insufficient
-    if compute_strain:
-        strain = compute_strain(signature=signature)
-    else:
-        strain = {"signals": [], "notes": ["No strain computed in stub mode."]}
+    strain = compute_strain(signature=signature)
 
     # ═══════════════════════════════════════════════════════════════════════════
     # TRANSLATE TO TIER-SPECIFIC VIEW
     # ═══════════════════════════════════════════════════════════════════════════
 
     # Psychonaut felt-state translation
-    if psychonaut_translate:
-        translated = psychonaut_translate(signature=signature, profile=profile)
-    else:
-        # Fallback if translator not available
-        translated = {
-            "pressure": 0.0,
-            "pull": 0.0,
-            "agency_delta": 0.0,
-            "drift_risk": 0.0,
-            "notes": ["ALIVE stub active: pipeline validated; metrics not yet populated."]
-        }
+    translated = psychonaut_translate(signature=signature, profile=profile)
+
+    alerts: List[Dict[str, Any]] = []
+    if tier == "enterprise":
+        ncr_val = _get_metric_value(signature, "IM.NCR")
+        rcf_val = _get_metric_value(signature, "IM.RCF")
+        rfc_val = _get_metric_value(signature, "IM.RFC")
+        gi_val = _get_metric_value(signature, "VM.GI")
+
+        if rcf_val >= 0.60 and ncr_val >= 0.60 and rfc_val <= 0.35:
+            alerts.append(
+                {
+                    "code": "SELF_SEALING_LOOP",
+                    "severity": "warning",
+                    "message": "High loop + high compression + low reality friction: high capture velocity, low correctability.",
+                }
+            )
+
+        if rfc_val >= 0.70 and gi_val >= 0.60:
+            alerts.append(
+                {
+                    "code": "LEARNING_NARRATIVE",
+                    "severity": "notice",
+                    "message": "High testability + high generativity: supports resilient learning culture.",
+                }
+            )
 
     result = {
         "provenance": {
@@ -183,7 +184,7 @@ def alive_run(
             "translated": translated,
             "metrics": signature if tier != "psychonaut" else None,
             "explanations": [],
-            "alerts": [],
+            "alerts": alerts,
         },
         "strain": strain,
     }

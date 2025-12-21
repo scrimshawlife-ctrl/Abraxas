@@ -1,11 +1,11 @@
 # abraxas/alive/strain/v0_1.py
 """
-Strain Heuristic v0.1 — First metric discovery engine.
+Strain Heuristic v0.3 — Metric discovery engine.
 
 Strain signals detect when the current metric set is insufficient
 to explain the artifact's characteristics.
 
-Three initial signals:
+Signals:
 A) Creative Capture Ignition: NCR≥0.65 AND GI≥0.65
    (living propaganda potential: creates while compressing)
 
@@ -14,6 +14,12 @@ B) Zombie Pressure: LFC≥0.70 AND GI≤0.30
 
 C) Low Confidence Everywhere: avg_conf≤0.40
    (artifact too short/unclear; need more context)
+
+D) Looped Self-Sealing: NCR≥0.60 AND RCF≥0.60 AND RFC≤0.35
+   (high loop + high compression + low reality contact)
+
+E) Testability Without Action: RFC≥0.70 AND GI≤0.35
+   (testable claims with low conversion to outputs)
 """
 
 from __future__ import annotations
@@ -53,6 +59,8 @@ def compute_strain(signature: Dict[str, Any]) -> Dict[str, Any]:
         }
     """
     ncr = _get(signature, "IM.NCR")
+    rcf = _get(signature, "IM.RCF")
+    rfc = _get(signature, "IM.RFC")
     gi = _get(signature, "VM.GI")
     lfc = _get(signature, "LL.LFC")
     avg_conf = _conf(signature)
@@ -112,6 +120,50 @@ def compute_strain(signature: Dict[str, Any]) -> Dict[str, Any]:
                 "severity": "info",
                 "description": "Low confidence across metrics: artifact likely too short or context-thin; consider pairing or longer sample.",
                 "unexplained_variance": 0.60 - avg_conf,
+            }
+        )
+
+    # Signal D: Looped Self-Sealing
+    if ncr >= 0.60 and rcf >= 0.60 and rfc <= 0.35:
+        signals.append(
+            {
+                "signal_id": str(uuid.uuid4()),
+                "severity": "warning",
+                "description": "Looped self-sealing: high compression + high loop + low reality friction. Expect capture velocity without correction.",
+                "conflicting_metrics": ["IM.NCR", "IM.RCF", "IM.RFC"],
+                "unexplained_variance": max(0.0, (ncr + rcf) / 2.0 - rfc),
+                "suggested_new_dimension": {
+                    "working_name": "Moving Goalpost Pressure",
+                    "measures": "Density of immunity clauses and goalpost shifts that block disconfirmation.",
+                    "candidate_axis": "influence",
+                    "candidate_buckets": [
+                        "Immunity Clauses",
+                        "Goalpost Shifts",
+                        "Disconfirmation Blocks",
+                    ],
+                },
+            }
+        )
+
+    # Signal E: Testability Without Action
+    if rfc >= 0.70 and gi <= 0.35:
+        signals.append(
+            {
+                "signal_id": str(uuid.uuid4()),
+                "severity": "notice",
+                "description": "Testability without action: high reality contact but low generativity. Claims may be true yet inert.",
+                "conflicting_metrics": ["IM.RFC", "VM.GI"],
+                "unexplained_variance": max(0.0, rfc - gi),
+                "suggested_new_dimension": {
+                    "working_name": "Actionability/Conversion Index",
+                    "measures": "Degree to which testable claims produce concrete outputs or decisions.",
+                    "candidate_axis": "vitality",
+                    "candidate_buckets": [
+                        "Decision Logs",
+                        "Prototype Outputs",
+                        "Operational Follow-Through",
+                    ],
+                },
             }
         )
 
