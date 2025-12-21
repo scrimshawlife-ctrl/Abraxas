@@ -9,11 +9,25 @@ from .engine import (
     LexiconRegistry,
 )
 
-__all__ = [
-    "LexiconEntry",
-    "LexiconPack",
-    "LexiconRegistry",
-    "InMemoryLexiconRegistry",
-    "LexiconEngine",
-    "CompressionResult",
-]
+# PostgresLexiconRegistry is optional (requires psycopg)
+try:
+    from .pg_registry import PostgresLexiconRegistry
+
+    __all__ = [
+        "LexiconEntry",
+        "LexiconPack",
+        "LexiconRegistry",
+        "InMemoryLexiconRegistry",
+        "PostgresLexiconRegistry",
+        "LexiconEngine",
+        "CompressionResult",
+    ]
+except ImportError:
+    __all__ = [
+        "LexiconEntry",
+        "LexiconPack",
+        "LexiconRegistry",
+        "InMemoryLexiconRegistry",
+        "LexiconEngine",
+        "CompressionResult",
+    ]
