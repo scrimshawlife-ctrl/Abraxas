@@ -1,0 +1,1 @@
+{"brier_avg": 0.22, "log_avg": 0.4, "calibration_error": 0.05, "coverage_rate": 0.9, "trend_acc": 0.7, "crps_avg": 0.2, "abstain_rate": 0.1}

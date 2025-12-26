@@ -1,0 +1,67 @@
+{
+  "candidate_id": "cand_test_portfolio_001",
+  "failure_reasons": [],
+  "pass_gate": true,
+  "portfolio_results": {
+    "short_term_core": {
+      "after": {
+        "abstain_rate": 0.0,
+        "brier_avg": 0.295,
+        "calibration_error": null,
+        "coverage_rate": 1.0,
+        "crps_avg": null,
+        "log_avg": null,
+        "trend_acc": null
+      },
+      "baseline": {
+        "abstain_rate": 0.0,
+        "brier_avg": 0.3,
+        "calibration_error": null,
+        "coverage_rate": 1.0,
+        "crps_avg": null,
+        "log_avg": null,
+        "trend_acc": null
+      },
+      "cases_tested": 5,
+      "delta": {
+        "abstain_rate_delta": 0.0,
+        "brier_delta": -0.0050000000000000044,
+        "calibration_error_delta": null,
+        "coverage_rate_delta": 0.0,
+        "crps_avg_delta": null,
+        "log_delta": null,
+        "trend_acc_delta": null
+      },
+      "improvement_checks": {
+        "brier": true
+      },
+      "no_regress_checks": {},
+      "notes": [],
+      "portfolio_id": "short_term_core",
+      "status": "PASS"
+    }
+  },
+  "portfolio_score_delta_hash": "90910cd6e0b4a242813a4770a249b5a2f0c14b6fb1745f4d4b2defbe9eb019b1",
+  "portfolios_tested": [
+    "short_term_core"
+  ],
+  "run_at": "2025-12-26T00:00:00+00:00",
+  "run_id": "test_run",
+  "sandbox_id": "sbx_cand_test_portfolio_001_2025-12-26_5e941fb3",
+  "target": {
+    "horizons": [
+      "H72H"
+    ],
+    "improvement_thresholds": {
+      "brier": -0.003
+    },
+    "mechanism": "test",
+    "no_regress_portfolios": [],
+    "portfolios": [
+      "short_term_core"
+    ],
+    "score_metrics": [
+      "brier"
+    ]
+  }
+}

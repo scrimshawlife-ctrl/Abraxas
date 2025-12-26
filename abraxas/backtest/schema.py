@@ -122,6 +122,22 @@ class BacktestCase(BaseModel):
         default=None, description="Optional forecast branch reference for scoring"
     )
 
+    # Optional: Portfolio metadata for selection
+    horizon: Optional[str] = Field(default=None, description="Forecast horizon label")
+    segment: Optional[str] = Field(default=None, description="Segment label")
+    narrative: Optional[str] = Field(default=None, description="Narrative label")
+    topic_keys: List[str] = Field(default_factory=list, description="Topic keys for portfolio filters")
+    regime_outcome_ref: Optional[Dict[str, Any]] = Field(
+        default=None, description="Optional regime outcome reference for selection"
+    )
+    topic_key: Optional[str] = Field(
+        default=None, description="Primary topic key for decomposition"
+    )
+    domain: str = Field(default="FORECAST", description="Domain for component matching")
+    forecast_delta_summary: Optional[Dict[str, Any]] = Field(
+        default=None, description="Forecast delta summary with components"
+    )
+
 
 class TriggerResult(BaseModel):
     """Result of evaluating a single trigger."""
@@ -149,4 +165,7 @@ class BacktestResult(BaseModel):
     # Optional: Forecast scoring if forecast_branch_ref was present
     forecast_scoring: Optional[Dict[str, Any]] = Field(
         default=None, description="Forecast branch scoring metrics"
+    )
+    component_outcomes: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Component-level outcomes"
     )

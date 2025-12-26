@@ -7,9 +7,11 @@ SSI-based integrity dampening. No ML, no randomness.
 
 from copy import deepcopy
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from abraxas.forecast.types import Branch, EnsembleState
+from abraxas.forecast.decomposition.registry import load_fdr, match_components
 
 
 class InfluenceEvent:
@@ -41,6 +43,8 @@ def apply_influence_to_ensemble(
     integrity_snapshot: Optional[Dict[str, Any]] = None,
     now_ts: Optional[datetime] = None,
     max_delta_per_update: float = 0.15,
+    fdr_path: Optional[str | Path] = None,
+    replay_masks: Optional[List[Any]] = None,
 ) -> EnsembleState:
     """
     Apply influence events to ensemble, updating branch probabilities.
@@ -70,6 +74,8 @@ def apply_influence_to_ensemble(
 
     # Work on a copy
     updated_ensemble = deepcopy(ensemble)
+
+    _ = replay_masks
 
     # Track before probabilities for provenance
     probs_before = {b.branch_id: b.p for b in updated_ensemble.branches}
@@ -110,9 +116,90 @@ def apply_influence_to_ensemble(
         "probs_before": probs_before,
         "probs_after": probs_after,
         "integrity_context": integrity_snapshot,
+        "delta_summary": _build_delta_summary(
+            ensemble=updated_ensemble,
+            influence_events=influence_events,
+            integrity_snapshot=integrity_snapshot,
+            fdr_path=fdr_path,
+        ),
     }
 
     return updated_ensemble
+
+
+def _build_delta_summary(
+    ensemble: EnsembleState,
+    influence_events: List[InfluenceEvent],
+    integrity_snapshot: Dict[str, Any],
+    fdr_path: Optional[str | Path],
+) -> Dict[str, Any]:
+    ssi_value = integrity_snapshot.get("SSI")
+    ssi_damp_applied = bool(influence_events) and ssi_value is not None
+    term_velocity = _extract_term_velocity(influence_events)
+
+    delta_summary: Dict[str, Any] = {
+        "influence_count": len(influence_events),
+    }
+
+    if ssi_value is not None:
+        delta_summary["ssi"] = ssi_value
+    if ssi_damp_applied:
+        delta_summary["ssi_damp_applied"] = True
+    if term_velocity is not None:
+        delta_summary["term_velocity"] = term_velocity
+
+    delta_summary["components"] = _attach_components(
+        ensemble=ensemble,
+        delta_summary=delta_summary,
+        fdr_path=fdr_path,
+    )
+
+    return delta_summary
+
+
+def _extract_term_velocity(influence_events: List[InfluenceEvent]) -> Optional[float]:
+    for influence in influence_events:
+        if "term_velocity" in influence.provenance:
+            return influence.provenance["term_velocity"]
+    return None
+
+
+def _attach_components(
+    ensemble: EnsembleState,
+    delta_summary: Dict[str, Any],
+    fdr_path: Optional[str | Path],
+) -> List[Dict[str, float]]:
+    if fdr_path is None:
+        fdr_path = Path("data/forecast/decomposition/fdr_v0_1.yaml")
+    registry = load_fdr(fdr_path)
+
+    topic_key = ensemble.topic_key
+    horizon = ensemble.horizon.value
+    domain = "FORECAST"
+
+    matches = match_components(registry, topic_key, horizon, domain)
+    components: Dict[str, float] = {}
+
+    if delta_summary.get("ssi_damp_applied"):
+        if "FDR_SYNTH_COST_CURVE" in registry.components:
+            claim = registry.components["FDR_SYNTH_COST_CURVE"]
+            if claim in matches:
+                components[claim.component_id] = 0.5
+
+    if "term_velocity" in delta_summary:
+        if "FDR_SLANG_HANDLE_EMERGENCE" in registry.components:
+            claim = registry.components["FDR_SLANG_HANDLE_EMERGENCE"]
+            if claim in matches:
+                components[claim.component_id] = 0.5
+
+    if not components:
+        for claim in matches[:5]:
+            components[claim.component_id] = 0.1
+
+    return [
+        {"component_id": component_id, "weight": weight}
+        for component_id, weight in sorted(components.items())
+    ]
 
 
 def _compute_branch_deltas(

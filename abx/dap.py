@@ -1,0 +1,42 @@
+from __future__ import annotations
+
+import argparse
+
+from abraxas.acquire.dap_builder import DapInputs, build_dap
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Abraxas DAP v0.1 (Data Acquisition Planner)")
+    parser.add_argument("--run-id", required=True)
+    parser.add_argument("--out-dir", default="out/reports")
+    parser.add_argument("--playbook", default="data/acquire/acquisition_playbook_v0_1.yaml")
+    parser.add_argument("--forecast-scores", default=None)
+    parser.add_argument("--regime-scores", default=None)
+    parser.add_argument("--component-scores", default=None)
+    parser.add_argument("--drift-report", default=None)
+    parser.add_argument("--smv-report", default=None)
+    parser.add_argument("--integrity-snapshot", default=None)
+    args = parser.parse_args()
+
+    inputs = DapInputs(
+        forecast_scores_path=args.forecast_scores,
+        regime_scores_path=args.regime_scores,
+        component_scores_path=args.component_scores,
+        drift_report_path=args.drift_report,
+        smv_report_path=args.smv_report,
+        integrity_snapshot_path=args.integrity_snapshot,
+    )
+
+    json_path, md_path = build_dap(
+        run_id=args.run_id,
+        out_dir=args.out_dir,
+        playbook_path=args.playbook,
+        inputs=inputs,
+    )
+    print(f"[DAP] wrote: {json_path}")
+    print(f"[DAP] wrote: {md_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

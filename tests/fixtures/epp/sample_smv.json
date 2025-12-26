@@ -1,0 +1,11 @@
+{
+  "smv_run_id": "smv_demo",
+  "run_id": "run123",
+  "portfolio_id": "portfolio_a",
+  "baseline_scores": {},
+  "units": [
+    {"unit_id": "unit_alpha", "smv_overall": 0.8},
+    {"unit_id": "unit_beta", "smv_overall": -0.2},
+    {"unit_id": "unit_gamma", "smv_overall": 0.1}
+  ]
+}

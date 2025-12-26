@@ -185,6 +185,7 @@ def append_branch_update_ledger(
         "branch_probs_before": branch_probs_before,
         "branch_probs_after": branch_probs_after,
         "delta_summary": delta_summary,
+        "components": delta_summary.get("components", []),
         "integrity_context": integrity_context or {},
     }
 

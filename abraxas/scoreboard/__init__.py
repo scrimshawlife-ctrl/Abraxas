@@ -18,9 +18,12 @@ from abraxas.scoreboard.scoring import (
     log_score,
     update_calibration_bins,
 )
+from abraxas.scoreboard.aggregate import aggregate_scores_for_cases
 from abraxas.scoreboard.ledger import (
     ScoreLedger,
 )
+from abraxas.scoreboard.components import aggregate_component_outcomes
+from abraxas.scoreboard.component_ledger import ComponentScoreLedger, write_component_score_summary
 
 __all__ = [
     # Types
@@ -30,6 +33,10 @@ __all__ = [
     "brier_score",
     "log_score",
     "update_calibration_bins",
+    "aggregate_scores_for_cases",
     # Ledger
     "ScoreLedger",
+    "aggregate_component_outcomes",
+    "ComponentScoreLedger",
+    "write_component_score_summary",
 ]

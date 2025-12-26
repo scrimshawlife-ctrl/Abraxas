@@ -30,6 +30,17 @@ class SourceDomain(str, Enum):
     BACKTEST = "BACKTEST"  # Failure analysis
 
 
+class CandidateTarget(BaseModel):
+    """Explicit target binding for candidate evaluation."""
+
+    portfolios: List[str] = Field(default_factory=list)
+    horizons: List[str] = Field(default_factory=list)
+    score_metrics: List[str] = Field(default_factory=list)
+    improvement_thresholds: Dict[str, float] = Field(default_factory=dict)
+    no_regress_portfolios: List[str] = Field(default_factory=list)
+    mechanism: str = ""
+
+
 class MetricCandidate(BaseModel):
     """A proposed metric or parameter change."""
 
@@ -56,6 +67,7 @@ class MetricCandidate(BaseModel):
     expected_improvement: Dict[str, Any] = Field(default_factory=dict)  # e.g., {"brier_delta": -0.05}
     target_horizons: List[str] = Field(default_factory=list)  # e.g., ["H72H", "H30D"]
     protected_horizons: List[str] = Field(default_factory=list)  # Cannot worsen these
+    target: CandidateTarget = Field(default_factory=CandidateTarget)
 
     # Metadata
     vector_map_node_ref: Optional[str] = None  # If linked to vector map node
@@ -93,6 +105,12 @@ class SandboxResult(BaseModel):
     # e.g., {"improvement_threshold": True, "no_regressions": True, "cost_bounds": True}
 
     failure_reasons: List[str] = Field(default_factory=list)
+
+    # Portfolio-level reporting
+    pass_gate: Optional[bool] = None
+    portfolio_results: Dict[str, Any] = Field(default_factory=dict)
+    portfolios_tested: List[str] = Field(default_factory=list)
+    portfolio_score_delta_hash: Optional[str] = None
 
     # Provenance
     prev_hash: Optional[str] = None

@@ -265,6 +265,8 @@ class EvolutionStore:
             "passed": sandbox_result.passed,
             "score_delta": sandbox_result.score_delta,
             "cases_tested": sandbox_result.cases_tested,
+            "portfolios_tested": sandbox_result.portfolios_tested,
+            "portfolio_score_delta_hash": sandbox_result.portfolio_score_delta_hash,
             "prev_hash": prev_hash
         }
 

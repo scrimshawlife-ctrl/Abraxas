@@ -1,0 +1,43 @@
+steps:
+  - id: propose_candidates
+    enabled: true
+    module: "abraxas.evolution.pipeline"
+    function: "run_step_propose_candidates"
+    args:
+      max_candidates: 10
+      max_per_source: 4
+
+  - id: sandbox_candidates
+    enabled: true
+    module: "abraxas.evolution.pipeline"
+    function: "run_step_sandbox_candidates"
+    args:
+      cases_dir: "data/backtests/cases"
+      portfolios_path: "data/backtests/portfolios/portfolios_v0_1.yaml"
+      max_to_run: 5
+      strict: false
+
+  - id: decide_promotions
+    enabled: true
+    module: "abraxas.evolution.pipeline"
+    function: "run_step_decide_promotions"
+    args:
+      stabilization_runs_required: 3
+      auto_promote_param_tweaks: true
+      auto_promote_metrics: false
+
+  - id: build_dap
+    enabled: true
+    module: "scheduler.steps"
+    function: "run_step_build_dap"
+    args:
+      playbook_path: "data/acquire/acquisition_playbook_v0_1.yaml"
+      vector_map_path: "data/vector_maps/source_vector_map_v0_1.yaml"
+
+  - id: build_epp
+    enabled: true
+    module: "scheduler.steps"
+    function: "run_step_build_epp"
+    args:
+      reports_dir: "out/reports"
+      osh_ledger: "out/osh_ledgers/fetch_artifacts.jsonl"

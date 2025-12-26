@@ -1,0 +1,30 @@
+{
+  "plan_id": "dap_demo",
+  "ts": "2025-01-01T00:00:00Z",
+  "run_id": "run123",
+  "gaps": [
+    {
+      "gap_id": "gap_structural",
+      "kind": "STRUCTURAL_GAP",
+      "priority": 0.8,
+      "component_ids": ["comp_a", "comp_b"],
+      "symptoms": {"unknown_rate": 0.5}
+    },
+    {
+      "gap_id": "gap_integrity",
+      "kind": "INTEGRITY_GAP",
+      "priority": 0.9,
+      "component_ids": [],
+      "symptoms": {"ssi_mean": 0.7}
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "a1",
+      "kind": "OFFLINE_REQUEST",
+      "selector": {"requested_items": [{"name": "Evidence pack"}]}
+    }
+  ],
+  "summary": {"gap_count": 2, "action_count": 1},
+  "provenance": {"builder": "test"}
+}

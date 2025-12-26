@@ -364,6 +364,18 @@ def evaluate_case(
         run_id=run_id,
     )
 
+    try:
+        from abraxas.backtest.component_eval import evaluate_components_for_case
+
+        component_outcomes = evaluate_components_for_case(
+            case=case,
+            events=events,
+            ledgers=ledgers,
+        )
+        result.component_outcomes = [outcome.to_dict() for outcome in component_outcomes]
+    except Exception as exc:
+        result.notes.append(f"Warning: Component evaluation error: {exc}")
+
     # Active Learning Loop: Auto-trigger failure analysis
     if enable_learning:
         if result.status == BacktestStatus.MISS or (
