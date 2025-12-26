@@ -1,0 +1,54 @@
+{
+  "passed": false,
+  "failures": [
+    {
+      "manifest_id": "integrity_hash_chain",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_integrity_hash_chain.py"
+    },
+    {
+      "manifest_id": "integrity_hash_chain",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_integrity_hash_chain.py"
+    },
+    {
+      "manifest_id": "rent_enforcement_coverage",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_rent_enforcement.py"
+    },
+    {
+      "manifest_id": "rent_enforcement_coverage",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_rent_enforcement.py"
+    },
+    {
+      "manifest_id": "scenario_router",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_scenario_router.py"
+    },
+    {
+      "manifest_id": "scenario_router",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_scenario_router.py"
+    },
+    {
+      "manifest_id": "integrity_brief",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_integrity_brief.py"
+    },
+    {
+      "manifest_id": "integrity_brief",
+      "check": "tests_exist",
+      "message": "Test file does not exist: tests/test_integrity_brief.py"
+    }
+  ],
+  "warnings": [],
+  "provenance": {
+    "timestamp": "2025-12-26T13:20:17.724709",
+    "repo_root": "/home/user/Abraxas",
+    "ter_spec_provided": false,
+    "observed_stats_provided": false
+  },
+  "manifest_count": 4,
+  "checks_run": 17
+}

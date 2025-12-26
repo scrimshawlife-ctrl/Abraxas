@@ -1,0 +1,7 @@
+{
+  "hash_chain_valid": true,
+  "chain_length": 100,
+  "chain_breaks": [],
+  "last_hash": "0x1234567890abcdef",
+  "validation_timestamp": "2025-12-26T00:00:00.000000Z"
+}
