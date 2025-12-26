@@ -1,0 +1,443 @@
+================================================================================
+ABRAXAS CANONICAL LEDGER
+================================================================================
+PURPOSE: Write-once, annotate-only record of Abraxas system evolution
+AUTHORITY: Joint (Kernel + Daniel)
+RULE: Oracle prose cannot introduce canon; canonical state is write-once
+RULE: Annotations may clarify but not revise locked entries
+
+================================================================================
+
+VERSION: v1.4 — Temporal & Adversarial Expansion
+SEMVER: 1.4.0
+DATE: 2025-12-25
+STATUS: LOCKED
+AUTHORITY: Joint (Kernel + Daniel)
+
+SUMMARY:
+Abraxas v1.4 introduces three foundational layers for temporal dynamics,
+adversarial resilience, and second-order narrative modeling. This expansion
+transforms Abraxas from a symbolic compression detector into a full-spectrum
+memetic weather system capable of tracking lifecycle dynamics, assessing
+information integrity, and modeling cascade scenarios.
+
+CORE ADDITIONS:
+
+1. TEMPORAL OPERATOR τ (Tau)
+   Three complementary temporal metrics for symbolic lifecycle tracking:
+
+   τₕ (Tau Half-Life):
+   - Measures symbolic persistence under declining reinforcement
+   - Exponential decay model: τₕ = t₁/₂ where observation frequency halves
+   - Silence-as-signal: missing observations accelerate decay
+   - Output: half-life in time units (hours/days)
+
+   τᵥ (Tau Velocity):
+   - Measures emergence/decay slope from time-series observations
+   - Computed as: Δcount / Δtime over sliding window
+   - Positive = emergence, negative = decay, ~0 = stability
+   - Output: velocity with sign (events/time unit)
+
+   τₚ (Tau Phase Proximity):
+   - Measures distance to next lifecycle boundary
+   - Phases: Proto → Front → Saturated → Dormant → Archived
+   - Computed from τₕ and τᵥ combination against threshold matrix
+   - Output: proximity score [0,1] to next phase transition
+
+   Confidence Bands (Deterministic):
+   - LOW: sample_size < 5 OR observation_window < 2 time units
+   - MED: sample_size 5-19 OR variance > threshold
+   - HIGH: sample_size ≥ 20 AND variance ≤ threshold
+
+   Provenance Requirements:
+   - All τ computations embed: run_id, git_commit, inputs_hash
+   - Observation history stored with source_id per event
+   - No random components; fully deterministic
+
+2. AALMANAC + LIFECYCLE STATE MACHINE
+   Write-once, annotate-only ledger for symbolic evolution tracking:
+
+   Lifecycle States:
+   - Proto: Initial emergence, τᵥ > 0, sparse observations
+   - Front: Active spread, high τᵥ, τₕ increasing
+   - Saturated: Peak adoption, τᵥ ≈ 0, stable τₕ
+   - Dormant: Declining use, τᵥ < 0, τₕ decreasing
+   - Archived: Obsolete, no observations, τₕ → 0
+
+   State Transitions (Deterministic):
+   - Proto → Front: τᵥ > threshold_emergence AND obs_count > 5
+   - Front → Saturated: τᵥ < threshold_stability AND τₕ > peak_threshold
+   - Saturated → Dormant: τᵥ < -threshold_decay
+   - Dormant → Archived: τₕ < archival_threshold
+   - Revival (any → Proto): mutation_evidence AND new_observation
+
+   Mutation Evidence:
+   - Edit distance ≥ 2 OR token modifier change
+   - Recorded in entry history with provenance
+
+   AAlmanac Storage Format (JSONL):
+   - Location: data/a_almanac/terms.jsonl
+   - Schema per line:
+     {
+       "term_id": "<uuid>",
+       "term": "<canonical_form>",
+       "class_id": "<SA_class>",
+       "created_at": "<ISO8601Z>",
+       "lifecycle_state": "<state>",
+       "tau_snapshot": {
+         "tau_half_life": <float>,
+         "tau_velocity": <float>,
+         "tau_phase_proximity": <float>,
+         "confidence": "<LOW|MED|HIGH>"
+       },
+       "annotations": [
+         {
+           "timestamp": "<ISO8601Z>",
+           "type": "<annotation_type>",
+           "data": {...},
+           "provenance": {...}
+         }
+       ],
+       "provenance": {...}
+     }
+
+   API Functions:
+   - load_entries() → list[AAlmanacEntry]
+   - create_entry_if_missing(term, class_id, created_at, prov) → entry_id
+   - append_annotation(term_id, annotation) → success
+   - compute_current_state(term) → (LifecycleState, TauSnapshot)
+
+3. MEMETIC WEATHER REGISTRY (MW-01 through MW-05)
+   Canonical weather types for symbolic environmental classification:
+
+   MW-01: Symbolic Drift
+   - High replacement pressure, rising transparency flux
+   - Indicators: τᵥ > threshold, eggcorn formation rate elevated
+
+   MW-02: Compression Stability
+   - Low τᵥ, stable τₕ, established patterns
+   - Indicators: |τᵥ| < threshold, τₕ variance low
+
+   MW-03: Emergence Storm
+   - Rapid new symbol introduction, high τᵥ, volatile τₕ
+   - Indicators: multiple Proto state entries, τᵥ >> threshold
+
+   MW-04: Semantic Saturation
+   - Dormant transitions, declining engagement
+   - Indicators: τᵥ < -threshold, Saturated → Dormant transitions
+
+   MW-05: Revival Wave
+   - Mutation-driven re-emergence
+   - Indicators: Archived/Dormant → Proto transitions with mutation evidence
+
+   Affinity Scoring (Deterministic):
+   - affinity(term_entry, weather_type) → [0,1]
+   - Formula: weighted combination of:
+     * Archetype class match (SA class alignment)
+     * Tone alignment flags (humor, irony, authority, etc.)
+     * τ signature (velocity + half-life + phase proximity)
+   - Stored as annotations in AAlmanac when computed
+
+4. D/M LAYER (Disinformation/Misinformation Metrics)
+   Risk/likelihood estimators for information integrity assessment.
+
+   IMPORTANT: NOT truth adjudication. These are evidence-based risk scores.
+
+   Artifact Integrity Metrics:
+   - PPS (Provenance Presence Score): [0,1], has complete metadata
+   - PCS (Provenance Chain Score): [0,1], traceable source chain
+   - MMS (Mutation Marker Score): [0,1], edit history present
+   - SLS (Source Locality Score): [0,1], cross-platform coherence
+   - EIS (Evidence Integrity Score): [0,1], supporting data quality
+
+   Narrative Manipulation Metrics:
+   - FLS (Framing Leverage Score): [0,1], narrative control indicators
+   - EIL (Emotional Intensity Level): [0,1], affective loading
+   - OCS (Omission/Contextualization Score): [0,1], selective presentation
+   - RRS (Repetition/Redundancy Score): [0,1], saturation tactics
+   - MPS (Misattribution Probability Score): [0,1], source confusion risk
+   - CIS (Coordination Indicator Score): [0,1], synchronized distribution
+
+   Network/Campaign Metrics:
+   - CUS (Coordination/Uniformity Score): [0,1], bot-like patterns
+   - SVS (Source Velocity Score): [0,1], rapid propagation
+   - BAS (Bursting/Amplification Score): [0,1], artificial boosting
+   - MDS (Multi-Domain Spread Score): [0,1], cross-platform coordination
+
+   Composite Risk Indices:
+   - IRI (Integrity Risk Index): [0,100]
+     Formula: 100 * (1 - mean(PPS, PCS, MMS, SLS, EIS))
+   - MRI (Manipulation Risk Index): [0,100]
+     Formula: 100 * weighted_mean(FLS, EIL, OCS, RRS, MPS, CIS, CUS, SVS, BAS, MDS)
+
+   Confidence Bands (Evidence Completeness):
+   - LOW: < 40% of required fields present
+   - MED: 40-79% of required fields present
+   - HIGH: ≥ 80% of required fields present
+
+   Payload Taxonomy (5 Canonical Types):
+   - Type 1: Authentic — High PPS/PCS, Low MRI
+   - Type 2: Contested — Mixed scores, high variance
+   - Type 3: Manipulated — Low PPS/PCS, High FLS/RRS
+   - Type 4: Coordinated — High CUS/MDS, synchronized patterns
+   - Type 5: Fabricated — Near-zero provenance, high MPS
+
+   Propaganda Archetypes (12 Families):
+   Each family defined by trigger signature (structured data):
+   1. Appeal to Authority
+   2. Bandwagon Effect
+   3. Fear/Threat Escalation
+   4. False Dilemma
+   5. Loaded Language
+   6. Name-Calling/Ad Hominem
+   7. Oversimplification
+   8. Scapegoating
+   9. Testimonial Exploitation
+   10. Transfer (Symbol Hijacking)
+   11. Repetition Saturation
+   12. Selective Omission
+
+   No External Dependencies:
+   - All metrics computed from explicit inputs
+   - No web calls, no external APIs
+   - Deterministic scoring only
+
+5. SOD (Second-Order Symbolic Dynamics)
+   Deterministic scaffold for narrative cascade and counter-narrative modeling.
+
+   Modules:
+
+   NCP (Narrative Cascade Predictor):
+   - Input: τ snapshots + AAlmanac + Weather + D/M metrics
+   - Output: Scenario envelopes (top-N cascade paths)
+   - Each path: triggers, probability [0,1], duration estimate
+   - Probabilities = deterministic heuristic scores (normalized)
+
+   CNF (Counter-Narrative Forecaster):
+   - Input: Cascade scenarios from NCP
+   - Output: Counter-narrative strategies with effectiveness scores
+   - Each strategy: intervention points, resource requirements
+
+   EFTE (Epistemic Fatigue Threshold Engine):
+   - Input: Exposure history, RRS scores, temporal density
+   - Output: Fatigue threshold [0,1], saturation risk
+   - Models declining engagement under repetition saturation
+
+   SPM (Susceptibility Profile Mapper):
+   - Input: Demographic/context features, historical affinity
+   - Output: Susceptibility profile per weather type
+   - Deterministic mapping: features → susceptibility [0,1]
+
+   RRM (Recovery & Re-Stabilization Model):
+   - Input: Post-cascade state, intervention history
+   - Output: Recovery timeline, stabilization probability
+   - Models return to baseline after disruption
+
+   Scenario Envelope Schema:
+   {
+     "scenario_id": "<uuid>",
+     "paths": [
+       {
+         "path_id": "<uuid>",
+         "trigger": "<description>",
+         "probability": <float 0-1>,
+         "duration_hours": <int>,
+         "intermediates": [<state>, ...],
+         "terminus": "<final_state>"
+       }
+     ],
+     "falsifiers": [
+       "<counterfactual_condition>", ...
+     ],
+     "confidence": "<LOW|MED|HIGH>",
+     "provenance": {...}
+   }
+
+   No Simulation Engine (Yet):
+   - v1.4 provides deterministic scaffold only
+   - Academic simulation primitives deferred to future version
+   - Current output: static scenario envelopes, not dynamic simulations
+
+6. ARTIFACT GENERATORS (Non-Commodity Outputs)
+   Five specialized output formats for operational intelligence:
+
+   Cascade Sheet:
+   - Summary of NCP outputs in tabular format
+   - Columns: trigger, probability, duration, terminus
+   - Formats: JSON, Markdown
+
+   Manipulation Surface Map:
+   - Heatmap data for D/M metrics across corpus
+   - Groups: high IRI, high MRI, payload type distribution
+   - Formats: JSON (graph data), Markdown (table)
+
+   Contamination Advisory:
+   - Alert-level report for high-risk artifacts
+   - Thresholds: IRI > 70 OR MRI > 80
+   - Includes mitigation recommendations
+
+   Trust Drift Graph Data:
+   - Time-series data for τₕ and IRI/MRI over time
+   - Enables visualization of credibility erosion
+   - Format: JSON (time-series arrays)
+
+   Oracle Delta Ledger:
+   - Diff between current and prior oracle snapshots
+   - Only changed fields emitted (delta-only mode)
+   - Formats: JSON, Markdown
+
+   Delta-Only Mode (Default):
+   - Compare current snapshot to data/runs/last_snapshot.json
+   - Only emit changed fields unless --full flag provided
+   - Reduces output noise, highlights movement
+
+   Provenance Embedding (All Artifacts):
+   - run_id, timestamp, git_commit, inputs_hash
+   - Enables reproducibility and audit trails
+
+7. PIPELINE INTEGRATION
+   New CLI command: abraxas.cli.abx_run_v1_4.py
+
+   Flags:
+   - --v1_4: Enable v1.4 pipeline
+   - --delta_only: Emit only changed fields (default: true)
+   - --format json|md|both: Output format (default: both)
+   - --artifacts <list>: Comma-separated artifact types to generate
+
+   Workflow:
+   1. Ingest observations (existing SCO/lexicon/oracle inputs)
+   2. Update AAlmanac:
+      - Append new observations as annotations
+      - Recompute τ snapshots for affected terms
+      - Update lifecycle states based on τ + thresholds
+   3. Compute Weather + affinities:
+      - Classify current conditions (MW-01..MW-05)
+      - Score affinities for each AAlmanac entry
+      - Store affinities as annotations
+   4. Compute D/M metrics (optional, when inputs available):
+      - Calculate PPS, PCS, MMS, SLS, EIS
+      - Calculate FLS, EIL, OCS, RRS, MPS, CIS
+      - Calculate CUS, SVS, BAS, MDS
+      - Compute IRI, MRI composites
+      - Assign payload taxonomy type
+   5. Run SOD modules:
+      - NCP: generate cascade scenarios
+      - CNF: generate counter-narratives
+      - EFTE: compute fatigue thresholds
+      - SPM: map susceptibility profiles
+      - RRM: model recovery timelines
+   6. Generate artifacts (delta-only default):
+      - Cascade sheet
+      - Manipulation surface map
+      - Contamination advisory (if thresholds exceeded)
+      - Trust drift graph data
+      - Oracle delta ledger
+   7. Persist snapshot:
+      - Write current state to data/runs/last_snapshot.json
+      - Enables delta-only comparison for next run
+
+   Backward Compatibility:
+   - Existing CLI commands unchanged
+   - v1.4 is opt-in via --v1_4 flag
+   - No breaking changes to existing pipelines
+
+IMPLEMENTATION RULES:
+
+1. Determinism:
+   - No random number generation
+   - No external API calls in core logic
+   - Fixed timestamps in test fixtures
+   - Stable JSON key ordering (canonical_json)
+
+2. Provenance-First:
+   - Every output includes run_id, git_sha, inputs_hash
+   - Reuse abraxas.core.provenance.Provenance
+   - Embed provenance in all artifacts
+
+3. Silence-as-Signal:
+   - Missing observations affect τ decay calculations
+   - Gaps in time-series accelerate half-life decline
+   - Dormant state triggered by observation absence
+
+4. Write-Once, Annotate-Only:
+   - AAlmanac entries immutable after creation
+   - Updates via append-only annotations
+   - No destructive edits to historical data
+
+5. Delta-Only Default:
+   - Minimize output noise
+   - Highlight changes, not static state
+   - Full output available via flag
+
+6. Confidence Bands:
+   - All metrics include confidence: LOW/MED/HIGH
+   - Based on evidence completeness, not subjective judgment
+   - Deterministic thresholds
+
+7. No Truth Adjudication:
+   - D/M metrics are risk estimators only
+   - System does not declare "true" or "false"
+   - Provides evidence, not verdicts
+
+TESTING REQUIREMENTS:
+
+1. Golden Tests:
+   - All tests use deterministic fixtures
+   - Golden outputs stored in tests/golden/v1_4/*.json
+   - Tests verify exact match to golden outputs
+
+2. No Regression:
+   - Existing tests must still pass
+   - No breaking changes to existing modules
+   - v1.4 additions are isolated
+
+3. Coverage:
+   - Test τ calculations with synthetic time-series
+   - Test lifecycle transitions with threshold variations
+   - Test D/M metrics with missing/complete evidence
+   - Test SOD scenario generation determinism
+   - Test artifact delta-only mode with snapshots
+
+DOCUMENTATION REQUIREMENTS:
+
+1. Specifications:
+   - docs/specs/v1_4_temporal_adversarial.md
+   - docs/specs/sod_second_order_dynamics.md
+
+2. README Update:
+   - Add "Abraxas v1.4: Temporal & Adversarial Expansion" section
+   - Include τ operator description
+   - Include D/M metrics overview (IRI/MRI)
+   - Include SOD module list
+   - Include CLI usage examples
+   - Document delta-only behavior
+
+3. Inline Documentation:
+   - Docstrings for all public functions
+   - Type hints for all function signatures
+   - Comments for non-obvious logic only
+
+DATA STRUCTURES:
+
+New directories:
+- data/a_almanac/ — AAlmanac JSONL storage
+- data/runs/ — Snapshot storage for delta-only mode
+
+New files:
+- data/a_almanac/terms.jsonl — Write-once, annotate-only ledger
+- data/runs/last_snapshot.json — Most recent pipeline snapshot
+
+EXTENSIONS (Future Versions):
+
+Deferred to v1.5+:
+- Academic simulation primitives for SOD
+- Multi-domain correlation detection (cross-weather)
+- Real-time streaming integration
+- WebSocket artifact delivery
+- LLM integration for counter-narrative generation
+
+================================================================================
+END v1.4 ENTRY
+================================================================================
+
+[Annotations may be appended below this line]
