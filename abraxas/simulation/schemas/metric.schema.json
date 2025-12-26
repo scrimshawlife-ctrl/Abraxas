@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/metric.schema.json",
+  "title": "Abraxas Metric Schema",
+  "description": "Schema for Abraxas metric definitions. Every metric is an observation that must bind to simulation variables via ABX-Runes.",
+  "type": "object",
+  "required": [
+    "metric_id",
+    "version",
+    "description",
+    "metric_class",
+    "units",
+    "valid_range",
+    "decay_half_life",
+    "dependencies",
+    "adversarial_risk",
+    "layer_scope",
+    "provenance"
+  ],
+  "properties": {
+    "metric_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "Unique metric identifier (uppercase snake_case)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (MAJOR.MINOR.PATCH)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Human-readable description of what this metric measures"
+    },
+    "metric_class": {
+      "type": "string",
+      "enum": [
+        "integrity_risk",
+        "manipulation_risk",
+        "temporal_dynamics",
+        "network_topology",
+        "opinion_distribution",
+        "media_competition",
+        "community_structure",
+        "peer_pressure",
+        "strategic_behavior"
+      ],
+      "description": "High-level category of metric"
+    },
+    "units": {
+      "type": "string",
+      "description": "Measurement units (use 'dimensionless' for ratios/indices)"
+    },
+    "valid_range": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "number"},
+        "max": {"type": "number"}
+      },
+      "description": "Valid numerical range for metric values"
+    },
+    "decay_half_life": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Half-life in hours for metric relevance decay (0 = no decay)"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "List of metric_ids this metric depends on"
+    },
+    "adversarial_risk": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Likelihood metric can be manipulated/spoofed [0,1]"
+    },
+    "layer_scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["world", "media"]
+      },
+      "minItems": 1,
+      "description": "Which simulation layers this metric observes (world = latent reality, media = perception)"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["created", "source"],
+      "properties": {
+        "created": {"type": "string", "format": "date-time"},
+        "source": {"type": "string"},
+        "paper_refs": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Paper IDs from SML registry that informed this metric"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

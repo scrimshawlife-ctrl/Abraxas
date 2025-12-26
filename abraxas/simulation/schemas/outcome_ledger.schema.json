@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/outcome_ledger.schema.json",
+  "title": "Abraxas Outcome Ledger Schema",
+  "description": "Append-only ledger for simulation outcomes. No overwrites, no deletions, no memory summaries allowed.",
+  "type": "object",
+  "required": [
+    "timestamp",
+    "sim_seed",
+    "sim_version",
+    "active_metrics",
+    "active_runes",
+    "prior_state_hash",
+    "prior_state_snapshot",
+    "posterior_state_hash",
+    "posterior_state_snapshot",
+    "predictions_issued",
+    "real_world_outcomes",
+    "error_metrics",
+    "confidence_deltas",
+    "measurement_disturbance",
+    "world_media_divergence",
+    "network_drift",
+    "strategy_shift",
+    "temporal_correlation_shift"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of simulation step"
+    },
+    "sim_seed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "RNG seed for this simulation run"
+    },
+    "sim_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Simulation engine version"
+    },
+    "active_metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["metric_id", "version"],
+        "properties": {
+          "metric_id": {"type": "string"},
+          "version": {"type": "string"}
+        }
+      },
+      "description": "Metrics active in this simulation step"
+    },
+    "active_runes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rune_id", "version"],
+        "properties": {
+          "rune_id": {"type": "string"},
+          "version": {"type": "string"}
+        }
+      },
+      "description": "Runes active in this simulation step"
+    },
+    "prior_state_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of state before step"
+    },
+    "prior_state_snapshot": {
+      "type": "object",
+      "description": "Minimal snapshot of prior state (hash + key variables)"
+    },
+    "posterior_state_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of state after step"
+    },
+    "posterior_state_snapshot": {
+      "type": "object",
+      "description": "Minimal snapshot of posterior state"
+    },
+    "predictions_issued": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["prediction_id", "variable", "predicted_value", "confidence_interval"],
+        "properties": {
+          "prediction_id": {"type": "string"},
+          "variable": {"type": "string"},
+          "predicted_value": {"type": "number"},
+          "confidence_interval": {
+            "type": "object",
+            "required": ["lower", "upper", "level"],
+            "properties": {
+              "lower": {"type": "number"},
+              "upper": {"type": "number"},
+              "level": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          },
+          "horizon": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Prediction horizon in timesteps"
+          }
+        }
+      }
+    },
+    "real_world_outcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "prediction_id": {"type": "string"},
+          "observed_value": {"type": "number"},
+          "observation_timestamp": {"type": "string", "format": "date-time"}
+        }
+      },
+      "description": "Real-world observations (if available) for validation"
+    },
+    "error_metrics": {
+      "type": "object",
+      "properties": {
+        "rmse": {"type": "number", "minimum": 0},
+        "mae": {"type": "number", "minimum": 0},
+        "calibration_error": {"type": "number"}
+      }
+    },
+    "confidence_deltas": {
+      "type": "object",
+      "additionalProperties": {"type": "number"},
+      "description": "Per-metric confidence changes"
+    },
+    "measurement_disturbance": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Magnitude of state perturbation due to measurement (quantum-inspired)"
+    },
+    "world_media_divergence": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Divergence between world layer and media layer states"
+    },
+    "network_drift": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Graph topology change magnitude (e.g., graph edit distance normalized)"
+    },
+    "strategy_shift": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Media actor strategy delta (L2 norm of strategy vector change)"
+    },
+    "temporal_correlation_shift": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Change in state-over-time correlation structure"
+    },
+    "community_stability": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Optional: fraction of nodes that maintained community assignment"
+    },
+    "conformity_pressure_avg": {
+      "type": "number",
+      "description": "Optional: average conformity pressure across population"
+    }
+  },
+  "additionalProperties": false
+}

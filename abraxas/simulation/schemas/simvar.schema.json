@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/simvar.schema.json",
+  "title": "Abraxas Simulation Variable Schema",
+  "description": "Schema for simulation state variables. These represent latent world state that metrics observe through ABX-Runes.",
+  "type": "object",
+  "required": [
+    "var_id",
+    "version",
+    "var_class",
+    "var_type",
+    "bounds",
+    "prior_distribution",
+    "evolution_model",
+    "coupling_capacity",
+    "layer",
+    "provenance"
+  ],
+  "properties": {
+    "var_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Unique variable identifier (lowercase snake_case)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version"
+    },
+    "var_class": {
+      "type": "string",
+      "enum": [
+        "classical_state",
+        "belief_state",
+        "context_operator",
+        "interference_term",
+        "persona_filter",
+        "network_state",
+        "community_structure",
+        "link_probability_field",
+        "media_actor_state",
+        "strategy_profile",
+        "payoff_field",
+        "state_over_time",
+        "conformity_pressure",
+        "peer_influence_field"
+      ],
+      "description": "Variable class determines update semantics and measurement effects"
+    },
+    "var_type": {
+      "type": "string",
+      "enum": ["continuous", "discrete", "categorical", "graph", "matrix", "tensor"],
+      "description": "Data type of variable"
+    },
+    "bounds": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": {"type": "number"},
+            "max": {"type": "number"}
+          }
+        },
+        {
+          "type": "object",
+          "required": ["categories"],
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["shape"],
+          "properties": {
+            "shape": {
+              "type": "array",
+              "items": {"type": "integer", "minimum": 1}
+            }
+          }
+        }
+      ],
+      "description": "Bounds (range, categories, or tensor shape)"
+    },
+    "prior_distribution": {
+      "type": "object",
+      "required": ["distribution_type", "parameters"],
+      "properties": {
+        "distribution_type": {
+          "type": "string",
+          "enum": [
+            "uniform",
+            "normal",
+            "beta",
+            "dirichlet",
+            "categorical",
+            "graph_erdos_renyi",
+            "graph_barabasi_albert",
+            "graph_stochastic_block",
+            "custom"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Distribution-specific parameters"
+        },
+        "sml_source": {
+          "type": "object",
+          "properties": {
+            "paper_id": {"type": "string"},
+            "knob_mapping": {"type": "string"},
+            "confidence": {"type": "string", "enum": ["LOW", "MED", "HIGH"]}
+          },
+          "description": "Optional: SML paper source for this prior"
+        }
+      }
+    },
+    "evolution_model": {
+      "type": "object",
+      "required": ["update_rule", "deterministic"],
+      "properties": {
+        "update_rule": {
+          "type": "string",
+          "enum": [
+            "markov_chain",
+            "opinion_dynamics",
+            "network_rewiring",
+            "game_theoretic",
+            "quantum_inspired_optimization",
+            "quantum_walk",
+            "conformity_update",
+            "temporal_correlation",
+            "custom"
+          ]
+        },
+        "deterministic": {"type": "boolean"},
+        "parameters": {"type": "object"}
+      }
+    },
+    "coupling_capacity": {
+      "type": "object",
+      "required": ["max_runes", "allowed_metric_classes"],
+      "properties": {
+        "max_runes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of runes that can bind to this variable"
+        },
+        "allowed_metric_classes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Which metric classes can bind to this variable"
+        }
+      }
+    },
+    "layer": {
+      "type": "string",
+      "enum": ["world", "media"],
+      "description": "Which simulation layer this variable belongs to"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["created", "source"],
+      "properties": {
+        "created": {"type": "string", "format": "date-time"},
+        "source": {"type": "string"}
+      }
+    }
+  },
+  "additionalProperties": false
+}
