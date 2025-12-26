@@ -235,11 +235,80 @@ def check_expected_cost_bounds(
     return warnings
 
 
+def check_backtest_threshold(
+    manifest: Dict[str, Any], backtest_ledger_path: Path
+) -> List[str]:
+    """
+    Check that backtest pass rate meets threshold.
+
+    This check validates predictive claims by requiring forecasts to pass
+    backtest evaluation against historical data.
+
+    Args:
+        manifest: Rent manifest dict
+        backtest_ledger_path: Path to backtest ledger
+
+    Returns:
+        List of error messages (empty if check passes)
+    """
+    errors = []
+
+    # Check if backtest threshold declared
+    thresholds = manifest.get("rent_claim", {}).get("thresholds", {})
+    if "backtest_pass_rate_min" not in thresholds:
+        return errors  # No backtest requirement
+
+    min_pass_rate = thresholds["backtest_pass_rate_min"]
+
+    # Check if backtest cases declared
+    backtest_cases = manifest.get("proof", {}).get("backtest_cases", [])
+    if not backtest_cases:
+        errors.append("backtest_pass_rate_min declared but no backtest_cases in proof")
+        return errors
+
+    # Load backtest ledger
+    if not backtest_ledger_path.exists():
+        errors.append(f"Backtest ledger not found: {backtest_ledger_path}")
+        return errors
+
+    # Import here to avoid circular dependency
+    try:
+        from abraxas.backtest.ledger import BacktestLedger
+
+        ledger = BacktestLedger(ledger_path=backtest_ledger_path)
+        results = ledger.get_results_for_cases(backtest_cases, latest_only=True)
+    except ImportError:
+        errors.append("Backtest module not available")
+        return errors
+    except Exception as e:
+        errors.append(f"Error loading backtest results: {e}")
+        return errors
+
+    if not results:
+        errors.append(f"No backtest results found for cases: {backtest_cases}")
+        return errors
+
+    # Compute pass rate
+    hits = sum(1 for r in results if r.get("status") == "HIT")
+    total = len(results)
+
+    pass_rate = hits / total
+
+    if pass_rate < min_pass_rate:
+        errors.append(
+            f"Backtest pass rate {pass_rate:.2%} below threshold {min_pass_rate:.2%} "
+            f"({hits}/{total} cases passed)"
+        )
+
+    return errors
+
+
 def run_all_rent_checks(
     manifests: Dict[str, List[Dict[str, Any]]],
     repo_root: str,
     ter_spec: Optional[Dict[str, Any]] = None,
     observed_stats: Optional[Dict[str, Dict[str, Any]]] = None,
+    backtest_ledger_path: Optional[Path] = None,
 ) -> RentCheckReport:
     """
     Run all rent checks on all manifests.
@@ -249,6 +318,7 @@ def run_all_rent_checks(
         repo_root: Repository root directory
         ter_spec: Optional TER specification
         observed_stats: Optional observed performance stats by manifest ID
+        backtest_ledger_path: Optional path to backtest ledger
 
     Returns:
         RentCheckReport with results
@@ -310,6 +380,14 @@ def run_all_rent_checks(
             checks_for_manifest += 1
             for warning in cost_warnings:
                 report.add_warning(manifest_id, "expected_cost_bounds", warning)
+
+        # Check 7: Backtest threshold (if declared and ledger available)
+        if backtest_ledger_path:
+            backtest_errors = check_backtest_threshold(manifest, backtest_ledger_path)
+            if backtest_errors:  # Only count check if threshold was declared
+                checks_for_manifest += 1
+                for error in backtest_errors:
+                    report.add_failure(manifest_id, "backtest_threshold", error)
 
         report.checks_run += checks_for_manifest
 
