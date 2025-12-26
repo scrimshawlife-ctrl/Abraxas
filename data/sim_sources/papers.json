@@ -1,0 +1,40 @@
+{
+  "papers": [
+    {
+      "paper_id": "PMC12281847",
+      "title": "Example SIR Model for Misinformation Spread",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12281847/",
+      "year": 2024,
+      "notes": "Placeholder reference for SIR-type diffusion models"
+    },
+    {
+      "paper_id": "DOI:10.1016/example.2024.001",
+      "title": "Opinion Dynamics with Bounded Confidence",
+      "url": "https://doi.org/10.1016/example.2024.001",
+      "year": 2024,
+      "notes": "Placeholder reference for opinion dynamics models"
+    },
+    {
+      "paper_id": "ARXIV:2024.12345",
+      "title": "Agent-Based Model of Social Media Misinformation",
+      "url": "https://arxiv.org/abs/2024.12345",
+      "year": 2024,
+      "notes": "Placeholder reference for ABM misinformation models"
+    },
+    {
+      "paper_id": "DOI:10.1038/example.2024.002",
+      "title": "Network Cascade Models for Information Spread",
+      "url": "https://doi.org/10.1038/example.2024.002",
+      "year": 2024,
+      "notes": "Placeholder reference for network cascade models"
+    },
+    {
+      "paper_id": "DOI:10.1073/example.2024.003",
+      "title": "Game-Theoretic Models of Propaganda and Defense",
+      "url": "https://doi.org/10.1073/example.2024.003",
+      "year": 2024,
+      "notes": "Placeholder reference for game-theoretic models"
+    }
+  ],
+  "count": 5
+}
