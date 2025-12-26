@@ -27,6 +27,7 @@ Think of it as a **weather system for language** — detecting when symbols comp
 
 - **🔬 Symbolic Compression Detection (SCO/ECO)** — Detect and quantify when opaque symbols are replaced with semantically transparent substitutes
 - **🌦️ Weather Engine** — Transform linguistic events into memetic weather patterns and drift signals
+- **📊 Scenario Envelope Runner (SER)** — Deterministic forecasting driven by simulation priors; generates cascade sheets and contamination advisories without requiring full simulation
 - **🤖 Always-On Daemon** — Continuous data ingestion via Decodo API with chat-like interaction interface
 - **🛡️ Self-Healing Infrastructure** — Drift detection, watchdog monitoring, and atomic updates with rollback
 - **⚡ Orin-Ready Edge Deployment** — Optimized for NVIDIA Jetson Orin with systemd integration

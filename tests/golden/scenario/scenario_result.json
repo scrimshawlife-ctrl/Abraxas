@@ -1,0 +1,124 @@
+{
+  "envelopes": [
+    {
+      "confidence": "HIGH",
+      "falsifiers": [
+        "Observed spread diverges significantly from baseline MRI",
+        "Damping dynamics violate baseline IRI assumptions"
+      ],
+      "label": "baseline",
+      "outputs": {
+        "cnf": {
+          "counters": []
+        },
+        "efte": {
+          "thresholds": []
+        },
+        "ncp": {
+          "paths": []
+        }
+      },
+      "priors": {
+        "IRI": 0.5,
+        "MRI": 0.5,
+        "tau_latency": 0.3,
+        "tau_memory": 0.5
+      }
+    },
+    {
+      "confidence": "HIGH",
+      "falsifiers": [
+        "Phrase rigidity (MDS) increases while spread stays flat",
+        "Cross-cluster correlations decrease despite high MRI"
+      ],
+      "label": "push_spread_up",
+      "outputs": {
+        "cnf": {
+          "counters": []
+        },
+        "efte": {
+          "thresholds": []
+        },
+        "ncp": {
+          "paths": []
+        }
+      },
+      "priors": {
+        "IRI": 0.5,
+        "MRI": 0.65,
+        "tau_latency": 0.3,
+        "tau_memory": 0.5
+      }
+    },
+    {
+      "confidence": "HIGH",
+      "falsifiers": [
+        "Intervention response time lengthens despite high IRI",
+        "Counter-narrative effectiveness shows no improvement"
+      ],
+      "label": "damping_up",
+      "outputs": {
+        "cnf": {
+          "counters": []
+        },
+        "efte": {
+          "thresholds": []
+        },
+        "ncp": {
+          "paths": []
+        }
+      },
+      "priors": {
+        "IRI": 0.65,
+        "MRI": 0.5,
+        "tau_latency": 0.3,
+        "tau_memory": 0.5
+      }
+    },
+    {
+      "confidence": "HIGH",
+      "falsifiers": [
+        "Narrative persistence decays faster than tau_memory predicts",
+        "Latency effects disappear earlier than tau_latency window"
+      ],
+      "label": "memory_long",
+      "outputs": {
+        "cnf": {
+          "counters": []
+        },
+        "efte": {
+          "thresholds": []
+        },
+        "ncp": {
+          "paths": []
+        }
+      },
+      "priors": {
+        "IRI": 0.5,
+        "MRI": 0.5,
+        "tau_latency": 0.4,
+        "tau_memory": 0.7
+      }
+    }
+  ],
+  "input": {
+    "almanac_snapshot": null,
+    "current_weather": null,
+    "dm_snapshot": null,
+    "notes": null,
+    "run_id": "golden_scenario_001",
+    "sim_priors": {
+      "IRI": 0.5,
+      "MRI": 0.5,
+      "tau_latency": 0.3,
+      "tau_memory": 0.5
+    },
+    "timestamp": "2025-01-01T00:00:00+00:00"
+  },
+  "provenance": {
+    "envelope_count": 4,
+    "generator": "scenario_envelope_runner",
+    "timestamp": "2025-01-01T00:00:00+00:00",
+    "version": "1.0.0"
+  }
+}
