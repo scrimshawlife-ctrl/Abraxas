@@ -16,7 +16,8 @@
 
 import crypto from "crypto";
 import type { RitualInput } from "../models/ritual";
-import { computeSymbolicMetrics, aggregateQualityScore } from "../core/kernel";
+import { aggregateQualityScore } from "../core/kernel";
+import { computeSymbolicMetricsOptimized } from "../core/kernel-optimized";
 import { ritualToContext, createPipelineVector } from "../integrations/runes-adapter";
 import { selectArchetypesForRunes } from "../core/archetype";
 
@@ -71,7 +72,7 @@ export function forgeSigil(input: SigilInput): Sigil {
   );
 
   // Compute symbolic metrics
-  const metrics = computeSymbolicMetrics(vector, ritualContext);
+  const metrics = computeSymbolicMetricsOptimized(vector, ritualContext);
   const quality = aggregateQualityScore(metrics);
 
   // Select archetypes

@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Eye, Brain, Building2, Globe, Calendar, TrendingUp, DollarSign } from "lucide-react";
+import {
+  AalCard,
+  AalButton,
+  AalTag,
+  AalDivider,
+  AalSigilFrame,
+} from "../../../aal-ui-kit/src";
 
 interface VCAnalysis {
   industry: string;
@@ -32,14 +35,14 @@ export default function VCOracle() {
   const [analysis, setAnalysis] = useState<VCAnalysis | null>(null);
   const [settings, setSettings] = useState({
     industry: "Technology",
-    region: "US", 
+    region: "US",
     horizonDays: 90
   });
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     console.log('Running VC analysis with settings:', settings);
-    
+
     setTimeout(() => {
       // Mock VC analysis result
       const mockAnalysis: VCAnalysis = {
@@ -59,7 +62,7 @@ export default function VCOracle() {
           ],
           riskFactors: [
             "Geopolitical tension escalation",
-            "Interest rate volatility", 
+            "Interest rate volatility",
             "Late-stage valuation compression"
           ],
           opportunities: [
@@ -70,198 +73,255 @@ export default function VCOracle() {
         },
         timestamp: Date.now()
       };
-      
+
       setAnalysis(mockAnalysis);
       setIsAnalyzing(false);
     }, 3500);
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.8) return "text-emerald-400";
-    if (score >= 0.6) return "text-cyan-400";
-    if (score >= 0.4) return "text-yellow-400";
-    return "text-red-400";
+    if (score >= 0.8) return "#00D4FF"; // cyan
+    if (score >= 0.6) return "#F8FF59"; // yellow
+    return "#FF3EF6"; // magenta
+  };
+
+  const getSigilTone = (score: number): "cyan" | "yellow" | "magenta" => {
+    if (score >= 0.8) return "cyan";
+    if (score >= 0.6) return "yellow";
+    return "magenta";
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              VC Oracle • Athena
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Venture capital pattern recognition engine
-            </p>
-          </div>
-          
-          <Button 
-            onClick={handleAnalyze}
-            disabled={isAnalyzing}
-            className="flex items-center gap-2"
-            data-testid="button-analyze-vc"
-          >
-            {isAnalyzing ? (
-              <>
-                <Brain className="w-4 h-4 animate-pulse" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Brain className="w-4 h-4" />
-                Divine Markets
-              </>
-            )}
-          </Button>
-        </div>
+    <div className="aal-stack-lg">
+      <AalCard>
+        <div className="aal-stack-md">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <AalSigilFrame tone="yellow" size={40}>
+                <Eye size={20} />
+              </AalSigilFrame>
+              <div>
+                <h2 className="aal-heading-md">VC Oracle • Athena</h2>
+                <p className="aal-body" style={{ fontSize: "13px", marginTop: "4px" }}>
+                  Venture capital pattern recognition engine
+                </p>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="text-sm font-medium text-primary mb-2 block">
-              <Building2 className="w-4 h-4 inline mr-1" />
-              Industry
-            </label>
-            <Select value={settings.industry} onValueChange={(value) => setSettings({...settings, industry: value})}>
-              <SelectTrigger data-testid="select-industry">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Technology">Technology</SelectItem>
-                <SelectItem value="Healthcare">Healthcare</SelectItem>
-                <SelectItem value="Fintech">Fintech</SelectItem>
-                <SelectItem value="Climate">Climate Tech</SelectItem>
-              </SelectContent>
-            </Select>
+            <AalButton
+              onClick={handleAnalyze}
+              disabled={isAnalyzing}
+              variant="primary"
+              leftIcon={<Brain size={16} className={isAnalyzing ? "animate-pulse" : ""} />}
+              data-testid="button-analyze-vc"
+            >
+              {isAnalyzing ? "Analyzing..." : "Divine Markets"}
+            </AalButton>
           </div>
-          
-          <div>
-            <label className="text-sm font-medium text-primary mb-2 block">
-              <Globe className="w-4 h-4 inline mr-1" />
-              Region
-            </label>
-            <Select value={settings.region} onValueChange={(value) => setSettings({...settings, region: value})}>
-              <SelectTrigger data-testid="select-region">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="US">North America</SelectItem>
-                <SelectItem value="EU">Europe</SelectItem>
-                <SelectItem value="APAC">Asia Pacific</SelectItem>
-                <SelectItem value="Global">Global</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium text-primary mb-2 block">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Horizon (Days)
-            </label>
-            <Select value={settings.horizonDays.toString()} onValueChange={(value) => setSettings({...settings, horizonDays: parseInt(value)})}>
-              <SelectTrigger data-testid="select-horizon">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 Days</SelectItem>
-                <SelectItem value="90">90 Days</SelectItem>
-                <SelectItem value="180">180 Days</SelectItem>
-                <SelectItem value="365">1 Year</SelectItem>
-              </SelectContent>
-            </Select>
+
+          <AalDivider />
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+            <div>
+              <label className="aal-body" style={{ fontSize: "13px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <Building2 size={14} />
+                Industry
+              </label>
+              <Select value={settings.industry} onValueChange={(value) => setSettings({...settings, industry: value})}>
+                <SelectTrigger data-testid="select-industry">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Healthcare">Healthcare</SelectItem>
+                  <SelectItem value="Fintech">Fintech</SelectItem>
+                  <SelectItem value="Climate">Climate Tech</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="aal-body" style={{ fontSize: "13px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <Globe size={14} />
+                Region
+              </label>
+              <Select value={settings.region} onValueChange={(value) => setSettings({...settings, region: value})}>
+                <SelectTrigger data-testid="select-region">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="US">North America</SelectItem>
+                  <SelectItem value="EU">Europe</SelectItem>
+                  <SelectItem value="APAC">Asia Pacific</SelectItem>
+                  <SelectItem value="Global">Global</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="aal-body" style={{ fontSize: "13px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <Calendar size={14} />
+                Horizon (Days)
+              </label>
+              <Select value={settings.horizonDays.toString()} onValueChange={(value) => setSettings({...settings, horizonDays: parseInt(value)})}>
+                <SelectTrigger data-testid="select-horizon">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 Days</SelectItem>
+                  <SelectItem value="90">90 Days</SelectItem>
+                  <SelectItem value="180">180 Days</SelectItem>
+                  <SelectItem value="365">1 Year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-      </Card>
+      </AalCard>
 
       {analysis && (
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-primary">Oracle Vision</h3>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span>{analysis.industry}</span>
-              <span>•</span>
-              <span>{analysis.region}</span>
-              <span>•</span>
-              <span>{analysis.horizon} days</span>
+        <AalCard>
+          <div className="aal-stack-md">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+              <h3 className="aal-heading-md">Oracle Vision</h3>
+              <div className="aal-row-sm">
+                <AalTag>{analysis.industry}</AalTag>
+                <AalTag>{analysis.region}</AalTag>
+                <AalTag>{analysis.horizon} days</AalTag>
+              </div>
             </div>
-          </div>
 
-          {/* Deal Volume Forecast */}
-          <div className="mb-6">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Deal Volume Forecast
-            </h4>
-            <Card className="p-4 bg-primary/5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl font-bold text-primary">
-                  ${analysis.forecast.dealVolume.prediction}M
-                </span>
-                <Badge variant="secondary">
-                  {(analysis.forecast.dealVolume.confidence * 100).toFixed(0)}% confidence
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {analysis.forecast.dealVolume.factors.map((factor, idx) => (
-                  <span key={idx} className="text-xs px-2 py-1 bg-accent/20 text-accent rounded">
-                    {factor}
-                  </span>
-                ))}
-              </div>
-            </Card>
-          </div>
+            <AalDivider />
 
-          <Separator className="mb-6" />
-
-          <div className="grid grid-cols-2 gap-6">
-            {/* Hot Sectors */}
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Hot Sectors
+            {/* Deal Volume Forecast */}
+            <div className="aal-stack-md">
+              <h4 className="aal-heading-md" style={{ fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <DollarSign size={16} />
+                Deal Volume Forecast
               </h4>
-              <div className="space-y-3">
-                {analysis.forecast.hotSectors.map((sector, idx) => (
-                  <Card key={idx} className="p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">{sector.name}</span>
-                      <span className={`text-sm font-mono ${getScoreColor(sector.score)}`}>
-                        {(sector.score * 100).toFixed(0)}%
+              <AalCard variant="ghost">
+                <div className="aal-stack-md">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
+                    <span className="aal-heading-md" style={{ fontSize: "28px", color: "var(--aal-color-cyan)" }}>
+                      ${analysis.forecast.dealVolume.prediction}M
+                    </span>
+                    <AalTag>
+                      {(analysis.forecast.dealVolume.confidence * 100).toFixed(0)}% confidence
+                    </AalTag>
+                  </div>
+                  <div className="aal-row-sm">
+                    {analysis.forecast.dealVolume.factors.map((factor, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          fontSize: "11px",
+                          padding: "4px 8px",
+                          background: "rgba(0, 212, 255, 0.1)",
+                          color: "var(--aal-color-muted)",
+                          borderRadius: "4px"
+                        }}
+                      >
+                        {factor}
                       </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{sector.reasoning}</p>
-                  </Card>
-                ))}
-              </div>
+                    ))}
+                  </div>
+                </div>
+              </AalCard>
             </div>
 
-            {/* Risks & Opportunities */}
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-semibold mb-3 text-red-400">Risk Factors</h4>
-                <div className="space-y-2">
-                  {analysis.forecast.riskFactors.map((risk, idx) => (
-                    <div key={idx} className="text-sm p-2 bg-red-950/20 border border-red-900/20 rounded">
-                      {risk}
-                    </div>
+            <AalDivider />
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
+              {/* Hot Sectors */}
+              <div className="aal-stack-md">
+                <h4 className="aal-heading-md" style={{ fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <TrendingUp size={16} />
+                  Hot Sectors
+                </h4>
+                <div className="aal-stack-md">
+                  {analysis.forecast.hotSectors.map((sector, idx) => (
+                    <AalCard key={idx} variant="ghost" padding="12px">
+                      <div className="aal-stack-md">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <AalSigilFrame tone={getSigilTone(sector.score)} size={24}>
+                              <TrendingUp size={12} />
+                            </AalSigilFrame>
+                            <span className="aal-heading-md" style={{ fontSize: "14px" }}>
+                              {sector.name}
+                            </span>
+                          </div>
+                          <span
+                            className="aal-body"
+                            style={{
+                              fontFamily: "monospace",
+                              fontSize: "13px",
+                              color: getScoreColor(sector.score)
+                            }}
+                          >
+                            {(sector.score * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <p className="aal-body" style={{ fontSize: "12px" }}>
+                          {sector.reasoning}
+                        </p>
+                      </div>
+                    </AalCard>
                   ))}
                 </div>
               </div>
-              
-              <div>
-                <h4 className="font-semibold mb-3 text-green-400">Opportunities</h4>
-                <div className="space-y-2">
-                  {analysis.forecast.opportunities.map((opp, idx) => (
-                    <div key={idx} className="text-sm p-2 bg-green-950/20 border border-green-900/20 rounded">
-                      {opp}
-                    </div>
-                  ))}
+
+              {/* Risks & Opportunities */}
+              <div className="aal-stack-lg">
+                <div className="aal-stack-md">
+                  <h4 className="aal-heading-md" style={{ fontSize: "16px", color: "#FF3EF6" }}>
+                    Risk Factors
+                  </h4>
+                  <div className="aal-stack-md">
+                    {analysis.forecast.riskFactors.map((risk, idx) => (
+                      <div
+                        key={idx}
+                        className="aal-body"
+                        style={{
+                          fontSize: "13px",
+                          padding: "8px 12px",
+                          background: "rgba(255, 62, 246, 0.08)",
+                          border: "1px solid rgba(255, 62, 246, 0.2)",
+                          borderRadius: "6px"
+                        }}
+                      >
+                        {risk}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="aal-stack-md">
+                  <h4 className="aal-heading-md" style={{ fontSize: "16px", color: "#00D4FF" }}>
+                    Opportunities
+                  </h4>
+                  <div className="aal-stack-md">
+                    {analysis.forecast.opportunities.map((opp, idx) => (
+                      <div
+                        key={idx}
+                        className="aal-body"
+                        style={{
+                          fontSize: "13px",
+                          padding: "8px 12px",
+                          background: "rgba(0, 212, 255, 0.08)",
+                          border: "1px solid rgba(0, 212, 255, 0.2)",
+                          borderRadius: "6px"
+                        }}
+                      >
+                        {opp}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </Card>
+        </AalCard>
       )}
     </div>
   );

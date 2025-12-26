@@ -19,7 +19,8 @@ import type { OracleResult, WatchlistOracleOutput } from "../models/oracle";
 import type { FeatureVector, ScoredVector } from "../models/vector";
 import type { SymbolicMetrics } from "../core/kernel";
 
-import { computeSymbolicMetrics, aggregateQualityScore, type SymbolicVector } from "../core/kernel";
+import { aggregateQualityScore, type SymbolicVector } from "../core/kernel";
+import { computeSymbolicMetricsOptimized } from "../core/kernel-optimized";
 import { mapToArchetype, computeArchetypeResonance, ARCHETYPES } from "../core/archetype";
 import { ritualToContext, createFeatureVector } from "../integrations/runes-adapter";
 import { evalDynamicIndicators } from "../../indicators";
@@ -190,7 +191,7 @@ async function scoreEquity(
     runes: context.runes,
   };
 
-  const symbolicMetrics = computeSymbolicMetrics(symbolicVector, kernelContext);
+  const symbolicMetrics = computeSymbolicMetricsOptimized(symbolicVector, kernelContext);
   const qualityScore = aggregateQualityScore(symbolicMetrics);
 
   // Compute archetype alignment
@@ -263,7 +264,7 @@ async function scoreFX(
     runes: context.runes,
   };
 
-  const symbolicMetrics = computeSymbolicMetrics(symbolicVector, kernelContext);
+  const symbolicMetrics = computeSymbolicMetricsOptimized(symbolicVector, kernelContext);
   const qualityScore = aggregateQualityScore(symbolicMetrics);
 
   const edge = +scoreEntity(merged, weights).toFixed(3);

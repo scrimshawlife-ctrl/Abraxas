@@ -31,6 +31,8 @@ import {
 import metrics from "../../metrics";
 import { sqliteDb } from "../integrations/sqlite-adapter";
 import { initializeRitual } from "../integrations/runes-adapter";
+import { getCacheStats, clearAllCaches, performanceMonitor } from "../core/performance";
+import { getKernelPerformanceStats } from "../core/kernel-optimized";
 
 /**
  * Register all Abraxas API routes
@@ -443,6 +445,81 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
     }
 
     res.json(execution);
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Performance Monitoring Endpoints
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * GET /api/performance/stats
+   * Get performance and cache statistics
+   */
+  app.get("/api/performance/stats", (req, res) => {
+    const cacheStats = getCacheStats();
+    const kernelStats = getKernelPerformanceStats();
+
+    res.json({
+      cache: {
+        hashCacheSize: cacheStats.hashCacheSize,
+        metricCacheSize: cacheStats.metricCacheSize,
+      },
+      kernel: kernelStats,
+      performance: cacheStats.performanceMetrics,
+      timestamp: Date.now(),
+    });
+  });
+
+  /**
+   * GET /api/performance/metrics
+   * Get recent performance metrics
+   */
+  app.get("/api/performance/metrics", (req, res) => {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const operation = req.query.operation as string;
+
+    const metrics = performanceMonitor.getRecentMetrics(limit);
+    const filtered = operation
+      ? metrics.filter(m => m.operation === operation)
+      : metrics;
+
+    res.json({
+      metrics: filtered,
+      count: filtered.length,
+      operations: performanceMonitor.getOperations(),
+    });
+  });
+
+  /**
+   * GET /api/performance/operations/:operation
+   * Get detailed stats for a specific operation
+   */
+  app.get("/api/performance/operations/:operation", (req, res) => {
+    const { operation } = req.params;
+    const stats = performanceMonitor.getStats(operation);
+
+    if (stats.count === 0) {
+      return res.status(404).json({ error: "Operation not found" });
+    }
+
+    res.json({
+      operation,
+      stats,
+      timestamp: Date.now(),
+    });
+  });
+
+  /**
+   * POST /api/performance/cache/clear
+   * Clear all performance caches
+   */
+  app.post("/api/performance/cache/clear", (req, res) => {
+    clearAllCaches();
+
+    res.json({
+      message: "All caches cleared successfully",
+      timestamp: Date.now(),
+    });
   });
 
   console.log("🔮 Abraxas API routes registered");

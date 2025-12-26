@@ -19,6 +19,7 @@ import MetricsPanel from "@/components/MetricsPanel";
 import GrimoireView from "@/components/GrimoireView";
 import Config from "@/components/Config";
 import DynamicWatchlist from "@/components/DynamicWatchlist";
+import AalDemo from "@/pages/AalDemo";
 
 function AuthenticatedApp() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -55,6 +56,8 @@ function AuthenticatedApp() {
         return <DynamicWatchlist />;
       case "/config":
         return <Config />;
+      case "/aal-demo":
+        return <AalDemo />;
       default:
         return <RitualRunner />;
     }
