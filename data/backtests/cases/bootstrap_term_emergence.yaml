@@ -1,0 +1,55 @@
+# Bootstrap Backtest Case: Term Emergence
+# Template for validating term emergence predictions
+
+case_id: "bootstrap_term_emergence_template"
+created_at: "2025-12-26T00:00:00Z"
+description: |
+  Template for validating predictions of term emergence.
+  Replace forecast_ref with actual run_id and artifact_path from your forecasts.
+
+  Usage:
+  1. Copy this template
+  2. Update case_id to be unique (e.g., "case_term_emergence_doppelganger_001")
+  3. Update forecast_ref with your actual run_id and artifact_path
+  4. Update evaluation_window to match your forecast timing
+  5. Update triggers.any_of[0].params.term to match predicted term
+  6. Run: python -m abraxas.cli.backtest --cases data/backtests/cases
+
+forecast_ref:
+  run_id: "REPLACE_WITH_ACTUAL_RUN_ID"  # e.g., "run_20251220_120000"
+  artifact_path: "REPLACE_WITH_ACTUAL_PATH"  # e.g., "out/runs/run_20251220_120000/reports/enterprise.json"
+  tier: "enterprise"
+
+evaluation_window:
+  start_ts: "2025-12-20T12:00:00Z"  # Forecast timestamp
+  end_ts: "2025-12-23T12:00:00Z"    # 72 hours later
+
+triggers:
+  any_of:
+    - kind: "term_seen"
+      params:
+        term: "REPLACE_WITH_PREDICTED_TERM"  # e.g., "digital doppelganger"
+        min_count: 2
+        source_filter: ["OSH"]
+
+falsifiers:
+  any_of: []
+
+guardrails:
+  min_signal_count: 10
+  min_evidence_completeness: 0.5  # Allow 50% missing ledgers for bootstrap
+  max_integrity_risk: 0.7
+
+scoring:
+  type: "binary"
+  weights:
+    trigger: 1.0
+    falsifier: 1.0
+    abstain: 0.2
+
+provenance:
+  required_ledgers:
+    - "out/temporal_ledgers/oracle_delta.jsonl"
+  required_sources: ["OSH"]
+  smem_version: "v0.3"
+  siw_version: "v0.2"

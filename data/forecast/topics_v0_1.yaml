@@ -1,0 +1,40 @@
+# Forecast Topics Configuration v0.1
+#
+# Defines which topics get forecast ensembles and at what horizons.
+#
+# Each topic_key maps to templates in abraxas/forecast/init.py
+
+topics:
+  - topic_key: "deepfake_pollution"
+    description: "Deepfake content saturation and detection failure"
+    horizons: ["H72H", "H30D", "H90D", "H1Y", "H5Y"]
+    segments: ["core"]
+    narratives: ["N1_primary"]
+    enabled: true
+
+  - topic_key: "propaganda_pressure"
+    description: "Coordinated influence campaign intensity"
+    horizons: ["H72H", "H30D", "H90D"]
+    segments: ["core"]
+    narratives: ["N1_primary", "N2_counter"]
+    enabled: true
+
+  - topic_key: "integrity_collapse"
+    description: "Systemic failure of content verification mechanisms"
+    horizons: ["H30D", "H90D", "H1Y", "H2Y", "H5Y"]
+    segments: ["core"]
+    narratives: ["N1_primary"]
+    enabled: true
+
+# Future: Add semantic topic discovery from MW clusters
+# - topic_key: "mw_cluster:<cluster_id>"
+#   description: "Auto-generated from Meaning Weave cluster"
+#   horizons: ["H72H", "H30D"]
+#   enabled: false  # v0.2 feature
+
+# Settings
+settings:
+  max_topics_per_run: 10
+  min_branch_count: 3
+  max_branch_count: 7
+  default_integrity_sensitivity: 0.6

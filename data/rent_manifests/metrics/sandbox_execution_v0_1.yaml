@@ -1,0 +1,62 @@
+# Rent Manifest: Sandbox Execution v0.1
+
+id: "sandbox_execution_v0_1"
+kind: "metric"
+version: "0.1.0"
+
+description: |
+  In-memory testing of candidates against hindcast data.
+  Computes score deltas and validates improvement criteria.
+
+improves:
+  - "change_validation"
+  - "regression_prevention"
+  - "evidence_based_evolution"
+
+measurable_by:
+  - "sandbox_runs_count"
+  - "pass_rate"
+  - "score_delta_accuracy"  # Does sandbox predict production improvement?
+
+rent_claim:
+  complexity:
+    loc: 400  # sandbox.py
+    cognitive: 6  # Moderate-high: score comparison, criteria checking
+    dependencies: ["Backtest", "FBE", "Scoreboard"]
+
+  thresholds:
+    # Conservative start
+    sandbox_ledger_exists: true
+    min_improvement_threshold: 0.10  # Require 10% improvement
+    regression_tolerance: 0.02  # Allow 2% regression on protected horizons
+    all_in_memory: true  # No disk writes during test
+
+  cost_model:
+    time_ms_expected: 100  # Per sandbox run
+    memory_kb_expected: 500  # Per test session
+
+proof:
+  tests:
+    - "tests/test_evolution_system.py::test_sandbox_param_tweak"
+    - "tests/test_evolution_system.py::test_sandbox_metric_validation"
+    - "tests/test_evolution_system.py::test_sandbox_pass_criteria"
+    - "tests/test_evolution_system.py::test_sandbox_regression_detection"
+
+  ledgers:
+    - "out/evolution_ledgers/sandbox.jsonl"
+
+  documentation:
+    - "docs/specs/metric_evolution_v0_1.md"
+
+provenance:
+  created_at: "2025-12-26"
+  author: "Abraxas Core Team"
+  rationale: |
+    Provides safety layer: no candidate promoted without proof.
+    In-memory testing ensures no side effects.
+    Score deltas must meet strict improvement thresholds.
+
+  alternatives_considered:
+    - "Production testing (rejected: too risky)"
+    - "No testing (rejected: unacceptable risk)"
+    - "Synthetic data only (rejected: not representative)"

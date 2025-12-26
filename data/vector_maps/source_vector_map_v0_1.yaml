@@ -1,0 +1,99 @@
+# Source Vector Map v0.1
+#
+# PURPOSE:
+# This is a DISCOVERY registry, NOT a scraper.
+# It maps semantic nodes (topics/themes) to OSH allowlist sources.
+#
+# WHAT IT DOES:
+# - Declares "where to look" for certain topics
+# - Links semantic nodes to allowlist source_ids
+# - Provides cadence hints for schedulers
+#
+# WHAT IT DOES NOT DO:
+# - Does NOT fetch content (that's OSH's job)
+# - Does NOT bypass allowlists (only references existing entries)
+# - Does NOT add new sources without explicit allowlist entries
+
+version: "0.1.0"
+created_at: "2025-12-26"
+
+# Semantic nodes
+# Each node represents a topic/theme that might generate metric candidates
+nodes:
+  # Integrity domain nodes
+  - node_id: "ai_deepfake_policy"
+    domain: "INTEGRITY"
+    description: "AI deepfake regulation and detection policy"
+    allowlist_source_ids:
+      - "rss_nyt_tech"
+      - "rss_wired_security"
+    cadence_hint: "daily"
+    narrative_affinity:
+      - "N1_primary"
+    enabled: true
+
+  - node_id: "content_authenticity"
+    domain: "INTEGRITY"
+    description: "Content verification standards and tools"
+    allowlist_source_ids:
+      - "rss_eff_updates"
+      - "rss_nyt_tech"
+    cadence_hint: "daily"
+    narrative_affinity:
+      - "N1_primary"
+    enabled: true
+
+  - node_id: "platform_trust_policy"
+    domain: "INTEGRITY"
+    description: "Platform moderation and trust policy changes"
+    allowlist_source_ids:
+      - "rss_nyt_tech"
+      - "rss_wired_security"
+    cadence_hint: "daily"
+    narrative_affinity:
+      - "N1_primary"
+      - "N2_counter"
+    enabled: true
+
+  # Propaganda domain nodes
+  - node_id: "coordinated_campaigns"
+    domain: "PROPAGANDA"
+    description: "Coordinated influence operations and detection"
+    allowlist_source_ids:
+      - "rss_wired_security"
+      - "rss_eff_updates"
+    cadence_hint: "daily"
+    narrative_affinity:
+      - "N1_primary"
+    enabled: true
+
+  - node_id: "narrative_amplification"
+    domain: "PROPAGANDA"
+    description: "Narrative amplification patterns and metrics"
+    allowlist_source_ids:
+      - "rss_nyt_tech"
+    cadence_hint: "daily"
+    narrative_affinity:
+      - "N1_primary"
+      - "N2_counter"
+    enabled: true
+
+  # Future nodes (disabled for v0.1)
+  - node_id: "ai_regulation_global"
+    domain: "INTEGRITY"
+    description: "Global AI regulation developments"
+    allowlist_source_ids:
+      - "rss_eff_updates"
+    cadence_hint: "weekly"
+    narrative_affinity:
+      - "N1_primary"
+    enabled: false  # v0.2 feature
+
+# Settings
+settings:
+  max_nodes_active: 10
+  min_allowlist_sources_per_node: 1
+  max_allowlist_sources_per_node: 5
+  require_domain_validation: true
+  allowed_domains: ["INTEGRITY", "PROPAGANDA", "AALMANAC", "MW"]
+  allowed_cadences: ["hourly", "daily", "weekly"]

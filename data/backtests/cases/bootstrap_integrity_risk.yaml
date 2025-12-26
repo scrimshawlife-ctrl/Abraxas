@@ -1,0 +1,53 @@
+# Bootstrap Backtest Case: Integrity Risk Escalation
+# Template for validating integrity risk predictions
+
+case_id: "bootstrap_integrity_risk_template"
+created_at: "2025-12-26T00:00:00Z"
+description: |
+  Template for validating predictions of integrity risk escalation.
+  Replace forecast_ref with actual run_id and artifact_path from your forecasts.
+
+  This case checks if SSI (Synthetic Source Index) or specific integrity vectors
+  exceeded predicted thresholds within the evaluation window.
+
+forecast_ref:
+  run_id: "REPLACE_WITH_ACTUAL_RUN_ID"
+  artifact_path: "REPLACE_WITH_ACTUAL_PATH"
+  tier: "enterprise"
+
+evaluation_window:
+  start_ts: "2025-12-20T12:00:00Z"  # Forecast timestamp
+  end_ts: "2025-12-27T12:00:00Z"    # 7 days later
+
+triggers:
+  any_of:
+    - kind: "index_threshold"
+      params:
+        index: "SSI"
+        gte: 0.7  # SSI >= 0.7 indicates high synthetic content risk
+    - kind: "integrity_vector"
+      params:
+        vector: "Authority Deepfake"
+        min_score: 0.6
+
+falsifiers:
+  any_of: []
+
+guardrails:
+  min_signal_count: 20
+  min_evidence_completeness: 0.7  # Require 70% of ledgers
+  max_integrity_risk: 1.0  # No upper limit for integrity risk cases
+
+scoring:
+  type: "binary"
+  weights:
+    trigger: 1.0
+    falsifier: 1.0
+    abstain: 0.2
+
+provenance:
+  required_ledgers:
+    - "out/temporal_ledgers/integrity_ledger.jsonl"
+  required_sources: ["OSH", "media"]
+  smem_version: "v0.3"
+  siw_version: "v0.2"

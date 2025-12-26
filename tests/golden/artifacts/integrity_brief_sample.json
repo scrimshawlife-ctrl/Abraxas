@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-12-26T00:00:00.000000Z",
+  "ledger_health": {
+    "total_ledgers": 5,
+    "healthy_ledgers": 5,
+    "hash_chain_valid": true
+  },
+  "delta_counts": {
+    "new_terms": 3,
+    "mw_shifts": 2,
+    "tau_updates": 5,
+    "total_deltas": 10
+  },
+  "anomaly_flags": [],
+  "sections": [
+    "summary",
+    "ledger_health",
+    "delta_analysis",
+    "anomaly_detection",
+    "recommendations"
+  ]
+}

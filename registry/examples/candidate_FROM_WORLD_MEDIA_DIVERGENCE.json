@@ -1,0 +1,61 @@
+{
+  "metric_id": "metric_world_media_divergence_explainer",
+  "hypothesis_type": "residual_explainer",
+  "description": "Explains divergence between world model predictions and media-derived signal streams by detecting latent assumption mismatches in meaning weave ontology",
+  "proposed_inputs": [
+    "world_model_forecast",
+    "media_signal_vector",
+    "mw_term_activation_history",
+    "temporal_window"
+  ],
+  "proposed_simvar_targets": [
+    "divergence_magnitude",
+    "explained_residual_fraction",
+    "ontology_mismatch_score"
+  ],
+  "proposed_rune_contract": {
+    "inputs": {
+      "world_forecast": "array<float>",
+      "media_signal": "array<float>",
+      "mw_context": "dict<str,float>",
+      "window_size": "int"
+    },
+    "outputs": {
+      "divergence": "float",
+      "explained_fraction": "float",
+      "mismatch_vector": "array<float>"
+    },
+    "constraints": [
+      "divergence >= 0.0",
+      "explained_fraction in [0.0, 1.0]",
+      "len(mismatch_vector) == len(mw_context)",
+      "window_size >= 10"
+    ]
+  },
+  "falsification_criteria": [
+    "Divergence metric correlates >0.85 with existing forecast error metrics",
+    "Explained fraction shows <10% improvement over baseline forecast error",
+    "Ontology mismatch score fails to generalize across 3+ independent simulation runs",
+    "Metric becomes unstable (CV >0.30) across perturbation levels [0.05, 0.10, 0.20]",
+    "Ablation test shows <5% performance degradation when metric is removed"
+  ],
+  "evaluation_window": {
+    "min_cycles": 100,
+    "min_samples": 200
+  },
+  "status": "PROPOSED",
+  "provenance": {
+    "discovered_from": "divergence_analysis",
+    "source_pattern": {
+      "pattern_type": "correlation_breakdown",
+      "metric_a": "world_model_forecast",
+      "metric_b": "media_signal_aggregate",
+      "overall_correlation": 0.78,
+      "tail_divergence": 1.43,
+      "sample_size": 247
+    },
+    "timestamp": "2025-12-26T13:30:00.000000Z",
+    "emergence_run_id": "emerge_20251226_133000",
+    "ledger_hash_range": "0a1b2c...4d5e6f"
+  }
+}

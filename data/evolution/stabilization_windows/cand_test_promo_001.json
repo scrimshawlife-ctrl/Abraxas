@@ -1,0 +1,28 @@
+{
+  "candidate_id": "cand_test_promo_001",
+  "window_size": 3,
+  "consecutive_passes": 3,
+  "consecutive_failures": 0,
+  "last_run_at": "2025-12-26T15:12:04.416705+00:00",
+  "last_run_passed": true,
+  "run_history": [
+    {
+      "sandbox_id": "sbx_cand_test_promo_001_2025-12-26_dba96509",
+      "run_id": "test_run_000",
+      "passed": true,
+      "run_at": "2025-12-26T15:12:04.415840+00:00"
+    },
+    {
+      "sandbox_id": "sbx_cand_test_promo_001_2025-12-26_7e0c3bd9",
+      "run_id": "test_run_001",
+      "passed": true,
+      "run_at": "2025-12-26T15:12:04.416297+00:00"
+    },
+    {
+      "sandbox_id": "sbx_cand_test_promo_001_2025-12-26_6a47e347",
+      "run_id": "test_run_002",
+      "passed": true,
+      "run_at": "2025-12-26T15:12:04.416705+00:00"
+    }
+  ]
+}

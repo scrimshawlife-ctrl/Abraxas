@@ -1,0 +1,7 @@
+overrides:
+- param_path: forecast.confidence_threshold.H72H
+  value: 0.75
+  previous_value: 0.65
+  promoted_at: '2025-12-26T15:12:04.422361+00:00'
+  candidate_id: cand_test_promo_001
+  rationale: Testing promotion gate

@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "failures": [],
+  "warnings": [
+    {
+      "manifest_id": "example_metric",
+      "check": "golden_files_declared",
+      "message": "Tests declared but no golden files specified"
+    }
+  ],
+  "provenance": {
+    "timestamp": "2025-12-26T00:00:00.000000",
+    "repo_root": "/home/user/Abraxas",
+    "ter_spec_provided": false,
+    "observed_stats_provided": false
+  },
+  "manifest_count": 4,
+  "checks_run": 20
+}

@@ -1,0 +1,68 @@
+# Rent Manifest: Promotion Gate v0.1
+
+id: "promotion_gate_v0_1"
+kind: "metric"
+version: "0.1.0"
+
+description: |
+  Validates and promotes candidates that pass stabilization criteria.
+  Requires N consecutive sandbox passes before promotion.
+
+improves:
+  - "promotion_safety"
+  - "stabilization_enforcement"
+  - "change_auditability"
+
+measurable_by:
+  - "promotions_count"
+  - "stabilization_window_compliance"
+  - "promotion_success_rate"  # Do promoted changes improve production?
+
+rent_claim:
+  complexity:
+    loc: 450  # promotion_gate.py + stabilization tracking
+    cognitive: 6  # Moderate-high: window tracking, action routing
+    dependencies: ["Sandbox", "Store", "Config management"]
+
+  thresholds:
+    # Conservative start
+    promotion_ledger_exists: true
+    min_stabilization_window: 3  # Require 3 consecutive passes
+    reset_on_failure: true  # One failure resets counter
+    param_overrides_file_exists: true  # Must create override file
+
+  cost_model:
+    time_ms_expected: 30  # Per promotion check
+    memory_kb_expected: 100  # Per stabilization window
+
+proof:
+  tests:
+    - "tests/test_evolution_system.py::test_promotion_gate_stabilization"
+    - "tests/test_evolution_system.py::test_promotion_param_override"
+    - "tests/test_evolution_system.py::test_promotion_creates_ticket"
+    - "tests/test_evolution_system.py::test_promotion_rejects_unstable"
+
+  ledgers:
+    - "out/evolution_ledgers/promotions.jsonl"
+
+  configuration:
+    - "data/evolution/param_overrides.yaml"
+    - "data/evolution/implementation_tickets/*.json"
+
+  documentation:
+    - "docs/specs/metric_evolution_v0_1.md"
+
+provenance:
+  created_at: "2025-12-26"
+  author: "Abraxas Core Team"
+  rationale: |
+    Final safety gate: requires stabilization before promotion.
+    Param tweaks auto-apply (lowest risk).
+    Metrics/operators create tickets (require manual implementation).
+    One failure resets stabilization counter (conservative).
+
+  alternatives_considered:
+    - "Auto-promote all (rejected: too risky)"
+    - "Manual only (rejected: too slow)"
+    - "Single pass sufficient (rejected: not stable enough)"
+    - "Window size > 3 (deferred: may increase in v0.2)"

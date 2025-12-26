@@ -1,0 +1,31 @@
+id: "rent_enforcement_coverage"
+kind: "metric"
+domain: "GOVERNANCE"
+description: "Measures the percentage of Abraxas components that have rent manifests"
+owner_module: "abraxas.governance.rent_checks"
+
+inputs: ["module_registry", "manifest_count"]
+outputs: ["coverage_percentage", "unmanifested_components"]
+
+cost_model:
+  time_ms_expected: 20
+  memory_kb_expected: 256
+  io_expected: "read"
+
+rent_claim:
+  improves: ["governance_coverage", "auditability", "complexity_accountability"]
+  measurable_by: ["golden_test", "manifest_coverage_rate"]
+  thresholds:
+    manifest_coverage_min: 0.80
+
+proof:
+  tests:
+    - "tests/test_rent_enforcement.py::test_coverage_computation"
+    - "tests/test_rent_enforcement.py::test_unmanifested_detection"
+  golden_files:
+    - "tests/golden/governance/rent_coverage_report.json"
+  ledgers_touched:
+    - "out/governance_ledgers/rent_enforcement.jsonl"
+
+version: "0.1"
+created_at: "2025-12-26"

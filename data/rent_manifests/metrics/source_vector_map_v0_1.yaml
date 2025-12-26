@@ -1,0 +1,57 @@
+# Rent Manifest: Source Vector Map Registry v0.1
+
+id: "source_vector_map_v0_1"
+kind: "metric"
+version: "0.1.0"
+
+description: |
+  Discovery registry mapping semantic nodes to OSH allowlist sources.
+  This is NOT a scraper - it only maps topics to existing sources.
+
+improves:
+  - "semantic_discovery"
+  - "source_organization"
+  - "cadence_planning"
+
+measurable_by:
+  - "node_coverage"
+  - "allowlist_compliance"
+  - "validation_pass_rate"
+
+rent_claim:
+  complexity:
+    loc: 350  # vector_map_loader.py
+    cognitive: 3  # Simple: registry lookup
+    dependencies: ["OSH", "YAML config"]
+
+  thresholds:
+    # Conservative start - just require registry to load
+    registry_loads: true
+    all_nodes_valid: true
+    all_sources_in_allowlist: true  # Must reference existing sources
+
+  cost_model:
+    time_ms_expected: 5  # Per registry load
+    memory_kb_expected: 50  # Per registry
+
+proof:
+  tests:
+    - "tests/test_evolution_system.py::test_vector_map_loads"
+    - "tests/test_evolution_system.py::test_vector_map_validation"
+
+  configuration:
+    - "data/vector_maps/source_vector_map_v0_1.yaml"
+
+  documentation:
+    - "docs/specs/metric_evolution_v0_1.md"
+
+provenance:
+  created_at: "2025-12-26"
+  author: "Abraxas Core Team"
+  rationale: |
+    Provides semantic organization of OSH sources without doing scraping.
+    Maps topics/themes to allowlist entries for discovery hints.
+
+  alternatives_considered:
+    - "Auto-discovery from MW (rejected: too dynamic for v0.1)"
+    - "No registry (rejected: loss of semantic organization)"
