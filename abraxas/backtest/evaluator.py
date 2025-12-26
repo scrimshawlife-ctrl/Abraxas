@@ -215,12 +215,16 @@ def _evaluate_index_threshold(
     )
 
 
-def evaluate_case(case: BacktestCase) -> BacktestResult:
+def evaluate_case(
+    case: BacktestCase, enable_learning: bool = False, run_id: str = "manual"
+) -> BacktestResult:
     """
     Evaluate a complete backtest case.
 
     Args:
         case: BacktestCase specification
+        enable_learning: If True, auto-trigger failure analysis on MISS/ABSTAIN
+        run_id: Run identifier for failure analysis
 
     Returns:
         BacktestResult with status and score
@@ -343,7 +347,7 @@ def evaluate_case(case: BacktestCase) -> BacktestResult:
         score = 0.0
         confidence = Confidence.MED
 
-    return BacktestResult(
+    result = BacktestResult(
         case_id=case.case_id,
         status=status,
         score=score,
@@ -357,7 +361,26 @@ def evaluate_case(case: BacktestCase) -> BacktestResult:
             "ledger_completeness": completeness,
             "max_ssi": max_ssi,
         },
+        run_id=run_id,
     )
+
+    # Active Learning Loop: Auto-trigger failure analysis
+    if enable_learning:
+        if result.status == BacktestStatus.MISS or (
+            result.status == BacktestStatus.ABSTAIN and result.confidence == Confidence.HIGH
+        ):
+            try:
+                from abraxas.learning.failure_analyzer import analyze_backtest_failure
+
+                analyze_backtest_failure(case, result, events, ledgers)
+            except ImportError:
+                # Learning module not available, skip
+                pass
+            except Exception as e:
+                # Don't fail the backtest if learning fails
+                result.notes.append(f"Warning: Failure analysis error: {e}")
+
+    return result
 
 
 def load_backtest_case(case_path: str | Path) -> BacktestCase:

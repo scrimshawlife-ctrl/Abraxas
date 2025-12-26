@@ -121,6 +121,7 @@ class BacktestResult(BaseModel):
     """Result of evaluating a backtest case."""
 
     case_id: str
+    run_id: str = "manual"  # Run identifier for provenance
     status: BacktestStatus
     score: float
     confidence: Confidence
