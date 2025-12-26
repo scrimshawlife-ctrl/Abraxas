@@ -91,7 +91,20 @@ class PromotionGate:
         if sandbox_results and not sandbox_results[-1].passed:
             reasons.append("Latest sandbox run failed")
 
-        # Check 4: Kind-specific auto-promotion rules
+        # Check 4: Portfolio pass gate (if present)
+        if sandbox_results:
+            latest = sandbox_results[-1]
+            if latest.pass_gate is False:
+                reasons.append("Latest portfolio pass gate failed")
+            if latest.portfolio_results:
+                portfolio_failures = _check_portfolio_requirements(candidate, latest)
+                reasons.extend(portfolio_failures)
+
+        # Check 5: Rent manifest requirements
+        rent_manifest_errors = _check_rent_manifest(candidate)
+        reasons.extend(rent_manifest_errors)
+
+        # Check 6: Kind-specific auto-promotion rules
         if candidate.kind == CandidateKind.METRIC and not self.criteria.auto_promote_metrics:
             # Metrics can still promote (to ticket), just flagging
             pass
@@ -315,6 +328,46 @@ class PromotionGate:
             "avg_improvement": avg_improvement,
             "sandbox_ids": [r.sandbox_id for r in passing]
         }
+
+
+def _check_portfolio_requirements(
+    candidate: MetricCandidate,
+    sandbox_result: SandboxResult
+) -> List[str]:
+    reasons: List[str] = []
+    target = candidate.target
+    target_portfolios = target.portfolios or []
+    no_regress_portfolios = target.no_regress_portfolios or []
+
+    for portfolio_id in target_portfolios:
+        portfolio = sandbox_result.portfolio_results.get(portfolio_id)
+        if not portfolio:
+            reasons.append(f"Missing target portfolio result: {portfolio_id}")
+            continue
+        if portfolio.get("status") != "PASS":
+            reasons.append(f"Target portfolio not passing: {portfolio_id}")
+
+    for portfolio_id in no_regress_portfolios:
+        portfolio = sandbox_result.portfolio_results.get(portfolio_id)
+        if not portfolio:
+            reasons.append(f"Missing no-regress portfolio result: {portfolio_id}")
+            continue
+        if portfolio.get("status") != "PASS":
+            reasons.append(f"No-regress portfolio not passing: {portfolio_id}")
+
+    return reasons
+
+
+def _check_rent_manifest(candidate: MetricCandidate) -> List[str]:
+    if candidate.kind == CandidateKind.PARAM_TWEAK:
+        if not candidate.param_path:
+            return ["Missing param_path for param_tweak candidate"]
+        return []
+
+    implementation_spec = candidate.implementation_spec or {}
+    if not implementation_spec.get("rent_manifest_draft") and not implementation_spec.get("rent_manifest_path"):
+        return ["Missing rent manifest draft for metric/operator candidate"]
+    return []
 
 
 # Helper functions for external use

@@ -31,6 +31,8 @@ from abx.util.jsonutil import dumps_stable, dump_file
 from abx.overlays.manager import OverlayManager
 from abx.runtime.drift import take_snapshot, save_snapshot, check_drift
 from abx.runtime.watchdog import watchdog_loop
+from abraxas.cli.counterfactual import run_counterfactual_cli
+from abraxas.cli.smv import run_smv_cli
 from abx.runtime.updater import update_atomic
 from abx.ingest.scheduler import run_ingest_forever
 from abx.ui.server import build_ui_app
@@ -201,6 +203,16 @@ def admin_cmd(args: argparse.Namespace) -> int:
     print(dumps_stable(result))
     return 0
 
+
+def counterfactual_cmd(args: argparse.Namespace) -> int:
+    """Run counterfactual replay engine."""
+    return run_counterfactual_cli(args)
+
+
+def smv_cmd(args: argparse.Namespace) -> int:
+    """Run signal marginal value analysis."""
+    return run_smv_cli(args)
+
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""
     cfg = load_config()
@@ -272,6 +284,40 @@ def main() -> None:
     sub.add_parser("ui", help="Start chat-like UI server")
     sub.add_parser("admin", help="Print admin handshake (module discovery)")
 
+    p_cf = sub.add_parser("counterfactual", help="Run counterfactual replay")
+    p_cf.add_argument("--portfolio", required=True, help="Portfolio ID")
+    p_cf.add_argument(
+        "--mask",
+        action="append",
+        default=[],
+        help="Mask spec (repeatable)",
+    )
+    p_cf.add_argument("--run-id", default="counterfactual_manual")
+    p_cf.add_argument("--cases-dir", default="data/backtests/cases")
+    p_cf.add_argument(
+        "--portfolios-path",
+        default="data/backtests/portfolios/portfolios_v0_1.yaml",
+    )
+    p_cf.add_argument(
+        "--fdr-path", default="data/forecast/decomposition/fdr_v0_1.yaml"
+    )
+    p_cf.add_argument("--overrides-path", default=None)
+
+    p_smv = sub.add_parser("smv", help="Run signal marginal value analysis")
+    p_smv.add_argument("--portfolio", required=True, help="Portfolio ID")
+    p_smv.add_argument(
+        "--vector-map",
+        default="data/vector_maps/source_vector_map_v0_1.yaml",
+    )
+    p_smv.add_argument("--allowlist-spec", default=None)
+    p_smv.add_argument("--run-id", default="smv_manual")
+    p_smv.add_argument("--cases-dir", default="data/backtests/cases")
+    p_smv.add_argument(
+        "--portfolios-path",
+        default="data/backtests/portfolios/portfolios_v0_1.yaml",
+    )
+    p_smv.add_argument("--max-units", type=int, default=25)
+
     args = p.parse_args()
 
     if args.cmd == "doctor":
@@ -300,6 +346,10 @@ def main() -> None:
         raise SystemExit(ui_cmd(args))
     if args.cmd == "admin":
         raise SystemExit(admin_cmd(args))
+    if args.cmd == "counterfactual":
+        raise SystemExit(counterfactual_cmd(args))
+    if args.cmd == "smv":
+        raise SystemExit(smv_cmd(args))
 
 if __name__ == "__main__":
     main()

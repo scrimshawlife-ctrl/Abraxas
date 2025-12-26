@@ -22,7 +22,8 @@ from abraxas.evolution.schema import (
     MetricCandidate,
     CandidateKind,
     SourceDomain,
-    generate_candidate_id
+    generate_candidate_id,
+    CandidateTarget
 )
 
 
@@ -96,6 +97,17 @@ class CandidateGenerator:
         """
         candidates = []
         timestamp = datetime.now(timezone.utc).isoformat()
+        target = CandidateTarget(
+            portfolios=["slang_term_emergence", "short_term_core"],
+            horizons=["H72H", "H30D"],
+            score_metrics=["brier", "calibration_error"],
+            improvement_thresholds={"brier": -0.003},
+            no_regress_portfolios=["long_horizon_integrity"],
+            mechanism=(
+                "Improve short-term trigger recall/sharpness for emergent terms while "
+                "not contaminating long-horizon regimes."
+            ),
+        )
 
         # Rule 1: Term velocity threshold
         term_velocities = deltas.get("term_velocities", {})
@@ -130,6 +142,7 @@ class CandidateGenerator:
                     },
                     target_horizons=["H72H", "H30D"],
                     protected_horizons=["H90D", "H1Y"],
+                    target=target,
                     priority=7
                 ))
 
@@ -165,6 +178,7 @@ class CandidateGenerator:
                     },
                     target_horizons=["H72H"],
                     protected_horizons=["H30D", "H90D"],
+                    target=target,
                     priority=6
                 ))
 
@@ -181,6 +195,28 @@ class CandidateGenerator:
         """
         candidates = []
         timestamp = datetime.now(timezone.utc).isoformat()
+        integrity_target = CandidateTarget(
+            portfolios=["long_horizon_integrity"],
+            horizons=["H1Y", "H5Y"],
+            score_metrics=["coverage_rate", "crps_avg", "trend_acc"],
+            improvement_thresholds={"coverage_rate": 0.02},
+            no_regress_portfolios=["short_term_core"],
+            mechanism=(
+                "Reduce SSI poisoning of long-horizon regime updates; widen uncertainty "
+                "during drift."
+            ),
+        )
+        ssi_dampening_target = CandidateTarget(
+            portfolios=["long_horizon_integrity"],
+            horizons=["H1Y", "H5Y"],
+            score_metrics=["coverage_rate"],
+            improvement_thresholds={"coverage_rate": 0.03},
+            no_regress_portfolios=["short_term_core"],
+            mechanism=(
+                "Reduce SSI poisoning of long-horizon regime updates; widen uncertainty "
+                "during drift."
+            ),
+        )
 
         # Rule 1: Synthetic saturation rising
         synthetic_saturation = deltas.get("synthetic_saturation", {})
@@ -213,6 +249,7 @@ class CandidateGenerator:
                 },
                 target_horizons=["H72H", "H30D"],
                 protected_horizons=["H90D"],
+                target=ssi_dampening_target,
                 priority=8
             ))
 
@@ -251,6 +288,7 @@ class CandidateGenerator:
                     },
                     target_horizons=["H30D", "H90D"],
                     protected_horizons=["H1Y"],
+                    target=integrity_target,
                     priority=6
                 ))
 
@@ -267,6 +305,17 @@ class CandidateGenerator:
         """
         candidates = []
         timestamp = datetime.now(timezone.utc).isoformat()
+        integrity_target = CandidateTarget(
+            portfolios=["long_horizon_integrity"],
+            horizons=["H1Y", "H5Y"],
+            score_metrics=["coverage_rate", "crps_avg", "trend_acc"],
+            improvement_thresholds={"coverage_rate": 0.02},
+            no_regress_portfolios=["short_term_core"],
+            mechanism=(
+                "Reduce SSI poisoning of long-horizon regime updates; widen uncertainty "
+                "during drift."
+            ),
+        )
 
         # Rule 1: SSI rising rapidly
         ssi_trend = deltas.get("ssi_trend", {})
@@ -299,6 +348,7 @@ class CandidateGenerator:
                 },
                 target_horizons=["H72H"],
                 protected_horizons=["H30D", "H90D"],
+                target=integrity_target,
                 priority=7
             ))
 
@@ -336,6 +386,7 @@ class CandidateGenerator:
                 },
                 target_horizons=["H72H", "H30D", "H90D"],
                 protected_horizons=[],
+                target=integrity_target,
                 priority=9  # High priority for trust issues
             ))
 

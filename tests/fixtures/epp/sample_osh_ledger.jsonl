@@ -1,0 +1,3 @@
+{"run_id":"run123","status":"offline_required","transport_mode":"offline","job_id":"j1"}
+{"run_id":"run123","status":"offline_required","transport_mode":"offline","job_id":"j2"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j3"}

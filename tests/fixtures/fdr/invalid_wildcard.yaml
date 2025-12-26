@@ -1,0 +1,14 @@
+version: "0.1"
+components:
+  - component_id: "FDR_INVALID"
+    label: "Invalid wildcard"
+    description: "Invalid wildcard pattern"
+    domains: ["FORECAST"]
+    horizons: ["H72H"]
+    applicable_topic_keys: ["*term_cluster"]
+    trigger_specs:
+      - kind: "term_seen"
+        params: {min_count: 1}
+    falsifier_specs: []
+    scoring_key: "brier"
+    notes: "Invalid wildcard placement."

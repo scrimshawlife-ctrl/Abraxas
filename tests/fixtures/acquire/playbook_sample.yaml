@@ -1,0 +1,25 @@
+version: "0.1"
+rules:
+  - when:
+      gap_kind: "STRUCTURAL_GAP"
+      horizon_in: ["H1Y", "H5Y"]
+      domain_in: ["INTEGRITY", "FORECAST"]
+    recommend:
+      - kind: "ONLINE_FETCH"
+        method: "osh_allowlist_pull"
+        selector:
+          vector_node_ids: ["ai_deepfake_policy"]
+        cadence_hint: "weekly"
+        expected_impact_template:
+          metric: "coverage_rate"
+          delta: 0.02
+          portfolio: "long_horizon_integrity"
+      - kind: "OFFLINE_REQUEST"
+        method: "user_upload"
+        selector:
+          requested_items:
+            - name: "Policy/standards PDF or notes"
+              description: "Any documents describing verification standards."
+          file_types: ["pdf"]
+          redaction_notes: "Remove personal identifiers."
+        cadence_hint: "manual"

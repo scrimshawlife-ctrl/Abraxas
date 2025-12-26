@@ -1,0 +1,27 @@
+version: "0.1"
+components:
+  - component_id: "FDR_SYNTH_COST_CURVE"
+    label: "Synthetic generation cost curve"
+    description: "Cost/availability trends affecting synthetic content volume."
+    domains: ["INTEGRITY", "FORECAST"]
+    horizons: ["H1Y", "H2Y", "H5Y"]
+    applicable_topic_keys: ["deepfake_pollution"]
+    trigger_specs:
+      - kind: "index_threshold"
+        params: {index: "SSI", gte: 0.7}
+    falsifier_specs: []
+    scoring_key: "coverage_rate"
+    notes: "Long-horizon component; damp updates under high SSI unless evidence_pack."
+
+  - component_id: "FDR_SLANG_HANDLE_EMERGENCE"
+    label: "Emergent handle acceleration"
+    description: "New slang/handles indicating narrative attractors."
+    domains: ["AALMANAC", "FORECAST"]
+    horizons: ["H72H", "H30D", "H90D"]
+    applicable_topic_keys: ["term_cluster:*"]
+    trigger_specs:
+      - kind: "term_seen"
+        params: {min_count: 2}
+    falsifier_specs: []
+    scoring_key: "brier"
+    notes: "Short-horizon component; never directly moves H5Y regimes."

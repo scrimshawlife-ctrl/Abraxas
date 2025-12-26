@@ -12,6 +12,7 @@ Components:
 from .event_query import load_signal_events, load_domain_ledgers
 from .evaluator import evaluate_trigger, evaluate_case, BacktestResult
 from .schema import BacktestCase, TriggerSpec, BacktestStatus
+from .portfolio import load_portfolios, select_cases_for_portfolio
 
 __all__ = [
     "load_signal_events",
@@ -22,4 +23,6 @@ __all__ = [
     "BacktestCase",
     "TriggerSpec",
     "BacktestStatus",
+    "load_portfolios",
+    "select_cases_for_portfolio",
 ]
