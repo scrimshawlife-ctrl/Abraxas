@@ -2,39 +2,155 @@
   "papers": [
     {
       "paper_id": "PMC12281847",
-      "title": "Example SIR Model for Misinformation Spread",
-      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12281847/",
-      "year": 2024,
-      "notes": "Placeholder reference for SIR-type diffusion models"
+      "title": "A discrete SIR epidemic model incorporating media impact",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12281847/",
+      "year": null,
+      "notes": "SIR model with media impact (c2 parameter)"
     },
     {
-      "paper_id": "DOI:10.1016/example.2024.001",
-      "title": "Opinion Dynamics with Bounded Confidence",
-      "url": "https://doi.org/10.1016/example.2024.001",
-      "year": 2024,
-      "notes": "Placeholder reference for opinion dynamics models"
+      "paper_id": "PMC10250073",
+      "title": "Information-epidemic co-evolution propagation under policy intervention",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10250073/",
+      "year": null,
+      "notes": "Coupled information-epidemic dynamics with policy intervention"
     },
     {
-      "paper_id": "ARXIV:2024.12345",
-      "title": "Agent-Based Model of Social Media Misinformation",
-      "url": "https://arxiv.org/abs/2024.12345",
-      "year": 2024,
-      "notes": "Placeholder reference for ABM misinformation models"
+      "paper_id": "PMC12564303",
+      "title": "Coupled Dynamics of Information–Epidemic Spreading with Delayed Awareness",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12564303/",
+      "year": null,
+      "notes": "Coupled dynamics with delay parameter for awareness lag"
     },
     {
-      "paper_id": "DOI:10.1038/example.2024.002",
-      "title": "Network Cascade Models for Information Spread",
-      "url": "https://doi.org/10.1038/example.2024.002",
-      "year": 2024,
-      "notes": "Placeholder reference for network cascade models"
+      "paper_id": "ICWSM2025_VISUAL_ELEMENTS",
+      "title": "Epidemiological Modeling of Visual Elements in Digital Information",
+      "url": "https://workshop-proceedings.icwsm.org/pdf/2025_21.pdf",
+      "year": 2025,
+      "notes": "Epidemic modeling applied to visual misinformation spread"
     },
     {
-      "paper_id": "DOI:10.1073/example.2024.003",
-      "title": "Game-Theoretic Models of Propaganda and Defense",
-      "url": "https://doi.org/10.1073/example.2024.003",
-      "year": 2024,
-      "notes": "Placeholder reference for game-theoretic models"
+      "paper_id": "PMC11102523",
+      "title": "Using an epidemiological model to explore the interplay between information and disease",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11102523/",
+      "year": null,
+      "notes": "Information-disease interplay model"
+    },
+    {
+      "paper_id": "HAWAII_SIR_SEIZ",
+      "title": "Comparing SIR and SEIZ Models for COVID-19 Diffusion",
+      "url": "https://scholarspace.manoa.hawaii.edu/bitstreams/f3cad153-812b-40ac-8712-79ae4c7faede/download",
+      "year": null,
+      "notes": "Comparison of SIR and SEIZ (Skeptic-Exposed-Infected-Zealot) models"
+    },
+    {
+      "paper_id": "PMC8545016",
+      "title": "Dynamical SEIR Model With Information Entropy Using COVID-19",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8545016/",
+      "year": null,
+      "notes": "SEIR with information entropy component"
+    },
+    {
+      "paper_id": "ARXIV_OPINION_OVERVIEW",
+      "title": "Opinion Dynamics: A Comprehensive Overview",
+      "url": "https://arxiv.org/html/2511.00401v1",
+      "year": null,
+      "notes": "Comprehensive survey of opinion dynamics models"
+    },
+    {
+      "paper_id": "PMC9689558",
+      "title": "A Hybrid Opinion Formation and Polarization Model",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9689558/",
+      "year": null,
+      "notes": "Hybrid model combining bounded confidence and social influence"
+    },
+    {
+      "paper_id": "JASSS_OPINION_UNDETECTED",
+      "title": "Opinion Dynamics Model Revealing Yet Undetected Polarization",
+      "url": "https://www.jasss.org/26/4/12.html",
+      "year": null,
+      "notes": "Agent-based opinion dynamics with hidden polarization detection"
+    },
+    {
+      "paper_id": "SCIENCEDIRECT_MASS_MEDIA",
+      "title": "Opinion dynamics in social networks under the influence of mass media",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0096300324004375",
+      "year": null,
+      "notes": "Opinion dynamics with mass media influence parameter"
+    },
+    {
+      "paper_id": "JASSS_ARGUMENT_BASED",
+      "title": "Validating Argument-Based Opinion Dynamics with Survey Experiments",
+      "url": "https://www.jasss.org/27/1/17.html",
+      "year": null,
+      "notes": "Argument-based opinion dynamics with memory depth"
+    },
+    {
+      "paper_id": "DSAA2019_MISINFO",
+      "title": "Simulation of misinformation spreading processes in social networks",
+      "url": "https://iris.unito.it/retrieve/564ed016-c4b5-4241-9fb9-0abe0904ddb2/Simulation%20of%20misinformation%20spreading%20processes_DSAA2019.pdf",
+      "year": 2019,
+      "notes": "ABM simulation of misinformation spread with bot agents"
+    },
+    {
+      "paper_id": "ICWSM2021_ABM_FAKENEWS",
+      "title": "Can We Stop Fake News? Using Agent-Based Modelling to Explore Interventions",
+      "url": "https://workshop-proceedings.icwsm.org/pdf/2021_63.pdf",
+      "year": 2021,
+      "notes": "ABM with intervention mechanisms (correction, sanctions)"
+    },
+    {
+      "paper_id": "PMC11192300",
+      "title": "Digital cloning of online social networks for language-sensitive agent-based modeling",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11192300/",
+      "year": null,
+      "notes": "ABM with language-sensitive features and network structure"
+    },
+    {
+      "paper_id": "OPENREVIEW_ABM_SURVEY",
+      "title": "A Review of Social Media Simulation using Multi-agent Models",
+      "url": "https://openreview.net/pdf?id=eL61LbI4uv",
+      "year": null,
+      "notes": "Survey of ABM approaches for social media simulation"
+    },
+    {
+      "paper_id": "ARXIV_SPATIAL_GAMES",
+      "title": "Spatial Games of Fake News",
+      "url": "https://arxiv.org/abs/2206.04118",
+      "year": 2022,
+      "notes": "Canonical reference for spatial game-theoretic model. Duplicated in PMC10924450, PMC/PubMed 38463039, and PNAS Nexus."
+    },
+    {
+      "paper_id": "PNAS_SPATIAL_GAMES",
+      "title": "Containing misinformation: Modeling spatial games of fake news",
+      "url": "https://academic.oup.com/pnasnexus/article/3/3/pgae090/7614685",
+      "year": null,
+      "notes": "Published version in PNAS Nexus. Duplicate of ARXIV_SPATIAL_GAMES. Prefer arxiv for canonical parameters."
+    },
+    {
+      "paper_id": "PMC8559433",
+      "title": "The coupled dynamics of information dissemination and SEIR-based epidemic spreading",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8559433/",
+      "year": null,
+      "notes": "Coupled information-disease SEIR dynamics with inter-layer parameters"
+    },
+    {
+      "paper_id": "PMC10924450",
+      "title": "Containing misinformation: Modeling spatial games of fake news (PMC version)",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10924450/",
+      "year": null,
+      "notes": "Duplicate of ARXIV_SPATIAL_GAMES and PNAS_SPATIAL_GAMES. Same content, different repository."
+    },
+    {
+      "paper_id": "PUBMED_38463039",
+      "title": "Containing misinformation: Modeling spatial games of fake news (PubMed version)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38463039/",
+      "year": null,
+      "notes": "Duplicate of ARXIV_SPATIAL_GAMES. PubMed abstract/link. Prefer arxiv or PMC for full text."
     }
   ],
-  "count": 5
+  "count": 21,
+  "metadata": {
+    "last_updated": "2025-12-26",
+    "notes": "Excludes SEO lists, unrelated PDFs, and irrelevant search results. Duplicates tracked in notes field with canonical reference indicated."
+  }
 }

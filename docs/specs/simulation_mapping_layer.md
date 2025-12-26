@@ -216,13 +216,104 @@ Conservative defaults used when paper doesn't specify:
 
 ---
 
-## Paper Mapping Row Template
+## Paper Registry
 
-Use this template to document parameter mappings from specific papers:
+SML maintains a canonical registry of academic papers at `data/sim_sources/papers.json`.
 
-| Paper ID | Model Family | MRI params | IRI params | τ params | Notes | Confidence |
-|----------|--------------|------------|------------|----------|-------|------------|
-| PMC12281847 | DIFFUSION_SIR | β=0.3, k=10 | γ=0.1 | delay=2 | SIR w/ incubation | MED |
+**Registry Structure**:
+```json
+{
+  "papers": [
+    {
+      "paper_id": "PMC12281847",
+      "title": "A discrete SIR epidemic model incorporating media impact",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12281847/",
+      "year": null,
+      "notes": "SIR model with media impact (c2 parameter)"
+    }
+  ],
+  "count": 21,
+  "metadata": {
+    "last_updated": "2025-12-26",
+    "notes": "..."
+  }
+}
+```
+
+**Registry Functions**:
+```python
+from abraxas.sim_mappings.registry import (
+    load_paper_refs,      # Load all papers
+    get_paper_ref,        # Get specific paper by ID
+    list_papers,          # List papers with summary info
+    find_by_keyword,      # Search by keyword in title/notes
+)
+
+# Example: Find all SIR-related papers
+sir_papers = find_by_keyword("SIR")
+```
+
+---
+
+## Paper Mapping Table
+
+The mapping table (`data/sim_sources/paper_mapping_table.csv`) provides qualitative parameter scaffolds for all registered papers.
+
+**CSV Format**:
+```csv
+paper_id,model_family,mri_params,iri_params,tau_params,notes
+PMC12281847,DIFFUSION_SIR,beta; c2,gamma,delay; incubation,SIR with media impact
+```
+
+**Parameter Lists**: Semicolon-delimited parameter names (no numeric values)
+
+**Usage**:
+```python
+from abraxas.sim_mappings.importers import import_mappings_from_csv
+
+# Load all mapping scaffolds
+mappings = import_mappings_from_csv("data/sim_sources/paper_mapping_table.csv")
+
+# Each MappingResult has:
+#   - paper: PaperRef (from registry)
+#   - family: ModelFamily
+#   - input_params: List[ModelParam] (names only, no values)
+#   - mapped: KnobVector (stub with LOW confidence, all zeros)
+```
+
+**Paper Parameter Example Stubs**: Located in `data/sim_sources/examples/{paper_id}.json`
+
+---
+
+## Multi-Paper Aggregation
+
+SML supports aggregating multiple papers into a single set of SOD priors using confidence-weighted averaging.
+
+**Confidence Weights**:
+- HIGH: 1.0
+- MED: 0.75
+- LOW: 0.5
+
+**Usage**:
+```python
+from abraxas.sod.sim_adapter import aggregate_multi_paper_priors
+from abraxas.sim_mappings import map_paper_model
+
+# Map multiple papers
+mapping1 = map_paper_model(paper1, family1, params1)
+mapping2 = map_paper_model(paper2, family2, params2)
+
+# Aggregate into single SOD priors
+aggregated_priors = aggregate_multi_paper_priors([mapping1, mapping2])
+
+# Result includes:
+#   - All standard SOD priors
+#   - aggregated_knobs: Weighted mean knobs
+#   - sources: List of paper IDs
+#   - weights: Per-paper confidence weights
+#   - total_papers: Number of papers aggregated
+#   - aggregate_confidence: Maximum confidence level
+```
 
 ---
 
@@ -315,19 +406,23 @@ abx sim-map \
 
 ---
 
-## Future Extensions (Out of Scope for v1.0)
+## Future Extensions
 
-- Automatic parameter extraction from PDFs
-- Machine learning calibration
-- Real-time simulation execution
-- Multi-paper fusion
-- Dynamic parameter tuning based on observations
+- Automatic parameter extraction from PDFs using LLM-based parsing
+- Machine learning calibration based on real-world observations
+- Real-time simulation execution (currently only scaffolding/priors)
+- Dynamic parameter tuning based on feedback loops
+- Network topology extraction from academic figures
 
 ---
 
 ## References
 
 - Implementation: `abraxas/sim_mappings/`
-- SOD Adapter: `abraxas/sod/sim_adapter.py`
+- SOD Adapter: `abraxas/sod/sim_adapter.py` (includes multi-paper aggregation)
 - Paper Registry: `data/sim_sources/papers.json`
+- Paper Mapping Table: `data/sim_sources/paper_mapping_table.csv`
+- Example Stubs: `data/sim_sources/examples/{paper_id}.json`
+- CSV Importer: `abraxas/sim_mappings/importers.py`
+- CLI Tool: `abraxas/cli/sim_map.py`
 - Tests: `tests/test_sim_mappings_*.py`

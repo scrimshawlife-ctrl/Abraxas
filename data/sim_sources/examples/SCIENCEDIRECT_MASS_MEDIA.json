@@ -1,0 +1,31 @@
+{
+  "paper_id": "SCIENCEDIRECT_MASS_MEDIA",
+  "title": "Opinion dynamics in social networks under the influence of mass media",
+  "params": [
+    {
+      "name": "mu",
+      "symbol": "μ",
+      "value": null,
+      "description": "Mass media strength parameter"
+    },
+    {
+      "name": "media_influence",
+      "symbol": "I_m",
+      "value": null,
+      "description": "Media influence magnitude"
+    },
+    {
+      "name": "epsilon",
+      "symbol": "ε",
+      "value": null,
+      "description": "Confidence threshold"
+    },
+    {
+      "name": "update_frequency",
+      "symbol": "f_u",
+      "value": null,
+      "description": "Opinion update frequency"
+    }
+  ],
+  "notes": "Opinion dynamics with mass media influence parameter. Media acts as external force on opinion formation."
+}

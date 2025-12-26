@@ -1,0 +1,25 @@
+{
+  "paper_id": "PMC8545016",
+  "title": "Dynamical SEIR Model With Information Entropy Using COVID-19",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Transmission rate"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    },
+    {
+      "name": "incubation",
+      "symbol": "σ",
+      "value": null,
+      "description": "Incubation period"
+    }
+  ],
+  "notes": "SEIR with information entropy component affecting transmission dynamics."
+}
