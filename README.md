@@ -279,6 +279,111 @@ Production-grade reliability for edge deployment:
 - [x] **Systemd Services** — Production deployment units
 - [x] **Lexicon Engine v1** — Domain-scoped, versioned token-weight mapping
 - [x] **Oracle Pipeline v1** — Deterministic oracle generation from correlation deltas
+- [x] **Abraxas v1.4** — Temporal & Adversarial Expansion
+
+### Abraxas v1.4: Temporal & Adversarial Expansion
+
+**Version 1.4.0** introduces three foundational layers for temporal dynamics, adversarial resilience, and second-order narrative modeling:
+
+#### τ (Tau) Operator: Temporal Metrics
+
+Three complementary temporal metrics for symbolic lifecycle tracking:
+
+- **τₕ (Tau Half-Life)**: Symbolic persistence under declining reinforcement (hours)
+- **τᵥ (Tau Velocity)**: Emergence/decay slope from time-series (events/day)
+- **τₚ (Tau Phase Proximity)**: Distance to next lifecycle boundary [0,1]
+
+```python
+from abraxas.core.temporal_tau import TauCalculator, Observation
+
+calculator = TauCalculator(git_sha="abc123")
+snapshot = calculator.compute_snapshot(observations, run_id="RUN-001")
+
+print(f"τₕ = {snapshot.tau_half_life:.2f} hours")
+print(f"τᵥ = {snapshot.tau_velocity:.2f} events/day")
+print(f"Confidence: {snapshot.confidence.value}")
+```
+
+#### D/M Layer: Information Integrity Metrics
+
+Risk/likelihood estimators for information integrity assessment (NOT truth adjudication):
+
+**Artifact Integrity**: PPS, PCS, MMS, SLS, EIS
+**Narrative Manipulation**: FLS, EIL, OCS, RRS, MPS, CIS
+**Network/Campaign**: CUS, SVS, BAS, MDS
+
+**Composite Risk Indices**:
+- **IRI** (Integrity Risk Index): [0,100]
+- **MRI** (Manipulation Risk Index): [0,100]
+
+```python
+from abraxas.integrity import compute_composite_risk
+
+risk = compute_composite_risk(artifact_integrity, narrative_manipulation, network_campaign)
+print(f"IRI = {risk.iri:.1f}, MRI = {risk.mri:.1f}")
+```
+
+#### AAlmanac: Write-Once, Annotate-Only Ledger
+
+Lifecycle state machine for symbolic evolution tracking:
+
+**States**: Proto → Front → Saturated → Dormant → Archived
+
+```python
+from abraxas.slang.a_almanac_store import AAlmanacStore
+
+store = AAlmanacStore()
+term_id = store.create_entry_if_missing(term="cap", class_id="slang", ...)
+state, tau = store.compute_current_state(term_id)
+```
+
+#### SOD (Second-Order Symbolic Dynamics)
+
+Deterministic scaffolds for narrative cascade modeling:
+
+- **NCP** (Narrative Cascade Predictor): Predicts cascade scenarios
+- **CNF** (Counter-Narrative Forecaster): Generates counter-strategies
+- **EFTE** (Epistemic Fatigue Threshold Engine): Models declining engagement
+- **SPM** (Susceptibility Profile Mapper): Maps susceptibility profiles
+- **RRM** (Recovery & Re-Stabilization Model): Models recovery trajectories
+
+```python
+from abraxas.sod import NarrativeCascadePredictor, SODInput
+
+ncp = NarrativeCascadePredictor(top_k=5)
+envelope = ncp.predict(sod_input, run_id="RUN-001")
+```
+
+#### Artifact Generators
+
+Five specialized output formats:
+
+- **Cascade Sheet**: Tabular summary of cascade paths
+- **Manipulation Surface Map**: Heatmap data for D/M metrics
+- **Contamination Advisory**: High-risk artifact alerts
+- **Trust Drift Graph Data**: Time-series for τₕ and IRI/MRI
+- **Oracle Delta Ledger**: Diff between current and prior snapshots
+
+#### v1.4 CLI
+
+```bash
+python -m abraxas.cli.abx_run_v1_4 \
+  --observations data/obs.json \
+  --format both \
+  --artifacts cascade_sheet,contamination_advisory \
+  --output-dir data/runs/v1_4
+```
+
+**Features**:
+- Delta-only mode (default): Emits only changed fields
+- JSON/Markdown dual output
+- Deterministic provenance embedding
+- Confidence bands (LOW/MED/HIGH)
+
+**Documentation**:
+- [v1.4 Specification](docs/specs/v1_4_temporal_adversarial.md)
+- [SOD Specification](docs/specs/sod_second_order_dynamics.md)
+- [Canonical Ledger](docs/canon/ABRAXAS_CANON_LEDGER.txt)
 
 ### 🚧 In Progress
 
