@@ -1,0 +1,42 @@
+{
+  "envelopes": [
+    {
+      "confidence": "HIGH",
+      "falsifiers": [
+        "Spread diverges from baseline MRI"
+      ],
+      "label": "baseline",
+      "paths": [
+        {
+          "duration_hours": 48,
+          "path_id": "path_001",
+          "probability": 0.75,
+          "terminus": "Saturation",
+          "trigger": "Viral meme emerges"
+        },
+        {
+          "duration_hours": 72,
+          "path_id": "path_002",
+          "probability": 0.6,
+          "terminus": "Containment",
+          "trigger": "Influencer amplification"
+        }
+      ],
+      "priors": {
+        "IRI": 0.55,
+        "MRI": 0.6,
+        "tau_latency": 0.3,
+        "tau_memory": 0.5
+      }
+    }
+  ],
+  "focus_cluster": null,
+  "provenance": {
+    "envelope_count": 1,
+    "generator": "scenario_envelope_runner",
+    "timestamp": "2025-01-01T00:00:00+00:00",
+    "version": "1.0.0"
+  },
+  "run_id": "test_cascade_001",
+  "timestamp": "2025-01-01T00:00:00+00:00"
+}

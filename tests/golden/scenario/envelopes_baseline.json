@@ -1,0 +1,54 @@
+[
+  {
+    "falsifiers": [
+      "Observed spread diverges significantly from baseline MRI",
+      "Damping dynamics violate baseline IRI assumptions"
+    ],
+    "label": "baseline",
+    "priors": {
+      "IRI": 0.5,
+      "MRI": 0.5,
+      "tau_latency": 0.3,
+      "tau_memory": 0.5
+    }
+  },
+  {
+    "falsifiers": [
+      "Phrase rigidity (MDS) increases while spread stays flat",
+      "Cross-cluster correlations decrease despite high MRI"
+    ],
+    "label": "push_spread_up",
+    "priors": {
+      "IRI": 0.5,
+      "MRI": 0.65,
+      "tau_latency": 0.3,
+      "tau_memory": 0.5
+    }
+  },
+  {
+    "falsifiers": [
+      "Intervention response time lengthens despite high IRI",
+      "Counter-narrative effectiveness shows no improvement"
+    ],
+    "label": "damping_up",
+    "priors": {
+      "IRI": 0.65,
+      "MRI": 0.5,
+      "tau_latency": 0.3,
+      "tau_memory": 0.5
+    }
+  },
+  {
+    "falsifiers": [
+      "Narrative persistence decays faster than tau_memory predicts",
+      "Latency effects disappear earlier than tau_latency window"
+    ],
+    "label": "memory_long",
+    "priors": {
+      "IRI": 0.5,
+      "MRI": 0.5,
+      "tau_latency": 0.4,
+      "tau_memory": 0.7
+    }
+  }
+]
