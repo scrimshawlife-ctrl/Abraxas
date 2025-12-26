@@ -93,6 +93,16 @@ class Provenance(BaseModel):
     siw_version: Optional[str] = None
 
 
+class ForecastBranchRef(BaseModel):
+    """Reference to forecast branch for scoring."""
+
+    ensemble_id: str = Field(description="Ensemble ID")
+    branch_id: str = Field(description="Branch ID")
+    predicted_p_at_ts: str = Field(
+        description="Timestamp for predicted probability or 'auto' for latest"
+    )
+
+
 class BacktestCase(BaseModel):
     """Complete backtest case specification."""
 
@@ -106,6 +116,11 @@ class BacktestCase(BaseModel):
     guardrails: Guardrails = Field(default_factory=Guardrails)
     scoring: Scoring
     provenance: Provenance = Field(default_factory=Provenance)
+
+    # Optional: Link to forecast branch for scoring
+    forecast_branch_ref: Optional[ForecastBranchRef] = Field(
+        default=None, description="Optional forecast branch reference for scoring"
+    )
 
 
 class TriggerResult(BaseModel):
@@ -130,3 +145,8 @@ class BacktestResult(BaseModel):
     notes: List[str] = Field(default_factory=list)
     provenance: Dict[str, Any] = Field(default_factory=dict)
     evaluated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Optional: Forecast scoring if forecast_branch_ref was present
+    forecast_scoring: Optional[Dict[str, Any]] = Field(
+        default=None, description="Forecast branch scoring metrics"
+    )
