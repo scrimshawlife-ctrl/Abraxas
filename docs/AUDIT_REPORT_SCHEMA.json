@@ -1,0 +1,125 @@
+{
+  "schema_version": "0.1",
+  "name": "AbraxasCanonAuditReport",
+  "generated_at_utc": "ISO-8601",
+  "repo": {
+    "url": "string",
+    "commit": "string",
+    "dirty": "boolean"
+  },
+  "runtime_fingerprint": {
+    "python": "string",
+    "node": "string",
+    "platform": "string"
+  },
+  "canon_targets": {
+    "seed_enforced": "boolean",
+    "provenance_embedded": "boolean",
+    "abx_runes_only_coupling": "boolean",
+    "detector_purity": "boolean",
+    "governance_gates": "boolean",
+    "aalmanac_append_only": "boolean",
+    "ipo_incremental_patch_only": "boolean",
+    "stabilization_window": "boolean"
+  },
+  "scores": {
+    "rune_coverage_pct": "number",
+    "rune_invoke_ratio": "number",
+    "hidden_coupling_count": "number",
+    "side_effect_count": "number",
+    "governance_bypass_count": "number",
+    "detector_purity_violations": "number",
+    "forbidden_actuation_count": "number",
+    "cross_boundary_import_count": "number"
+  },
+  "findings": {
+    "hidden_coupling": [
+      {
+        "kind": "string",
+        "file": "string",
+        "line": "number",
+        "symbol": "string",
+        "recommendation": "string"
+      }
+    ],
+    "side_effects": [
+      {
+        "kind": "string",
+        "file": "string",
+        "line": "number",
+        "symbol": "string",
+        "risk": "string",
+        "recommendation": "string"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "string",
+        "file": "string",
+        "line": "number",
+        "symbol": "string",
+        "recommendation": "string"
+      }
+    ],
+    "detector_purity": [
+      {
+        "file": "string",
+        "line": "number",
+        "symbol": "string",
+        "violation": "string",
+        "recommendation": "string"
+      }
+    ],
+    "forbidden_actuation": [
+      {
+        "kind": "string",
+        "file": "string",
+        "line": "number",
+        "symbol": "string",
+        "recommendation": "string"
+      }
+    ],
+    "cross_boundary_imports": [
+      {
+        "kind": "string",
+        "from": "string",
+        "to": "string",
+        "file": "string",
+        "line": "number",
+        "symbol": "string",
+        "recommendation": "string"
+      }
+    ],
+    "coupling_graph": {
+      "boundary": [
+        {
+          "to": "string",
+          "file": "string",
+          "line": "number",
+          "symbol": "string"
+        }
+      ]
+    },
+    "stabilization_window": [
+      {
+        "module": "string",
+        "status": "string",
+        "recommendation": "string"
+      }
+    ],
+    "ipo_policy": [
+      {
+        "status": "string",
+        "recommendation": "string"
+      }
+    ]
+  },
+  "provenance_bundle": {
+    "config_sha256": "string",
+    "report_sha256": "string",
+    "inputs": {
+      "registry_sha256": "string",
+      "schema_sha256": "string"
+    }
+  }
+}
