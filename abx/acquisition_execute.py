@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 
 from abx.capabilities import detect_capabilities
 from abx.task_ledger import task_event
+from abx.online_sourcing import route_online_sources
 
 
 def _utc_now_iso() -> str:
@@ -109,20 +110,41 @@ def execute_plan(
             )
             continue
 
-        if mode == "decodo" and not caps.get("decodo_available", False):
-            pkt = _offline_packet(t)
-            blocked.append({"task": t, "reason": "decodo_unavailable", "offline_packet": pkt})
+        # If Decodo isn't available, attempt other online sourcing before going offline.
+        if mode in ("decodo", "online") and caps.get("online_allowed", False):
+            # known_urls can come from task steps later; for now, allow empty.
+            query = f"{term} {task_kind}".strip()
+            routing = route_online_sources(term=term, query=query, known_urls=[], caps=caps)
+            prov = routing.get("provider")
+            if prov == "none":
+                pkt = _offline_packet(t)
+                blocked.append({"task": t, "reason": "no_online_provider_available", "offline_packet": pkt})
+                task_event(
+                    ledger=ledger_path,
+                    run_id=run_id,
+                    task_id=task_id,
+                    status="BLOCKED",
+                    mode=mode,
+                    claim_id=claim_id,
+                    term=term,
+                    task_kind=task_kind,
+                    detail="Blocked: no online provider available; offline packet emitted",
+                    artifacts={"offline_packet": pkt},
+                )
+                continue
+            # We record the routing decision as a completed step; actual fetching/parsing comes in WO-78/79.
+            executed.append({"task": t, "result": "routed_online", "routing": routing})
             task_event(
                 ledger=ledger_path,
                 run_id=run_id,
                 task_id=task_id,
-                status="BLOCKED",
+                status="COMPLETED",
                 mode=mode,
                 claim_id=claim_id,
                 term=term,
                 task_kind=task_kind,
-                detail="Blocked: Decodo not configured (DECODO_API_KEY missing)",
-                artifacts={"offline_packet": pkt},
+                detail=f"Completed: routed_online provider={prov}",
+                artifacts={"routing": routing},
             )
             continue
 
@@ -143,20 +165,6 @@ def execute_plan(
                 artifacts={"offline_packet": pkt},
             )
             continue
-
-        # Placeholder for online/decodo execution — handled in WO-78 operator
-        executed.append({"task": t, "result": "deferred_to_online_operator"})
-        task_event(
-            ledger=ledger_path,
-            run_id=run_id,
-            task_id=task_id,
-            status="COMPLETED",
-            mode=mode,
-            claim_id=claim_id,
-            term=term,
-            task_kind=task_kind,
-            detail="Completed: deferred to online operator (WO-78)",
-        )
 
     return {
         "version": "acquisition_execute.v0.1",
