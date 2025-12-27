@@ -17,10 +17,12 @@ from .daily_run_receipt import (
     create_rent_metrics_from_manifests,
     generate_run_receipt,
 )
+from .proof_bundle import generate_proof_bundle
 
 __all__ = [
     "DailyRunReceipt",
     "RentMetrics",
     "create_rent_metrics_from_manifests",
     "generate_run_receipt",
+    "generate_proof_bundle",
 ]

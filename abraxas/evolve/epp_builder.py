@@ -101,6 +101,16 @@ def build_epp(
         )
     )
 
+    forecast_score_path = str(inputs_dir_path / f"forecast_score_{run_id}.json")
+    forecast_score = _read_json_if_exists(forecast_score_path)
+    proposals.extend(
+        _proposals_from_gate(
+            run_id=run_id,
+            gate=forecast_score.get("gate") if isinstance(forecast_score, dict) else None,
+            forecast_score_path=forecast_score_path if forecast_score else None,
+        )
+    )
+
     audit = _read_audit(audit_path)
     proposals.extend(
         _proposals_from_audit(
@@ -144,6 +154,7 @@ def build_epp(
             "mwr_path": mwr_path if mwr else None,
             "a2_path": a2_path if a2 else None,
             "a2_phase_path": a2_phase_path if a2_phase else None,
+            "forecast_score_path": forecast_score_path if forecast_score else None,
             "audit_path": audit_path if audit else None,
         },
     )
@@ -686,6 +697,9 @@ def _summarize(proposals: List[EvolutionProposal], osh_stats: Dict[str, float]) 
     summary["offline_escalations"] = _top_targets(
         proposals, ProposalKind.OFFLINE_EVIDENCE_ESCALATION
     )
+    summary["evidence_escalations"] = _top_targets(
+        proposals, ProposalKind.EVIDENCE_ESCALATION
+    )
 
     return summary
 
@@ -724,6 +738,8 @@ def _render_md(pack: EvolutionProposalPack) -> str:
     lines.extend(_render_proposal_list(pack, ProposalKind.VECTOR_NODE_CADENCE_CHANGE))
     lines.extend(["", "## Offline escalations"])
     lines.extend(_render_proposal_list(pack, ProposalKind.OFFLINE_EVIDENCE_ESCALATION))
+    lines.extend(["", "## Evidence escalations"])
+    lines.extend(_render_proposal_list(pack, ProposalKind.EVIDENCE_ESCALATION))
     lines.extend(["", "## Component focus suggestions"])
     lines.extend(_render_proposal_list(pack, ProposalKind.COMPONENT_FOCUS_SUGGESTION))
     return "\n".join(lines)
@@ -978,6 +994,50 @@ def _proposals_from_a2_phase(
             risk={"integrity_risk": _clamp(mean_risk), "coverage_risk": 0.05},
             confidence=float(0.6 + 0.2 * _clamp(mean_v14)),
             provenance={"a2_phase_path": a2_phase_path},
+        )
+    ]
+
+
+def _proposals_from_gate(
+    *,
+    run_id: str,
+    gate: Optional[Dict[str, Any]],
+    forecast_score_path: Optional[str],
+) -> List[EvolutionProposal]:
+    if not isinstance(gate, dict):
+        return []
+    escalation = str(gate.get("evidence_escalation") or "none")
+    if escalation == "none":
+        return []
+
+    target = {"unit_id": "forecast_gate", "unit_kind": "gate_policy"}
+    recommended_change = {
+        "action": escalation,
+        "note": "Gate policy requests stronger evidence under current fog conditions.",
+    }
+    rationale = {
+        "evidence_escalation": escalation,
+        "eeb_multiplier": gate.get("eeb_multiplier"),
+        "score": 0.6 if escalation == "online_escalation" else 0.75,
+    }
+    payload = {
+        "kind": ProposalKind.EVIDENCE_ESCALATION.value,
+        "target": target,
+        "recommended_change": recommended_change,
+        "rationale": rationale,
+    }
+    proposal_id = f"epp_{hash_canonical_json(payload)[:16]}"
+    return [
+        EvolutionProposal(
+            proposal_id=proposal_id,
+            kind=ProposalKind.EVIDENCE_ESCALATION,
+            target=target,
+            rationale=rationale,
+            recommended_change=recommended_change,
+            expected_impact={"metric": "evidence_quality", "delta": 0.02},
+            risk={"integrity_risk": 0.1, "coverage_risk": 0.08},
+            confidence=0.62 if escalation == "online_escalation" else 0.7,
+            provenance={"forecast_score_path": forecast_score_path, "run_id": run_id},
         )
     ]
 
