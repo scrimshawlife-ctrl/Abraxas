@@ -36,6 +36,7 @@ def main() -> int:
     regime_path = _latest(args.out_reports, "regime_shift_*.json")
     pis_path = _latest(args.out_reports, "proof_integrity_*.json")
     em_path = _latest(args.out_reports, "evidence_metrics_*.json")
+    tm_path = _latest(args.out_reports, "truth_contamination_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
@@ -45,6 +46,7 @@ def main() -> int:
     regime = _read_json(regime_path) if regime_path else {}
     pis = _read_json(pis_path) if pis_path else {}
     em = _read_json(em_path) if em_path else {}
+    tm = _read_json(tm_path) if tm_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -132,6 +134,23 @@ def main() -> int:
     else:
         md.append("- (no evidence metrics found; run `python -m abx.evidence_graph_compile` and `python -m abx.evidence_metrics`)")
     md.append("")
+    md.append("## Truth Contamination Map (Manipulation × Coherence)")
+    if tm and isinstance(tm.get("quadrant_counts"), dict):
+        qc = tm["quadrant_counts"]
+        md.append(f"- Quadrant counts: {qc}")
+        md.append("")
+        md.append("| claim_id | CS_score | ML_score | quadrant |")
+        md.append("|---|---:|---:|---|")
+        claims = tm.get("claims") if isinstance(tm.get("claims"), dict) else {}
+        # show top 10 by ML_score
+        ranked = sorted(claims.items(), key=lambda kv: float((kv[1] or {}).get('ML_score') or 0.0), reverse=True)[:10]
+        for cid, v in ranked:
+            if not isinstance(v, dict):
+                continue
+            md.append(f"| {cid} | {float(v.get('CS_score') or 0.0):.3f} | {float(v.get('ML_score') or 0.0):.3f} | {v.get('quadrant','')} |")
+    else:
+        md.append("- (no truth contamination map found; run `python -m abx.truth_contamination`)")
+    md.append("")
     md.append("## Regime shift detector")
     if regime:
         md.append(f"- regime_shift: **{bool(regime.get('regime_shift'))}**")
@@ -157,6 +176,7 @@ def main() -> int:
     md.append(f"- regime_shift: {regime_path}")
     md.append(f"- proof_integrity: {pis_path}")
     md.append(f"- evidence_metrics: {em_path}")
+    md.append(f"- truth_contamination: {tm_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"
