@@ -182,8 +182,14 @@ ABX-Runes provides automatic operator resolution via the dynamic dispatcher:
 ```python
 from abraxas.runes.operators import dispatch
 
-# Dispatch rune by ID
-result = dispatch("ϟ₁", semantic_field=data, context_vector=ctx, anchor_candidates=candidates)
+# Dispatch rune by ID (ctx required)
+result = dispatch(
+    "ϟ₁",
+    ctx=ctx,
+    semantic_field=data,
+    context_vector=ctx,
+    anchor_candidates=candidates,
+)
 
 # Result contains operator outputs
 print(result["anchored_field"])

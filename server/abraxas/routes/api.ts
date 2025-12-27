@@ -11,13 +11,10 @@
  * All business logic delegated to pipelines and core modules
  */
 
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import type { Server } from "http";
 import crypto from "crypto";
 
-// Import from existing modules (no duplication)
-// @ts-ignore - Legacy JS modules, type declarations pending
-import { getTodayRunes, runRitual } from "../../runes";
 import { scoreWatchlists } from "../pipelines/watchlist-scorer";
 import { generateDailyOracle, type OracleSnapshot } from "../pipelines/daily-oracle";
 import { analyzeVCMarket } from "../pipelines/vc-analyzer";
@@ -30,9 +27,16 @@ import {
 // @ts-ignore - Legacy JS module
 import metrics from "../../metrics";
 import { sqliteDb } from "../integrations/sqlite-adapter";
-import { initializeRitual } from "../integrations/runes-adapter";
+import { initializeRitual, getTodaysRunes } from "../integrations/runes-adapter";
+import { buildRuneCtx } from "../runes/ctx.js";
 import { getCacheStats, clearAllCaches, performanceMonitor } from "../core/performance";
 import { getKernelPerformanceStats } from "../core/kernel-optimized";
+
+function buildRequestCtx(req: Request, subsystemId: string): ReturnType<typeof buildRuneCtx> {
+  return buildRuneCtx(subsystemId, {
+    runId: req.header("x-run-id") || crypto.randomUUID(),
+  });
+}
 
 /**
  * Register all Abraxas API routes
@@ -70,7 +74,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
    * Returns today's active runes
    */
   app.get("/api/runes", (req, res) => {
-    const runes = getTodayRunes();
+    const runes = getTodaysRunes(buildRequestCtx(req, "abraxas_api"));
     res.json(runes);
   });
 
@@ -88,7 +92,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
    * Generates daily oracle ciphergram with symbolic analysis
    */
   app.get("/api/daily-oracle", (req, res) => {
-    const ritual = initializeRitual();
+    const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
     const snapshot = metrics.snapshot();
 
     // Create oracle snapshot from metrics
@@ -121,7 +125,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
       const { equities = [], fx = [] } = req.body || {};
 
       // Initialize ritual using ABX-Runes adapter
-      const ritual = initializeRitual();
+      const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
 
       // Score watchlists using refactored pipeline
       const results = await scoreWatchlists({ equities, fx }, ritual);
@@ -195,7 +199,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
    * Returns current social media trends analysis
    */
   app.get("/api/social-trends", (req, res) => {
-    const ritual = initializeRitual();
+    const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
     const trends = getCurrentTrends(ritual);
     res.json(trends);
   });
@@ -205,7 +209,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
    * Triggers fresh social trends scan
    */
   app.post("/api/social-trends/scan", async (req, res) => {
-    const ritual = initializeRitual();
+    const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
     const trends = triggerTrendsScan(ritual);
 
     broadcast("social_trends", trends);
@@ -228,7 +232,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
         horizonDays = 90,
       } = req.body || {};
 
-      const ritual = initializeRitual();
+      const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
       const analysis = await analyzeVCMarket(
         { industry, region, horizonDays },
         ritual
@@ -252,7 +256,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
   app.get("/api/weather", async (req, res) => {
     try {
       const format = (req.query.format as string) || "json";
-      const ritual = initializeRitual();
+      const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
       const weather = await generateStandaloneWeather(ritual);
 
       if (format === "markdown") {
@@ -273,7 +277,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
   app.get("/api/weather/oracle", async (req, res) => {
     try {
       const format = (req.query.format as string) || "json";
-      const ritual = initializeRitual();
+      const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
       const result = await generateWeatherOracle(ritual);
 
       if (format === "markdown") {
@@ -295,7 +299,7 @@ export function registerAbraxasRoutes(app: Express, server: Server): void {
   app.post("/api/weather/forecast", async (req, res) => {
     try {
       const format = (req.body?.format as string) || "json";
-      const ritual = initializeRitual();
+      const ritual = initializeRitual(buildRequestCtx(req, "abraxas_api"));
       const weather = await generateStandaloneWeather(ritual);
 
       if (format === "markdown") {

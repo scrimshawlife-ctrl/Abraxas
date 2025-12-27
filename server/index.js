@@ -3,7 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import http from "http";
 import passport from "passport";
-import { runRitual, getTodayRunes } from "./runes.js";
+import { buildRuneCtx } from "./abraxas/runes/ctx.js";
+import { invokeRuneByCapability } from "./abraxas/runes/invoke.js";
 import { scoreWatchlists, getWeights, setWeights, DEFAULT_FEATURE_WEIGHTS } from "./abraxas.js";
 import metrics, { persistAllSnapshots } from "./metrics.js";
 import { seal, fingerprint } from "./crypto.js";
@@ -84,7 +85,13 @@ app.get("/api/grimoire", (req,res)=>{
 });
 
 // Ritual core
-app.get("/api/runes", (req,res)=> res.json(getTodayRunes()));
+const buildRequestCtx = (req) =>
+  buildRuneCtx("server_api", { runId: req.headers["x-run-id"] || uuidv4() });
+
+app.get("/api/runes", (req,res)=> {
+  const runes = invokeRuneByCapability("runes:get_today", {}, buildRequestCtx(req));
+  res.json(runes);
+});
 app.get("/api/stats", (req,res)=> res.json(metrics.snapshot()));
 app.get("/api/daily-oracle", (req,res)=>{
   const s = metrics.snapshot();
@@ -97,7 +104,7 @@ app.get("/api/daily-oracle", (req,res)=>{
 
 app.post("/api/ritual", async (req, res) => {
   const { equities = [], fx = [] } = req.body || {};
-  const ritual = runRitual();
+  const ritual = invokeRuneByCapability("runes:run_ritual", {}, buildRequestCtx(req));
   const results = scoreWatchlists({ equities, fx }, ritual);
 
   ["federal_register:DFARS:2025-2191","sam.gov:notice:W91:modP00043","uspto:ptab:IPR-2025-1234"].forEach(s=>metrics.addSource(fingerprint(s)));
