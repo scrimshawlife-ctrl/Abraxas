@@ -16,7 +16,13 @@
         {"name": "config", "type": "object", "required": true},
         {"name": "seed", "type": "integer", "required": false}
       ],
-      "outputs": ["compression_event", "metrics", "provenance_bundle"],
+      "outputs": [
+        {"name": "compression_event", "type": "object", "required": true},
+        {"name": "metrics", "type": "object", "required": false},
+        {"name": "labels", "type": "array", "required": false},
+        {"name": "confidence", "type": "number", "required": false},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
       "evidence_mode": "detector_only",
       "suggested_impl": ["abraxas/*compression*", "abraxas/*sco*", "abraxas/*eco*"]
     },
@@ -54,7 +60,13 @@
         {"name": "config", "type": "object", "required": false},
         {"name": "seed", "type": "integer", "required": false}
       ],
-      "outputs": ["action_plan", "audit_log", "provenance_bundle"],
+      "outputs": [
+        {"name": "issues", "type": "array", "required": true},
+        {"name": "action_plan", "type": "array", "required": true},
+        {"name": "evidence", "type": "object", "required": true},
+        {"name": "audit_log", "type": "object", "required": false},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
       "evidence_mode": "detector_only",
       "suggested_impl": ["infra/self_heal_advisory.py"]
     },
@@ -68,7 +80,12 @@
         {"name": "config", "type": "object", "required": false},
         {"name": "seed", "type": "integer", "required": false}
       ],
-      "outputs": ["apply_receipt", "audit_log", "provenance_bundle"],
+      "outputs": [
+        {"name": "apply_receipt", "type": "object", "required": true},
+        {"name": "verification", "type": "object", "required": true},
+        {"name": "audit_log", "type": "array", "required": true},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
       "evidence_mode": "ops_actuator",
       "suggested_impl": ["infra/actuator.py"]
     },

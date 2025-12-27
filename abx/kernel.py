@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from abx.purity import detector_purity_guard
-from abx.schema_registry import schema_for
+from abx.schema_registry import payload_schema_for, result_schema_for
 from abx.validate import validate_payload
 from shared.aAlmanac import record_event
 from shared.rune_ledger import record_invocation
@@ -88,7 +88,8 @@ def invoke(
     if not is_allowed(policy_doc, rune_id):
         raise PermissionError(f"Rune denied by policy: {rune_id}")
 
-    spec = schema_for(rune_id)
+    # Payload validation (inputs)
+    spec = payload_schema_for(rune_id)
     if spec is not None:
         ok, errs = validate_payload(payload or {}, spec)
         if not ok:
@@ -164,6 +165,17 @@ def invoke(
                 f"Rune wired but not yet routed: {rune_id}"
             )
 
+    # Result validation (outputs) - strict for actuators, soft for detectors
+    r_spec = result_schema_for(rune_id)
+    if r_spec is not None:
+        ok, errs = validate_payload(result or {}, r_spec)
+        if not ok:
+            if is_actuator:
+                # Strict validation for actuators
+                raise ValueError(f"Result validation failed for {rune_id}: {errs}")
+            # Soft validation for detectors - log warning
+            # (will be captured in provenance below)
+
     provenance_bundle = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "repo_commit": _git_commit(),
@@ -171,6 +183,15 @@ def invoke(
         "runtime_fingerprint": _runtime_fingerprint(),
         "seed": seed,
     }
+
+    # Add result validation warning for detectors
+    if r_spec is not None and is_detector:
+        ok, errs = validate_payload(result or {}, r_spec)
+        if not ok:
+            provenance_bundle["result_validation_warning"] = {
+                "rune_id": rune_id,
+                "errors": errs,
+            }
 
     callsite: dict[str, Any] = {}
     try:

@@ -140,6 +140,19 @@ def count_untyped_registry_inputs(registry: dict) -> list:
     return out
 
 
+def count_untyped_registry_outputs(registry: dict) -> list:
+    """Flag runes that still use old-format string-list outputs."""
+    out = []
+    if not registry:
+        return out
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        outs = r.get("outputs")
+        if isinstance(outs, list) and outs and isinstance(outs[0], str):
+            out.append({"rune_id": rid, "reason": "outputs_untyped_string_list"})
+    return out
+
+
 def find_imports(path: Path):
     lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     out = []
@@ -190,6 +203,7 @@ def audit():
 
     registry, registry_sha = load_registry()
     untyped_inputs = count_untyped_registry_inputs(registry)
+    untyped_outputs = count_untyped_registry_outputs(registry)
 
     hidden_coupling = []
     side_effects = []
@@ -369,6 +383,7 @@ def audit():
             "rune_coverage_pct": rune_coverage_pct,
             "rune_invoke_ratio": rune_invoke_ratio,
             "untyped_rune_inputs_count": len(untyped_inputs),
+            "untyped_rune_outputs_count": len(untyped_outputs),
             "hidden_coupling_count": len(hidden_coupling),
             "side_effect_count": len(side_effects),
             "governance_bypass_count": 0,
@@ -378,6 +393,7 @@ def audit():
         },
         "findings": {
             "untyped_rune_inputs": untyped_inputs[:500],
+            "untyped_rune_outputs": untyped_outputs[:500],
             "hidden_coupling": hidden_coupling[:500],
             "side_effects": side_effects[:500],
             "governance": [],
