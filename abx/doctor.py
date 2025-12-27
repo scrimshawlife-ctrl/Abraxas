@@ -125,6 +125,19 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
         f"{scores.get('cross_boundary_import_count')}"
     )
     print(f"\naudit_report: {audit_path}")
+
+    # Runtime events telemetry hint
+    runtime_events_path = REPO_ROOT / "data" / "runtime_events.log"
+    if runtime_events_path.exists():
+        try:
+            with runtime_events_path.open("r", encoding="utf-8") as f:
+                event_count = sum(1 for _ in f)
+            print(f"runtime_events:  {event_count} events recorded")
+        except Exception:
+            print("runtime_events:  (error reading)")
+    else:
+        print("runtime_events:  none recorded yet")
+
     print("=====================================\n")
     if int(scores.get("forbidden_actuation_count") or 0) > 0:
         offenders = (findings.get("forbidden_actuation") or [])[:10]
