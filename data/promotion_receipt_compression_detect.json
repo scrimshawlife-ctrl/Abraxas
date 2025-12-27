@@ -1,0 +1,17 @@
+{
+  "action_payload": {
+    "rune_id": "compression.detect"
+  },
+  "action_rune_id": "governance.promote_rune",
+  "decided_by": "daniel",
+  "decision": "APPROVE",
+  "evidence_bundle": {
+    "promotion_event": true,
+    "registry_sha256": "7402b66df0c6848b1c773a6ef20e5fd06c9c818b633edb5e324be9b3c479a0ea",
+    "rune_id": "compression.detect"
+  },
+  "governance_receipt_id": "65c30d6e5175b892691652fc3ed1ff9799f32071f63b8cbbb84c220e24c9ba8c",
+  "provenance_bundle": {},
+  "reason": "Fully typed I/O, ready for production",
+  "timestamp_utc": "2025-12-27T23:20:57.048568+00:00"
+}

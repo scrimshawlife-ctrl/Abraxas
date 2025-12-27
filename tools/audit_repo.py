@@ -188,6 +188,33 @@ def effective_status(r: dict) -> str:
     return s
 
 
+def check_promotion_receipts(registry: dict) -> list:
+    """Check that active runes have promotion receipts.
+
+    Returns a list of violations where active runes lack governance receipts.
+    """
+    from shared.governance import find_promotion_receipt
+
+    violations = []
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        if not rid:
+            continue
+
+        # Only check declared active runes (not effective status)
+        declared = normalize_status(r)
+        if declared == "active":
+            receipt = find_promotion_receipt(rid)
+            if not receipt:
+                violations.append({
+                    "rune_id": rid,
+                    "reason": "active_without_promotion_receipt",
+                    "remediation": f"Run: abx govern promote {rid} --decided-by <name> --reason <justification>"
+                })
+
+    return violations
+
+
 def find_imports(path: Path):
     lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     out = []
@@ -239,6 +266,7 @@ def audit():
     registry, registry_sha = load_registry()
     untyped_inputs = count_untyped_registry_inputs(registry)
     untyped_outputs = count_untyped_registry_outputs(registry)
+    missing_receipts = check_promotion_receipts(registry)
 
     # Promotion gate findings
     shadow_actuators = []
@@ -454,6 +482,7 @@ def audit():
             "untyped_rune_outputs_count": len(untyped_outputs),
             "shadow_actuator_count": len(shadow_actuators),
             "active_untyped_count": len(active_untyped),
+            "missing_promotion_receipts_count": len(missing_receipts),
             "hidden_coupling_count": len(hidden_coupling),
             "side_effect_count": len(side_effects),
             "governance_bypass_count": 0,
@@ -466,6 +495,7 @@ def audit():
             "untyped_rune_outputs": untyped_outputs[:500],
             "shadow_actuators": shadow_actuators[:500],
             "active_untyped": active_untyped[:500],
+            "missing_promotion_receipts": missing_receipts[:500],
             "registry_effective_status": registry_effective[:1000],
             "hidden_coupling": hidden_coupling[:500],
             "side_effects": side_effects[:500],

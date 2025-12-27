@@ -1,0 +1,17 @@
+{
+  "action_payload": {
+    "rune_id": "infra.self_heal"
+  },
+  "action_rune_id": "governance.promote_rune",
+  "decided_by": "daniel",
+  "decision": "APPROVE",
+  "evidence_bundle": {
+    "promotion_event": true,
+    "registry_sha256": "7402b66df0c6848b1c773a6ef20e5fd06c9c818b633edb5e324be9b3c479a0ea",
+    "rune_id": "infra.self_heal"
+  },
+  "governance_receipt_id": "2df4dce07f89b514444dd4089556e2731a5716c4d05b6fecec76eb78cf2e7d84",
+  "provenance_bundle": {},
+  "reason": "Typed I/O complete, governance-ready",
+  "timestamp_utc": "2025-12-27T23:21:22.593995+00:00"
+}

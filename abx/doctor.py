@@ -114,6 +114,7 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
     print(f"untyped_rune_outputs_count: {scores.get('untyped_rune_outputs_count')}")
     print(f"shadow_actuator_count:      {scores.get('shadow_actuator_count')}")
     print(f"active_untyped_count:       {scores.get('active_untyped_count')}")
+    print(f"missing_promotion_receipts: {scores.get('missing_promotion_receipts_count')}")
     print(f"hidden_coupling_count:      {scores.get('hidden_coupling_count')}")
     print(f"side_effect_count:          {scores.get('side_effect_count')}")
     print(f"detector_purity_violations: {scores.get('detector_purity_violations')}")
@@ -205,6 +206,23 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
             print(f"- {o.get('rune_id')} ({o.get('reason')})")
         print("\nRemedy: Convert inputs and outputs to typed format or mark as shadow")
         raise SystemExit(7)
+
+    # Promotion gate: require governance receipt for active runes
+    missing_receipts = int(scores.get("missing_promotion_receipts_count") or 0)
+    if missing_receipts > 0:
+        offenders = (findings.get("missing_promotion_receipts") or [])[:10]
+        print(
+            f"FAIL: Active runes missing promotion receipts "
+            f"({missing_receipts} rune(s) require governance approval)"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+            print(f"  {o.get('remediation')}")
+        print(
+            "\nRemedy: Promotion is a governed act. Run 'abx govern promote <rune_id>' "
+            "to create cryptographic receipt before activating."
+        )
+        raise SystemExit(8)
 
     return {
         "rune_coverage_pct": scores.get("rune_coverage_pct"),
