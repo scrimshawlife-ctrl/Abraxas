@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+
+from abx.goodhart_guard import build_goodhart_guard_report, apply_goodhart_to_observed_gain
 
 
 def _read_jsonl(path: str) -> List[Dict[str, Any]]:
@@ -70,6 +73,18 @@ def compute_outcomes(
     tasks.sort(key=lambda d: str(d.get("ts") or ""))
     snaps.sort(key=lambda d: str(d.get("ts") or ""))
 
+    # Optional proof quality report for Goodhart penalty
+    # We try to find latest proof_density report if it exists.
+    proof_density_path = ""
+    try:
+        pds = sorted(glob.glob(os.path.join("out/reports", "proof_density_*.json")))
+        proof_density_path = pds[-1] if pds else ""
+    except Exception:
+        proof_density_path = ""
+    quality = {}
+    if proof_density_path:
+        quality = (build_goodhart_guard_report(proof_density_path=proof_density_path).get("quality") or {})
+
     if not tasks or not snaps:
         return {
             "version": "task_outcomes.v0.1",
@@ -125,6 +140,9 @@ def compute_outcomes(
             + 0.60 * (delta.get("SIG_scalar", 0.0))
         )
 
+        # Apply anti-Goodhart penalty if quality computed
+        adjusted = apply_goodhart_to_observed_gain(float(max(-1.5, min(1.5, improvement))), quality) if isinstance(quality, dict) and quality else float(max(-1.5, min(1.5, improvement)))
+
         outcomes.append({
             "task_id": t.get("task_id"),
             "ts": t_ts,
@@ -140,7 +158,9 @@ def compute_outcomes(
             "before": before,
             "after_mean": after_mean,
             "delta": delta,
-            "observed_gain": float(max(-1.5, min(1.5, improvement))),
+            "observed_gain_raw": float(max(-1.5, min(1.5, improvement))),
+            "observed_gain": float(adjusted),
+            "goodhart": {"proof_density_path": proof_density_path, "quality": quality} if quality else None,
             "notes": "Observed gain computed from before snapshot and mean of after window. Positive observed_gain indicates improvement.",
         })
 

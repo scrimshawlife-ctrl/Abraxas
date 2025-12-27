@@ -32,11 +32,15 @@ def main() -> int:
     cal_path = _latest(args.out_reports, "calibration_report_*.json")
     tasks_path = _latest(args.out_reports, "calibration_tasks_*.json")
     roi_path = _latest(args.out_reports, "signal_roi_plan_*.json")
+    bands_path = _latest(args.out_reports, "confidence_bands_*.json")
+    regime_path = _latest(args.out_reports, "regime_shift_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
     tasks = _read_json(tasks_path) if tasks_path else {}
     roi = _read_json(roi_path) if roi_path else {}
+    bands = _read_json(bands_path) if bands_path else {}
+    regime = _read_json(regime_path) if regime_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -86,11 +90,37 @@ def main() -> int:
     else:
         md.append("- (no ROI plan found; run `python -m abx.signal_roi_scheduler`)")
     md.append("")
+    md.append("## Confidence bands (uncertainty)")
+    if bands and isinstance(bands.get("bands"), dict):
+        b = bands["bands"]
+        sigb = b.get("SIG_scalar") if isinstance(b.get("SIG_scalar"), dict) else {}
+        md.append(f"- SIG_scalar mean={float(sigb.get('mean') or 0.0):.3f} std={float(sigb.get('std') or 0.0):.3f} latest={float(sigb.get('latest') or 0.0):.3f}")
+    else:
+        md.append("- (no confidence bands found; run `python -m abx.confidence_bands`)")
+    md.append("")
+    md.append("## Regime shift detector")
+    if regime:
+        md.append(f"- regime_shift: **{bool(regime.get('regime_shift'))}**")
+        md.append(f"- recommendation: {regime.get('recommendation')}")
+        fl = regime.get("flags") if isinstance(regime.get("flags"), list) else []
+        if fl:
+            md.append("")
+            md.append("| metric | z | latest | mean | std |")
+            md.append("|---|---:|---:|---:|---:|")
+            for f in fl[:8]:
+                if not isinstance(f, dict):
+                    continue
+                md.append(f"| {f.get('metric','')} | {float(f.get('z') or 0.0):.2f} | {float(f.get('latest') or 0.0):.3f} | {float(f.get('mean') or 0.0):.3f} | {float(f.get('std') or 0.0):.3f} |")
+    else:
+        md.append("- (no regime shift report found; run `python -m abx.regime_shift`)")
+    md.append("")
     md.append("## File pointers")
     md.append(f"- sig_kpi: {sig_path}")
     md.append(f"- calibration_report: {cal_path}")
     md.append(f"- calibration_tasks: {tasks_path}")
     md.append(f"- signal_roi_plan: {roi_path}")
+    md.append(f"- confidence_bands: {bands_path}")
+    md.append(f"- regime_shift: {regime_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"
