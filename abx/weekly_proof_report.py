@@ -37,6 +37,7 @@ def main() -> int:
     pis_path = _latest(args.out_reports, "proof_integrity_*.json")
     em_path = _latest(args.out_reports, "evidence_metrics_*.json")
     tm_path = _latest(args.out_reports, "truth_contamination_*.json")
+    ttt_path = _latest(args.out_reports, "time_to_truth_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
@@ -47,6 +48,7 @@ def main() -> int:
     pis = _read_json(pis_path) if pis_path else {}
     em = _read_json(em_path) if em_path else {}
     tm = _read_json(tm_path) if tm_path else {}
+    ttt = _read_json(ttt_path) if ttt_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -151,6 +153,20 @@ def main() -> int:
     else:
         md.append("- (no truth contamination map found; run `python -m abx.truth_contamination`)")
     md.append("")
+    md.append("## Time-to-Truth (TTT) / Claim Stabilization Half-Life (CSHL)")
+    if ttt and isinstance(ttt.get("claims"), dict):
+        cc = ttt["claims"]
+        # show 10 fastest stabilizers (lowest positive CSHL)
+        fast = [(cid, v) for cid, v in cc.items() if isinstance(v, dict) and float(v.get("CSHL_days") or -1) >= 0]
+        fast = sorted(fast, key=lambda kv: float(kv[1].get("CSHL_days") or 9999))[:10]
+        md.append("")
+        md.append("| claim_id | CSHL_days | TTT_0.8_days | flip_rate | horizon_class |")
+        md.append("|---|---:|---:|---:|---|")
+        for cid, v in fast:
+            md.append(f"| {cid} | {float(v.get('CSHL_days') or 0.0):.1f} | {float(v.get('TTT_0.8_days') or -1.0):.1f} | {float(v.get('flip_rate') or 0.0):.2f} | {v.get('horizon_class','')} |")
+    else:
+        md.append("- (no TTT report found; run `python -m abx.claim_timeseries` and `python -m abx.time_to_truth`)")
+    md.append("")
     md.append("## Regime shift detector")
     if regime:
         md.append(f"- regime_shift: **{bool(regime.get('regime_shift'))}**")
@@ -177,6 +193,7 @@ def main() -> int:
     md.append(f"- proof_integrity: {pis_path}")
     md.append(f"- evidence_metrics: {em_path}")
     md.append(f"- truth_contamination: {tm_path}")
+    md.append(f"- time_to_truth: {ttt_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"
