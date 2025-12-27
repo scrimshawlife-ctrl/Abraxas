@@ -16,13 +16,12 @@ Subcommands:
 
 from __future__ import annotations
 import argparse
+import json
 import os
-import platform
-import socket
 import sys
-from pathlib import Path
 from typing import Any, Dict
 
+from abx.kernel import invoke
 from abx.runtime.config import load_config
 from abx.assets.manifest import write_manifest, read_manifest
 from abx.runtime.provenance import make_provenance, compute_config_hash
@@ -46,55 +45,59 @@ def _cmd_err(msg: str) -> None:
     """Print error message to stderr."""
     print(msg, file=sys.stderr)
 
-def _port_free(host: str, port: int) -> bool:
-    """Check if port is available."""
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.2)
-            return s.connect_ex((host, port)) != 0
-    except Exception:
-        return True
+def doctor(args: argparse.Namespace) -> int:
+    """Run system diagnostics and readiness checks via kernel.invoke."""
+    response = invoke(
+        rune_id="abx.doctor",
+        payload={
+            "diagnostic_level": args.level,
+            "seed": args.seed,
+            "full": args.full,
+            "emit": args.emit,
+        },
+        context={},
+    )
+    result = response["result"]
+    print(dumps_stable(result))
+    return 0 if result.get("ok") else 2
 
-def doctor() -> int:
-    """Run system diagnostics and readiness checks."""
-    cfg = load_config()
-    issues = []
+def compress_cmd(args: argparse.Namespace) -> int:
+    """Run compression detection via kernel.invoke."""
+    lexicon = []
+    if args.lexicon_file:
+        with open(args.lexicon_file, "r", encoding="utf-8") as file:
+            lexicon = json.load(file)
 
-    arch = platform.machine().lower()
-    if arch not in ("aarch64", "arm64", "x86_64", "amd64"):
-        issues.append(f"unknown_arch:{arch}")
+    response = invoke(
+        rune_id="compression.detect",
+        payload={
+            "text_event": args.text,
+            "lexicon": lexicon,
+            "seed": args.seed,
+            "config": {"domain": args.domain},
+        },
+        context={},
+    )
+    print(dumps_stable(response))
+    return 0
 
-    # JetPack hint
-    jetpack = os.environ.get("JETPACK_VERSION")
-    # CUDA presence (best-effort)
-    cuda_ok = Path("/usr/local/cuda").exists()
 
-    # dirs
-    for d in [cfg.root, cfg.assets_dir, cfg.overlays_dir, cfg.state_dir]:
-        try:
-            d.mkdir(parents=True, exist_ok=True)
-        except Exception as e:
-            issues.append(f"mkdir:{d}:{e}")
+def self_heal_cmd(args: argparse.Namespace) -> int:
+    from abx.self_heal_cli import run as run_self_heal
 
-    # port
-    if not _port_free(cfg.http_host, cfg.http_port):
-        issues.append(f"port_in_use:{cfg.http_host}:{cfg.http_port}")
+    return run_self_heal(args)
 
-    report = {
-        "ok": len(issues) == 0,
-        "arch": arch,
-        "jetpack_env": jetpack,
-        "cuda_dir_present": cuda_ok,
-        "root": str(cfg.root),
-        "assets_dir": str(cfg.assets_dir),
-        "overlays_dir": str(cfg.overlays_dir),
-        "state_dir": str(cfg.state_dir),
-        "http": [cfg.http_host, cfg.http_port],
-        "issues": issues,
-    }
-    print(dumps_stable(report))
-    return 0 if report["ok"] else 2
 
+def govern_cmd(args: argparse.Namespace) -> int:
+    from abx.govern_cli import run as run_govern
+
+    return run_govern(args)
+
+
+def apply_cmd(args: argparse.Namespace) -> int:
+    from abx.apply_cli import run as run_apply
+
+    return run_apply(args)
 def assets_sync() -> int:
     """Generate and write asset manifest."""
     cfg = load_config()
@@ -253,7 +256,20 @@ def main() -> None:
     p = argparse.ArgumentParser(prog="abx", description="Abraxas Boot eXtensions")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("doctor", help="Check system readiness")
+    p_doctor = sub.add_parser("doctor", help="Check system readiness")
+    p_doctor.add_argument("--level", default="standard", help="Diagnostic level")
+    p_doctor.add_argument(
+        "--full",
+        action="store_true",
+        help="Run full repo audit and emit audit_report.json",
+    )
+    p_doctor.add_argument(
+        "--emit",
+        type=str,
+        default=None,
+        help="Path to write audit report (default: data/audit_report.json)",
+    )
+    p_doctor.add_argument("--seed", type=int, default=None, help="Deterministic seed")
     sub.add_parser("up", help="Start HTTP server")
     sub.add_parser("smoke", help="Run smoke test")
 
@@ -283,6 +299,15 @@ def main() -> None:
     sub.add_parser("ingest", help="Run always-on Decodo ingestion scheduler")
     sub.add_parser("ui", help="Start chat-like UI server")
     sub.add_parser("admin", help="Print admin handshake (module discovery)")
+    p_comp = sub.add_parser("compress", help="Run compression detection")
+    p_comp.add_argument("--text", required=True, help="Input text event")
+    p_comp.add_argument(
+        "--lexicon-file",
+        default=None,
+        help="Path to lexicon JSON (list of canonical/variants)",
+    )
+    p_comp.add_argument("--domain", default="general", help="Domain label")
+    p_comp.add_argument("--seed", type=int, default=None, help="Deterministic seed")
 
     p_cf = sub.add_parser("counterfactual", help="Run counterfactual replay")
     p_cf.add_argument("--portfolio", required=True, help="Portfolio ID")
@@ -318,10 +343,43 @@ def main() -> None:
     )
     p_smv.add_argument("--max-units", type=int, default=25)
 
+    p_self_heal = sub.add_parser("self-heal", help="Generate self-heal advisory plan")
+    p_self_heal.add_argument(
+        "--plan", action="store_true", help="Generate advisory plan only"
+    )
+    p_self_heal.add_argument(
+        "--out", default="data/self_heal_plan.json", help="Plan output path"
+    )
+    p_self_heal.add_argument(
+        "--audit",
+        default="data/audit_report.json",
+        help="Use this audit report as evidence",
+    )
+
+    p_govern = sub.add_parser("govern", help="Write governance receipt")
+    p_govern.add_argument("--approve", action="store_true")
+    p_govern.add_argument("--deny", action="store_true")
+    p_govern.add_argument(
+        "--rune",
+        required=True,
+        help="Action rune to approve/deny, e.g. actuator.apply",
+    )
+    p_govern.add_argument(
+        "--plan",
+        required=True,
+        help="Path to plan json (e.g. data/self_heal_plan.json)",
+    )
+    p_govern.add_argument("--decided-by", default="daniel")
+    p_govern.add_argument("--reason", default=None)
+
+    p_apply = sub.add_parser("apply", help="Apply a governance-gated plan")
+    p_apply.add_argument("--receipt", required=True, help="governance_receipt_id")
+    p_apply.add_argument("--plan", required=True, help="Path to plan json")
+
     args = p.parse_args()
 
     if args.cmd == "doctor":
-        raise SystemExit(doctor())
+        raise SystemExit(doctor(args))
     if args.cmd == "up":
         raise SystemExit(up())
     if args.cmd == "smoke":
@@ -350,6 +408,14 @@ def main() -> None:
         raise SystemExit(counterfactual_cmd(args))
     if args.cmd == "smv":
         raise SystemExit(smv_cmd(args))
+    if args.cmd == "compress":
+        raise SystemExit(compress_cmd(args))
+    if args.cmd == "self-heal":
+        raise SystemExit(self_heal_cmd(args))
+    if args.cmd == "govern":
+        raise SystemExit(govern_cmd(args))
+    if args.cmd == "apply":
+        raise SystemExit(apply_cmd(args))
 
 if __name__ == "__main__":
     main()
