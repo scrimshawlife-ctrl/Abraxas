@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from abx.task_ledger import task_event
+from abx.relation_classifier import classify_relation
 
 
 def _utc_now_iso() -> str:
@@ -268,6 +269,16 @@ def execute_task_routing(
     created = []
     errors = []
 
+    # Pull claim text (best effort) for relation classification
+    claim_text = ""
+    try:
+        for e in _read_jsonl(evidence_graph_ledger):
+            if str(e.get("kind") or "") == "claim_added" and str(e.get("claim_id") or "") == claim_id:
+                claim_text = str(e.get("text") or "") or str(e.get("claim_handle") or "") or ""
+                break
+    except Exception:
+        claim_text = ""
+
     if provider == "decodo":
         return {
             "status": "DEFERRED",
@@ -295,12 +306,42 @@ def execute_task_routing(
             html, hdrs = _http_get(u, timeout=14, headers={"User-Agent": f"abx/online_resolver ({provider})"})
             title = _extract_title(html)
             pub = _extract_meta_date(html)
+            snippet = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))[:600]
+
+            rr = classify_relation(
+                claim_text=claim_text or term,
+                anchor_title=title or "",
+                anchor_snippet=snippet or "",
+            )
+
             # minimal hint: term + title
             hint = f"{term} | {title}".strip(" |")
             anc = make_anchor(url=u, provider=provider, content_hint=hint, fetched_title=title, fetched_date=pub, headers={"content-type": hdrs.get("content-type", "")})
-            _append_jsonl(anchor_ledger, {**anc, "run_id": run_id, "task_id": task_id, "term": term, "claim_id": claim_id})
-            link_anchor_to_claim(run_id=run_id, claim_id=claim_id, anchor=anc, relation=relation_default, evidence_graph_ledger=evidence_graph_ledger)
-            created.append({"anchor_id": anc.get("anchor_id"), "url": anc.get("url"), "domain": anc.get("domain"), "title": anc.get("title")})
+            _append_jsonl(anchor_ledger, {
+                **anc,
+                "run_id": run_id,
+                "task_id": task_id,
+                "term": term,
+                "claim_id": claim_id,
+                "relation_guess": rr.relation,
+                "relation_confidence": rr.confidence,
+                "relation_rationale": rr.rationale,
+            })
+            link_anchor_to_claim(
+                run_id=run_id,
+                claim_id=claim_id,
+                anchor=anc,
+                relation=rr.relation or relation_default,
+                evidence_graph_ledger=evidence_graph_ledger,
+            )
+            created.append({
+                "anchor_id": anc.get("anchor_id"),
+                "url": anc.get("url"),
+                "domain": anc.get("domain"),
+                "title": anc.get("title"),
+                "relation": rr.relation,
+                "confidence": rr.confidence,
+            })
         except Exception as e:
             errors.append({"url": u, "error": str(e)})
 
