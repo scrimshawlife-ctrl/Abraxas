@@ -34,6 +34,7 @@ def main() -> int:
     roi_path = _latest(args.out_reports, "signal_roi_plan_*.json")
     bands_path = _latest(args.out_reports, "confidence_bands_*.json")
     regime_path = _latest(args.out_reports, "regime_shift_*.json")
+    pis_path = _latest(args.out_reports, "proof_integrity_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
@@ -41,6 +42,7 @@ def main() -> int:
     roi = _read_json(roi_path) if roi_path else {}
     bands = _read_json(bands_path) if bands_path else {}
     regime = _read_json(regime_path) if regime_path else {}
+    pis = _read_json(pis_path) if pis_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -98,6 +100,12 @@ def main() -> int:
     else:
         md.append("- (no confidence bands found; run `python -m abx.confidence_bands`)")
     md.append("")
+    md.append("## Proof Integrity Score (PIS)")
+    if pis:
+        md.append(f"- PIS: **{float(pis.get('PIS') or 0.0):.3f}** | dup_rate={float(pis.get('dup_rate') or 0.0):.3f} | domain_entropy_norm={float(pis.get('domain_entropy_norm') or 0.0):.3f} | primary_ratio={float(pis.get('primary_ratio') or 0.0):.3f}")
+    else:
+        md.append("- (no PIS report found; run `python -m abx.proof_integrity`)")
+    md.append("")
     md.append("## Regime shift detector")
     if regime:
         md.append(f"- regime_shift: **{bool(regime.get('regime_shift'))}**")
@@ -121,6 +129,7 @@ def main() -> int:
     md.append(f"- signal_roi_plan: {roi_path}")
     md.append(f"- confidence_bands: {bands_path}")
     md.append(f"- regime_shift: {regime_path}")
+    md.append(f"- proof_integrity: {pis_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"

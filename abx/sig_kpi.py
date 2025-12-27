@@ -132,6 +132,12 @@ def compute_sig(
     # squash to 0..1-ish
     scalar = float(min(1.0, max(0.0, scalar)))
 
+    # Proof Integrity soft multiplier (no trimming; just contextual weighting)
+    pis_path = _latest(out_reports, "proof_integrity_*.json")
+    pis_obj = _read_json(pis_path) if pis_path else {}
+    pis = float(pis_obj.get("PIS") or 0.0) if isinstance(pis_obj, dict) else 0.0
+    scalar = float(scalar * (0.75 + 0.25 * max(0.0, min(1.0, pis))))
+
     return {
         "version": "sig_kpi.v0.1",
         "ts": _utc_now_iso(),
@@ -142,6 +148,7 @@ def compute_sig(
         "SDG": sdg,
         "TCG": tcg,
         "SIG_scalar": scalar,
+        "PIS": {"value": pis, "path": pis_path} if pis_path else {"value": 0.0, "path": None},
         "notes": "SIG is a scoreboard: forecast skill + proof density + signal differentiation + temporal coherence.",
     }
 

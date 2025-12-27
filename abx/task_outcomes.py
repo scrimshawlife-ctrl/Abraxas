@@ -7,7 +7,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from abx.goodhart_guard import build_goodhart_guard_report, apply_goodhart_to_observed_gain
+from abx.goodhart_guard import apply_goodhart_to_observed_gain
 
 
 def _read_jsonl(path: str) -> List[Dict[str, Any]]:
@@ -73,17 +73,25 @@ def compute_outcomes(
     tasks.sort(key=lambda d: str(d.get("ts") or ""))
     snaps.sort(key=lambda d: str(d.get("ts") or ""))
 
-    # Optional proof quality report for Goodhart penalty
-    # We try to find latest proof_density report if it exists.
-    proof_density_path = ""
-    try:
-        pds = sorted(glob.glob(os.path.join("out/reports", "proof_density_*.json")))
-        proof_density_path = pds[-1] if pds else ""
-    except Exception:
-        proof_density_path = ""
+    # Optional PIS-based quality (preferred) for anti-Goodhart adjustment
+    proof_integrity_path = ""
     quality = {}
-    if proof_density_path:
-        quality = (build_goodhart_guard_report(proof_density_path=proof_density_path).get("quality") or {})
+    try:
+        pis = sorted(glob.glob(os.path.join("out/reports", "proof_integrity_*.json")))
+        proof_integrity_path = pis[-1] if pis else ""
+    except Exception:
+        proof_integrity_path = ""
+    if proof_integrity_path:
+        try:
+            with open(proof_integrity_path, "r", encoding="utf-8") as f:
+                q = json.load(f)
+            if isinstance(q, dict):
+                # Convert PIS into a penalty shape compatible with apply_goodhart...
+                pis_val = float(q.get("PIS") or 0.0)
+                # lower PIS => higher penalty
+                quality = {"penalty": float(max(0.0, min(0.40, (1.0 - max(0.0, min(1.0, pis_val))) * 0.40))), "PIS": pis_val}
+        except Exception:
+            quality = {}
 
     if not tasks or not snaps:
         return {
@@ -160,7 +168,7 @@ def compute_outcomes(
             "delta": delta,
             "observed_gain_raw": float(max(-1.5, min(1.5, improvement))),
             "observed_gain": float(adjusted),
-            "goodhart": {"proof_density_path": proof_density_path, "quality": quality} if quality else None,
+            "goodhart": {"proof_integrity_path": proof_integrity_path, "quality": quality} if quality else None,
             "notes": "Observed gain computed from before snapshot and mean of after window. Positive observed_gain indicates improvement.",
         })
 
