@@ -10,7 +10,12 @@
     {
       "rune_id": "compression.detect",
       "capability": "Detect symbolic/linguistic compression events (SCO/ECO).",
-      "inputs": ["text_event", "lexicon_ref", "config"],
+      "inputs": [
+        {"name": "text_event", "type": "string", "required": true},
+        {"name": "lexicon_ref", "type": "object", "required": false},
+        {"name": "config", "type": "object", "required": true},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
       "outputs": ["compression_event", "metrics", "provenance_bundle"],
       "evidence_mode": "detector_only",
       "suggested_impl": ["abraxas/*compression*", "abraxas/*sco*", "abraxas/*eco*"]
@@ -42,7 +47,13 @@
     {
       "rune_id": "infra.self_heal",
       "capability": "Generate self-heal advisory plan (NO side effects).",
-      "inputs": ["health_state", "policy", "config"],
+      "inputs": [
+        {"name": "health_state", "type": "object", "required": true},
+        {"name": "policy", "type": "object", "required": true},
+        {"name": "audit_report_sha256", "type": "string", "required": false},
+        {"name": "config", "type": "object", "required": false},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
       "outputs": ["action_plan", "audit_log", "provenance_bundle"],
       "evidence_mode": "detector_only",
       "suggested_impl": ["infra/self_heal_advisory.py"]
@@ -50,7 +61,13 @@
     {
       "rune_id": "actuator.apply",
       "capability": "Apply a state-changing plan (governance-gated).",
-      "inputs": ["action_plan", "governance_receipt_id", "config"],
+      "inputs": [
+        {"name": "action_plan", "type": "array", "required": true},
+        {"name": "governance_receipt_id", "type": "string", "required": true},
+        {"name": "dry_run", "type": "boolean", "required": false},
+        {"name": "config", "type": "object", "required": false},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
       "outputs": ["apply_receipt", "audit_log", "provenance_bundle"],
       "evidence_mode": "ops_actuator",
       "suggested_impl": ["infra/actuator.py"]

@@ -38,6 +38,9 @@
     "min_rune_invoke_ratio": 0.7,
     "max_cross_boundary_imports": 0
   },
+  "registry_quality": {
+    "max_untyped_rune_inputs": 5
+  },
   "allow_runes": [
     "abx.doctor",
     "compression.detect",

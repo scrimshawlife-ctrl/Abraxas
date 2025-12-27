@@ -1,14 +1,14 @@
 # AUTO-GENERATED. DO NOT EDIT.
-# meta: {"count":8,"generated_at_utc":"2025-12-27T22:48:20.487904+00:00","registry_sha256":"e88642bdc180c7aa821449c04d9e60c0c997e8cdc1a852db9fc2cdbe6d03ca88"}
+# meta: {"count":8,"generated_at_utc":"2025-12-27T22:54:50.274391+00:00","registry_sha256":"6718078bade65c242ae656820659620342d71b4bf64170eff6beb3be65f1cfdd"}
 
 SCHEMAS = {
   "compression.detect": {
     "required": {
       "text_event": str,
-      "lexicon_ref": dict,
       "config": dict,
     },
     "optional": {
+      "lexicon_ref": dict,
       "seed": int,
     },
     "allow_extra": True,
@@ -20,7 +20,6 @@ SCHEMAS = {
       "config": dict,
     },
     "optional": {
-      "seed": int,
     },
     "allow_extra": True,
   },
@@ -42,7 +41,6 @@ SCHEMAS = {
       "config": dict,
     },
     "optional": {
-      "seed": int,
     },
     "allow_extra": True,
   },
@@ -50,9 +48,10 @@ SCHEMAS = {
     "required": {
       "health_state": dict,
       "policy": dict,
-      "config": dict,
     },
     "optional": {
+      "audit_report_sha256": str,
+      "config": dict,
       "seed": int,
     },
     "allow_extra": True,
@@ -60,10 +59,11 @@ SCHEMAS = {
   "actuator.apply": {
     "required": {
       "action_plan": list,
-      "governance_receipt_id": dict,
-      "config": dict,
+      "governance_receipt_id": str,
     },
     "optional": {
+      "dry_run": bool,
+      "config": dict,
       "seed": int,
     },
     "allow_extra": True,
@@ -75,7 +75,6 @@ SCHEMAS = {
       "config": dict,
     },
     "optional": {
-      "seed": int,
     },
     "allow_extra": True,
   },
@@ -85,7 +84,6 @@ SCHEMAS = {
       "config": dict,
     },
     "optional": {
-      "seed": int,
     },
     "allow_extra": True,
   },

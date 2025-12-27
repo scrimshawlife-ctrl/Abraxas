@@ -103,11 +103,13 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
     findings = data.get("findings", {})
     policy_doc = load_policy()
     coupling = policy_doc.get("coupling", {}) or {}
+    rq = policy_doc.get("registry_quality", {}) or {}
     print("\n=== ABRAXAS CANON AUDIT (summary) ===")
     print(f"commit: {repo.get('commit')}")
     print(f"dirty:  {repo.get('dirty')}")
     print(f"rune_coverage_pct:          {scores.get('rune_coverage_pct')}")
     print(f"rune_invoke_ratio:          {scores.get('rune_invoke_ratio')}")
+    print(f"untyped_rune_inputs_count:  {scores.get('untyped_rune_inputs_count')}")
     print(f"hidden_coupling_count:      {scores.get('hidden_coupling_count')}")
     print(f"side_effect_count:          {scores.get('side_effect_count')}")
     print(f"detector_purity_violations: {scores.get('detector_purity_violations')}")
@@ -156,6 +158,22 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
             "kernel.invoke(rune_id, ...) and remove direct imports."
         )
         raise SystemExit(4)
+
+    # Registry quality gate
+    max_untyped = int(rq.get("max_untyped_rune_inputs", 0))
+    untyped = int(scores.get("untyped_rune_inputs_count") or 0)
+    if untyped > max_untyped:
+        offenders = (findings.get("untyped_rune_inputs") or [])[:10]
+        print(
+            f"FAIL: Registry has untyped rune inputs "
+            f"({untyped} > allowed {max_untyped})"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+        print("\nRemedy: migrate rune inputs to typed format:")
+        print('  {"name": "text_event", "type": "string", "required": true}')
+        raise SystemExit(5)
+
     return {
         "rune_coverage_pct": scores.get("rune_coverage_pct"),
         "hidden_coupling_count": scores.get("hidden_coupling_count"),

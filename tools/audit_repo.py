@@ -127,6 +127,19 @@ def load_registry():
     )
 
 
+def count_untyped_registry_inputs(registry: dict) -> list:
+    """Flag runes that still use old-format string-list inputs."""
+    out = []
+    if not registry:
+        return out
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        ins = r.get("inputs")
+        if isinstance(ins, list) and ins and isinstance(ins[0], str):
+            out.append({"rune_id": rid, "reason": "inputs_untyped_string_list"})
+    return out
+
+
 def find_imports(path: Path):
     lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     out = []
@@ -176,6 +189,7 @@ def audit():
     allowed_edges = coupling_policy.get("allowed_cross_imports", []) or []
 
     registry, registry_sha = load_registry()
+    untyped_inputs = count_untyped_registry_inputs(registry)
 
     hidden_coupling = []
     side_effects = []
@@ -354,6 +368,7 @@ def audit():
         "scores": {
             "rune_coverage_pct": rune_coverage_pct,
             "rune_invoke_ratio": rune_invoke_ratio,
+            "untyped_rune_inputs_count": len(untyped_inputs),
             "hidden_coupling_count": len(hidden_coupling),
             "side_effect_count": len(side_effects),
             "governance_bypass_count": 0,
@@ -362,6 +377,7 @@ def audit():
             "cross_boundary_import_count": len(cross_boundary),
         },
         "findings": {
+            "untyped_rune_inputs": untyped_inputs[:500],
             "hidden_coupling": hidden_coupling[:500],
             "side_effects": side_effects[:500],
             "governance": [],
