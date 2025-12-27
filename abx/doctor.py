@@ -115,6 +115,7 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
     print(f"shadow_actuator_count:      {scores.get('shadow_actuator_count')}")
     print(f"active_untyped_count:       {scores.get('active_untyped_count')}")
     print(f"missing_promotion_receipts: {scores.get('missing_promotion_receipts_count')}")
+    print(f"invalid_receipt_signatures: {scores.get('invalid_receipt_signature_count')}")
     print(f"hidden_coupling_count:      {scores.get('hidden_coupling_count')}")
     print(f"side_effect_count:          {scores.get('side_effect_count')}")
     print(f"detector_purity_violations: {scores.get('detector_purity_violations')}")
@@ -223,6 +224,26 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
             "to create cryptographic receipt before activating."
         )
         raise SystemExit(8)
+
+    # Cryptographic integrity gate: require valid signatures on all receipts
+    invalid_sigs = int(scores.get("invalid_receipt_signature_count") or 0)
+    if invalid_sigs > 0:
+        offenders = (findings.get("invalid_receipt_signatures") or [])[:10]
+        print(
+            f"FAIL: Invalid governance receipt signatures detected "
+            f"({invalid_sigs} receipt(s) with missing or invalid signatures)"
+        )
+        for o in offenders:
+            receipt_id = o.get("receipt_id", "unknown")[:16]
+            action = o.get("action_rune_id", "?")
+            sig_alg = o.get("sig_alg") or "none"
+            has_sig = o.get("has_signature", False)
+            print(f"- {receipt_id}... action={action} alg={sig_alg} signed={has_sig}")
+        print(
+            "\nRemedy: Governance receipts must be cryptographically signed. "
+            "Set ABX_GOV_HMAC_KEY environment variable and regenerate receipts."
+        )
+        raise SystemExit(9)
 
     return {
         "rune_coverage_pct": scores.get("rune_coverage_pct"),

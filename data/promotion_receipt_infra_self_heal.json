@@ -10,8 +10,11 @@
     "registry_sha256": "7402b66df0c6848b1c773a6ef20e5fd06c9c818b633edb5e324be9b3c479a0ea",
     "rune_id": "infra.self_heal"
   },
-  "governance_receipt_id": "2df4dce07f89b514444dd4089556e2731a5716c4d05b6fecec76eb78cf2e7d84",
+  "governance_receipt_id": "6cc9087b1ed86f1f103291cb3e7e1b58a6933d243b5208d0789cb06088a5c2dc",
+  "key_id": "81d0e51f2b69f5ea",
   "provenance_bundle": {},
-  "reason": "Typed I/O complete, governance-ready",
-  "timestamp_utc": "2025-12-27T23:21:22.593995+00:00"
+  "reason": "Re-promote with cryptographic signature (Patch 21)",
+  "sig_alg": "hmac-sha256",
+  "signature": "7686927f75612102b0dda11d72ab036dbac789af4ed30d37d8ef85f190a55e08",
+  "timestamp_utc": "2025-12-27T23:30:31.942014+00:00"
 }

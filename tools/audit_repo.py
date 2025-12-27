@@ -215,6 +215,41 @@ def check_promotion_receipts(registry: dict) -> list:
     return violations
 
 
+def check_receipt_signatures() -> list:
+    """Check all governance receipts for valid signatures.
+
+    Returns a list of receipts with invalid or missing signatures.
+    """
+    from shared.governance import DEFAULT_LEDGER_PATH, verify_receipt_obj
+
+    invalid = []
+    ledger_path = Path(DEFAULT_LEDGER_PATH)
+
+    if not ledger_path.exists():
+        return invalid
+
+    with open(ledger_path, "r", encoding="utf-8") as file:
+        for line_no, line in enumerate(file, start=1):
+            try:
+                receipt = json.loads(line)
+            except Exception:
+                continue
+
+            # Verify signature
+            is_valid = verify_receipt_obj(receipt)
+            if not is_valid:
+                invalid.append({
+                    "receipt_id": receipt.get("governance_receipt_id"),
+                    "action_rune_id": receipt.get("action_rune_id"),
+                    "line": line_no,
+                    "reason": "invalid_or_missing_signature",
+                    "sig_alg": receipt.get("sig_alg"),
+                    "has_signature": bool(receipt.get("signature")),
+                })
+
+    return invalid
+
+
 def find_imports(path: Path):
     lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     out = []
@@ -267,6 +302,7 @@ def audit():
     untyped_inputs = count_untyped_registry_inputs(registry)
     untyped_outputs = count_untyped_registry_outputs(registry)
     missing_receipts = check_promotion_receipts(registry)
+    invalid_signatures = check_receipt_signatures()
 
     # Promotion gate findings
     shadow_actuators = []
@@ -483,6 +519,7 @@ def audit():
             "shadow_actuator_count": len(shadow_actuators),
             "active_untyped_count": len(active_untyped),
             "missing_promotion_receipts_count": len(missing_receipts),
+            "invalid_receipt_signature_count": len(invalid_signatures),
             "hidden_coupling_count": len(hidden_coupling),
             "side_effect_count": len(side_effects),
             "governance_bypass_count": 0,
@@ -496,6 +533,7 @@ def audit():
             "shadow_actuators": shadow_actuators[:500],
             "active_untyped": active_untyped[:500],
             "missing_promotion_receipts": missing_receipts[:500],
+            "invalid_receipt_signatures": invalid_signatures[:500],
             "registry_effective_status": registry_effective[:1000],
             "hidden_coupling": hidden_coupling[:500],
             "side_effects": side_effects[:500],

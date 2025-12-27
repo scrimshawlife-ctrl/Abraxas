@@ -8,6 +8,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
+from shared.signing import hmac_sign, hmac_verify
+
 DEFAULT_LEDGER_PATH = os.path.join(
     os.path.dirname(__file__), "..", "data", "governance.jsonl"
 )
@@ -47,6 +49,13 @@ def record_receipt(
     }
     receipt_id = _sha256(_stable_json(core))
 
+    # Sign the canonical core object (cryptographic binding)
+    try:
+        sig_alg, key_id, signature = hmac_sign(core)
+    except EnvironmentError:
+        # No signing key configured - create unsigned receipt (legacy mode)
+        sig_alg, key_id, signature = None, None, None
+
     receipt = {
         "governance_receipt_id": receipt_id,
         "timestamp_utc": ts,
@@ -58,6 +67,12 @@ def record_receipt(
         "reason": reason,
         "provenance_bundle": provenance_bundle or {},
     }
+
+    # Add signature fields if signing succeeded
+    if sig_alg:
+        receipt["sig_alg"] = sig_alg
+        receipt["key_id"] = key_id
+        receipt["signature"] = signature
 
     with open(lp, "a", encoding="utf-8") as file:
         file.write(_stable_json(receipt) + "\n")
@@ -154,3 +169,45 @@ def find_promotion_receipt(
     if receipts:
         return max(receipts, key=lambda r: r.get("timestamp_utc", ""))
     return None
+
+
+def verify_receipt_obj(receipt: Dict[str, Any]) -> bool:
+    """Verify the cryptographic signature of a governance receipt.
+
+    Args:
+        receipt: The receipt object to verify
+
+    Returns:
+        True if signature is valid, False if invalid or unsigned
+    """
+    if not receipt:
+        return False
+
+    sig_alg = receipt.get("sig_alg")
+    key_id = receipt.get("key_id")
+    signature = receipt.get("signature")
+
+    # Unsigned receipts (legacy mode) are considered invalid
+    if not sig_alg or not signature:
+        return False
+
+    # Reconstruct the canonical "core" exactly as used for signing
+    core = {
+        "timestamp_utc": receipt.get("timestamp_utc"),
+        "action_rune_id": receipt.get("action_rune_id"),
+        "action_payload_sha256": _sha256(_stable_json(receipt.get("action_payload", {}))),
+        "evidence_sha256": _sha256(_stable_json(receipt.get("evidence_bundle", {}))),
+        "decision": receipt.get("decision"),
+        "decided_by": receipt.get("decided_by"),
+    }
+
+    # Verify based on algorithm
+    if sig_alg == "hmac-sha256":
+        return hmac_verify(core, key_id=key_id or "", signature_hex=signature or "")
+
+    # Future: ed25519 backend
+    # if sig_alg == "ed25519":
+    #     return ed25519_verify(core, key_id=key_id, signature_b64=signature)
+
+    # Unknown algorithm
+    return False
