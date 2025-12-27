@@ -1,0 +1,5 @@
+{
+  "compression.detect": {
+    "TypeError": 1
+  }
+}
