@@ -38,6 +38,7 @@ def main() -> int:
     em_path = _latest(args.out_reports, "evidence_metrics_*.json")
     tm_path = _latest(args.out_reports, "truth_contamination_*.json")
     ttt_path = _latest(args.out_reports, "time_to_truth_*.json")
+    ap_path = _latest(args.out_reports, "acquisition_plan_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
@@ -49,6 +50,7 @@ def main() -> int:
     em = _read_json(em_path) if em_path else {}
     tm = _read_json(tm_path) if tm_path else {}
     ttt = _read_json(ttt_path) if ttt_path else {}
+    ap = _read_json(ap_path) if ap_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -167,6 +169,19 @@ def main() -> int:
     else:
         md.append("- (no TTT report found; run `python -m abx.claim_timeseries` and `python -m abx.time_to_truth`)")
     md.append("")
+    md.append("## Acquisition Plan (generated from stability deficits)")
+    if ap and isinstance(ap.get("tasks"), list):
+        tasks_ap = ap["tasks"][:15]
+        md.append("")
+        md.append("| priority | mode | task_kind | claim_id | title |")
+        md.append("|---:|---|---|---|---|")
+        for t in tasks_ap:
+            if not isinstance(t, dict):
+                continue
+            md.append(f"| {float(t.get('priority') or 0.0):.2f} | {t.get('mode','')} | {t.get('task_kind','')} | {t.get('claim_id','')} | {t.get('title','')} |")
+    else:
+        md.append("- (no acquisition plan found; run `python -m abx.acquisition_planner`)")
+    md.append("")
     md.append("## Regime shift detector")
     if regime:
         md.append(f"- regime_shift: **{bool(regime.get('regime_shift'))}**")
@@ -194,6 +209,7 @@ def main() -> int:
     md.append(f"- evidence_metrics: {em_path}")
     md.append(f"- truth_contamination: {tm_path}")
     md.append(f"- time_to_truth: {ttt_path}")
+    md.append(f"- acquisition_plan: {ap_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"
