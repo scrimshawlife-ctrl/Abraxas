@@ -381,6 +381,7 @@ def main() -> int:
     executed = executed[: int(args.max_tasks)]
 
     results = []
+    task_anchor_map: Dict[str, List[str]] = {}
     for it in executed:
         if not isinstance(it, dict):
             continue
@@ -416,6 +417,15 @@ def main() -> int:
         )
         results.append({"task_id": task_id, "provider": provider, "result": r})
 
+        # Collect anchor_ids for attribution (WO-81)
+        created_anchors = r.get("created_anchors") if isinstance(r.get("created_anchors"), list) else []
+        ids = []
+        for ca in created_anchors:
+            if isinstance(ca, dict) and ca.get("anchor_id"):
+                ids.append(str(ca.get("anchor_id")))
+        if ids:
+            task_anchor_map[task_id] = ids
+
         task_event(
             ledger=args.task_ledger,
             run_id=args.run_id,
@@ -436,6 +446,7 @@ def main() -> int:
         "execute_report": exec_path,
         "n_items": len(results),
         "results": results,
+        "task_anchor_map": task_anchor_map,
         "notes": "WO-78 resolves routed online tasks into anchors + evidence edges. Requires downstream metric recompute.",
     }
 
