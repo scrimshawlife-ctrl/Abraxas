@@ -25,6 +25,8 @@ import type {
   TaskStatus,
   TaskTrigger,
 } from "../models/task";
+import { buildRuneCtx } from "../runes/ctx.js";
+import { invokeRuneByCapability } from "../runes/invoke.js";
 
 /**
  * ERS Scheduler singleton
@@ -412,9 +414,8 @@ export class ERSScheduler {
    * Generate ritual for task execution
    */
   private generateRitual(): any {
-    // Import dynamically to avoid circular dependencies
-    const { runRitual } = require("../../runes");
-    return runRitual();
+    const ctx = buildRuneCtx("ers_scheduler");
+    return invokeRuneByCapability("runes:run_ritual", {}, ctx);
   }
 
   /**
