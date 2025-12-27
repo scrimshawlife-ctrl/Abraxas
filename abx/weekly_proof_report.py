@@ -31,10 +31,12 @@ def main() -> int:
     sig_path = _latest(args.out_reports, "sig_kpi_*.json")
     cal_path = _latest(args.out_reports, "calibration_report_*.json")
     tasks_path = _latest(args.out_reports, "calibration_tasks_*.json")
+    roi_path = _latest(args.out_reports, "signal_roi_plan_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
     tasks = _read_json(tasks_path) if tasks_path else {}
+    roi = _read_json(roi_path) if roi_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -70,10 +72,25 @@ def main() -> int:
             continue
         md.append(f"| {t.get('run_id','')} | {t.get('term','')} | {t.get('dominant_driver','')} | {t.get('task_type','')} |")
     md.append("")
+    md.append("## Signal ROI plan (what to do next under constraints)")
+    if roi:
+        summ = roi.get("summary") if isinstance(roi.get("summary"), dict) else {}
+        md.append(f"- selected: {int(summ.get('n_selected') or 0)} | spent=${float(summ.get('usd_spent') or 0.0):.2f} | manual={int(summ.get('manual_minutes') or 0)} min")
+        md.append("")
+        md.append("| rank | term | task_type | roi | usd | min |")
+        md.append("|---:|---|---|---:|---:|---:|")
+        sel = roi.get("selected") if isinstance(roi.get("selected"), list) else []
+        for i, t in enumerate(sel[:12], start=1):
+            c = t.get("cost") if isinstance(t.get("cost"), dict) else {}
+            md.append(f"| {i} | {t.get('term','')} | {t.get('task_type','')} | {float(t.get('roi') or 0.0):.4f} | {float(c.get('usd') or 0.0):.2f} | {int(c.get('manual_min') or 0)} |")
+    else:
+        md.append("- (no ROI plan found; run `python -m abx.signal_roi_scheduler`)")
+    md.append("")
     md.append("## File pointers")
     md.append(f"- sig_kpi: {sig_path}")
     md.append(f"- calibration_report: {cal_path}")
     md.append(f"- calibration_tasks: {tasks_path}")
+    md.append(f"- signal_roi_plan: {roi_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"
