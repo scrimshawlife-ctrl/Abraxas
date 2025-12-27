@@ -1,5 +1,10 @@
 {
   "profile": "dev",
+  "promotion_gates": {
+    "deny_shadow_actuators": true,
+    "require_typed_io_for_active": true,
+    "max_active_untyped": 0
+  },
   "coupling": {
     "boundaries": [
       "abx",

@@ -104,12 +104,16 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
     policy_doc = load_policy()
     coupling = policy_doc.get("coupling", {}) or {}
     rq = policy_doc.get("registry_quality", {}) or {}
+    pg = policy_doc.get("promotion_gates", {}) or {}
     print("\n=== ABRAXAS CANON AUDIT (summary) ===")
     print(f"commit: {repo.get('commit')}")
     print(f"dirty:  {repo.get('dirty')}")
     print(f"rune_coverage_pct:          {scores.get('rune_coverage_pct')}")
     print(f"rune_invoke_ratio:          {scores.get('rune_invoke_ratio')}")
     print(f"untyped_rune_inputs_count:  {scores.get('untyped_rune_inputs_count')}")
+    print(f"untyped_rune_outputs_count: {scores.get('untyped_rune_outputs_count')}")
+    print(f"shadow_actuator_count:      {scores.get('shadow_actuator_count')}")
+    print(f"active_untyped_count:       {scores.get('active_untyped_count')}")
     print(f"hidden_coupling_count:      {scores.get('hidden_coupling_count')}")
     print(f"side_effect_count:          {scores.get('side_effect_count')}")
     print(f"detector_purity_violations: {scores.get('detector_purity_violations')}")
@@ -173,6 +177,34 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
         print("\nRemedy: migrate rune inputs to typed format:")
         print('  {"name": "text_event", "type": "string", "required": true}')
         raise SystemExit(5)
+
+    # Promotion gate: deny shadow actuators
+    deny_shadow_actuators = bool(pg.get("deny_shadow_actuators", True))
+    if deny_shadow_actuators and int(scores.get("shadow_actuator_count") or 0) > 0:
+        offenders = (findings.get("shadow_actuators") or [])[:10]
+        print(
+            "FAIL: Shadow actuators detected "
+            "(ops_actuator rune must be active + typed I/O)"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+        print("\nRemedy: Add status=\"active\" and ensure typed inputs+outputs")
+        raise SystemExit(6)
+
+    # Promotion gate: require typed I/O for active runes
+    require_typed_active = bool(pg.get("require_typed_io_for_active", True))
+    max_active_untyped = int(pg.get("max_active_untyped", 0))
+    active_untyped = int(scores.get("active_untyped_count") or 0)
+    if require_typed_active and active_untyped > max_active_untyped:
+        offenders = (findings.get("active_untyped") or [])[:10]
+        print(
+            f"FAIL: Active runes missing typed I/O "
+            f"({active_untyped} > allowed {max_active_untyped})"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+        print("\nRemedy: Convert inputs and outputs to typed format or mark as shadow")
+        raise SystemExit(7)
 
     return {
         "rune_coverage_pct": scores.get("rune_coverage_pct"),

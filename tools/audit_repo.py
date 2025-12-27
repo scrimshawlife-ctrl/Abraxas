@@ -153,6 +153,41 @@ def count_untyped_registry_outputs(registry: dict) -> list:
     return out
 
 
+def normalize_status(r: dict) -> str:
+    """Normalize status field to one of: shadow, active, deprecated."""
+    s = str(r.get("status", "shadow")).strip().lower()
+    if s not in {"shadow", "active", "deprecated"}:
+        return "shadow"
+    return s
+
+
+def is_untyped_inputs(r: dict) -> bool:
+    """Check if rune has old-format untyped inputs."""
+    ins = r.get("inputs")
+    return isinstance(ins, list) and ins and isinstance(ins[0], str)
+
+
+def is_untyped_outputs(r: dict) -> bool:
+    """Check if rune has old-format untyped outputs."""
+    outs = r.get("outputs")
+    return isinstance(outs, list) and outs and isinstance(outs[0], str)
+
+
+def effective_status(r: dict) -> str:
+    """
+    Compute effective status with safety bias:
+    - If active but has untyped I/O → treat as shadow (not promotable)
+    - Deprecated stays deprecated
+    - Otherwise use declared status (default shadow)
+    """
+    s = normalize_status(r)
+    if s == "deprecated":
+        return "deprecated"
+    if s == "active" and (is_untyped_inputs(r) or is_untyped_outputs(r)):
+        return "shadow"  # Downgrade active to shadow if not fully typed
+    return s
+
+
 def find_imports(path: Path):
     lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     out = []
@@ -204,6 +239,39 @@ def audit():
     registry, registry_sha = load_registry()
     untyped_inputs = count_untyped_registry_inputs(registry)
     untyped_outputs = count_untyped_registry_outputs(registry)
+
+    # Promotion gate findings
+    shadow_actuators = []
+    active_untyped = []
+    registry_effective = []
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        if not rid:
+            continue
+        declared = normalize_status(r)
+        eff = effective_status(r)
+        em = str(r.get("evidence_mode", "")).strip()
+
+        # Flag active runes with untyped I/O
+        if declared == "active" and (is_untyped_inputs(r) or is_untyped_outputs(r)):
+            active_untyped.append({
+                "rune_id": rid,
+                "reason": "active_requires_typed_io"
+            })
+
+        # Flag actuators that are shadow (either declared or downgraded)
+        if em == "ops_actuator" and eff == "shadow":
+            shadow_actuators.append({
+                "rune_id": rid,
+                "reason": "actuator_cannot_be_shadow"
+            })
+
+        registry_effective.append({
+            "rune_id": rid,
+            "declared_status": declared,
+            "effective_status": eff,
+            "evidence_mode": em
+        })
 
     hidden_coupling = []
     side_effects = []
@@ -384,6 +452,8 @@ def audit():
             "rune_invoke_ratio": rune_invoke_ratio,
             "untyped_rune_inputs_count": len(untyped_inputs),
             "untyped_rune_outputs_count": len(untyped_outputs),
+            "shadow_actuator_count": len(shadow_actuators),
+            "active_untyped_count": len(active_untyped),
             "hidden_coupling_count": len(hidden_coupling),
             "side_effect_count": len(side_effects),
             "governance_bypass_count": 0,
@@ -394,6 +464,9 @@ def audit():
         "findings": {
             "untyped_rune_inputs": untyped_inputs[:500],
             "untyped_rune_outputs": untyped_outputs[:500],
+            "shadow_actuators": shadow_actuators[:500],
+            "active_untyped": active_untyped[:500],
+            "registry_effective_status": registry_effective[:1000],
             "hidden_coupling": hidden_coupling[:500],
             "side_effects": side_effects[:500],
             "governance": [],
