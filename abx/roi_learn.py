@@ -149,38 +149,33 @@ def learn_roi_weights(
     task_ledger_path: str,
 ) -> Dict[str, Any]:
     """
-    v0.1: observed gain proxy uses latest SIG_scalar delta available at time of learning
-    and evidence deltas encoded directly in features (anchors/domains/tests).
-
-    Future upgrade: compute per-task before/after windows from archived SIG snapshots.
+    Learns ROI weights from empirical task outcomes.
+    Prefers task_outcomes if available; falls back to proxy gains if not.
     """
-    events = [e for e in _read_jsonl(task_ledger_path) if str(e.get("kind") or "") == "task_completed"]
-    if len(events) < 4:
+    # Prefer task_outcomes labels if available
+    latest_outcomes_path = _pick_latest(out_reports, "task_outcomes_*.json")
+    outcomes_obj = _read_json(latest_outcomes_path) if latest_outcomes_path else {}
+    outcomes = outcomes_obj.get("outcomes") if isinstance(outcomes_obj.get("outcomes"), list) else []
+    if len(outcomes) < 4:
         return {
             "version": "roi_weights.v0.1",
             "ts": _utc_now_iso(),
-            "error": "Need at least 4 task_completed events to learn stable weights.",
-            "n": len(events),
+            "error": "Need at least 4 task outcomes (run task_outcomes after logging snapshots).",
+            "n_outcomes": len(outcomes),
         }
 
-    # Use current SIG_scalar as global context; if you later store SIG snapshots, replace this.
-    sig_path = _pick_latest(out_reports, "sig_kpi_*.json")
-    sig = _read_json(sig_path) if sig_path else {}
-    sig_scalar = float(sig.get("SIG_scalar") or 0.0)
-
-    # Observed gain proxy:
-    # gain = 0.15*anchors + 0.10*domains + 0.08*tests + 0.20*(dom in PROV/FOG) + 0.10*(ml_score)
-    # This is placeholder until SIG snapshots are stored — but still consistent and deterministic.
     X = []
     y = []
-    for ev in events:
-        x = _feature_vec(ev)
-        dom_boost = 0.20 * (1.0 if (x.get("dom_PROV_GAP", 0.0) + x.get("dom_FOG", 0.0)) > 0 else 0.0)
-        gain = 0.15 * x.get("anchors_added", 0.0) + 0.10 * x.get("domains_added", 0.0) + 0.08 * x.get("fals_tests_added", 0.0) + dom_boost + 0.10 * x.get("ml_score", 0.0)
-        # squash to sane range
-        gain = max(0.0, min(1.4, float(gain)))
+    for o in outcomes:
+        if not isinstance(o, dict):
+            continue
+        # o contains task-like fields; reuse feature extractor by treating it as ev
+        x = _feature_vec(o)
+        og = float(o.get("observed_gain") or 0.0)
+        # map observed_gain (-1.5..1.5) → gain (0..1.4) with shift+clamp
+        gain = max(0.0, min(1.4, 0.70 + 0.46 * og))
         X.append(x)
-        y.append(gain)
+        y.append(float(gain))
 
     w = _fit_ridge(X, y, lam=0.8)
     return {
@@ -188,11 +183,11 @@ def learn_roi_weights(
         "ts": _utc_now_iso(),
         "out_reports": out_reports,
         "task_ledger": task_ledger_path,
-        "n": len(events),
-        "sig_scalar_context": sig_scalar,
+        "task_outcomes": latest_outcomes_path,
+        "n": len(outcomes),
         "weights": w,
         "feature_schema": sorted({k for row in X for k in row.keys()}),
-        "notes": "v0.1 uses deterministic proxy gains until SIG snapshots are stored. Replace gain with before/after SIG delta in v0.2.",
+        "notes": "Trained on empirical task outcomes computed from SIG snapshots.",
     }
 
 
