@@ -64,6 +64,18 @@ def _uplift_hint(task_kind: str) -> Dict[str, float]:
     return {}
 
 
+def _load_uplift_table(path: str = "out/config/uplift_table.json") -> Dict[str, Dict[str, float]]:
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                obj = json.load(f)
+            t = obj.get("table") if isinstance(obj, dict) else None
+            return t if isinstance(t, dict) else {}
+    except Exception:
+        return {}
+    return {}
+
+
 def _task(
     *,
     claim_id: str,
@@ -102,6 +114,7 @@ def plan_from_deficits(
     regime_shift: Dict[str, Any],
     max_tasks_per_claim: int = 6,
 ) -> Dict[str, Any]:
+    calibrated = _load_uplift_table()
     claims = time_to_truth.get("claims") if isinstance(time_to_truth.get("claims"), dict) else {}
     pdg = sig_kpi.get("PDG") if isinstance(sig_kpi.get("PDG"), dict) else {}
     pis = float(proof_integrity.get("PIS") or 0.0) if isinstance(proof_integrity, dict) else 0.0
@@ -149,7 +162,7 @@ def plan_from_deficits(
                     "Log tests + outcomes in term ledger and evidence graph edges (SUPPORTS/CONTRADICTS).",
                 ],
                 priority=0.82,
-                expected_uplift=_uplift_hint("ADD_FALSIFICATION_TESTS"),
+                expected_uplift=(calibrated.get("ADD_FALSIFICATION_TESTS") or _uplift_hint("ADD_FALSIFICATION_TESTS")),
             ))
 
         if unstable and weak_domains:
@@ -167,7 +180,7 @@ def plan_from_deficits(
                     "Link anchors to claim with SUPPORTS/CONTRADICTS edges.",
                 ],
                 priority=0.76,
-                expected_uplift=_uplift_hint("INCREASE_DOMAIN_DIVERSITY"),
+                expected_uplift=(calibrated.get("INCREASE_DOMAIN_DIVERSITY") or _uplift_hint("INCREASE_DOMAIN_DIVERSITY")),
             ))
 
         if (unstable and weak_primary) or low_pis:
@@ -184,7 +197,7 @@ def plan_from_deficits(
                     "Link each anchor to claim with relation SUPPORTS or CONTRADICTS.",
                 ],
                 priority=0.71,
-                expected_uplift=_uplift_hint("ADD_PRIMARY_ANCHORS"),
+                expected_uplift=(calibrated.get("ADD_PRIMARY_ANCHORS") or _uplift_hint("ADD_PRIMARY_ANCHORS")),
             ))
 
         if polluted:
@@ -202,7 +215,7 @@ def plan_from_deficits(
                     "Recompute truth_contamination map.",
                 ],
                 priority=0.80,
-                expected_uplift=_uplift_hint("FETCH_COUNTERCLAIMS_DISJOINT"),
+                expected_uplift=(calibrated.get("FETCH_COUNTERCLAIMS_DISJOINT") or _uplift_hint("FETCH_COUNTERCLAIMS_DISJOINT")),
             ))
 
         if polluted:
@@ -219,7 +232,7 @@ def plan_from_deficits(
                     "Log findings as anchors (offline notes) and link to claim as SUPPORTS/CONTRADICTS/REFRAMES.",
                 ],
                 priority=0.74,
-                expected_uplift=_uplift_hint("VERIFY_MEDIA_ORIGIN"),
+                expected_uplift=(calibrated.get("VERIFY_MEDIA_ORIGIN") or _uplift_hint("VERIFY_MEDIA_ORIGIN")),
             ))
 
         if unstable and (term or ""):
@@ -236,7 +249,7 @@ def plan_from_deficits(
                     "Add one anchor per entity relationship (if possible).",
                 ],
                 priority=0.62,
-                expected_uplift=_uplift_hint("ENTITY_GROUNDING"),
+                expected_uplift=(calibrated.get("ENTITY_GROUNDING") or _uplift_hint("ENTITY_GROUNDING")),
             ))
 
         # rank within claim by (priority - cost penalty)
