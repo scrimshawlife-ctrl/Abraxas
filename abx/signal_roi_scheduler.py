@@ -60,14 +60,51 @@ def estimate_cost(task: Dict[str, Any], *, decodo_available: bool, decodo_multip
 
 # --- expected gain model (v0.1 heuristic) ---
 
-def expected_sig_gain(task: Dict[str, Any]) -> float:
+def expected_sig_gain(task: Dict[str, Any], *, learned: Optional[Dict[str, Any]] = None) -> float:
     """
-    Heuristic E[ΔSIG] in [0, 1-ish].
+    E[ΔSIG] in [0, 1-ish].
+    If learned weights exist, use linear model.
+    Otherwise fall back to heuristic.
     Factors:
     - dominant_driver importance: PROV/FOG > TPL > SYN > tests-only
     - term_tpi: high pollution terms offer higher marginal gain
     - ML bucket: likely-manufactured benefits more from anchor/timeline/template capture
     """
+    # If learned weights exist, use linear model
+    if isinstance(learned, dict) and isinstance(learned.get("weights"), dict):
+        w = learned.get("weights") or {}
+        # build same feature schema as roi_learn
+        dom = str(task.get("dominant_driver") or "")
+        tt = str(task.get("task_type") or "")
+        ml = task.get("ml") if isinstance(task.get("ml"), dict) else {}
+        ml_score = float(ml.get("ml") or 0.0)
+        bucket = str(ml.get("bucket") or "UNKNOWN")
+        evd = task.get("evidence") if isinstance(task.get("evidence"), dict) else {}
+        x = {
+            "bias": 1.0,
+            "ml_score": ml_score,
+            "dom_PROV_GAP": 1.0 if dom == "PROV_GAP" else 0.0,
+            "dom_FOG": 1.0 if dom == "FOG" else 0.0,
+            "dom_TPL": 1.0 if dom == "TPL" else 0.0,
+            "dom_SYN": 1.0 if dom == "SYN" else 0.0,
+            "tt_PRIMARY": 1.0 if tt == "PRIMARY_ANCHOR_SWEEP" else 0.0,
+            "tt_TIMELINE": 1.0 if tt == "ORIGIN_TIMELINE" else 0.0,
+            "tt_TEMPLATE": 1.0 if tt == "TEMPLATE_CAPTURE" else 0.0,
+            "tt_SYNC": 1.0 if tt == "SYNC_POSTING_CHECK" else 0.0,
+            "tt_AUTH": 1.0 if tt == "AUTH_CHAIN" else 0.0,
+            "tt_TESTS": 1.0 if tt == "DISCONFIRM_TESTS" else 0.0,
+            "bucket_MFG": 1.0 if bucket in ("LIKELY_MANUFACTURED", "COORDINATED", "ASTROTURF") else 0.0,
+            "anchors_added": float(evd.get("anchors_added") or 0.0),
+            "domains_added": float(evd.get("domains_added") or 0.0),
+            "fals_tests_added": float(evd.get("fals_tests_added") or 0.0),
+        }
+        score = 0.0
+        for k, v in x.items():
+            score += float(w.get(k, 0.0)) * float(v)
+        # bound
+        return float(max(0.0, min(1.4, score)))
+
+    # else fall back to heuristic
     dom = str(task.get("dominant_driver") or "")
     term_tpi = float(task.get("term_tpi") or 0.0)
     ml = task.get("ml") if isinstance(task.get("ml"), dict) else {}
@@ -118,9 +155,10 @@ def score_task(
     decodo_available: bool,
     decodo_multiplier: float,
     lambda_manual: float,
+    learned_model: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     usd, manual = estimate_cost(task, decodo_available=decodo_available, decodo_multiplier=decodo_multiplier)
-    gain = expected_sig_gain(task)
+    gain = expected_sig_gain(task, learned=learned_model)
     denom = float(usd + lambda_manual * float(manual) + 1e-6)
     roi = float(gain / denom)
     return {
@@ -149,14 +187,24 @@ def build_roi_plan(
     lambda_manual: float,
 ) -> Dict[str, Any]:
     tasks_path = _latest(out_reports, "calibration_tasks_*.json")
+    learned_path = _latest(out_reports, "roi_weights_*.json")
     tasks_obj = _read_json(tasks_path) if tasks_path else {}
+    learned_model = _read_json(learned_path) if learned_path else {}
     tasks = tasks_obj.get("tasks") if isinstance(tasks_obj.get("tasks"), list) else []
 
-    scored = [
-        score_task(t, decodo_available=decodo_available, decodo_multiplier=decodo_multiplier, lambda_manual=lambda_manual)
-        for t in tasks
-        if isinstance(t, dict)
-    ]
+    scored = []
+    for t in tasks:
+        if not isinstance(t, dict):
+            continue
+        scored.append(
+            score_task(
+                t,
+                decodo_available=decodo_available,
+                decodo_multiplier=decodo_multiplier,
+                lambda_manual=lambda_manual,
+                learned_model=learned_model if isinstance(learned_model, dict) else None,
+            )
+        )
     scored.sort(key=lambda x: (-float(x.get("roi") or 0.0), -float(x.get("expected_gain") or 0.0)))
 
     # greedy selection under constraints
@@ -206,6 +254,7 @@ def build_roi_plan(
         },
         "selected": picked,
         "ranked_top": scored[:50],
+        "learned_model": {"path": learned_path, "version": learned_model.get("version")} if learned_path else None,
         "notes": "Greedy ROI selection. Costs/gains are heuristic in v0.1; backtest will replace with learned estimators.",
     }
 
