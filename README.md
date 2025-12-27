@@ -281,6 +281,9 @@ Production-grade reliability for edge deployment:
 - [x] **Lexicon Engine v1** — Domain-scoped, versioned token-weight mapping
 - [x] **Oracle Pipeline v1** — Deterministic oracle generation from correlation deltas
 - [x] **Abraxas v1.4** — Temporal & Adversarial Expansion
+- [x] **ABX-Runes v1.4** — Comprehensive rune-sigil generation pipeline + operator system
+- [x] **SIG KPI Metrics** — Symbolic Intelligence Gain tracking (WO-66 through WO-81)
+- [x] **CLAUDE.md** — Comprehensive AI assistant development guide
 
 ### Abraxas v1.4: Temporal & Adversarial Expansion
 
@@ -404,11 +407,34 @@ python -m abraxas.cli.abx_run_v1_4 \
 
 ### 📊 Recent Updates
 
-See recent pull requests and commits:
-- **#8** — Integrate Operator Auto-Synthesis (OAS) into Abraxas Slang System
-- **#7** — Add always-on Abraxas daemon with Decodo ingestion and chat UI
-- Pydantic dependency and OAS module integration
-- Self-healing layer with watchdog and atomic updates
+**Latest merged pull requests:**
+- **#29** — Codex: Conduct Repo Topology Scan and Indexing
+- **#27** — Add SIG KPI Metrics (Symbolic Intelligence Gain)
+- **#26** — Implement Canonical Daily Run Orchestrator
+- **#25** — Implement Metric Target Binding for Portfolios
+- **#24** — Rent Enforcement v0.1
+- **#23** — Resolve PR Conflicts
+- **#21** — Abraxas Update Agent
+- **#19** — Emergent Metrics Shadow System
+- **#18** — Abraxas v1.4 Implementation
+
+**Recent work orders (WO-66 through WO-81):**
+- **WO-81**: Attribution Hardening
+- **WO-80**: Delta Scoring + Self-Calibration
+- **WO-79**: Anchor→Claim Relation Classifier
+- **WO-78**: Online Resolver Operator
+- **WO-77.1**: Tiered Online Sourcing with Provider Fallbacks
+- **WO-77**: Execution Adapter + Task Ledger
+- **WO-76**: Acquisition Planner from Stability Deficits
+- **WO-75**: Time-to-Truth (TTT) Curves + Claim Stabilization Half-Life
+- **WO-73**: Two-Axis Truth Contamination Map
+- **WO-72**: Evidence Graph + Claim Support/Contradiction Metrics
+- **WO-71**: Anchor-Level Evidence Ledger + Proof Integrity Score
+- **WO-70**: Anti-Goodhart Guardrails + Confidence Bands + Regime-Shift Detector
+- **WO-69**: SIG Snapshot Ledger + Proper Outcome Attribution
+- **WO-68**: Task Outcome Ledger + Learned ROI Weights
+- **WO-67**: Signal ROI Scheduler for economic task selection
+- **WO-66**: SIG KPI (Symbolic Intelligence Gain) metrics system
 
 ---
 
@@ -416,10 +442,12 @@ See recent pull requests and commits:
 
 ### Core Modules
 
+- **[CLAUDE.md](CLAUDE.md)** — AI Assistant Development Guide (comprehensive codebase documentation)
 - **[SCO Stack](README_SCO.md)** — Symbolic Compression Operator documentation
 - **[Orin Spine](README_ORIN.md)** — Edge deployment and infrastructure
 - **[Integration Guide](INTEGRATION_SCO.md)** — TypeScript/Python integration
 - **[Deployment Guide](DEPLOYMENT_SCO.md)** — Production deployment
+- **[Conflict Resolution Guide](CONFLICT_RESOLUTION_GUIDE.md)** — Merge conflict resolution strategies
 
 ### CLI Reference
 
