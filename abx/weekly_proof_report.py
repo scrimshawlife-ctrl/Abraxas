@@ -35,6 +35,7 @@ def main() -> int:
     bands_path = _latest(args.out_reports, "confidence_bands_*.json")
     regime_path = _latest(args.out_reports, "regime_shift_*.json")
     pis_path = _latest(args.out_reports, "proof_integrity_*.json")
+    em_path = _latest(args.out_reports, "evidence_metrics_*.json")
 
     sig = _read_json(sig_path) if sig_path else {}
     cal = _read_json(cal_path) if cal_path else {}
@@ -43,6 +44,7 @@ def main() -> int:
     bands = _read_json(bands_path) if bands_path else {}
     regime = _read_json(regime_path) if regime_path else {}
     pis = _read_json(pis_path) if pis_path else {}
+    em = _read_json(em_path) if em_path else {}
 
     best = cal.get("best") if isinstance(cal.get("best"), dict) else {}
     top10 = cal.get("top10") if isinstance(cal.get("top10"), list) else []
@@ -106,6 +108,30 @@ def main() -> int:
     else:
         md.append("- (no PIS report found; run `python -m abx.proof_integrity`)")
     md.append("")
+    md.append("## Evidence graph metrics (CSS/CPR/SDR)")
+    if em and isinstance(em.get("claim_scores"), dict):
+        cs = em["claim_scores"]
+        # show top 5 most supported claims (CSS high) and top 5 most contested (CPR high)
+        top_css = sorted(cs.items(), key=lambda kv: float(kv[1].get("CSS") or 0.0), reverse=True)[:5]
+        top_cpr = sorted(cs.items(), key=lambda kv: float(kv[1].get("CPR") or 0.0), reverse=True)[:5]
+        md.append("")
+        md.append("**Top supported claims (CSS):**")
+        for cid, v in top_css:
+            md.append(f"- {cid}: CSS={float(v.get('CSS') or 0.0):.3f} | support_w={float(v.get('support_w') or 0.0):.2f} | contra_w={float(v.get('contra_w') or 0.0):.2f} | support_domains={int(v.get('support_domains') or 0)}")
+        md.append("")
+        md.append("**Most contested claims (CPR):**")
+        for cid, v in top_cpr:
+            md.append(f"- {cid}: CPR={float(v.get('CPR') or 0.0):.3f} | support_w={float(v.get('support_w') or 0.0):.2f} | contra_w={float(v.get('contra_w') or 0.0):.2f}")
+        sdr = em.get("SDR") if isinstance(em.get("SDR"), dict) else {}
+        if sdr:
+            top_sdr = sorted(sdr.items(), key=lambda kv: float(kv[1] or 0.0), reverse=True)[:8]
+            md.append("")
+            md.append("**Highest Source Drift (SDR):**")
+            for dom, v in top_sdr:
+                md.append(f"- {dom}: SDR={float(v):.3f}")
+    else:
+        md.append("- (no evidence metrics found; run `python -m abx.evidence_graph_compile` and `python -m abx.evidence_metrics`)")
+    md.append("")
     md.append("## Regime shift detector")
     if regime:
         md.append(f"- regime_shift: **{bool(regime.get('regime_shift'))}**")
@@ -130,6 +156,7 @@ def main() -> int:
     md.append(f"- confidence_bands: {bands_path}")
     md.append(f"- regime_shift: {regime_path}")
     md.append(f"- proof_integrity: {pis_path}")
+    md.append(f"- evidence_metrics: {em_path}")
     md.append("")
     md.append("Notes: This report quantifies pollution conditions and evidence strength. It does not label claims true/false.")
     md_txt = "\n".join(md) + "\n"
