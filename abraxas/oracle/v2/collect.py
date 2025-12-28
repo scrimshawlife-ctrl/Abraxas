@@ -2,17 +2,21 @@ from __future__ import annotations
 
 from typing import Any, Dict, Tuple
 
+from abraxas.oracle.v2.metrics_evidence import evidence_overflow_metrics
+
 
 DEFAULT_THRESHOLDS = {"BW_HIGH": 20.0, "MRS_HIGH": 70.0}
 
 
 def collect_v2_checks(
     *,
+    envelope: Dict[str, Any] | None = None,
     v1_golden_pass_rate: float = 1.0,
     drift_budget_violations: int = 0,
     evidence_bundle_overflow_rate: float = 0.0,
     ci_volatility_correlation: float = 1.0,
     interaction_noise_rate: float = 0.0,
+    evidence_budget_bytes: int | None = None,
 ) -> Dict[str, Any]:
     """
     Deterministic checks collector.
@@ -22,6 +26,8 @@ def collect_v2_checks(
 
     You can later patch this to pull real values from your internal test/telemetry hooks
     without changing downstream schemas.
+
+    If envelope is provided and has evidence pointers, derives real overflow_rate from file sizes.
     """
     # Clamp conservatively to schema bounds
     v1 = max(0.0, min(1.0, float(v1_golden_pass_rate)))
@@ -29,6 +35,15 @@ def collect_v2_checks(
     overflow = max(0.0, min(1.0, float(evidence_bundle_overflow_rate)))
     ci_corr = max(0.0, min(1.0, float(ci_volatility_correlation)))
     noise = max(0.0, min(1.0, float(interaction_noise_rate)))
+
+    # If evidence pointers exist, derive overflow rate from actual file sizes.
+    # No fabrication: if no evidence, keep default.
+    if envelope is not None:
+        ev = (envelope.get("oracle_signal", {}) or {}).get("evidence")
+        has_paths = isinstance(ev, dict) and isinstance(ev.get("paths"), dict) and len(ev.get("paths", {})) > 0
+        if has_paths:
+            m = evidence_overflow_metrics(envelope, budget_bytes=evidence_budget_bytes)
+            overflow = float(m["overflow_rate"])
 
     return {
         "v1_golden_pass_rate": v1,

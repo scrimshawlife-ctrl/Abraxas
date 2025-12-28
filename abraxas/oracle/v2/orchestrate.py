@@ -28,7 +28,7 @@ def attach_v2(
       3) attaches into envelope
       4) optionally appends stabilization row (JSONL)
     """
-    ch = checks or collect_v2_checks()
+    ch = checks or collect_v2_checks(envelope=envelope)
     router_input = derive_router_input_from_envelope(
         envelope=envelope, thresholds=thresholds, user_mode_request=user_mode_request
     )
