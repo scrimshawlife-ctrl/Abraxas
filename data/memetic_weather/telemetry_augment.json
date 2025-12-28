@@ -1,0 +1,31 @@
+{
+  "runes": {
+    "compression.detect": {
+      "drift_flag": false,
+      "pressure_band": "unknown",
+      "pressure_score": null,
+      "risk_band": "severe",
+      "trust_band": "severe",
+      "trust_index": 0.0
+    }
+  },
+  "summary": {
+    "total_runes": 1,
+    "total_warnings": 1,
+    "warnings_by_severity": {
+      "critical": 1
+    },
+    "warnings_by_type": {
+      "trust_critical": 1
+    }
+  },
+  "warnings": [
+    {
+      "description": "Trust index critically low - rune unreliable",
+      "rule": "trust_index <= 0.1",
+      "rune_id": "compression.detect",
+      "severity": "critical",
+      "type": "trust_critical"
+    }
+  ]
+}
