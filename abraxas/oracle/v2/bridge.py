@@ -30,6 +30,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--v1-out-dir", default="out", help="Where v1 writes out/latest/envelope.json (default: out)")
     p.add_argument("--out-dir", default="out", help="Where v2 writes outputs (default: out)")
     p.add_argument("--mode", default="", choices=["", "SNAPSHOT", "ANALYST", "RITUAL"], help="Optional user mode request")
+    p.add_argument(
+        "--evidence",
+        action="append",
+        default=[],
+        help="Evidence attachment spec forwarded to v2: key=filename (repeatable). Resolved under out/<run_id>/evidence/",
+    )
     p.add_argument("--bw-high", type=float, default=20.0, help="Router BW_HIGH threshold (default: 20)")
     p.add_argument("--mrs-high", type=float, default=70.0, help="Router MRS_HIGH threshold (default: 70)")
     p.add_argument("--no-ledger", action="store_true", help="Disable stabilization ledger tick")
@@ -68,6 +74,10 @@ def main(argv: list[str] | None = None) -> int:
         "--bw-high", str(args.bw_high),
         "--mrs-high", str(args.mrs_high),
     ]
+    # forward evidence flags (repeatable)
+    for ev in (args.evidence or []):
+        v2_args.extend(["--evidence", ev])
+
     # default validate unless explicitly disabled
     if args.no_validate:
         v2_args.append("--no-validate")
