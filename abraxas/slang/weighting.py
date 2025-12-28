@@ -8,12 +8,23 @@ from typing import Dict, Any, Tuple
 
 ROOT = Path(__file__).resolve().parents[2]
 INTEL = ROOT / "data" / "intel"
+ASC = ROOT / "data" / "adaptive_state" / "rune"
 
 def _load(name: str) -> Dict[str, Any]:
     p = INTEL / name
     if not p.exists():
         return {}
     return json.loads(p.read_text(encoding="utf-8"))
+
+def _load_phase(rune_id: str) -> str | None:
+    """Load lifecycle phase from ASC (optional maturity prior)."""
+    p = ASC / f"{rune_id}.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8")).get("lifecycle_phase")
+    except Exception:
+        return None
 
 def compute_weight(rune_id: str,
                    trust_index: float | None,
@@ -39,6 +50,15 @@ def compute_weight(rune_id: str,
         # drift penalty: fixed multiplier
         w = w * 0.7
         reasons.append("drift_penalty(0.7x)")
+
+    # Optional maturity prior from ASC (epistemic seniority)
+    phase = _load_phase(rune_id)
+    if phase == "stable":
+        w = w * 1.05
+        reasons.append("maturity_bonus(stable 1.05x)")
+    elif phase == "volatile":
+        w = w * 0.9
+        reasons.append("maturity_penalty(volatile 0.9x)")
 
     # floor so nothing becomes zeroed-out (keeps learning possible)
     w = max(0.05, min(1.0, w))
