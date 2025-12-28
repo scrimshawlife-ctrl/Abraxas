@@ -38,20 +38,27 @@ def collect_v2_checks(
 
     # If evidence pointers exist, derive overflow rate from actual file sizes.
     # No fabrication: if no evidence, keep default.
+    evidence_metrics = None
     if envelope is not None:
         ev = (envelope.get("oracle_signal", {}) or {}).get("evidence")
         has_paths = isinstance(ev, dict) and isinstance(ev.get("paths"), dict) and len(ev.get("paths", {})) > 0
         if has_paths:
             m = evidence_overflow_metrics(envelope, budget_bytes=evidence_budget_bytes)
             overflow = float(m["overflow_rate"])
+            # Persist raw metrics for compliance report via wire-layer (additive, optional).
+            # This key is treated as internal payload by build_compliance_report.
+            evidence_metrics = m
 
-    return {
+    checks_out = {
         "v1_golden_pass_rate": v1,
         "drift_budget_violations": drift,
         "evidence_bundle_overflow_rate": overflow,
         "ci_volatility_correlation": ci_corr,
         "interaction_noise_rate": noise,
     }
+    if evidence_metrics is not None:
+        checks_out["_evidence_metrics"] = evidence_metrics
+    return checks_out
 
 
 def _max_band_width_from_v2_items(v2_slang_items: Any) -> float:
