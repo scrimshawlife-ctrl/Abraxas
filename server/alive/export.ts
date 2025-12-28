@@ -122,19 +122,39 @@ export function createSignedExport(
  * Generate HMAC signature for export.
  *
  * Uses SHA-256 HMAC for integrity verification.
+ *
+ * @throws Error if ALIVE_EXPORT_SECRET is not set in production
  */
 function generateSignature(payload: any): {
   signature: string;
   signatureAlgorithm: string;
 } {
-  // TODO: Use proper secret from environment
-  const secret = process.env.ALIVE_EXPORT_SECRET || "alive-dev-secret";
+  const secret = process.env.ALIVE_EXPORT_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  // In production, require the secret to be explicitly set
+  if (!secret) {
+    if (isProduction) {
+      throw new Error(
+        "ALIVE_EXPORT_SECRET environment variable must be set in production. " +
+        "Generate a secure secret with: node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
+      );
+    } else {
+      // In development, warn and use a dev secret
+      console.warn(
+        "[WARN] ALIVE_EXPORT_SECRET not set. Using insecure dev secret. " +
+        "Set ALIVE_EXPORT_SECRET environment variable for production use."
+      );
+    }
+  }
+
+  const effectiveSecret = secret || "alive-dev-secret-INSECURE";
 
   // Canonicalize payload for signing
   const canonical = JSON.stringify(payload, Object.keys(payload).sort());
 
   // Generate HMAC
-  const hmac = crypto.createHmac("sha256", secret);
+  const hmac = crypto.createHmac("sha256", effectiveSecret);
   hmac.update(canonical);
   const signature = hmac.digest("hex");
 
