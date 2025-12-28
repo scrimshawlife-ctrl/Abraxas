@@ -1,0 +1,26 @@
+{
+  "generated_utc": "2025-12-28T01:17:22.260322+00:00",
+  "items": [
+    {
+      "component_id": "compression.detect",
+      "component_type": "rune",
+      "current_phase": "decaying",
+      "drivers": {
+        "drift_flag": false,
+        "exposure_events": 2,
+        "pressure_score": 0.0,
+        "recent_exposure_window": 2,
+        "stress": 0.0,
+        "trust_band": "low",
+        "trust_index": 0.0,
+        "velocity_proxy": 1.0
+      },
+      "transition_probabilities": {
+        "decaying_to_fossil": 0.0,
+        "decaying_to_stable": 0.2
+      },
+      "triggers": []
+    }
+  ],
+  "recent_window_lines": 3
+}

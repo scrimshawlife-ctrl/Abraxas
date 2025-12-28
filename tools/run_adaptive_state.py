@@ -6,6 +6,7 @@ Executes the complete ASC pipeline:
   1. Build intelligence artifacts (telemetry → intel)
   2. Generate adaptive state capsules (intel + runtime events → capsules)
   3. Build aggregate index (capsules → index.json)
+  4. Generate lifecycle forecasts (transition probabilities + drivers)
 
 This ensures ASC stays fresh and grounded in actual runtime history.
 """
@@ -16,7 +17,8 @@ import sys
 STEPS = [
     ["python3", "tools/run_intel_bridge.py"],
     ["python3", "tools/build_adaptive_state_capsules.py"],
-    ["python3", "tools/build_adaptive_state_index.py"]
+    ["python3", "tools/build_adaptive_state_index.py"],
+    ["python3", "tools/lifecycle_forecast.py"]
 ]
 
 def main():
