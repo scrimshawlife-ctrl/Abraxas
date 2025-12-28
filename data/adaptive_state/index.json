@@ -1,0 +1,15 @@
+{
+  "components": [
+    {
+      "age_cycles": 1,
+      "component_id": "compression.detect",
+      "confidence_trend": "decreasing",
+      "exposure_events": 2,
+      "last_updated_ts": "2025-12-28T01:17:22.123153+00:00",
+      "phase": "decaying",
+      "pressure_trend": "unknown",
+      "stability_trend": "unknown",
+      "type": "rune"
+    }
+  ]
+}

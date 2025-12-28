@@ -11,11 +11,13 @@ import json
 import os
 import platform
 import subprocess
+import time
 from datetime import datetime, timezone
 from typing import Any
 
 from abx.purity import detector_purity_guard
-from abx.schema_registry import schema_for
+from abx.runtime_events import emit as emit_event
+from abx.schema_registry import payload_schema_for, result_schema_for
 from abx.validate import validate_payload
 from shared.aAlmanac import record_event
 from shared.rune_ledger import record_invocation
@@ -76,6 +78,13 @@ def invoke(
     Canonical kernel invocation.
     All cross-module execution must pass through here.
     """
+    # Runtime telemetry: capture invocation start time
+    start_ns = time.time_ns()
+    event_base = {
+        "rune_id": rune_id,
+        "ts_ns": start_ns,
+    }
+
     registry = load_registry()
     rune = next(
         (r for r in registry["runes"] if r["rune_id"] == rune_id),
@@ -88,10 +97,18 @@ def invoke(
     if not is_allowed(policy_doc, rune_id):
         raise PermissionError(f"Rune denied by policy: {rune_id}")
 
-    spec = schema_for(rune_id)
+    # Payload validation (inputs)
+    spec = payload_schema_for(rune_id)
     if spec is not None:
         ok, errs = validate_payload(payload or {}, spec)
         if not ok:
+            # Runtime telemetry: payload validation rejected
+            emit_event({
+                **event_base,
+                "phase": "reject",
+                "reason": "payload_validation_failed",
+                "errors": errs,
+            })
             raise ValueError(f"Payload validation failed for {rune_id}: {errs}")
 
     evidence_mode = rune.get("evidence_mode", "")
@@ -141,28 +158,57 @@ def invoke(
 
         random.seed(seed)
 
+    # Runtime telemetry: invocation started (after validation, before dispatch)
+    emit_event({
+        **event_base,
+        "phase": "invoke_start",
+    })
+
     # --- DISPATCH (v0.2: detector purity guarded) ---
-    with detector_purity_guard(enabled=is_detector):
-        if rune_id == "abx.doctor":
-            from abx.doctor import run_doctor
+    try:
+        with detector_purity_guard(enabled=is_detector):
+            if rune_id == "abx.doctor":
+                from abx.doctor import run_doctor
 
-            result = run_doctor(payload)
-        elif rune_id == "compression.detect":
-            from abraxas.compression.dispatch import detect_compression
+                result = run_doctor(payload)
+            elif rune_id == "compression.detect":
+                from abraxas.compression.dispatch import detect_compression
 
-            result = detect_compression(payload)
-        elif rune_id == "infra.self_heal":
-            from infra.self_heal_advisory import generate_plan
+                result = detect_compression(payload)
+            elif rune_id == "infra.self_heal":
+                from infra.self_heal_advisory import generate_plan
 
-            result = generate_plan(payload)
-        elif rune_id == "actuator.apply":
-            from infra.actuator import apply
+                result = generate_plan(payload)
+            elif rune_id == "actuator.apply":
+                from infra.actuator import apply
 
-            result = apply(payload)
-        else:
-            raise NotImplementedError(
-                f"Rune wired but not yet routed: {rune_id}"
-            )
+                result = apply(payload)
+            else:
+                raise NotImplementedError(
+                    f"Rune wired but not yet routed: {rune_id}"
+                )
+    except Exception as dispatch_error:
+        # Runtime telemetry: invocation failed
+        end_ns = time.time_ns()
+        emit_event({
+            **event_base,
+            "phase": "invoke_error",
+            "duration_ns": end_ns - start_ns,
+            "error_type": type(dispatch_error).__name__,
+            "error": str(dispatch_error),
+        })
+        raise
+
+    # Result validation (outputs) - strict for actuators, soft for detectors
+    r_spec = result_schema_for(rune_id)
+    if r_spec is not None:
+        ok, errs = validate_payload(result or {}, r_spec)
+        if not ok:
+            if is_actuator:
+                # Strict validation for actuators
+                raise ValueError(f"Result validation failed for {rune_id}: {errs}")
+            # Soft validation for detectors - log warning
+            # (will be captured in provenance below)
 
     provenance_bundle = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -171,6 +217,15 @@ def invoke(
         "runtime_fingerprint": _runtime_fingerprint(),
         "seed": seed,
     }
+
+    # Add result validation warning for detectors
+    if r_spec is not None and is_detector:
+        ok, errs = validate_payload(result or {}, r_spec)
+        if not ok:
+            provenance_bundle["result_validation_warning"] = {
+                "rune_id": rune_id,
+                "errors": errs,
+            }
 
     callsite: dict[str, Any] = {}
     try:
@@ -200,6 +255,15 @@ def invoke(
         result=result,
         provenance_bundle=provenance_bundle,
     )
+
+    # Runtime telemetry: invocation completed successfully
+    end_ns = time.time_ns()
+    emit_event({
+        **event_base,
+        "phase": "invoke_end",
+        "duration_ns": end_ns - start_ns,
+        "result_keys": sorted(list((result or {}).keys())),
+    })
 
     return {
         "rune_id": rune_id,

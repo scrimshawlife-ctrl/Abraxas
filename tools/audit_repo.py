@@ -127,6 +127,129 @@ def load_registry():
     )
 
 
+def count_untyped_registry_inputs(registry: dict) -> list:
+    """Flag runes that still use old-format string-list inputs."""
+    out = []
+    if not registry:
+        return out
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        ins = r.get("inputs")
+        if isinstance(ins, list) and ins and isinstance(ins[0], str):
+            out.append({"rune_id": rid, "reason": "inputs_untyped_string_list"})
+    return out
+
+
+def count_untyped_registry_outputs(registry: dict) -> list:
+    """Flag runes that still use old-format string-list outputs."""
+    out = []
+    if not registry:
+        return out
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        outs = r.get("outputs")
+        if isinstance(outs, list) and outs and isinstance(outs[0], str):
+            out.append({"rune_id": rid, "reason": "outputs_untyped_string_list"})
+    return out
+
+
+def normalize_status(r: dict) -> str:
+    """Normalize status field to one of: shadow, active, deprecated."""
+    s = str(r.get("status", "shadow")).strip().lower()
+    if s not in {"shadow", "active", "deprecated"}:
+        return "shadow"
+    return s
+
+
+def is_untyped_inputs(r: dict) -> bool:
+    """Check if rune has old-format untyped inputs."""
+    ins = r.get("inputs")
+    return isinstance(ins, list) and ins and isinstance(ins[0], str)
+
+
+def is_untyped_outputs(r: dict) -> bool:
+    """Check if rune has old-format untyped outputs."""
+    outs = r.get("outputs")
+    return isinstance(outs, list) and outs and isinstance(outs[0], str)
+
+
+def effective_status(r: dict) -> str:
+    """
+    Compute effective status with safety bias:
+    - If active but has untyped I/O → treat as shadow (not promotable)
+    - Deprecated stays deprecated
+    - Otherwise use declared status (default shadow)
+    """
+    s = normalize_status(r)
+    if s == "deprecated":
+        return "deprecated"
+    if s == "active" and (is_untyped_inputs(r) or is_untyped_outputs(r)):
+        return "shadow"  # Downgrade active to shadow if not fully typed
+    return s
+
+
+def check_promotion_receipts(registry: dict) -> list:
+    """Check that active runes have promotion receipts.
+
+    Returns a list of violations where active runes lack governance receipts.
+    """
+    from shared.governance import find_promotion_receipt
+
+    violations = []
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        if not rid:
+            continue
+
+        # Only check declared active runes (not effective status)
+        declared = normalize_status(r)
+        if declared == "active":
+            receipt = find_promotion_receipt(rid)
+            if not receipt:
+                violations.append({
+                    "rune_id": rid,
+                    "reason": "active_without_promotion_receipt",
+                    "remediation": f"Run: abx govern promote {rid} --decided-by <name> --reason <justification>"
+                })
+
+    return violations
+
+
+def check_receipt_signatures() -> list:
+    """Check all governance receipts for valid signatures.
+
+    Returns a list of receipts with invalid or missing signatures.
+    """
+    from shared.governance import DEFAULT_LEDGER_PATH, verify_receipt_obj
+
+    invalid = []
+    ledger_path = Path(DEFAULT_LEDGER_PATH)
+
+    if not ledger_path.exists():
+        return invalid
+
+    with open(ledger_path, "r", encoding="utf-8") as file:
+        for line_no, line in enumerate(file, start=1):
+            try:
+                receipt = json.loads(line)
+            except Exception:
+                continue
+
+            # Verify signature
+            is_valid = verify_receipt_obj(receipt)
+            if not is_valid:
+                invalid.append({
+                    "receipt_id": receipt.get("governance_receipt_id"),
+                    "action_rune_id": receipt.get("action_rune_id"),
+                    "line": line_no,
+                    "reason": "invalid_or_missing_signature",
+                    "sig_alg": receipt.get("sig_alg"),
+                    "has_signature": bool(receipt.get("signature")),
+                })
+
+    return invalid
+
+
 def find_imports(path: Path):
     lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     out = []
@@ -176,6 +299,43 @@ def audit():
     allowed_edges = coupling_policy.get("allowed_cross_imports", []) or []
 
     registry, registry_sha = load_registry()
+    untyped_inputs = count_untyped_registry_inputs(registry)
+    untyped_outputs = count_untyped_registry_outputs(registry)
+    missing_receipts = check_promotion_receipts(registry)
+    invalid_signatures = check_receipt_signatures()
+
+    # Promotion gate findings
+    shadow_actuators = []
+    active_untyped = []
+    registry_effective = []
+    for r in (registry.get("runes", []) or []):
+        rid = r.get("rune_id")
+        if not rid:
+            continue
+        declared = normalize_status(r)
+        eff = effective_status(r)
+        em = str(r.get("evidence_mode", "")).strip()
+
+        # Flag active runes with untyped I/O
+        if declared == "active" and (is_untyped_inputs(r) or is_untyped_outputs(r)):
+            active_untyped.append({
+                "rune_id": rid,
+                "reason": "active_requires_typed_io"
+            })
+
+        # Flag actuators that are shadow (either declared or downgraded)
+        if em == "ops_actuator" and eff == "shadow":
+            shadow_actuators.append({
+                "rune_id": rid,
+                "reason": "actuator_cannot_be_shadow"
+            })
+
+        registry_effective.append({
+            "rune_id": rid,
+            "declared_status": declared,
+            "effective_status": eff,
+            "evidence_mode": em
+        })
 
     hidden_coupling = []
     side_effects = []
@@ -354,6 +514,12 @@ def audit():
         "scores": {
             "rune_coverage_pct": rune_coverage_pct,
             "rune_invoke_ratio": rune_invoke_ratio,
+            "untyped_rune_inputs_count": len(untyped_inputs),
+            "untyped_rune_outputs_count": len(untyped_outputs),
+            "shadow_actuator_count": len(shadow_actuators),
+            "active_untyped_count": len(active_untyped),
+            "missing_promotion_receipts_count": len(missing_receipts),
+            "invalid_receipt_signature_count": len(invalid_signatures),
             "hidden_coupling_count": len(hidden_coupling),
             "side_effect_count": len(side_effects),
             "governance_bypass_count": 0,
@@ -362,6 +528,13 @@ def audit():
             "cross_boundary_import_count": len(cross_boundary),
         },
         "findings": {
+            "untyped_rune_inputs": untyped_inputs[:500],
+            "untyped_rune_outputs": untyped_outputs[:500],
+            "shadow_actuators": shadow_actuators[:500],
+            "active_untyped": active_untyped[:500],
+            "missing_promotion_receipts": missing_receipts[:500],
+            "invalid_receipt_signatures": invalid_signatures[:500],
+            "registry_effective_status": registry_effective[:1000],
             "hidden_coupling": hidden_coupling[:500],
             "side_effects": side_effects[:500],
             "governance": [],

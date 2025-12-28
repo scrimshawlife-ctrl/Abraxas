@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "term": "vibes-check",
+      "score": 0.85,
+      "source_rune_id": "compression.detect",
+      "contexts": ["doing a quick vibes-check", "vibes-check before the meeting"],
+      "frequency": 12
+    },
+    {
+      "term": "chaos-energy",
+      "score": 0.72,
+      "source_rune_id": "slang.ctd",
+      "contexts": ["feeling that chaos-energy", "chaos-energy is strong"],
+      "frequency": 8
+    },
+    {
+      "term": "mid-af",
+      "score": 0.68,
+      "source_rune_id": "compression.detect",
+      "contexts": ["that's mid-af", "pretty mid-af experience"],
+      "frequency": 15
+    }
+  ]
+}

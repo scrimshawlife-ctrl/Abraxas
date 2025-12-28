@@ -103,11 +103,19 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
     findings = data.get("findings", {})
     policy_doc = load_policy()
     coupling = policy_doc.get("coupling", {}) or {}
+    rq = policy_doc.get("registry_quality", {}) or {}
+    pg = policy_doc.get("promotion_gates", {}) or {}
     print("\n=== ABRAXAS CANON AUDIT (summary) ===")
     print(f"commit: {repo.get('commit')}")
     print(f"dirty:  {repo.get('dirty')}")
     print(f"rune_coverage_pct:          {scores.get('rune_coverage_pct')}")
     print(f"rune_invoke_ratio:          {scores.get('rune_invoke_ratio')}")
+    print(f"untyped_rune_inputs_count:  {scores.get('untyped_rune_inputs_count')}")
+    print(f"untyped_rune_outputs_count: {scores.get('untyped_rune_outputs_count')}")
+    print(f"shadow_actuator_count:      {scores.get('shadow_actuator_count')}")
+    print(f"active_untyped_count:       {scores.get('active_untyped_count')}")
+    print(f"missing_promotion_receipts: {scores.get('missing_promotion_receipts_count')}")
+    print(f"invalid_receipt_signatures: {scores.get('invalid_receipt_signature_count')}")
     print(f"hidden_coupling_count:      {scores.get('hidden_coupling_count')}")
     print(f"side_effect_count:          {scores.get('side_effect_count')}")
     print(f"detector_purity_violations: {scores.get('detector_purity_violations')}")
@@ -117,6 +125,19 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
         f"{scores.get('cross_boundary_import_count')}"
     )
     print(f"\naudit_report: {audit_path}")
+
+    # Runtime events telemetry hint
+    runtime_events_path = REPO_ROOT / "data" / "runtime_events.log"
+    if runtime_events_path.exists():
+        try:
+            with runtime_events_path.open("r", encoding="utf-8") as f:
+                event_count = sum(1 for _ in f)
+            print(f"runtime_events:  {event_count} events recorded")
+        except Exception:
+            print("runtime_events:  (error reading)")
+    else:
+        print("runtime_events:  none recorded yet")
+
     print("=====================================\n")
     if int(scores.get("forbidden_actuation_count") or 0) > 0:
         offenders = (findings.get("forbidden_actuation") or [])[:10]
@@ -156,6 +177,87 @@ def _print_audit_summary(audit_path: str) -> dict[str, Any]:
             "kernel.invoke(rune_id, ...) and remove direct imports."
         )
         raise SystemExit(4)
+
+    # Registry quality gate
+    max_untyped = int(rq.get("max_untyped_rune_inputs", 0))
+    untyped = int(scores.get("untyped_rune_inputs_count") or 0)
+    if untyped > max_untyped:
+        offenders = (findings.get("untyped_rune_inputs") or [])[:10]
+        print(
+            f"FAIL: Registry has untyped rune inputs "
+            f"({untyped} > allowed {max_untyped})"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+        print("\nRemedy: migrate rune inputs to typed format:")
+        print('  {"name": "text_event", "type": "string", "required": true}')
+        raise SystemExit(5)
+
+    # Promotion gate: deny shadow actuators
+    deny_shadow_actuators = bool(pg.get("deny_shadow_actuators", True))
+    if deny_shadow_actuators and int(scores.get("shadow_actuator_count") or 0) > 0:
+        offenders = (findings.get("shadow_actuators") or [])[:10]
+        print(
+            "FAIL: Shadow actuators detected "
+            "(ops_actuator rune must be active + typed I/O)"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+        print("\nRemedy: Add status=\"active\" and ensure typed inputs+outputs")
+        raise SystemExit(6)
+
+    # Promotion gate: require typed I/O for active runes
+    require_typed_active = bool(pg.get("require_typed_io_for_active", True))
+    max_active_untyped = int(pg.get("max_active_untyped", 0))
+    active_untyped = int(scores.get("active_untyped_count") or 0)
+    if require_typed_active and active_untyped > max_active_untyped:
+        offenders = (findings.get("active_untyped") or [])[:10]
+        print(
+            f"FAIL: Active runes missing typed I/O "
+            f"({active_untyped} > allowed {max_active_untyped})"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+        print("\nRemedy: Convert inputs and outputs to typed format or mark as shadow")
+        raise SystemExit(7)
+
+    # Promotion gate: require governance receipt for active runes
+    missing_receipts = int(scores.get("missing_promotion_receipts_count") or 0)
+    if missing_receipts > 0:
+        offenders = (findings.get("missing_promotion_receipts") or [])[:10]
+        print(
+            f"FAIL: Active runes missing promotion receipts "
+            f"({missing_receipts} rune(s) require governance approval)"
+        )
+        for o in offenders:
+            print(f"- {o.get('rune_id')} ({o.get('reason')})")
+            print(f"  {o.get('remediation')}")
+        print(
+            "\nRemedy: Promotion is a governed act. Run 'abx govern promote <rune_id>' "
+            "to create cryptographic receipt before activating."
+        )
+        raise SystemExit(8)
+
+    # Cryptographic integrity gate: require valid signatures on all receipts
+    invalid_sigs = int(scores.get("invalid_receipt_signature_count") or 0)
+    if invalid_sigs > 0:
+        offenders = (findings.get("invalid_receipt_signatures") or [])[:10]
+        print(
+            f"FAIL: Invalid governance receipt signatures detected "
+            f"({invalid_sigs} receipt(s) with missing or invalid signatures)"
+        )
+        for o in offenders:
+            receipt_id = o.get("receipt_id", "unknown")[:16]
+            action = o.get("action_rune_id", "?")
+            sig_alg = o.get("sig_alg") or "none"
+            has_sig = o.get("has_signature", False)
+            print(f"- {receipt_id}... action={action} alg={sig_alg} signed={has_sig}")
+        print(
+            "\nRemedy: Governance receipts must be cryptographically signed. "
+            "Set ABX_GOV_HMAC_KEY environment variable and regenerate receipts."
+        )
+        raise SystemExit(9)
+
     return {
         "rune_coverage_pct": scores.get("rune_coverage_pct"),
         "hidden_coupling_count": scores.get("hidden_coupling_count"),

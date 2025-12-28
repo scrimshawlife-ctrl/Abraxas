@@ -1,0 +1,20 @@
+{
+  "action_payload": {
+    "rune_id": "weather.generate"
+  },
+  "action_rune_id": "governance.promote_rune",
+  "decided_by": "daniel",
+  "decision": "APPROVE",
+  "evidence_bundle": {
+    "promotion_event": true,
+    "registry_sha256": "7402b66df0c6848b1c773a6ef20e5fd06c9c818b633edb5e324be9b3c479a0ea",
+    "rune_id": "weather.generate"
+  },
+  "governance_receipt_id": "69e3f8e59b96078c62466e53297389a5fc3912ccd83fcc8968bd5ebe2d7dff91",
+  "key_id": "81d0e51f2b69f5ea",
+  "provenance_bundle": {},
+  "reason": "Testing signed receipts with HMAC-SHA256",
+  "sig_alg": "hmac-sha256",
+  "signature": "3b4d6d8a5a0c27cf5a5a0cb025ccea98c5373bef1fa9ba851230222287090fcd",
+  "timestamp_utc": "2025-12-27T23:29:45.426797+00:00"
+}

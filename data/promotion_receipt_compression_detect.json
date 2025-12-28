@@ -1,0 +1,20 @@
+{
+  "action_payload": {
+    "rune_id": "compression.detect"
+  },
+  "action_rune_id": "governance.promote_rune",
+  "decided_by": "daniel",
+  "decision": "APPROVE",
+  "evidence_bundle": {
+    "promotion_event": true,
+    "registry_sha256": "7402b66df0c6848b1c773a6ef20e5fd06c9c818b633edb5e324be9b3c479a0ea",
+    "rune_id": "compression.detect"
+  },
+  "governance_receipt_id": "d6ab6bf0270c75b67a6027ab276dfcf3d348f879eeacaad46b968ff3ff3a5777",
+  "key_id": "81d0e51f2b69f5ea",
+  "provenance_bundle": {},
+  "reason": "Re-promote with cryptographic signature (Patch 21)",
+  "sig_alg": "hmac-sha256",
+  "signature": "1a4949ab34717d0a43ffb294a85a250bc1eed79b8e45d05c213999298286a5ef",
+  "timestamp_utc": "2025-12-27T23:30:31.825516+00:00"
+}

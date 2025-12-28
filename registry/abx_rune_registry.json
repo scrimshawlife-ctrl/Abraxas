@@ -9,9 +9,21 @@
   "runes": [
     {
       "rune_id": "compression.detect",
+      "status": "active",
       "capability": "Detect symbolic/linguistic compression events (SCO/ECO).",
-      "inputs": ["text_event", "lexicon_ref", "config"],
-      "outputs": ["compression_event", "metrics", "provenance_bundle"],
+      "inputs": [
+        {"name": "text_event", "type": "string", "required": true},
+        {"name": "lexicon_ref", "type": "object", "required": false},
+        {"name": "config", "type": "object", "required": true},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
+      "outputs": [
+        {"name": "compression_event", "type": "object", "required": true},
+        {"name": "metrics", "type": "object", "required": false},
+        {"name": "labels", "type": "array", "required": false},
+        {"name": "confidence", "type": "number", "required": false},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
       "evidence_mode": "detector_only",
       "suggested_impl": ["abraxas/*compression*", "abraxas/*sco*", "abraxas/*eco*"]
     },
@@ -41,17 +53,42 @@
     },
     {
       "rune_id": "infra.self_heal",
+      "status": "active",
       "capability": "Generate self-heal advisory plan (NO side effects).",
-      "inputs": ["health_state", "policy", "config"],
-      "outputs": ["action_plan", "audit_log", "provenance_bundle"],
+      "inputs": [
+        {"name": "health_state", "type": "object", "required": true},
+        {"name": "policy", "type": "object", "required": true},
+        {"name": "audit_report_sha256", "type": "string", "required": false},
+        {"name": "config", "type": "object", "required": false},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
+      "outputs": [
+        {"name": "issues", "type": "array", "required": true},
+        {"name": "action_plan", "type": "array", "required": true},
+        {"name": "evidence", "type": "object", "required": true},
+        {"name": "audit_log", "type": "object", "required": false},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
       "evidence_mode": "detector_only",
       "suggested_impl": ["infra/self_heal_advisory.py"]
     },
     {
       "rune_id": "actuator.apply",
+      "status": "active",
       "capability": "Apply a state-changing plan (governance-gated).",
-      "inputs": ["action_plan", "governance_receipt_id", "config"],
-      "outputs": ["apply_receipt", "audit_log", "provenance_bundle"],
+      "inputs": [
+        {"name": "action_plan", "type": "array", "required": true},
+        {"name": "governance_receipt_id", "type": "string", "required": true},
+        {"name": "dry_run", "type": "boolean", "required": false},
+        {"name": "config", "type": "object", "required": false},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
+      "outputs": [
+        {"name": "apply_receipt", "type": "object", "required": true},
+        {"name": "verification", "type": "object", "required": true},
+        {"name": "audit_log", "type": "array", "required": true},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
       "evidence_mode": "ops_actuator",
       "suggested_impl": ["infra/actuator.py"]
     },

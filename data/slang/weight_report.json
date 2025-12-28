@@ -1,0 +1,5 @@
+{
+  "candidates_source": "data/slang/slang_candidates.json",
+  "note": "Weights derived from data/intel/*.json (trust, pressure, drift).",
+  "weights_count": 1
+}
