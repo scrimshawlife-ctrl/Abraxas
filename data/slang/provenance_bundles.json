@@ -1,0 +1,110 @@
+{
+  "items": [
+    {
+      "confidence_band": "high",
+      "epistemic_status": "established",
+      "evidence": {
+        "intel": [
+          "trust_index.json",
+          "symbolic_pressure.json",
+          "semantic_drift_signal.json"
+        ],
+        "memetic_weather": [
+          "telemetry_augment.json"
+        ],
+        "telemetry": [
+          "runtime_events.log"
+        ]
+      },
+      "fragility": 0.5,
+      "lifecycle_phase": "unknown",
+      "predicted_half_life_days": 51,
+      "resonance_domains": {
+        "culture": 0.72,
+        "finance": 0.42,
+        "politics": 0.62,
+        "tech": 0.92
+      },
+      "term": "chaos-energy",
+      "weight_rationale": {
+        "drift_flag": false,
+        "maturity_adjustment": "unknown",
+        "pressure_score": null,
+        "trust_index": null
+      },
+      "weighted_score": 0.72
+    },
+    {
+      "confidence_band": "low",
+      "epistemic_status": "established",
+      "evidence": {
+        "intel": [
+          "trust_index.json",
+          "symbolic_pressure.json",
+          "semantic_drift_signal.json"
+        ],
+        "memetic_weather": [
+          "telemetry_augment.json"
+        ],
+        "telemetry": [
+          "runtime_events.log"
+        ]
+      },
+      "fragility": 1.0,
+      "lifecycle_phase": "decaying",
+      "predicted_half_life_days": 31,
+      "resonance_domains": {
+        "culture": 0.04,
+        "finance": 0.0,
+        "politics": 0.0,
+        "tech": 0.24
+      },
+      "term": "vibes-check",
+      "weight_rationale": {
+        "drift_flag": false,
+        "maturity_adjustment": "decaying",
+        "pressure_score": null,
+        "trust_index": 0.0
+      },
+      "weighted_score": 0.0425
+    },
+    {
+      "confidence_band": "low",
+      "epistemic_status": "established",
+      "evidence": {
+        "intel": [
+          "trust_index.json",
+          "symbolic_pressure.json",
+          "semantic_drift_signal.json"
+        ],
+        "memetic_weather": [
+          "telemetry_augment.json"
+        ],
+        "telemetry": [
+          "runtime_events.log"
+        ]
+      },
+      "fragility": 1.0,
+      "lifecycle_phase": "decaying",
+      "predicted_half_life_days": 31,
+      "resonance_domains": {
+        "culture": 0.03,
+        "finance": 0.0,
+        "politics": 0.0,
+        "tech": 0.23
+      },
+      "term": "mid-af",
+      "weight_rationale": {
+        "drift_flag": false,
+        "maturity_adjustment": "decaying",
+        "pressure_score": null,
+        "trust_index": 0.0
+      },
+      "weighted_score": 0.034
+    }
+  ],
+  "metadata": {
+    "note": "Provenance bundles require runtime exhaust + ASC + intel artifacts - hard to counterfeit",
+    "total_bundles": 3
+  }
+}
