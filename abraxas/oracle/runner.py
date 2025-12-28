@@ -10,6 +10,7 @@ from uuid import uuid4
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.core.provenance import Provenance
 from abraxas.oracle.transforms import CorrelationDelta, render_oracle, score_deltas
+from abraxas.oracle.v2.wire import build_v2_block
 
 
 @dataclass(frozen=True)
@@ -96,6 +97,29 @@ class DeterministicOracleRunner:
             git_sha=self._git_sha,
             host=self._host,
         )
+
+        # Build v2 governance block (placeholder values for now)
+        # Use deterministic date_iso from the run date
+        v2 = build_v2_block(
+            checks={
+                "v1_golden_pass_rate": 1.0,
+                "drift_budget_violations": 0,
+                "evidence_bundle_overflow_rate": 0.0,
+                "ci_volatility_correlation": 0.72,
+                "interaction_noise_rate": 0.22,
+            },
+            router_input={
+                "max_band_width": max(abs(s["score"]) for s in scored) if scored else 0.0,
+                "max_MRS": len(scored),
+                "negative_signal_alerts": 0,
+                "thresholds": {"BW_HIGH": 20.0, "MRS_HIGH": 70.0},
+            },
+            config_hash=config_hash,
+            date_iso=as_of,  # Use as_of_utc for deterministic timestamp
+        )
+
+        # Add v2 governance block to output
+        out["v2"] = v2
 
         artifact_wo_sig = {
             "id": rid,
