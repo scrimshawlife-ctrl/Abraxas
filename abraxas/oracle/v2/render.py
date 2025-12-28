@@ -12,10 +12,37 @@ def _safe_get(d: Dict[str, Any], path: List[str], default: Any) -> Any:
     return cur
 
 
+def _evidence_pointers(envelope: Dict[str, Any]) -> Dict[str, Any] | None:
+    """
+    Evidence gating:
+      - Never infer evidence from missing data.
+      - Only return pointers if the envelope already contains them.
+
+    Accepted shapes (optional, best-effort):
+      envelope["oracle_signal"]["evidence"]["paths"]
+      envelope["oracle_signal"]["evidence"]["hashes"]
+    """
+    sig = envelope.get("oracle_signal", {}) or {}
+    ev = sig.get("evidence")
+    if not isinstance(ev, dict):
+        return None
+
+    paths = ev.get("paths")
+    hashes = ev.get("hashes")
+
+    out: Dict[str, Any] = {}
+    if isinstance(paths, dict) and paths:
+        out["paths"] = paths
+    if isinstance(hashes, dict) and hashes:
+        out["hashes"] = hashes
+
+    return out if out else None
+
+
 def render_snapshot(envelope: Dict[str, Any]) -> Dict[str, Any]:
     """
     Deterministic snapshot projection.
-    Economy: uses v1 top lists; does not surface evidence blobs.
+    Economy: uses v1 top lists; evidence is ALWAYS omitted.
     """
     sig = envelope.get("oracle_signal", {}) or {}
     window = sig.get("window")
@@ -51,9 +78,12 @@ def render_analyst(envelope: Dict[str, Any]) -> Dict[str, Any]:
     sig = envelope.get("oracle_signal", {}) or {}
     v2 = sig.get("v2", {}) or {}
     compliance = v2.get("compliance", {}) or {}
+    ev = _evidence_pointers(envelope)
     return {
         "mode": "ANALYST",
         "envelope": envelope,
+        # Evidence pointers only when present (never fabricated)
+        **({"evidence": ev} if ev is not None else {}),
         "provenance": {"config_hash": _safe_get(compliance, ["provenance", "config_hash"], None)},
     }
 
