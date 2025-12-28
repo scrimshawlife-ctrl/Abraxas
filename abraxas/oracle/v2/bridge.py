@@ -25,6 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--config-hash", default="", help="Deterministic config hash for v2 provenance (optional if --config used)")
     p.add_argument("--config", default="", help="Path to v2 config json (auto-created if missing when provided)")
     p.add_argument("--profile", default="default", help="Config profile (default: default)")
+    p.add_argument("--schema-index", default="", help="Schema index path (default: schema/v2/index.json)")
     p.add_argument("--v1-cmd", required=True, help="Command to run the existing v1 oracle (quoted string)")
     p.add_argument("--v1-out-dir", default="out", help="Where v1 writes out/latest/envelope.json (default: out)")
     p.add_argument("--out-dir", default="out", help="Where v2 writes outputs (default: out)")
@@ -44,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
                 bw_high=float(args.bw_high),
                 mrs_high=float(args.mrs_high),
                 ledger_enabled=(not args.no_ledger),
+                schema_index_path=(args.schema_index if args.schema_index else None) or "schema/v2/index.json",
             )
             cfg_hash = h
         else:

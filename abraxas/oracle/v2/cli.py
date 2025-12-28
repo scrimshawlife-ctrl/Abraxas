@@ -25,6 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--config-hash", default="", help="Deterministic config hash for provenance (optional if --config used)")
     p.add_argument("--config", default="", help="Path to v2 config json (auto-created if missing when provided)")
     p.add_argument("--profile", default="default", help="Config profile (default: default)")
+    p.add_argument("--schema-index", default="", help="Schema index path (default: schema/v2/index.json)")
     p.add_argument("--in-envelope", default="", help="Path to an existing envelope.json (optional)")
     p.add_argument("--auto-in-envelope", action="store_true",
                    help="Auto-discover an existing v1 envelope.json (out/latest/envelope.json etc.)")
@@ -49,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
                 bw_high=float(args.bw_high),
                 mrs_high=float(args.mrs_high),
                 ledger_enabled=(not args.no_ledger),
+                schema_index_path=(args.schema_index if args.schema_index else None) or "schema/v2/index.json",
             )
             cfg_hash = h
         else:
