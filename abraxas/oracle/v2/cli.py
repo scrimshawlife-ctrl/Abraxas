@@ -6,6 +6,7 @@ import os
 from typing import Any, Dict
 
 from abraxas.oracle.v2.discover import discover_envelope
+from abraxas.oracle.v2.config import load_or_create_config
 from abraxas.oracle.v2.orchestrate import attach_v2
 from abraxas.oracle.v2.render import render_by_mode
 from abraxas.oracle.v2.export import export_run
@@ -21,7 +22,9 @@ def main(argv: list[str] | None = None) -> int:
     V2 Oracle CLI: runs compliance → routing → ledger → render → export.
     """
     p = argparse.ArgumentParser(description="Oracle v2 governance runner")
-    p.add_argument("--config-hash", required=True, help="Deterministic config hash for provenance")
+    p.add_argument("--config-hash", default="", help="Deterministic config hash for provenance (optional if --config used)")
+    p.add_argument("--config", default="", help="Path to v2 config json (auto-created if missing when provided)")
+    p.add_argument("--profile", default="default", help="Config profile (default: default)")
     p.add_argument("--in-envelope", default="", help="Path to an existing envelope.json (optional)")
     p.add_argument("--auto-in-envelope", action="store_true",
                    help="Auto-discover an existing v1 envelope.json (out/latest/envelope.json etc.)")
@@ -35,6 +38,21 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-export", action="store_true", help="Disable export")
     p.add_argument("--no-ledger", action="store_true", help="Disable stabilization ledger tick")
     args = p.parse_args(argv)
+
+    # Resolve config_hash
+    cfg_hash = args.config_hash
+    if not cfg_hash:
+        if args.config:
+            cfg, h = load_or_create_config(
+                path=args.config,
+                profile=args.profile,
+                bw_high=float(args.bw_high),
+                mrs_high=float(args.mrs_high),
+                ledger_enabled=(not args.no_ledger),
+            )
+            cfg_hash = h
+        else:
+            raise SystemExit("--config-hash is required unless --config is provided")
 
     envelope: Dict[str, Any]
     if args.in_envelope:
@@ -55,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
 
     attach_v2(
         envelope=envelope,
-        config_hash=args.config_hash,
+        config_hash=cfg_hash,
         thresholds=thresholds,
         user_mode_request=user_mode,
         do_stabilization_tick=not args.no_ledger,

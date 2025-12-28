@@ -7,6 +7,7 @@ import subprocess
 from typing import List, Optional
 
 from abraxas.oracle.v2.cli import main as v2_main
+from abraxas.oracle.v2.config import load_or_create_config
 
 
 def _run_cmd(cmd: List[str]) -> int:
@@ -21,7 +22,9 @@ def _run_cmd(cmd: List[str]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="abraxas.oracle.bridge")
-    p.add_argument("--config-hash", required=True, help="Deterministic config hash for v2 provenance")
+    p.add_argument("--config-hash", default="", help="Deterministic config hash for v2 provenance (optional if --config used)")
+    p.add_argument("--config", default="", help="Path to v2 config json (auto-created if missing when provided)")
+    p.add_argument("--profile", default="default", help="Config profile (default: default)")
     p.add_argument("--v1-cmd", required=True, help="Command to run the existing v1 oracle (quoted string)")
     p.add_argument("--v1-out-dir", default="out", help="Where v1 writes out/latest/envelope.json (default: out)")
     p.add_argument("--out-dir", default="out", help="Where v2 writes outputs (default: out)")
@@ -32,6 +35,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--ledger-path", default="", help="Override stabilization ledger path (optional)")
     args = p.parse_args(argv)
 
+    cfg_hash = args.config_hash
+    if not cfg_hash:
+        if args.config:
+            _, h = load_or_create_config(
+                path=args.config,
+                profile=args.profile,
+                bw_high=float(args.bw_high),
+                mrs_high=float(args.mrs_high),
+                ledger_enabled=(not args.no_ledger),
+            )
+            cfg_hash = h
+        else:
+            raise SystemExit("--config-hash is required unless --config is provided")
+
     # 1) Run v1
     v1_cmd = shlex.split(args.v1_cmd)
     rc1 = _run_cmd(v1_cmd)
@@ -40,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # 2) Run v2 shim (auto-discover v1 envelope)
     v2_args: List[str] = [
-        "--config-hash", args.config_hash,
+        "--config-hash", cfg_hash,
         "--auto-in-envelope",
         "--v1-out-dir", args.v1_out_dir,
         "--out-dir", args.out_dir,
