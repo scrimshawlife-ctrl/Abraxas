@@ -1,0 +1,17 @@
+{
+  "age_cycles": 2,
+  "component_id": "compression.detect",
+  "component_type": "rune",
+  "confidence_trend": "decreasing",
+  "cross_subsystem_interactions": {
+    "intel": 1,
+    "memetic_weather": 1,
+    "telemetry": 1
+  },
+  "exposure_events": 2,
+  "last_updated_ts": "2025-12-28T00:50:22.515612+00:00",
+  "lifecycle_phase": "decaying",
+  "notes": "",
+  "pressure_trend": "unknown",
+  "stability_trend": "unknown"
+}
