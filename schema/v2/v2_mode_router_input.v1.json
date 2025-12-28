@@ -1,0 +1,23 @@
+{
+  "$id": "schema/v2/v2_mode_router_input.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["compliance_status","max_band_width","max_MRS","negative_signal_alerts","thresholds","config_hash"],
+  "properties": {
+    "user_mode_request": { "type": "string", "enum": ["SNAPSHOT","ANALYST","RITUAL"] },
+    "compliance_status": { "type": "string", "enum": ["GREEN","YELLOW","RED"] },
+    "max_band_width": { "type": "number", "minimum": 0, "maximum": 100 },
+    "max_MRS": { "type": "number", "minimum": 0, "maximum": 100 },
+    "negative_signal_alerts": { "type": "integer", "minimum": 0, "maximum": 5000 },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["BW_HIGH","MRS_HIGH"],
+      "properties": {
+        "BW_HIGH": { "type": "number", "minimum": 0, "maximum": 100 },
+        "MRS_HIGH": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "config_hash": { "type": "string", "minLength": 16, "maxLength": 128 }
+  }
+}
