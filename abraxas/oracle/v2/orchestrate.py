@@ -16,6 +16,8 @@ def attach_v2(
     user_mode_request: str | None = None,
     do_stabilization_tick: bool = True,
     evidence_budget_bytes: int | None = None,
+    config_payload: Dict[str, Any] | None = None,
+    config_source: str | None = None,
     ledger_path: str | None = None,
     date_iso: str | None = None,
     validate: bool = True,
@@ -34,7 +36,12 @@ def attach_v2(
         envelope=envelope, thresholds=thresholds, user_mode_request=user_mode_request
     )
     out = attach_v2_to_envelope(
-        envelope=envelope, checks=ch, router_input=router_input, config_hash=config_hash
+        envelope=envelope,
+        checks=ch,
+        router_input=router_input,
+        config_hash=config_hash,
+        config_payload=config_payload,
+        config_source=config_source,
     )
     if validate:
         validate_envelope_v2(out)

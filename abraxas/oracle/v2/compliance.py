@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import datetime, timezone
 from typing import Any, Dict
 
@@ -12,6 +14,24 @@ DEFAULT_GATES: Dict[str, Any] = {
     "min_ci_corr": 0.6,
     "max_interaction_noise": 0.35,
 }
+
+
+def _stable_json(obj: Any) -> str:
+    """Deterministic JSON serialization."""
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"))
+
+
+def _config_fingerprint(config_payload: Dict[str, Any] | None) -> str | None:
+    """
+    Deterministic fingerprint of config payload JSON.
+    Returns None if absent/invalid.
+    """
+    if not isinstance(config_payload, dict):
+        return None
+    try:
+        return hashlib.sha256(_stable_json(config_payload).encode()).hexdigest()
+    except Exception:
+        return None
 
 
 def _extract_evidence_metrics_from_checks(checks: Dict[str, Any]) -> Dict[str, Any] | None:
@@ -57,6 +77,8 @@ def build_compliance_report(
     config_hash: str,
     date_iso: str | None = None,
     gates: Dict[str, Any] | None = None,
+    config_payload: Dict[str, Any] | None = None,
+    config_source: str | None = None,
 ) -> Dict[str, Any]:
     # Extract evidence metrics if present (pops from checks)
     evm = _extract_evidence_metrics_from_checks(checks)
@@ -72,6 +94,13 @@ def build_compliance_report(
         "gates": g,
         "provenance": {"config_hash": config_hash},
     }
+
+    # Add config fingerprint and source if available
+    cfp = _config_fingerprint(config_payload)
+    if cfp is not None:
+        rep["provenance"]["config_fingerprint"] = cfp
+    if isinstance(config_source, str) and config_source.strip():
+        rep["provenance"]["config_source"] = config_source
 
     # Optional extra debug payload (schema-tolerant if additionalProperties allowed;
     # validator does not forbid).

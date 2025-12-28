@@ -12,6 +12,8 @@ def attach_v2_to_envelope(
     router_input: Dict[str, Any],
     config_hash: str,
     date_iso: str | None = None,
+    config_payload: Dict[str, Any] | None = None,
+    config_source: str | None = None,
 ) -> Dict[str, Any]:
     """
     Builds the v2 governance block and attaches it to the envelope.
@@ -22,6 +24,8 @@ def attach_v2_to_envelope(
         router_input=router_input,
         config_hash=config_hash,
         date_iso=date_iso,
+        config_payload=config_payload,
+        config_source=config_source,
     )
 
     # Ensure oracle_signal exists
