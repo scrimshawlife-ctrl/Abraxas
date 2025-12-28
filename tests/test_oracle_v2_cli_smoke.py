@@ -11,7 +11,7 @@ def test_cli_minimal_shell():
     """Test CLI with minimal envelope shell."""
     with tempfile.TemporaryDirectory() as td:
         ret = main([
-            "--config-hash", "TEST_CFG",
+            "--config-hash", "FIXED_CONFIG_HASH_0000000000000000",
             "--out-dir", td,
             "--no-ledger",
         ])
@@ -39,7 +39,7 @@ def test_cli_auto_discover():
 
         v2_out = os.path.join(td, "v2_out")
         ret = main([
-            "--config-hash", "TEST_CFG",
+            "--config-hash", "FIXED_CONFIG_HASH_0000000000000000",
             "--auto-in-envelope",
             "--v1-out-dir", v1_out,
             "--out-dir", v2_out,

@@ -5,6 +5,7 @@ from typing import Any, Dict
 from abraxas.oracle.v2.attach import attach_v2_to_envelope
 from abraxas.oracle.v2.collect import collect_v2_checks, derive_router_input_from_envelope
 from abraxas.oracle.v2.stabilization import stabilization_tick
+from abraxas.oracle.v2.validate import validate_envelope_v2
 
 
 def attach_v2(
@@ -16,6 +17,7 @@ def attach_v2(
     do_stabilization_tick: bool = True,
     ledger_path: str | None = None,
     date_iso: str | None = None,
+    validate: bool = True,
     # checks override (optional) — can be wired later to real telemetry:
     checks: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
@@ -33,6 +35,8 @@ def attach_v2(
     out = attach_v2_to_envelope(
         envelope=envelope, checks=ch, router_input=router_input, config_hash=config_hash
     )
+    if validate:
+        validate_envelope_v2(out)
     if do_stabilization_tick:
         stabilization_tick(
             v2_block=out["oracle_signal"]["v2"], ledger_path=ledger_path, date_iso=date_iso

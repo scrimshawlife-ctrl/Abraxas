@@ -33,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--bw-high", type=float, default=20.0, help="Router BW_HIGH threshold (default: 20)")
     p.add_argument("--mrs-high", type=float, default=70.0, help="Router MRS_HIGH threshold (default: 70)")
     p.add_argument("--no-ledger", action="store_true", help="Disable stabilization ledger tick")
+    p.add_argument("--validate", action="store_true", help="Enable v2 schema validation (default)")
+    p.add_argument("--no-validate", action="store_true", help="Disable v2 schema validation")
     p.add_argument("--ledger-path", default="", help="Override stabilization ledger path (optional)")
     args = p.parse_args(argv)
 
@@ -66,6 +68,10 @@ def main(argv: list[str] | None = None) -> int:
         "--bw-high", str(args.bw_high),
         "--mrs-high", str(args.mrs_high),
     ]
+    # default validate unless explicitly disabled
+    if args.no_validate:
+        v2_args.append("--no-validate")
+
     if args.mode:
         v2_args.extend(["--mode", args.mode])
     if args.no_ledger:

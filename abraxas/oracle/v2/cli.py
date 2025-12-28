@@ -38,6 +38,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--date-iso", default="", help="Override date_iso (optional)")
     p.add_argument("--no-export", action="store_true", help="Disable export")
     p.add_argument("--no-ledger", action="store_true", help="Disable stabilization ledger tick")
+    p.add_argument("--validate", action="store_true", help="Enable v2 schema validation (default)")
+    p.add_argument("--no-validate", action="store_true", help="Disable v2 schema validation")
     args = p.parse_args(argv)
 
     # Resolve config_hash
@@ -73,6 +75,8 @@ def main(argv: list[str] | None = None) -> int:
     thresholds = {"BW_HIGH": float(args.bw_high), "MRS_HIGH": float(args.mrs_high)}
     user_mode = args.mode if args.mode else None
 
+    do_validate = True if (args.validate or not args.no_validate) else False
+
     attach_v2(
         envelope=envelope,
         config_hash=cfg_hash,
@@ -81,6 +85,7 @@ def main(argv: list[str] | None = None) -> int:
         do_stabilization_tick=not args.no_ledger,
         ledger_path=args.ledger_path if args.ledger_path else None,
         date_iso=args.date_iso if args.date_iso else None,
+        validate=do_validate,
     )
 
     surface = render_by_mode(envelope)

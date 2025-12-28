@@ -23,7 +23,7 @@ def test_bridge_runs_v2_when_v1_cmd_succeeds():
             f'json.dump({{\'oracle_signal\':{{\'scores_v1\':{{\'slang\':{{\'top_risk\':[]}},\'aalmanac\':{{\'top_patterns\':[]}}}}}}}}, open({env_path!r}, \'w\'))"'
         )
         rc = main([
-            "--config-hash", "CFG",
+            "--config-hash", "FIXED_CONFIG_HASH_0000000000000000",
             "--v1-cmd", v1_cmd,
             "--v1-out-dir", out,
             "--out-dir", out,
