@@ -247,6 +247,40 @@ artifact = runner.run_for_date(date(2025, 12, 20), deltas, config)
 - **Modular design** — Composable transforms: decay, score_deltas, render_oracle
 - **Golden test coverage** — 26 tests including signature stability verification
 
+### Oracle v2 Governance Layer
+
+Additive compliance and mode routing on top of v1 scoring:
+
+```python
+from abraxas.oracle.v2.wire import build_v2_block
+
+# v2 block automatically added to oracle output
+v2 = build_v2_block(
+    checks={
+        "v1_golden_pass_rate": 1.0,
+        "drift_budget_violations": 0,
+        "evidence_bundle_overflow_rate": 0.0,
+        "ci_volatility_correlation": 0.72,
+        "interaction_noise_rate": 0.22,
+    },
+    router_input={
+        "max_band_width": 15.0,
+        "max_MRS": 85.0,
+        "negative_signal_alerts": 0,
+        "thresholds": {"BW_HIGH": 20.0, "MRS_HIGH": 70.0},
+    },
+    config_hash="...",
+)
+# v2 contains: compliance (RED/YELLOW/GREEN), mode_decision (SNAPSHOT/ANALYST/RITUAL)
+```
+
+**Features:**
+- **Compliance reporting** — Deterministic RED/YELLOW/GREEN status based on v1 regression checks
+- **Mode routing** — Priority-based selection: user override → compliance RED → high uncertainty/risk → default
+- **Provenance lock** — Stable fingerprint for mode decision reproducibility
+- **Additive-only** — v1 outputs preserved; v2 block appended to `output["v2"]`
+- **Golden tests** — 5 deterministic tests for compliance and router logic
+
 ### Always-On Daemon
 
 Run Abraxas as a persistent service:
@@ -396,7 +430,7 @@ python -m abraxas.cli.abx_run_v1_4 \
 
 ### 🎯 Roadmap
 
-- [ ] **Oracle Pipeline v2** — Multi-domain correlation detection and scoring
+- [x] **Oracle Pipeline v2** — Governance layer with compliance reporting and deterministic mode routing (SNAPSHOT/ANALYST/RITUAL)
 - [ ] **Ritual System** — Rune-based symbolic modulation
 - [ ] **Multi-Domain Analysis** — Crypto, idiom, slang, technical jargon
 - [ ] **Event Correlation** — Cross-domain drift pattern detection
