@@ -7,14 +7,32 @@ from typing import Any, Dict
 
 from abraxas.oracle.v2.discover import discover_envelope
 from abraxas.oracle.v2.config import load_or_create_config
-from abraxas.oracle.v2.orchestrate import attach_v2
-from abraxas.oracle.v2.render import render_by_mode
-from abraxas.oracle.v2.export import export_run
+from abraxas.oracle.v2.bundle import run_bundle
 
 
 def _read_json(path: str) -> Dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _write_json(path: str, obj: Any) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f, sort_keys=True, separators=(",", ":"))
+        f.write("\n")
+
+
+def _parse_evidence(items: list[str]) -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    for it in items:
+        if "=" not in it:
+            continue
+        k, v = it.split("=", 1)
+        k = k.strip()
+        v = v.strip()
+        if k and v:
+            out[k] = v
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -33,6 +51,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out-dir", default="out", help="Base output directory (default: out)")
     p.add_argument("--ledger-path", default="", help="Override stabilization ledger path (optional)")
     p.add_argument("--mode", default="", choices=["", "SNAPSHOT", "ANALYST", "RITUAL"], help="User mode request (optional)")
+    p.add_argument(
+        "--evidence",
+        action="append",
+        default=[],
+        help="Evidence attachment spec: key=filename (repeatable). Resolved under out/<run_id>/evidence/",
+    )
     p.add_argument("--bw-high", type=float, default=20.0, help="BW_HIGH threshold")
     p.add_argument("--mrs-high", type=float, default=70.0, help="MRS_HIGH threshold")
     p.add_argument("--date-iso", default="", help="Override date_iso (optional)")
@@ -77,21 +101,30 @@ def main(argv: list[str] | None = None) -> int:
 
     do_validate = True if (args.validate or not args.no_validate) else False
 
-    attach_v2(
+    evidence_map = _parse_evidence(args.evidence)
+    out = run_bundle(
         envelope=envelope,
         config_hash=cfg_hash,
+        out_dir=args.out_dir,
         thresholds=thresholds,
         user_mode_request=user_mode,
-        do_stabilization_tick=not args.no_ledger,
-        ledger_path=args.ledger_path if args.ledger_path else None,
-        date_iso=args.date_iso if args.date_iso else None,
+        do_stabilization_tick=(not args.no_ledger),
+        ledger_path=(args.ledger_path if args.ledger_path else None),
+        date_iso=(args.date_iso if args.date_iso else None),
         validate=do_validate,
+        attach_evidence_files=(evidence_map if evidence_map else None),
+        compute_evidence_hashes=True,
     )
-
-    surface = render_by_mode(envelope)
+    surface = out["surface"]
+    manifest = out["manifest"]
 
     if not args.no_export:
-        manifest = export_run(envelope=envelope, surface=surface, out_dir=args.out_dir)
+        # Also emit "latest" pointers for convenience (additive)
+        latest_dir = os.path.join(args.out_dir, "latest")
+        _write_json(os.path.join(latest_dir, "surface.json"), surface)
+        _write_json(os.path.join(latest_dir, "envelope.json"), envelope)
+        _write_json(os.path.join(latest_dir, "manifest.json"), manifest)
+
         print(f"✅ Exported to: {manifest['run_id']}")
         print(f"   Mode: {manifest['governance']['mode']}")
         print(f"   Compliance: {manifest['governance']['compliance_status']}")

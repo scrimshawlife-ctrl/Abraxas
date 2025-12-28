@@ -16,9 +16,10 @@ def test_cli_minimal_shell():
             "--no-ledger",
         ])
         assert ret == 0
-        # Should create a run directory
+        # Should create a run directory + latest
         runs = os.listdir(td)
-        assert len(runs) == 1
+        assert len(runs) == 2  # run_id + latest
+        assert "latest" in runs
 
 
 def test_cli_auto_discover():
@@ -46,6 +47,7 @@ def test_cli_auto_discover():
             "--no-ledger",
         ])
         assert ret == 0
-        # Should create a v2 run directory
+        # Should create a v2 run directory + latest
         runs = os.listdir(v2_out)
-        assert len(runs) == 1
+        assert len(runs) == 2  # run_id + latest
+        assert "latest" in runs
