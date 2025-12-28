@@ -6,6 +6,7 @@ import os
 from typing import Any, Dict, Tuple
 
 
+DEFAULT_EVIDENCE_BUDGET_BYTES = int(os.environ.get("ABX_EVIDENCE_BUDGET_BYTES", str(2_000_000)))
 DEFAULT_CONFIG_PATH = os.environ.get("ABX_V2_CONFIG_PATH", "var/config/oracle_v2_config.json")
 DEFAULT_SCHEMA_INDEX_PATH = os.environ.get("ABX_V2_SCHEMA_INDEX_PATH", "schema/v2/index.json")
 
@@ -46,12 +47,16 @@ def default_config(
     bw_high: float = 20.0,
     mrs_high: float = 70.0,
     ledger_enabled: bool = True,
+    evidence_budget_bytes: int = DEFAULT_EVIDENCE_BUDGET_BYTES,
     schema_index_path: str = DEFAULT_SCHEMA_INDEX_PATH,
 ) -> Dict[str, Any]:
     return {
         "profile": profile,
         "thresholds": {"BW_HIGH": float(bw_high), "MRS_HIGH": float(mrs_high)},
-        "features": {"ledger_enabled": bool(ledger_enabled)},
+        "features": {
+            "ledger_enabled": bool(ledger_enabled),
+            "evidence_budget_bytes": int(evidence_budget_bytes),
+        },
         "schema_index": _schema_index_payload(schema_index_path),
         "schema_index_path": schema_index_path,
     }
@@ -79,6 +84,7 @@ def load_or_create_config(
     bw_high: float = 20.0,
     mrs_high: float = 70.0,
     ledger_enabled: bool = True,
+    evidence_budget_bytes: int = DEFAULT_EVIDENCE_BUDGET_BYTES,
     schema_index_path: str = DEFAULT_SCHEMA_INDEX_PATH,
 ) -> Tuple[Dict[str, Any], str]:
     if os.path.exists(path):
@@ -89,6 +95,7 @@ def load_or_create_config(
         bw_high=bw_high,
         mrs_high=mrs_high,
         ledger_enabled=ledger_enabled,
+        evidence_budget_bytes=evidence_budget_bytes,
         schema_index_path=schema_index_path,
     )
     h = write_config(path, cfg)

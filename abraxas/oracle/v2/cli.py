@@ -6,7 +6,7 @@ import os
 from typing import Any, Dict
 
 from abraxas.oracle.v2.discover import discover_envelope
-from abraxas.oracle.v2.config import load_or_create_config
+from abraxas.oracle.v2.config import load_or_create_config, read_config
 from abraxas.oracle.v2.bundle import run_bundle
 
 
@@ -68,6 +68,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Resolve config_hash
     cfg_hash = args.config_hash
+    cfg_obj: Dict[str, Any] | None = None
     if not cfg_hash:
         if args.config:
             cfg, h = load_or_create_config(
@@ -78,9 +79,14 @@ def main(argv: list[str] | None = None) -> int:
                 ledger_enabled=(not args.no_ledger),
                 schema_index_path=(args.schema_index if args.schema_index else None) or "schema/v2/index.json",
             )
+            cfg_obj = cfg
             cfg_hash = h
         else:
             raise SystemExit("--config-hash is required unless --config is provided")
+    else:
+        # If config hash provided but config file exists, load it to extract budget
+        if args.config and os.path.exists(args.config):
+            cfg_obj = read_config(args.config)
 
     envelope: Dict[str, Any]
     if args.in_envelope:
@@ -101,6 +107,16 @@ def main(argv: list[str] | None = None) -> int:
 
     do_validate = True if (args.validate or not args.no_validate) else False
 
+    # Extract evidence_budget_bytes from config if available
+    evidence_budget_bytes = None
+    if isinstance(cfg_obj, dict):
+        feat = cfg_obj.get("features")
+        if isinstance(feat, dict) and "evidence_budget_bytes" in feat:
+            try:
+                evidence_budget_bytes = int(feat["evidence_budget_bytes"])
+            except Exception:
+                evidence_budget_bytes = None
+
     evidence_map = _parse_evidence(args.evidence)
     out = run_bundle(
         envelope=envelope,
@@ -109,6 +125,7 @@ def main(argv: list[str] | None = None) -> int:
         thresholds=thresholds,
         user_mode_request=user_mode,
         do_stabilization_tick=(not args.no_ledger),
+        evidence_budget_bytes=evidence_budget_bytes,
         ledger_path=(args.ledger_path if args.ledger_path else None),
         date_iso=(args.date_iso if args.date_iso else None),
         validate=do_validate,

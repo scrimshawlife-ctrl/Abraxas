@@ -15,6 +15,7 @@ def attach_v2(
     thresholds: Dict[str, float] | None = None,
     user_mode_request: str | None = None,
     do_stabilization_tick: bool = True,
+    evidence_budget_bytes: int | None = None,
     ledger_path: str | None = None,
     date_iso: str | None = None,
     validate: bool = True,
@@ -28,7 +29,7 @@ def attach_v2(
       3) attaches into envelope
       4) optionally appends stabilization row (JSONL)
     """
-    ch = checks or collect_v2_checks(envelope=envelope)
+    ch = checks or collect_v2_checks(envelope=envelope, evidence_budget_bytes=evidence_budget_bytes)
     router_input = derive_router_input_from_envelope(
         envelope=envelope, thresholds=thresholds, user_mode_request=user_mode_request
     )
