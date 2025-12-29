@@ -237,7 +237,7 @@ class OracleV2Pipeline:
         else:
             # Fallback: Placeholder compression when DCE not available
             compressed_tokens = {token: 0.5 for token in signal.tokens[:5]}
-            lifecycle_states = {token: "front" for token in compressed_tokens}
+            lifecycle_states = {token: "Front" for token in compressed_tokens}  # Canonical PascalCase
             domain_signals = ("ideology_left",) if signal.domain == "politics" else ()
             signal_strengths = {"ideology_left": 0.7} if domain_signals else {}
             transparency_score = 0.75
@@ -281,8 +281,8 @@ class OracleV2Pipeline:
         time_to_transition = {}
 
         for token, state in compression.lifecycle_states.items():
-            # Map DCE lifecycle state to slang lifecycle state
-            current_state = self._map_lifecycle_state(state)
+            # DCE lifecycle states are now canonical slang LifecycleState
+            current_state = SlangLifecycleState(state)
 
             # Get token weight for tau calculation
             weight = compression.compressed_tokens.get(token, 0.0)
@@ -305,7 +305,7 @@ class OracleV2Pipeline:
 
             # Record transition if state changes
             if next_state != current_state:
-                phase_transitions[token] = next_state.value.lower()
+                phase_transitions[token] = next_state.value
 
                 # Estimate probability based on tau metrics
                 prob = self._estimate_transition_probability(tau_snapshot, current_state, next_state)
@@ -456,40 +456,31 @@ class OracleV2Pipeline:
 
     # Lifecycle forecasting helpers
 
-    def _map_lifecycle_state(self, dce_state: str) -> SlangLifecycleState:
-        """Map DCE lifecycle state to slang lifecycle state."""
-        state_map = {
-            "proto": SlangLifecycleState.PROTO,
-            "front": SlangLifecycleState.FRONT,
-            "saturated": SlangLifecycleState.SATURATED,
-            "dormant": SlangLifecycleState.DORMANT,
-            "archived": SlangLifecycleState.ARCHIVED,
-        }
-        return state_map.get(dce_state.lower(), SlangLifecycleState.PROTO)
-
     def _estimate_half_life(self, weight: float, state: str) -> float:
         """Estimate tau half-life based on weight and state."""
         # Higher weight = longer half-life (more persistent)
+        # States now use canonical PascalCase from slang.lifecycle
         base_half_life = {
-            "proto": 24.0,  # 1 day
-            "front": 72.0,  # 3 days
-            "saturated": 168.0,  # 7 days
-            "dormant": 48.0,  # 2 days
-            "archived": 12.0,  # 12 hours
-        }.get(state.lower(), 48.0)
+            "Proto": 24.0,  # 1 day
+            "Front": 72.0,  # 3 days
+            "Saturated": 168.0,  # 7 days
+            "Dormant": 48.0,  # 2 days
+            "Archived": 12.0,  # 12 hours
+        }.get(state, 48.0)
 
         return base_half_life * (0.5 + weight)
 
     def _estimate_velocity(self, weight: float, state: str) -> float:
         """Estimate tau velocity based on weight and state."""
         # Velocity indicates growth/decay rate
+        # States now use canonical PascalCase from slang.lifecycle
         velocity_map = {
-            "proto": 0.6,  # Growing
-            "front": 0.8,  # Rapidly growing
-            "saturated": 0.05,  # Stable
-            "dormant": -0.2,  # Declining
-            "archived": -0.5,  # Rapidly declining
-        }.get(state.lower(), 0.0)
+            "Proto": 0.6,  # Growing
+            "Front": 0.8,  # Rapidly growing
+            "Saturated": 0.05,  # Stable
+            "Dormant": -0.2,  # Declining
+            "Archived": -0.5,  # Rapidly declining
+        }.get(state, 0.0)
 
         # Weight modulates velocity
         return velocity_map * (0.5 + weight)
@@ -553,11 +544,12 @@ class OracleV2Pipeline:
     def _compute_weather_trajectory(self, compression: CompressionPhase) -> str:
         """Compute weather trajectory from compression metrics."""
         # Trajectory based on lifecycle distribution and signals
+        # States now use canonical PascalCase from slang.lifecycle
         lifecycle_counts = _count_lifecycle_states(compression.lifecycle_states)
 
-        proto_count = lifecycle_counts.get("proto", 0)
-        front_count = lifecycle_counts.get("front", 0)
-        saturated_count = lifecycle_counts.get("saturated", 0)
+        proto_count = lifecycle_counts.get("Proto", 0)
+        front_count = lifecycle_counts.get("Front", 0)
+        saturated_count = lifecycle_counts.get("Saturated", 0)
 
         total = sum(lifecycle_counts.values())
         if total == 0:

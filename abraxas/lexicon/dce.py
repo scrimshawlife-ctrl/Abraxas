@@ -20,16 +20,7 @@ from typing import Dict, List, Optional, Tuple
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.core.provenance import Provenance
 from abraxas.lexicon.engine import LexiconEntry, LexiconPack, LexiconRegistry
-
-
-class LifecycleState(str, Enum):
-    """Lifecycle states for lexicon entries (aligned with AAlmanac)."""
-
-    PROTO = "proto"  # Newly identified, under evaluation
-    FRONT = "front"  # Active compression, high usage
-    SATURATED = "saturated"  # Stable, mature compression
-    DORMANT = "dormant"  # Declining usage, may revive
-    ARCHIVED = "archived"  # Retired, historical only
+from abraxas.slang.lifecycle import LifecycleState  # Canonical lifecycle state definition
 
 
 class EvolutionReason(str, Enum):
@@ -113,7 +104,7 @@ class DCEEntry:
         return DCEEntry(
             token=entry.token,
             weight=entry.weight,
-            lifecycle_state=LifecycleState(entry.meta.get("lifecycle_state", "proto")),
+            lifecycle_state=LifecycleState(entry.meta.get("lifecycle_state", "Proto")),
             domain=domain,
             subdomain=entry.meta.get("subdomain"),
             meta={k: v for k, v in entry.meta.items() if k not in {"lifecycle_state", "subdomain", "first_seen_utc", "last_updated_utc"}},
