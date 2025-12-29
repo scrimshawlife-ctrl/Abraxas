@@ -43,10 +43,14 @@ def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
         # No data: assume no change
         delta_opinion = 0.0
 
+    # SHADOW DETECTORS: Extract optional detector results (evidence only, no influence)
+    detectors = context.get("shadow_detectors", {})
+
     return {
         "delta_opinion": delta_opinion,
         "opinion_values": opinion_values,
         "time_window_hours": time_window_hours,
+        "shadow_detectors": detectors if isinstance(detectors, dict) else {},
     }
 
 
@@ -93,5 +97,10 @@ def compute(inputs: dict[str, Any], config: dict[str, Any]) -> tuple[float, dict
         "slope_parameter": slope,
         "opinion_values_count": len(inputs["opinion_values"]),
     }
+
+    # SHADOW DETECTORS: Add detector evidence if present (observe only, no influence)
+    detectors = inputs.get("shadow_detectors", {})
+    if detectors:
+        metadata["shadow_detector_evidence"] = detectors
 
     return pts, metadata

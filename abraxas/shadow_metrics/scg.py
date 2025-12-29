@@ -41,11 +41,15 @@ def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
     else:
         r_effective = 0.0
 
+    # SHADOW DETECTORS: Extract optional detector results (evidence only, no influence)
+    detectors = context.get("shadow_detectors", {})
+
     return {
         "r_effective": r_effective,
         "total_exposed": total_exposed,
         "total_transmitted": total_transmitted,
         "time_window_hours": time_window_hours,
+        "shadow_detectors": detectors if isinstance(detectors, dict) else {},
     }
 
 
@@ -94,5 +98,10 @@ def compute(inputs: dict[str, Any], config: dict[str, Any]) -> tuple[float, dict
         "total_exposed": inputs["total_exposed"],
         "total_transmitted": inputs["total_transmitted"],
     }
+
+    # SHADOW DETECTORS: Add detector evidence if present (observe only, no influence)
+    detectors = inputs.get("shadow_detectors", {})
+    if detectors:
+        metadata["shadow_detector_evidence"] = detectors
 
     return scg, metadata

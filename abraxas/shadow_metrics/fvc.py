@@ -39,10 +39,14 @@ def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
     else:
         source_distribution = {}
 
+    # SHADOW DETECTORS: Extract optional detector results (evidence only, no influence)
+    detectors = context.get("shadow_detectors", {})
+
     return {
         "source_distribution": source_distribution,
         "source_count": len(source_counts),
         "total_events": total,
+        "shadow_detectors": detectors if isinstance(detectors, dict) else {},
     }
 
 
@@ -102,5 +106,10 @@ def compute(inputs: dict[str, Any], config: dict[str, Any]) -> tuple[float, dict
             k: round(v, 4) for k, v in sorted(source_distribution.items())
         },
     }
+
+    # SHADOW DETECTORS: Add detector evidence if present (observe only, no influence)
+    detectors = inputs.get("shadow_detectors", {})
+    if detectors:
+        metadata["shadow_detector_evidence"] = detectors
 
     return fvc, metadata

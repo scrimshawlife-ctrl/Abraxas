@@ -32,9 +32,13 @@ def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
     # Aggregate text
     full_text = " ".join(texts)
 
+    # SHADOW DETECTORS: Extract optional detector results (evidence only, no influence)
+    detectors = context.get("shadow_detectors", {})
+
     return {
         "text": full_text,
         "sample_count": len(texts),
+        "shadow_detectors": detectors if isinstance(detectors, dict) else {},
     }
 
 
@@ -198,5 +202,10 @@ def compute(inputs: dict[str, Any], config: dict[str, Any]) -> tuple[float, dict
             "novelty": novelty_norm,
         },
     }
+
+    # SHADOW DETECTORS: Add detector evidence if present (observe only, no influence)
+    detectors = inputs.get("shadow_detectors", {})
+    if detectors:
+        metadata["shadow_detector_evidence"] = detectors
 
     return clip, metadata

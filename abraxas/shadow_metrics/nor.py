@@ -31,9 +31,13 @@ def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
         if narrative:
             narrative_ids.add(str(narrative))
 
+    # SHADOW DETECTORS: Extract optional detector results (evidence only, no influence)
+    detectors = context.get("shadow_detectors", {})
+
     return {
         "narrative_ids": sorted(narrative_ids),  # Sorted for determinism
         "narrative_count": len(narrative_ids),
+        "shadow_detectors": detectors if isinstance(detectors, dict) else {},
     }
 
 
@@ -76,5 +80,10 @@ def compute(inputs: dict[str, Any], config: dict[str, Any]) -> tuple[float, dict
         "decay_constant": lambda_decay,
         "narrative_ids": inputs["narrative_ids"],
     }
+
+    # SHADOW DETECTORS: Add detector evidence if present (observe only, no influence)
+    detectors = inputs.get("shadow_detectors", {})
+    if detectors:
+        metadata["shadow_detector_evidence"] = detectors
 
     return nor, metadata
