@@ -281,6 +281,10 @@ Production-grade reliability for edge deployment:
 - [x] **Lexicon Engine v1** — Domain-scoped, versioned token-weight mapping
 - [x] **Oracle Pipeline v1** — Deterministic oracle generation from correlation deltas
 - [x] **Abraxas v1.4** — Temporal & Adversarial Expansion
+- [x] **Kernel Phase System** — 5-phase execution model (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
+- [x] **6-Gate Metric Governance** — Anti-hallucination promotion framework
+- [x] **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
+- [x] **WO-100 Acquisition Infrastructure** — Anchor resolution, reupload detection, forecast accuracy
 
 ### Abraxas v1.4: Temporal & Adversarial Expansion
 
@@ -386,29 +390,61 @@ python -m abraxas.cli.abx_run_v1_4 \
 - [SOD Specification](docs/specs/sod_second_order_dynamics.md)
 - [Canonical Ledger](docs/canon/ABRAXAS_CANON_LEDGER.txt)
 
-### 🚧 In Progress
+### 📊 Recent Updates (v1.4.1 — December 2025)
 
-- [ ] **Real LLM Integration** — Replace stub chat engine with local/remote LLM
-- [ ] **UI Dashboard** — React components for weather visualization
-- [ ] **Expanded Lexicons** — Domain-specific compression dictionaries
-- [ ] **PostgreSQL Migration** — Scale beyond SQLite for production
-- [ ] **WebSocket Integration** — Real-time compression event streaming
+**4 Major PRs Merged** — Governance, acquisition, and infrastructure consolidation:
 
-### 🎯 Roadmap
+1. **PR #22** — 6-Gate Metric Governance System
+   - Anti-hallucination promotion framework ("Metrics are Contracts, not Ideas")
+   - Simulation mapping layer with 22 academic papers
+   - Hash-based provenance chain verification
+   - 75+ test cases for metric evaluation
 
-- [ ] **Oracle Pipeline v2** — Multi-domain correlation detection and scoring
-- [ ] **Ritual System** — Rune-based symbolic modulation
-- [ ] **Multi-Domain Analysis** — Crypto, idiom, slang, technical jargon
-- [ ] **Event Correlation** — Cross-domain drift pattern detection
-- [ ] **Mobile UI** — Edge device management interface
+2. **PR #28** — WO-100: Acquisition & Analysis Infrastructure
+   - Anchor → URL resolution system
+   - Reupload storm detection
+   - Forecast accuracy tracking with horizon bands
+   - Manipulation front detection & metrics
+   - 40+ new ABX modules with ledger systems
 
-### 📊 Recent Updates
+3. **PR #20** — Kernel Phase System
+   - 5-phase execution model (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
+   - Whitelisted ASCEND operations
+   - Enhanced Python cache patterns
 
-See recent pull requests and commits:
-- **#8** — Integrate Operator Auto-Synthesis (OAS) into Abraxas Slang System
-- **#7** — Add always-on Abraxas daemon with Decodo ingestion and chat UI
-- Pydantic dependency and OAS module integration
-- Self-healing layer with watchdog and atomic updates
+4. **PR #36** — Documentation enhancements
+
+**Total:** 120 files changed, 15,654 additions, 466 deletions
+
+### 🔥 NOW — Critical Path (Q1 2025)
+
+> **See [ROADMAP.md](ROADMAP.md) for full canon-aligned priority stack**
+
+1. **Domain Compression Engines (DCEs)** — Versioned, lifecycle-tracked lexicons
+   - Priority elevated from "In Progress" to **CORE SPINE**
+   - Blocks: Oracle v2, Phase Detection, Multi-Domain Analysis
+
+2. **Oracle Pipeline v2** — Assembly & synthesis of existing components
+   - 70% complete via lifecycle forecasting, resonance, provenance bundles
+   - Signal → Compression → Forecast → Narrative pipeline
+
+3. **Phase Detection Engine** — Cross-domain phase alignment detection
+   - Consumes: lifecycle transitions, resonance spikes, weather fronts, slang emergence
+   - **This is where Abraxas becomes predictive, not descriptive**
+
+### 🚀 NEXT — High-Value Extensions (Q2 2025)
+
+4. **Resonance Narratives** — Human-readable output layer
+5. **UI Dashboard** (delayed until Oracle v2 artifacts stabilize)
+
+### ⏳ LATER — Infrastructure & Scale (Q3-Q4 2025)
+
+- PostgreSQL Migration (when artifact volume demands it)
+- WebSocket Integration (when phase-based system needs real-time)
+- Mobile UI (pure surface area, minimal epistemic value)
+- Ritual System (symbolic modulation—locked behind Oracle v2)
+
+**Prioritization Philosophy:** Epistemic leverage over engineering familiarity
 
 ---
 
