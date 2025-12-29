@@ -37,11 +37,15 @@ def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
         else:
             neutral += 1
 
+    # SHADOW DETECTORS: Extract optional detector results (evidence only, no influence)
+    detectors = context.get("shadow_detectors", {})
+
     return {
         "positive": positive,
         "negative": negative,
         "neutral": neutral,
         "total": positive + negative + neutral,
+        "shadow_detectors": detectors if isinstance(detectors, dict) else {},
     }
 
 
@@ -111,5 +115,10 @@ def compute(inputs: dict[str, Any], config: dict[str, Any]) -> tuple[float, dict
         "entropy_raw": entropy,
         "probabilities": {"p_positive": p_pos, "p_negative": p_neg, "p_neutral": p_neu},
     }
+
+    # SHADOW DETECTORS: Add detector evidence if present (observe only, no influence)
+    detectors = inputs.get("shadow_detectors", {})
+    if detectors:
+        metadata["shadow_detector_evidence"] = detectors
 
     return sei, metadata
