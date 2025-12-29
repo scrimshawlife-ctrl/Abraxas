@@ -62,6 +62,16 @@
       "introduced_version": "1.4.0",
       "sigil_path": "abraxas/runes/sigils/rune6_ADD.svg",
       "definition_path": "abraxas/runes/definitions/rune_06_add.json"
+    },
+    {
+      "id": "ϟ₇",
+      "short_name": "SSO",
+      "name": "Shadow Structural Observer",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.4.0",
+      "sigil_path": "abraxas/runes/sigils/rune7_SSO.svg",
+      "definition_path": "abraxas/runes/definitions/rune_07_sso.json"
     }
   ],
   "provenance": {
