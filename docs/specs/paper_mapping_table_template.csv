@@ -1,0 +1,6 @@
+Paper ID,Model Family,MRI params,IRI params,τ params,Notes,Confidence
+PMC12281847,DIFFUSION_SIR,"β=0.3, k=10",γ=0.1,delay=2,SIR with incubation,MED
+DOI:10.1016/example,OPINION_DYNAMICS,"w=0.6, homophily=0.7",ε=0.2,"α=0.3, memory_depth=5",Bounded confidence model,HIGH
+ARXIV:2024.12345,ABM_MISINFO,"share_prob=0.4, bot_density=0.1",correction_eff=0.6,content_lifespan=72,ABM with bots,MED
+DOI:10.1038/example,NETWORK_CASCADES,"p=0.5, threshold=0.3",deactivation_rate=0.2,delay=1,Threshold cascade,HIGH
+DOI:10.1073/example,GAME_THEORETIC,"effort=5, selection_strength=2","sanction_prob=0.3, sanction_penalty=10",discount=0.9,Inspection game,MED

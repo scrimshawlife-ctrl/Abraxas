@@ -1,0 +1,37 @@
+{
+  "paper_id": "PMC11192300",
+  "title": "Digital cloning of online social networks for language-sensitive agent-based modeling",
+  "params": [
+    {
+      "name": "share_prob",
+      "symbol": "p_s",
+      "value": null,
+      "description": "Sharing probability"
+    },
+    {
+      "name": "bot_density",
+      "symbol": "ρ_b",
+      "value": null,
+      "description": "Bot agent density"
+    },
+    {
+      "name": "correction_eff",
+      "symbol": "η_c",
+      "value": null,
+      "description": "Correction effectiveness"
+    },
+    {
+      "name": "content_lifespan",
+      "symbol": "τ_c",
+      "value": null,
+      "description": "Content persistence time (hours)"
+    },
+    {
+      "name": "memory_window",
+      "symbol": "w_m",
+      "value": null,
+      "description": "Agent memory window"
+    }
+  ],
+  "notes": "ABM with language-sensitive features and network structure cloning from real social networks."
+}

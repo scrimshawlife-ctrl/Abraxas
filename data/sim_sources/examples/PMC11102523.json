@@ -1,0 +1,31 @@
+{
+  "paper_id": "PMC11102523",
+  "title": "Using an epidemiological model to explore the interplay between information and disease",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Disease transmission rate"
+    },
+    {
+      "name": "k",
+      "symbol": "k",
+      "value": null,
+      "description": "Contact rate / network degree"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    },
+    {
+      "name": "inter_layer_lag",
+      "symbol": "τ_L",
+      "value": null,
+      "description": "Information-disease coupling lag"
+    }
+  ],
+  "notes": "Information-disease interplay with coupled layer dynamics. Explores how information affects epidemic trajectories."
+}

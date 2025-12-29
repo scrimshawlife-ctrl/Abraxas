@@ -1,0 +1,43 @@
+{
+  "paper_id": "ARXIV_SPATIAL_GAMES",
+  "title": "Spatial Games of Fake News",
+  "params": [
+    {
+      "name": "effort",
+      "symbol": "e",
+      "value": null,
+      "description": "Propagandist effort level"
+    },
+    {
+      "name": "propaganda_cost",
+      "symbol": "c_p",
+      "value": null,
+      "description": "Cost per unit of propaganda effort"
+    },
+    {
+      "name": "sanction_prob",
+      "symbol": "p_C",
+      "value": null,
+      "description": "Probability of sanction/detection"
+    },
+    {
+      "name": "sanction_penalty",
+      "symbol": "C_S",
+      "value": null,
+      "description": "Cost of sanction when detected"
+    },
+    {
+      "name": "discount",
+      "symbol": "δ",
+      "value": null,
+      "description": "Temporal discount factor"
+    },
+    {
+      "name": "horizon",
+      "symbol": "T",
+      "value": null,
+      "description": "Planning horizon (time steps)"
+    }
+  ],
+  "notes": "Canonical spatial game-theoretic model with propagandist-citizen dynamics. See also PNAS_SPATIAL_GAMES, PMC10924450, PUBMED_38463039 (duplicates)."
+}

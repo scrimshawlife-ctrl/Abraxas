@@ -1,0 +1,37 @@
+{
+  "paper_id": "PMC12564303",
+  "title": "Coupled Dynamics of Information–Epidemic Spreading with Delayed Awareness",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Transmission rate"
+    },
+    {
+      "name": "mixing",
+      "symbol": null,
+      "value": null,
+      "description": "Inter-layer mixing parameter"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    },
+    {
+      "name": "delay",
+      "symbol": "τ_d",
+      "value": null,
+      "description": "Awareness delay parameter"
+    },
+    {
+      "name": "memory_kernel",
+      "symbol": "κ_m",
+      "value": null,
+      "description": "Memory decay kernel"
+    }
+  ],
+  "notes": "Coupled dynamics with delay parameter for awareness lag between information and disease layers."
+}
