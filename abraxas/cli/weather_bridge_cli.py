@@ -40,23 +40,27 @@ def load_oracle_outputs(input_path: Path) -> List[OracleV2Output]:
     Returns:
         List of OracleV2Output objects
     """
+    logger = logging.getLogger(__name__)
     outputs = []
+    line_num = 0
 
     with open(input_path, "r", encoding="utf-8") as f:
         for line in f:
+            line_num += 1
             line = line.strip()
             if not line:
                 continue
 
             try:
                 data = json.loads(line)
-                # TODO: Implement OracleV2Output.from_dict() for proper deserialization
-                # For now, this would require the output to be properly structured
-                # outputs.append(OracleV2Output.from_dict(data))
-                logging.warning("OracleV2Output deserialization not yet implemented")
+                output = OracleV2Output.from_dict(data)
+                outputs.append(output)
             except json.JSONDecodeError as e:
-                logging.error(f"Failed to parse JSON line: {e}")
+                logger.error(f"Line {line_num}: Failed to parse JSON: {e}")
+            except Exception as e:
+                logger.error(f"Line {line_num}: Failed to deserialize Oracle output: {e}")
 
+    logger.info(f"✓ Loaded {len(outputs)} Oracle outputs from {input_path}")
     return outputs
 
 
@@ -141,29 +145,43 @@ Examples:
         logger.error(f"Oracle runs file not found: {args.oracle_runs}")
         return 1
 
-    # For now, print a message that this is a placeholder
-    # TODO: Implement proper Oracle output loading
-    logger.warning("⚠️  Note: This CLI is a placeholder for demonstration")
-    logger.warning("⚠️  Oracle v2 output deserialization not yet implemented")
-    logger.info(f"Would load Oracle outputs from: {args.oracle_runs}")
+    # Load Oracle outputs
+    logger.info(f"Loading Oracle outputs from: {args.oracle_runs}")
+    oracle_outputs = load_oracle_outputs(args.oracle_runs)
 
+    if not oracle_outputs:
+        logger.error("No Oracle outputs loaded. Exiting.")
+        return 1
+
+    logger.info(f"Processing {len(oracle_outputs)} Oracle outputs...")
+
+    # Generate intel artifacts
     if args.mode in {"intel", "both"}:
         output_dir = args.output if args.mode == "intel" else args.intel_dir
-        logger.info(f"Would generate intel artifacts in: {output_dir}")
-        logger.info("  - symbolic_pressure.json")
-        logger.info("  - trust_index.json")
-        logger.info("  - semantic_drift_signal.json")
+        output_dir.mkdir(parents=True, exist_ok=True)
 
+        logger.info(f"Generating weather intel artifacts in: {output_dir}")
+        written_intel = oracle_to_weather_intel(oracle_outputs, output_dir)
+
+        logger.info(f"✓ Generated {len(written_intel)} intel artifacts:")
+        for name, path in written_intel.items():
+            logger.info(f"  - {name}: {path}")
+
+    # Generate weather report
     if args.mode in {"report", "both"}:
         report_path = args.report_path
-        logger.info(f"Would generate weather report at: {report_path}")
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+
+        logger.info(f"Generating weather fronts report at: {report_path}")
+        fronts = oracle_to_mimetic_weather_fronts(oracle_outputs)
+
+        logger.info(f"✓ Generated {len(fronts)} weather fronts")
+
+        # Write report
+        write_mimetic_weather_report(fronts, report_path)
+        logger.info(f"✓ Weather report written to: {report_path}")
 
     logger.info("✓ Weather bridge CLI execution complete")
-    logger.info("\n📝 Next steps to complete implementation:")
-    logger.info("   1. Add OracleV2Output.from_dict() for deserialization")
-    logger.info("   2. Store Oracle outputs as JSONL during pipeline execution")
-    logger.info("   3. Test full workflow: Oracle → JSONL → Weather Bridge → Intel")
-
     return 0
 
 

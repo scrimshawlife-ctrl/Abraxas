@@ -54,6 +54,19 @@ class OracleSignal:
     source_id: Optional[str] = None  # Where did this come from?
     meta: Dict[str, str] = field(default_factory=dict)
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> "OracleSignal":
+        """Deserialize from dictionary."""
+        return cls(
+            domain=data["domain"],
+            subdomain=data.get("subdomain"),
+            observations=data["observations"],
+            tokens=data["tokens"],
+            timestamp_utc=data["timestamp_utc"],
+            source_id=data.get("source_id"),
+            meta=data.get("meta", {}),
+        )
+
 
 @dataclass(frozen=True)
 class CompressionPhase:
@@ -68,6 +81,30 @@ class CompressionPhase:
     transparency_score: float  # STI
     affect_direction: str  # RDV: positive/negative/neutral
     provenance: Provenance
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "CompressionPhase":
+        """Deserialize from dictionary."""
+        prov_data = data["provenance"]
+        provenance = Provenance(
+            run_id=prov_data["run_id"],
+            started_at_utc=prov_data["started_at_utc"],
+            inputs_hash=prov_data["inputs_hash"],
+            config_hash=prov_data["config_hash"],
+            git_sha=prov_data.get("git_sha"),
+            host=prov_data.get("host"),
+        )
+        return cls(
+            domain=data["domain"],
+            version=data["version"],
+            compressed_tokens=data["compressed_tokens"],
+            lifecycle_states=data["lifecycle_states"],
+            domain_signals=tuple(data["domain_signals"]),
+            signal_strengths=data["signal_strengths"],
+            transparency_score=data["transparency_score"],
+            affect_direction=data["affect_direction"],
+            provenance=provenance,
+        )
 
 
 @dataclass(frozen=True)
@@ -89,6 +126,30 @@ class ForecastPhase:
     drift_velocity: float  # Change rate
 
     provenance: Provenance
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "ForecastPhase":
+        """Deserialize from dictionary."""
+        prov_data = data["provenance"]
+        provenance = Provenance(
+            run_id=prov_data["run_id"],
+            started_at_utc=prov_data["started_at_utc"],
+            inputs_hash=prov_data["inputs_hash"],
+            config_hash=prov_data["config_hash"],
+            git_sha=prov_data.get("git_sha"),
+            host=prov_data.get("host"),
+        )
+        return cls(
+            phase_transitions=data["phase_transitions"],
+            transition_probabilities=data["transition_probabilities"],
+            time_to_transition=data["time_to_transition"],
+            resonance_score=data["resonance_score"],
+            resonating_domains=tuple(data["resonating_domains"]),
+            weather_trajectory=data["weather_trajectory"],
+            memetic_pressure=data["memetic_pressure"],
+            drift_velocity=data["drift_velocity"],
+            provenance=provenance,
+        )
 
 
 @dataclass(frozen=True)
@@ -115,6 +176,32 @@ class NarrativePhase:
 
     provenance: Provenance
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> "NarrativePhase":
+        """Deserialize from dictionary."""
+        prov_data = data["provenance"]
+        provenance = Provenance(
+            run_id=prov_data["run_id"],
+            started_at_utc=prov_data["started_at_utc"],
+            inputs_hash=prov_data["inputs_hash"],
+            config_hash=prov_data["config_hash"],
+            git_sha=prov_data.get("git_sha"),
+            host=prov_data.get("host"),
+        )
+        return cls(
+            bundle_id=data["bundle_id"],
+            bundle_hash=data["bundle_hash"],
+            cascade_sheet=data["cascade_sheet"],
+            contamination_advisory=data.get("contamination_advisory"),
+            trust_drift_series=data["trust_drift_series"],
+            evidence_tokens=tuple(data["evidence_tokens"]),
+            evidence_signals=tuple(data["evidence_signals"]),
+            evidence_transitions=tuple(data["evidence_transitions"]),
+            narrative_summary=data["narrative_summary"],
+            confidence_band=data["confidence_band"],
+            provenance=provenance,
+        )
+
 
 @dataclass(frozen=True)
 class OracleV2Output:
@@ -127,6 +214,19 @@ class OracleV2Output:
     narrative: NarrativePhase
     created_at_utc: str = field(default_factory=lambda: _utc_now_iso())
     pipeline_version: str = "2.0.0"
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "OracleV2Output":
+        """Deserialize from dictionary."""
+        return cls(
+            run_id=data["run_id"],
+            signal=OracleSignal.from_dict(data["signal"]),
+            compression=CompressionPhase.from_dict(data["compression"]),
+            forecast=ForecastPhase.from_dict(data["forecast"]),
+            narrative=NarrativePhase.from_dict(data["narrative"]),
+            created_at_utc=data.get("created_at_utc", _utc_now_iso()),
+            pipeline_version=data.get("pipeline_version", "2.0.0"),
+        )
 
 
 class OracleV2Pipeline:
