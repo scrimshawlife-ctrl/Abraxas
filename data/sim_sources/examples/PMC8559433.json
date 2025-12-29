@@ -1,0 +1,37 @@
+{
+  "paper_id": "PMC8559433",
+  "title": "The coupled dynamics of information dissemination and SEIR-based epidemic spreading",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Disease transmission rate"
+    },
+    {
+      "name": "k",
+      "symbol": "k",
+      "value": null,
+      "description": "Average contact degree"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    },
+    {
+      "name": "inter_layer_lag",
+      "symbol": "τ_L",
+      "value": null,
+      "description": "Inter-layer coupling delay"
+    },
+    {
+      "name": "memory_kernel",
+      "symbol": "κ_m",
+      "value": null,
+      "description": "Memory decay kernel"
+    }
+  ],
+  "notes": "Coupled information-disease SEIR dynamics with inter-layer coupling parameters."
+}

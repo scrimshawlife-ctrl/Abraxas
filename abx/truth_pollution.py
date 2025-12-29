@@ -1,36 +1,19 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import re
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
-
-from abx.evidence_ledger import EvidenceLedger
-from abx.media_auth import mav_for_event
+from typing import Any, Dict, List
 
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
-def _clamp01(x: float) -> float:
-    if x < 0.0:
-        return 0.0
-    if x > 1.0:
-        return 1.0
-    return float(x)
-
-
-def _norm_term(s: str) -> str:
-    s = (s or "").strip().lower()
-    s = " ".join(s.replace("-", " ").replace("_", " ").split())
-    return s
-
-
 def _read_json(path: str) -> Dict[str, Any]:
-    if not os.path.exists(path):
-        return {}
     try:
         with open(path, "r", encoding="utf-8") as f:
             d = json.load(f)
@@ -39,142 +22,240 @@ def _read_json(path: str) -> Dict[str, Any]:
         return {}
 
 
-def compute_tpi_for_run(
-    *,
-    run_id: str,
-    out_reports: str,
-    ledger_path: str,
-    mwr_enriched_path: str = "",
-) -> Dict[str, Any]:
-    ledger = EvidenceLedger(ledger_path)
-    events = ledger.load_all()
-
-    evs = [e for e in events if str(e.get("run_id") or "") == str(run_id)]
-    if not evs:
-        evs = events[-500:]
-
-    by_term: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-    for ev in evs:
-        t = _norm_term(str(ev.get("term") or ""))
-        if not t:
-            continue
-        if isinstance(ev, dict) and isinstance(ev.get("mav"), dict) and ev.get("mav"):
-            mav = ev["mav"]
-        else:
-            mav = mav_for_event(ev if isinstance(ev, dict) else {})
-        by_term[t].append({"event": ev, "mav": mav})
-
-    fog_by_term: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    fog_roll = {"OP_FOG": 0, "FORK_STORM": 0, "PROVENANCE_DROUGHT": 0}
-    if mwr_enriched_path and os.path.exists(mwr_enriched_path):
-        mwr = _read_json(mwr_enriched_path)
-        cw = mwr.get("csp_weather") if isinstance(mwr.get("csp_weather"), dict) else {}
-        fi = cw.get("fog_index") if isinstance(cw.get("fog_index"), dict) else {}
-        bt = fi.get("by_term") if isinstance(fi.get("by_term"), dict) else {}
-        for key, value in bt.items():
-            if not isinstance(value, list):
+def _read_jsonl(path: str) -> List[Dict[str, Any]]:
+    if not path or not os.path.exists(path):
+        return []
+    out = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
                 continue
-            tk = _norm_term(str(key))
-            for fog in value:
-                fog = str(fog)
-                fog_by_term[tk][fog] += 1
-                if fog in fog_roll:
-                    fog_roll[fog] += 1
+            try:
+                d = json.loads(line)
+                if isinstance(d, dict):
+                    out.append(d)
+            except Exception:
+                continue
+    return out
 
-    def comp_from_list(lst: List[Dict[str, Any]], tk: str) -> Tuple[float, Dict[str, Any]]:
-        if not lst:
-            base = 0.58
-            f = fog_by_term.get(tk, {})
-            fp = (
-                0.08 * float(f.get("OP_FOG", 0) > 0)
-                + 0.06 * float(f.get("FORK_STORM", 0) > 0)
-                + 0.06 * float(f.get("PROVENANCE_DROUGHT", 0) > 0)
-            )
-            return _clamp01(base + fp), {"no_evidence": True, "fog": dict(f)}
 
-        syns = [float(x["mav"]["synthetic_likelihood"]) for x in lst]
-        provs = [float(x["mav"]["provenance_integrity"]) for x in lst]
-        tpls = [float(x["mav"]["template_reuse_risk"]) for x in lst]
+def _f(x: Any, default: float = 0.0) -> float:
+    try:
+        return float(x)
+    except Exception:
+        return float(default)
 
-        syn = sum(syns) / max(1, len(syns))
-        prov = sum(provs) / max(1, len(provs))
-        tpl = sum(tpls) / max(1, len(tpls))
 
-        f = fog_by_term.get(tk, {})
-        fogp = 0.0
-        fogp += 0.12 * float(f.get("OP_FOG", 0) > 0)
-        fogp += 0.10 * float(f.get("FORK_STORM", 0) > 0)
-        fogp += 0.10 * float(f.get("PROVENANCE_DROUGHT", 0) > 0)
+def _clamp01(x: float) -> float:
+    return max(0.0, min(1.0, float(x)))
 
-        tpi = 0.0
-        tpi += 0.42 * _clamp01(syn)
-        tpi += 0.34 * _clamp01(1.0 - prov)
-        tpi += 0.18 * _clamp01(tpl)
-        tpi += 0.06 * _clamp01(fogp)
 
-        return _clamp01(tpi), {
-            "synthetic_density": float(syn),
-            "provenance_integrity_mean": float(prov),
-            "template_pressure": float(tpl),
-            "fog_flags": {k: int(v) for k, v in f.items()},
-            "events": len(lst),
-        }
+def _norm(s: str) -> str:
+    return re.sub(r"\s+", " ", (s or "").lower()).strip()
 
-    per_term = {}
-    for tk, lst in by_term.items():
-        tpi, rec = comp_from_list(lst, tk)
-        per_term[tk] = {"tpi": float(tpi), "components": rec}
 
-    if per_term:
-        run_tpi = sum(float(v["tpi"]) for v in per_term.values()) / float(
-            len(per_term)
-        )
-    else:
-        fogp = 0.0
-        fogp += 0.12 * float(fog_roll.get("OP_FOG", 0) > 0)
-        fogp += 0.10 * float(fog_roll.get("FORK_STORM", 0) > 0)
-        fogp += 0.10 * float(fog_roll.get("PROVENANCE_DROUGHT", 0) > 0)
-        run_tpi = _clamp01(0.55 + fogp)
+SYNTH_TEXT_CUES = [
+    "as an ai",
+    "i can't browse",
+    "i cannot browse",
+    "language model",
+    "i don't have access",
+    "generated by ai",
+    "this was generated",
+    "for educational purposes",
+]
+
+DEEPFAKE_CUES = [
+    "deepfake",
+    "ai-generated video",
+    "synthetic video",
+    "voice clone",
+    "cloned voice",
+    "generated audio",
+    "fake recording",
+    "doctored video",
+]
+
+COORDINATION_CUES = [
+    "share this",
+    "repost",
+    "signal boost",
+    "copy/paste",
+    "spread the word",
+    "they don't want you to know",
+    "mainstream media won't tell you",
+    "everyone is saying",
+    "going viral",
+]
+
+
+def score_synthetic_text(anchor_title: str, anchor_hint: str) -> float:
+    blob = _norm(f"{anchor_title} {anchor_hint}")
+    s = 0.0
+    for c in SYNTH_TEXT_CUES:
+        if c in blob:
+            s += 0.25
+    if "sources" in blob and "http" not in blob:
+        s += 0.10
+    return _clamp01(s)
+
+
+def score_deepfake_risk(anchor_title: str, anchor_hint: str, domain: str) -> float:
+    blob = _norm(f"{anchor_title} {anchor_hint}")
+    s = 0.0
+    for c in DEEPFAKE_CUES:
+        if c in blob:
+            s += 0.30
+    if any(
+        x in (domain or "").lower()
+        for x in [
+            "tiktok.com",
+            "x.com",
+            "twitter.com",
+            "instagram.com",
+            "reddit.com",
+            "youtube.com",
+        ]
+    ):
+        s += 0.15
+    return _clamp01(s)
+
+
+def score_coordination_signature(anchor_title: str, anchor_hint: str) -> float:
+    blob = _norm(f"{anchor_title} {anchor_hint}")
+    s = 0.0
+    for c in COORDINATION_CUES:
+        if c in blob:
+            s += 0.18
+    if "!!" in blob or "!!!" in blob:
+        s += 0.08
+    return _clamp01(s)
+
+
+def compute_tpv_for_claim(
+    *,
+    claim_id: str,
+    anchors: List[Dict[str, Any]],
+    ttt_entry: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Combine existing metrics (ML_score, domain diversity) with surface cues from anchors.
+    """
+    ml = _f((ttt_entry.get("latest") or {}).get("ML_score"), 0.0)
+    cs = _f((ttt_entry.get("latest") or {}).get("CS_score"), 0.0)
+    domain_div = _f((ttt_entry.get("latest") or {}).get("domain_diversity"), 0.0)
+    primary_ratio = _f((ttt_entry.get("latest") or {}).get("primary_ratio"), 0.0)
+
+    synth_scores = []
+    deepfake_scores = []
+    coord_scores = []
+    surfaces = set()
+
+    for a in anchors:
+        if not isinstance(a, dict):
+            continue
+        title = str(a.get("title") or "")
+        hint = str(a.get("content_hint") or "")
+        dom = str(a.get("domain") or "")
+        synth_scores.append(score_synthetic_text(title, hint))
+        deepfake_scores.append(score_deepfake_risk(title, hint, dom))
+        coord_scores.append(score_coordination_signature(title, hint))
+
+        if any(x in dom for x in ["youtube.com", "tiktok.com", "instagram.com"]):
+            surfaces.add("video_surface")
+        if any(x in dom for x in ["soundcloud.com", "spotify.com"]):
+            surfaces.add("audio_surface")
+        if any(x in dom for x in ["twitter.com", "x.com", "reddit.com"]):
+            surfaces.add("viral_text_surface")
+
+    synth = sum(synth_scores) / len(synth_scores) if synth_scores else 0.0
+    deepfake = sum(deepfake_scores) / len(deepfake_scores) if deepfake_scores else 0.0
+    coord = sum(coord_scores) / len(coord_scores) if coord_scores else 0.0
+
+    fragility = _clamp01(
+        (1.0 - domain_div) * 0.45
+        + (1.0 - primary_ratio) * 0.35
+        + _clamp01(ml) * 0.20
+    )
+    tpv = _clamp01(0.40 * fragility + 0.25 * deepfake + 0.20 * synth + 0.15 * coord)
+
+    mri_mult = _clamp01(1.0 - 0.55 * tpv)
+    iri_mult = _clamp01(0.75 + 0.65 * tpv)
+    tau_review_days = max(1, int(round(7 - 5 * tpv)))
 
     return {
-        "version": "tpi.v0.1",
-        "ts": _utc_now_iso(),
-        "run_id": run_id,
-        "ledger_path": ledger_path,
-        "mwr_enriched_path": mwr_enriched_path,
-        "run_tpi": float(_clamp01(run_tpi)),
-        "fog_roll": fog_roll,
-        "per_term": per_term,
-        "notes": "TPI measures media pollution conditions (synthetic density + provenance weakness + template pressure + fog flags).",
+        "claim_id": claim_id,
+        "TPV": float(tpv),
+        "deepfake_risk": float(deepfake),
+        "synthetic_text_risk": float(synth),
+        "coordination_signature": float(coord),
+        "fragility": float(fragility),
+        "inputs": {
+            "ML_score": float(ml),
+            "CS_score": float(cs),
+            "domain_diversity": float(domain_div),
+            "primary_ratio": float(primary_ratio),
+        },
+        "attack_surface": sorted(list(surfaces)),
+        "modulators": {
+            "MRI_mult": float(mri_mult),
+            "IRI_mult": float(iri_mult),
+            "tau_review_days": int(tau_review_days),
+        },
+        "notes": "Scores manipulation likelihood & surface risk; does not moralize or censor. Coordination_signature is not inherently malicious.",
     }
 
 
-def _write_json(path: str, obj: Any) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
-
-
 def main() -> int:
-    import argparse
+    ap = argparse.ArgumentParser(description="WO-83: compute Truth Pollution Vector per claim")
+    ap.add_argument("--ttt", default="")
+    ap.add_argument("--anchor-ledger", default="out/ledger/anchor_ledger.jsonl")
+    ap.add_argument("--out", default="")
+    args = ap.parse_args()
 
-    p = argparse.ArgumentParser(description="Compute Truth Pollution Index (TPI) for a run")
-    p.add_argument("--run-id", required=True)
-    p.add_argument("--out-reports", default="out/reports")
-    p.add_argument("--ledger", default="out/ledger/evidence_ledger.jsonl")
-    p.add_argument("--out", default="")
-    args = p.parse_args()
+    if not args.ttt:
+        import glob
 
-    mwr_en = os.path.join(args.out_reports, f"mwr_enriched_{args.run_id}.json")
-    obj = compute_tpi_for_run(
-        run_id=args.run_id,
-        out_reports=args.out_reports,
-        ledger_path=args.ledger,
-        mwr_enriched_path=mwr_en,
-    )
-    out_path = args.out or os.path.join(args.out_reports, f"tpi_{args.run_id}.json")
-    _write_json(out_path, obj)
-    print(f"[TPI] wrote: {out_path}")
+        paths = sorted(glob.glob("out/reports/time_to_truth_*.json"))
+        args.ttt = paths[-1] if paths else ""
+    if not args.ttt:
+        raise SystemExit("No time_to_truth report found.")
+
+    ttt = _read_json(args.ttt)
+    claims = ttt.get("claims") if isinstance(ttt.get("claims"), dict) else {}
+    anchors = _read_jsonl(args.anchor_ledger)
+
+    anchors_by_claim = defaultdict(list)
+    for a in anchors:
+        cid = str(a.get("claim_id") or "")
+        if cid:
+            anchors_by_claim[cid].append(a)
+
+    out_claims = {}
+    for cid, ce in claims.items():
+        if not isinstance(ce, dict):
+            continue
+        out_claims[cid] = compute_tpv_for_claim(
+            claim_id=cid,
+            anchors=anchors_by_claim.get(cid, []),
+            ttt_entry=ce,
+        )
+
+    obj = {
+        "version": "truth_pollution.v0.1",
+        "ts": _utc_now_iso(),
+        "inputs": {"ttt": args.ttt, "anchor_ledger": args.anchor_ledger},
+        "claims": out_claims,
+        "notes": "WO-83 produces disinfo/deepfake/coordination risk metrics and modulators for forecasting.",
+    }
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_path = args.out or os.path.join("out/reports", f"truth_pollution_{stamp}.json")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2)
+    print(f"[TPV] wrote: {out_path}")
     return 0
 
 

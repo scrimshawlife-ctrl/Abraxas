@@ -1,0 +1,43 @@
+{
+  "paper_id": "ICWSM2021_ABM_FAKENEWS",
+  "title": "Can We Stop Fake News? Using Agent-Based Modelling to Explore Interventions",
+  "params": [
+    {
+      "name": "share_prob",
+      "symbol": "p_s",
+      "value": null,
+      "description": "Probability of sharing content"
+    },
+    {
+      "name": "virality",
+      "symbol": "v",
+      "value": null,
+      "description": "Content virality factor"
+    },
+    {
+      "name": "correction_eff",
+      "symbol": "η_c",
+      "value": null,
+      "description": "Correction effectiveness"
+    },
+    {
+      "name": "fact_check_rate",
+      "symbol": "r_fc",
+      "value": null,
+      "description": "Fact-checking frequency"
+    },
+    {
+      "name": "sanction_rate",
+      "symbol": "r_s",
+      "value": null,
+      "description": "Sanction application rate"
+    },
+    {
+      "name": "content_lifespan",
+      "symbol": "τ_c",
+      "value": null,
+      "description": "Content lifespan (hours)"
+    }
+  ],
+  "notes": "ABM with intervention mechanisms (correction and sanctions). Explores platform moderation strategies."
+}

@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/rune_binding.schema.json",
+  "title": "ABX-Rune Binding Schema",
+  "description": "Schema for ABX-Rune bindings. Runes are MANDATORY couplers between metrics and simulation variables. No direct metric→variable mutation is allowed.",
+  "type": "object",
+  "required": [
+    "rune_id",
+    "version",
+    "metric_id",
+    "var_targets",
+    "layer_targets",
+    "state_model",
+    "measurement_effect",
+    "context_sensitivity",
+    "observer_model",
+    "transition_model",
+    "noise_model",
+    "manipulation_model",
+    "constraints",
+    "provenance_manifest"
+  ],
+  "properties": {
+    "rune_id": {
+      "type": "string",
+      "pattern": "^RUNE_[A-Z0-9_]+$",
+      "description": "Unique rune identifier (must start with 'RUNE_')"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version"
+    },
+    "metric_id": {
+      "type": "string",
+      "description": "ID of metric this rune binds (must exist in metric registry)"
+    },
+    "var_targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["var_id", "role"],
+        "properties": {
+          "var_id": {
+            "type": "string",
+            "description": "Simulation variable ID"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["observe", "influence", "both"],
+            "description": "How metric interacts with this variable"
+          }
+        }
+      },
+      "description": "Target variables for this binding"
+    },
+    "layer_targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["world", "media"]
+      },
+      "minItems": 1,
+      "description": "Which simulation layers this rune operates on"
+    },
+    "state_model": {
+      "type": "string",
+      "enum": ["classical", "quantum-inspired", "hybrid"],
+      "description": "State evolution model type"
+    },
+    "measurement_effect": {
+      "type": "string",
+      "enum": ["non-destructive", "partial-collapse", "hard-collapse"],
+      "description": "How measurement affects state"
+    },
+    "context_sensitivity": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "How much measurement outcome depends on context [0,1]"
+    },
+    "observer_model": {
+      "type": "object",
+      "required": ["observer_type", "parameters"],
+      "properties": {
+        "observer_type": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "probabilistic",
+            "threshold",
+            "contextual",
+            "network_aggregate",
+            "game_equilibrium",
+            "quantum_measurement"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Observer-specific parameters"
+        }
+      },
+      "description": "How metric reads variable state"
+    },
+    "transition_model": {
+      "type": "object",
+      "required": ["transition_type", "parameters"],
+      "properties": {
+        "transition_type": {
+          "type": "string",
+          "enum": [
+            "direct_update",
+            "opinion_shift",
+            "network_rewire",
+            "strategy_adapt",
+            "conformity_pressure",
+            "quantum_walk_step",
+            "community_reassignment",
+            "no_transition"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        }
+      },
+      "description": "How metric updates variable state"
+    },
+    "noise_model": {
+      "type": "object",
+      "required": ["noise_type", "parameters"],
+      "properties": {
+        "noise_type": {
+          "type": "string",
+          "enum": ["gaussian", "poisson", "uniform", "adversarial", "none"]
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "base_stddev": {"type": "number", "minimum": 0},
+            "adversarial_boost": {"type": "number", "minimum": 1.0}
+          }
+        }
+      },
+      "description": "Measurement uncertainty model"
+    },
+    "manipulation_model": {
+      "type": "object",
+      "required": ["manipulation_type", "penetration_scaling"],
+      "properties": {
+        "manipulation_type": {
+          "type": "string",
+          "enum": [
+            "deepfake",
+            "bot_amplification",
+            "algorithmic_distortion",
+            "astroturfing",
+            "none"
+          ]
+        },
+        "penetration_scaling": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "How noise increases with synthetic content penetration"
+        },
+        "detection_threshold": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Manipulation level at which detection becomes likely"
+        }
+      },
+      "description": "How manipulation distorts measurement"
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "hard_bounds": {
+          "type": "object",
+          "properties": {
+            "enforce": {"type": "boolean"},
+            "min": {"type": "number"},
+            "max": {"type": "number"}
+          }
+        },
+        "conservation_laws": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "law_type": {
+                "type": "string",
+                "enum": ["mass", "probability", "network_edges", "payoff_sum"]
+              },
+              "tolerance": {"type": "number", "minimum": 0}
+            }
+          }
+        }
+      },
+      "description": "Physical/logical constraints enforced by this rune"
+    },
+    "provenance_manifest": {
+      "type": "object",
+      "required": ["created", "input_hash", "metric_version", "var_versions", "schema_version"],
+      "properties": {
+        "created": {"type": "string", "format": "date-time"},
+        "input_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of input configuration"
+        },
+        "metric_version": {"type": "string"},
+        "var_versions": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "schema_version": {"type": "string"},
+        "sml_training_sources": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Paper IDs from SML that informed this rune's parameters"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

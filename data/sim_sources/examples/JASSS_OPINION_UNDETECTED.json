@@ -1,0 +1,31 @@
+{
+  "paper_id": "JASSS_OPINION_UNDETECTED",
+  "title": "Opinion Dynamics Model Revealing Yet Undetected Polarization",
+  "params": [
+    {
+      "name": "w_ij",
+      "symbol": "w_ij",
+      "value": null,
+      "description": "Interpersonal influence weight"
+    },
+    {
+      "name": "epsilon",
+      "symbol": "ε",
+      "value": null,
+      "description": "Confidence threshold"
+    },
+    {
+      "name": "stubbornness",
+      "symbol": "s",
+      "value": null,
+      "description": "Agent stubbornness parameter"
+    },
+    {
+      "name": "memory_depth",
+      "symbol": "d_m",
+      "value": null,
+      "description": "Memory depth for opinion history"
+    }
+  ],
+  "notes": "Agent-based opinion dynamics with hidden polarization detection. Models latent polarization structures."
+}

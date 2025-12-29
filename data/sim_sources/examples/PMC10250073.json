@@ -1,0 +1,43 @@
+{
+  "paper_id": "PMC10250073",
+  "title": "Information-epidemic co-evolution propagation under policy intervention",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Disease transmission rate"
+    },
+    {
+      "name": "ads",
+      "symbol": null,
+      "value": null,
+      "description": "Awareness diffusion strength"
+    },
+    {
+      "name": "k",
+      "symbol": "k",
+      "value": null,
+      "description": "Average degree / contact rate"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    },
+    {
+      "name": "defensive_mod",
+      "symbol": null,
+      "value": null,
+      "description": "Policy intervention modifier"
+    },
+    {
+      "name": "inter_layer_lag",
+      "symbol": "τ_L",
+      "value": null,
+      "description": "Information-epidemic coupling delay"
+    }
+  ],
+  "notes": "Coupled information-epidemic dynamics with policy intervention modulating spread rates."
+}

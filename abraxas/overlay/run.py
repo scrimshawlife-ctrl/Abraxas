@@ -1,11 +1,12 @@
 """Overlay Runner
 
 Main entry point for running overlay operations.
+Uses the legacy phase system for backward compatibility.
 """
 
 from typing import Any, Dict, Optional
 from .adapter import OverlayAdapter
-from .phases import Phase, PhaseManager
+from .phases import LegacyPhase, PhaseManager
 from .schema import OverlaySchema
 
 
@@ -25,10 +26,10 @@ class OverlayRunner:
 
     def _setup_default_handlers(self):
         """Set up default phase handlers."""
-        self.phase_manager.register_handler(Phase.INIT, self._init_handler)
-        self.phase_manager.register_handler(Phase.PROCESS, self._process_handler)
-        self.phase_manager.register_handler(Phase.TRANSFORM, self._transform_handler)
-        self.phase_manager.register_handler(Phase.FINALIZE, self._finalize_handler)
+        self.phase_manager.register_handler(LegacyPhase.INIT, self._init_handler)
+        self.phase_manager.register_handler(LegacyPhase.PROCESS, self._process_handler)
+        self.phase_manager.register_handler(LegacyPhase.TRANSFORM, self._transform_handler)
+        self.phase_manager.register_handler(LegacyPhase.FINALIZE, self._finalize_handler)
 
     def _init_handler(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Initialize the overlay operation.
@@ -86,10 +87,10 @@ class OverlayRunner:
         Returns:
             Result of the overlay operation
         """
-        result = self.phase_manager.execute(Phase.INIT, data)
-        result = self.phase_manager.execute(Phase.PROCESS, result)
-        result = self.phase_manager.execute(Phase.TRANSFORM, result)
-        result = self.phase_manager.execute(Phase.FINALIZE, result)
+        result = self.phase_manager.execute(LegacyPhase.INIT, data)
+        result = self.phase_manager.execute(LegacyPhase.PROCESS, result)
+        result = self.phase_manager.execute(LegacyPhase.TRANSFORM, result)
+        result = self.phase_manager.execute(LegacyPhase.FINALIZE, result)
         return result
 
 
