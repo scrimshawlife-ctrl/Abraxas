@@ -11,10 +11,14 @@ Architecture:
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Any, List
 
 from abraxas.oracle.v2.pipeline import OracleV2Output
+from abraxas.slang.validation import LifecycleStateValidator
+
+logger = logging.getLogger(__name__)
 
 
 def oracle_to_weather_intel(
@@ -30,6 +34,8 @@ def oracle_to_weather_intel(
     Returns:
         Dict mapping intel_type → file_path
     """
+    logger.info(f"Converting {len(oracle_outputs)} Oracle v2 outputs to weather intel")
+
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -82,6 +88,11 @@ def oracle_to_weather_intel(
     drift_path.write_text(json.dumps(drift_data, indent=2, sort_keys=True), encoding="utf-8")
     written["semantic_drift"] = drift_path
 
+    logger.info(f"✓ Generated {len(written)} intel artifacts: {list(written.keys())}")
+    logger.info(f"  - Pressure: {len(pressure_data)} domains")
+    logger.info(f"  - Trust: {len(trust_data)} domains")
+    logger.info(f"  - Drift: {len(drift_data)} domains")
+
     return written
 
 
@@ -96,11 +107,22 @@ def oracle_to_mimetic_weather_fronts(
     Returns:
         List of weather fronts compatible with weather_to_tasks.py
     """
+    logger.info(f"Converting {len(oracle_outputs)} Oracle outputs to weather fronts")
+
     fronts: List[Dict[str, Any]] = []
+    validation_errors = 0
 
     for oracle_output in oracle_outputs:
         domain = oracle_output.compression.domain
         transitions = oracle_output.forecast.phase_transitions
+
+        # Validate lifecycle states
+        is_valid, errors = LifecycleStateValidator.validate_state_dict(
+            transitions, raise_on_error=False
+        )
+        if not is_valid:
+            logger.warning(f"Invalid lifecycle states in {domain}: {errors}")
+            validation_errors += len(errors)
 
         # Classify transitions into weather fronts
         proto_terms = [tok for tok, state in transitions.items() if state == "Proto"]
@@ -159,6 +181,19 @@ def oracle_to_mimetic_weather_fronts(
                     "signal": "contamination_risk",
                     "memetic_pressure": oracle_output.forecast.memetic_pressure,
                 })
+
+    # Log summary
+    front_types = {}
+    for front in fronts:
+        front_type = front["front"]
+        front_types[front_type] = front_types.get(front_type, 0) + 1
+
+    logger.info(f"✓ Generated {len(fronts)} weather fronts")
+    for front_type, count in sorted(front_types.items()):
+        logger.info(f"  - {front_type}: {count}")
+
+    if validation_errors > 0:
+        logger.warning(f"⚠ {validation_errors} lifecycle state validation errors encountered")
 
     return fronts
 
