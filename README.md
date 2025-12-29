@@ -285,6 +285,10 @@ Production-grade reliability for edge deployment:
 - [x] **6-Gate Metric Governance** — Anti-hallucination promotion framework
 - [x] **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
 - [x] **WO-100 Acquisition Infrastructure** — Anchor resolution, reupload detection, forecast accuracy
+- [x] **Abraxas v1.5** — Predictive Intelligence Layer (**Q1 2025 Critical Path Complete**)
+  - [x] **Domain Compression Engines (DCE)** — Lifecycle-aware, lineage-tracked compression
+  - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative assembly
+  - [x] **Phase Detection Engine** — Cross-domain alignment, synchronicity, early warnings
 
 ### Abraxas v1.4: Temporal & Adversarial Expansion
 
@@ -390,47 +394,64 @@ python -m abraxas.cli.abx_run_v1_4 \
 - [SOD Specification](docs/specs/sod_second_order_dynamics.md)
 - [Canonical Ledger](docs/canon/ABRAXAS_CANON_LEDGER.txt)
 
-### 📊 Recent Updates (v1.4.1 — December 2025)
+### 📊 Recent Updates (v1.5.0 — December 2025)
 
-**4 Major PRs Merged** — Governance, acquisition, and infrastructure consolidation:
+**Abraxas v1.5: Predictive Intelligence Layer** — Critical path completion transforms Abraxas from descriptive → **predictive**
+
+#### Phase 1: Domain Compression Engines (DCE)
+- Versioned lexicon framework with SHA-256 lineage tracking
+- Domain-specific operators (politics, media, finance, conspiracy)
+- Integration with STI/RDV/SCO pipeline
+- Lifecycle-aware compression (proto → front → saturated → dormant → archived)
+- **Files:** 3 modules, 1,162 lines
+
+#### Phase 2: Oracle Pipeline v2
+- Unified Signal → Compression → Forecast → Narrative assembly
+- Real component integration (LifecycleEngine, TauCalculator, weather, resonance)
+- 6-gate governance system (provenance, falsifiability, redundancy, rent, ablation, stabilization)
+- Deterministic provenance bundles with SHA-256 tracking
+- **Files:** 3 modules + governance + example, 1,239 lines
+
+#### Phase 3: Phase Detection Engine
+- Cross-domain phase alignment detection (2+ domains in same phase)
+- Synchronicity mapping (domain X → domain Y lag patterns)
+- Early warning system for phase transitions
+- Drift-resonance coupling detection (cascade risk assessment)
+- **Files:** 4 modules, 991 lines
+
+**Total Impact:** 12 files, 3,392 lines, **Abraxas is now predictive**
+
+---
+
+### 📊 v1.4.1 Updates (Merged December 2025)
+
+**4 Major PRs** — Governance, acquisition, and infrastructure consolidation:
 
 1. **PR #22** — 6-Gate Metric Governance System
-   - Anti-hallucination promotion framework ("Metrics are Contracts, not Ideas")
-   - Simulation mapping layer with 22 academic papers
-   - Hash-based provenance chain verification
-   - 75+ test cases for metric evaluation
-
 2. **PR #28** — WO-100: Acquisition & Analysis Infrastructure
-   - Anchor → URL resolution system
-   - Reupload storm detection
-   - Forecast accuracy tracking with horizon bands
-   - Manipulation front detection & metrics
-   - 40+ new ABX modules with ledger systems
-
 3. **PR #20** — Kernel Phase System
-   - 5-phase execution model (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
-   - Whitelisted ASCEND operations
-   - Enhanced Python cache patterns
-
 4. **PR #36** — Documentation enhancements
 
 **Total:** 120 files changed, 15,654 additions, 466 deletions
 
-### 🔥 NOW — Critical Path (Q1 2025)
+### ✅ Q1 2025 Critical Path — COMPLETE
 
 > **See [ROADMAP.md](ROADMAP.md) for full canon-aligned priority stack**
 
-1. **Domain Compression Engines (DCEs)** — Versioned, lifecycle-tracked lexicons
-   - Priority elevated from "In Progress" to **CORE SPINE**
-   - Blocks: Oracle v2, Phase Detection, Multi-Domain Analysis
+**All critical path items completed** — Abraxas has transitioned from **descriptive → predictive**
 
-2. **Oracle Pipeline v2** — Assembly & synthesis of existing components
-   - 70% complete via lifecycle forecasting, resonance, provenance bundles
-   - Signal → Compression → Forecast → Narrative pipeline
+1. ✅ **Domain Compression Engines (DCEs)** — Versioned, lifecycle-tracked lexicons
+   - Status: **CORE SPINE** ✓
+   - Provides: Foundation for Oracle v2, Phase Detection, Multi-Domain Analysis
 
-3. **Phase Detection Engine** — Cross-domain phase alignment detection
-   - Consumes: lifecycle transitions, resonance spikes, weather fronts, slang emergence
-   - **This is where Abraxas becomes predictive, not descriptive**
+2. ✅ **Oracle Pipeline v2** — Unified Signal → Compression → Forecast → Narrative
+   - Status: **OPERATIONAL** ✓
+   - Integrates: LifecycleEngine, TauCalculator, weather, resonance, 6-gate governance
+
+3. ✅ **Phase Detection Engine** — Cross-domain phase alignment + synchronicity
+   - Status: **OPERATIONAL** ✓
+   - Capabilities: Alignment detection, synchronicity mapping, early warnings, cascade risk
+   - **Abraxas is now predictive, not descriptive** ✓
 
 ### 🚀 NEXT — High-Value Extensions (Q2 2025)
 
