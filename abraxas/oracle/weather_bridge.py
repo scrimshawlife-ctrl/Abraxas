@@ -115,20 +115,24 @@ def oracle_to_mimetic_weather_fronts(
     for oracle_output in oracle_outputs:
         domain = oracle_output.compression.domain
         transitions = oracle_output.forecast.phase_transitions
+        current_states = oracle_output.compression.lifecycle_states
+
+        # Use transitions if available, otherwise use current states
+        states_to_use = transitions if transitions else current_states
 
         # Validate lifecycle states
         is_valid, errors = LifecycleStateValidator.validate_state_dict(
-            transitions, raise_on_error=False
+            states_to_use, raise_on_error=False
         )
         if not is_valid:
             logger.warning(f"Invalid lifecycle states in {domain}: {errors}")
             validation_errors += len(errors)
 
-        # Classify transitions into weather fronts
-        proto_terms = [tok for tok, state in transitions.items() if state == "Proto"]
-        front_terms = [tok for tok, state in transitions.items() if state == "Front"]
-        saturated_terms = [tok for tok, state in transitions.items() if state == "Saturated"]
-        dormant_terms = [tok for tok, state in transitions.items() if state == "Dormant"]
+        # Classify states into weather fronts
+        proto_terms = [tok for tok, state in states_to_use.items() if state == "Proto"]
+        front_terms = [tok for tok, state in states_to_use.items() if state == "Front"]
+        saturated_terms = [tok for tok, state in states_to_use.items() if state == "Saturated"]
+        dormant_terms = [tok for tok, state in states_to_use.items() if state == "Dormant"]
 
         # NEWBORN front: New proto terms emerging
         if proto_terms:

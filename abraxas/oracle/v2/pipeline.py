@@ -32,13 +32,13 @@ Architecture:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
 from abraxas.core.provenance import Provenance
 from abraxas.core.canonical import sha256_hex, canonical_json
-from abraxas.core.temporal_tau import TauCalculator, TauSnapshot
+from abraxas.core.temporal_tau import TauCalculator, TauSnapshot, ConfidenceLevel
 from abraxas.slang.lifecycle import LifecycleEngine, LifecycleState as SlangLifecycleState, TransitionThresholds
 
 
@@ -291,9 +291,17 @@ class OracleV2Pipeline:
             tau_snapshot = TauSnapshot(
                 tau_half_life=self._estimate_half_life(weight, state),
                 tau_velocity=self._estimate_velocity(weight, state),
-                tau_pressure=weight,
+                tau_phase_proximity=0.5,  # Simplified - would calculate from lifecycle position
+                confidence=ConfidenceLevel.MED,
                 observation_count=int(weight * 10),  # Proxy for observations
-                confidence_band="MED",
+                observation_window_hours=168.0,  # 1 week window
+                provenance=Provenance(
+                    run_id=run_id,
+                    started_at_utc=Provenance.now_iso_z(),
+                    inputs_hash=sha256_hex(canonical_json({"token": token, "weight": weight})),
+                    config_hash=sha256_hex(canonical_json({"estimator": "oracle_v2_tau"})),
+                    git_sha=git_sha,
+                ),
             )
 
             # Compute next state using lifecycle engine
@@ -365,8 +373,8 @@ class OracleV2Pipeline:
 
         # Build provenance bundle
         bundle_data = {
-            "compression": compression.__dict__,
-            "forecast": forecast.__dict__,
+            "compression": asdict(compression),
+            "forecast": asdict(forecast),
             "run_id": run_id,
         }
         bundle_hash = sha256_hex(canonical_json(bundle_data))

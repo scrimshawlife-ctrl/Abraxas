@@ -21,50 +21,57 @@ from abraxas.lexicon.dce import (
     DCEPack,
     DCEEntry,
     LifecycleState,
+    LexiconLineage,
 )
+from abraxas.lexicon.engine import InMemoryLexiconRegistry
 
 
 def create_sample_dce() -> DomainCompressionEngine:
     """Create a sample DCE with politics domain lexicon."""
-    registry = DCERegistry()
+    base_registry = InMemoryLexiconRegistry()
+    registry = DCERegistry(base_registry)
 
     # Create politics lexicon v1.0
+    # Note: entries is a tuple, not a dict
     politics_pack = DCEPack(
         domain="politics",
         version="1.0",
-        entries={
-            "equality": DCEEntry(
+        entries=(
+            DCEEntry(
                 token="equality",
                 weight=0.8,
                 lifecycle_state=LifecycleState.FRONT,
                 domain="politics",
             ),
-            "justice": DCEEntry(
+            DCEEntry(
                 token="justice",
                 weight=0.7,
                 lifecycle_state=LifecycleState.FRONT,
                 domain="politics",
             ),
-            "freedom": DCEEntry(
+            DCEEntry(
                 token="freedom",
                 weight=0.75,
                 lifecycle_state=LifecycleState.SATURATED,
                 domain="politics",
             ),
-            "establishment": DCEEntry(
+            DCEEntry(
                 token="establishment",
                 weight=0.6,
                 lifecycle_state=LifecycleState.FRONT,
                 domain="politics",
             ),
-            "elite": DCEEntry(
+            DCEEntry(
                 token="elite",
                 weight=0.65,
                 lifecycle_state=LifecycleState.PROTO,
                 domain="politics",
             ),
-        },
-        lineage=None,
+        ),
+        lineage=LexiconLineage(
+            version="1.0",
+            parent_version=None,  # Initial version
+        ),
     )
 
     registry.register(politics_pack)
