@@ -1,0 +1,55 @@
+{
+  "id": "ϟ₇",
+  "name": "Shadow Structural Observer",
+  "short_name": "SSO",
+  "layer": "Governance",
+  "motto": "Observe without Influence",
+  "function": "Provides isolated, read-only access to Shadow Structural Metrics (Cambridge Analytica-derived metrics: SEI, CLIP, NOR, PTS, SCG, FVC) with strict no-influence guarantees and SEED provenance tracking",
+  "inputs": [
+    "symbol_pool: List of symbolic events to analyze",
+    "time_window_hours: Time window for temporal metrics (default: 24)",
+    "metrics_requested: List of metric IDs to compute (default: all six)"
+  ],
+  "outputs": [
+    "ssm_bundle: Shadow Structural Metrics bundle with provenance",
+    "isolation_proof: Cryptographic proof of non-influence guarantee"
+  ],
+  "constraints": [
+    "Read-only access (cannot modify system state)",
+    "Isolated execution context (no side effects)",
+    "Audit logging mandatory",
+    "Provenance chain included for all metrics",
+    "No influence on other system metrics (guaranteed)",
+    "Deterministic computation (SEED compliant)",
+    "Incremental patch only updates"
+  ],
+  "hooks": [
+    "pre_compute: Isolation context setup",
+    "post_compute: Audit log generation",
+    "isolation_verify: Cryptographic attestation of non-influence"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Cambridge Analytica psychological targeting research",
+    "Shadow Structural Metrics specification v1.0.0",
+    "SEED Framework compliance requirements"
+  ],
+  "canonical_statement": "ϟ₇ (SSO) enables observation of psychological manipulation vectors (SEI/CLIP/NOR/PTS/SCG/FVC) without allowing those observations to influence system decisions. It enforces strict isolation through ABX-Runes coupling, maintains SEED-compliant provenance for all computations, and provides cryptographic proof that computed metrics remain in shadow mode with zero influence on other system components.",
+  "introduced_version": "1.4.0",
+  "metadata": {
+    "lock_status": "LOCKED",
+    "lock_date": "2025-12-29",
+    "modification_policy": "incremental_patch_only",
+    "access_control": "rune_mediated_only",
+    "metrics": [
+      "SEI - Sentiment Entropy Index",
+      "CLIP - Cognitive Load Intensity Proxy",
+      "NOR - Narrative Overload Rating",
+      "PTS - Persuasive Trajectory Score",
+      "SCG - Social Contagion Gradient",
+      "FVC - Filter Velocity Coefficient"
+    ],
+    "isolation_guarantee": "no_influence",
+    "seed_compliant": true
+  }
+}

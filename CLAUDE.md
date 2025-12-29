@@ -1,6 +1,6 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2025-12-27
+**Last Updated:** 2025-12-29
 **Version:** 1.4.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
 
@@ -121,6 +121,7 @@ Abraxas/
 │   ├── slang/                  # Slang analysis & AAlmanac
 │   ├── integrity/              # D/M layer (information integrity)
 │   ├── sod/                    # Second-Order Dynamics
+│   ├── shadow_metrics/         # Shadow Structural Metrics (LOCKED - Cambridge Analytica derived)
 │   ├── weather/                # Weather engine (Python)
 │   ├── kernel/                 # Execution kernel
 │   ├── overlay/                # Overlay management
@@ -565,6 +566,24 @@ Second-Order Dynamics:
 - **EFTE**: Epistemic Fatigue Threshold Engine
 - **SPM**: Susceptibility Profile Mapper
 - **RRM**: Recovery & Re-Stabilization Model
+
+#### `abraxas/shadow_metrics/`
+
+Shadow Structural Metrics (Cambridge Analytica-derived):
+
+- **LOCKED MODULE**: v1.0.0 (2025-12-29)
+- Six observe-only psychological manipulation metrics:
+  - **SEI**: Sentiment Entropy Index
+  - **CLIP**: Cognitive Load Intensity Proxy
+  - **NOR**: Narrative Overload Rating
+  - **PTS**: Persuasive Trajectory Score
+  - **SCG**: Social Contagion Gradient
+  - **FVC**: Filter Velocity Coefficient
+- **Access Control**: ABX-Runes ϟ₇ (SSO) ONLY - direct access forbidden
+- **No-Influence Guarantee**: Metrics observe but never affect system decisions
+- **SEED Compliant**: Fully deterministic with SHA-256 provenance
+- **Incremental Patch Only**: All modifications via versioned patches
+- See `docs/specs/shadow_structural_metrics.md` for full specification
 
 ### TypeScript Server Modules
 
