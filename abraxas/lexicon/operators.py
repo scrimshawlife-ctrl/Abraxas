@@ -6,6 +6,10 @@ Beyond simple weight lookup:
 - Media: Platform-specific patterns, viral mechanics
 - Finance: Market sentiment, institutional signals
 - Conspiracy: Narrative threads, claim chains
+- Technology: AI/disruption signals, innovation patterns
+- Health: Medical discourse, public health signals
+- Climate: Environmental discourse, sustainability patterns
+- Social: Cultural movements, identity discourse
 """
 
 from __future__ import annotations
@@ -293,6 +297,314 @@ class ConspiracyOperator:
         return signals
 
 
+class TechnologyOperator:
+    """
+    Technology domain compression operator.
+
+    Extracts:
+    - AI/ML signals (artificial intelligence, machine learning, automation)
+    - Innovation signals (disruption, breakthrough, paradigm shift)
+    - Tech skepticism (doomerism, alignment, existential risk)
+    """
+
+    def __init__(self) -> None:
+        self.ai_markers = {"ai", "llm", "model", "algorithm", "neural", "gpt", "agi"}
+        self.innovation_markers = {"disruption", "breakthrough", "innovation", "paradigm", "revolution"}
+        self.skeptic_markers = {"doomer", "alignment", "risk", "safety", "dystopia", "terminator"}
+        self.hype_markers = {"hype", "overpromise", "bubble", "vaporware", "moonshot"}
+
+    def extract_signals(self, result: DCECompressionResult) -> List[DomainSignal]:
+        """Extract technology signals from compression result."""
+        signals: List[DomainSignal] = []
+
+        matched_set = set(result.matched)
+
+        # AI signal detection
+        ai_count = len(matched_set & self.ai_markers)
+        if ai_count > 0:
+            strength = min(1.0, ai_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="tech_ai_discourse",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.ai_markers),
+                    meta={"count": str(ai_count)},
+                )
+            )
+
+        # Innovation signal detection
+        innovation_count = len(matched_set & self.innovation_markers)
+        if innovation_count > 0:
+            strength = min(1.0, innovation_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="innovation_signal",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.innovation_markers),
+                    meta={"count": str(innovation_count)},
+                )
+            )
+
+        # Skepticism detection
+        skeptic_count = len(matched_set & self.skeptic_markers)
+        if skeptic_count >= 2:
+            strength = min(1.0, skeptic_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="tech_skepticism",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.skeptic_markers),
+                    meta={"count": str(skeptic_count)},
+                )
+            )
+
+        # Hype cycle detection
+        hype_count = len(matched_set & self.hype_markers)
+        if hype_count > 0:
+            strength = min(1.0, hype_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="hype_cycle",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.hype_markers),
+                    meta={"count": str(hype_count)},
+                )
+            )
+
+        return signals
+
+
+class HealthOperator:
+    """
+    Health domain compression operator.
+
+    Extracts:
+    - Medical discourse (vaccine, treatment, diagnosis)
+    - Public health signals (pandemic, outbreak, epidemic)
+    - Wellness trends (mental health, fitness, self-care)
+    """
+
+    def __init__(self) -> None:
+        self.medical_markers = {"vaccine", "treatment", "diagnosis", "clinical", "trial", "efficacy"}
+        self.public_health_markers = {"pandemic", "outbreak", "epidemic", "quarantine", "lockdown"}
+        self.wellness_markers = {"mental", "wellness", "therapy", "self-care", "mindfulness"}
+        self.skeptic_markers = {"side-effects", "adverse", "hesitancy", "mandate", "freedom"}
+
+    def extract_signals(self, result: DCECompressionResult) -> List[DomainSignal]:
+        """Extract health signals from compression result."""
+        signals: List[DomainSignal] = []
+
+        matched_set = set(result.matched)
+
+        # Medical discourse detection
+        medical_count = len(matched_set & self.medical_markers)
+        if medical_count > 0:
+            strength = min(1.0, medical_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="medical_discourse",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.medical_markers),
+                    meta={"count": str(medical_count)},
+                )
+            )
+
+        # Public health signal detection
+        public_health_count = len(matched_set & self.public_health_markers)
+        if public_health_count > 0:
+            strength = min(1.0, public_health_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="public_health_signal",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.public_health_markers),
+                    meta={"count": str(public_health_count)},
+                )
+            )
+
+        # Wellness trend detection
+        wellness_count = len(matched_set & self.wellness_markers)
+        if wellness_count > 0:
+            strength = min(1.0, wellness_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="wellness_trend",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.wellness_markers),
+                    meta={"count": str(wellness_count)},
+                )
+            )
+
+        # Health skepticism detection
+        skeptic_count = len(matched_set & self.skeptic_markers)
+        if skeptic_count >= 2:
+            strength = min(1.0, skeptic_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="health_skepticism",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.skeptic_markers),
+                    meta={"count": str(skeptic_count)},
+                )
+            )
+
+        return signals
+
+
+class ClimateOperator:
+    """
+    Climate domain compression operator.
+
+    Extracts:
+    - Environmental discourse (climate, emissions, carbon)
+    - Sustainability signals (renewable, green, sustainable)
+    - Climate skepticism (hoax, natural cycles, alarmism)
+    """
+
+    def __init__(self) -> None:
+        self.climate_markers = {"climate", "emissions", "carbon", "greenhouse", "warming"}
+        self.sustainability_markers = {"renewable", "green", "sustainable", "solar", "wind"}
+        self.action_markers = {"transition", "net-zero", "decarbonize", "electrify"}
+        self.skeptic_markers = {"hoax", "natural", "alarmism", "exaggerate", "scam"}
+
+    def extract_signals(self, result: DCECompressionResult) -> List[DomainSignal]:
+        """Extract climate signals from compression result."""
+        signals: List[DomainSignal] = []
+
+        matched_set = set(result.matched)
+
+        # Climate discourse detection
+        climate_count = len(matched_set & self.climate_markers)
+        if climate_count > 0:
+            strength = min(1.0, climate_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="climate_discourse",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.climate_markers),
+                    meta={"count": str(climate_count)},
+                )
+            )
+
+        # Sustainability signal detection
+        sustainability_count = len(matched_set & self.sustainability_markers)
+        if sustainability_count > 0:
+            strength = min(1.0, sustainability_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="sustainability_signal",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.sustainability_markers),
+                    meta={"count": str(sustainability_count)},
+                )
+            )
+
+        # Climate action detection
+        action_count = len(matched_set & self.action_markers)
+        if action_count > 0:
+            strength = min(1.0, action_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="climate_action",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.action_markers),
+                    meta={"count": str(action_count)},
+                )
+            )
+
+        # Climate skepticism detection
+        skeptic_count = len(matched_set & self.skeptic_markers)
+        if skeptic_count >= 2:
+            strength = min(1.0, skeptic_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="climate_skepticism",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.skeptic_markers),
+                    meta={"count": str(skeptic_count)},
+                )
+            )
+
+        return signals
+
+
+class SocialOperator:
+    """
+    Social domain compression operator.
+
+    Extracts:
+    - Identity discourse (gender, race, class)
+    - Social justice signals (equity, inclusion, representation)
+    - Cultural movements (activism, awareness, solidarity)
+    """
+
+    def __init__(self) -> None:
+        self.identity_markers = {"identity", "gender", "race", "class", "minority"}
+        self.justice_markers = {"equity", "inclusion", "representation", "justice", "rights"}
+        self.movement_markers = {"activism", "awareness", "solidarity", "movement", "protest"}
+        self.backlash_markers = {"woke", "cancel", "mob", "outrage", "virtue-signal"}
+
+    def extract_signals(self, result: DCECompressionResult) -> List[DomainSignal]:
+        """Extract social signals from compression result."""
+        signals: List[DomainSignal] = []
+
+        matched_set = set(result.matched)
+
+        # Identity discourse detection
+        identity_count = len(matched_set & self.identity_markers)
+        if identity_count > 0:
+            strength = min(1.0, identity_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="identity_discourse",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.identity_markers),
+                    meta={"count": str(identity_count)},
+                )
+            )
+
+        # Social justice signal detection
+        justice_count = len(matched_set & self.justice_markers)
+        if justice_count > 0:
+            strength = min(1.0, justice_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="social_justice",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.justice_markers),
+                    meta={"count": str(justice_count)},
+                )
+            )
+
+        # Movement detection
+        movement_count = len(matched_set & self.movement_markers)
+        if movement_count > 0:
+            strength = min(1.0, movement_count / 2.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="cultural_movement",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.movement_markers),
+                    meta={"count": str(movement_count)},
+                )
+            )
+
+        # Backlash detection
+        backlash_count = len(matched_set & self.backlash_markers)
+        if backlash_count >= 2:
+            strength = min(1.0, backlash_count / 3.0)
+            signals.append(
+                DomainSignal(
+                    signal_type="social_backlash",
+                    strength=strength,
+                    evidence_tokens=tuple(matched_set & self.backlash_markers),
+                    meta={"count": str(backlash_count)},
+                )
+            )
+
+        return signals
+
+
 class DomainOperatorRegistry:
     """Registry for domain-specific compression operators."""
 
@@ -302,6 +614,10 @@ class DomainOperatorRegistry:
             "media": MediaOperator(),
             "finance": FinanceOperator(),
             "conspiracy": ConspiracyOperator(),
+            "technology": TechnologyOperator(),
+            "health": HealthOperator(),
+            "climate": ClimateOperator(),
+            "social": SocialOperator(),
         }
 
     def get_operator(self, domain: str) -> Optional[object]:
