@@ -173,12 +173,9 @@ Examples:
         report_path.parent.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"Generating weather fronts report at: {report_path}")
-        fronts = oracle_to_mimetic_weather_fronts(oracle_outputs)
 
-        logger.info(f"✓ Generated {len(fronts)} weather fronts")
-
-        # Write report
-        write_mimetic_weather_report(fronts, report_path)
+        # Write report (this will convert oracle_outputs to fronts internally)
+        write_mimetic_weather_report(oracle_outputs, report_path)
         logger.info(f"✓ Weather report written to: {report_path}")
 
     logger.info("✓ Weather bridge CLI execution complete")
