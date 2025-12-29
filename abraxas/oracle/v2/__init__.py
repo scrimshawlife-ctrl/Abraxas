@@ -22,8 +22,14 @@ from .pipeline import (
     OracleV2Pipeline,
     create_oracle_v2_pipeline,
 )
+from .governance import (
+    OracleGovernanceReport,
+    OracleGovernanceValidator,
+    create_oracle_governance_validator,
+)
 
 __all__ = [
+    # Pipeline components
     "OracleSignal",
     "CompressionPhase",
     "ForecastPhase",
@@ -31,4 +37,8 @@ __all__ = [
     "OracleV2Output",
     "OracleV2Pipeline",
     "create_oracle_v2_pipeline",
+    # Governance components
+    "OracleGovernanceReport",
+    "OracleGovernanceValidator",
+    "create_oracle_governance_validator",
 ]

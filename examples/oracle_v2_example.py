@@ -13,6 +13,7 @@ Demonstrates the unified Oracle v2 pipeline that integrates:
 from abraxas.oracle.v2 import (
     OracleSignal,
     create_oracle_v2_pipeline,
+    create_oracle_governance_validator,
 )
 from abraxas.lexicon.dce import (
     DomainCompressionEngine,
@@ -183,6 +184,39 @@ def main():
     print("\n" + "=" * 80)
     print("✓ Oracle v2 pipeline completed successfully")
     print("=" * 80)
+
+    # Governance validation
+    print("\n" + "=" * 80)
+    print("GOVERNANCE VALIDATION (6-GATE SYSTEM)")
+    print("=" * 80)
+
+    print("\n[5/5] Validating Oracle v2 output against 6-gate governance...")
+    validator = create_oracle_governance_validator(stabilization_window=10)
+    governance_report = validator.validate(output, evidence=None)
+
+    print(f"\nGovernance Report for {governance_report.oracle_run_id}")
+    print(f"Timestamp: {governance_report.timestamp}")
+    print(f"\nGate Results:")
+    for gate_name, passed in governance_report.compliance_summary.items():
+        status = "✓ PASS" if passed else "✗ FAIL"
+        print(f"  {status}  Gate {gate_name.replace('_', ' ').title()}")
+
+    print(f"\nRecommendation: {governance_report.recommendation.value}")
+    print(f"\nRationale:")
+    print(f"  {governance_report.rationale}")
+
+    # Explain governance gates
+    print("\n" + "-" * 80)
+    print("6-Gate Governance System:")
+    print("  1. Provenance: Complete SHA-256 tracking through all phases")
+    print("  2. Falsifiability: Predictions can be disconfirmed by future data")
+    print("  3. Redundancy: Not redundant with existing canonical metrics")
+    print("  4. Rent Payment: Measurable lift in forecast/narrative quality")
+    print("  5. Ablation: System survives removal of any phase")
+    print("  6. Stabilization: Consistent performance over stabilization window")
+    print("-" * 80)
+
+    print("\n✓ Example complete with governance validation")
 
 
 if __name__ == "__main__":
