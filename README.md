@@ -152,6 +152,75 @@ Abraxas operates as a **multi-layer stack** combining Python linguistic analysis
 
 ---
 
+## 🔀 Dual-Lane Architecture
+
+**CRITICAL DESIGN**: Abraxas implements a **dual-lane architecture** that enforces strict separation between prediction and diagnostics:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  ABRAXAS DUAL-LANE SYSTEM                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  PREDICTION LANE (Truth-Pure)      SHADOW LANE (Observe)   │
+│  ════════════════════               ════════════════════    │
+│                                                             │
+│  ┌──────────────────┐             ┌──────────────────┐     │
+│  │ Oracle Pipeline  │             │ Shadow Detectors │     │
+│  │ Forecast Engine  │             │ • Compliance     │     │
+│  │ SOD Operators    │             │ • Meta-Awareness │     │
+│  │ DCE Compression  │             │ • Negative Space │     │
+│  └────────┬─────────┘             └────────┬─────────┘     │
+│           │                                │               │
+│           │                                ▼               │
+│           │                      ┌──────────────────┐      │
+│           │                      │ Shadow Metrics   │      │
+│           │                      │ SEI/CLIP/NOR/    │      │
+│           │                      │ PTS/SCG/FVC      │      │
+│           │                      └────────┬─────────┘      │
+│           │                                │               │
+│           │         ┌──────────────────────┘ evidence only │
+│           │         │                                      │
+│           ▼         ▼                                      │
+│      ┌────────────────────────┐                           │
+│      │   LANE GUARD (ϟ₇)      │ ◄── Promotion Ledger      │
+│      │  ════════════════      │                           │
+│      │  • Check PROMOTED flag │                           │
+│      │  • Calibration only    │                           │
+│      │  • NO ethical veto     │                           │
+│      └────────┬───────────────┘                           │
+│               │                                            │
+│               ▼                                            │
+│      ┌─────────────────┐                                  │
+│      │ Forecast Output │                                  │
+│      └─────────────────┘                                  │
+│                                                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Core Principles
+
+1. **Prediction is Morally Agnostic**
+   - Forecast accuracy is the ONLY success metric
+   - No ethical, risk, or diagnostic constraints on predictions
+   - Full spectrum forecasting across all domains
+   - **NON-NEGOTIABLE**: Diagnostics never alter prediction
+
+2. **Shadow Lane is Observe-Only**
+   - Computes diagnostic signals (manipulation markers, psychological load, etc.)
+   - Attaches evidence as **annotations only**
+   - **NEVER** influences prediction behavior
+   - Exists to inform human operators, not constrain forecasts
+
+3. **Lane Guard Enforces Separation** (ABX-Runes ϟ₇)
+   - Prevents shadow outputs from leaking into prediction
+   - Requires explicit PROMOTION via governance system
+   - Validates promotion criteria: **calibration, stability, redundancy ONLY**
+   - **REJECTS** promotion based on ethical/risk/diagnostic criteria
+
+This design ensures **high-fidelity forecasting** and **rich diagnostic capabilities** without compromise.
+
+---
+
 ## ⚡ Features
 
 ### Symbolic Compression Detection
@@ -325,7 +394,8 @@ Production-grade reliability for edge deployment:
 - [x] **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
 - [x] **WO-100 Acquisition Infrastructure** — Anchor resolution, reupload detection, forecast accuracy
 - [x] **Shadow Structural Metrics** — Cambridge Analytica-derived observe-only analytical layer (SEI, CLIP, NOR, PTS, SCG, FVC)
-- [x] **Shadow Detectors** — Pattern detectors for compliance/remix, meta-awareness, negative space
+- [x] **Shadow Detectors v0.1** — Pattern detectors for compliance/remix, meta-awareness, negative space
+- [x] **Dual-Lane Architecture + Lane Guard** — Strict separation between prediction (truth-pure) and shadow (observe-only) with ABX-Runes ϟ₇ enforcement
 - [x] **Abraxas v1.5** — Predictive Intelligence Layer (**Q1 2025 Critical Path Complete**)
   - [x] **Domain Compression Engines (DCE)** — Lifecycle-aware, lineage-tracked compression
   - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative assembly
@@ -463,24 +533,58 @@ python -m abraxas.cli.abx_run_v1_4 \
 
 **Total Impact:** 12 files, 3,392 lines, **Abraxas is now predictive**
 
-#### Dual-Layer Architecture: Analysis + Prediction
+#### Dual-Lane Architecture: Shadow Diagnostics + Truth-Pure Prediction
 
-Abraxas maintains **two complementary intelligence layers** that work side by side:
+Abraxas implements a **dual-lane architecture** (see [Dual-Lane Architecture](#-dual-lane-architecture) section) with strict lane separation:
 
-1. **Analytical Layer (Shadow Structural Metrics)**:
+1. **Shadow Lane (Observe-Only Diagnostics)**:
    - Observe-only Cambridge Analytica-derived metrics (SEI, CLIP, NOR, PTS, SCG, FVC)
    - Pattern detectors (compliance/remix, meta-awareness, negative space)
+   - **Lane Guard enforcement** — prevents shadow signals from influencing prediction
    - **No system influence** — pure observation and measurement
    - ABX-Runes ϟ₇ access control (SSO - Shadow Structural Observer)
    - SEED compliant with SHA-256 provenance
 
-2. **Predictive Layer (v1.5)**:
+2. **Prediction Lane (Truth-Pure Forecasting)**:
    - Domain Compression Engines (DCE)
    - Oracle Pipeline v2 with 6-gate governance
    - Phase Detection Engine
+   - **Morally agnostic** — forecast accuracy is the ONLY success metric
    - **Active forecasting** — generates predictions and narratives
 
-**Philosophy**: Analysis describes *what is*, prediction forecasts *what comes next*. Both are essential for complete symbolic intelligence.
+**Philosophy**: Shadow lane describes *what is happening psychologically*, prediction lane forecasts *what comes next symbolically*. Lane Guard ensures these never interfere. See `docs/specs/dual_lane_architecture.md` for full specification.
+
+---
+
+### 📊 Latest Updates (December 2025)
+
+#### PR #51 — Dual-Lane Architecture with Shadow Detectors + Lane Guard (2025-12-30)
+
+**CRITICAL IMPLEMENTATION**: Separates prediction (truth-pure) from diagnostics (observe-only)
+
+- **Shadow Detectors v0.1** (`abraxas/detectors/shadow/`):
+  - Compliance vs Remix detector — lexical overlap vs novel recombination
+  - Meta-Awareness detector — algorithmic/manipulation discourse patterns
+  - Negative Space detector — topic dropout and visibility asymmetry
+  - Deterministic registry with SHA-256 provenance
+
+- **Lane Guard** (`abraxas/detectors/shadow/lane_guard.py`):
+  - Enforces prediction/shadow separation (ABX-Runes ϟ₇)
+  - REJECTS promotions based on ethical/risk/diagnostic criteria
+  - ONLY allows calibration/stability/redundancy criteria
+  - Promotion ledger with hash-chain verification
+
+- **Tests**: 28 tests passing (18 detector tests + 10 lane guard tests)
+- **Documentation**: `docs/specs/dual_lane_architecture.md`
+
+**Design Guarantees**:
+- Prediction is morally agnostic (NEVER blocked by ethical signals)
+- Shadow outputs are observe-only annotations
+- Lane Guard prevents shadow leakage into forecast
+- Promotion requires evidence: calibration + stability + redundancy
+- Full SHA-256 provenance tracking
+
+**NON-NEGOTIABLE**: Diagnostics never alter prediction.
 
 ---
 
@@ -567,6 +671,7 @@ Abraxas maintains **two complementary intelligence layers** that work side by si
 ### Core Modules
 
 - **[CLAUDE.md](CLAUDE.md)** — AI Assistant Development Guide (comprehensive codebase documentation)
+- **[Dual-Lane Architecture](docs/specs/dual_lane_architecture.md)** — Prediction vs Shadow lane separation specification
 - **[SCO Stack](README_SCO.md)** — Symbolic Compression Operator documentation
 - **[Orin Spine](README_ORIN.md)** — Edge deployment and infrastructure
 - **[Integration Guide](INTEGRATION_SCO.md)** — TypeScript/Python integration
