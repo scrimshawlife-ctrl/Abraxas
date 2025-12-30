@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import datetime, timezone
 from typing import Any, Dict
 
@@ -12,6 +14,38 @@ DEFAULT_GATES: Dict[str, Any] = {
     "min_ci_corr": 0.6,
     "max_interaction_noise": 0.35,
 }
+
+
+def _stable_json(obj: Any) -> str:
+    """Deterministic JSON serialization."""
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"))
+
+
+def _config_fingerprint(config_payload: Dict[str, Any] | None) -> str | None:
+    """
+    Deterministic fingerprint of config payload JSON.
+    Returns None if absent/invalid.
+    """
+    if not isinstance(config_payload, dict):
+        return None
+    try:
+        return hashlib.sha256(_stable_json(config_payload).encode()).hexdigest()
+    except Exception:
+        return None
+
+
+def _extract_evidence_metrics_from_checks(checks: Dict[str, Any]) -> Dict[str, Any] | None:
+    """
+    Additive internal channel: checks may include a special key "_evidence_metrics".
+    We lift it into compliance.meta.evidence and remove it from checks so the
+    compliance.checks payload stays clean.
+    """
+    if not isinstance(checks, dict):
+        return None
+    m = checks.pop("_evidence_metrics", None)
+    if isinstance(m, dict) and m:
+        return m
+    return None
 
 
 def compliance_status(checks: Dict[str, Any]) -> str:
@@ -43,14 +77,34 @@ def build_compliance_report(
     config_hash: str,
     date_iso: str | None = None,
     gates: Dict[str, Any] | None = None,
+    config_payload: Dict[str, Any] | None = None,
+    config_source: str | None = None,
 ) -> Dict[str, Any]:
+    # Extract evidence metrics if present (pops from checks)
+    evm = _extract_evidence_metrics_from_checks(checks)
+
     g = dict(DEFAULT_GATES if gates is None else gates)
     dt = date_iso or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     status = compliance_status(checks)
-    return {
+
+    rep = {
         "date_iso": dt,
         "status": status,
         "checks": checks,
         "gates": g,
         "provenance": {"config_hash": config_hash},
     }
+
+    # Add config fingerprint and source if available
+    cfp = _config_fingerprint(config_payload)
+    if cfp is not None:
+        rep["provenance"]["config_fingerprint"] = cfp
+    if isinstance(config_source, str) and config_source.strip():
+        rep["provenance"]["config_source"] = config_source
+
+    # Optional extra debug payload (schema-tolerant if additionalProperties allowed;
+    # validator does not forbid).
+    if evm is not None:
+        rep["meta"] = {"evidence": evm}
+
+    return rep

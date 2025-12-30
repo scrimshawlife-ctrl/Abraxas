@@ -1,0 +1,13 @@
+{
+  "$id": "schema/v2/index.json",
+  "v2": {
+    "common_enums": "schema/v2/v2_common_enums.v1.json",
+    "compliance_report": "schema/v2/v2_compliance_report.v1.json",
+    "mode_router_input": "schema/v2/v2_mode_router_input.v1.json",
+    "mode_router_output": "schema/v2/v2_mode_router_output.v1.json"
+  },
+  "notes": {
+    "policy": "append-only registry; do not reorder keys; deterministic hashing uses full file contents",
+    "updated": "2025-12-28"
+  }
+}
