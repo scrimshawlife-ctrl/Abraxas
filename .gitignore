@@ -39,3 +39,11 @@ htmlcov/
 venv/
 ENV/
 env/
+
+# Test output artifacts
+data/intel/
+data/intel2/
+data/intel_daily/
+out/reports/
+out/reports_daily/
+out/test_daily/
