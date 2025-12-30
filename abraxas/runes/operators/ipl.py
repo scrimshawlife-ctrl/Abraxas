@@ -26,31 +26,79 @@ Provenance:
 from __future__ import annotations
 from typing import Any, Dict
 
-def apply_ipl(phase_signal: Any, window_boundaries: Any, refractory_period: Any, lock_candidates: Any, *, strict_execution: bool = False) -> Dict[str, Any]:
-    """Apply IPL rune operator.
+def apply_ipl(
+    phase_series: list[tuple[float, float]] | None = None,
+    gate_bundle: Dict[str, Any] | None = None,
+    window_s: float = 2.0,
+    lock_threshold: float = 0.35,
+    refractory_s: float = 8.0,
+    **kwargs: Any
+) -> Dict[str, Any]:
+    """Apply IPL rune operator - Intermittent Phase-Lock scheduling.
+
+    Schedules bounded insight windows with enforced refractory periods.
+    Only permits windows when gate is OPEN.
 
     Args:
-                phase_signal: Input phase_signal
-        window_boundaries: Input window_boundaries
-        refractory_period: Input refractory_period
-        lock_candidates: Input lock_candidates
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        phase_series: List of (timestamp, phase_value) tuples representing phase evolution.
+                     If None, returns empty schedule.
+        gate_bundle: Output from apply_sds; must have gate_state="OPEN" for windows.
+        window_s: Duration of each insight window in seconds (default 2.0)
+        lock_threshold: Phase coherence threshold for window activation (default 0.35)
+        refractory_s: Mandatory refractory period between windows (default 8.0)
+        **kwargs: Additional parameters (for compatibility)
 
     Returns:
-        Dict with keys: lock_status, window_timing, refractory_countdown
-
-    Raises:
-        NotImplementedError: If strict_execution=True and operator not implemented
+        Dict with keys:
+            - events: list of window events [{t_start, t_end, coherence}]
+            - total_windows: int count of scheduled windows
+            - refractory_enforced: bool
+            - lock_status: "active" | "refractory" | "inactive"
     """
-    if strict_execution:
-        raise NotImplementedError(
-            f"Operator IPL not implemented yet. "
-            f"Provide a real implementation for rune ϟ₅."
-        )
+    # If gate is not OPEN, return empty schedule
+    if gate_bundle and gate_bundle.get("gate_state") != "OPEN":
+        return {
+            "events": [],
+            "total_windows": 0,
+            "refractory_enforced": True,
+            "lock_status": "inactive",
+            "reason": f"Gate not OPEN (state={gate_bundle.get('gate_state')})",
+        }
 
-    # Stub implementation - returns empty outputs
+    # If no phase_series, return empty schedule
+    if not phase_series:
+        return {
+            "events": [],
+            "total_windows": 0,
+            "refractory_enforced": True,
+            "lock_status": "inactive",
+            "reason": "No phase series provided",
+        }
+
+    # Scan phase_series for coherence peaks above threshold
+    events = []
+    last_window_end = -refractory_s  # Allow first window immediately
+
+    for i, (t, phase_val) in enumerate(phase_series):
+        # Check if we're in refractory period
+        if t < last_window_end + refractory_s:
+            continue
+
+        # Check if phase coherence exceeds threshold
+        if phase_val >= lock_threshold:
+            # Schedule window
+            t_start = t
+            t_end = t + window_s
+            events.append({
+                "t_start": t_start,
+                "t_end": t_end,
+                "coherence": phase_val,
+            })
+            last_window_end = t_end
+
     return {
-        "lock_status": None,
-        "window_timing": None,
-        "refractory_countdown": None,
+        "events": events,
+        "total_windows": len(events),
+        "refractory_enforced": True,
+        "lock_status": "active" if events else "inactive",
     }

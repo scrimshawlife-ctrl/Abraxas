@@ -26,31 +26,74 @@ Provenance:
 from __future__ import annotations
 from typing import Any, Dict
 
-def apply_sds(receiver_state: Any, phase_alignment: Any, incoming_signal: Any, susceptibility_threshold: Any, *, strict_execution: bool = False) -> Dict[str, Any]:
-    """Apply SDS rune operator.
+def apply_sds(
+    state_vector: Dict[str, float],
+    context: Dict[str, Any],
+    interaction_kind: str = "oracle",
+    susceptibility_threshold: float = 0.25,
+    **kwargs: Any
+) -> Dict[str, Any]:
+    """Apply SDS rune operator - State-Dependent Susceptibility gating.
+
+    Computes a susceptibility score from receiver state and determines gate status.
 
     Args:
-                receiver_state: Input receiver_state
-        phase_alignment: Input phase_alignment
-        incoming_signal: Input incoming_signal
-        susceptibility_threshold: Input susceptibility_threshold
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        state_vector: Dict of state dimensions (arousal, coherence, openness, etc.)
+                     Each value in [0.0, 1.0]. Defaults to 0.5 if missing.
+        context: Contextual metadata (time_of_day, recent_history_count, etc.)
+        interaction_kind: Type of interaction ("oracle", "insight", "grounding")
+        susceptibility_threshold: Threshold for OPEN vs LIMINAL (default 0.25)
+        **kwargs: Additional parameters (for compatibility)
 
     Returns:
-        Dict with keys: gated_signal, reception_status, state_classification
-
-    Raises:
-        NotImplementedError: If strict_execution=True and operator not implemented
+        Dict with keys:
+            - susceptibility_score: float in [0.0, 1.0]
+            - gate_state: "CLOSED" | "LIMINAL" | "OPEN"
+            - state_classification: dict of normalized state dimensions
+            - reception_status: descriptive string
     """
-    if strict_execution:
-        raise NotImplementedError(
-            f"Operator SDS not implemented yet. "
-            f"Provide a real implementation for rune ϟ₄."
-        )
+    # Normalize state_vector: use defaults for missing keys
+    default_dims = {
+        "arousal": 0.5,
+        "coherence": 0.5,
+        "openness": 0.5,
+        "stability": 0.5,
+        "receptivity": 0.5,
+    }
+    normalized_state = {k: state_vector.get(k, v) for k, v in default_dims.items()}
 
-    # Stub implementation - returns empty outputs
+    # Compute susceptibility score (weighted average of relevant dimensions)
+    # Higher openness + receptivity + coherence → higher susceptibility
+    # Lower arousal (calmer) → higher susceptibility
+    weights = {
+        "openness": 0.3,
+        "receptivity": 0.3,
+        "coherence": 0.2,
+        "stability": 0.1,
+        "arousal": -0.1,  # inverted: high arousal reduces susceptibility
+    }
+
+    susceptibility_score = sum(
+        normalized_state.get(k, 0.5) * w for k, w in weights.items()
+    )
+    # Normalize to [0, 1]
+    susceptibility_score = (susceptibility_score + 0.1) / 1.1
+    susceptibility_score = max(0.0, min(1.0, susceptibility_score))
+
+    # Determine gate state
+    if susceptibility_score < susceptibility_threshold:
+        gate_state = "CLOSED"
+        reception_status = "Receiver state not phase-aligned; outputs suppressed"
+    elif susceptibility_score < 0.6:
+        gate_state = "LIMINAL"
+        reception_status = "Partial phase-alignment; shallow outputs permitted"
+    else:
+        gate_state = "OPEN"
+        reception_status = "Full phase-alignment; deep outputs permitted"
+
     return {
-        "gated_signal": None,
-        "reception_status": None,
-        "state_classification": None,
+        "susceptibility_score": susceptibility_score,
+        "gate_state": gate_state,
+        "state_classification": normalized_state,
+        "reception_status": reception_status,
     }
