@@ -1,227 +1,104 @@
-"""Shadow Detector Registry
+"""
+Shadow Detector Registry.
 
-Registry for shadow detectors with governance metadata.
-
-All detectors are marked:
-- mode="shadow"
-- no_influence=True
-- governance="emergent_candidate"
-
-Access via ABX-Runes ϟ₇ (SSO) ONLY.
+Centralized registry of all shadow detectors with deterministic execution.
+Provides `compute_all_detectors()` function to run all detectors and
+aggregate evidence.
 """
 
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Any, Callable, Optional
-
-from abraxas.detectors.shadow import compliance_remix, meta_awareness, negative_space
-from abraxas.detectors.shadow.types import DetectorId, DetectorValue
-
-
-@dataclass(frozen=True)
-class DetectorDefinition:
-    """Definition for a shadow detector."""
-
-    detector_id: DetectorId
-    name: str
-    description: str
-    version: str
-    compute_fn: Callable[[dict[str, Any], Optional[list[dict[str, Any]]], Optional[dict[str, Any]]], DetectorValue]
-    mode: str = "shadow"  # Always shadow
-    no_influence: bool = True  # Never influences decisions
-    governance: str = "emergent_candidate"  # Subject to governance
-    required_inputs: list[str] = None
-    optional_inputs: list[str] = None
-
-    def __post_init__(self):
-        """Validate detector definition."""
-        if not isinstance(self.required_inputs, list):
-            object.__setattr__(self, "required_inputs", [])
-        if not isinstance(self.optional_inputs, list):
-            object.__setattr__(self, "optional_inputs", [])
+from typing import Dict, Any, List
+from abraxas.detectors.shadow.types import ShadowDetectorResult
+from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
+from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
+from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
 
 
 # Global detector registry
-DETECTOR_REGISTRY: dict[DetectorId, DetectorDefinition] = {
-    DetectorId.COMPLIANCE_REMIX: DetectorDefinition(
-        detector_id=DetectorId.COMPLIANCE_REMIX,
-        name="Compliance vs Remix Detector",
-        description=(
-            "Detects balance between rote compliance/repetition and creative remix/mutation. "
-            "Uses slang drift, lifecycle states, weather classification, and fog types."
-        ),
-        version="0.1.0",
-        compute_fn=compliance_remix.compute_detector,
-        mode="shadow",
-        no_influence=True,
-        governance="emergent_candidate",
-        required_inputs=["drift_score", "lifecycle_state", "tau_velocity"],
-        optional_inputs=[
-            "appearances",
-            "similarity_early_late",
-            "new_to_window",
-            "csp_ff",
-            "csp_mio",
-            "fog_type_counts",
-            "weather_types",
-            "tau_half_life",
-            "observation_count",
-        ],
-    ),
-    DetectorId.META_AWARENESS: DetectorDefinition(
-        detector_id=DetectorId.META_AWARENESS,
-        name="Meta-Awareness Detector",
-        description=(
-            "Detects meta-level discourse about manipulation, algorithms, and epistemic fatigue. "
-            "Uses DMX, RDV axes, EFTE, and narrative manipulation metrics."
-        ),
-        version="0.1.0",
-        compute_fn=meta_awareness.compute_detector,
-        mode="shadow",
-        no_influence=True,
-        governance="emergent_candidate",
-        required_inputs=["text"],
-        optional_inputs=[
-            "dmx_overall",
-            "dmx_bucket",
-            "rdv_irony",
-            "rdv_humor",
-            "rdv_nihilism",
-            "fatigue_threshold",
-            "saturation_risk",
-            "rrs",
-            "cis",
-            "mri",
-            "iri",
-        ],
-    ),
-    DetectorId.NEGATIVE_SPACE: DetectorDefinition(
-        detector_id=DetectorId.NEGATIVE_SPACE,
-        name="Negative Space / Silence Detector",
-        description=(
-            "Detects topic dropout, visibility asymmetry, and abnormal silences. "
-            "Requires history for baseline comparison. Uses symbol pool narratives and sources."
-        ),
-        version="0.1.0",
-        compute_fn=negative_space.compute_detector,
-        mode="shadow",
-        no_influence=True,
-        governance="emergent_candidate",
-        required_inputs=["current_narratives", "baseline_narratives", "sufficient_history"],
-        optional_inputs=[
-            "current_sources",
-            "baseline_sources",
-            "source_distribution",
-            "current_timestamp",
-        ],
-    ),
+DETECTOR_REGISTRY = {
+    "compliance_remix": ComplianceRemixDetector(),
+    "meta_awareness": MetaAwarenessDetector(),
+    "negative_space": NegativeSpaceDetector(),
 }
 
 
-def get_detector_definition(detector_id: DetectorId) -> DetectorDefinition:
-    """Get detector definition by ID.
+def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorResult]:
+    """
+    Run all shadow detectors on inputs.
 
     Args:
-        detector_id: Detector ID enum
+        inputs: Dictionary of input data. Each detector will extract
+                what it needs from this dict.
 
     Returns:
-        DetectorDefinition
+        Dict mapping detector_name -> ShadowDetectorResult
 
-    Raises:
-        KeyError: If detector not found
-    """
-    return DETECTOR_REGISTRY[detector_id]
-
-
-def list_detectors() -> list[DetectorDefinition]:
-    """List all registered detectors.
-
-    Returns:
-        List of detector definitions (sorted by ID)
-    """
-    return sorted(DETECTOR_REGISTRY.values(), key=lambda d: d.detector_id.value)
-
-
-def compute_all_detectors(
-    context: dict[str, Any],
-    history: Optional[list[dict[str, Any]]] = None,
-    config: Optional[dict[str, Any]] = None,
-) -> dict[str, DetectorValue]:
-    """Compute all registered detectors.
-
-    Args:
-        context: Signal envelope context
-        history: Optional history of previous envelopes
-        config: Optional configuration overrides (detector-specific configs keyed by detector_id)
-
-    Returns:
-        Dict mapping detector_id to DetectorValue
+    Example:
+        inputs = {
+            "text": "The algorithm promotes engagement bait...",
+            "reference_texts": ["Normal discourse corpus..."],
+            "baseline_texts": ["Expected topic distribution..."],
+        }
+        results = compute_all_detectors(inputs)
     """
     results = {}
 
-    for detector_id, definition in DETECTOR_REGISTRY.items():
-        # Get detector-specific config if provided
-        detector_config = None
-        if config and isinstance(config, dict):
-            detector_config = config.get(detector_id.value)
-
-        # Compute detector
-        try:
-            value = definition.compute_fn(context, history, detector_config)
-            results[detector_id.value] = value
-        except Exception as e:
-            # On error, return not_computable status
-            # (in production, would log error)
-            from abraxas.detectors.shadow.types import (
-                DetectorProvenance,
-                DetectorStatus,
-            )
-            from datetime import datetime, timezone
-            from abraxas.core.provenance import hash_canonical_json
-
-            now_utc = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-            error_provenance = DetectorProvenance(
-                detector_id=detector_id.value,
-                used_keys=[],
-                missing_keys=["error"],
-                history_len=len(history) if history else 0,
-                envelope_version=context.get("version"),
-                inputs_hash=hash_canonical_json({}),
-                config_hash=hash_canonical_json(detector_config or {}),
-                computed_at_utc=now_utc,
-                seed_compliant=True,
-                no_influence_guarantee=True,
-            )
-
-            results[detector_id.value] = DetectorValue(
-                id=detector_id,
-                status=DetectorStatus.NOT_COMPUTABLE,
-                value=None,
-                subscores={},
-                missing_keys=["error"],
-                evidence={"error": str(e)},
-                provenance=error_provenance,
-                bounds=(0.0, 1.0),
-            )
+    # Run each detector in deterministic order (sorted by name)
+    for detector_name in sorted(DETECTOR_REGISTRY.keys()):
+        detector = DETECTOR_REGISTRY[detector_name]
+        result = detector.detect(inputs)
+        results[detector_name] = result
 
     return results
 
 
-def serialize_detector_results(
-    results: dict[str, DetectorValue]
-) -> dict[str, Any]:
-    """Serialize detector results to dict.
+def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:
+    """
+    Aggregate evidence from all detector results.
+
+    This creates a summary bundle that can be attached to shadow metrics
+    as annotations.
 
     Args:
-        results: Dict of detector results
+        results: Dict of detector results from compute_all_detectors()
 
     Returns:
-        Serialized dict (sorted keys for determinism)
+        Aggregated evidence bundle with:
+        - computed_count: number of detectors that computed successfully
+        - not_computable_count: number that couldn't compute
+        - error_count: number that errored
+        - evidence_by_detector: evidence from each detector
+        - max_signal_strength: highest signal across all detectors
+        - provenance_hashes: SHA-256 hashes from all results
     """
-    serialized = {}
+    computed = []
+    not_computable = []
+    errors = []
+    evidence_by_detector = {}
+    provenance_hashes = {}
 
-    for detector_id, value in sorted(results.items()):
-        serialized[detector_id] = value.model_dump()
+    for detector_name, result in results.items():
+        provenance_hashes[detector_name] = result.compute_provenance_hash()
 
-    return serialized
+        if result.status == "computed" and result.evidence:
+            computed.append(detector_name)
+            evidence_by_detector[detector_name] = result.evidence.model_dump()
+        elif result.status == "not_computable":
+            not_computable.append(detector_name)
+        elif result.status == "error":
+            errors.append(detector_name)
+
+    # Find max signal strength
+    max_signal = 0.0
+    for detector_name in computed:
+        signal = evidence_by_detector[detector_name]["signal_strength"]
+        max_signal = max(max_signal, signal)
+
+    return {
+        "computed_count": len(computed),
+        "not_computable_count": len(not_computable),
+        "error_count": len(errors),
+        "computed_detectors": computed,
+        "evidence_by_detector": evidence_by_detector,
+        "max_signal_strength": max_signal,
+        "provenance_hashes": provenance_hashes,
+    }
