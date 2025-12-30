@@ -1,0 +1,16 @@
+{
+  "oracle_signal": {
+    "scores_v1": {
+      "slang": {
+        "top_vital": [],
+        "top_risk": []
+      },
+      "aalmanac": {
+        "top_patterns": []
+      }
+    },
+    "v2": {
+      "mode": "SNAPSHOT"
+    }
+  }
+}

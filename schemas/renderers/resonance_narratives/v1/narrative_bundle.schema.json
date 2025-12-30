@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.systems/schemas/renderers/resonance_narratives/v1/narrative_bundle.schema.json",
+  "title": "Resonance Narratives Bundle v1",
+  "description": "Human-readable narrative bundle generated from Oracle v2 envelopes. Every statement maps to an envelope field via JSON Pointer for auditability.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "headline",
+    "signal_summary",
+    "provenance_footer",
+    "constraints_report"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "v1",
+      "description": "Schema version for this narrative bundle"
+    },
+    "artifact_id": {
+      "type": "string",
+      "description": "Unique identifier for this narrative artifact",
+      "pattern": "^NARR-[A-Z0-9-]+$"
+    },
+    "headline": {
+      "type": "string",
+      "description": "One-line summary of the oracle signal (max 120 chars)",
+      "maxLength": 120
+    },
+    "signal_summary": {
+      "type": "array",
+      "description": "Summary of key signals extracted from envelope",
+      "items": {
+        "type": "object",
+        "required": ["label", "value", "pointer"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Human-readable label for this signal"
+          },
+          "value": {
+            "description": "Signal value (can be string, number, or boolean)"
+          },
+          "delta": {
+            "type": "number",
+            "description": "Optional delta if comparing to previous state"
+          },
+          "pointer": {
+            "type": "string",
+            "description": "JSON Pointer to source field in envelope",
+            "pattern": "^/"
+          }
+        }
+      }
+    },
+    "what_changed": {
+      "type": "array",
+      "description": "Diff bullets showing changes from previous envelope (optional)",
+      "items": {
+        "type": "object",
+        "required": ["pointer", "change_description"],
+        "properties": {
+          "pointer": {
+            "type": "string",
+            "description": "JSON Pointer to changed field",
+            "pattern": "^/"
+          },
+          "change_description": {
+            "type": "string",
+            "description": "Human-readable description of the change"
+          },
+          "before": {
+            "description": "Previous value (if available)"
+          },
+          "after": {
+            "description": "Current value"
+          }
+        }
+      }
+    },
+    "motifs": {
+      "type": "array",
+      "description": "Recurring patterns or motifs detected",
+      "items": {
+        "type": "object",
+        "required": ["motif", "strength", "pointer"],
+        "properties": {
+          "motif": {
+            "type": "string",
+            "description": "Name or description of the motif"
+          },
+          "strength": {
+            "type": "number",
+            "description": "Strength score for this motif",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "decay_halflife": {
+            "type": "number",
+            "description": "Optional decay half-life in hours"
+          },
+          "pointer": {
+            "type": "string",
+            "description": "JSON Pointer to source data",
+            "pattern": "^/"
+          }
+        }
+      }
+    },
+    "overlay_notes": {
+      "type": "array",
+      "description": "Explicitly tagged overlay annotations",
+      "items": {
+        "type": "object",
+        "required": ["overlay_type", "note", "pointer"],
+        "properties": {
+          "overlay_type": {
+            "type": "string",
+            "description": "Type of overlay (e.g., 'WARNING', 'CONTEXT', 'ADVISORY')"
+          },
+          "note": {
+            "type": "string",
+            "description": "Overlay annotation text"
+          },
+          "pointer": {
+            "type": "string",
+            "description": "JSON Pointer to related envelope field",
+            "pattern": "^/"
+          }
+        }
+      }
+    },
+    "provenance_footer": {
+      "type": "object",
+      "required": ["input_hash", "created_at", "source_count"],
+      "description": "Provenance metadata for deterministic tracking",
+      "properties": {
+        "input_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of input envelope",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "created_at": {
+          "type": "string",
+          "description": "ISO 8601 timestamp with Z timezone",
+          "format": "date-time"
+        },
+        "source_count": {
+          "type": "integer",
+          "description": "Number of source signals processed",
+          "minimum": 0
+        },
+        "commit": {
+          "type": "string",
+          "description": "Optional git commit SHA"
+        }
+      }
+    },
+    "constraints_report": {
+      "type": "object",
+      "required": ["evidence_present"],
+      "description": "Report of rendering constraints and limitations",
+      "properties": {
+        "missing_inputs": {
+          "type": "array",
+          "description": "List of expected inputs that were missing",
+          "items": {
+            "type": "string"
+          }
+        },
+        "not_computable": {
+          "type": "array",
+          "description": "List of metrics that could not be computed",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_present": {
+          "type": "boolean",
+          "description": "Whether evidence pointers were present in envelope"
+        },
+        "warnings": {
+          "type": "array",
+          "description": "Optional warnings about rendering quality",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
