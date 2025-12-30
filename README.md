@@ -11,7 +11,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-features) • [Documentation](#-documentation) • [Project Status](#-project-status)
+[Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-features) • [Documentation](#-documentation) • [AI Assistant Guide](.github/AI_ASSISTANT_GUIDE.md) • [Project Status](#-project-status)
+
+> **For AI Assistants (ChatGPT, Claude, etc.)**: See [`.github/AI_ASSISTANT_GUIDE.md`](.github/AI_ASSISTANT_GUIDE.md) for quick orientation and [`.github/QUICK_REFERENCE.md`](.github/QUICK_REFERENCE.md) for ultra-condensed reference.
 
 </div>
 
