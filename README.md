@@ -324,6 +324,8 @@ Production-grade reliability for edge deployment:
 - [x] **6-Gate Metric Governance** — Anti-hallucination promotion framework
 - [x] **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
 - [x] **WO-100 Acquisition Infrastructure** — Anchor resolution, reupload detection, forecast accuracy
+- [x] **Shadow Structural Metrics** — Cambridge Analytica-derived observe-only analytical layer (SEI, CLIP, NOR, PTS, SCG, FVC)
+- [x] **Shadow Detectors** — Pattern detectors for compliance/remix, meta-awareness, negative space
 - [x] **Abraxas v1.5** — Predictive Intelligence Layer (**Q1 2025 Critical Path Complete**)
   - [x] **Domain Compression Engines (DCE)** — Lifecycle-aware, lineage-tracked compression
   - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative assembly
@@ -460,6 +462,25 @@ python -m abraxas.cli.abx_run_v1_4 \
 - **Files:** 4 modules, 991 lines
 
 **Total Impact:** 12 files, 3,392 lines, **Abraxas is now predictive**
+
+#### Dual-Layer Architecture: Analysis + Prediction
+
+Abraxas maintains **two complementary intelligence layers** that work side by side:
+
+1. **Analytical Layer (Shadow Structural Metrics)**:
+   - Observe-only Cambridge Analytica-derived metrics (SEI, CLIP, NOR, PTS, SCG, FVC)
+   - Pattern detectors (compliance/remix, meta-awareness, negative space)
+   - **No system influence** — pure observation and measurement
+   - ABX-Runes ϟ₇ access control (SSO - Shadow Structural Observer)
+   - SEED compliant with SHA-256 provenance
+
+2. **Predictive Layer (v1.5)**:
+   - Domain Compression Engines (DCE)
+   - Oracle Pipeline v2 with 6-gate governance
+   - Phase Detection Engine
+   - **Active forecasting** — generates predictions and narratives
+
+**Philosophy**: Analysis describes *what is*, prediction forecasts *what comes next*. Both are essential for complete symbolic intelligence.
 
 ---
 

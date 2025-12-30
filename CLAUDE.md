@@ -161,6 +161,24 @@ Abraxas/
 │   │   ├── __init__.py         # Exports run_phase, Phase, execute_ascend
 │   │   ├── entry.py            # Phase router (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
 │   │   └── ascend_ops.py       # Whitelisted ASCEND operations
+│   ├── shadow_metrics/         # Shadow Structural Metrics (observe-only analytical layer)
+│   │   ├── __init__.py         # Access control and version
+│   │   ├── core.py             # Core types and utilities
+│   │   ├── sei.py              # Sentiment Entropy Index
+│   │   ├── clip.py             # Cognitive Load Intensity Proxy
+│   │   ├── nor.py              # Narrative Overload Rating
+│   │   ├── pts.py              # Persuasive Trajectory Score
+│   │   ├── scg.py              # Social Contagion Gradient
+│   │   ├── fvc.py              # Filter Velocity Coefficient
+│   │   └── patch_registry.py   # Incremental patch tracking
+│   ├── detectors/              # Pattern detectors
+│   │   └── shadow/             # Shadow detectors (feed evidence to shadow_metrics)
+│   │       ├── __init__.py     # Package exports
+│   │       ├── types.py        # Base detector types
+│   │       ├── registry.py     # Detector registry
+│   │       ├── compliance_remix.py       # Compliance vs Remix detector
+│   │       ├── meta_awareness.py         # Meta-Awareness detector
+│   │       └── negative_space.py         # Negative Space / Silence detector
 │   ├── overlay/                # Overlay management
 │   ├── drift/                  # Drift detection
 │   ├── storage/                # Data persistence
@@ -753,6 +771,35 @@ Enables systematic extraction of simulation priors from academic literature.
 - **`__init__.py`**: Exports `run_phase`, `Phase`, `execute_ascend`, `OPS`
 
 Provides scoped execution environment for overlay operations.
+
+#### `abraxas/shadow_metrics/`
+
+**Shadow Structural Metrics (Cambridge Analytica-derived)** - Observe-only analytical layer:
+
+- **LOCKED MODULE**: v1.0.0 (2025-12-29)
+- Six observe-only psychological manipulation metrics:
+  - **SEI**: Sentiment Entropy Index
+  - **CLIP**: Cognitive Load Intensity Proxy
+  - **NOR**: Narrative Overload Rating
+  - **PTS**: Persuasive Trajectory Score
+  - **SCG**: Social Contagion Gradient
+  - **FVC**: Filter Velocity Coefficient
+- **Access Control**: ABX-Runes ϟ₇ (SSO) ONLY - direct access forbidden
+- **No-Influence Guarantee**: Metrics observe but never affect system decisions
+- **SEED Compliant**: Fully deterministic with SHA-256 provenance
+- **Incremental Patch Only**: All modifications via versioned patches
+- **Coexists with Predictive Layer**: Analytical/observational metrics complement v1.5 predictive capabilities
+- See `docs/specs/shadow_structural_metrics.md` for full specification
+
+#### `abraxas/detectors/shadow/`
+
+**Shadow Detectors** - Pattern detectors that feed evidence to Shadow Structural Metrics:
+
+- **Compliance vs Remix Detector**: Balance between rote repetition and creative remix
+- **Meta-Awareness Detector**: Meta-level discourse about manipulation and algorithms
+- **Negative Space / Silence Detector**: Topic dropout and visibility asymmetry
+- **Registry**: `compute_all_detectors()` with deterministic provenance tracking
+- See `docs/detectors/shadow_detectors_v0_1.md` for specification
 
 ### TypeScript Server Modules
 
