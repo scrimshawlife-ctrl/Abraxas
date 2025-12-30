@@ -1,8 +1,41 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
 **Last Updated:** 2025-12-29
-**Version:** 1.4.0
+**Version:** 1.4.1
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
+
+---
+
+## Recent Updates (v1.4.1)
+
+**2025-12-29** - Merged 4 major PRs consolidating governance, acquisition, and infrastructure:
+
+1. **PR #20** - Python cache patterns + kernel phase system
+   - Enhanced `.gitignore` for comprehensive Python cache handling
+   - Added 5-phase kernel system (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
+   - Overlay lifecycle management improvements
+
+2. **PR #22** - Anti-hallucination metric governance system
+   - 6-gate promotion framework for emergent metrics
+   - Simulation mapping layer with 22 academic papers
+   - 75+ test cases for metric evaluation
+   - Hash-based provenance chain verification
+   - **Philosophy**: "Metrics are Contracts, not Ideas"
+
+3. **PR #28** - WO-100: Acquisition & analysis infrastructure
+   - Anchor → URL resolution system
+   - Reupload storm detection
+   - Forecast accuracy tracking with horizon bands
+   - Manipulation front detection & metrics
+   - Media origin verification
+   - 40+ new ABX modules with ledger systems
+
+4. **PR #36** - Documentation enhancements
+   - Comprehensive README improvements
+   - Quick start guide
+   - Architecture overview
+
+**Total Changes**: 120 files changed, 15,654 additions, 466 deletions
 
 ---
 
@@ -116,14 +149,18 @@ Abraxas/
 │   ├── linguistic/             # Linguistic analysis utilities
 │   ├── pipelines/              # Processing pipelines
 │   ├── cli/                    # CLI entry points
+│   │   └── sim_map.py          # Simulation mapping CLI
 │   ├── lexicon/                # Lexicon engine v1
 │   ├── oracle/                 # Oracle pipeline v1
 │   ├── slang/                  # Slang analysis & AAlmanac
 │   ├── integrity/              # D/M layer (information integrity)
 │   ├── sod/                    # Second-Order Dynamics
-│   ├── shadow_metrics/         # Shadow Structural Metrics (LOCKED - Cambridge Analytica derived)
+│   │   └── sim_adapter.py      # Simulation adapter for SOD
 │   ├── weather/                # Weather engine (Python)
-│   ├── kernel/                 # Execution kernel
+│   ├── kernel/                 # Execution kernel (5-phase ASCEND)
+│   │   ├── __init__.py         # Exports run_phase, Phase, execute_ascend
+│   │   ├── entry.py            # Phase router (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
+│   │   └── ascend_ops.py       # Whitelisted ASCEND operations
 │   ├── overlay/                # Overlay management
 │   ├── drift/                  # Drift detection
 │   ├── storage/                # Data persistence
@@ -131,7 +168,24 @@ Abraxas/
 │   ├── backtest/               # Backtesting system
 │   ├── learning/               # Active learning loops
 │   ├── evolution/              # Metric evolution
-│   ├── metrics/                # Metric governance
+│   ├── metrics/                # Metric governance (6-gate promotion)
+│   │   ├── governance.py       # Candidate metrics & promotion system
+│   │   ├── evaluate.py         # MetricEvaluator with 6 gates
+│   │   ├── registry_io.py      # CandidateRegistry & PromotionLedger
+│   │   ├── hashutil.py         # Provenance hash utilities
+│   │   └── cli.py              # Metric governance CLI
+│   ├── simulation/             # Simulation mapping layer
+│   │   ├── add_metric.py       # Metric candidate creation from papers
+│   │   ├── registries/         # Metric, outcome, rune, simvar registries
+│   │   ├── schemas/            # JSON schemas for validation
+│   │   ├── validation.py       # Schema validation utilities
+│   │   └── examples/           # Exemplar implementations
+│   ├── sim_mappings/           # Academic paper → Abraxas variable mappings
+│   │   ├── mapper.py           # Core mapping engine
+│   │   ├── family_maps.py      # Family-specific mappings (ABM, diffusion, etc.)
+│   │   ├── normalizers.py      # Variable name normalization
+│   │   ├── importers.py        # CSV/JSON import utilities
+│   │   └── registry.py         # Paper registry management
 │   ├── scoreboard/             # Scoreboard system
 │   ├── forecast/               # Forecasting
 │   ├── scenario/               # Scenario envelope runner
@@ -156,7 +210,46 @@ Abraxas/
 │   ├── bus/                    # Event bus
 │   ├── store/                  # Storage utilities
 │   ├── util/                   # Utility functions
-│   └── codex/                  # Codex integration
+│   ├── codex/                  # Codex integration
+│   │
+│   ├── # WO-100: Acquisition & Analysis Modules
+│   ├── acquisition_execute.py  # Task executor with ROI calculation
+│   ├── task_ledger.py          # Task lifecycle event tracking
+│   ├── anchor_url_resolver.py  # Anchor → URL resolution
+│   ├── reupload_storm_detector.py # Reupload pattern detection
+│   ├── media_origin_verify.py  # Media fingerprint verification
+│   ├── manipulation_metrics.py # Manipulation front detection
+│   ├── manipulation_fronts_to_tasks.py # Front → task generation
+│   │
+│   ├── # Forecast & Oracle Modules
+│   ├── oracle_ingest.py        # Oracle result ingestion
+│   ├── forecast_accuracy.py    # Forecast accuracy tracking
+│   ├── forecast_ledger.py      # Forecast storage & retrieval
+│   ├── forecast_review_state.py # Review state management
+│   ├── horizon.py              # Horizon band definitions
+│   ├── review_scheduler.py     # Review scheduling system
+│   │
+│   ├── # AAlmanac & Slang Processing
+│   ├── aalmanac.py             # AAlmanac ledger management
+│   ├── aalmanac_enrich.py      # AAlmanac enrichment
+│   ├── aalmanac_tau.py         # Temporal Tau processing
+│   ├── slang_extract.py        # Slang candidate extraction
+│   ├── slang_migration.py      # Slang lifecycle migration
+│   │
+│   ├── # Weather & Task Orchestration
+│   ├── mimetic_weather.py      # Memetic weather calculation
+│   ├── weather_to_tasks.py     # Weather → task generation
+│   ├── cycle_runner.py         # Cycle execution runner
+│   ├── task_union.py           # Task union operations
+│   ├── task_union_ledger.py    # Union ledger tracking
+│   ├── task_roi_report.py      # Task ROI reporting
+│   │
+│   ├── # Binding & Pollution Analysis
+│   ├── term_claim_binder.py    # Term ↔ claim binding
+│   ├── truth_pollution.py      # Truth pollution metrics
+│   │
+│   └── providers/              # External provider adapters
+│       └── fetch_adapter.py    # HTTP fetch adapter
 │
 ├── server/                     # TypeScript Express server
 │   ├── index.ts                # Server entry point
@@ -198,23 +291,53 @@ Abraxas/
 │   ├── forecast/               # Forecast data
 │   ├── rent_manifests/         # Rent manifests
 │   ├── run_plans/              # Run plans
-│   └── vector_maps/            # Vector maps
+│   ├── vector_maps/            # Vector maps
+│   └── sim_sources/            # Simulation sources & paper data
+│       ├── papers.json         # Academic paper metadata
+│       ├── paper_mapping_table.csv # Paper → variable mappings
+│       └── examples/           # Example paper extracts (PMC, arXiv, etc.)
 │
 ├── out/                        # Output artifacts
 │   ├── reports/                # Generated reports
-│   └── evolution_ledgers/      # Evolution outputs
+│   ├── evolution_ledgers/      # Evolution outputs
+│   └── ledger/                 # Append-only JSONL ledgers
+│       ├── aalmanac.jsonl      # AAlmanac entries
+│       ├── aalmanac_events.jsonl # AAlmanac lifecycle events
+│       ├── task_ledger.jsonl   # Task execution events
+│       ├── task_outcomes.jsonl # Task outcome tracking
+│       ├── oracle_runs.jsonl   # Oracle execution history
+│       ├── forecast_outcomes.jsonl # Forecast accuracy results
+│       ├── manipulation_metrics.jsonl # Manipulation front metrics
+│       ├── media_origin_ledger.jsonl # Media verification results
+│       ├── reupload_fronts.jsonl # Reupload detection results
+│       ├── binder_ledger.jsonl # Term-claim bindings
+│       ├── union_ledger.jsonl  # Task union operations
+│       ├── scheduler_ledger.jsonl # Review scheduling events
+│       └── slang_candidates.jsonl # Slang candidate tracking
 │
 ├── docs/                       # Documentation
 │   ├── canon/                  # Canonical documentation
 │   │   └── ABRAXAS_CANON_LEDGER.txt
 │   ├── specs/                  # Specification documents
+│   │   ├── metric_governance.md # 6-gate metric promotion system
+│   │   ├── simulation_architecture.md # Simulation layer architecture
+│   │   ├── simulation_mapping_layer.md # Paper → variable mappings
+│   │   ├── paper_triage_rules.md # Paper triage & classification
+│   │   └── paper_mapping_table_template.csv # Mapping table template
 │   └── plan/                   # Implementation plans
+│       └── simulation_mapping_layer_plan.md # Mapping layer implementation
 │
 ├── systemd/                    # Systemd service files
 ├── scripts/                    # Utility scripts
 ├── tools/                      # Development tools
 ├── examples/                   # Example code
 ├── registry/                   # Registry files
+│   ├── metrics_candidate.json  # Metric candidate registry
+│   └── examples/               # Example candidate metrics
+│       └── candidate_MEDIA_COMPETITION_MISINFO_PRESSURE.json
+│
+├── schemas/                    # JSON schemas
+│   └── metric_candidate.schema.json # Metric candidate validation schema
 │
 ├── package.json                # Node.js dependencies
 ├── pyproject.toml              # Python project config
@@ -566,24 +689,70 @@ Second-Order Dynamics:
 - **EFTE**: Epistemic Fatigue Threshold Engine
 - **SPM**: Susceptibility Profile Mapper
 - **RRM**: Recovery & Re-Stabilization Model
+- **`sim_adapter.py`**: Adapter for simulation variable integration
 
-#### `abraxas/shadow_metrics/`
+#### `abraxas/metrics/`
 
-Shadow Structural Metrics (Cambridge Analytica-derived):
+**Metric Governance System** - 6-gate anti-hallucination promotion framework:
 
-- **LOCKED MODULE**: v1.0.0 (2025-12-29)
-- Six observe-only psychological manipulation metrics:
-  - **SEI**: Sentiment Entropy Index
-  - **CLIP**: Cognitive Load Intensity Proxy
-  - **NOR**: Narrative Overload Rating
-  - **PTS**: Persuasive Trajectory Score
-  - **SCG**: Social Contagion Gradient
-  - **FVC**: Filter Velocity Coefficient
-- **Access Control**: ABX-Runes ϟ₇ (SSO) ONLY - direct access forbidden
-- **No-Influence Guarantee**: Metrics observe but never affect system decisions
-- **SEED Compliant**: Fully deterministic with SHA-256 provenance
-- **Incremental Patch Only**: All modifications via versioned patches
-- See `docs/specs/shadow_structural_metrics.md` for full specification
+- **`governance.py`**: Core governance types (CandidateMetric, CandidateStatus, EvidenceBundle, PromotionDecision)
+- **`evaluate.py`**: MetricEvaluator implementing 6 promotion gates:
+  1. **Provenance Gate**: SHA-256 hash chain verification
+  2. **Falsifiability Gate**: Test specification & concrete failure modes
+  3. **Non-Redundancy Gate**: Correlation analysis vs existing metrics
+  4. **Rent-Payment Gate**: Complexity justification
+  5. **Ablation Gate**: Removal impact validation
+  6. **Stabilization Gate**: Temporal stability verification
+- **`registry_io.py`**: CandidateRegistry, PromotionLedger, promotion workflow
+- **`hashutil.py`**: Canonical JSON hashing, provenance chain verification
+- **`cli.py`**: Command-line interface for metric governance operations
+
+**Philosophy**: Metrics are Contracts, not Ideas. All emergent metrics must earn promotion through evidence.
+
+#### `abraxas/simulation/`
+
+**Simulation Mapping Layer** - Academic paper → Abraxas metric extraction:
+
+- **`add_metric.py`**: Extract metric candidates from simulation papers
+- **`registries/`**: Registry management for metrics, outcomes, runes, simvars
+  - **`metric_registry.py`**: Metric definition storage
+  - **`outcome_ledger.py`**: Simulation outcome tracking
+  - **`rune_registry.py`**: Rune (symbolic binding) registry
+  - **`simvar_registry.py`**: Simulation variable registry
+- **`schemas/`**: JSON schemas for validation
+  - `metric.schema.json`, `outcome_ledger.schema.json`, `rune_binding.schema.json`, `simvar.schema.json`
+- **`validation.py`**: Schema validation utilities
+- **`examples/`**: Exemplar implementations (e.g., `media_competition_exemplar.py`)
+
+Supports 22 academic papers across ABM, diffusion, opinion dynamics, game theory, and cascade families.
+
+#### `abraxas/sim_mappings/`
+
+**Academic Paper → Abraxas Variable Mappings**:
+
+- **`mapper.py`**: Core mapping engine for variable translation
+- **`family_maps.py`**: Family-specific mappings:
+  - Agent-Based Models (ABM)
+  - Diffusion models
+  - Opinion dynamics
+  - Game theory
+  - Cascade models
+- **`normalizers.py`**: Variable name normalization (Greek letters, subscripts, etc.)
+- **`importers.py`**: CSV/JSON import utilities for paper data
+- **`registry.py`**: Paper registry management
+- **`types.py`**: Type definitions for mapping system
+
+Enables systematic extraction of simulation priors from academic literature.
+
+#### `abraxas/kernel/`
+
+**5-Phase Execution Kernel** (OPEN → ALIGN → ASCEND → CLEAR → SEAL):
+
+- **`entry.py`**: Phase router with deterministic dispatch
+- **`ascend_ops.py`**: Whitelisted ASCEND operations (no IO, no writes)
+- **`__init__.py`**: Exports `run_phase`, `Phase`, `execute_ascend`, `OPS`
+
+Provides scoped execution environment for overlay operations.
 
 ### TypeScript Server Modules
 
@@ -623,8 +792,9 @@ React frontend:
 
 #### `abx/`
 
-ABX runtime and utilities:
+ABX runtime and utilities with **WO-100** acquisition & analysis modules:
 
+**Core Runtime**:
 - **`cli.py`**: Main CLI (`abx` command)
 - **`core/`**: Core utilities
 - **`runtime/`**: Runtime management
@@ -633,6 +803,45 @@ ABX runtime and utilities:
 - **`ui/`**: UI components
 - **`overlays/`**: Overlay modules
 - **`codex/`**: Codex integration
+
+**WO-100: Acquisition & Analysis**:
+- **`acquisition_execute.py`**: Task executor with ROI calculation and outcome tracking
+- **`task_ledger.py`**: Task lifecycle event tracking (STARTED/COMPLETED/BLOCKED)
+- **`anchor_url_resolver.py`**: Anchor → URL resolution system
+- **`reupload_storm_detector.py`**: Reupload pattern detection via fingerprinting
+- **`media_origin_verify.py`**: Media fingerprint verification
+- **`manipulation_metrics.py`**: Manipulation front detection & metrics
+- **`manipulation_fronts_to_tasks.py`**: Convert detected fronts to acquisition tasks
+
+**Forecast & Oracle Systems**:
+- **`oracle_ingest.py`**: Oracle result ingestion and processing
+- **`forecast_accuracy.py`**: Forecast accuracy tracking & horizon band analysis
+- **`forecast_ledger.py`**: Forecast storage & retrieval
+- **`forecast_review_state.py`**: Review state management
+- **`horizon.py`**: Horizon band definitions (near/medium/far)
+- **`review_scheduler.py`**: Automated review scheduling system
+
+**AAlmanac & Slang Processing**:
+- **`aalmanac.py`**: AAlmanac ledger management (write-once, append-only)
+- **`aalmanac_enrich.py`**: AAlmanac enrichment with context & metadata
+- **`aalmanac_tau.py`**: Temporal Tau (τ) processing for AAlmanac entries
+- **`slang_extract.py`**: Slang candidate extraction from observations
+- **`slang_migration.py`**: Slang lifecycle state migration
+
+**Weather & Task Orchestration**:
+- **`mimetic_weather.py`**: Memetic weather calculation & signal generation
+- **`weather_to_tasks.py`**: Weather signal → acquisition task generation
+- **`cycle_runner.py`**: Cycle execution runner for orchestrated workflows
+- **`task_union.py`**: Task union operations (merge, deduplicate, prioritize)
+- **`task_union_ledger.py`**: Union operation ledger tracking
+- **`task_roi_report.py`**: Task ROI reporting & analytics
+
+**Binding & Pollution Analysis**:
+- **`term_claim_binder.py`**: Term ↔ claim binding with ledger tracking
+- **`truth_pollution.py`**: Truth pollution metrics & narrative contamination
+
+**External Providers**:
+- **`providers/fetch_adapter.py`**: HTTP fetch adapter for external sources
 
 Key ABX commands:
 ```bash
@@ -1108,6 +1317,7 @@ ABX_UI_PORT=8780
 
 ### Key Concepts
 
+**Core Operators & Metrics**:
 - **SCO/ECO**: Symbolic Compression Operator / Eggcorn Compression Operator
 - **STI**: Symbolic Transparency Index
 - **RDV**: Replacement Direction Vector
@@ -1117,6 +1327,31 @@ ABX_UI_PORT=8780
 - **AAlmanac**: Write-once, annotate-only symbolic ledger
 - **SER**: Scenario Envelope Runner
 - **Provenance**: SHA-256 tracked execution metadata
+
+**Metric Governance (New in v1.4.1)**:
+- **6-Gate Promotion**: Provenance, Falsifiability, Non-Redundancy, Rent-Payment, Ablation, Stabilization
+- **Candidate Metrics**: Metrics are Contracts, not Ideas - must earn promotion through evidence
+- **Evidence Bundle**: Required documentation for metric promotion
+- **Promotion Ledger**: Append-only record of promotion decisions with hash chain
+
+**Simulation Layer (New in v1.4.1)**:
+- **Simulation Mapping**: Academic paper → Abraxas variable translation
+- **Family Maps**: ABM, diffusion, opinion dynamics, game theory, cascade model mappings
+- **Rune Registry**: Symbolic bindings between simulation variables and Abraxas metrics
+- **SimVar**: Simulation variable definitions with normalization
+
+**WO-100: Acquisition & Analysis (New in v1.4.1)**:
+- **Anchor Resolution**: Anchor → URL resolution system
+- **Reupload Storm**: Reupload pattern detection via fingerprinting
+- **Manipulation Front**: Coordinated manipulation pattern detection
+- **Forecast Horizon**: Near/medium/far horizon bands for forecast accuracy
+- **Task ROI**: Return-on-investment tracking for acquisition tasks
+- **Truth Pollution**: Narrative contamination metrics
+
+**Kernel System (New in v1.4.1)**:
+- **5-Phase Model**: OPEN → ALIGN → ASCEND → CLEAR → SEAL
+- **ASCEND Operations**: Whitelisted execution environment (no IO, no writes)
+- **Overlay Lifecycle**: Phase-based overlay management
 
 ---
 
@@ -1132,10 +1367,26 @@ ABX_UI_PORT=8780
 
 ### Internal Documentation
 
-- Specification documents in `docs/specs/`
-- Implementation plans in `docs/plan/`
-- Example code in `examples/`
-- Test fixtures in `tests/fixtures/`
+**Specification Documents** (`docs/specs/`):
+- `metric_governance.md` - 6-gate metric promotion system
+- `simulation_architecture.md` - Simulation layer architecture
+- `simulation_mapping_layer.md` - Paper → variable mappings
+- `paper_triage_rules.md` - Paper triage & classification
+- `paper_mapping_table_template.csv` - Mapping table template
+
+**Implementation Plans** (`docs/plan/`):
+- `simulation_mapping_layer_plan.md` - Mapping layer implementation
+
+**Example Code**:
+- `examples/` - General examples
+- `abraxas/simulation/examples/` - Simulation exemplars (e.g., media_competition_exemplar.py)
+- `registry/examples/` - Example candidate metrics
+- `data/sim_sources/examples/` - 22 academic paper extracts
+
+**Test Resources**:
+- `tests/fixtures/` - Test fixture data
+- `tests/golden/` - Golden test reference data
+- New tests: `test_metric_governance.py`, `test_sim_mappings_*.py`, `test_promotion_ledger_chain.py`
 
 ---
 

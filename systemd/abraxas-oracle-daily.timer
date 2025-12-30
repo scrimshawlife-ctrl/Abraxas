@@ -1,0 +1,25 @@
+[Unit]
+Description=Abraxas Oracle v2 Daily Run Timer
+Documentation=https://github.com/scrimshawlife-ctrl/Abraxas
+Requires=abraxas-oracle-daily.service
+
+[Timer]
+# Run daily at 00:00 UTC
+OnCalendar=daily
+# Ensure UTC timezone
+OnCalendar=*-*-* 00:00:00 UTC
+
+# Run 5 minutes after boot if we missed a scheduled run
+OnBootSec=5min
+
+# Randomize start time by up to 10 minutes to avoid thundering herd
+RandomizedDelaySec=10min
+
+# Run even if last run failed
+Persistent=true
+
+# Set timezone to UTC
+OnUnitActiveSec=
+
+[Install]
+WantedBy=timers.target

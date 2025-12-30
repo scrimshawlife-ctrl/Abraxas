@@ -320,6 +320,14 @@ Production-grade reliability for edge deployment:
 - [x] **ABX-Runes v1.4** — Comprehensive rune-sigil generation pipeline + operator system
 - [x] **SIG KPI Metrics** — Symbolic Intelligence Gain tracking (WO-66 through WO-81)
 - [x] **CLAUDE.md** — Comprehensive AI assistant development guide
+- [x] **Kernel Phase System** — 5-phase execution model (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
+- [x] **6-Gate Metric Governance** — Anti-hallucination promotion framework
+- [x] **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
+- [x] **WO-100 Acquisition Infrastructure** — Anchor resolution, reupload detection, forecast accuracy
+- [x] **Abraxas v1.5** — Predictive Intelligence Layer (**Q1 2025 Critical Path Complete**)
+  - [x] **Domain Compression Engines (DCE)** — Lifecycle-aware, lineage-tracked compression
+  - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative assembly
+  - [x] **Phase Detection Engine** — Cross-domain alignment, synchronicity, early warnings
 
 ### Abraxas v1.4: Temporal & Adversarial Expansion
 
@@ -425,23 +433,46 @@ python -m abraxas.cli.abx_run_v1_4 \
 - [SOD Specification](docs/specs/sod_second_order_dynamics.md)
 - [Canonical Ledger](docs/canon/ABRAXAS_CANON_LEDGER.txt)
 
-### 🚧 In Progress
+### 📊 Recent Updates (v1.5.0 — December 2025)
 
-- [ ] **Real LLM Integration** — Replace stub chat engine with local/remote LLM
-- [ ] **UI Dashboard** — React components for weather visualization
-- [ ] **Expanded Lexicons** — Domain-specific compression dictionaries
-- [ ] **PostgreSQL Migration** — Scale beyond SQLite for production
-- [ ] **WebSocket Integration** — Real-time compression event streaming
+**Abraxas v1.5: Predictive Intelligence Layer** — Critical path completion transforms Abraxas from descriptive → **predictive**
 
-### 🎯 Roadmap
+#### Phase 1: Domain Compression Engines (DCE)
+- Versioned lexicon framework with SHA-256 lineage tracking
+- Domain-specific operators (politics, media, finance, conspiracy)
+- Integration with STI/RDV/SCO pipeline
+- Lifecycle-aware compression (proto → front → saturated → dormant → archived)
+- **Files:** 3 modules, 1,162 lines
 
-- [x] **Oracle Pipeline v2** — Governance layer with compliance reporting and deterministic mode routing (SNAPSHOT/ANALYST/RITUAL)
-- [ ] **Ritual System** — Rune-based symbolic modulation
-- [ ] **Multi-Domain Analysis** — Crypto, idiom, slang, technical jargon
-- [ ] **Event Correlation** — Cross-domain drift pattern detection
-- [ ] **Mobile UI** — Edge device management interface
+#### Phase 2: Oracle Pipeline v2
+- Unified Signal → Compression → Forecast → Narrative assembly
+- Real component integration (LifecycleEngine, TauCalculator, weather, resonance)
+- 6-gate governance system (provenance, falsifiability, redundancy, rent, ablation, stabilization)
+- Deterministic provenance bundles with SHA-256 tracking
+- Governance layer with compliance reporting and deterministic mode routing (SNAPSHOT/ANALYST/RITUAL)
+- **Files:** 3 modules + governance + example, 1,239 lines
 
-### 📊 Recent Updates
+#### Phase 3: Phase Detection Engine
+- Cross-domain phase alignment detection (2+ domains in same phase)
+- Synchronicity mapping (domain X → domain Y lag patterns)
+- Early warning system for phase transitions
+- Drift-resonance coupling detection (cascade risk assessment)
+- **Files:** 4 modules, 991 lines
+
+**Total Impact:** 12 files, 3,392 lines, **Abraxas is now predictive**
+
+---
+
+### 📊 v1.4.1 Updates (Merged December 2025)
+
+**4 Major PRs** — Governance, acquisition, and infrastructure consolidation:
+
+1. **PR #22** — 6-Gate Metric Governance System
+2. **PR #28** — WO-100: Acquisition & Analysis Infrastructure
+3. **PR #20** — Kernel Phase System
+4. **PR #36** — Documentation enhancements
+
+**Total:** 120 files changed, 15,654 additions, 466 deletions
 
 **Latest merged pull requests:**
 - **#29** — Codex: Conduct Repo Topology Scan and Indexing
@@ -454,7 +485,8 @@ python -m abraxas.cli.abx_run_v1_4 \
 - **#19** — Emergent Metrics Shadow System
 - **#18** — Abraxas v1.4 Implementation
 
-**Recent work orders (WO-66 through WO-81):**
+**Recent work orders (WO-66 through WO-100):**
+- **WO-100**: Acquisition & Analysis Infrastructure (Anchor resolution, reupload detection, forecast accuracy)
 - **WO-81**: Attribution Hardening
 - **WO-80**: Delta Scoring + Self-Calibration
 - **WO-79**: Anchor→Claim Relation Classifier
@@ -471,6 +503,41 @@ python -m abraxas.cli.abx_run_v1_4 \
 - **WO-68**: Task Outcome Ledger + Learned ROI Weights
 - **WO-67**: Signal ROI Scheduler for economic task selection
 - **WO-66**: SIG KPI (Symbolic Intelligence Gain) metrics system
+
+### ✅ Q1 2025 Critical Path — COMPLETE
+
+> **See [ROADMAP.md](ROADMAP.md) for full canon-aligned priority stack**
+
+**All critical path items completed** — Abraxas has transitioned from **descriptive → predictive**
+
+1. ✅ **Domain Compression Engines (DCEs)** — Versioned, lifecycle-tracked lexicons
+   - Status: **CORE SPINE** ✓
+   - Provides: Foundation for Oracle v2, Phase Detection, Multi-Domain Analysis
+
+2. ✅ **Oracle Pipeline v2** — Unified Signal → Compression → Forecast → Narrative
+   - Status: **OPERATIONAL** ✓
+   - Integrates: LifecycleEngine, TauCalculator, weather, resonance, 6-gate governance
+
+3. ✅ **Phase Detection Engine** — Cross-domain phase alignment + synchronicity
+   - Status: **OPERATIONAL** ✓
+   - Capabilities: Alignment detection, synchronicity mapping, early warnings, cascade risk
+   - **Abraxas is now predictive, not descriptive** ✓
+
+### 🚀 NEXT — High-Value Extensions (Q2 2025)
+
+4. **Resonance Narratives** — Human-readable output layer
+5. **UI Dashboard** (delayed until Oracle v2 artifacts stabilize)
+
+### ⏳ LATER — Infrastructure & Scale (Q3-Q4 2025)
+
+- PostgreSQL Migration (when artifact volume demands it)
+- WebSocket Integration (when phase-based system needs real-time)
+- Mobile UI (pure surface area, minimal epistemic value)
+- Ritual System (symbolic modulation—locked behind Oracle v2)
+- Multi-Domain Analysis — Crypto, idiom, slang, technical jargon
+- Event Correlation — Cross-domain drift pattern detection
+
+**Prioritization Philosophy:** Epistemic leverage over engineering familiarity
 
 ---
 
