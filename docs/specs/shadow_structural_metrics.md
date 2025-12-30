@@ -32,11 +32,26 @@ SSM provides provenance-tracked, SEED-compliant measurement of six core manipula
 - **Observation-Only**: SSM tracks patterns without affecting them
 - **Isolation**: SSM calculations run in isolated context with no side effects
 - **Audit Trail**: All SSM computations logged for verification of non-influence
+- **Diagnostics Never Alter Prediction**: Shadow metrics are diagnostic/analytical only and do not affect forecast/prediction pipelines
+
+**Dual-Lane Architecture**:
+
+Abraxas enforces strict separation between:
+- **Prediction Lane** (truth-pure, morally agnostic forecasting) - never influenced by shadow signals
+- **Shadow Lane** (observe-only diagnostics) - never affects prediction unless explicitly PROMOTED via governance
+
+See `docs/specs/dual_lane_architecture.md` for full specification.
 
 **Enforcement**:
 ```python
 # SSM values are computed but never returned to calling context
 # Only accessible via ABX-Runes interface with explicit isolation
+
+# Lane Guard enforces prediction/shadow separation
+from abraxas.detectors.shadow.lane_guard import require_promoted
+
+# Before using shadow metric in prediction:
+promotion = require_promoted("shadow_metric_name")  # Raises LaneViolationError if not promoted
 ```
 
 ### 2. SEED Provenance

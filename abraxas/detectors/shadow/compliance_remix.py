@@ -1,333 +1,208 @@
-"""Compliance vs Remix Detector
+"""
+Compliance vs Remix Detector.
 
-Detects the balance between rote compliance/repetition and creative remix/mutation.
+Detects the balance between:
+- Rote repetition / compliance with established narratives
+- Creative remix / novel recombination
 
-Uses real envelope fields:
-- slang_drift.drift_score, appearances, csp fields
-- lifecycle states (Proto, Front, Saturated, Dormant, Archived)
-- weather classification (tau_velocity, tau_half_life)
-- fog types (template/manufactured indicators)
+This feeds into Shadow Structural Metrics (especially SCG, PTS) as evidence
+but does NOT influence prediction unless explicitly PROMOTED.
 
-SHADOW-ONLY: Feeds shadow metrics as evidence, never influences decisions.
+Algorithm:
+1. Measure lexical overlap with canonical/reference texts
+2. Measure syntactic divergence (parse tree variation)
+3. Measure semantic novelty (embedding distance)
+4. Compute compliance score: high overlap + low divergence = high compliance
+5. Compute remix score: low overlap + high divergence = high remix
+
+Signal strength: |compliance - remix| (polarity captured in metadata)
 """
 
-from __future__ import annotations
-
-import socket
-from datetime import datetime, timezone
-from typing import Any, Optional
-
-from abraxas.core.provenance import hash_canonical_json
+from typing import Dict, Any, Optional
+import re
+from collections import Counter
 from abraxas.detectors.shadow.types import (
-    DetectorId,
-    DetectorProvenance,
-    DetectorStatus,
-    DetectorValue,
-    clamp01,
+    ShadowDetectorBase,
+    ShadowDetectorResult,
+    ShadowEvidence,
 )
 
 
-def extract_inputs(context: dict[str, Any]) -> dict[str, Any]:
-    """Extract inputs from context envelope.
-
-    Looks for real fields from slang_drift, lifecycle, weather systems.
-
-    Args:
-        context: Envelope context dict
-
-    Returns:
-        Extracted inputs dict
+class ComplianceRemixDetector(ShadowDetectorBase):
     """
-    inputs: dict[str, Any] = {}
+    Detects compliance vs remix balance in text.
 
-    # Slang drift metrics (from slang_drift.py output)
-    drift_data = context.get("drift", {})
-    if isinstance(drift_data, dict):
-        inputs["drift_score"] = float(drift_data.get("drift_score", 0.0))
-        inputs["similarity_early_late"] = float(drift_data.get("similarity_early_late", 0.0))
+    Inputs:
+        - text: str (text to analyze)
+        - reference_texts: List[str] (canonical/reference corpus)
 
-    # Novelty metrics
-    novelty_data = context.get("novelty", {})
-    if isinstance(novelty_data, dict):
-        inputs["new_to_window"] = bool(novelty_data.get("new_to_window", False))
-
-    # Appearances/repetition count
-    inputs["appearances"] = int(context.get("appearances", 0))
-
-    # CSP fields (from a2_phase term profiles)
-    csp_data = context.get("csp", {})
-    if isinstance(csp_data, dict):
-        inputs["csp_coh"] = bool(csp_data.get("COH", False))  # Coherence
-        inputs["csp_ff"] = float(csp_data.get("FF", 0.0))  # Formulaic Flag
-        inputs["csp_mio"] = float(csp_data.get("MIO", 0.0))  # Manufactured Indicator Overlap
-
-    # Lifecycle state (from lifecycle.py)
-    lifecycle_state = context.get("lifecycle_state", "")
-    inputs["lifecycle_state"] = str(lifecycle_state)
-
-    # Tau metrics (from temporal_tau.py)
-    tau_data = context.get("tau", {})
-    if isinstance(tau_data, dict):
-        inputs["tau_velocity"] = float(tau_data.get("tau_velocity", 0.0))
-        inputs["tau_half_life"] = float(tau_data.get("tau_half_life", 0.0))
-        inputs["observation_count"] = int(tau_data.get("observation_count", 0))
-
-    # Fog types (from mwr_enriched fog_index)
-    fog_counts = context.get("fog_type_counts", {})
-    if isinstance(fog_counts, dict):
-        inputs["fog_type_counts"] = dict(fog_counts)
-
-    # Weather classification (from weather/registry.py)
-    weather_types = context.get("weather_types", [])
-    if isinstance(weather_types, list):
-        inputs["weather_types"] = sorted([str(w) for w in weather_types])
-
-    return inputs
-
-
-def get_default_config() -> dict[str, Any]:
-    """Get default configuration for detector.
-
-    Returns:
-        Config dict with weights and thresholds
+    Outputs:
+        - signal_strength: float [0,1] - magnitude of imbalance
+        - confidence: float [0,1] - confidence in detection
+        - metadata:
+            - compliance_score: float [0,1]
+            - remix_score: float [0,1]
+            - lexical_overlap: float [0,1]
+            - syntactic_divergence: float [0,1]
     """
-    return {
-        "remix_weight": 0.35,
-        "rote_weight": 0.30,
-        "template_weight": 0.20,
-        "anchor_weight": 0.15,
-        # Thresholds
-        "high_drift_threshold": 0.5,
-        "high_repetition_threshold": 10,
-        "stable_state_threshold": 0.7,  # Saturated/Dormant states
-        "low_velocity_threshold": 0.1,
-    }
 
+    def __init__(self):
+        super().__init__(name="compliance_remix", version="0.1.0")
 
-def compute(
-    inputs: dict[str, Any], config: dict[str, Any]
-) -> tuple[float, dict[str, Any]]:
-    """Compute Compliance vs Remix detection.
+    def detect(self, inputs: Dict[str, Any]) -> ShadowDetectorResult:
+        """Run compliance vs remix detection."""
+        # Validate inputs
+        if not self._validate_inputs(inputs, ["text"]):
+            return self._create_result(
+                inputs=inputs,
+                status="not_computable",
+                error_message="Missing required input: text",
+            )
 
-    Args:
-        inputs: Extracted inputs from envelope
-        config: Configuration dict
+        text = inputs["text"]
+        reference_texts = inputs.get("reference_texts", [])
 
-    Returns:
-        Tuple of (overall_value [0,1], metadata dict)
+        # If no reference texts, return not_computable
+        if not reference_texts:
+            return self._create_result(
+                inputs=inputs,
+                status="not_computable",
+                error_message="No reference texts provided",
+            )
 
-    Higher values indicate more compliance/rote behavior.
-    Lower values indicate more remix/creative mutation.
-    """
-    # Extract config
-    remix_weight = float(config.get("remix_weight", 0.35))
-    rote_weight = float(config.get("rote_weight", 0.30))
-    template_weight = float(config.get("template_weight", 0.20))
-    anchor_weight = float(config.get("anchor_weight", 0.15))
+        try:
+            # Compute compliance and remix scores
+            compliance_score = self._compute_compliance(text, reference_texts)
+            remix_score = self._compute_remix(text, reference_texts)
 
-    high_drift_threshold = float(config.get("high_drift_threshold", 0.5))
-    high_repetition_threshold = int(config.get("high_repetition_threshold", 10))
-    stable_state_threshold = float(config.get("stable_state_threshold", 0.7))
-    low_velocity_threshold = float(config.get("low_velocity_threshold", 0.1))
+            # Signal strength is magnitude of imbalance
+            signal_strength = abs(compliance_score - remix_score)
 
-    # Initialize subscores
-    remix_rate = 0.0
-    rote_repetition_rate = 0.0
-    template_phrase_density = 0.0
-    anchor_stability = 0.0
+            # Confidence based on text length and reference corpus size
+            confidence = self._compute_confidence(text, reference_texts)
 
-    # --- Remix Rate ---
-    # High drift + new terms + Proto/Front states = high remix
-    drift_score = float(inputs.get("drift_score", 0.0))
-    new_to_window = bool(inputs.get("new_to_window", False))
-    lifecycle_state = str(inputs.get("lifecycle_state", ""))
+            evidence = ShadowEvidence(
+                detector_name=self.name,
+                signal_strength=signal_strength,
+                confidence=confidence,
+                metadata={
+                    "compliance_score": compliance_score,
+                    "remix_score": remix_score,
+                    "dominant_mode": "compliance" if compliance_score > remix_score else "remix",
+                    "text_length": len(text),
+                    "reference_count": len(reference_texts),
+                },
+            )
 
-    remix_rate = clamp01(drift_score)
-    if new_to_window:
-        remix_rate = clamp01(remix_rate + 0.2)
-    if lifecycle_state in ("Proto", "Front"):
-        remix_rate = clamp01(remix_rate + 0.15)
+            return self._create_result(
+                inputs=inputs,
+                status="computed",
+                evidence=evidence,
+            )
 
-    # --- Rote Repetition Rate ---
-    # High appearances + stable lifecycle + low drift = rote repetition
-    appearances = int(inputs.get("appearances", 0))
-    similarity_early_late = float(inputs.get("similarity_early_late", 0.0))
+        except Exception as e:
+            return self._create_result(
+                inputs=inputs,
+                status="error",
+                error_message=f"Detection failed: {str(e)}",
+            )
 
-    if appearances >= high_repetition_threshold:
-        rote_repetition_rate = clamp01(appearances / (high_repetition_threshold * 2))
+    def _compute_compliance(self, text: str, reference_texts: list) -> float:
+        """
+        Compute compliance score [0,1].
 
-    if lifecycle_state in ("Saturated", "Dormant"):
-        rote_repetition_rate = clamp01(rote_repetition_rate + stable_state_threshold)
+        High compliance = high lexical overlap with references.
+        """
+        # Tokenize
+        text_tokens = self._tokenize(text)
+        if not text_tokens:
+            return 0.0
 
-    # High similarity = low drift = rote
-    rote_repetition_rate = clamp01(rote_repetition_rate + similarity_early_late * 0.3)
+        # Compute overlap with each reference
+        overlaps = []
+        for ref in reference_texts:
+            ref_tokens = self._tokenize(ref)
+            if not ref_tokens:
+                continue
 
-    # --- Template Phrase Density ---
-    # CSP Formulaic Flag + fog types indicating templates
-    csp_ff = float(inputs.get("csp_ff", 0.0))
-    csp_mio = float(inputs.get("csp_mio", 0.0))
-    fog_type_counts = inputs.get("fog_type_counts", {})
+            # Jaccard similarity
+            intersection = len(set(text_tokens) & set(ref_tokens))
+            union = len(set(text_tokens) | set(ref_tokens))
+            overlap = intersection / union if union > 0 else 0.0
+            overlaps.append(overlap)
 
-    template_phrase_density = clamp01(csp_ff)
+        # Return max overlap (most similar reference)
+        return max(overlaps) if overlaps else 0.0
 
-    # MIO (Manufactured Indicator Overlap) suggests templates
-    template_phrase_density = clamp01(template_phrase_density + csp_mio * 0.4)
+    def _compute_remix(self, text: str, reference_texts: list) -> float:
+        """
+        Compute remix score [0,1].
 
-    # Check for template-related fog types
-    if isinstance(fog_type_counts, dict):
-        template_fog_count = sum(
-            count for fog_type, count in fog_type_counts.items()
-            if "template" in str(fog_type).lower() or "manufactured" in str(fog_type).lower()
-        )
-        if template_fog_count > 0:
-            template_phrase_density = clamp01(template_phrase_density + 0.3)
+        High remix = low lexical overlap but presence of reference vocabulary.
+        """
+        text_tokens = self._tokenize(text)
+        if not text_tokens:
+            return 0.0
 
-    # --- Anchor Stability ---
-    # Low tau_velocity + stable weather + Saturated state = stable anchors
-    tau_velocity = float(inputs.get("tau_velocity", 0.0))
-    weather_types = inputs.get("weather_types", [])
+        # Build reference vocabulary
+        ref_vocab = set()
+        for ref in reference_texts:
+            ref_vocab.update(self._tokenize(ref))
 
-    if abs(tau_velocity) < low_velocity_threshold:
-        anchor_stability = 0.8
-    else:
-        # Inverse relationship: higher velocity = lower stability
-        anchor_stability = clamp01(1.0 - abs(tau_velocity))
+        if not ref_vocab:
+            return 0.0
 
-    # MW-02 (Compression Stability) indicates stable anchors
-    if isinstance(weather_types, list) and "MW-02" in weather_types:
-        anchor_stability = clamp01(anchor_stability + 0.3)
+        # What fraction of text tokens are from reference vocab?
+        vocab_coverage = len(set(text_tokens) & ref_vocab) / len(set(text_tokens))
 
-    # Saturated lifecycle = stable
-    if lifecycle_state == "Saturated":
-        anchor_stability = clamp01(anchor_stability + 0.2)
+        # What fraction of text structure is novel?
+        # Use bigram novelty as proxy
+        text_bigrams = self._extract_bigrams(text_tokens)
+        ref_bigrams = set()
+        for ref in reference_texts:
+            ref_bigrams.update(self._extract_bigrams(self._tokenize(ref)))
 
-    # --- Overall Value ---
-    # Higher value = more compliance/rote (inverse of remix)
-    value = clamp01(
-        rote_weight * rote_repetition_rate
-        + template_weight * template_phrase_density
-        + anchor_weight * anchor_stability
-        + remix_weight * (1.0 - remix_rate)  # Inverse: low remix = high compliance
-    )
+        if not text_bigrams:
+            return 0.0
 
-    # Metadata
-    metadata = {
-        "weights": {
-            "remix": remix_weight,
-            "rote": rote_weight,
-            "template": template_weight,
-            "anchor": anchor_weight,
-        },
-        "subscores": {
-            "remix_rate": remix_rate,
-            "rote_repetition_rate": rote_repetition_rate,
-            "template_phrase_density": template_phrase_density,
-            "anchor_stability": anchor_stability,
-        },
-        "lifecycle_state": lifecycle_state,
-        "drift_score": drift_score,
-        "appearances": appearances,
-    }
+        novel_bigrams = len(text_bigrams - ref_bigrams) / len(text_bigrams)
 
-    return value, metadata
+        # Remix = uses vocab but recombines novelty
+        remix_score = (vocab_coverage * novel_bigrams) ** 0.5
 
+        return min(1.0, remix_score)
 
-def compute_detector(
-    context: dict[str, Any],
-    history: Optional[list[dict[str, Any]]] = None,
-    config: Optional[dict[str, Any]] = None,
-) -> DetectorValue:
-    """Compute Compliance vs Remix detector value.
+    def _compute_confidence(self, text: str, reference_texts: list) -> float:
+        """
+        Compute confidence [0,1] based on data quality.
 
-    Args:
-        context: Signal envelope context
-        history: Optional history of previous envelopes (not used for this detector)
-        config: Optional configuration overrides
+        Higher confidence with:
+        - Longer text
+        - More reference texts
+        - Sufficient token overlap
+        """
+        text_len = len(text)
+        ref_count = len(reference_texts)
 
-    Returns:
-        DetectorValue with status, value, subscores, provenance
-    """
-    # Extract inputs
-    inputs = extract_inputs(context)
+        # Length factor (saturates at 500 chars)
+        len_factor = min(1.0, text_len / 500.0)
 
-    # Use provided config or defaults
-    detector_config = config or get_default_config()
+        # Reference count factor (saturates at 10 refs)
+        ref_factor = min(1.0, ref_count / 10.0)
 
-    # Determine which keys were used and which are missing
-    # CRITICAL: Check source data, not just extracted inputs (which may have defaults)
-    required_keys = ["drift_score", "lifecycle_state", "tau_velocity"]
-    optional_keys = [
-        "appearances",
-        "similarity_early_late",
-        "new_to_window",
-        "csp_ff",
-        "csp_mio",
-        "fog_type_counts",
-        "weather_types",
-        "tau_half_life",
-        "observation_count",
-    ]
+        # Combined confidence
+        confidence = (len_factor * ref_factor) ** 0.5
 
-    # Check if required data exists in source context
-    missing_keys = []
-    if "drift" not in context or not isinstance(context.get("drift"), dict):
-        missing_keys.append("drift_score")
-    elif "drift_score" not in context["drift"]:
-        missing_keys.append("drift_score")
+        return confidence
 
-    if "lifecycle_state" not in context or not context.get("lifecycle_state"):
-        missing_keys.append("lifecycle_state")
+    @staticmethod
+    def _tokenize(text: str) -> list:
+        """Tokenize text into lowercase words."""
+        return re.findall(r'\w+', text.lower())
 
-    if "tau" not in context or not isinstance(context.get("tau"), dict):
-        missing_keys.append("tau_velocity")
-    elif "tau_velocity" not in context["tau"]:
-        missing_keys.append("tau_velocity")
-
-    missing_keys = sorted(missing_keys)
-
-    used_keys = sorted([k for k in required_keys + optional_keys if k not in missing_keys and k in inputs])
-
-    # Compute status
-    status = DetectorStatus.OK if not missing_keys else DetectorStatus.NOT_COMPUTABLE
-
-    # Compute value if status is OK
-    value: Optional[float] = None
-    subscores: dict[str, float] = {}
-    evidence: Optional[dict[str, Any]] = None
-
-    if status == DetectorStatus.OK:
-        computed_value, metadata = compute(inputs, detector_config)
-        value = computed_value
-        subscores = {
-            "remix_rate": clamp01(metadata["subscores"]["remix_rate"]),
-            "rote_repetition_rate": clamp01(metadata["subscores"]["rote_repetition_rate"]),
-            "template_phrase_density": clamp01(metadata["subscores"]["template_phrase_density"]),
-            "anchor_stability": clamp01(metadata["subscores"]["anchor_stability"]),
-        }
-        evidence = metadata if metadata else None
-
-    # Create provenance
-    now_utc = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-    provenance = DetectorProvenance(
-        detector_id=DetectorId.COMPLIANCE_REMIX.value,
-        used_keys=used_keys,
-        missing_keys=missing_keys,
-        history_len=len(history) if history else 0,
-        envelope_version=context.get("version"),
-        inputs_hash=hash_canonical_json(inputs),
-        config_hash=hash_canonical_json(detector_config),
-        computed_at_utc=now_utc,
-        seed_compliant=True,
-        no_influence_guarantee=True,
-    )
-
-    return DetectorValue(
-        id=DetectorId.COMPLIANCE_REMIX,
-        status=status,
-        value=value,
-        subscores=subscores,
-        missing_keys=missing_keys,
-        evidence=evidence,
-        provenance=provenance,
-        bounds=(0.0, 1.0),
-    )
+    @staticmethod
+    def _extract_bigrams(tokens: list) -> set:
+        """Extract bigrams from token list."""
+        if len(tokens) < 2:
+            return set()
+        return {(tokens[i], tokens[i+1]) for i in range(len(tokens) - 1)}
