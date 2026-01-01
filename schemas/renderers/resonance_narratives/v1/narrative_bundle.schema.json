@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/renderers/resonance_narratives/v1/narrative_bundle.schema.json",
+  "title": "Resonance Narrative Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "headline",
+    "signal_summary",
+    "what_changed",
+    "motifs",
+    "overlay_notes",
+    "constraints_report",
+    "provenance_footer"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" },
+    "artifact_id": { "type": "string", "minLength": 6 },
+    "headline": { "type": "string", "minLength": 1, "maxLength": 180 },
+    "signal_summary": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/summary_item" }
+    },
+    "what_changed": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/change_item" }
+    },
+    "motifs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/motif_item" }
+    },
+    "overlay_notes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/overlay_item" }
+    },
+    "constraints_report": { "$ref": "#/$defs/constraints_report" },
+    "provenance_footer": { "$ref": "#/$defs/provenance_footer" }
+  },
+  "$defs": {
+    "json_pointer": {
+      "type": "string",
+      "pattern": "^(/([^/~]|~0|~1)*)*$"
+    },
+    "summary_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value", "pointer"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "value": { "type": ["number", "string", "boolean", "null"] },
+        "delta": { "type": ["number", "string", "null"] },
+        "pointer": { "$ref": "#/$defs/json_pointer" }
+      }
+    },
+    "change_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "pointer"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "pointer": { "$ref": "#/$defs/json_pointer" },
+        "before": { "type": ["number", "string", "boolean", "null", "object", "array"] },
+        "after": { "type": ["number", "string", "boolean", "null", "object", "array"] }
+      }
+    },
+    "motif_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["motif", "strength", "pointer"],
+      "properties": {
+        "motif": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "strength": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "decay_halflife": { "type": ["number", "null"], "minimum": 0.0 },
+        "pointer": { "$ref": "#/$defs/json_pointer" }
+      }
+    },
+    "overlay_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "tag"],
+      "properties": {
+        "tag": { "type": "string", "enum": ["overlay"] },
+        "text": { "type": "string", "minLength": 1, "maxLength": 400 }
+      }
+    },
+    "constraints_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing_inputs", "not_computable", "evidence_present"],
+      "properties": {
+        "missing_inputs": { "type": "array", "items": { "type": "string" } },
+        "not_computable": { "type": "array", "items": { "type": "string" } },
+        "evidence_present": { "type": "boolean" }
+      }
+    },
+    "provenance_footer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["created_at", "input_hash"],
+      "properties": {
+        "created_at": { "type": "string", "minLength": 10 },
+        "input_hash": { "type": "string", "minLength": 6 },
+        "source_count": { "type": ["integer", "null"], "minimum": 0 },
+        "commit": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
