@@ -1,0 +1,132 @@
+{
+  "compression": {
+    "affect_direction": "negative",
+    "compressed_tokens": {
+      "elite": 0.325,
+      "equality": 0.8,
+      "establishment": 0.6,
+      "freedom": 0.675,
+      "justice": 0.7
+    },
+    "domain": "politics",
+    "domain_signals": [
+      "ideology_left",
+      "ideology_right",
+      "rhetoric_populist"
+    ],
+    "lifecycle_states": {
+      "elite": "Proto",
+      "equality": "Front",
+      "establishment": "Front",
+      "freedom": "Saturated",
+      "justice": "Front"
+    },
+    "provenance": {
+      "config_hash": "74d6f19c92182483eca40609fb2791bbfafcfd757b1c068d28bdb57c42703caf",
+      "git_sha": "abc123",
+      "host": null,
+      "inputs_hash": "189ecdca5258ff9ad469ddea6a11f91fc8dbce889c9d496bfc4e04bfad41ea99",
+      "run_id": "SAMPLE-001",
+      "started_at_utc": "2025-12-29T16:05:36Z"
+    },
+    "signal_strengths": {
+      "ideology_left": 0.6666666666666666,
+      "ideology_right": 0.3333333333333333,
+      "rhetoric_populist": 0.5
+    },
+    "transparency_score": 0.6199999999999999,
+    "version": "1.0"
+  },
+  "created_at_utc": "2025-12-29T16:05:36Z",
+  "forecast": {
+    "drift_velocity": -0.2,
+    "memetic_pressure": 0.5,
+    "phase_transitions": {},
+    "provenance": {
+      "config_hash": "99fa773f4c586b22f93fc99dad57ab2b098cb30b7eaadd27244d072fbb12063b",
+      "git_sha": "abc123",
+      "host": null,
+      "inputs_hash": "62a017463e3b3fd0876cce98357f2836b44e9c48612bf5e935945fabcc3eed80",
+      "run_id": "SAMPLE-001",
+      "started_at_utc": "2025-12-29T16:05:36Z"
+    },
+    "resonance_score": 0.5,
+    "resonating_domains": [],
+    "time_to_transition": {},
+    "transition_probabilities": {},
+    "weather_trajectory": "compression_accelerating"
+  },
+  "narrative": {
+    "bundle_hash": "d25a39a0ffc1833749f7798aaa477e5512285455a00b71e87014b1cb9fe15e35",
+    "bundle_id": "ORACLE-SAMPLE-001-2025-12-29",
+    "cascade_sheet": {
+      "lifecycle_distribution": {
+        "Front": 3,
+        "Proto": 1,
+        "Saturated": 1
+      },
+      "token_count": 5,
+      "transition_forecast": 0
+    },
+    "confidence_band": "MED",
+    "contamination_advisory": null,
+    "evidence_signals": [
+      "ideology_left",
+      "ideology_right",
+      "rhetoric_populist"
+    ],
+    "evidence_tokens": [
+      "establishment",
+      "equality",
+      "justice",
+      "freedom",
+      "elite"
+    ],
+    "evidence_transitions": [],
+    "narrative_summary": "Domain: politics | Tokens analyzed: 5 | Signals detected: ideology_left, ideology_right, rhetoric_populist | Transparency: 0.62 (STI) | Affect: negative | Weather: compression_accelerating | Memetic pressure: 0.50",
+    "provenance": {
+      "config_hash": "5be53b361949bfc5932eee0842c8e818f97c019b24f3b8a5728306a296588936",
+      "git_sha": "abc123",
+      "host": null,
+      "inputs_hash": "d25a39a0ffc1833749f7798aaa477e5512285455a00b71e87014b1cb9fe15e35",
+      "run_id": "SAMPLE-001",
+      "started_at_utc": "2025-12-29T16:05:36Z"
+    },
+    "trust_drift_series": [
+      {
+        "sti": 0.6199999999999999,
+        "t": 0
+      },
+      {
+        "sti": 0.5889999999999999,
+        "t": 24
+      },
+      {
+        "sti": 0.5579999999999999,
+        "t": 48
+      }
+    ]
+  },
+  "pipeline_version": "2.0.0",
+  "run_id": "SAMPLE-001",
+  "signal": {
+    "domain": "politics",
+    "meta": {},
+    "observations": [
+      "The establishment ignores the people",
+      "We need equality and justice for all",
+      "Freedom is under threat from elites"
+    ],
+    "source_id": "sample_001",
+    "subdomain": "rhetoric",
+    "timestamp_utc": "2025-12-29T12:00:00Z",
+    "tokens": [
+      "establishment",
+      "people",
+      "equality",
+      "justice",
+      "freedom",
+      "elite"
+    ]
+  }
+}
