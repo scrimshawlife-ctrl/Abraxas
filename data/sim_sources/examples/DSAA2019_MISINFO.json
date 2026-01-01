@@ -1,0 +1,37 @@
+{
+  "paper_id": "DSAA2019_MISINFO",
+  "title": "Simulation of misinformation spreading processes in social networks",
+  "params": [
+    {
+      "name": "share_prob",
+      "symbol": "p_s",
+      "value": null,
+      "description": "Sharing probability"
+    },
+    {
+      "name": "bot_density",
+      "symbol": "ρ_b",
+      "value": null,
+      "description": "Bot agent fraction"
+    },
+    {
+      "name": "virality",
+      "symbol": "v",
+      "value": null,
+      "description": "Content virality factor"
+    },
+    {
+      "name": "correction_eff",
+      "symbol": "η_c",
+      "value": null,
+      "description": "Correction effectiveness"
+    },
+    {
+      "name": "content_lifespan",
+      "symbol": "τ_c",
+      "value": null,
+      "description": "Content lifespan (hours)"
+    }
+  ],
+  "notes": "ABM simulation of misinformation spread with bot agents amplifying content."
+}

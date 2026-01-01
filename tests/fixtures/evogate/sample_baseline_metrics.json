@@ -1,0 +1,6 @@
+{
+  "metrics": {
+    "brier": 0.12,
+    "calibration_error": 0.08
+  }
+}

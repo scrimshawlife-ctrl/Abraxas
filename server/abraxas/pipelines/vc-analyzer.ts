@@ -16,7 +16,8 @@
 
 import crypto from "crypto";
 import type { RitualInput } from "../models/ritual";
-import { computeSymbolicMetrics, aggregateQualityScore } from "../core/kernel";
+import { aggregateQualityScore } from "../core/kernel";
+import { computeSymbolicMetricsOptimized } from "../core/kernel-optimized";
 import { ritualToContext, createPipelineVector, mergeVectors } from "../integrations/runes-adapter";
 import { mapToArchetype, computeArchetypeResonance } from "../core/archetype";
 
@@ -114,8 +115,8 @@ export async function analyzeVCMarket(
     "pipelines/vc-analyzer"
   );
 
-  // Compute symbolic metrics
-  const metrics = computeSymbolicMetrics(vector, context);
+  // Compute symbolic metrics (optimized with caching)
+  const metrics = computeSymbolicMetricsOptimized(vector, context);
   const quality = aggregateQualityScore(metrics);
 
   // Forecast deal volume
@@ -195,7 +196,7 @@ async function analyzeSectors(
       "vc-analyzer/sector"
     );
 
-    const metrics = computeSymbolicMetrics(vector, context);
+    const metrics = computeSymbolicMetricsOptimized(vector, context);
     const archetype = mapToArchetype(sector, features, ritual.seed);
     const resonance = computeArchetypeResonance(features, archetype);
 

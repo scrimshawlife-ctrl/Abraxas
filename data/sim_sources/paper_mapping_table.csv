@@ -1,0 +1,22 @@
+paper_id,model_family,mri_params,iri_params,tau_params,notes
+PMC12281847,DIFFUSION_SIR,beta; c2,gamma,delay; incubation,SIR with media impact parameter (c2 boosts transmission awareness)
+PMC10250073,DIFFUSION_SIR,beta; ads; k,gamma; defensive_mod,inter_layer_lag,Coupled information-epidemic with policy intervention modulating spread
+PMC12564303,DIFFUSION_SIR,beta; mixing,gamma,delay; memory_kernel,Coupled dynamics with delay parameter for awareness lag
+ICWSM2025_VISUAL_ELEMENTS,DIFFUSION_SIR,beta; c2,gamma; immune_rate,incubation,Epidemic modeling applied to visual misinformation spread
+PMC11102523,DIFFUSION_SIR,beta; k,gamma,inter_layer_lag,Information-disease interplay with coupled layer dynamics
+HAWAII_SIR_SEIZ,DIFFUSION_SIR,beta,gamma; skeptic_rate,incubation,Comparison of SIR and SEIZ (Skeptic-Exposed-Infected-Zealot) models
+PMC8545016,DIFFUSION_SIR,beta,gamma,incubation,SEIR with information entropy component affecting transmission
+PMC8559433,DIFFUSION_SIR,beta; k,gamma,inter_layer_lag; memory_kernel,Coupled information-disease SEIR with inter-layer coupling parameters
+ARXIV_OPINION_OVERVIEW,OPINION_DYNAMICS,w_ij; homophily; mu,epsilon; bound,alpha; memory_depth,Comprehensive survey of opinion dynamics models (covers multiple paradigms)
+PMC9689558,OPINION_DYNAMICS,w_ij; homophily,epsilon; confidence_threshold,alpha,Hybrid model combining bounded confidence and social influence mechanisms
+JASSS_OPINION_UNDETECTED,OPINION_DYNAMICS,w_ij,epsilon; stubbornness,memory_depth,Agent-based opinion dynamics with hidden polarization detection
+SCIENCEDIRECT_MASS_MEDIA,OPINION_DYNAMICS,mu; media_influence,epsilon,update_frequency,Opinion dynamics with mass media influence parameter
+JASSS_ARGUMENT_BASED,OPINION_DYNAMICS,w_ij,epsilon; bound,memory_depth,Argument-based opinion dynamics with memory depth for past arguments
+DSAA2019_MISINFO,ABM_MISINFO,share_prob; bot_density; virality,correction_eff,content_lifespan,ABM simulation with bot agents amplifying misinformation
+ICWSM2021_ABM_FAKENEWS,ABM_MISINFO,share_prob; virality,correction_eff; fact_check_rate; sanction_rate,content_lifespan,ABM with intervention mechanisms (correction and sanctions)
+PMC11192300,ABM_MISINFO,share_prob; bot_density,correction_eff,content_lifespan; memory_window,ABM with language-sensitive features and network structure cloning
+OPENREVIEW_ABM_SURVEY,ABM_MISINFO,share_prob; virality,correction_eff; fact_check_rate,memory_window,Survey of ABM approaches for social media simulation (meta-analysis)
+ARXIV_SPATIAL_GAMES,GAME_THEORETIC,effort; propaganda_cost,sanction_prob; sanction_penalty,discount; horizon,Canonical spatial game-theoretic model with propagandist-citizen dynamics
+PNAS_SPATIAL_GAMES,GAME_THEORETIC,effort; propaganda_cost,sanction_prob; sanction_penalty,discount; horizon,Published version in PNAS Nexus (duplicate of ARXIV_SPATIAL_GAMES)
+PMC10924450,GAME_THEORETIC,effort; propaganda_cost,sanction_prob; sanction_penalty,discount; horizon,PMC version (duplicate of ARXIV_SPATIAL_GAMES)
+PUBMED_38463039,GAME_THEORETIC,effort; propaganda_cost,sanction_prob; sanction_penalty,discount; horizon,PubMed abstract (duplicate of ARXIV_SPATIAL_GAMES)

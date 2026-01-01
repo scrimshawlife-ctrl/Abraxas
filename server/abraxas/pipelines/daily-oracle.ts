@@ -17,7 +17,8 @@
 import crypto from "crypto";
 import type { RitualInput } from "../models/ritual";
 import type { FeatureVector } from "../models/vector";
-import { computeSymbolicMetrics, aggregateQualityScore } from "../core/kernel";
+import { aggregateQualityScore } from "../core/kernel";
+import { computeSymbolicMetricsOptimized } from "../core/kernel-optimized";
 import { ritualToContext, createPipelineVector } from "../integrations/runes-adapter";
 import { selectArchetypesForRunes } from "../core/archetype";
 
@@ -77,8 +78,8 @@ export function generateDailyOracle(
     "pipelines/daily-oracle"
   );
 
-  // Compute symbolic metrics
-  const metrics = computeSymbolicMetrics(vector, context);
+  // Compute symbolic metrics (optimized with caching)
+  const metrics = computeSymbolicMetricsOptimized(vector, context);
   const quality = aggregateQualityScore(metrics);
 
   // Determine tone based on multiple factors

@@ -1,61 +1,80 @@
+"""Overlay phase dispatcher that routes phase execution to the kernel.
+Maintains backward compatibility with legacy PhaseManager.
+"""
+
 from __future__ import annotations
-from typing import Any, Dict
+from enum import Enum
+from typing import Any, Dict, List, Optional
 from .schema import Phase
+from abraxas.kernel.entry import run_phase
 
-def handle_open(payload: Dict[str, Any]) -> Dict[str, Any]:
-    prompt = str(payload.get("prompt", ""))
-    intent = str(payload.get("intent", "unspecified"))
-    return {
-        "mode": "OPEN",
-        "intent": intent,
-        "signal": "intake_ok",
-        "prompt_len": len(prompt),
-    }
-
-def handle_align(payload: Dict[str, Any]) -> Dict[str, Any]:
-    op = str(payload.get("op", payload.get("intent", "unspecified")))
-    return {
-        "mode": "ALIGN",
-        "op": op,
-        "constraints": {
-            "determinism": True,
-            "provenance": True,
-            "no_mock_data": True,
-        },
-    }
-
-def handle_clear(payload: Dict[str, Any]) -> Dict[str, Any]:
-    text = str(payload.get("text", payload.get("prompt", "")))
-    compact = " ".join(text.split())
-    return {
-        "mode": "CLEAR",
-        "compression": {
-            "chars_in": len(text),
-            "chars_out": len(compact),
-            "ratio": (len(compact) / len(text)) if len(text) else 1.0,
-        },
-        "text_compact": compact[:512],
-    }
-
-def handle_seal(payload: Dict[str, Any]) -> Dict[str, Any]:
-    title = str(payload.get("title", "Abraxas Artifact"))
-    return {
-        "mode": "SEAL",
-        "artifact": {
-            "title": title,
-            "status": "sealed_stub",
-        }
-    }
 
 def dispatch(phase: Phase, payload: Dict[str, Any]) -> Dict[str, Any]:
-    if phase == "OPEN":
-        return handle_open(payload)
-    if phase == "ALIGN":
-        return handle_align(payload)
-    if phase == "CLEAR":
-        return handle_clear(payload)
-    if phase == "SEAL":
-        return handle_seal(payload)
-    if phase == "ASCEND":
-        return {"mode": "ASCEND", "note": "ASCEND handler not enabled in overlay yet"}
-    raise ValueError(f"Unsupported phase: {phase}")
+    """Dispatch a phase execution request to the kernel.
+
+    Args:
+        phase: The phase to execute (OPEN, ALIGN, ASCEND, CLEAR, SEAL)
+        payload: Input data for the phase
+
+    Returns:
+        Result dictionary from the kernel phase execution
+    """
+    return run_phase(phase, payload)
+
+
+# Legacy PhaseManager for backward compatibility with OverlayRunner
+class LegacyPhase(Enum):
+    """Legacy enumeration of overlay phases."""
+    INIT = "init"
+    PROCESS = "process"
+    TRANSFORM = "transform"
+    FINALIZE = "finalize"
+
+
+class PhaseManager:
+    """Legacy phase manager for backward compatibility.
+
+    Note: New code should use the dispatch() function with kernel phases.
+    """
+
+    def __init__(self):
+        """Initialize the phase manager."""
+        self.current_phase: Optional[LegacyPhase] = None
+        self.phase_history: List[LegacyPhase] = []
+        self.handlers = {}
+
+    def register_handler(self, phase: LegacyPhase, handler_fn):
+        """Register a handler for a specific phase.
+
+        Args:
+            phase: The phase to handle
+            handler_fn: Function to execute during this phase
+        """
+        self.handlers[phase] = handler_fn
+
+    def transition(self, phase: LegacyPhase):
+        """Transition to a new phase.
+
+        Args:
+            phase: The phase to transition to
+        """
+        if self.current_phase:
+            self.phase_history.append(self.current_phase)
+        self.current_phase = phase
+
+    def execute(self, phase: LegacyPhase, *args, **kwargs):
+        """Execute a phase handler.
+
+        Args:
+            phase: The phase to execute
+            *args: Positional arguments for the handler
+            **kwargs: Keyword arguments for the handler
+
+        Returns:
+            Result of the phase handler
+        """
+        if phase not in self.handlers:
+            raise ValueError(f"No handler registered for phase '{phase.value}'")
+
+        self.transition(phase)
+        return self.handlers[phase](*args, **kwargs)

@@ -1,0 +1,20 @@
+{
+  "routing_decisions": [
+    {
+      "scenario_id": "scenario_001",
+      "domain": "TAU",
+      "priority": "high",
+      "handler_assigned": "tau_handler",
+      "routing_time_ms": 5
+    },
+    {
+      "scenario_id": "scenario_002",
+      "domain": "MW",
+      "priority": "medium",
+      "handler_assigned": "mw_handler",
+      "routing_time_ms": 3
+    }
+  ],
+  "routing_accuracy": 0.98,
+  "total_routed": 2
+}

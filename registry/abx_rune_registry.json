@@ -1,0 +1,112 @@
+{
+  "registry_version": "0.1",
+  "source_repo": "scrimshawlife-ctrl/Abraxas",
+  "rune_contract": {
+    "coupling_rule": "Cross-module invocation MUST occur via rune_id. No hidden coupling.",
+    "determinism_rule": "Rune execution must be seedable and provenance-logged.",
+    "provenance_rule": "All results must include provenance_bundle."
+  },
+  "runes": [
+    {
+      "rune_id": "compression.detect",
+      "status": "active",
+      "capability": "Detect symbolic/linguistic compression events (SCO/ECO).",
+      "inputs": [
+        {"name": "text_event", "type": "string", "required": true},
+        {"name": "lexicon_ref", "type": "object", "required": false},
+        {"name": "config", "type": "object", "required": true},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
+      "outputs": [
+        {"name": "compression_event", "type": "object", "required": true},
+        {"name": "metrics", "type": "object", "required": false},
+        {"name": "labels", "type": "array", "required": false},
+        {"name": "confidence", "type": "number", "required": false},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
+      "evidence_mode": "detector_only",
+      "suggested_impl": ["abraxas/*compression*", "abraxas/*sco*", "abraxas/*eco*"]
+    },
+    {
+      "rune_id": "weather.generate",
+      "capability": "Transform linguistic events into memetic weather/drift signals.",
+      "inputs": ["compression_event", "time_window", "config"],
+      "outputs": ["weather_report", "drift_vectors", "provenance_bundle"],
+      "evidence_mode": "detector_only",
+      "suggested_impl": ["abraxas/*weather*"]
+    },
+    {
+      "rune_id": "ser.run",
+      "capability": "Scenario Envelope Runner (deterministic forecasting).",
+      "inputs": ["priors", "signals", "seed", "config"],
+      "outputs": ["envelope", "cascade_sheet", "contamination_advisory", "provenance_bundle"],
+      "evidence_mode": "simulation_deterministic",
+      "suggested_impl": ["abraxas/*ser*", "scheduler/*"]
+    },
+    {
+      "rune_id": "daemon.ingest",
+      "capability": "Always-on ingestion loop (e.g., Decodo API) with event normalization + provenance capture.",
+      "inputs": ["source_config", "poll_interval", "config"],
+      "outputs": ["raw_events", "ingest_log", "provenance_bundle"],
+      "evidence_mode": "append_only_log",
+      "suggested_impl": ["server/*", "scripts/*", "systemd/*"]
+    },
+    {
+      "rune_id": "infra.self_heal",
+      "status": "active",
+      "capability": "Generate self-heal advisory plan (NO side effects).",
+      "inputs": [
+        {"name": "health_state", "type": "object", "required": true},
+        {"name": "policy", "type": "object", "required": true},
+        {"name": "audit_report_sha256", "type": "string", "required": false},
+        {"name": "config", "type": "object", "required": false},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
+      "outputs": [
+        {"name": "issues", "type": "array", "required": true},
+        {"name": "action_plan", "type": "array", "required": true},
+        {"name": "evidence", "type": "object", "required": true},
+        {"name": "audit_log", "type": "object", "required": false},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
+      "evidence_mode": "detector_only",
+      "suggested_impl": ["infra/self_heal_advisory.py"]
+    },
+    {
+      "rune_id": "actuator.apply",
+      "status": "active",
+      "capability": "Apply a state-changing plan (governance-gated).",
+      "inputs": [
+        {"name": "action_plan", "type": "array", "required": true},
+        {"name": "governance_receipt_id", "type": "string", "required": true},
+        {"name": "dry_run", "type": "boolean", "required": false},
+        {"name": "config", "type": "object", "required": false},
+        {"name": "seed", "type": "integer", "required": false}
+      ],
+      "outputs": [
+        {"name": "apply_receipt", "type": "object", "required": true},
+        {"name": "verification", "type": "object", "required": true},
+        {"name": "audit_log", "type": "array", "required": true},
+        {"name": "provenance_bundle", "type": "object", "required": true}
+      ],
+      "evidence_mode": "ops_actuator",
+      "suggested_impl": ["infra/actuator.py"]
+    },
+    {
+      "rune_id": "edge.deploy_orin",
+      "capability": "Orin-ready deployment orchestration (systemd integration).",
+      "inputs": ["target_profile", "release_artifacts", "config"],
+      "outputs": ["deploy_receipt", "rollback_point", "provenance_bundle"],
+      "evidence_mode": "ops_audit_only",
+      "suggested_impl": ["README_ORIN.md", "systemd/*"]
+    },
+    {
+      "rune_id": "abx.doctor",
+      "capability": "Run system diagnostic (abx doctor).",
+      "inputs": ["diagnostic_level", "config"],
+      "outputs": ["diagnostic_report", "provenance_bundle"],
+      "evidence_mode": "ops_audit_only",
+      "suggested_impl": ["abx/*", "tools/*"]
+    }
+  ]
+}

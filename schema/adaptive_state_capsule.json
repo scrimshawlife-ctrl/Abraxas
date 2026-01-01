@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AdaptiveStateCapsule",
+  "description": "Artifact describing the experiential state of an Abraxas component over time.",
+  "type": "object",
+  "required": [
+    "component_id",
+    "component_type",
+    "lifecycle_phase",
+    "age_cycles",
+    "exposure_events",
+    "cross_subsystem_interactions",
+    "stability_trend",
+    "confidence_trend",
+    "last_updated_ts"
+  ],
+  "properties": {
+    "component_id": { "type": "string" },
+    "component_type": {
+      "type": "string",
+      "enum": ["rune", "interpreter", "slang_module", "weather_model", "metric", "other"]
+    },
+    "lifecycle_phase": {
+      "type": "string",
+      "enum": ["emergent", "ascendant", "stable", "volatile", "decaying", "fossil"]
+    },
+    "age_cycles": { "type": "integer", "minimum": 0 },
+    "exposure_events": { "type": "integer", "minimum": 0 },
+    "cross_subsystem_interactions": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "stability_trend": {
+      "type": "string",
+      "enum": ["increasing", "stable", "decreasing", "unknown"]
+    },
+    "confidence_trend": {
+      "type": "string",
+      "enum": ["increasing", "stable", "decreasing", "volatile", "unknown"]
+    },
+    "pressure_trend": {
+      "type": "string",
+      "enum": ["low", "rising", "high", "relieving", "unknown"]
+    },
+    "notes": { "type": "string" },
+    "last_updated_ts": { "type": "string", "format": "date-time" }
+  }
+}

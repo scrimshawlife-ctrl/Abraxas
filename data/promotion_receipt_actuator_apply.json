@@ -1,0 +1,20 @@
+{
+  "action_payload": {
+    "rune_id": "actuator.apply"
+  },
+  "action_rune_id": "governance.promote_rune",
+  "decided_by": "daniel",
+  "decision": "APPROVE",
+  "evidence_bundle": {
+    "promotion_event": true,
+    "registry_sha256": "7402b66df0c6848b1c773a6ef20e5fd06c9c818b633edb5e324be9b3c479a0ea",
+    "rune_id": "actuator.apply"
+  },
+  "governance_receipt_id": "6278baf1dd8506b4142ee4eadec3a297587ded0588dec83eb77458887890cd6b",
+  "key_id": "81d0e51f2b69f5ea",
+  "provenance_bundle": {},
+  "reason": "Re-promote with cryptographic signature (Patch 21)",
+  "sig_alg": "hmac-sha256",
+  "signature": "5eb5a683cbe4d5774e95ad6023ddaa84c25ea65e0cbc015ed9939eac7766e86d",
+  "timestamp_utc": "2025-12-27T23:30:32.036226+00:00"
+}

@@ -9,16 +9,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { SimpleTooltip } from "@/components/ui/tooltip";
-import { 
-  PlayCircle, 
-  Eye, 
-  Wand2, 
-  Hash, 
-  Activity, 
+import {
+  PlayCircle,
+  Eye,
+  Wand2,
+  Hash,
+  Activity,
   History,
   Sparkles,
   Settings,
-  TrendingUp
+  TrendingUp,
+  Palette
 } from "lucide-react";
 
 const menuItems = [
@@ -69,6 +70,12 @@ const menuItems = [
     url: "/config",
     icon: Settings,
     description: "Tune mystical algorithm weights"
+  },
+  {
+    title: "AAL Demo",
+    url: "/aal-demo",
+    icon: Palette,
+    description: "Design system showcase"
   }
 ];
 

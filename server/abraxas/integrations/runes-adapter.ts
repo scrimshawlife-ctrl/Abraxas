@@ -11,16 +11,28 @@
 
 import type { Rune, RitualInput, RitualContext } from "../models/ritual";
 import type { FeatureVector, VectorProvenance } from "../models/vector";
+import type { RuneInvocationContext } from "../runes/ctx.js";
 
-// Import rune system from existing module
-// @ts-ignore - Legacy JS module, type declarations pending
-import { getTodayRunes, runRitual } from "../../runes";
+import { invokeRuneByCapability } from "../runes/invoke.js";
+import { wiringSanityCheck } from "../runes/registry.js";
+
+export const REQUIRED_RUNE_CAPABILITIES = ["runes:get_today", "runes:run_ritual"];
+
+function assertRequiredCapabilities(): void {
+  const sanity = wiringSanityCheck(REQUIRED_RUNE_CAPABILITIES);
+  if (sanity.missingCapabilities.length > 0) {
+    throw new Error(
+      `Missing rune capabilities: ${sanity.missingCapabilities.join(", ")}`
+    );
+  }
+}
 
 /**
  * Initialize ritual from ABX-Runes system
  */
-export function initializeRitual(): RitualInput {
-  const ritual = runRitual();
+export function initializeRitual(ctx: RuneInvocationContext): RitualInput {
+  assertRequiredCapabilities();
+  const ritual = invokeRuneByCapability("runes:run_ritual", {}, ctx);
 
   return {
     date: ritual.date,
@@ -32,8 +44,9 @@ export function initializeRitual(): RitualInput {
 /**
  * Get today's runes from ABX-Runes system
  */
-export function getTodaysRunes(): Rune[] {
-  return getTodayRunes() as Rune[];
+export function getTodaysRunes(ctx: RuneInvocationContext): Rune[] {
+  assertRequiredCapabilities();
+  return invokeRuneByCapability("runes:get_today", {}, ctx) as Rune[];
 }
 
 /**

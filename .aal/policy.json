@@ -1,0 +1,74 @@
+{
+  "profile": "dev",
+  "promotion_gates": {
+    "deny_shadow_actuators": true,
+    "require_typed_io_for_active": true,
+    "max_active_untyped": 0
+  },
+  "coupling": {
+    "boundaries": [
+      "abx",
+      "abraxas",
+      "infra",
+      "scheduler",
+      "server",
+      "client",
+      "shared",
+      "registry",
+      "tools",
+      "systemd"
+    ],
+    "allowed_cross_imports": [
+      {
+        "from": "abx",
+        "to": "shared",
+        "reason": "kernel + schemas + policy"
+      },
+      {
+        "from": "abx",
+        "to": "registry",
+        "reason": "rune registry lookup"
+      },
+      {
+        "from": "infra",
+        "to": "shared",
+        "reason": "policy + evidence helpers"
+      },
+      {
+        "from": "tools",
+        "to": "shared",
+        "reason": "audit tooling only"
+      }
+    ],
+    "min_rune_invoke_ratio": 0.7,
+    "max_cross_boundary_imports": 0
+  },
+  "registry_quality": {
+    "max_untyped_rune_inputs": 5
+  },
+  "allow_runes": [
+    "abx.doctor",
+    "compression.detect",
+    "infra.self_heal",
+    "actuator.apply"
+  ],
+  "deny_runes": [],
+  "stabilization": {
+    "required_advisory_cycles": 3
+  },
+  "actuator": {
+    "allow_actions": [
+      "systemd.restart",
+      "systemd.start",
+      "systemd.stop",
+      "ops.alert"
+    ],
+    "allow_services": [
+      "abraxas-daemon"
+    ]
+  },
+  "services": {
+    "daemon_service": "abraxas-daemon",
+    "disk_path": "/"
+  }
+}

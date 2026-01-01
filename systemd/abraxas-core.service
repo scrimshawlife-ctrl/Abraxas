@@ -1,0 +1,18 @@
+[Unit]
+Description=Abraxas Core Service
+After=network.target
+
+[Service]
+Type=simple
+User=orin
+WorkingDirectory=/opt/aal/abraxas
+Environment=ABX_ROOT=/opt/aal/abraxas
+Environment=ABX_PROFILE=orin
+Environment=ABX_HOST=0.0.0.0
+Environment=ABX_PORT=8765
+ExecStart=/usr/bin/env python -m abx.cli up
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

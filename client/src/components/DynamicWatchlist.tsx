@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
-// Note: Will implement API requests directly for now
+import {
+  AalCard,
+  AalButton,
+  AalTag,
+  AalDivider,
+  AalSigilFrame,
+} from "../../../aal-ui-kit/src";
 
 interface WatchlistItem {
   id: string;
@@ -39,124 +41,131 @@ interface WatchlistWithItems {
   items: WatchlistItem[];
 }
 
-// User ID is now handled automatically by authenticated session
-
 function WatchlistCard({ watchlistData, onRefresh }: { watchlistData: WatchlistWithItems; onRefresh: () => void }) {
   const { watchlist, items } = watchlistData;
 
-  const getRiskIcon = (risk: string) => {
+  const getRiskTone = (risk: string): "cyan" | "yellow" | "magenta" => {
     switch (risk) {
-      case "low": return "🟢";
-      case "medium": return "🟡";
-      case "high": return "🔴";
-      default: return "⚪";
+      case "low": return "cyan";
+      case "medium": return "yellow";
+      case "high": return "magenta";
+      default: return "yellow";
     }
   };
 
   const getScoreColor = (score: number, type: string) => {
     if (type === "growth") {
-      return score > 0.6 ? "text-green-600 dark:text-green-400" : 
-             score > 0.3 ? "text-yellow-600 dark:text-yellow-400" : 
-             "text-gray-600 dark:text-gray-400";
+      return score > 0.6 ? "var(--aal-color-cyan)" :
+             score > 0.3 ? "var(--aal-color-yellow)" :
+             "var(--aal-color-muted)";
     } else {
-      return Math.abs(score) > 0.6 ? "text-red-600 dark:text-red-400" : 
-             Math.abs(score) > 0.3 ? "text-orange-600 dark:text-orange-400" : 
-             "text-gray-600 dark:text-gray-400";
+      return Math.abs(score) > 0.6 ? "var(--aal-color-magenta)" :
+             Math.abs(score) > 0.3 ? "var(--aal-color-yellow)" :
+             "var(--aal-color-muted)";
     }
   };
 
   return (
-    <Card className="w-full" data-testid={`watchlist-${watchlist.type}`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle className="flex items-center gap-2" data-testid={`text-watchlist-name-${watchlist.id}`}>
-            {watchlist.type === "growth" ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            {watchlist.name}
-          </CardTitle>
-          <CardDescription data-testid={`text-watchlist-description-${watchlist.id}`}>
-            {watchlist.description || `${watchlist.type} analysis watchlist`}
-          </CardDescription>
+    <AalCard data-testid={`watchlist-${watchlist.type}`}>
+      <div className="aal-stack-md">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <AalSigilFrame tone={watchlist.type === "growth" ? "cyan" : "magenta"} size={36}>
+              {watchlist.type === "growth" ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+            </AalSigilFrame>
+            <div>
+              <h3 className="aal-heading-md" data-testid={`text-watchlist-name-${watchlist.id}`}>
+                {watchlist.name}
+              </h3>
+              <p className="aal-body" style={{ fontSize: "12px" }} data-testid={`text-watchlist-description-${watchlist.id}`}>
+                {watchlist.description || `${watchlist.type} analysis watchlist`}
+              </p>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <AalTag data-testid={`badge-item-count-${watchlist.id}`}>{items.length} items</AalTag>
+            <AalButton
+              onClick={onRefresh}
+              variant="ghost"
+              leftIcon={<RefreshCw size={14} />}
+              data-testid={`button-refresh-${watchlist.id}`}
+            >
+              Refresh
+            </AalButton>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" data-testid={`badge-item-count-${watchlist.id}`}>
-            {items.length} items
-          </Badge>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onRefresh}
-            data-testid={`button-refresh-${watchlist.id}`}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+
         {watchlist.lastAnalyzed && (
-          <p className="text-sm text-muted-foreground mb-4" data-testid={`text-last-analyzed-${watchlist.id}`}>
+          <p className="aal-body" style={{ fontSize: "11px" }} data-testid={`text-last-analyzed-${watchlist.id}`}>
             Last analyzed: {new Date(watchlist.lastAnalyzed).toLocaleString()}
           </p>
         )}
-        <div className="space-y-3">
+
+        <AalDivider />
+
+        <div className="aal-stack-md">
           {items.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4" data-testid={`text-empty-${watchlist.id}`}>
+            <p className="aal-body" style={{ textAlign: "center", padding: "24px" }} data-testid={`text-empty-${watchlist.id}`}>
               No items in this watchlist yet.
             </p>
           ) : (
             items
               .sort((a, b) => Math.abs(b.analysisScore) - Math.abs(a.analysisScore))
               .map((item) => (
-                <div
+                <AalCard
                   key={item.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
+                  variant="ghost"
+                  padding="12px"
                   data-testid={`item-${item.symbol}`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium" data-testid={`text-symbol-${item.symbol}`}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span className="aal-heading-md" style={{ fontSize: "14px" }} data-testid={`text-symbol-${item.symbol}`}>
                           {item.symbol}
                         </span>
-                        <Badge variant={item.symbolType === "equity" ? "default" : "secondary"}>
-                          {item.symbolType}
-                        </Badge>
+                        <AalTag>{item.symbolType}</AalTag>
                         {item.sector && (
-                          <Badge variant="outline" data-testid={`badge-sector-${item.symbol}`}>
-                            {item.sector}
-                          </Badge>
+                          <AalTag data-testid={`badge-sector-${item.symbol}`}>{item.sector}</AalTag>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1" data-testid={`text-rationale-${item.symbol}`}>
+                      <p className="aal-body" style={{ fontSize: "12px", marginTop: "4px" }} data-testid={`text-rationale-${item.symbol}`}>
                         {item.rationale}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className={`font-semibold ${getScoreColor(item.analysisScore, watchlist.type)}`}>
-                        {watchlist.type === "growth" ? "+" : ""}{(item.analysisScore * 100).toFixed(1)}%
+                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div
+                          className="aal-heading-md"
+                          style={{
+                            fontSize: "16px",
+                            fontFamily: "monospace",
+                            color: getScoreColor(item.analysisScore, watchlist.type)
+                          }}
+                        >
+                          {watchlist.type === "growth" ? "+" : ""}{(item.analysisScore * 100).toFixed(1)}%
+                        </div>
+                        <div className="aal-body" style={{ fontSize: "11px" }}>
+                          {(item.confidence * 100).toFixed(0)}% confidence
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {(item.confidence * 100).toFixed(0)}% confidence
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span data-testid={`icon-risk-${item.symbol}`}>{getRiskIcon(item.riskLevel)}</span>
-                      <span className="text-xs text-muted-foreground">{item.riskLevel}</span>
+                      <AalSigilFrame tone={getRiskTone(item.riskLevel)} size={28} data-testid={`icon-risk-${item.symbol}`}>
+                        <span style={{ fontSize: "10px" }}>{item.riskLevel[0].toUpperCase()}</span>
+                      </AalSigilFrame>
                     </div>
                   </div>
-                </div>
+                </AalCard>
               ))
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </AalCard>
   );
 }
 
 export default function DynamicWatchlist() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("growth");
+  const [activeTab, setActiveTab] = useState<"growth" | "short">("growth");
 
   // Fetch all watchlists for authenticated user
   const { data: watchlistsData, isLoading, error } = useQuery({
@@ -215,7 +224,6 @@ export default function DynamicWatchlist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/watchlists"] });
-      // Also invalidate items queries
       queryClient.invalidateQueries({ queryKey: ["/api/watchlists", undefined, "items"] });
     }
   });
@@ -232,7 +240,6 @@ export default function DynamicWatchlist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/watchlists"] });
-      // Also invalidate items queries
       queryClient.invalidateQueries({ queryKey: ["/api/watchlists", undefined, "items"] });
     }
   });
@@ -245,139 +252,154 @@ export default function DynamicWatchlist() {
     refreshWatchlistMutation.mutate(watchlistId);
   };
 
-
   if (isLoading) {
     return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center space-x-2">
-            <RefreshCw className="h-4 w-4 animate-spin" />
-            <span>Loading watchlists...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <AalCard>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "48px" }}>
+          <RefreshCw size={16} className="animate-spin" />
+          <span className="aal-body">Loading watchlists...</span>
+        </div>
+      </AalCard>
     );
   }
 
   if (error) {
     return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center space-x-2 text-destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <span>Failed to load watchlists</span>
-          </div>
-        </CardContent>
-      </Card>
+      <AalCard>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "48px", color: "var(--aal-color-magenta)" }}>
+          <AlertTriangle size={16} />
+          <span>Failed to load watchlists</span>
+        </div>
+      </AalCard>
     );
   }
 
   return (
-    <div className="w-full space-y-6" data-testid="dynamic-watchlist">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold" data-testid="text-watchlist-title">Dynamic Market Watchlists</h2>
-          <p className="text-muted-foreground" data-testid="text-watchlist-subtitle">
-            AI-powered analysis of growth opportunities and short candidates
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => handleGenerateWatchlist("growth")}
-            disabled={generateWatchlistMutation.isPending}
-            data-testid="button-generate-growth"
-          >
-            {generateWatchlistMutation.isPending ? (
-              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <TrendingUp className="h-4 w-4 mr-2" />
-            )}
-            Generate Growth
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleGenerateWatchlist("short")}
-            disabled={generateWatchlistMutation.isPending}
-            data-testid="button-generate-short"
-          >
-            {generateWatchlistMutation.isPending ? (
-              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <TrendingDown className="h-4 w-4 mr-2" />
-            )}
-            Generate Short
-          </Button>
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2" data-testid="tabs-watchlist-types">
-          <TabsTrigger value="growth" data-testid="tab-growth">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Growth Opportunities
-          </TabsTrigger>
-          <TabsTrigger value="short" data-testid="tab-short">
-            <TrendingDown className="h-4 w-4 mr-2" />
-            Short Candidates
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="growth" className="space-y-4">
-          {growthWatchlist ? (
-            <WatchlistCard
-              watchlistData={{
-                watchlist: growthWatchlist,
-                items: growthItems
-              }}
-              onRefresh={() => handleRefreshWatchlist(growthWatchlist.id)}
-            />
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No Growth Watchlist Yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Generate a growth opportunities watchlist to see the most promising equity and FX opportunities.
+    <div className="aal-stack-lg" data-testid="dynamic-watchlist">
+      <AalCard>
+        <div className="aal-stack-md">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <AalSigilFrame tone="cyan" size={48}>
+                <TrendingUp size={24} />
+              </AalSigilFrame>
+              <div>
+                <h2 className="aal-heading-md" data-testid="text-watchlist-title">Dynamic Market Watchlists</h2>
+                <p className="aal-body" style={{ fontSize: "13px", marginTop: "4px" }} data-testid="text-watchlist-subtitle">
+                  AI-powered analysis of growth opportunities and short candidates
                 </p>
-                <Button onClick={() => handleGenerateWatchlist("growth")} data-testid="button-create-growth">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Create Growth Watchlist
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <AalButton
+                onClick={() => handleGenerateWatchlist("growth")}
+                disabled={generateWatchlistMutation.isPending}
+                variant="primary"
+                leftIcon={generateWatchlistMutation.isPending ? <RefreshCw size={14} className="animate-spin" /> : <TrendingUp size={14} />}
+                data-testid="button-generate-growth"
+              >
+                Generate Growth
+              </AalButton>
+              <AalButton
+                onClick={() => handleGenerateWatchlist("short")}
+                disabled={generateWatchlistMutation.isPending}
+                variant="secondary"
+                leftIcon={generateWatchlistMutation.isPending ? <RefreshCw size={14} className="animate-spin" /> : <TrendingDown size={14} />}
+                data-testid="button-generate-short"
+              >
+                Generate Short
+              </AalButton>
+            </div>
+          </div>
 
-        <TabsContent value="short" className="space-y-4">
-          {shortWatchlist ? (
-            <WatchlistCard
-              watchlistData={{
-                watchlist: shortWatchlist,
-                items: shortItems
-              }}
-              onRefresh={() => handleRefreshWatchlist(shortWatchlist.id)}
-            />
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <TrendingDown className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No Short Watchlist Yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Generate a short candidates watchlist to identify potential short opportunities.
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleGenerateWatchlist("short")}
-                  data-testid="button-create-short"
-                >
-                  <TrendingDown className="h-4 w-4 mr-2" />
-                  Create Short Watchlist
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+          <AalDivider />
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: "8px" }} data-testid="tabs-watchlist-types">
+            <AalButton
+              onClick={() => setActiveTab("growth")}
+              variant={activeTab === "growth" ? "primary" : "ghost"}
+              leftIcon={<TrendingUp size={14} />}
+              data-testid="tab-growth"
+            >
+              Growth Opportunities
+            </AalButton>
+            <AalButton
+              onClick={() => setActiveTab("short")}
+              variant={activeTab === "short" ? "primary" : "ghost"}
+              leftIcon={<TrendingDown size={14} />}
+              data-testid="tab-short"
+            >
+              Short Candidates
+            </AalButton>
+          </div>
+        </div>
+      </AalCard>
+
+      {/* Tab Content */}
+      {activeTab === "growth" && (
+        growthWatchlist ? (
+          <WatchlistCard
+            watchlistData={{
+              watchlist: growthWatchlist,
+              items: growthItems
+            }}
+            onRefresh={() => handleRefreshWatchlist(growthWatchlist.id)}
+          />
+        ) : (
+          <AalCard>
+            <div style={{ textAlign: "center", padding: "48px" }}>
+              <AalSigilFrame tone="cyan" size={56} style={{ margin: "0 auto 16px" }}>
+                <TrendingUp size={28} />
+              </AalSigilFrame>
+              <h3 className="aal-heading-md" style={{ marginBottom: "8px" }}>No Growth Watchlist Yet</h3>
+              <p className="aal-body" style={{ marginBottom: "16px" }}>
+                Generate a growth opportunities watchlist to see the most promising equity and FX opportunities.
+              </p>
+              <AalButton
+                onClick={() => handleGenerateWatchlist("growth")}
+                variant="primary"
+                leftIcon={<TrendingUp size={14} />}
+                data-testid="button-create-growth"
+              >
+                Create Growth Watchlist
+              </AalButton>
+            </div>
+          </AalCard>
+        )
+      )}
+
+      {activeTab === "short" && (
+        shortWatchlist ? (
+          <WatchlistCard
+            watchlistData={{
+              watchlist: shortWatchlist,
+              items: shortItems
+            }}
+            onRefresh={() => handleRefreshWatchlist(shortWatchlist.id)}
+          />
+        ) : (
+          <AalCard>
+            <div style={{ textAlign: "center", padding: "48px" }}>
+              <AalSigilFrame tone="magenta" size={56} style={{ margin: "0 auto 16px" }}>
+                <TrendingDown size={28} />
+              </AalSigilFrame>
+              <h3 className="aal-heading-md" style={{ marginBottom: "8px" }}>No Short Watchlist Yet</h3>
+              <p className="aal-body" style={{ marginBottom: "16px" }}>
+                Generate a short candidates watchlist to identify potential short opportunities.
+              </p>
+              <AalButton
+                onClick={() => handleGenerateWatchlist("short")}
+                variant="secondary"
+                leftIcon={<TrendingDown size={14} />}
+                data-testid="button-create-short"
+              >
+                Create Short Watchlist
+              </AalButton>
+            </div>
+          </AalCard>
+        )
+      )}
     </div>
   );
 }

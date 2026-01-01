@@ -1,0 +1,1 @@
+{"timestamp": "2025-12-26T15:09:29.901237+00:00", "candidate_id": "cand_test_001", "kind": "param_tweak", "source_domain": "AALMANAC", "name": "test_param", "description": "Test parameter tweak", "rationale": "Testing the store", "priority": 5, "proposed_by": "test_script", "prev_hash": "genesis", "step_hash": "378084dbc9c561c4057059fd531d1802a0aff87d911a09ed69fd1e855c1aeb64"}

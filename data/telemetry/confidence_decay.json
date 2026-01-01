@@ -1,0 +1,11 @@
+{
+  "compression.detect": {
+    "confidence_score": 0.0,
+    "error_rate": 1.0,
+    "errors": 1,
+    "invocations": 2,
+    "rejections": 1,
+    "stability": "critical",
+    "successes": 0
+  }
+}

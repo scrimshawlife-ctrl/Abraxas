@@ -1,0 +1,37 @@
+{
+  "paper_id": "ICWSM2025_VISUAL_ELEMENTS",
+  "title": "Epidemiological Modeling of Visual Elements in Digital Information",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Visual content transmission rate"
+    },
+    {
+      "name": "c2",
+      "symbol": "c₂",
+      "value": null,
+      "description": "Media/visual amplification factor"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery/forgetting rate"
+    },
+    {
+      "name": "immune_rate",
+      "symbol": "ρ",
+      "value": null,
+      "description": "Immunity acquisition rate"
+    },
+    {
+      "name": "incubation",
+      "symbol": "σ",
+      "value": null,
+      "description": "Incubation/exposure period"
+    }
+  ],
+  "notes": "Epidemic modeling applied to visual misinformation spread. Visual content treated as contagious element."
+}

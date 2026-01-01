@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "description": "Daily Oracle v2 run configuration",
+  "enabled_domains": [
+    "politics",
+    "media",
+    "technology",
+    "health"
+  ],
+  "sources": {
+    "rss_feeds": [
+      "https://news.example.com/politics/rss",
+      "https://news.example.com/tech/rss"
+    ],
+    "apis": [],
+    "decodo": {
+      "enabled": false,
+      "query_templates": []
+    }
+  },
+  "sample_observations": [
+    {
+      "domain": "politics",
+      "subdomain": "rhetoric",
+      "observations": [
+        "Political discourse shifting toward equality and justice",
+        "Establishment figures facing increased scrutiny"
+      ],
+      "tokens": ["equality", "justice", "establishment", "scrutiny"]
+    },
+    {
+      "domain": "technology",
+      "subdomain": "ai",
+      "observations": [
+        "AI safety concerns dominating tech discussions",
+        "Innovation accelerating in machine learning"
+      ],
+      "tokens": ["ai", "safety", "innovation", "machine learning", "breakthrough"]
+    },
+    {
+      "domain": "health",
+      "subdomain": "public_health",
+      "observations": [
+        "Public health initiatives expanding nationwide",
+        "Wellness programs gaining traction"
+      ],
+      "tokens": ["public health", "wellness", "prevention", "initiative"]
+    }
+  ],
+  "pipeline_config": {
+    "enable_lifecycle_forecasting": true,
+    "enable_resonance_detection": true,
+    "enable_weather_trajectories": true,
+    "confidence_threshold": 0.5
+  },
+  "output_config": {
+    "save_to_ledger": true,
+    "generate_intel": true,
+    "generate_report": true,
+    "retention_days": 90
+  }
+}

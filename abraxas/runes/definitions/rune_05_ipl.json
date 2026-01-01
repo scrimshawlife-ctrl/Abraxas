@@ -1,0 +1,42 @@
+{
+  "id": "ϟ₅",
+  "name": "Intermittent Phase-Lock",
+  "short_name": "IPL",
+  "layer": "Core",
+  "motto": "Resonance appears in windows, not streams.",
+  "function": "Enforces bounded temporal windows for resonance with mandatory refractory periods. Prevents continuous phase-lock and ensures rhythmic engagement.",
+  "inputs": [
+    "phase_signal",
+    "window_boundaries",
+    "refractory_period",
+    "lock_candidates"
+  ],
+  "outputs": [
+    "lock_status",
+    "window_timing",
+    "refractory_countdown"
+  ],
+  "constraints": [
+    "bounded_lock_windows",
+    "enforced_refractory_periods",
+    "no_continuous_streaming"
+  ],
+  "hooks": [
+    "window_detection",
+    "phase_lock_engagement",
+    "refractory_enforcement"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "EEG phase synchronization (pilot) framing",
+    "Rhythmic engagement theory",
+    "AAL temporal boundary doctrine"
+  ],
+  "canonical_statement": "Resonance occurs in bounded windows with enforced refractory periods.",
+  "introduced_version": "1.4.0",
+  "metadata": {
+    "first_deployed": "2025-Q1",
+    "stability_class": "high",
+    "integration_priority": "high"
+  }
+}

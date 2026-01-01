@@ -1,0 +1,130 @@
+{
+  "generated": "2025-12-21T07:55:00Z",
+  "registry_type": "abx_runes",
+  "runes": [
+    {
+      "capability": "rune:rfa",
+      "definition_path": "abraxas/runes/definitions/rune_01_rfa.json",
+      "inputs": [
+        "semantic_field",
+        "context_vector",
+        "anchor_candidates"
+      ],
+      "name": "Resonant Field Anchor",
+      "operator_path": "abraxas.runes.operators.rfa:apply_rfa",
+      "outputs": [
+        "anchored_field",
+        "resonance_strength",
+        "stability_metric"
+      ],
+      "rune_id": "\u03df\u2081",
+      "short_name": "RFA",
+      "sigil_path": "abraxas/runes/sigils/rune1_RFA.svg",
+      "version": "1.0.0"
+    },
+    {
+      "capability": "rune:tam",
+      "definition_path": "abraxas/runes/definitions/rune_02_tam.json",
+      "inputs": [
+        "traversal_path",
+        "node_sequence",
+        "context_history"
+      ],
+      "name": "Traversal-as-Meaning",
+      "operator_path": "abraxas.runes.operators.tam:apply_tam",
+      "outputs": [
+        "emergent_meaning",
+        "path_signature",
+        "semantic_trace"
+      ],
+      "rune_id": "\u03df\u2082",
+      "short_name": "TAM",
+      "sigil_path": "abraxas/runes/sigils/rune2_TAM.svg",
+      "version": "1.0.0"
+    },
+    {
+      "capability": "rune:wsss",
+      "definition_path": "abraxas/runes/definitions/rune_03_wsss.json",
+      "inputs": [
+        "signal_amplitude",
+        "structural_coherence",
+        "pattern_matrix"
+      ],
+      "name": "Weak Signal \u00b7 Strong Structure",
+      "operator_path": "abraxas.runes.operators.wsss:apply_wsss",
+      "outputs": [
+        "structure_score",
+        "signal_quality",
+        "validation_result"
+      ],
+      "rune_id": "\u03df\u2083",
+      "short_name": "WSSS",
+      "sigil_path": "abraxas/runes/sigils/rune3_WSSS.svg",
+      "version": "1.0.0"
+    },
+    {
+      "capability": "rune:sds",
+      "definition_path": "abraxas/runes/definitions/rune_04_sds.json",
+      "inputs": [
+        "receiver_state",
+        "phase_alignment",
+        "incoming_signal",
+        "susceptibility_threshold"
+      ],
+      "name": "State-Dependent Susceptibility",
+      "operator_path": "abraxas.runes.operators.sds:apply_sds",
+      "outputs": [
+        "gated_signal",
+        "reception_status",
+        "state_classification"
+      ],
+      "rune_id": "\u03df\u2084",
+      "short_name": "SDS",
+      "sigil_path": "abraxas/runes/sigils/rune4_SDS.svg",
+      "version": "1.4.0"
+    },
+    {
+      "capability": "rune:ipl",
+      "definition_path": "abraxas/runes/definitions/rune_05_ipl.json",
+      "inputs": [
+        "phase_signal",
+        "window_boundaries",
+        "refractory_period",
+        "lock_candidates"
+      ],
+      "name": "Intermittent Phase-Lock",
+      "operator_path": "abraxas.runes.operators.ipl:apply_ipl",
+      "outputs": [
+        "lock_status",
+        "window_timing",
+        "refractory_countdown"
+      ],
+      "rune_id": "\u03df\u2085",
+      "short_name": "IPL",
+      "sigil_path": "abraxas/runes/sigils/rune5_IPL.svg",
+      "version": "1.4.0"
+    },
+    {
+      "capability": "rune:add",
+      "definition_path": "abraxas/runes/definitions/rune_06_add.json",
+      "inputs": [
+        "anchor_position",
+        "historical_positions",
+        "drift_threshold",
+        "entropy_metric"
+      ],
+      "name": "Anchor Drift Detector",
+      "operator_path": "abraxas.runes.operators.add:apply_add",
+      "outputs": [
+        "drift_magnitude",
+        "drift_log_entry",
+        "recenter_signal"
+      ],
+      "rune_id": "\u03df\u2086",
+      "short_name": "ADD",
+      "sigil_path": "abraxas/runes/sigils/rune6_ADD.svg",
+      "version": "1.4.0"
+    }
+  ],
+  "version": "1.4.0"
+}

@@ -1,0 +1,59 @@
+{
+  "provenance": {
+    "metric_id": "MEDIA_COMPETITION_MISINFO_PRESSURE",
+    "description": "Measures misinformation pressure from competing media actors in network settings. Accounts for strategic deployment, community structure, and conformity dynamics.",
+    "units": "dimensionless",
+    "valid_range": {
+      "min": 0.0,
+      "max": 1.0
+    },
+    "dependencies": [],
+    "compute_fn": "abraxas.metrics.compute.media_competition_misinfo_pressure",
+    "input_sources": [
+      {
+        "source": "simulation_outcome_ledger",
+        "hash": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234abcd"
+      },
+      {
+        "source": "network_topology_snapshots",
+        "hash": "b2c3d4e5f6789012345678901234567890123456789012345678901234abcde"
+      },
+      {
+        "source": "media_actor_strategy_logs",
+        "hash": "c3d4e5f6789012345678901234567890123456789012345678901234abcdef"
+      }
+    ]
+  },
+  "falsifiability": {
+    "predictions_influenced": [
+      "public_opinion_belief_state",
+      "misinformation_strategy_mix",
+      "media_actor_credibility"
+    ],
+    "disconfirmation_criteria": {
+      "forecast_error_increase": "If including this metric increases forecast error by >5% over 3 consecutive evaluation windows",
+      "redundancy_threshold_breach": "If Pearson correlation with any canonical metric exceeds 0.85",
+      "ablation_failure": "If removing this metric does not degrade any objective score by >1%",
+      "stabilization_failure": "If performance variance exceeds 0.05 across stabilization window"
+    },
+    "evaluation_window": 10
+  },
+  "status": "PROPOSED",
+  "required_rune_bindings": [
+    "RUNE_MEDIA_COMPETITION_MISINFO"
+  ],
+  "target_sim_variables": [
+    "public_opinion_belief_state",
+    "media_framing_context",
+    "media_actor_credibility",
+    "misinformation_strategy_mix",
+    "social_network_graph",
+    "community_assignment",
+    "conformity_pressure_field",
+    "state_over_time_correlations"
+  ],
+  "version": "0.1.0",
+  "created": "2025-12-26T00:00:00Z",
+  "last_updated": "2025-12-26T00:00:00Z",
+  "evaluation_history": []
+}

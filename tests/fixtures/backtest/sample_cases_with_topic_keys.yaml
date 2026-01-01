@@ -1,0 +1,41 @@
+cases:
+  - case_id: "case_component_deepfake_h5y"
+    created_at: "2025-12-26T00:00:00Z"
+    description: "Component eval case for deepfake pollution"
+    forecast_ref:
+      run_id: "run_20251226_000000"
+      artifact_path: "out/runs/run_20251226_000000/reports/enterprise.json"
+      tier: "enterprise"
+    evaluation_window:
+      start_ts: "2025-12-20T12:00:00Z"
+      end_ts: "2025-12-27T12:00:00Z"
+    triggers:
+      any_of:
+        - kind: "index_threshold"
+          params:
+            index: "SSI"
+            gte: 0.7
+    falsifiers:
+      any_of: []
+    guardrails:
+      min_signal_count: 0
+      min_evidence_completeness: 0.0
+      max_integrity_risk: 1.0
+    scoring:
+      type: "binary"
+      weights:
+        trigger: 1.0
+        falsifier: 1.0
+        abstain: 0.2
+    provenance:
+      required_ledgers: []
+      required_sources: []
+    horizon: "H5Y"
+    segment: "core"
+    narrative: "N1_primary"
+    topic_key: "deepfake_pollution"
+    domain: "FORECAST"
+    forecast_delta_summary:
+      components:
+        - component_id: "FDR_SYNTH_COST_CURVE"
+          weight: 0.6

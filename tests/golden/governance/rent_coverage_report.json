@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-12-26T00:00:00.000000Z",
+  "total_components": 50,
+  "manifested_components": 40,
+  "coverage_percentage": 0.80,
+  "unmanifested_components": [
+    "abraxas.old_module.deprecated",
+    "abraxas.experimental.sandbox_feature",
+    "abraxas.utils.temp_helper"
+  ],
+  "coverage_by_domain": {
+    "MW": 0.85,
+    "TAU": 0.90,
+    "INTEGRITY": 1.0,
+    "ROUTING": 0.75,
+    "GOVERNANCE": 1.0
+  }
+}

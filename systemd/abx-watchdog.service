@@ -1,0 +1,15 @@
+[Unit]
+Description=Abraxas Watchdog
+After=network.target
+
+[Service]
+Type=simple
+User=orin
+WorkingDirectory=/opt/aal/abraxas_current
+Environment=ABX_PROFILE=orin
+ExecStart=/usr/bin/env python -m abx.cli watchdog --ready-url http://127.0.0.1:8766/readyz --unit aal-bus.service
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

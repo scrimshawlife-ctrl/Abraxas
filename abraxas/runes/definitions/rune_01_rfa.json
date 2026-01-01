@@ -1,0 +1,41 @@
+{
+  "id": "ϟ₁",
+  "name": "Resonant Field Anchor",
+  "short_name": "RFA",
+  "layer": "Core",
+  "motto": "Stabilize meaning by fixing the center, not the path.",
+  "function": "Establishes a stable semantic anchor point that allows meaning to resonate without requiring rigid pathway control. Enables drift-tolerant interpretation.",
+  "inputs": [
+    "semantic_field",
+    "context_vector",
+    "anchor_candidates"
+  ],
+  "outputs": [
+    "anchored_field",
+    "resonance_strength",
+    "stability_metric"
+  ],
+  "constraints": [
+    "anchor_must_remain_invariant",
+    "resonance_bounded_by_field_radius",
+    "no_forced_path_constraints"
+  ],
+  "hooks": [
+    "pre_interpretation",
+    "semantic_stabilization",
+    "meaning_validation"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Star Gauge / Xuanji Tu traversal logic",
+    "Schumann resonance physics corpus",
+    "AAL semantic anchor doctrine"
+  ],
+  "canonical_statement": "Stabilize meaning by fixing the center, not the path.",
+  "introduced_version": "1.0.0",
+  "metadata": {
+    "first_deployed": "2024-Q4",
+    "stability_class": "high",
+    "integration_priority": "critical"
+  }
+}

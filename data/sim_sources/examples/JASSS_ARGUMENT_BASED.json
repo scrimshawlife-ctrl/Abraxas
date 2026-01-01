@@ -1,0 +1,31 @@
+{
+  "paper_id": "JASSS_ARGUMENT_BASED",
+  "title": "Validating Argument-Based Opinion Dynamics with Survey Experiments",
+  "params": [
+    {
+      "name": "w_ij",
+      "symbol": "w_ij",
+      "value": null,
+      "description": "Interpersonal influence weight"
+    },
+    {
+      "name": "epsilon",
+      "symbol": "ε",
+      "value": null,
+      "description": "Confidence threshold"
+    },
+    {
+      "name": "bound",
+      "symbol": null,
+      "value": null,
+      "description": "Bounded confidence interval"
+    },
+    {
+      "name": "memory_depth",
+      "symbol": "d_m",
+      "value": null,
+      "description": "Number of past arguments retained"
+    }
+  ],
+  "notes": "Argument-based opinion dynamics with memory depth for past arguments. Agents store and recall previous exchanges."
+}

@@ -1,0 +1,41 @@
+{
+  "id": "ϟ₃",
+  "name": "Weak Signal · Strong Structure",
+  "short_name": "WSSS",
+  "layer": "Validation",
+  "motto": "Power does not persuade. Structure does.",
+  "function": "Validates that effects scale with structural coherence rather than signal amplitude. Rejects high-amplitude but low-structure noise.",
+  "inputs": [
+    "signal_amplitude",
+    "structural_coherence",
+    "pattern_matrix"
+  ],
+  "outputs": [
+    "structure_score",
+    "signal_quality",
+    "validation_result"
+  ],
+  "constraints": [
+    "effects_scale_with_structure",
+    "amplitude_not_sufficient",
+    "structure_must_be_measurable"
+  ],
+  "hooks": [
+    "signal_validation",
+    "structure_analysis",
+    "noise_rejection"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Signal processing theory",
+    "Structural validation frameworks",
+    "AAL anti-persuasion doctrine"
+  ],
+  "canonical_statement": "Effects must scale with structure, not amplitude.",
+  "introduced_version": "1.0.0",
+  "metadata": {
+    "first_deployed": "2024-Q4",
+    "stability_class": "high",
+    "integration_priority": "high"
+  }
+}

@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { PlayCircle, Sparkles, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  AalCard,
+  AalButton,
+  AalTag,
+  AalDivider,
+  AalSigilFrame,
+} from "../../../aal-ui-kit/src";
 
 interface RitualResult {
   ritual: {
@@ -52,7 +55,7 @@ interface RitualResult {
 export default function RitualRunner() {
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<RitualResult | null>(null);
-  const [watchlists, setWatchlists] = useState({
+  const [watchlists] = useState({
     equities: ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA'],
     fx: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD']
   });
@@ -60,7 +63,7 @@ export default function RitualRunner() {
   const handleRunRitual = async () => {
     setIsRunning(true);
     console.log('Running ritual with watchlists:', watchlists);
-    
+
     // Simulate ritual running
     setTimeout(() => {
       // Mock ritual result
@@ -86,7 +89,7 @@ export default function RitualRunner() {
             ],
             risky: [
               {
-                ticker: "TSLA", 
+                ticker: "TSLA",
                 edge: -0.087,
                 confidence: 0.45,
                 sector: "Automotive",
@@ -107,180 +110,199 @@ export default function RitualRunner() {
           }
         }
       };
-      
+
       setResult(mockResult);
       setIsRunning(false);
     }, 3000);
   };
 
   const ResultCard = ({ item, type }: { item: any; type: 'equity' | 'fx' }) => (
-    <Card className="p-3">
-      <div className="flex justify-between items-start mb-2">
-        <span className="font-semibold text-sm">
-          {type === 'equity' ? item.ticker : item.pair}
-        </span>
-        <div className="flex items-center gap-2">
-          {item.edge >= 0 ? 
-            <TrendingUp className="w-4 h-4 text-green-400" /> : 
-            <TrendingDown className="w-4 h-4 text-red-400" />
-          }
-          <span className={`text-sm font-mono ${item.edge >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {item.edge > 0 ? '+' : ''}{item.edge}
+    <AalCard variant="ghost" padding="12px">
+      <div className="aal-stack-md">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+          <span className="aal-heading-md" style={{ fontSize: "14px" }}>
+            {type === 'equity' ? item.ticker : item.pair}
           </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <AalSigilFrame
+              tone={item.edge >= 0 ? "cyan" : "magenta"}
+              size={24}
+            >
+              {item.edge >= 0 ?
+                <TrendingUp size={12} /> :
+                <TrendingDown size={12} />
+              }
+            </AalSigilFrame>
+            <span
+              className="aal-body"
+              style={{
+                fontFamily: "monospace",
+                color: item.edge >= 0 ? "#00D4FF" : "#FF3EF6",
+                fontSize: "13px"
+              }}
+            >
+              {item.edge > 0 ? '+' : ''}{item.edge.toFixed(3)}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <AalTag>{(item.confidence * 100).toFixed(0)}% conf</AalTag>
+          {type === 'equity' && (
+            <span className="aal-body" style={{ fontSize: "12px" }}>{item.sector}</span>
+          )}
+        </div>
+
+        <div className="aal-row-sm">
+          {item.rationale.map((reason: string, idx: number) => (
+            <span
+              key={idx}
+              style={{
+                fontSize: "11px",
+                padding: "4px 8px",
+                background: "rgba(0, 212, 255, 0.1)",
+                color: "var(--aal-color-muted)",
+                borderRadius: "4px"
+              }}
+            >
+              {reason}
+            </span>
+          ))}
         </div>
       </div>
-      
-      <div className="flex justify-between items-center mb-2">
-        <Badge variant="secondary" className="text-xs">
-          {item.confidence}% conf
-        </Badge>
-        {type === 'equity' && (
-          <span className="text-xs text-muted-foreground">{item.sector}</span>
-        )}
-      </div>
-      
-      <div className="flex flex-wrap gap-1">
-        {item.rationale.map((reason: string, idx: number) => (
-          <span 
-            key={idx}
-            className="text-xs px-2 py-1 bg-accent/20 text-accent rounded"
-          >
-            {reason}
-          </span>
-        ))}
-      </div>
-    </Card>
+    </AalCard>
   );
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-primary">Ritual Chamber</h2>
-            <p className="text-sm text-muted-foreground">
-              Channel the market forces through ancient runes
-            </p>
-          </div>
-          <Button 
-            onClick={handleRunRitual}
-            disabled={isRunning}
-            className="flex items-center gap-2"
-            data-testid="button-run-ritual"
-          >
-            {isRunning ? (
-              <>
-                <Sparkles className="w-4 h-4 animate-spin" />
-                Channeling...
-              </>
-            ) : (
-              <>
-                <PlayCircle className="w-4 h-4" />
-                Begin Ritual
-              </>
-            )}
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold mb-3 text-primary">Equity Watchlist</h3>
-            <div className="flex flex-wrap gap-2">
-              {watchlists.equities.map((ticker) => (
-                <Badge key={ticker} variant="outline" className="text-xs">
-                  {ticker}
-                </Badge>
-              ))}
+    <div className="aal-stack-lg">
+      <AalCard>
+        <div className="aal-stack-md">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+            <div>
+              <h2 className="aal-heading-md">Ritual Chamber</h2>
+              <p className="aal-body" style={{ fontSize: "13px", marginTop: "4px" }}>
+                Channel the market forces through ancient runes
+              </p>
             </div>
+            <AalButton
+              onClick={handleRunRitual}
+              disabled={isRunning}
+              variant="primary"
+              leftIcon={isRunning ? <Sparkles size={16} className={isRunning ? "animate-spin" : ""} /> : <PlayCircle size={16} />}
+              data-testid="button-run-ritual"
+            >
+              {isRunning ? "Channeling..." : "Begin Ritual"}
+            </AalButton>
           </div>
-          
-          <div>
-            <h3 className="font-semibold mb-3 text-primary">FX Pairs</h3>
-            <div className="flex flex-wrap gap-2">
-              {watchlists.fx.map((pair) => (
-                <Badge key={pair} variant="outline" className="text-xs">
-                  {pair}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Card>
 
-      {result && (
-        <Card className="p-6">
-          <h3 className="text-lg font-bold mb-4 text-primary">Ritual Results</h3>
-          
-          <div className="mb-6">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>Date: {result.ritual.date}</span>
-              <span>Seed: {result.ritual.seed}</span>
-              <div className="flex gap-2">
-                {result.ritual.runes.map((rune) => (
-                  <Badge key={rune.id} style={{ backgroundColor: rune.color + '20', color: rune.color }}>
-                    {rune.name}
-                  </Badge>
+          <AalDivider />
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+            <div className="aal-stack-md">
+              <h3 className="aal-heading-md" style={{ fontSize: "14px" }}>Equity Watchlist</h3>
+              <div className="aal-row-sm">
+                {watchlists.equities.map((ticker) => (
+                  <AalTag key={ticker}>{ticker}</AalTag>
+                ))}
+              </div>
+            </div>
+
+            <div className="aal-stack-md">
+              <h3 className="aal-heading-md" style={{ fontSize: "14px" }}>FX Pairs</h3>
+              <div className="aal-row-sm">
+                {watchlists.fx.map((pair) => (
+                  <AalTag key={pair}>{pair}</AalTag>
                 ))}
               </div>
             </div>
           </div>
+        </div>
+      </AalCard>
 
-          <Separator className="mb-6" />
+      {result && (
+        <AalCard>
+          <div className="aal-stack-md">
+            <h3 className="aal-heading-md">Ritual Results</h3>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold mb-3">Equities</h4>
-              
-              {result.results.equities.conservative.length > 0 && (
-                <div className="mb-4">
-                  <h5 className="text-sm text-green-400 mb-2">Conservative</h5>
-                  <div className="space-y-2">
-                    {result.results.equities.conservative.map((item, idx) => (
-                      <ResultCard key={idx} item={item} type="equity" />
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {result.results.equities.risky.length > 0 && (
-                <div>
-                  <h5 className="text-sm text-amber-400 mb-2">High Risk</h5>
-                  <div className="space-y-2">
-                    {result.results.equities.risky.map((item, idx) => (
-                      <ResultCard key={idx} item={item} type="equity" />
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="aal-row-md" style={{ flexWrap: "wrap" }}>
+              <span className="aal-body" style={{ fontSize: "13px" }}>
+                Date: {result.ritual.date}
+              </span>
+              <span className="aal-body" style={{ fontSize: "13px" }}>
+                Seed: {result.ritual.seed}
+              </span>
+              <div className="aal-row-sm">
+                {result.ritual.runes.map((rune) => (
+                  <AalTag key={rune.id}>{rune.name}</AalTag>
+                ))}
+              </div>
             </div>
 
-            <div>
-              <h4 className="font-semibold mb-3">Foreign Exchange</h4>
-              
-              {result.results.fx.conservative.length > 0 && (
-                <div className="mb-4">
-                  <h5 className="text-sm text-green-400 mb-2">Conservative</h5>
-                  <div className="space-y-2">
-                    {result.results.fx.conservative.map((item, idx) => (
-                      <ResultCard key={idx} item={item} type="fx" />
-                    ))}
+            <AalDivider />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+              <div className="aal-stack-md">
+                <h4 className="aal-heading-md" style={{ fontSize: "16px" }}>Equities</h4>
+
+                {result.results.equities.conservative.length > 0 && (
+                  <div className="aal-stack-md">
+                    <h5 className="aal-body" style={{ color: "#00D4FF", fontSize: "13px" }}>
+                      Conservative
+                    </h5>
+                    <div className="aal-stack-md">
+                      {result.results.equities.conservative.map((item, idx) => (
+                        <ResultCard key={idx} item={item} type="equity" />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {result.results.fx.risky.length > 0 && (
-                <div>
-                  <h5 className="text-sm text-amber-400 mb-2">High Risk</h5>
-                  <div className="space-y-2">
-                    {result.results.fx.risky.map((item, idx) => (
-                      <ResultCard key={idx} item={item} type="fx" />
-                    ))}
+                )}
+
+                {result.results.equities.risky.length > 0 && (
+                  <div className="aal-stack-md">
+                    <h5 className="aal-body" style={{ color: "#F8FF59", fontSize: "13px" }}>
+                      High Risk
+                    </h5>
+                    <div className="aal-stack-md">
+                      {result.results.equities.risky.map((item, idx) => (
+                        <ResultCard key={idx} item={item} type="equity" />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="aal-stack-md">
+                <h4 className="aal-heading-md" style={{ fontSize: "16px" }}>Foreign Exchange</h4>
+
+                {result.results.fx.conservative.length > 0 && (
+                  <div className="aal-stack-md">
+                    <h5 className="aal-body" style={{ color: "#00D4FF", fontSize: "13px" }}>
+                      Conservative
+                    </h5>
+                    <div className="aal-stack-md">
+                      {result.results.fx.conservative.map((item, idx) => (
+                        <ResultCard key={idx} item={item} type="fx" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {result.results.fx.risky.length > 0 && (
+                  <div className="aal-stack-md">
+                    <h5 className="aal-body" style={{ color: "#F8FF59", fontSize: "13px" }}>
+                      High Risk
+                    </h5>
+                    <div className="aal-stack-md">
+                      {result.results.fx.risky.map((item, idx) => (
+                        <ResultCard key={idx} item={item} type="fx" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </Card>
+        </AalCard>
       )}
     </div>
   );

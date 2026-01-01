@@ -1,0 +1,27 @@
+portfolios:
+  - portfolio_id: "short_term_core"
+    horizons: ["H72H", "H30D"]
+    segments: ["core"]
+    narratives: ["N1_primary", "N2_counter"]
+    case_selectors:
+      - kind: "has_forecast_branch_ref"
+      - kind: "topic_key_in"
+        params: {topic_keys: ["propaganda_pressure", "deepfake_pollution"]}
+    protected: true
+
+  - portfolio_id: "long_horizon_integrity"
+    horizons: ["H1Y", "H5Y"]
+    segments: ["core"]
+    narratives: ["N1_primary", "N2_counter"]
+    case_selectors:
+      - kind: "has_regime_outcome_ref"
+    protected: true
+
+  - portfolio_id: "slang_term_emergence"
+    horizons: ["H72H", "H30D", "H90D"]
+    segments: ["core"]
+    narratives: ["N2_counter"]
+    case_selectors:
+      - kind: "trigger_kind_in"
+        params: {kinds: ["term_seen"]}
+    protected: false

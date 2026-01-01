@@ -1,0 +1,31 @@
+{
+  "paper_id": "HAWAII_SIR_SEIZ",
+  "title": "Comparing SIR and SEIZ Models for COVID-19 Diffusion",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Transmission rate"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    },
+    {
+      "name": "skeptic_rate",
+      "symbol": "α_s",
+      "value": null,
+      "description": "Skeptic → Exposed transition rate"
+    },
+    {
+      "name": "incubation",
+      "symbol": "σ",
+      "value": null,
+      "description": "Incubation period (SEIZ model)"
+    }
+  ],
+  "notes": "Comparison of SIR and SEIZ (Skeptic-Exposed-Infected-Zealot) models for information diffusion."
+}

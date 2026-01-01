@@ -1,0 +1,62 @@
+# Rent Manifest: Candidate Generation v0.1
+
+id: "candidate_generation_v0_1"
+kind: "metric"
+version: "0.1.0"
+
+description: |
+  Rule-based generation of metric/operator/param_tweak candidates
+  from AALMANAC, MW, Integrity, and Backtest deltas.
+
+improves:
+  - "metric_adaptability"
+  - "failure_learning"
+  - "parameter_optimization"
+
+measurable_by:
+  - "candidates_proposed_count"
+  - "candidate_diversity"  # Different kinds/sources
+  - "sandbox_pass_rate"
+
+rent_claim:
+  complexity:
+    loc: 450  # candidate_generator.py + schema.py
+    cognitive: 5  # Moderate: rule-based logic per domain
+    dependencies: ["AALMANAC", "MW", "Integrity", "Backtest"]
+
+  thresholds:
+    # Conservative start
+    candidate_ledger_exists: true
+    max_candidates_per_run: 10
+    max_per_source: 4
+    all_candidates_have_rationale: true
+
+  cost_model:
+    time_ms_expected: 20  # Per generation run
+    memory_kb_expected: 200  # Per candidate set
+
+proof:
+  tests:
+    - "tests/test_evolution_system.py::test_candidate_generator_aalmanac"
+    - "tests/test_evolution_system.py::test_candidate_generator_mw"
+    - "tests/test_evolution_system.py::test_candidate_generator_integrity"
+    - "tests/test_evolution_system.py::test_candidate_max_limits"
+
+  ledgers:
+    - "out/evolution_ledgers/candidates.jsonl"
+
+  documentation:
+    - "docs/specs/metric_evolution_v0_1.md"
+
+provenance:
+  created_at: "2025-12-26"
+  author: "Abraxas Core Team"
+  rationale: |
+    Deterministic rule-based candidate generation from domain deltas.
+    Each candidate must provide rationale and expected improvement.
+    Bounded by strict limits to prevent metric sprawl.
+
+  alternatives_considered:
+    - "ML-based generation (rejected: non-deterministic)"
+    - "Manual only (rejected: too slow for iteration)"
+    - "Unlimited candidates (rejected: metric sprawl risk)"

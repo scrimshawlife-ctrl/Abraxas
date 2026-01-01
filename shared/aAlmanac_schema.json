@@ -1,0 +1,65 @@
+{
+  "schema_version": "0.1",
+  "name": "AAlmanacEvent",
+  "append_only": true,
+  "primary_key": "almanac_event_id",
+  "fields": {
+    "almanac_event_id": { "type": "string", "required": true, "notes": "UUID or hash-based id" },
+    "timestamp_utc": { "type": "string", "required": true, "notes": "ISO-8601 UTC" },
+    "source": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "source_type": { "type": "string", "required": true, "notes": "e.g., decodo, file, manual, api" },
+        "source_ref": { "type": "string", "required": false },
+        "source_sha256": { "type": "string", "required": true }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "raw_text": { "type": "string", "required": false },
+        "normalized_text": { "type": "string", "required": false, "notes": "If present, MUST be logged as a transform, not a censor." },
+        "language": { "type": "string", "required": false }
+      }
+    },
+    "detections": {
+      "type": "array",
+      "required": false,
+      "items": {
+        "type": "object",
+        "fields": {
+          "rune_id": { "type": "string", "required": true },
+          "labels": { "type": "array", "required": false, "items": { "type": "string" } },
+          "metrics": { "type": "object", "required": false, "notes": "STI/CP/IPS + others; new metrics start shadow-only." },
+          "confidence": { "type": "number", "required": false, "notes": "0..1" }
+        }
+      }
+    },
+    "decay_model": {
+      "type": "object",
+      "required": false,
+      "fields": {
+        "half_life_hours": { "type": "number", "required": false },
+        "decay_curve": { "type": "string", "required": false, "notes": "e.g., exponential" }
+      },
+      "notes": "Decay affects interpretation layers, not stored record."
+    },
+    "provenance_bundle": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "repo_commit": { "type": "string", "required": false },
+        "config_sha256": { "type": "string", "required": true },
+        "runtime_fingerprint": { "type": "string", "required": true, "notes": "python/node versions + platform" },
+        "seed": { "type": "string", "required": false }
+      }
+    }
+  },
+  "invariants": [
+    "Records are immutable once written (append-only).",
+    "Every record MUST include source_sha256 and config_sha256.",
+    "Detection modules MUST NOT suppress inputs/outputs; only annotate."
+  ]
+}

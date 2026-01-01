@@ -1,0 +1,11 @@
+{
+  "$id": "schema/v2/v2_common_enums.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "regime": { "type": "string", "enum": ["NEWS_CYCLE", "PLATFORM_TREND", "SUBCULTURE", "INSTITUTIONAL"] },
+    "mode": { "type": "string", "enum": ["SNAPSHOT", "ANALYST", "RITUAL"] },
+    "interaction_type": { "type": "string", "enum": ["CO_EMERGENCE", "SUBSTITUTION", "FRAMING_PAIR"] },
+    "signal_type": { "type": "string", "enum": ["POSITIVE", "NEGATIVE"] }
+  }
+}

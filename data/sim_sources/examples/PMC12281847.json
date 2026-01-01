@@ -1,0 +1,25 @@
+{
+  "paper_id": "PMC12281847",
+  "title": "A discrete SIR epidemic model incorporating media impact",
+  "params": [
+    {
+      "name": "beta",
+      "symbol": "β",
+      "value": null,
+      "description": "Transmission rate"
+    },
+    {
+      "name": "c2",
+      "symbol": "c₂",
+      "value": null,
+      "description": "Media impact parameter"
+    },
+    {
+      "name": "gamma",
+      "symbol": "γ",
+      "value": null,
+      "description": "Recovery rate"
+    }
+  ],
+  "notes": "SIR model with media impact (c2 parameter). Media impact modulates transmission awareness."
+}

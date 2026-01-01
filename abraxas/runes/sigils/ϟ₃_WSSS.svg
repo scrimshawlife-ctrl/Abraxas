@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<g id="sigil">
+<circle cx="256.000" cy="256.000" r="203.996" stroke="#000" stroke-width="4" fill="none"/>
+<circle cx="256.000" cy="256.000" r="73.544" stroke="#000" stroke-width="3" fill="none"/>
+<circle cx="256.000" cy="256.000" r="6.000" stroke="#000" stroke-width="0" fill="#000"/>
+<path d="M 70.004 70.004 L 441.996 70.004 L 441.996 441.996 L 70.004 441.996 Z" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 107.203 358.298 L 132.002 358.298 L 156.802 358.298 L 181.601 358.298 L 206.401 358.298 L 231.200 358.298 L 256.000 358.298 L 280.800 358.298 L 305.599 358.298 L 330.399 358.298 L 355.198 358.298 L 379.998 358.298 L 404.797 358.298" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

@@ -37,11 +37,12 @@ export function getTodayRunes() {
   return selected;
 }
 
-export function runRitual() {
+export function runRitual(runId) {
   const date = new Date().toISOString().slice(0, 10);
-  const seed = Date.now() + Math.floor(Math.random() * 100000);
+  const seedMaterial = runId ? `${date}:${runId}` : date;
+  const seed = hashString(seedMaterial);
   const runes = getTodayRunes();
-  
+
   return { date, seed, runes };
 }
 

@@ -1,0 +1,60 @@
+version: "0.1"
+rules:
+  - when:
+      gap_kind: "STRUCTURAL_GAP"
+      horizon_in: ["H1Y", "H2Y", "H5Y"]
+      domain_in: ["INTEGRITY", "FORECAST"]
+    recommend:
+      - kind: "ONLINE_FETCH"
+        method: "osh_allowlist_pull"
+        selector:
+          vector_node_ids: ["ai_deepfake_policy"]
+        cadence_hint: "weekly"
+        expected_impact_template:
+          metric: "coverage_rate"
+          delta: 0.02
+          portfolio: "long_horizon_integrity"
+      - kind: "OFFLINE_REQUEST"
+        method: "user_upload"
+        selector:
+          requested_items:
+            - name: "Policy/standards PDF or notes"
+              description: "Docs describing verification standards, enforcement changes, or platform policy."
+          file_types: ["pdf", "txt", "md"]
+          redaction_notes: "Remove personal identifiers; keep dates + orgs if possible."
+        cadence_hint: "manual"
+        expected_impact_template:
+          metric: "coverage_rate"
+          delta: 0.01
+          portfolio: "long_horizon_integrity"
+
+  - when:
+      gap_kind: "INTEGRITY_GAP"
+      horizon_in: ["H72H", "H30D", "H90D"]
+    recommend:
+      - kind: "ONLINE_FETCH"
+        method: "osh_allowlist_pull"
+        selector:
+          vector_node_ids: ["ai_deepfake_policy"]
+        cadence_hint: "daily"
+        expected_impact_template:
+          metric: "calibration_error"
+          delta: -0.01
+          portfolio: "short_term_core"
+
+  - when:
+      gap_kind: "COVERAGE_GAP"
+      domain_in: ["AALMANAC"]
+    recommend:
+      - kind: "OFFLINE_REQUEST"
+        method: "user_questionnaire"
+        selector:
+          questions:
+            - "What communities/platforms are you observing for slang emergence this week?"
+            - "Paste 10–50 example posts (redacted) that represent the pattern."
+          output_format: "txt"
+        cadence_hint: "manual"
+        expected_impact_template:
+          metric: "brier"
+          delta: -0.003
+          portfolio: "slang_term_emergence"

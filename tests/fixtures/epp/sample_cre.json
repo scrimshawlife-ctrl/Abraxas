@@ -1,0 +1,8 @@
+{
+  "run_id": "run123",
+  "portfolio_id": "portfolio_a",
+  "unit_sensitivity": [
+    {"unit_id": "unit_alpha", "delta_magnitude": 0.9},
+    {"unit_id": "unit_beta", "delta_magnitude": 0.4}
+  ]
+}

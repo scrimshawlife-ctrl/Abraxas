@@ -1,0 +1,31 @@
+{
+  "scope": [
+    "abraxas/runes/operators"
+  ],
+  "stubs": [
+    {
+      "file": "abraxas/runes/operators/rfa.py",
+      "marker": "Operator RFA not implemented yet"
+    },
+    {
+      "file": "abraxas/runes/operators/tam.py",
+      "marker": "Operator TAM not implemented yet"
+    },
+    {
+      "file": "abraxas/runes/operators/wsss.py",
+      "marker": "Operator WSSS not implemented yet"
+    },
+    {
+      "file": "abraxas/runes/operators/sds.py",
+      "marker": "Operator SDS not implemented yet"
+    },
+    {
+      "file": "abraxas/runes/operators/ipl.py",
+      "marker": "Operator IPL not implemented yet"
+    },
+    {
+      "file": "abraxas/runes/operators/add.py",
+      "marker": "Operator ADD not implemented yet"
+    }
+  ]
+}

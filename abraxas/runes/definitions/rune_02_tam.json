@@ -1,0 +1,41 @@
+{
+  "id": "ϟ₂",
+  "name": "Traversal-as-Meaning",
+  "short_name": "TAM",
+  "layer": "Core",
+  "motto": "Meaning is the walk, not the map.",
+  "function": "Treats meaning generation as emergent from path traversal rather than static transmission. Prioritizes dynamic interpretation over fixed semantics.",
+  "inputs": [
+    "traversal_path",
+    "node_sequence",
+    "context_history"
+  ],
+  "outputs": [
+    "emergent_meaning",
+    "path_signature",
+    "semantic_trace"
+  ],
+  "constraints": [
+    "meaning_emerges_from_selection",
+    "no_predetermined_endpoints",
+    "path_dependent_interpretation"
+  ],
+  "hooks": [
+    "path_selection",
+    "meaning_emergence",
+    "semantic_synthesis"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Star Gauge / Xuanji Tu traversal logic",
+    "Dynamic semantic graph theory",
+    "AAL traversal doctrine"
+  ],
+  "canonical_statement": "Meaning emerges from path selection, not linear transmission.",
+  "introduced_version": "1.0.0",
+  "metadata": {
+    "first_deployed": "2024-Q4",
+    "stability_class": "high",
+    "integration_priority": "critical"
+  }
+}

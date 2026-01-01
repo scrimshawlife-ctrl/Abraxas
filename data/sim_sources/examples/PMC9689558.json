@@ -1,0 +1,37 @@
+{
+  "paper_id": "PMC9689558",
+  "title": "A Hybrid Opinion Formation and Polarization Model",
+  "params": [
+    {
+      "name": "w_ij",
+      "symbol": "w_ij",
+      "value": null,
+      "description": "Interpersonal influence weight"
+    },
+    {
+      "name": "homophily",
+      "symbol": "h",
+      "value": null,
+      "description": "Homophily parameter"
+    },
+    {
+      "name": "epsilon",
+      "symbol": "ε",
+      "value": null,
+      "description": "Bounded confidence threshold"
+    },
+    {
+      "name": "confidence_threshold",
+      "symbol": "δ_c",
+      "value": null,
+      "description": "Interaction confidence threshold"
+    },
+    {
+      "name": "alpha",
+      "symbol": "α",
+      "value": null,
+      "description": "Adaptation rate"
+    }
+  ],
+  "notes": "Hybrid model combining bounded confidence and social influence mechanisms."
+}

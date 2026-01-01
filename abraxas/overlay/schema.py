@@ -3,11 +3,12 @@
 Defines schemas and validation for overlay operations.
 """
 
+from __future__ import annotations
 from typing import Any, Dict, Optional, Literal
 from dataclasses import dataclass, field
 
-# Phase type definition
-Phase = Literal["OPEN", "ALIGN", "CLEAR", "SEAL", "ASCEND"]
+# Phase type definition - must match kernel phase literals
+Phase = Literal["OPEN", "ALIGN", "ASCEND", "CLEAR", "SEAL"]
 
 
 @dataclass

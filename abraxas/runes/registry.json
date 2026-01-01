@@ -1,0 +1,89 @@
+{
+  "version": "1.4.0",
+  "generated": "2025-12-21T07:55:00Z",
+  "registry_type": "abx_runes",
+  "runes": [
+    {
+      "id": "ϟ₁",
+      "short_name": "RFA",
+      "name": "Resonant Field Anchor",
+      "layer": "Core",
+      "status": "canonical",
+      "introduced_version": "1.0.0",
+      "sigil_path": "abraxas/runes/sigils/rune1_RFA.svg",
+      "definition_path": "abraxas/runes/definitions/rune_01_rfa.json"
+    },
+    {
+      "id": "ϟ₂",
+      "short_name": "TAM",
+      "name": "Traversal-as-Meaning",
+      "layer": "Core",
+      "status": "canonical",
+      "introduced_version": "1.0.0",
+      "sigil_path": "abraxas/runes/sigils/rune2_TAM.svg",
+      "definition_path": "abraxas/runes/definitions/rune_02_tam.json"
+    },
+    {
+      "id": "ϟ₃",
+      "short_name": "WSSS",
+      "name": "Weak Signal · Strong Structure",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.0.0",
+      "sigil_path": "abraxas/runes/sigils/rune3_WSSS.svg",
+      "definition_path": "abraxas/runes/definitions/rune_03_wsss.json"
+    },
+    {
+      "id": "ϟ₄",
+      "short_name": "SDS",
+      "name": "State-Dependent Susceptibility",
+      "layer": "Core",
+      "status": "canonical",
+      "introduced_version": "1.4.0",
+      "sigil_path": "abraxas/runes/sigils/rune4_SDS.svg",
+      "definition_path": "abraxas/runes/definitions/rune_04_sds.json"
+    },
+    {
+      "id": "ϟ₅",
+      "short_name": "IPL",
+      "name": "Intermittent Phase-Lock",
+      "layer": "Core",
+      "status": "canonical",
+      "introduced_version": "1.4.0",
+      "sigil_path": "abraxas/runes/sigils/rune5_IPL.svg",
+      "definition_path": "abraxas/runes/definitions/rune_05_ipl.json"
+    },
+    {
+      "id": "ϟ₆",
+      "short_name": "ADD",
+      "name": "Anchor Drift Detector",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.4.0",
+      "sigil_path": "abraxas/runes/sigils/rune6_ADD.svg",
+      "definition_path": "abraxas/runes/definitions/rune_06_add.json"
+    },
+    {
+      "id": "ϟ₇",
+      "short_name": "SSO",
+      "name": "Shadow Structural Observer",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.4.0",
+      "sigil_path": "abraxas/runes/sigils/rune7_SSO.svg",
+      "definition_path": "abraxas/runes/definitions/rune_07_sso.json"
+    }
+  ],
+  "provenance": {
+    "generator": "scripts/gen_abx_sigils.py",
+    "generator_version": "1.0.0",
+    "deterministic": true,
+    "hash_algorithm": "sha256"
+  },
+  "compliance": {
+    "seed_framework": true,
+    "deterministic_execution": true,
+    "provenance_chain": true,
+    "entropy_bounded": true
+  }
+}

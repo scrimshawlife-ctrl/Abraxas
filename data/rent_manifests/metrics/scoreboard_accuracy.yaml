@@ -1,0 +1,64 @@
+# Rent Manifest: Scoreboard Accuracy Tracking v0.1
+
+id: "scoreboard_accuracy_v0_1"
+kind: "metric"
+version: "0.1.0"
+
+description: |
+  Accuracy measurement for probabilistic forecasts.
+  Tracks Brier score, log score, and calibration bins
+  to answer: "Do 70% predictions happen 70% of the time?"
+
+improves:
+  - "forecast_accountability"
+  - "calibration_awareness"
+  - "accuracy_measurement"
+
+measurable_by:
+  - "brier_score_distribution"
+  - "log_score_distribution"
+  - "calibration_error"
+  - "score_ledger_integrity"
+
+rent_claim:
+  complexity:
+    loc: 400  # Scoreboard module
+    cognitive: 3  # Simple: mathematical formulas
+    dependencies: ["Backtest", "FBE"]
+
+  thresholds:
+    # Conservative start - just require scoring to work
+    score_ledger_exists: true
+    min_cases_scored: 1
+    brier_score_range_valid: true  # Must be in [0, 1]
+    log_score_non_negative: true  # Must be >= 0
+
+  cost_model:
+    time_ms_expected: 10  # Per case scored
+    memory_kb_expected: 100  # Per score result
+
+proof:
+  tests:
+    - "tests/test_scoreboard_system.py"
+
+  golden_files:
+    - "tests/golden/scoreboard/score_H72H_summary.json"  # TODO: create
+
+  ledgers:
+    - "out/score_ledgers/forecast_scores.jsonl"
+
+  documentation:
+    - "docs/specs/scoreboard_v0_1.md"
+
+provenance:
+  created_at: "2025-12-26"
+  author: "Abraxas Core Team"
+  rationale: |
+    Standard probabilistic forecasting metrics (Brier, log score)
+    applied deterministically to backtest outcomes.
+    Enables tracking forecast calibration over time.
+
+  alternatives_considered:
+    - "Binary accuracy only (rejected: no probability assessment)"
+    - "External scoring service (rejected: requires network calls)"
+    - "ROC/AUC metrics (deferred: v0.2 addition)"

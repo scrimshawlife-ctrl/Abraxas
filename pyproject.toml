@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abraxas"
+version = "1.5.0"
+description = "Abraxas - Deterministic Symbolic Intelligence with Predictive Forecasting"
+readme = "README_ORIN.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Abraxas Team"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+# Core dependencies
+dependencies = [
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+# Server dependencies (FastAPI for full features)
+server = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+]
+
+# Development dependencies
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+# Full installation (server + dev)
+full = [
+    "abraxas[server,dev]",
+]
+
+[project.scripts]
+# CLI entry point
+abx = "abx.cli:main"
+
+[tool.setuptools]
+packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
+            "abraxas.operators", "abraxas.overlay", "abraxas.pipelines",
+            "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
+            "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
+            "abx", "abx.util", "abx.runtime", "abx.assets",
+            "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
+[tool.coverage.run]
+source = ["abraxas", "abx"]
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

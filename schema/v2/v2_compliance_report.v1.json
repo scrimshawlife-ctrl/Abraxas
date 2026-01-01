@@ -1,0 +1,54 @@
+{
+  "$id": "schema/v2/v2_compliance_report.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["date_iso", "status", "checks", "gates", "provenance"],
+  "properties": {
+    "date_iso": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["GREEN", "YELLOW", "RED"] },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "v1_golden_pass_rate",
+        "drift_budget_violations",
+        "evidence_bundle_overflow_rate",
+        "ci_volatility_correlation",
+        "interaction_noise_rate"
+      ],
+      "properties": {
+        "v1_golden_pass_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "drift_budget_violations": { "type": "integer", "minimum": 0 },
+        "evidence_bundle_overflow_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ci_volatility_correlation": { "type": "number", "minimum": 0, "maximum": 1 },
+        "interaction_noise_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min_days_run",
+        "min_v1_pass_rate",
+        "max_drift_violations",
+        "max_evidence_overflow",
+        "min_ci_corr",
+        "max_interaction_noise"
+      ],
+      "properties": {
+        "min_days_run": { "type": "integer", "minimum": 1, "maximum": 3650 },
+        "min_v1_pass_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_drift_violations": { "type": "integer", "minimum": 0 },
+        "max_evidence_overflow": { "type": "number", "minimum": 0, "maximum": 1 },
+        "min_ci_corr": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_interaction_noise": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config_hash"],
+      "properties": { "config_hash": { "type": "string", "minLength": 16, "maxLength": 128 } }
+    }
+  }
+}

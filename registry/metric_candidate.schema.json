@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Metric Candidate Registry Schema",
+  "description": "Schema for candidate metrics in PROPOSED/SHADOW/SCORED/STABILIZING/READY/REJECTED/MERGED states",
+  "type": "object",
+  "required": ["version", "generated", "registry_type", "candidates"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of candidate registry"
+    },
+    "generated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of registry generation"
+    },
+    "registry_type": {
+      "type": "string",
+      "enum": ["metric_candidates"],
+      "description": "Registry type identifier"
+    },
+    "candidates": {
+      "type": "array",
+      "description": "Array of candidate metric specifications",
+      "items": {
+        "$ref": "#/definitions/MetricCandidate"
+      }
+    }
+  },
+  "definitions": {
+    "MetricCandidate": {
+      "type": "object",
+      "required": [
+        "metric_id",
+        "hypothesis_type",
+        "description",
+        "proposed_inputs",
+        "proposed_simvar_targets",
+        "proposed_rune_contract",
+        "falsification_criteria",
+        "evaluation_window",
+        "status"
+      ],
+      "properties": {
+        "metric_id": {
+          "type": "string",
+          "pattern": "^metric_[a-z0-9_]+$",
+          "description": "Unique metric identifier"
+        },
+        "hypothesis_type": {
+          "type": "string",
+          "enum": [
+            "residual_explainer",
+            "redundancy_splitter",
+            "manipulation_detector",
+            "coupling_bridge",
+            "temporal_correlate"
+          ],
+          "description": "Classification of metric hypothesis"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Human-readable description of metric purpose"
+        },
+        "proposed_inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Explicit list of input metrics/variables"
+        },
+        "proposed_simvar_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Target simulation variables this metric would output"
+        },
+        "proposed_rune_contract": {
+          "type": "object",
+          "required": ["inputs", "outputs", "constraints"],
+          "properties": {
+            "inputs": {
+              "type": "object",
+              "description": "Input schema (name -> type)"
+            },
+            "outputs": {
+              "type": "object",
+              "description": "Output schema (name -> type)"
+            },
+            "constraints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Explicit constraints on inputs/outputs"
+            }
+          },
+          "description": "Rune contract schema (no implementation code)"
+        },
+        "falsification_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Explicit criteria for rejecting this metric"
+        },
+        "evaluation_window": {
+          "type": "object",
+          "required": ["min_cycles", "min_samples"],
+          "properties": {
+            "min_cycles": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum simulation cycles for evaluation"
+            },
+            "min_samples": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum ledger samples for evaluation"
+            }
+          },
+          "description": "Evaluation requirements"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PROPOSED",
+            "SHADOW",
+            "SCORED",
+            "STABILIZING",
+            "READY",
+            "REJECTED",
+            "MERGED"
+          ],
+          "description": "Current lifecycle status"
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Provenance metadata (discovery source, timestamp, etc.)"
+        },
+        "evaluation_results": {
+          "type": "object",
+          "description": "Results from scoring/stabilization phases (populated during evaluation)"
+        },
+        "evidence_bundle_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA256 hash of evidence bundle (if status >= READY)"
+        },
+        "rejection_reason": {
+          "type": "string",
+          "description": "Reason for rejection (if status = REJECTED)"
+        },
+        "merged_into": {
+          "type": "string",
+          "description": "Canonical metric ID (if status = MERGED)"
+        }
+      }
+    }
+  }
+}
