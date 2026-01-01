@@ -18,7 +18,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
+from pathlib import Path
 from typing import Any, Dict
 
 from abx.kernel import invoke
@@ -131,6 +133,17 @@ def smoke() -> int:
     dump_file(str(cfg.state_dir / "smoke.latest.json"), result)
     print(dumps_stable(result))
     return 0
+
+
+def acceptance_cmd() -> int:
+    """Run acceptance suite (artifact-only) via shellable script."""
+    repo_root = Path(__file__).resolve().parent.parent
+    script = repo_root / "scripts" / "abx_acceptance.sh"
+    if not script.exists():
+        _cmd_err(f"Missing acceptance script: {script}")
+        return 2
+    proc = subprocess.run([str(script)], cwd=str(repo_root))
+    return int(proc.returncode)
 
 def up() -> int:
     """Start HTTP server (FastAPI if available, else minimal fallback)."""
@@ -272,6 +285,7 @@ def main() -> None:
     p_doctor.add_argument("--seed", type=int, default=None, help="Deterministic seed")
     sub.add_parser("up", help="Start HTTP server")
     sub.add_parser("smoke", help="Run smoke test")
+    sub.add_parser("acceptance", help="Run acceptance suite (artifact-only)")
 
     p_assets = sub.add_parser("assets", help="Asset management")
     sub_assets = p_assets.add_subparsers(dest="assets_cmd", required=True)
@@ -384,6 +398,8 @@ def main() -> None:
         raise SystemExit(up())
     if args.cmd == "smoke":
         raise SystemExit(smoke())
+    if args.cmd == "acceptance":
+        raise SystemExit(acceptance_cmd())
     if args.cmd == "assets" and args.assets_cmd == "sync":
         raise SystemExit(assets_sync())
     if args.cmd == "overlay":
