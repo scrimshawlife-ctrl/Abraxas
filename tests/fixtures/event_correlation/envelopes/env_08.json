@@ -1,0 +1,117 @@
+{
+  "compression": {
+    "affect_direction": "neutral",
+    "compressed_tokens": {
+      "ai": 0.5,
+      "breakthrough": 0.5,
+      "innovation": 0.5,
+      "machine learning": 0.5,
+      "safety": 0.5
+    },
+    "domain": "technology",
+    "domain_signals": [],
+    "lifecycle_states": {
+      "ai": "Front",
+      "breakthrough": "Front",
+      "innovation": "Front",
+      "machine learning": "Front",
+      "safety": "Front"
+    },
+    "provenance": {
+      "config_hash": "74d6f19c92182483eca40609fb2791bbfafcfd757b1c068d28bdb57c42703caf",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "d4f4c433eed328eab4cb101baf0a4a8d94f3cd0fae46f37be30e33d324dd08d0",
+      "run_id": "FIXTURE-EC-008",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "signal_strengths": {},
+    "transparency_score": 0.75,
+    "version": "dce-v2.0-fallback"
+  },
+  "created_at_utc": "2026-01-01T00:00:00Z",
+  "forecast": {
+    "drift_velocity": 0.0,
+    "memetic_pressure": 0.0,
+    "phase_transitions": {},
+    "provenance": {
+      "config_hash": "99fa773f4c586b22f93fc99dad57ab2b098cb30b7eaadd27244d072fbb12063b",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "9ab5c651eeee3d89ac9cdec371f249623f14c3e0b206645434c2de9741e742ae",
+      "run_id": "FIXTURE-EC-008",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "resonance_score": 0.0,
+    "resonating_domains": [],
+    "time_to_transition": {},
+    "transition_probabilities": {},
+    "weather_trajectory": "compression_accelerating"
+  },
+  "narrative": {
+    "bundle_hash": "970464f292b59a159b13065f9682f7ed83c5bc185c46115dfee35c559993bfc7",
+    "bundle_id": "ORACLE-FIXTURE-EC-008-2026-01-01",
+    "cascade_sheet": {
+      "lifecycle_distribution": {
+        "Front": 5
+      },
+      "token_count": 5,
+      "transition_forecast": 0
+    },
+    "confidence_band": "MED",
+    "contamination_advisory": null,
+    "evidence_signals": [],
+    "evidence_tokens": [
+      "ai",
+      "safety",
+      "innovation",
+      "machine learning",
+      "breakthrough"
+    ],
+    "evidence_transitions": [],
+    "narrative_summary": "Domain: technology | Tokens analyzed: 5 | Transparency: 0.75 (STI) | Affect: neutral | Weather: compression_accelerating | Memetic pressure: 0.00",
+    "provenance": {
+      "config_hash": "5be53b361949bfc5932eee0842c8e818f97c019b24f3b8a5728306a296588936",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "970464f292b59a159b13065f9682f7ed83c5bc185c46115dfee35c559993bfc7",
+      "run_id": "FIXTURE-EC-008",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "trust_drift_series": [
+      {
+        "sti": 0.75,
+        "t": 0
+      },
+      {
+        "sti": 0.7124999999999999,
+        "t": 24
+      },
+      {
+        "sti": 0.675,
+        "t": 48
+      }
+    ]
+  },
+  "pipeline_version": "2.0.0",
+  "run_id": "FIXTURE-EC-008",
+  "signal": {
+    "domain": "technology",
+    "meta": {},
+    "observations": [
+      "AI safety concerns dominating tech discussions",
+      "Innovation accelerating in machine learning"
+    ],
+    "source_id": "fixture_technology_07",
+    "subdomain": "ai",
+    "timestamp_utc": "2026-01-01T00:00:00Z",
+    "tokens": [
+      "ai",
+      "safety",
+      "innovation",
+      "machine learning",
+      "breakthrough",
+      "fixture_07"
+    ]
+  }
+}

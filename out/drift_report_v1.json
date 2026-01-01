@@ -1,0 +1,16 @@
+{
+  "_canonical": "{\"clusters\":[],\"provenance\":{\"algorithm_id\":\"motif_cooccur_v0_1\",\"commit\":null,\"created_at\":\"2026-01-01T03:57:40Z\",\"input_set_hash\":\"82e9171e11abe8a5\"},\"schema_version\":\"1.0.0\",\"window\":{\"artifact_count\":3,\"end_created_at\":\"2026-01-01T03:57:40Z\",\"start_created_at\":\"2026-01-01T03:57:40Z\"}}",
+  "clusters": [],
+  "provenance": {
+    "algorithm_id": "motif_cooccur_v0_1",
+    "commit": null,
+    "created_at": "2026-01-01T03:57:40Z",
+    "input_set_hash": "82e9171e11abe8a5"
+  },
+  "schema_version": "1.0.0",
+  "window": {
+    "artifact_count": 3,
+    "end_created_at": "2026-01-01T03:57:40Z",
+    "start_created_at": "2026-01-01T03:57:40Z"
+  }
+}
