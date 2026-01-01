@@ -20,7 +20,8 @@ import {
   Settings,
   TrendingUp,
   Palette,
-  LayoutDashboard
+  LayoutDashboard,
+  FolderSearch
 } from "lucide-react";
 
 const menuItems = [
@@ -83,6 +84,12 @@ const menuItems = [
     url: "/aal-demo",
     icon: Palette,
     description: "Design system showcase"
+  },
+  {
+    title: "Artifacts",
+    url: "/artifacts",
+    icon: FolderSearch,
+    description: "Inspect out/ artifacts + pointer diffs"
   }
 ];
 
