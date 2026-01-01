@@ -19,6 +19,7 @@ import { sql } from "drizzle-orm";
 import { registerIndicator, discoverIndicators } from "./indicators";
 import { analyzeSymbolPool, updateWatchlistAnalysis } from "./market-analysis";
 import rateLimit from "express-rate-limit";
+import { setupArtifactLensRoutes } from "./artifacts/routes";
 
 // Extend global type for rate limiting
 declare global {
@@ -28,6 +29,9 @@ declare global {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
+
+  // Read-only artifact dashboard endpoints (no auth, no writes)
+  setupArtifactLensRoutes(app);
 
   // Rate limiting for authentication endpoints
   const authRateLimiter = rateLimit({
