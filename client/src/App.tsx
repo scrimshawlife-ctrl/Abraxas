@@ -20,6 +20,7 @@ import GrimoireView from "@/components/GrimoireView";
 import Config from "@/components/Config";
 import DynamicWatchlist from "@/components/DynamicWatchlist";
 import AalDemo from "@/pages/AalDemo";
+import ArtifactsDashboard from "@/components/dashboard/ArtifactsDashboard";
 
 function AuthenticatedApp() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -58,6 +59,8 @@ function AuthenticatedApp() {
         return <Config />;
       case "/aal-demo":
         return <AalDemo />;
+      case "/artifacts":
+        return <ArtifactsDashboard />;
       default:
         return <RitualRunner />;
     }
