@@ -5,14 +5,47 @@ Defines the core types and interfaces for shadow detectors.
 All shadow detectors must be deterministic and include provenance.
 """
 
-from typing import Dict, Any, List, Optional, Literal
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 from datetime import datetime
 import hashlib
 import json
 
 
-DetectorStatus = Literal["computed", "not_computable", "error"]
+class DetectorStatus(str, Enum):
+    OK = "computed"
+    NOT_COMPUTABLE = "not_computable"
+    ERROR = "error"
+
+
+def clamp01(x: float) -> float:
+    try:
+        xf = float(x)
+    except Exception:
+        return 0.0
+    if xf <= 0.0:
+        return 0.0
+    if xf >= 1.0:
+        return 1.0
+    return xf
+
+
+class DetectorOutput(BaseModel):
+    """
+    Lightweight detector output used by `tests/test_shadow_detectors_*`.
+
+    Contract:
+      - `value` and all `subscores` are clamped to [0, 1]
+      - `missing_keys` is sorted for determinism
+      - `subscores` keys are sorted for determinism
+    """
+
+    status: DetectorStatus = Field(..., description="OK / NOT_COMPUTABLE / ERROR")
+    value: Optional[float] = Field(None, description="Main detector value in [0,1]")
+    subscores: Dict[str, float] = Field(default_factory=dict, description="Subscores in [0,1]")
+    missing_keys: List[str] = Field(default_factory=list, description="Sorted list of missing input keys")
+    bounds: Tuple[float, float] = Field(default=(0.0, 1.0), description="Output bounds")
 
 
 class ShadowEvidence(BaseModel):
