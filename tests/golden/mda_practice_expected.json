@@ -1,0 +1,18 @@
+{
+  "assertions": {
+    "canon_invariant": true,
+    "drift_class": "none",
+    "require_invariance_report": true,
+    "require_signal_v2": true
+  },
+  "expected": {
+    "env": "sandbox",
+    "expected_session_ledger_hash": null,
+    "inputs": "abraxas/mda/fixtures/inputs_minimal.json",
+    "mode": "analyst",
+    "repeat": 12,
+    "seed": 1337,
+    "toggles": "abraxas/mda/fixtures/toggles_minimal.json"
+  }
+}
+

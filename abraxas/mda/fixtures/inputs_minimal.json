@@ -1,0 +1,12 @@
+{
+  "claims": [
+    "Symbols drift when incentives shift.",
+    "Canon should remain stable under deterministic inputs."
+  ],
+  "terms": [
+    "mda",
+    "drift",
+    "golden"
+  ]
+}
+
