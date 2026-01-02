@@ -1,0 +1,12 @@
+{
+  "vectors": {
+    "culture_memes": {
+      "slang_language_drift": {
+        "scores": { "impact": 0.2, "velocity": 0.8, "uncertainty": 0.5, "polarity": 0.1 },
+        "events": [],
+        "evidence_refs": ["ref:vectors_only:root"]
+      }
+    }
+  }
+}
+
