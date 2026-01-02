@@ -171,7 +171,8 @@ export function computeDigest(options: {
     riskLevel === "high"
       ? "High-risk deviations detected; immediate review recommended."
       : riskLevel === "medium"
-      ? "Moderate deviation signals present; monitor and validate.";
+      ? "Moderate deviation signals present; monitor and validate."
+      : "No major deviations detected; steady state.";
 
   return {
     tier,

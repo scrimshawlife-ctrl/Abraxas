@@ -3,15 +3,16 @@
 Provides overlay adaptation and phase management capabilities.
 """
 
-from .adapter import OverlayAdapter
+from .adapter import parse_request, handle
 from .phases import dispatch
-from .schema import OverlaySchema, Phase
-from .run import OverlayRunner
+from .schema import OverlaySchema, Phase, OverlayRequest, OverlayResponse
 
 __all__ = [
-    "OverlayAdapter",
+    "parse_request",
+    "handle",
     "dispatch",
     "OverlaySchema",
     "Phase",
-    "OverlayRunner",
+    "OverlayRequest",
+    "OverlayResponse",
 ]

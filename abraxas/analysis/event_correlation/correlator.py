@@ -1,336 +1,276 @@
 from __future__ import annotations
 
-import math
-from collections import defaultdict
+import hashlib
+import json
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from abraxas.core.canonical import canonical_json, sha256_hex
+from .domains import domain_for_pointer
+from .windowing import compute_window, stable_sort_envelopes
 
-from .domains import infer_domain
-from .windowing import stable_sort_envelopes, window_bounds
+
+def _canonical_json(obj: Any) -> str:
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _hash_text(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
 
 def _json_pointer_escape(token: str) -> str:
     return token.replace("~", "~0").replace("/", "~1")
 
 
-def resolve_pointer(doc: Any, pointer: str) -> Any:
-    """
-    RFC6901-ish JSON Pointer resolver (read-only).
-    Returns None if any segment is missing / invalid.
-    """
-    if pointer == "":
+def _json_pointer_get(doc: Any, pointer: str) -> Any:
+    if pointer == "" or pointer == "/":
         return doc
-    if not isinstance(pointer, str) or not pointer.startswith("/"):
-        return None
-    cur: Any = doc
-    for raw in pointer.split("/")[1:]:
-        tok = raw.replace("~1", "/").replace("~0", "~")
-        if isinstance(cur, dict):
-            if tok not in cur:
-                return None
-            cur = cur[tok]
-        elif isinstance(cur, list):
-            try:
-                idx = int(tok)
-            except Exception:
-                return None
-            if idx < 0 or idx >= len(cur):
-                return None
-            cur = cur[idx]
+    if not pointer.startswith("/"):
+        raise ValueError(f"Invalid pointer: {pointer}")
+    parts = pointer.lstrip("/").split("/")
+    cur = doc
+    for raw in parts:
+        key = raw.replace("~1", "/").replace("~0", "~")
+        if isinstance(cur, list):
+            cur = cur[int(key)]
         else:
-            return None
+            cur = cur[key]
     return cur
 
 
-def _safe_preview(v: Any, max_len: int = 96) -> str:
-    """
-    Small, safe string preview for evidence. Never returns raw nested objects.
-    """
-    if v is None:
-        s = "null"
-    elif isinstance(v, (str, int, float, bool)):
-        s = str(v)
-    elif isinstance(v, list):
-        s = f"list(len={len(v)})"
-    elif isinstance(v, dict):
-        s = f"object(keys={len(v)})"
-    else:
-        s = type(v).__name__
-    s = s.replace("\n", " ").replace("\r", " ").strip()
-    if len(s) > max_len:
-        return s[: max_len - 1] + "…"
-    return s
-
-
-def _artifact_id(envelope: Dict[str, Any]) -> str:
-    """
-    Deterministic artifact_id extraction with content-based fallback.
-    """
-    for k in ("artifact_id", "run_id", "id"):
-        v = envelope.get(k)
-        if isinstance(v, str) and v.strip():
-            return v.strip()
-    # Fallback: stable content hash (first 16 hex chars)
-    return sha256_hex(canonical_json(envelope))[:16]
+def _safe_get(doc: Dict[str, Any], pointer: str) -> Tuple[bool, Any]:
+    try:
+        return True, _json_pointer_get(doc, pointer)
+    except Exception:
+        return False, None
 
 
 @dataclass(frozen=True)
-class Occurrence:
-    artifact_id: str
-    domain: str
-    pointer: str
-    value_preview: str
+class CorrelatorConfig:
+    schema_version: str = "1.0.0"
+    algorithm_id: str = "motif_cooccur_v0_1"
+    max_clusters: int = 12
+    max_motifs_per_cluster: int = 5
+    max_evidence_refs: int = 12
+    min_artifact_support: int = 2  # motif must appear in at least N artifacts to be eligible
 
 
-def _extract_tokens(envelope: Dict[str, Any]) -> Dict[str, List[Occurrence]]:
+# v0.1: keep extraction narrow & deterministic.
+MOTIF_POINTER_CANDIDATES = [
+    # "envelope"-style (list of {motif,strength})
+    "/symbolic_compression/motifs",
+    "/symbolic_compression/motifs_v2",
+    "/motifs",
+    "/motifs_v2",
+    # Oracle v2 shaped (dict token->weight)
+    "/compression/compressed_tokens",
+]
+
+
+def _artifact_id(env: Dict[str, Any]) -> Optional[str]:
+    v = env.get("artifact_id") or env.get("id") or env.get("artifactId") or env.get("run_id")
+    return str(v) if v else None
+
+
+def _created_at(env: Dict[str, Any]) -> Optional[str]:
+    v = env.get("created_at") or env.get("createdAt") or env.get("created_at_utc") or env.get("created_at_utc")
+    return v if isinstance(v, str) and len(v) >= 10 else None
+
+
+def _report_created_at(envelopes: List[Dict[str, Any]]) -> str:
     """
-    Extract motif-like tokens from a narrow, auditable pointer set.
-    Returns token -> occurrences (with pointers + previews).
+    Deterministic report 'created_at' (offline-first).
+    Prefer max created_at within window; fall back to a fixed epoch-like string.
     """
-    aid = _artifact_id(envelope)
-    dom = infer_domain(envelope)
-
-    out: Dict[str, List[Occurrence]] = defaultdict(list)
-
-    # 1) Primary motifs
-    motifs_ptr = "/symbolic_compression/motifs"
-    motifs = resolve_pointer(envelope, motifs_ptr)
-    if isinstance(motifs, list):
-        for i, m in enumerate(motifs):
-            if not isinstance(m, str) or not m.strip():
-                continue
-            tok = m.strip()
-            out[tok].append(
-                Occurrence(
-                    artifact_id=aid,
-                    domain=dom,
-                    pointer=f"{motifs_ptr}/{i}",
-                    value_preview=_safe_preview(tok),
-                )
-            )
-
-    # 2) Domain signals (keys only, bounded, deterministic)
-    scores_ptr = "/signal_layer/scores"
-    scores = resolve_pointer(envelope, scores_ptr)
-    if isinstance(scores, dict):
-        items: List[Tuple[str, float]] = []
-        for k, v in scores.items():
-            if not isinstance(k, str) or not k.strip():
-                continue
-            if isinstance(v, (int, float)) and not isinstance(v, bool):
-                items.append((k.strip(), float(v)))
-        # deterministic: sort by score desc, then key asc
-        items.sort(key=lambda kv: (-kv[1], kv[0]))
-        for k, _score in items[:3]:
-            tok = f"signal:{k}"
-            ptr = f"{scores_ptr}/{_json_pointer_escape(k)}"
-            out[tok].append(
-                Occurrence(
-                    artifact_id=aid,
-                    domain=dom,
-                    pointer=ptr,
-                    value_preview=_safe_preview(resolve_pointer(envelope, ptr)),
-                )
-            )
-
-    # 3) Optional slang terms (if present)
-    slang_ptr = "/slang/terms"
-    slang_terms = resolve_pointer(envelope, slang_ptr)
-    if isinstance(slang_terms, list):
-        for i, t in enumerate(slang_terms):
-            if not isinstance(t, str) or not t.strip():
-                continue
-            tok = f"slang:{t.strip()}"
-            out[tok].append(
-                Occurrence(
-                    artifact_id=aid,
-                    domain=dom,
-                    pointer=f"{slang_ptr}/{i}",
-                    value_preview=_safe_preview(t.strip()),
-                )
-            )
-
-    # 4) Optional aalmanac patterns (if present)
-    aal_ptr = "/aalmanac/patterns"
-    aal_patterns = resolve_pointer(envelope, aal_ptr)
-    if isinstance(aal_patterns, list):
-        for i, p in enumerate(aal_patterns):
-            if not isinstance(p, str) or not p.strip():
-                continue
-            tok = f"aal:{p.strip()}"
-            out[tok].append(
-                Occurrence(
-                    artifact_id=aid,
-                    domain=dom,
-                    pointer=f"{aal_ptr}/{i}",
-                    value_preview=_safe_preview(p.strip()),
-                )
-            )
-
-    return out
+    ts = [t for t in (_created_at(e) for e in envelopes) if t is not None]
+    if ts:
+        return sorted(ts)[-1]
+    return "1970-01-01T00:00:00Z"
 
 
-def _build_cooccurrence_graph(
-    envelopes: Sequence[Dict[str, Any]],
-    window_size: int,
-    edge_min_count: int,
-) -> Tuple[Dict[str, Set[str]], Dict[Tuple[str, str], int]]:
+def _extract_motifs(env: Dict[str, Any]) -> List[Tuple[str, str, float]]:
     """
-    Co-occurrence graph over extracted tokens.
-
-    v0.1 semantics (high auditability):
-    - We count co-occurrence only when two motifs appear in the SAME envelope.
-    - The rolling-window machinery is reserved for future upgrades (lead/lag, lagged co-occurrence),
-      but for now we keep clusters tight and explainable.
+    Returns list of (pointer, motif_name, strength) extracted from env.
+    Deterministic ordering is imposed later.
     """
-    token_sets: List[Set[str]] = []
-    token_occ: Dict[str, List[Occurrence]] = defaultdict(list)
-
-    def _use_for_graph(tok: str) -> bool:
-        # v0.1: cluster only "primary motifs" (unprefixed tokens).
-        # Secondary tokens like "signal:*", "slang:*", "aal:*" stay evidence-only.
-        return isinstance(tok, str) and (":" not in tok)
-
-    for env in envelopes:
-        extracted = _extract_tokens(env)
-        s: Set[str] = {t for t in extracted.keys() if _use_for_graph(t)}
-        token_sets.append(s)
-        for tok, occs in extracted.items():
-            token_occ[tok].extend(occs)
-
-    edges: Dict[Tuple[str, str], int] = defaultdict(int)
-    graph: Dict[str, Set[str]] = defaultdict(set)
-
-    # Count within-envelope motif pairs (deduped per envelope)
-    for s in token_sets:
-        toks = sorted(s)
-        for i in range(len(toks)):
-            for j in range(i + 1, len(toks)):
-                x, y = toks[i], toks[j]
-                edges[(x, y)] += 1
-
-    # Materialize adjacency with threshold
-    for (x, y), c in edges.items():
-        if c >= edge_min_count:
-            graph[x].add(y)
-            graph[y].add(x)
-
-    return graph, edges
-
-
-def _connected_components(graph: Mapping[str, Set[str]]) -> List[Set[str]]:
-    seen: Set[str] = set()
-    comps: List[Set[str]] = []
-    for node in sorted(graph.keys()):
-        if node in seen:
+    for ptr in MOTIF_POINTER_CANDIDATES:
+        ok, val = _safe_get(env, ptr)
+        if not ok:
             continue
-        stack = [node]
-        comp: Set[str] = set()
-        while stack:
-            cur = stack.pop()
-            if cur in seen:
-                continue
-            seen.add(cur)
-            comp.add(cur)
-            for nb in sorted(graph.get(cur, set())):
-                if nb not in seen:
-                    stack.append(nb)
-        if comp:
-            comps.append(comp)
-    return comps
+
+        # list-of-dicts format
+        if isinstance(val, list):
+            out: List[Tuple[str, str, float]] = []
+            for idx, item in enumerate(val):
+                if not isinstance(item, dict):
+                    continue
+                motif = item.get("motif") or item.get("name") or item.get("token")
+                strength = item.get("strength")
+                if isinstance(motif, str) and isinstance(strength, (int, float)):
+                    out.append((f"{ptr}/{idx}", motif.strip()[:64], float(strength)))
+            return out
+
+        # dict-of-weights format (token->float)
+        if isinstance(val, dict):
+            out = []
+            for k, v in val.items():
+                if not isinstance(k, str) or not isinstance(v, (int, float)):
+                    continue
+                out.append((f"{ptr}/{_json_pointer_escape(k)}", k.strip()[:64], float(v)))
+            # ensure deterministic within-doc ordering
+            out.sort(key=lambda t: (t[1], t[0]))
+            return out
+
+    return []
 
 
-def _score_cluster(
-    motifs: Sequence[str],
-    occurrences_by_token: Mapping[str, Sequence[Occurrence]],
-    total_artifacts: int,
-) -> Tuple[float, float, List[str], List[Occurrence]]:
-    """
-    Returns: (strength_score, confidence, domains_involved, evidence_occurrences_sorted)
-    """
-    all_occs: List[Occurrence] = []
-    domains: Set[str] = set()
-    artifacts: Set[str] = set()
-    for m in motifs:
-        for occ in occurrences_by_token.get(m, ()):
-            all_occs.append(occ)
-            domains.add(occ.domain)
-            artifacts.add(occ.artifact_id)
-
-    # stable sort evidence occurrences (for deterministic truncation)
-    all_occs.sort(key=lambda o: (o.artifact_id, o.pointer, o.domain))
-
-    freq_norm = (len(artifacts) / max(1, total_artifacts)) if total_artifacts > 0 else 0.0
-    spread_norm = min(1.0, len(domains) / 4.0)  # 4 is an arbitrary "enough domains" cap for v0.1
-
-    strength = min(1.0, 0.7 * freq_norm + 0.3 * spread_norm)
-    conf = min(1.0, 0.5 * spread_norm + 0.5 * (math.log1p(len(all_occs)) / math.log1p(20.0)))
-
-    return strength, conf, sorted(domains), all_occs
-
-
-def correlate(envelopes: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    correlate(envelopes) -> drift_report_v1
-
-    Laws:
-    - Shadow-only: read-only; never mutates envelopes or any forecast artifacts.
-    - Evidence pointers: every emitted cluster includes (artifact_id, pointer, value_preview).
-    - Deterministic: stable sorting + canonical hashing.
-    - Offline-first: pure in-memory.
-    """
+def correlate(
+    envelopes: List[Dict[str, Any]],
+    *,
+    cfg: Optional[CorrelatorConfig] = None,
+    commit: Optional[str] = None,
+) -> Dict[str, Any]:
+    cfg = cfg or CorrelatorConfig()
     envs = stable_sort_envelopes(envelopes)
-    total = len(envs)
 
-    # Collect occurrences (token -> occurrences)
-    occ_by_token: Dict[str, List[Occurrence]] = defaultdict(list)
-    for env in envs:
-        extracted = _extract_tokens(env)
-        for tok, occs in extracted.items():
-            occ_by_token[tok].extend(occs)
+    # Input set hash: based on ordered artifact_ids + created_at (stable) + canonical minimal.
+    input_fingerprint = []
+    for e in envs:
+        input_fingerprint.append(
+            {
+                "artifact_id": _artifact_id(e) or "",
+                "created_at": _created_at(e) or "",
+            }
+        )
+    input_set_hash = _hash_text(_canonical_json(input_fingerprint))[:16]
 
-    # Build rolling co-occurrence graph
-    graph, _edge_counts = _build_cooccurrence_graph(envs, window_size=3, edge_min_count=2)
-    comps = _connected_components(graph)
+    # Build motif index: motif -> occurrences (artifact_id, pointer, strength)
+    motif_index: Dict[str, List[Tuple[str, str, float]]] = {}
+    motif_domains: Dict[str, Set[str]] = {}
 
-    clusters: List[Dict[str, Any]] = []
-    for comp in comps:
-        motifs = sorted(comp)
-        strength, conf, domains, all_occs = _score_cluster(motifs, occ_by_token, total)
+    for e in envs:
+        aid = _artifact_id(e)
+        if not aid:
+            continue
+        for pointer, motif, strength in _extract_motifs(e):
+            motif_index.setdefault(motif, []).append((aid, pointer, strength))
+            motif_domains.setdefault(motif, set()).add(domain_for_pointer(pointer))
 
-        # Filter: require at least 2 domains and at least 2 artifacts worth of evidence
-        artifact_ids = sorted({o.artifact_id for o in all_occs})
-        if len(domains) < 2 or len(artifact_ids) < 2:
+    # Filter motifs by support
+    eligible_motifs = []
+    for motif, occs in motif_index.items():
+        support = len({aid for aid, _, _ in occs})
+        if support >= cfg.min_artifact_support:
+            eligible_motifs.append(motif)
+
+    # Score motifs: frequency + cross-domain spread bonus (simple, bounded)
+    scored = []
+    total_artifacts = max(1, len({(_artifact_id(e) or "") for e in envs if _artifact_id(e)}))
+    for motif in eligible_motifs:
+        occs = motif_index[motif]
+        support = len({aid for aid, _, _ in occs})
+        freq = support / total_artifacts  # 0..1
+        domains = motif_domains.get(motif, {"unknown"})
+        spread_bonus = min(1.0, (len(domains) - 1) * 0.25)  # 0, .25, .5, .75, 1.0...
+        strength = max(0.0, min(1.0, freq * 0.75 + spread_bonus * 0.25))
+        scored.append((strength, motif))
+
+    # Deterministic: sort by strength desc then motif asc
+    scored.sort(key=lambda t: (-t[0], t[1]))
+
+    clusters = []
+    used_motifs: Set[str] = set()
+
+    # v0.1 clustering: each cluster anchored by a top motif; add co-occurring motifs within same artifacts
+    for base_strength, base_motif in scored:
+        if base_motif in used_motifs:
             continue
 
-        evidence_refs = [
-            {"artifact_id": o.artifact_id, "pointer": o.pointer, "value_preview": o.value_preview}
-            for o in all_occs[:20]
-        ]
+        base_occs = motif_index.get(base_motif, [])
+        if not base_occs:
+            continue
+        base_artifacts = {aid for aid, _, _ in base_occs}
 
-        # Deterministic cluster id from motif set
-        cluster_id = "CL-" + sha256_hex(canonical_json({"motifs": motifs}))[:12]
+        # Find candidate motifs that co-occur in those artifacts
+        co = []
+        for s, motif in scored:
+            if motif == base_motif or motif in used_motifs:
+                continue
+            occ_artifacts = {aid for aid, _, _ in motif_index.get(motif, [])}
+            inter = len(base_artifacts.intersection(occ_artifacts))
+            if inter >= 2:
+                # Co-occur score: intersection proportion weighted by motif score
+                co_score = (inter / max(1, len(base_artifacts))) * 0.5 + s * 0.5
+                co.append((co_score, motif))
+        co.sort(key=lambda t: (-t[0], t[1]))
+
+        shared = [base_motif] + [m for _, m in co[: (cfg.max_motifs_per_cluster - 1)]]
+        for m in shared:
+            used_motifs.add(m)
+
+        # Domains involved: union of domains from motif pointers
+        domains_involved: Set[str] = set()
+        evidence_refs = []
+
+        for motif in shared:
+            for aid, ptr, _strength in motif_index.get(motif, []):
+                domains_involved.add(domain_for_pointer(ptr))
+                evidence_refs.append({"artifact_id": aid, "pointer": ptr, "value_preview": motif})
+
+        # Deterministic evidence selection: sort then truncate
+        evidence_refs.sort(key=lambda r: (r["artifact_id"], r["pointer"], str(r.get("value_preview"))))
+        evidence_refs = evidence_refs[: cfg.max_evidence_refs]
+
+        # Cluster strength: base_strength plus mean of additional motif strengths (bounded)
+        motif_strengths = []
+        score_map = {m: s for s, m in scored}
+        for motif in shared:
+            motif_strengths.append(score_map.get(motif, 0.0))
+        mean_s = sum(motif_strengths) / max(1, len(motif_strengths))
+        strength_score = max(0.0, min(1.0, (base_strength * 0.6 + mean_s * 0.4)))
+
+        # Confidence in v0.1: proportional to support and diversity (bounded)
+        support_union = set()
+        for motif in shared:
+            support_union |= {aid for aid, _, _ in motif_index.get(motif, [])}
+        support_ratio = len(support_union) / max(1, total_artifacts)
+        diversity = min(1.0, (len(domains_involved) - 1) * 0.25)
+        confidence = max(0.0, min(1.0, support_ratio * 0.7 + diversity * 0.3))
+
+        cluster_id = _hash_text(base_motif + "|" + input_set_hash)[:12]
 
         clusters.append(
             {
                 "cluster_id": cluster_id,
-                "domains_involved": domains,
-                "shared_motifs": motifs,
-                "strength_score": float(f"{strength:.6f}"),
-                "confidence": float(f"{conf:.6f}"),
+                "domains_involved": sorted(domains_involved) if domains_involved else ["unknown"],
+                "shared_motifs": shared,
+                "strength_score": strength_score,
+                "confidence": confidence,
                 "lead_lag": None,
-                "evidence_refs": evidence_refs,
+                "evidence_refs": evidence_refs
+                or [{"artifact_id": base_occs[0][0], "pointer": base_occs[0][1], "value_preview": base_motif}],
             }
         )
 
-    # Stable cluster ordering: strongest first, then id
-    clusters.sort(key=lambda c: (-c["strength_score"], -c["confidence"], c["cluster_id"]))
+        if len(clusters) >= cfg.max_clusters:
+            break
 
-    return {
-        "schema_version": "drift_report_v1",
-        "window": window_bounds(envs),
+    window = compute_window(envs)
+
+    report = {
+        "schema_version": cfg.schema_version,
+        "window": {
+            "start_created_at": window.start_created_at,
+            "end_created_at": window.end_created_at,
+            "artifact_count": window.artifact_count,
+        },
         "clusters": clusters,
+        "provenance": {
+            "created_at": _report_created_at(envs),
+            "input_set_hash": input_set_hash,
+            "algorithm_id": cfg.algorithm_id,
+            "commit": commit,
+        },
     }
+    report["_canonical"] = _canonical_json(report)
+    return report
 

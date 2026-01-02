@@ -1,15 +1,116 @@
 {
-  "artifact_id": "EC-0006",
-  "created_at_utc": "2025-12-25T00:00:00Z",
-  "domain": "slang",
-  "symbolic_compression": {
-    "motifs": ["ghostmode", "elite_capture"]
+  "compression": {
+    "affect_direction": "neutral",
+    "compressed_tokens": {
+      "fixture_05": 0.5,
+      "initiative": 0.5,
+      "prevention": 0.5,
+      "public health": 0.5,
+      "wellness": 0.5
+    },
+    "domain": "health",
+    "domain_signals": [],
+    "lifecycle_states": {
+      "fixture_05": "Front",
+      "initiative": "Front",
+      "prevention": "Front",
+      "public health": "Front",
+      "wellness": "Front"
+    },
+    "provenance": {
+      "config_hash": "74d6f19c92182483eca40609fb2791bbfafcfd757b1c068d28bdb57c42703caf",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "b89783b46edddc1ecde74a502d280e7eb6eb05c5de7e29ddf769132b28cf4bf4",
+      "run_id": "FIXTURE-EC-006",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "signal_strengths": {},
+    "transparency_score": 0.75,
+    "version": "dce-v2.0-fallback"
   },
-  "signal_layer": {
-    "scores": { "attention_spike": 0.79 }
+  "created_at_utc": "2026-01-01T00:00:00Z",
+  "forecast": {
+    "drift_velocity": 0.0,
+    "memetic_pressure": 0.0,
+    "phase_transitions": {},
+    "provenance": {
+      "config_hash": "99fa773f4c586b22f93fc99dad57ab2b098cb30b7eaadd27244d072fbb12063b",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "46f0c5f4316063f082c902cdabf70a2c4df3014731a654759b483562167c0642",
+      "run_id": "FIXTURE-EC-006",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "resonance_score": 0.0,
+    "resonating_domains": [],
+    "time_to_transition": {},
+    "transition_probabilities": {},
+    "weather_trajectory": "compression_accelerating"
   },
-  "slang": {
-    "terms": ["ghostmode", "elite_capture"]
+  "narrative": {
+    "bundle_hash": "0c580ec5b5e3ad7582869643b81f8bfbfca04de1690a87d432512e578f84e45b",
+    "bundle_id": "ORACLE-FIXTURE-EC-006-2026-01-01",
+    "cascade_sheet": {
+      "lifecycle_distribution": {
+        "Front": 5
+      },
+      "token_count": 5,
+      "transition_forecast": 0
+    },
+    "confidence_band": "MED",
+    "contamination_advisory": null,
+    "evidence_signals": [],
+    "evidence_tokens": [
+      "public health",
+      "wellness",
+      "prevention",
+      "initiative",
+      "fixture_05"
+    ],
+    "evidence_transitions": [],
+    "narrative_summary": "Domain: health | Tokens analyzed: 5 | Transparency: 0.75 (STI) | Affect: neutral | Weather: compression_accelerating | Memetic pressure: 0.00",
+    "provenance": {
+      "config_hash": "5be53b361949bfc5932eee0842c8e818f97c019b24f3b8a5728306a296588936",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "0c580ec5b5e3ad7582869643b81f8bfbfca04de1690a87d432512e578f84e45b",
+      "run_id": "FIXTURE-EC-006",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "trust_drift_series": [
+      {
+        "sti": 0.75,
+        "t": 0
+      },
+      {
+        "sti": 0.7124999999999999,
+        "t": 24
+      },
+      {
+        "sti": 0.675,
+        "t": 48
+      }
+    ]
+  },
+  "pipeline_version": "2.0.0",
+  "run_id": "FIXTURE-EC-006",
+  "signal": {
+    "domain": "health",
+    "meta": {},
+    "observations": [
+      "Public health initiatives expanding nationwide",
+      "Wellness programs gaining traction"
+    ],
+    "source_id": "fixture_health_05",
+    "subdomain": "public_health",
+    "timestamp_utc": "2026-01-01T00:00:00Z",
+    "tokens": [
+      "public health",
+      "wellness",
+      "prevention",
+      "initiative",
+      "fixture_05"
+    ]
   }
 }
-

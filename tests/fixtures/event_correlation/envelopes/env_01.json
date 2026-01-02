@@ -1,18 +1,124 @@
 {
-  "artifact_id": "EC-0001",
-  "created_at_utc": "2025-12-20T00:00:00Z",
-  "domain": "slang",
-  "symbolic_compression": {
-    "motifs": ["ghostmode", "veilbreaker"]
+  "compression": {
+    "affect_direction": "neutral",
+    "compressed_tokens": {
+      "equality": 0.5,
+      "establishment": 0.5,
+      "fixture_00": 0.5,
+      "justice": 0.5,
+      "scrutiny": 0.5
+    },
+    "domain": "politics",
+    "domain_signals": [
+      "ideology_left"
+    ],
+    "lifecycle_states": {
+      "equality": "Front",
+      "establishment": "Front",
+      "fixture_00": "Front",
+      "justice": "Front",
+      "scrutiny": "Front"
+    },
+    "provenance": {
+      "config_hash": "74d6f19c92182483eca40609fb2791bbfafcfd757b1c068d28bdb57c42703caf",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "0b4ecea38c940d1f663966463e3d98b99a9f27d4940bf139d5c8e3d818b0da39",
+      "run_id": "FIXTURE-EC-001",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "signal_strengths": {
+      "ideology_left": 0.7
+    },
+    "transparency_score": 0.75,
+    "version": "dce-v2.0-fallback"
   },
-  "signal_layer": {
-    "scores": { "memetic_pressure": 0.62 }
+  "created_at_utc": "2026-01-01T00:00:00Z",
+  "forecast": {
+    "drift_velocity": 0.0,
+    "memetic_pressure": 0.7,
+    "phase_transitions": {},
+    "provenance": {
+      "config_hash": "99fa773f4c586b22f93fc99dad57ab2b098cb30b7eaadd27244d072fbb12063b",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "8b42fe8704e78dffec8b44d0ba7273b85d95de382e0158632ee1169fa386cdb8",
+      "run_id": "FIXTURE-EC-001",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "resonance_score": 0.7,
+    "resonating_domains": [
+      "politics"
+    ],
+    "time_to_transition": {},
+    "transition_probabilities": {},
+    "weather_trajectory": "compression_accelerating"
   },
-  "slang": {
-    "terms": ["ghostmode"]
+  "narrative": {
+    "bundle_hash": "b5389b16784ccd8d6e32607749324452f21fa6044935dda5763baac3ff4f4920",
+    "bundle_id": "ORACLE-FIXTURE-EC-001-2026-01-01",
+    "cascade_sheet": {
+      "lifecycle_distribution": {
+        "Front": 5
+      },
+      "token_count": 5,
+      "transition_forecast": 0
+    },
+    "confidence_band": "MED",
+    "contamination_advisory": null,
+    "evidence_signals": [
+      "ideology_left"
+    ],
+    "evidence_tokens": [
+      "equality",
+      "justice",
+      "establishment",
+      "scrutiny",
+      "fixture_00"
+    ],
+    "evidence_transitions": [],
+    "narrative_summary": "Domain: politics | Tokens analyzed: 5 | Signals detected: ideology_left | Transparency: 0.75 (STI) | Affect: neutral | Weather: compression_accelerating | Memetic pressure: 0.70",
+    "provenance": {
+      "config_hash": "5be53b361949bfc5932eee0842c8e818f97c019b24f3b8a5728306a296588936",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "b5389b16784ccd8d6e32607749324452f21fa6044935dda5763baac3ff4f4920",
+      "run_id": "FIXTURE-EC-001",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "trust_drift_series": [
+      {
+        "sti": 0.75,
+        "t": 0
+      },
+      {
+        "sti": 0.7124999999999999,
+        "t": 24
+      },
+      {
+        "sti": 0.675,
+        "t": 48
+      }
+    ]
   },
-  "aalmanac": {
-    "patterns": ["veilbreaker-gravity"]
+  "pipeline_version": "2.0.0",
+  "run_id": "FIXTURE-EC-001",
+  "signal": {
+    "domain": "politics",
+    "meta": {},
+    "observations": [
+      "Political discourse shifting toward equality and justice",
+      "Establishment figures facing increased scrutiny"
+    ],
+    "source_id": "fixture_politics_00",
+    "subdomain": "rhetoric",
+    "timestamp_utc": "2026-01-01T00:00:00Z",
+    "tokens": [
+      "equality",
+      "justice",
+      "establishment",
+      "scrutiny",
+      "fixture_00"
+    ]
   }
 }
-

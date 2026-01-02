@@ -4,11 +4,36 @@ Defines schemas and validation for overlay operations.
 """
 
 from __future__ import annotations
+
 from typing import Any, Dict, Optional, Literal
 from dataclasses import dataclass, field
 
 # Phase type definition - must match kernel phase literals
 Phase = Literal["OPEN", "ALIGN", "ASCEND", "CLEAR", "SEAL"]
+
+
+@dataclass
+class OverlayRequest:
+    """Request structure for overlay operations."""
+
+    overlay: str
+    version: str
+    phase: Phase
+    request_id: str
+    timestamp_ms: int
+    payload: Dict[str, Any]
+
+
+@dataclass
+class OverlayResponse:
+    """Response structure for overlay operations."""
+
+    ok: bool
+    overlay: str
+    phase: Phase
+    request_id: str
+    output: Dict[str, Any]
+    error: Optional[str]
 
 
 @dataclass
