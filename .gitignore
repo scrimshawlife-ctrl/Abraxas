@@ -47,3 +47,13 @@ data/intel_daily/
 out/reports/
 out/reports_daily/
 out/test_daily/
+
+# Abraxas sandbox outputs (never commit)
+.sandbox/out/
+.sandbox/ledger/
+.sandbox/tmp/
+
+# MDA run outputs (if placed under sandbox)
+*.invariance_report.json
+*.fusion_graph.json
+*.dsp.json
