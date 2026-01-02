@@ -1,0 +1,19 @@
+{
+  "expected": {
+    "repeat": 12,
+    "mode": "analyst",
+    "env": "sandbox",
+    "seed": 1337,
+    "run_at": "2026-01-01T00:00:00Z",
+    "fixture": "abraxas/mda/fixtures/daily_oracle_v1.json",
+    "bundle": "abraxas/mda/fixtures/evidence_bundle_sample.json",
+    "toggles": "abraxas/mda/fixtures/toggles_minimal.json"
+  },
+  "assertions": {
+    "require_invariance_report": true,
+    "canon_invariant": true,
+    "drift_class": "none",
+    "require_signal_v2": true
+  }
+}
+

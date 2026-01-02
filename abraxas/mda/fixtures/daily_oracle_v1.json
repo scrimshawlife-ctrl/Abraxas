@@ -1,0 +1,8 @@
+{
+  "daily_oracle_v1": {
+    "date": "2026-01-01",
+    "domain": "sandbox",
+    "notes": "Minimal deterministic fixture for MDA practice runs."
+  }
+}
+

@@ -1,0 +1,17 @@
+{
+  "oracle_signal_v2": {
+    "mda_v1_1": {
+      "canon_hash": "97572ec401b71e43b0e3cbeaf890dd1ccfc5287eb4559211465c4c2fcb974d76",
+      "run_index": 11
+    },
+    "meta": {
+      "env": "sandbox",
+      "mode": "analyst",
+      "repeat": 12,
+      "run_at": "2026-01-01T00:00:00Z",
+      "seed": 1337,
+      "slice_hash": "97572ec401b71e43b0e3cbeaf890dd1ccfc5287eb4559211465c4c2fcb974d76",
+      "version": "2.2.0"
+    }
+  }
+}
