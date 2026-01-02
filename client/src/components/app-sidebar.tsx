@@ -20,10 +20,17 @@ import {
   Settings,
   TrendingUp,
   Palette,
-  FolderSearch
+  FolderSearch,
+  LayoutDashboard,
 } from "lucide-react";
 
 const menuItems = [
+  {
+    title: "Dashboard Lens",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+    description: "Browse + diff + audit artifacts"
+  },
   {
     title: "Ritual Chamber",
     url: "/ritual",
