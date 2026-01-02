@@ -21,6 +21,7 @@ import Config from "@/components/Config";
 import DynamicWatchlist from "@/components/DynamicWatchlist";
 import AalDemo from "@/pages/AalDemo";
 import ArtifactsDashboard from "@/components/dashboard/ArtifactsDashboard";
+import DashboardLens from "@/components/DashboardLens";
 
 function AuthenticatedApp() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -41,6 +42,8 @@ function AuthenticatedApp() {
 
   const renderCurrentView = () => {
     switch (currentPath) {
+      case "/dashboard":
+        return <DashboardLens />;
       case "/ritual":
         return <RitualRunner />;
       case "/vc-oracle":
