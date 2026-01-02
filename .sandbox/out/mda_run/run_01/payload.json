@@ -1,0 +1,132 @@
+{
+  "domain_aggregates": {
+    "media": {
+      "scores": {
+        "impact": 0.2,
+        "polarity": 0.0,
+        "uncertainty": 0.9,
+        "velocity": 0.1
+      },
+      "status": "ok"
+    },
+    "tech_ai": {
+      "scores": {
+        "impact": 0.1,
+        "polarity": 0.0,
+        "uncertainty": 0.95,
+        "velocity": 0.0
+      },
+      "status": "ok"
+    }
+  },
+  "dsp": [
+    {
+      "domain": "media",
+      "events": [
+        {
+          "event_id": "evt_002",
+          "evidence_ref": "ev://sample/002",
+          "text": "Algorithm update changes distribution surface for a topic."
+        },
+        {
+          "event_id": "evt_003",
+          "evidence_ref": "ev://sample/003",
+          "text": "A creator coalition amplifies a motif across channels."
+        }
+      ],
+      "evidence_refs": [
+        "ev://sample/002",
+        "ev://sample/003"
+      ],
+      "scores": {
+        "impact": 0.2,
+        "polarity": 0.0,
+        "uncertainty": 0.9,
+        "velocity": 0.1
+      },
+      "status": "ok",
+      "subdomain": "platforms"
+    },
+    {
+      "domain": "tech_ai",
+      "events": [
+        {
+          "event_id": "evt_001",
+          "evidence_ref": "ev://sample/001",
+          "text": "A model release triggers a short-lived attention spike."
+        }
+      ],
+      "evidence_refs": [
+        "ev://sample/001"
+      ],
+      "scores": {
+        "impact": 0.1,
+        "polarity": 0.0,
+        "uncertainty": 0.95,
+        "velocity": 0.0
+      },
+      "status": "ok",
+      "subdomain": "foundation_models"
+    },
+    {
+      "domain": "tech_ai",
+      "events": [],
+      "evidence_refs": [],
+      "scores": {
+        "impact": 0.0,
+        "polarity": 0.0,
+        "uncertainty": 1.0,
+        "velocity": 0.0
+      },
+      "status": "not_computable",
+      "subdomain": "policy"
+    }
+  ],
+  "envelope": {
+    "abraxas_version": "2.2.0",
+    "env": "sandbox",
+    "input_hash": "e267142988f5310b4cb48071e3b23a0b87ae6dd9815b2e51699cf608ab1b2785",
+    "run_at": "2026-01-01T00:00:00Z",
+    "seed": 1337
+  },
+  "fusion_graph": {
+    "edges": [
+      {
+        "dst_id": "dsp:tech_ai:foundation_models",
+        "edge_type": "adjacent_dsp",
+        "evidence_refs": [],
+        "notes": null,
+        "src_id": "dsp:media:platforms",
+        "weight": 1.0
+      },
+      {
+        "dst_id": "dsp:tech_ai:policy",
+        "edge_type": "adjacent_dsp",
+        "evidence_refs": [],
+        "notes": null,
+        "src_id": "dsp:tech_ai:foundation_models",
+        "weight": 1.0
+      }
+    ],
+    "nodes": {
+      "dsp:media:platforms": {
+        "domain": "media",
+        "kind": "dsp",
+        "status": "ok",
+        "subdomain": "platforms"
+      },
+      "dsp:tech_ai:foundation_models": {
+        "domain": "tech_ai",
+        "kind": "dsp",
+        "status": "ok",
+        "subdomain": "foundation_models"
+      },
+      "dsp:tech_ai:policy": {
+        "domain": "tech_ai",
+        "kind": "dsp",
+        "status": "not_computable",
+        "subdomain": "policy"
+      }
+    }
+  }
+}
