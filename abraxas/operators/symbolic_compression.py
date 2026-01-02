@@ -37,8 +37,7 @@ class SymbolicCompressionEvent:
     observed_frequency: int
     status: CompressionStatus
     transparency_lexicon_prov: str
-    provenance_sha256: str  # Deterministic record hash
-    transparency_lexicon_prov: str = ""
+    provenance_sha256: str = ""  # Deterministic record hash
 
 class SymbolicCompressionOperator:
     """

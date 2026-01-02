@@ -6,11 +6,15 @@ Provides `compute_all_detectors()` function to run all detectors and
 aggregate evidence.
 """
 
-from typing import Dict, Any, List
-from abraxas.detectors.shadow.types import ShadowDetectorResult
+from typing import Any, Dict, Optional
+
+from abraxas.detectors.shadow.types import DetectorOutput, ShadowDetectorResult
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
+from abraxas.detectors.shadow import compliance_remix
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
+from abraxas.detectors.shadow import meta_awareness
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
+from abraxas.detectors.shadow import negative_space
 
 
 # Global detector registry
@@ -21,16 +25,19 @@ DETECTOR_REGISTRY = {
 }
 
 
-def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorResult]:
+def compute_all_detectors(
+    context: Dict[str, Any],
+    history: Optional[list] = None,
+) -> Dict[str, Any]:
     """
     Run all shadow detectors on inputs.
 
-    Args:
-        inputs: Dictionary of input data. Each detector will extract
-                what it needs from this dict.
+    This function supports two call signatures:
+      - `compute_all_detectors(context)` -> class-based detect() results (ShadowDetectorResult)
+      - `compute_all_detectors(context, history)` -> test-facing compute_detector() results (DetectorOutput)
 
     Returns:
-        Dict mapping detector_name -> ShadowDetectorResult
+        Dict mapping detector_name -> result model
 
     Example:
         inputs = {
@@ -40,15 +47,33 @@ def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorRes
         }
         results = compute_all_detectors(inputs)
     """
-    results = {}
+    if history is not None:
+        # Test-facing deterministic API (context + optional history)
+        return {
+            "compliance_remix": compliance_remix.compute_detector(context),
+            "meta_awareness": meta_awareness.compute_detector(context),
+            "negative_space": negative_space.compute_detector(context, history),
+        }
 
-    # Run each detector in deterministic order (sorted by name)
+    results: Dict[str, ShadowDetectorResult] = {}
     for detector_name in sorted(DETECTOR_REGISTRY.keys()):
         detector = DETECTOR_REGISTRY[detector_name]
-        result = detector.detect(inputs)
-        results[detector_name] = result
-
+        results[detector_name] = detector.detect(context)
     return results
+
+
+def serialize_detector_results(results: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Deterministic serialization for test comparisons.
+    """
+    out: Dict[str, Any] = {}
+    for k in sorted(results.keys()):
+        v = results[k]
+        if hasattr(v, "model_dump"):
+            out[k] = v.model_dump()
+        else:
+            out[k] = v
+    return out
 
 
 def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:

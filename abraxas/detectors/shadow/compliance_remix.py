@@ -25,6 +25,9 @@ from abraxas.detectors.shadow.types import (
     ShadowDetectorBase,
     ShadowDetectorResult,
     ShadowEvidence,
+    DetectorOutput,
+    DetectorStatus,
+    clamp01,
 )
 
 
@@ -206,3 +209,58 @@ class ComplianceRemixDetector(ShadowDetectorBase):
         if len(tokens) < 2:
             return set()
         return {(tokens[i], tokens[i+1]) for i in range(len(tokens) - 1)}
+
+
+def compute_detector(context: Dict[str, Any]) -> DetectorOutput:
+    """
+    Deterministic detector function used by tests.
+
+    This is a lightweight, bounded proxy over the contextual features emitted
+    by upstream pipelines (drift, CSP, tau, fog, etc.).
+    """
+    required = [
+        "drift",
+        "appearances",
+        "csp",
+        "tau",
+        "fog_type_counts",
+    ]
+    missing = sorted([k for k in required if k not in context])
+    if missing:
+        return DetectorOutput(
+            status=DetectorStatus.NOT_COMPUTABLE,
+            value=None,
+            subscores={},
+            missing_keys=missing,
+        )
+
+    drift = context.get("drift") or {}
+    csp = context.get("csp") or {}
+    tau = context.get("tau") or {}
+    fog = context.get("fog_type_counts") or {}
+
+    # Subscores (clamped)
+    subscores = {
+        "csp_ff": clamp01(float(csp.get("FF", 0.0))),
+        "csp_mio": clamp01(float(csp.get("MIO", 0.0))),
+        "drift_score": clamp01(float(drift.get("drift_score", 0.0))),
+        "tau_velocity": clamp01(float(tau.get("tau_velocity", 0.0))),
+        "fog_density": clamp01(float((fog.get("template", 0) + fog.get("manufactured", 0)) / 10.0)),
+        "appearances": clamp01(float(context.get("appearances", 0)) / 20.0),
+    }
+    subscores = {k: subscores[k] for k in sorted(subscores.keys())}
+
+    # Value: higher drift + fog + tau tends toward "remix pressure"
+    value = clamp01(
+        0.25 * subscores["drift_score"]
+        + 0.20 * subscores["fog_density"]
+        + 0.20 * subscores["tau_velocity"]
+        + 0.20 * ((subscores["csp_ff"] + subscores["csp_mio"]) / 2.0)
+        + 0.15 * subscores["appearances"]
+    )
+    return DetectorOutput(
+        status=DetectorStatus.OK,
+        value=value,
+        subscores=subscores,
+        missing_keys=[],
+    )
