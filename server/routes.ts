@@ -1,5 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { existsSync } from "fs";
+import { readFile } from "fs/promises";
+import path from "path";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupAbraxasRoutes } from "./abraxas-server";
@@ -62,6 +65,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health endpoints
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: Date.now(), service: "Abraxas Trading Oracle" });
+  });
+
+  // Acceptance truth panel (artifact-only, read-only)
+  app.get("/api/acceptance/status", isAuthenticated, async (_req, res) => {
+    try {
+      const p = path.resolve(process.cwd(), "out", "acceptance", "acceptance_status_v1.json");
+      if (!existsSync(p)) {
+        return res.status(404).json({ error: "not_found" });
+      }
+      const raw = await readFile(p, { encoding: "utf-8" });
+      res.json(JSON.parse(raw));
+    } catch (error) {
+      console.error("Error reading acceptance status:", error);
+      res.status(500).json({ error: "read_failed" });
+    }
+  });
+
+  app.get("/api/acceptance/drift", isAuthenticated, async (_req, res) => {
+    try {
+      const p = path.resolve(process.cwd(), "out", "acceptance", "drift_on_failure_v1.json");
+      if (!existsSync(p)) {
+        return res.status(404).json({ error: "not_found" });
+      }
+      const raw = await readFile(p, { encoding: "utf-8" });
+      res.json(JSON.parse(raw));
+    } catch (error) {
+      console.error("Error reading acceptance drift:", error);
+      res.status(500).json({ error: "read_failed" });
+    }
   });
 
   // Config API (temporary in-memory storage)
