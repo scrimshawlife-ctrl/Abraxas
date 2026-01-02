@@ -1,35 +1,53 @@
-"""Overlay Adapter
+from __future__ import annotations
+import json
+import hashlib
+from typing import Any, Dict
 
-Handles adaptation logic for overlay operations.
-"""
+from .schema import OverlayRequest, OverlayResponse, Phase
+from .phases import dispatch
 
+def _sha256(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
-class OverlayAdapter:
-    """Adapter for overlay transformations and mappings."""
+def parse_request(raw: str) -> OverlayRequest:
+    obj = json.loads(raw)
 
-    def __init__(self):
-        """Initialize the overlay adapter."""
-        self.adapters = {}
+    overlay = str(obj["overlay"])
+    version = str(obj.get("version", "unknown"))
+    phase = obj["phase"]
+    if phase not in ("OPEN", "ALIGN", "ASCEND", "CLEAR", "SEAL"):
+        raise ValueError("Invalid phase")
 
-    def register(self, name: str, adapter_fn):
-        """Register an adapter function.
+    req_id = str(obj["request_id"])
+    ts = int(obj["timestamp_ms"])
+    payload = obj.get("payload", {})
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be dict")
 
-        Args:
-            name: Name of the adapter
-            adapter_fn: Function to perform adaptation
-        """
-        self.adapters[name] = adapter_fn
+    return OverlayRequest(
+        overlay=overlay,
+        version=version,
+        phase=phase,  # type: ignore
+        request_id=req_id,
+        timestamp_ms=ts,
+        payload=payload,
+    )
 
-    def adapt(self, name: str, data):
-        """Apply an adapter to data.
+def handle(req: OverlayRequest) -> OverlayResponse:
+    payload_hash = _sha256(json.dumps(req.payload, sort_keys=True, separators=(",", ":")))
+    out = dispatch(req.phase, req.payload)
 
-        Args:
-            name: Name of the adapter to use
-            data: Data to adapt
+    out_meta: Dict[str, Any] = {
+        "overlay_version": req.version,
+        "payload_hash": payload_hash,
+        "timestamp_ms": req.timestamp_ms,
+    }
 
-        Returns:
-            Adapted data
-        """
-        if name not in self.adapters:
-            raise ValueError(f"Adapter '{name}' not found")
-        return self.adapters[name](data)
+    return OverlayResponse(
+        ok=True,
+        overlay=req.overlay,
+        phase=req.phase,
+        request_id=req.request_id,
+        output={"meta": out_meta, "result": out},
+        error=None,
+    )
