@@ -1,0 +1,124 @@
+{
+  "compression": {
+    "affect_direction": "neutral",
+    "compressed_tokens": {
+      "equality": 0.5,
+      "establishment": 0.5,
+      "fixture_06": 0.5,
+      "justice": 0.5,
+      "scrutiny": 0.5
+    },
+    "domain": "politics",
+    "domain_signals": [
+      "ideology_left"
+    ],
+    "lifecycle_states": {
+      "equality": "Front",
+      "establishment": "Front",
+      "fixture_06": "Front",
+      "justice": "Front",
+      "scrutiny": "Front"
+    },
+    "provenance": {
+      "config_hash": "74d6f19c92182483eca40609fb2791bbfafcfd757b1c068d28bdb57c42703caf",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "8dc5e1f3d598d636a649559b05a5e3654b08b0e2a3993fa53a91945c1babb2e1",
+      "run_id": "FIXTURE-EC-007",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "signal_strengths": {
+      "ideology_left": 0.7
+    },
+    "transparency_score": 0.75,
+    "version": "dce-v2.0-fallback"
+  },
+  "created_at_utc": "2026-01-01T00:00:00Z",
+  "forecast": {
+    "drift_velocity": 0.0,
+    "memetic_pressure": 0.7,
+    "phase_transitions": {},
+    "provenance": {
+      "config_hash": "99fa773f4c586b22f93fc99dad57ab2b098cb30b7eaadd27244d072fbb12063b",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "412592ba2a355633d45286fd465f1f8f7a456e4735fddf31b87c72e358568422",
+      "run_id": "FIXTURE-EC-007",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "resonance_score": 0.7,
+    "resonating_domains": [
+      "politics"
+    ],
+    "time_to_transition": {},
+    "transition_probabilities": {},
+    "weather_trajectory": "compression_accelerating"
+  },
+  "narrative": {
+    "bundle_hash": "026bb38c619bf5c8194627e24a617c43169310593559098191f7906d38b753e6",
+    "bundle_id": "ORACLE-FIXTURE-EC-007-2026-01-01",
+    "cascade_sheet": {
+      "lifecycle_distribution": {
+        "Front": 5
+      },
+      "token_count": 5,
+      "transition_forecast": 0
+    },
+    "confidence_band": "MED",
+    "contamination_advisory": null,
+    "evidence_signals": [
+      "ideology_left"
+    ],
+    "evidence_tokens": [
+      "equality",
+      "justice",
+      "establishment",
+      "scrutiny",
+      "fixture_06"
+    ],
+    "evidence_transitions": [],
+    "narrative_summary": "Domain: politics | Tokens analyzed: 5 | Signals detected: ideology_left | Transparency: 0.75 (STI) | Affect: neutral | Weather: compression_accelerating | Memetic pressure: 0.70",
+    "provenance": {
+      "config_hash": "5be53b361949bfc5932eee0842c8e818f97c019b24f3b8a5728306a296588936",
+      "git_sha": null,
+      "host": null,
+      "inputs_hash": "026bb38c619bf5c8194627e24a617c43169310593559098191f7906d38b753e6",
+      "run_id": "FIXTURE-EC-007",
+      "started_at_utc": "2026-01-01T03:59:37Z"
+    },
+    "trust_drift_series": [
+      {
+        "sti": 0.75,
+        "t": 0
+      },
+      {
+        "sti": 0.7124999999999999,
+        "t": 24
+      },
+      {
+        "sti": 0.675,
+        "t": 48
+      }
+    ]
+  },
+  "pipeline_version": "2.0.0",
+  "run_id": "FIXTURE-EC-007",
+  "signal": {
+    "domain": "politics",
+    "meta": {},
+    "observations": [
+      "Political discourse shifting toward equality and justice",
+      "Establishment figures facing increased scrutiny"
+    ],
+    "source_id": "fixture_politics_06",
+    "subdomain": "rhetoric",
+    "timestamp_utc": "2026-01-01T00:00:00Z",
+    "tokens": [
+      "equality",
+      "justice",
+      "establishment",
+      "scrutiny",
+      "fixture_06"
+    ]
+  }
+}
