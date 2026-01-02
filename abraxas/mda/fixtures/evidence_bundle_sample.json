@@ -1,0 +1,13 @@
+{
+  "bundle_id": "sample_bundle_v1",
+  "vectors": {
+    "tech_ai": {
+      "foundation_models": {
+        "scores": {},
+        "events": [],
+        "evidence_refs": []
+      }
+    }
+  }
+}
+
