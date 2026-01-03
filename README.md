@@ -25,6 +25,26 @@
 
 Think of it as a **weather system for language** — detecting when symbols compress ("eggcorns" like "apex twin" → "aphex twin"), tracking affective drift, and generating deterministic provenance for every linguistic event.
 
+### At a Glance
+
+- **Deterministic by design** — every output is reproducible with SHA-256 provenance
+- **Dual-lane architecture** — prediction and diagnostics stay strictly separated
+- **Edge-ready** — optimized for Jetson Orin with systemd and atomic updates
+- **Full-stack** — Python SCO/ECO core + TypeScript orchestration + UI tooling
+
+### Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Dual-Lane Architecture](#-dual-lane-architecture)
+- [Features](#-features)
+- [Project Status](#-project-status)
+- [Documentation](#-documentation)
+- [Configuration](#-configuration)
+- [Testing](#-testing)
+- [Contributing](#-contributing)
+- [License](#-license)
+
 ### Core Capabilities
 
 - **🔬 Symbolic Compression Detection (SCO/ECO)** — Detect and quantify when opaque symbols are replaced with semantically transparent substitutes
@@ -41,12 +61,9 @@ Think of it as a **weather system for language** — detecting when symbols comp
 
 ### Prerequisites
 
-```bash
-# System requirements
 - Python 3.11+
 - Node.js 18+
 - (Optional) NVIDIA Jetson Orin for edge deployment
-```
 
 ### Installation
 
