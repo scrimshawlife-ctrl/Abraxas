@@ -1,0 +1,23 @@
+{
+  "id": "ϟ₂₄",
+  "short_name": "BULK_EXECUTE",
+  "name": "ABX-BULK_EXECUTE",
+  "layer": "Acquisition",
+  "introduced_version": "1.7.0",
+  "function": "Execute bulk pull plans using cache-first bulk transport.",
+  "inputs": [
+    "bulk_plan",
+    "offline",
+    "run_ctx"
+  ],
+  "outputs": [
+    "packet_refs",
+    "packets",
+    "cache_refs"
+  ],
+  "constraints": [
+    "no_surgical_fetch",
+    "cache_first"
+  ],
+  "canonical_statement": "ABX-BULK_EXECUTE executes finite plan steps via bulk/cache-only channels, never surgical."
+}

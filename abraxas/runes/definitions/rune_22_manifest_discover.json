@@ -1,0 +1,25 @@
+{
+  "id": "ϟ₂₂",
+  "short_name": "MANIFEST_DISCOVER",
+  "name": "ABX-MANIFEST_DISCOVER",
+  "layer": "Acquisition",
+  "introduced_version": "1.7.0",
+  "function": "Discover and cache source manifests deterministically.",
+  "inputs": [
+    "source_id",
+    "seeds",
+    "window",
+    "run_ctx"
+  ],
+  "outputs": [
+    "manifest_artifact",
+    "raw_ref",
+    "parsed_ref"
+  ],
+  "constraints": [
+    "manifest_only_decodo",
+    "cache_first",
+    "deterministic_order"
+  ],
+  "canonical_statement": "ABX-MANIFEST_DISCOVER enforces manifest-first acquisition with cache-first storage and deterministic ordering."
+}

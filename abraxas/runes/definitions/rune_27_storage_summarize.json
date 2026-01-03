@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₂₇",
+  "short_name": "STORAGE_SUMMARIZE",
+  "name": "ABX-STORAGE_SUMMARIZE",
+  "layer": "Storage",
+  "introduced_version": "1.7.1",
+  "function": "Summarize storage index by tier and artifact type.",
+  "inputs": ["index_path", "now_utc"],
+  "outputs": ["summary", "ir_hash"],
+  "constraints": ["deterministic_order"],
+  "canonical_statement": "ABX-STORAGE_SUMMARIZE emits deterministic storage summaries for lifecycle planning."
+}

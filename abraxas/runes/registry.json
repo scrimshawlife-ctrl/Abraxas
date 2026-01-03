@@ -212,6 +212,256 @@
       "introduced_version": "1.6.2",
       "sigil_path": "abraxas/runes/sigils/ϟ₂₁_LINGUISTIC_SOURCE_DISCOVER.svg",
       "definition_path": "abraxas/runes/definitions/rune_21_linguistic_source_discover.json"
+    },
+    {
+      "id": "ϟ₂₂",
+      "short_name": "MANIFEST_DISCOVER",
+      "name": "ABX-MANIFEST_DISCOVER",
+      "layer": "Acquisition",
+      "status": "canonical",
+      "introduced_version": "1.7.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₂_MANIFEST_DISCOVER.svg",
+      "definition_path": "abraxas/runes/definitions/rune_22_manifest_discover.json"
+    },
+    {
+      "id": "ϟ₂₃",
+      "short_name": "BULK_PLAN",
+      "name": "ABX-BULK_PLAN",
+      "layer": "Acquisition",
+      "status": "canonical",
+      "introduced_version": "1.7.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₃_BULK_PLAN.svg",
+      "definition_path": "abraxas/runes/definitions/rune_23_bulk_plan.json"
+    },
+    {
+      "id": "ϟ₂₄",
+      "short_name": "BULK_EXECUTE",
+      "name": "ABX-BULK_EXECUTE",
+      "layer": "Acquisition",
+      "status": "canonical",
+      "introduced_version": "1.7.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₄_BULK_EXECUTE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_24_bulk_execute.json"
+    },
+    {
+      "id": "ϟ₂₅",
+      "short_name": "MANIFEST_ONLY_ENFORCE",
+      "name": "ABX-MANIFEST_ONLY_ENFORCE",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₅_MANIFEST_ONLY_ENFORCE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_25_manifest_only_enforce.json"
+    },
+    {
+      "id": "ϟ₂₆",
+      "short_name": "PLAN_FINITE_ENFORCE",
+      "name": "ABX-PLAN_FINITE_ENFORCE",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₆_PLAN_FINITE_ENFORCE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_26_plan_finite_enforce.json"
+    },
+    {
+      "id": "ϟ₂₇",
+      "short_name": "STORAGE_SUMMARIZE",
+      "name": "ABX-STORAGE_SUMMARIZE",
+      "layer": "Storage",
+      "status": "canonical",
+      "introduced_version": "1.7.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₇_STORAGE_SUMMARIZE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_27_storage_summarize.json"
+    },
+    {
+      "id": "ϟ₂₈",
+      "short_name": "LIFECYCLE_PLAN",
+      "name": "ABX-LIFECYCLE_PLAN",
+      "layer": "Storage",
+      "status": "canonical",
+      "introduced_version": "1.7.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₈_LIFECYCLE_PLAN.svg",
+      "definition_path": "abraxas/runes/definitions/rune_28_lifecycle_plan.json"
+    },
+    {
+      "id": "ϟ₂₉",
+      "short_name": "LIFECYCLE_EXECUTE",
+      "name": "ABX-LIFECYCLE_EXECUTE",
+      "layer": "Storage",
+      "status": "canonical",
+      "introduced_version": "1.7.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₉_LIFECYCLE_EXECUTE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_29_lifecycle_execute.json"
+    },
+    {
+      "id": "ϟ₃₀",
+      "short_name": "LIFECYCLE_REVERT",
+      "name": "ABX-LIFECYCLE_REVERT",
+      "layer": "Storage",
+      "status": "canonical",
+      "introduced_version": "1.7.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₀_LIFECYCLE_REVERT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_30_lifecycle_revert.json"
+    },
+    {
+      "id": "ϟ₃₁",
+      "short_name": "RAW_NO_DELETE",
+      "name": "ABX-RAW_NO_DELETE",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₁_RAW_NO_DELETE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_31_raw_no_delete.json"
+    },
+    {
+      "id": "ϟ₃₂",
+      "short_name": "DETERMINISTIC_ORDER",
+      "name": "ABX-DETERMINISTIC_ORDER",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₂_DETERMINISTIC_ORDER.svg",
+      "definition_path": "abraxas/runes/definitions/rune_32_deterministic_order.json"
+    },
+    {
+      "id": "ϟ₃₃",
+      "short_name": "PARALLEL_STAGE_RUN",
+      "name": "ABX-PARALLEL_STAGE_RUN",
+      "layer": "Runtime",
+      "status": "canonical",
+      "introduced_version": "1.7.2",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₃_PARALLEL_STAGE_RUN.svg",
+      "definition_path": "abraxas/runes/definitions/rune_33_parallel_stage_run.json"
+    },
+    {
+      "id": "ϟ₃₄",
+      "short_name": "SERIAL_COMMIT",
+      "name": "ABX-SERIAL_COMMIT",
+      "layer": "Runtime",
+      "status": "canonical",
+      "introduced_version": "1.7.2",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₄_SERIAL_COMMIT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_34_serial_commit.json"
+    },
+    {
+      "id": "ϟ₃₅",
+      "short_name": "DETERMINISTIC_COMMIT_ORDER",
+      "name": "ABX-DETERMINISTIC_COMMIT_ORDER",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.2",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₅_DETERMINISTIC_COMMIT_ORDER.svg",
+      "definition_path": "abraxas/runes/definitions/rune_35_deterministic_commit_order.json"
+    },
+    {
+      "id": "ϟ₃₆",
+      "short_name": "NO_TIME_BRANCHING",
+      "name": "ABX-NO_TIME_BRANCHING",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.2",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₆_NO_TIME_BRANCHING.svg",
+      "definition_path": "abraxas/runes/definitions/rune_36_no_time_branching.json"
+    },
+    {
+      "id": "ϟ₃₇",
+      "short_name": "PROFILE_RUN",
+      "name": "ABX-PROFILE_RUN",
+      "layer": "Profile",
+      "status": "canonical",
+      "introduced_version": "1.7.3",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₇_PROFILE_RUN.svg",
+      "definition_path": "abraxas/runes/definitions/rune_37_profile_run.json"
+    },
+    {
+      "id": "ϟ₃₈",
+      "short_name": "PROFILE_EXPORT",
+      "name": "ABX-PROFILE_EXPORT",
+      "layer": "Profile",
+      "status": "canonical",
+      "introduced_version": "1.7.3",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₈_PROFILE_EXPORT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_38_profile_export.json"
+    },
+    {
+      "id": "ϟ₃₉",
+      "short_name": "PROFILE_INGEST",
+      "name": "ABX-PROFILE_INGEST",
+      "layer": "Profile",
+      "status": "canonical",
+      "introduced_version": "1.7.3",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃₉_PROFILE_INGEST.svg",
+      "definition_path": "abraxas/runes/definitions/rune_39_profile_ingest.json"
+    },
+    {
+      "id": "ϟ₄₀",
+      "short_name": "OFFLINE_ENFORCE",
+      "name": "ABX-OFFLINE_ENFORCE",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.3",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₀_OFFLINE_ENFORCE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_40_offline_enforce.json"
+    },
+    {
+      "id": "ϟ₄₁",
+      "short_name": "INVARIANCE_CHECK",
+      "name": "ABX-INVARIANCE_CHECK",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.3",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₁_INVARIANCE_CHECK.svg",
+      "definition_path": "abraxas/runes/definitions/rune_41_invariance_check.json"
+    },
+    {
+      "id": "ϟ₄₂",
+      "short_name": "DEVICE_FINGERPRINT",
+      "name": "ABX-DEVICE_FINGERPRINT",
+      "layer": "Device",
+      "status": "canonical",
+      "introduced_version": "1.7.4",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₂_DEVICE_FINGERPRINT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_42_device_fingerprint.json"
+    },
+    {
+      "id": "ϟ₄₃",
+      "short_name": "DEVICE_PROFILE_RESOLVE",
+      "name": "ABX-DEVICE_PROFILE_RESOLVE",
+      "layer": "Device",
+      "status": "canonical",
+      "introduced_version": "1.7.4",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₃_DEVICE_PROFILE_RESOLVE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_43_device_profile_resolve.json"
+    },
+    {
+      "id": "ϟ₄₄",
+      "short_name": "PORTFOLIO_SELECT",
+      "name": "ABX-PORTFOLIO_SELECT",
+      "layer": "Device",
+      "status": "canonical",
+      "introduced_version": "1.7.4",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₄_PORTFOLIO_SELECT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_44_portfolio_select.json"
+    },
+    {
+      "id": "ϟ₄₅",
+      "short_name": "NO_AUTO_TUNE",
+      "name": "ABX-NO_AUTO_TUNE",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.4",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₅_NO_AUTO_TUNE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_45_no_auto_tune.json"
+    },
+    {
+      "id": "ϟ₄₆",
+      "short_name": "ACTIVE_POINTER_ATOMIC",
+      "name": "ABX-ACTIVE_POINTER_ATOMIC",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.7.4",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄₆_ACTIVE_POINTER_ATOMIC.svg",
+      "definition_path": "abraxas/runes/definitions/rune_46_active_pointer_atomic.json"
     }
   ],
   "provenance": {

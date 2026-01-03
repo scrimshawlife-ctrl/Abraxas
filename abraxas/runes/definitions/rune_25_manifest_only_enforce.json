@@ -1,0 +1,21 @@
+{
+  "id": "ϟ₂₅",
+  "short_name": "MANIFEST_ONLY_ENFORCE",
+  "name": "ABX-MANIFEST_ONLY_ENFORCE",
+  "layer": "Governance",
+  "introduced_version": "1.7.0",
+  "function": "Blocks surgical acquisition outside manifest discovery.",
+  "inputs": [
+    "stage",
+    "decodo_used"
+  ],
+  "outputs": [
+    "allowed",
+    "stage",
+    "decodo_used"
+  ],
+  "constraints": [
+    "manifest_only_decodo"
+  ],
+  "canonical_statement": "ABX-MANIFEST_ONLY_ENFORCE restricts Decodo usage to manifest discovery only."
+}

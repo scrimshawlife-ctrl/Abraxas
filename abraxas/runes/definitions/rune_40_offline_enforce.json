@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₀",
+  "short_name": "OFFLINE_ENFORCE",
+  "name": "ABX-OFFLINE_ENFORCE",
+  "layer": "Governance",
+  "introduced_version": "1.7.3",
+  "function": "Enforce offline-only execution for profiling runs.",
+  "inputs": ["offline"],
+  "outputs": ["offline"],
+  "constraints": ["offline_enforce"],
+  "canonical_statement": "ABX-OFFLINE_ENFORCE blocks non-offline profiling by default."
+}

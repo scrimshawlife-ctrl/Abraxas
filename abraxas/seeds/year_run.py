@@ -11,6 +11,10 @@ from typing import Any, Dict, List
 from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.runes.invoke import invoke_capability
 from abraxas.seeds.emit_seedpack import emit_seedpack
+from abraxas.policy.utp import load_active_utp
+from abraxas.runtime.concurrency import ConcurrencyConfig
+from abraxas.runtime.deterministic_executor import commit_results, execute_parallel, WorkResult
+from abraxas.runtime.work_units import WorkUnit
 
 
 @dataclass(frozen=True)
@@ -60,23 +64,20 @@ def run_year(config: YearRunConfig) -> Dict[str, Any]:
     windows = _weekly_windows(config.year)
     ctx = RuneInvocationContext(run_id=f"year_run_{config.year}", subsystem_id="seed", git_hash="unknown")
 
+    portfolio = load_active_utp()
+    concurrency = ConcurrencyConfig.from_portfolio(portfolio)
+    work_units = _build_window_units(config.year, windows)
+    results = execute_parallel(
+        work_units,
+        config=concurrency,
+        stage="PARSE",
+        handler=lambda unit: _process_window_unit(unit, packets, ctx),
+    )
+    committed = commit_results(results.results)
+
     frames: List[Dict[str, Any]] = []
-    for window in windows:
-        window_packets = [
-            packet for packet in packets
-            if (packet.get("window_start_utc") or "") <= window["end"] and (packet.get("window_end_utc") or "") >= window["start"]
-        ]
-        metrics = invoke_capability("rune:metric_extract", {"packets": window_packets}, ctx=ctx)
-        tvm_frame = invoke_capability(
-            "rune:tvm_frame",
-            {
-                "metrics": metrics.get("metrics") or [],
-                "window_start_utc": window["start"],
-                "window_end_utc": window["end"],
-            },
-            ctx=ctx,
-        )
-        frames.extend(tvm_frame.get("frames") or [])
+    for result in committed:
+        frames.extend(result.output_refs.get("frames") or [])
 
     influence_frames = [_flatten_frame(frame) for frame in frames]
     influence = invoke_capability("rune:influence_detect", {"frames": influence_frames}, ctx=ctx)
@@ -105,6 +106,49 @@ def _flatten_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
         "vectors": flattened,
         "provenance": frame.get("provenance") or {},
     }
+
+
+def _build_window_units(year: int, windows: List[Dict[str, str]]) -> List[WorkUnit]:
+    units: List[WorkUnit] = []
+    for window in windows:
+        key = (year, window["start"], window["end"])
+        unit = WorkUnit.build(
+            stage="PARSE",
+            source_id="seedpack",
+            window_utc=window,
+            key=key,
+            input_refs={"window": window},
+            input_bytes=0,
+        )
+        units.append(unit)
+    return sorted(units, key=lambda unit: unit.key)
+
+
+def _process_window_unit(unit: WorkUnit, packets: List[Dict[str, Any]], ctx: RuneInvocationContext) -> WorkResult:
+    window = unit.input_refs.get("window") or {}
+    window_packets = [
+        packet
+        for packet in packets
+        if (packet.get("window_start_utc") or "") <= window.get("end", "")
+        and (packet.get("window_end_utc") or "") >= window.get("start", "")
+    ]
+    metrics = invoke_capability("rune:metric_extract", {"packets": window_packets}, ctx=ctx)
+    tvm_frame = invoke_capability(
+        "rune:tvm_frame",
+        {
+            "metrics": metrics.get("metrics") or [],
+            "window_start_utc": window.get("start"),
+            "window_end_utc": window.get("end"),
+        },
+        ctx=ctx,
+    )
+    return WorkResult(
+        unit_id=unit.unit_id,
+        key=unit.key,
+        output_refs={"frames": tvm_frame.get("frames") or []},
+        bytes_processed=0,
+        stage=unit.stage,
+    )
 
 
 def main() -> int:
