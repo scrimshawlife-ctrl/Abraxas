@@ -1,0 +1,22 @@
+{
+  "id": "ϟ₂₃",
+  "short_name": "BULK_PLAN",
+  "name": "ABX-BULK_PLAN",
+  "layer": "Acquisition",
+  "introduced_version": "1.7.0",
+  "function": "Convert manifest artifacts into finite bulk pull plans.",
+  "inputs": [
+    "manifest_artifact",
+    "window",
+    "run_ctx"
+  ],
+  "outputs": [
+    "bulk_plan",
+    "overflow_urls"
+  ],
+  "constraints": [
+    "finite_plan_only",
+    "deterministic_order"
+  ],
+  "canonical_statement": "ABX-BULK_PLAN emits finite, deterministic plan steps with no recursive discovery."
+}

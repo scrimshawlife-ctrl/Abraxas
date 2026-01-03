@@ -1,0 +1,19 @@
+{
+  "id": "ϟ₂₆",
+  "short_name": "PLAN_FINITE_ENFORCE",
+  "name": "ABX-PLAN_FINITE_ENFORCE",
+  "layer": "Governance",
+  "introduced_version": "1.7.0",
+  "function": "Ensures bulk plans remain finite and non-recursive.",
+  "inputs": [
+    "steps"
+  ],
+  "outputs": [
+    "finite",
+    "step_count"
+  ],
+  "constraints": [
+    "finite_plan_only"
+  ],
+  "canonical_statement": "ABX-PLAN_FINITE_ENFORCE guarantees bulk plans are finite and deterministic."
+}

@@ -79,6 +79,8 @@ class SourceSpec(BaseModel):
     provenance_notes: str
     legal_notes: Optional[str] = None
     refs: List[SourceRef] = Field(default_factory=list)
+    manifest_seeds: Optional[List[str]] = None
+    bulk_endpoints: Optional[List[str]] = None
 
     def canonical_payload(self) -> Dict[str, Any]:
         payload = self.model_dump()
@@ -88,6 +90,8 @@ class SourceSpec(BaseModel):
             [ref.model_dump() for ref in self.refs],
             key=lambda ref: ref["id"],
         )
+        payload["manifest_seeds"] = sorted(payload.get("manifest_seeds") or [])
+        payload["bulk_endpoints"] = sorted(payload.get("bulk_endpoints") or [])
         return payload
 
     def record_hash(self) -> str:

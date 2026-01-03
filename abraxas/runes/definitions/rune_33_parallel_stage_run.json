@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₃",
+  "short_name": "PARALLEL_STAGE_RUN",
+  "name": "ABX-PARALLEL_STAGE_RUN",
+  "layer": "Runtime",
+  "introduced_version": "1.7.2",
+  "function": "Execute stage work units in parallel with deterministic commit metadata.",
+  "inputs": ["work_units", "config", "stage"],
+  "outputs": ["results"],
+  "constraints": ["deterministic_commit"],
+  "canonical_statement": "ABX-PARALLEL_STAGE_RUN executes parallel work units while preserving deterministic commit ordering."
+}

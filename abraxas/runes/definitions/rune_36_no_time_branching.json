@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₆",
+  "short_name": "NO_TIME_BRANCHING",
+  "name": "ABX-NO_TIME_BRANCHING",
+  "layer": "Governance",
+  "introduced_version": "1.7.2",
+  "function": "Block time-based branching in deterministic stages.",
+  "inputs": ["payload"],
+  "outputs": ["ok", "checked_keys"],
+  "constraints": ["no_time_branching"],
+  "canonical_statement": "ABX-NO_TIME_BRANCHING forbids timing-driven branching in deterministic stages."
+}
