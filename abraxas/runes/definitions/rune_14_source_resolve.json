@@ -1,0 +1,36 @@
+{
+  "id": "ϟ₁₄",
+  "name": "ABX-SOURCE_RESOLVE",
+  "short_name": "SOURCE_RESOLVE",
+  "layer": "Validation",
+  "motto": "Resolve sources without bias.",
+  "function": "Resolves SourceAtlas entries for declared source IDs and returns deterministic records plus missing identifiers.",
+  "inputs": [
+    "source_ids: List of SourceId strings"
+  ],
+  "outputs": [
+    "sources: List of SourceAtlas records",
+    "missing: List of unresolved SourceId values",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No domain priors"
+  ],
+  "hooks": [
+    "pre_compute: validate_source_ids",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "SourceAtlas v0.1"
+  ],
+  "canonical_statement": "ϟ₁₄ (SOURCE_RESOLVE) resolves SourceAtlas entries for declared IDs without legitimacy gating, emitting deterministic records and missing lists.",
+  "introduced_version": "1.6.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_domain_prior": true
+  }
+}

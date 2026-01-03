@@ -556,6 +556,21 @@ Abraxas implements a **dual-lane architecture** (see [Dual-Lane Architecture](#-
 
 ---
 
+### 🧭 TVM Oracle Skeleton + Influence/Synchronicity (Canonical)
+
+**Canonical flow (shadow-only by default):**
+Sources → Metrics (Shadow) → **TVM Vector Framing (V1–V15)** → **ABX-INFLUENCE_DETECT (ICS)** → **ABX-INFLUENCE_WEIGHT** → **ABX-SYNCHRONICITY_MAP (SE)** → MDA Domain Graph → Oracle Output
+
+**Non-exclusionary intake**: symbolic domains (astrology, numerology, geomagnetic, Schumann, etc.) are accepted equally when structured inputs exist; no domain legitimacy priors are allowed.
+
+**Seed baseline**: deterministic 2025 year-in-review seed packs provide historical substrate for influence/synchronicity calibration.
+
+```bash
+abraxas seed --year 2025 --out data/year_seed/2025/seedpack.v0.1.json
+```
+
+---
+
 ### 📊 Latest Updates (December 2025)
 
 #### PR #51 — Dual-Lane Architecture with Shadow Detectors + Lane Guard (2025-12-30)

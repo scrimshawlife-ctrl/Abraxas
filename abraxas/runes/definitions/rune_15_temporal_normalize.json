@@ -1,0 +1,40 @@
+{
+  "id": "ϟ₁₅",
+  "name": "ABX-TEMPORAL_NORMALIZE",
+  "short_name": "TEMPORAL_NORMALIZE",
+  "layer": "Validation",
+  "motto": "Normalize time, preserve provenance.",
+  "function": "Normalizes timestamps to UTC using vendored timezone/calendar snapshots and emits deterministic normalization bundles.",
+  "inputs": [
+    "timestamp: ISO8601 timestamp",
+    "timezone: IANA timezone name",
+    "window: Optional time window for calendar events",
+    "calendars: Optional list of calendar systems"
+  ],
+  "outputs": [
+    "normalized_timestamp_utc: UTC timestamp",
+    "timezone_snapshot: TZDB snapshot payload",
+    "calendar_events: Structured calendar events",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No external network"
+  ],
+  "hooks": [
+    "pre_compute: validate_timestamp",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "IANA TZDB",
+    "Unicode CLDR"
+  ],
+  "canonical_statement": "ϟ₁₅ (TEMPORAL_NORMALIZE) normalizes timestamps to UTC using vendored TZDB/CLDR snapshots with deterministic provenance.",
+  "introduced_version": "1.6.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true
+  }
+}

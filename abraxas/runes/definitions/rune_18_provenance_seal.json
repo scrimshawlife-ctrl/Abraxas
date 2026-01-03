@@ -1,0 +1,36 @@
+{
+  "id": "ϟ₁₈",
+  "name": "ABX-PROVENANCE_SEAL",
+  "short_name": "PROVENANCE_SEAL",
+  "layer": "Governance",
+  "motto": "Seal provenance, preserve determinism.",
+  "function": "Computes deterministic hashes for payloads and returns provenance seals without mutating the payload.",
+  "inputs": [
+    "payload: Any structured payload"
+  ],
+  "outputs": [
+    "payload_hash: Stable hash",
+    "inputs_hash: Hash of inputs wrapper",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No mutation of payload"
+  ],
+  "hooks": [
+    "pre_compute: validate_payload",
+    "post_compute: audit_log"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "ABX-Core canonical JSON"
+  ],
+  "canonical_statement": "ϟ₁₈ (PROVENANCE_SEAL) seals payloads with deterministic hashes for traceable provenance.",
+  "introduced_version": "1.6.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "guardrail": true
+  }
+}

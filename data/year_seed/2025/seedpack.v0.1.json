@@ -1,0 +1,225 @@
+{
+  "provenance": {
+    "assumptions": [
+      "retroactive_seedpack_v0.1",
+      "shadow_only_dataset",
+      "non_exclusionary_intake"
+    ],
+    "generated_at_utc": "2026-01-01T00:00:00Z",
+    "run_id": "seedpack_2025_dd79ff6d1d9a",
+    "sources": [
+      "https://www.imf.org/en/Publications/WEO",
+      "https://www.worldbank.org/en/publication/global-economic-prospects",
+      "https://www.un.org/en/global-issues/climate-change",
+      "https://www.weforum.org/reports/global-risks-report-2025/",
+      "https://www.bis.org/statistics/",
+      "https://www.oecd.org/economic-outlook/"
+    ]
+  },
+  "records": [
+    {
+      "date_utc": "2025-01-15",
+      "domain": "economics",
+      "inference_score": 0.78,
+      "provenance": {
+        "assumptions": [
+          "macro_review_window_2025Q1"
+        ],
+        "notes": "Inference derived from macro outlook summaries.",
+        "sources": [
+          "https://www.imf.org/en/Publications/WEO",
+          "https://www.worldbank.org/en/publication/global-economic-prospects"
+        ]
+      },
+      "record_id": "seed_2025_80ec1bba0312",
+      "summary": "Global growth revised lower amid tightening credit conditions.",
+      "vectors": {
+        "V10_GOVERNANCE_PRESSURE": 0.48,
+        "V11_ECONOMIC_STRESS": 0.71,
+        "V12_TECHNICAL_CONSTRAINT": 0.42,
+        "V13_ARCHETYPAL_ACTIVATION": null,
+        "V14_IDENTITY_PHASE_STATE": null,
+        "V15_RITUAL_COHESION": null,
+        "V1_SIGNAL_DENSITY": 0.62,
+        "V2_SIGNAL_INTEGRITY": 0.74,
+        "V3_DISTRIBUTION_DYNAMICS": null,
+        "V4_SEMANTIC_INFLATION": null,
+        "V5_SLANG_MUTATION": null,
+        "V6_NARRATIVE_LOAD": null,
+        "V7_COGNITIVE_LOAD": null,
+        "V8_EMOTIONAL_CLIMATE": null,
+        "V9_TRUST_TOPOLOGY": null
+      }
+    },
+    {
+      "date_utc": "2025-03-22",
+      "domain": "technology",
+      "inference_score": 0.74,
+      "provenance": {
+        "assumptions": [
+          "policy_convergence_observed"
+        ],
+        "notes": "Inference based on multi-region policy summaries.",
+        "sources": [
+          "https://www.weforum.org/reports/global-risks-report-2025/"
+        ]
+      },
+      "record_id": "seed_2025_04f0b577f822",
+      "summary": "AI governance frameworks accelerate with multi-region compliance convergence.",
+      "vectors": {
+        "V10_GOVERNANCE_PRESSURE": 0.66,
+        "V11_ECONOMIC_STRESS": null,
+        "V12_TECHNICAL_CONSTRAINT": 0.59,
+        "V13_ARCHETYPAL_ACTIVATION": null,
+        "V14_IDENTITY_PHASE_STATE": null,
+        "V15_RITUAL_COHESION": null,
+        "V1_SIGNAL_DENSITY": 0.58,
+        "V2_SIGNAL_INTEGRITY": null,
+        "V3_DISTRIBUTION_DYNAMICS": 0.55,
+        "V4_SEMANTIC_INFLATION": 0.46,
+        "V5_SLANG_MUTATION": null,
+        "V6_NARRATIVE_LOAD": null,
+        "V7_COGNITIVE_LOAD": null,
+        "V8_EMOTIONAL_CLIMATE": null,
+        "V9_TRUST_TOPOLOGY": null
+      }
+    },
+    {
+      "date_utc": "2025-05-05",
+      "domain": "climate",
+      "inference_score": 0.7,
+      "provenance": {
+        "assumptions": [
+          "extreme_weather_cycle_Q2"
+        ],
+        "notes": "Inference derived from climate risk summaries.",
+        "sources": [
+          "https://www.un.org/en/global-issues/climate-change"
+        ]
+      },
+      "record_id": "seed_2025_71e1a834ede9",
+      "summary": "Extreme weather narratives intensify with elevated community stress signals.",
+      "vectors": {
+        "V10_GOVERNANCE_PRESSURE": null,
+        "V11_ECONOMIC_STRESS": 0.52,
+        "V12_TECHNICAL_CONSTRAINT": null,
+        "V13_ARCHETYPAL_ACTIVATION": null,
+        "V14_IDENTITY_PHASE_STATE": null,
+        "V15_RITUAL_COHESION": null,
+        "V1_SIGNAL_DENSITY": 0.64,
+        "V2_SIGNAL_INTEGRITY": null,
+        "V3_DISTRIBUTION_DYNAMICS": null,
+        "V4_SEMANTIC_INFLATION": null,
+        "V5_SLANG_MUTATION": null,
+        "V6_NARRATIVE_LOAD": 0.7,
+        "V7_COGNITIVE_LOAD": 0.61,
+        "V8_EMOTIONAL_CLIMATE": 0.73,
+        "V9_TRUST_TOPOLOGY": null
+      }
+    },
+    {
+      "date_utc": "2025-07-19",
+      "domain": "society",
+      "inference_score": 0.73,
+      "provenance": {
+        "assumptions": [
+          "trust_surface_review"
+        ],
+        "notes": "Inference derived from risk signals and trust indicators.",
+        "sources": [
+          "https://www.weforum.org/reports/global-risks-report-2025/"
+        ]
+      },
+      "record_id": "seed_2025_095bb3cbf5b0",
+      "summary": "Public trust topology shifts amid coordinated misinformation campaigns.",
+      "vectors": {
+        "V10_GOVERNANCE_PRESSURE": null,
+        "V11_ECONOMIC_STRESS": null,
+        "V12_TECHNICAL_CONSTRAINT": null,
+        "V13_ARCHETYPAL_ACTIVATION": 0.6,
+        "V14_IDENTITY_PHASE_STATE": null,
+        "V15_RITUAL_COHESION": null,
+        "V1_SIGNAL_DENSITY": null,
+        "V2_SIGNAL_INTEGRITY": 0.51,
+        "V3_DISTRIBUTION_DYNAMICS": null,
+        "V4_SEMANTIC_INFLATION": 0.57,
+        "V5_SLANG_MUTATION": null,
+        "V6_NARRATIVE_LOAD": null,
+        "V7_COGNITIVE_LOAD": null,
+        "V8_EMOTIONAL_CLIMATE": 0.69,
+        "V9_TRUST_TOPOLOGY": 0.43
+      }
+    },
+    {
+      "date_utc": "2025-09-08",
+      "domain": "finance",
+      "inference_score": 0.76,
+      "provenance": {
+        "assumptions": [
+          "liquidity_monitoring_cycle"
+        ],
+        "notes": "Inference derived from financial stability summaries.",
+        "sources": [
+          "https://www.bis.org/statistics/",
+          "https://www.oecd.org/economic-outlook/"
+        ]
+      },
+      "record_id": "seed_2025_5ad7e6d2283c",
+      "summary": "Liquidity stress pockets appear in regional banking networks.",
+      "vectors": {
+        "V10_GOVERNANCE_PRESSURE": null,
+        "V11_ECONOMIC_STRESS": 0.67,
+        "V12_TECHNICAL_CONSTRAINT": 0.47,
+        "V13_ARCHETYPAL_ACTIVATION": null,
+        "V14_IDENTITY_PHASE_STATE": null,
+        "V15_RITUAL_COHESION": null,
+        "V1_SIGNAL_DENSITY": 0.55,
+        "V2_SIGNAL_INTEGRITY": 0.69,
+        "V3_DISTRIBUTION_DYNAMICS": null,
+        "V4_SEMANTIC_INFLATION": null,
+        "V5_SLANG_MUTATION": null,
+        "V6_NARRATIVE_LOAD": null,
+        "V7_COGNITIVE_LOAD": null,
+        "V8_EMOTIONAL_CLIMATE": null,
+        "V9_TRUST_TOPOLOGY": 0.52
+      }
+    },
+    {
+      "date_utc": "2025-11-30",
+      "domain": "culture",
+      "inference_score": 0.69,
+      "provenance": {
+        "assumptions": [
+          "symbolic_domain_monitoring"
+        ],
+        "notes": "Inference derived from culture signal summaries.",
+        "sources": [
+          "https://www.weforum.org/reports/global-risks-report-2025/"
+        ]
+      },
+      "record_id": "seed_2025_858571a4abad",
+      "summary": "Mythic-symbolic motifs surge across creative platforms and ritual cohesion rises.",
+      "vectors": {
+        "V10_GOVERNANCE_PRESSURE": null,
+        "V11_ECONOMIC_STRESS": null,
+        "V12_TECHNICAL_CONSTRAINT": null,
+        "V13_ARCHETYPAL_ACTIVATION": 0.74,
+        "V14_IDENTITY_PHASE_STATE": 0.61,
+        "V15_RITUAL_COHESION": 0.72,
+        "V1_SIGNAL_DENSITY": null,
+        "V2_SIGNAL_INTEGRITY": null,
+        "V3_DISTRIBUTION_DYNAMICS": null,
+        "V4_SEMANTIC_INFLATION": null,
+        "V5_SLANG_MUTATION": 0.63,
+        "V6_NARRATIVE_LOAD": 0.58,
+        "V7_COGNITIVE_LOAD": null,
+        "V8_EMOTIONAL_CLIMATE": null,
+        "V9_TRUST_TOPOLOGY": null
+      }
+    }
+  ],
+  "schema_version": "seedpack.v0.1",
+  "seedpack_hash": "d9929f73cec98f17f47fe3d37e8d1a9b3235a9aa60c692a2bd8c921b6ecd04f2",
+  "seedpack_version": "0.1",
+  "year": 2025
+}

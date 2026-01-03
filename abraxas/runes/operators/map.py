@@ -7,17 +7,47 @@ from __future__ import annotations
 from typing import Callable, Dict, Any
 
 from .rfa import apply_rfa
+from .synchronicity_map import apply_synchronicity_map
+from .cohesion_score import apply_cohesion_score
+from .no_causal_assert import apply_no_causal_assert
+from .no_domain_prior import apply_no_domain_prior
+from .source_resolve import apply_source_resolve
+from .temporal_normalize import apply_temporal_normalize
+from .source_redundancy_check import apply_source_redundancy_check
+from .source_discover import apply_source_discover
+from .provenance_seal import apply_provenance_seal
+from .metric_extract import apply_metric_extract
 from .tam import apply_tam
+from .tvm_frame import apply_tvm_frame
+from .linguistic_source_discover import apply_linguistic_source_discover
 from .wsss import apply_wsss
 from .sds import apply_sds
 from .ipl import apply_ipl
 from .add import apply_add
+from .sso import apply_sso
+from .influence_detect import apply_influence_detect
+from .influence_weight import apply_influence_weight
 
 RUNE_FUNCTIONS: Dict[str, Callable[..., Any]] = {
     "ϟ₁": apply_rfa,
+    "ϟ₁₀": apply_synchronicity_map,
+    "ϟ₁₁": apply_cohesion_score,
+    "ϟ₁₂": apply_no_causal_assert,
+    "ϟ₁₃": apply_no_domain_prior,
+    "ϟ₁₄": apply_source_resolve,
+    "ϟ₁₅": apply_temporal_normalize,
+    "ϟ₁₆": apply_source_redundancy_check,
+    "ϟ₁₇": apply_source_discover,
+    "ϟ₁₈": apply_provenance_seal,
+    "ϟ₁₉": apply_metric_extract,
     "ϟ₂": apply_tam,
+    "ϟ₂₀": apply_tvm_frame,
+    "ϟ₂₁": apply_linguistic_source_discover,
     "ϟ₃": apply_wsss,
     "ϟ₄": apply_sds,
     "ϟ₅": apply_ipl,
     "ϟ₆": apply_add,
+    "ϟ₇": apply_sso,
+    "ϟ₈": apply_influence_detect,
+    "ϟ₉": apply_influence_weight,
 }
