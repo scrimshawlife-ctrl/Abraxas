@@ -6,6 +6,7 @@ Performance Drop v1.0 - Lightweight entropy heuristics.
 from __future__ import annotations
 
 import collections
+import math
 
 
 def estimate_entropy(raw_bytes: bytes) -> float:
@@ -29,7 +30,7 @@ def estimate_entropy(raw_bytes: bytes) -> float:
     for count in counts.values():
         p = count / total
         if p > 0:
-            entropy -= p * (p.bit_length() - 1)  # Fast log2 approximation
+            entropy -= p * math.log2(p)
 
     return entropy
 
