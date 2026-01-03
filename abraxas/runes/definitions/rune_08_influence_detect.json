@@ -1,0 +1,40 @@
+{
+  "id": "ϟ₈",
+  "name": "ABX-INFLUENCE_DETECT",
+  "short_name": "INFLUENCE_DETECT",
+  "layer": "Validation",
+  "motto": "Observe perturbations without asserting cause.",
+  "function": "Computes Influence Composite Scores (ICS) across domains using structured TVM vector frames with deterministic metrics (CVP, TLL, RD, CDEC, RRS).",
+  "inputs": [
+    "frames: List of TVM vector frames (structured, numeric)"
+  ],
+  "outputs": [
+    "ics_bundle: Influence metrics per domain with not_computable flags",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output (no routing/prediction impact)",
+    "Deterministic computation",
+    "No causal assertions",
+    "No domain priors",
+    "Structured inputs only (no raw text)"
+  ],
+  "hooks": [
+    "pre_compute: validate_tvm_frames",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "TVM schema v0.1",
+    "Influence Detection Metrics (IDM) v0.1",
+    "SEED framework compliance"
+  ],
+  "canonical_statement": "ϟ₈ (INFLUENCE_DETECT) frames structured observations into domain-agnostic influence metrics without asserting causality or privileging any domain, emitting deterministic ICS bundles with explicit not_computable fields when inputs are missing.",
+  "introduced_version": "1.5.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_causal_assert": true,
+    "no_domain_prior": true
+  }
+}

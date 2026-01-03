@@ -64,7 +64,32 @@ class TestSigilPRNG:
 class TestSigilDeterminism:
     """Test sigil generation determinism."""
 
-    @pytest.mark.parametrize("rune_id", ["ϟ₁", "ϟ₂", "ϟ₃", "ϟ₄", "ϟ₅", "ϟ₆"])
+    @pytest.mark.parametrize(
+        "rune_id",
+        [
+            "ϟ₁",
+            "ϟ₂",
+            "ϟ₃",
+            "ϟ₄",
+            "ϟ₅",
+            "ϟ₆",
+            "ϟ₇",
+            "ϟ₈",
+            "ϟ₉",
+            "ϟ₁₀",
+            "ϟ₁₁",
+            "ϟ₁₂",
+            "ϟ₁₃",
+            "ϟ₁₄",
+            "ϟ₁₅",
+            "ϟ₁₆",
+            "ϟ₁₇",
+            "ϟ₁₈",
+            "ϟ₁₉",
+            "ϟ₂₀",
+            "ϟ₂₁",
+        ],
+    )
     def test_sigil_deterministic(self, rune_id: str):
         """Test that same seed produces identical SVG."""
         seed = f"test_seed_{rune_id}"
@@ -98,7 +123,29 @@ class TestSigilDeterminism:
 
     def test_all_runes_generate(self):
         """Test that all runes can generate sigils without errors."""
-        rune_ids = ["ϟ₁", "ϟ₂", "ϟ₃", "ϟ₄", "ϟ₅", "ϟ₆"]
+        rune_ids = [
+            "ϟ₁",
+            "ϟ₂",
+            "ϟ₃",
+            "ϟ₄",
+            "ϟ₅",
+            "ϟ₆",
+            "ϟ₇",
+            "ϟ₈",
+            "ϟ₉",
+            "ϟ₁₀",
+            "ϟ₁₁",
+            "ϟ₁₂",
+            "ϟ₁₃",
+            "ϟ₁₄",
+            "ϟ₁₅",
+            "ϟ₁₆",
+            "ϟ₁₇",
+            "ϟ₁₈",
+            "ϟ₁₉",
+            "ϟ₂₀",
+            "ϟ₂₁",
+        ]
 
         for rune_id in rune_ids:
             svg = generate_sigil(rune_id, f"test_seed_{rune_id}")
@@ -118,7 +165,7 @@ class TestRuneDefinitionIntegration:
         definitions_dir = Path(__file__).parent.parent / "abraxas" / "runes" / "definitions"
         json_files = list(definitions_dir.glob("rune_*.json"))
 
-        assert len(json_files) == 6, "Expected 6 rune definition files"
+        assert len(json_files) == 21, "Expected 21 rune definition files"
 
         for json_file in json_files:
             with open(json_file, "r", encoding="utf-8") as f:

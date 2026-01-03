@@ -24,11 +24,9 @@ def dispatch(rune_id: str, *, ctx: RuneInvocationContext | dict, **kwargs: Any) 
         Dict containing operator outputs
 
     Raises:
-        KeyError: If rune_id is unknown
-        ImportError: If operator module is missing
-        AttributeError: If operator function is missing
+        RuneInvocationError: If rune invocation fails
 
     Example:
-        >>> result = dispatch("ϟ₁", semantic_field=data, context_vector=ctx)
+        >>> result = dispatch("ϟ₁", ctx=ctx, semantic_field=data, context_vector=ctx)
     """
     return invoke_rune(rune_id, kwargs, ctx=ctx)

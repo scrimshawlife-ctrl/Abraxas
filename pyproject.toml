@@ -47,6 +47,7 @@ full = [
 [project.scripts]
 # CLI entry point
 abx = "abx.cli:main"
+abraxas = "abraxas.cli.main:main"
 
 [tool.setuptools]
 packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
@@ -54,6 +55,10 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
             "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
             "abraxas.renderers", "abraxas.renderers.resonance_narratives",
+            "abraxas.schema", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
+            "abraxas.temporal", "abraxas.metric_extractors", "abraxas.influence",
+            "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
+            "abraxas.economics", "abraxas.governance",
             "abx", "abx.util", "abx.runtime", "abx.assets",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
 

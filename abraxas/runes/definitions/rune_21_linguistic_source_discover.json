@@ -1,0 +1,34 @@
+{
+  "id": "ϟ₂₁",
+  "name": "ABX-LINGUISTIC_SOURCE_DISCOVER",
+  "short_name": "LINGUISTIC_SOURCE_DISCOVER",
+  "layer": "Validation",
+  "motto": "Propose linguistic sources, never admit them.",
+  "function": "Emits shadow-only candidate sources from emerging linguistic tokens.",
+  "inputs": [
+    "tokens: List of emerging tokens"
+  ],
+  "outputs": [
+    "candidates: Candidate source records",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No auto-admission"
+  ],
+  "hooks": [
+    "pre_compute: validate_tokens",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Linguistic autopoiesis v0.1"
+  ],
+  "canonical_statement": "ϟ₂₁ (LINGUISTIC_SOURCE_DISCOVER) proposes linguistic sources from emergent tokens without automatic admission.",
+  "introduced_version": "1.6.2",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true
+  }
+}

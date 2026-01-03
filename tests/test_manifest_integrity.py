@@ -44,8 +44,30 @@ class TestManifestIntegrity:
         assert len(manifest.entries) > 0
 
     def test_manifest_has_all_runes(self, manifest: SigilManifest):
-        """Test that manifest contains all 6 runes."""
-        expected_ids = ["ϟ₁", "ϟ₂", "ϟ₃", "ϟ₄", "ϟ₅", "ϟ₆"]
+        """Test that manifest contains all runes."""
+        expected_ids = [
+            "ϟ₁",
+            "ϟ₂",
+            "ϟ₃",
+            "ϟ₄",
+            "ϟ₅",
+            "ϟ₆",
+            "ϟ₇",
+            "ϟ₈",
+            "ϟ₉",
+            "ϟ₁₀",
+            "ϟ₁₁",
+            "ϟ₁₂",
+            "ϟ₁₃",
+            "ϟ₁₄",
+            "ϟ₁₅",
+            "ϟ₁₆",
+            "ϟ₁₇",
+            "ϟ₁₈",
+            "ϟ₁₉",
+            "ϟ₂₀",
+            "ϟ₂₁",
+        ]
         actual_ids = [entry.id for entry in manifest.entries]
 
         for expected_id in expected_ids:
@@ -113,6 +135,21 @@ class TestRegistryReferences:
             "rune_04_sds.json",
             "rune_05_ipl.json",
             "rune_06_add.json",
+            "rune_07_sso.json",
+            "rune_08_influence_detect.json",
+            "rune_09_influence_weight.json",
+            "rune_10_synchronicity_map.json",
+            "rune_11_cohesion_score.json",
+            "rune_12_no_causal_assert.json",
+            "rune_13_no_domain_prior.json",
+            "rune_14_source_resolve.json",
+            "rune_15_temporal_normalize.json",
+            "rune_16_source_redundancy_check.json",
+            "rune_17_source_discover.json",
+            "rune_18_provenance_seal.json",
+            "rune_19_metric_extract.json",
+            "rune_20_tvm_frame.json",
+            "rune_21_linguistic_source_discover.json",
         ]
 
         for filename in expected_files:

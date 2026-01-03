@@ -1,0 +1,39 @@
+{
+  "id": "ϟ₁₇",
+  "name": "ABX-SOURCE_DISCOVER",
+  "short_name": "SOURCE_DISCOVER",
+  "layer": "Validation",
+  "motto": "Propose sources, never admit them.",
+  "function": "Wraps the Shadow Source Discovery Engine (SDE) to emit candidate sources based on residuals and convergence signals.",
+  "inputs": [
+    "residuals: Residual spike logs",
+    "anomalies: Vector anomaly logs",
+    "convergence: Cross-domain convergence logs",
+    "silence: Silence detection logs"
+  ],
+  "outputs": [
+    "candidates: Candidate source records",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No auto-admission",
+    "No domain priors"
+  ],
+  "hooks": [
+    "pre_compute: validate_inputs",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "SDE v0.1"
+  ],
+  "canonical_statement": "ϟ₁₇ (SOURCE_DISCOVER) proposes new sources from residual and convergence evidence without automatic admission.",
+  "introduced_version": "1.6.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_domain_prior": true
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "version": "1.4.0",
-  "generated": "2025-12-21T07:55:00Z",
+  "version": "1.6.0",
+  "generated": "2026-01-02T00:00:00Z",
   "registry_type": "abx_runes",
   "runes": [
     {
@@ -10,7 +10,7 @@
       "layer": "Core",
       "status": "canonical",
       "introduced_version": "1.0.0",
-      "sigil_path": "abraxas/runes/sigils/rune1_RFA.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁_RFA.svg",
       "definition_path": "abraxas/runes/definitions/rune_01_rfa.json"
     },
     {
@@ -20,7 +20,7 @@
       "layer": "Core",
       "status": "canonical",
       "introduced_version": "1.0.0",
-      "sigil_path": "abraxas/runes/sigils/rune2_TAM.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂_TAM.svg",
       "definition_path": "abraxas/runes/definitions/rune_02_tam.json"
     },
     {
@@ -30,7 +30,7 @@
       "layer": "Validation",
       "status": "canonical",
       "introduced_version": "1.0.0",
-      "sigil_path": "abraxas/runes/sigils/rune3_WSSS.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₃_WSSS.svg",
       "definition_path": "abraxas/runes/definitions/rune_03_wsss.json"
     },
     {
@@ -40,7 +40,7 @@
       "layer": "Core",
       "status": "canonical",
       "introduced_version": "1.4.0",
-      "sigil_path": "abraxas/runes/sigils/rune4_SDS.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₄_SDS.svg",
       "definition_path": "abraxas/runes/definitions/rune_04_sds.json"
     },
     {
@@ -50,7 +50,7 @@
       "layer": "Core",
       "status": "canonical",
       "introduced_version": "1.4.0",
-      "sigil_path": "abraxas/runes/sigils/rune5_IPL.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₅_IPL.svg",
       "definition_path": "abraxas/runes/definitions/rune_05_ipl.json"
     },
     {
@@ -60,7 +60,7 @@
       "layer": "Governance",
       "status": "canonical",
       "introduced_version": "1.4.0",
-      "sigil_path": "abraxas/runes/sigils/rune6_ADD.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₆_ADD.svg",
       "definition_path": "abraxas/runes/definitions/rune_06_add.json"
     },
     {
@@ -70,8 +70,148 @@
       "layer": "Governance",
       "status": "canonical",
       "introduced_version": "1.4.0",
-      "sigil_path": "abraxas/runes/sigils/rune7_SSO.svg",
+      "sigil_path": "abraxas/runes/sigils/ϟ₇_SSO.svg",
       "definition_path": "abraxas/runes/definitions/rune_07_sso.json"
+    },
+    {
+      "id": "ϟ₈",
+      "short_name": "INFLUENCE_DETECT",
+      "name": "ABX-INFLUENCE_DETECT",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.5.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₈_INFLUENCE_DETECT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_08_influence_detect.json"
+    },
+    {
+      "id": "ϟ₉",
+      "short_name": "INFLUENCE_WEIGHT",
+      "name": "ABX-INFLUENCE_WEIGHT",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.5.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₉_INFLUENCE_WEIGHT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_09_influence_weight.json"
+    },
+    {
+      "id": "ϟ₁₀",
+      "short_name": "SYNCHRONICITY_MAP",
+      "name": "ABX-SYNCHRONICITY_MAP",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.5.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₀_SYNCHRONICITY_MAP.svg",
+      "definition_path": "abraxas/runes/definitions/rune_10_synchronicity_map.json"
+    },
+    {
+      "id": "ϟ₁₁",
+      "short_name": "COHESION_SCORE",
+      "name": "ABX-COHESION_SCORE",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.5.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₁_COHESION_SCORE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_11_cohesion_score.json"
+    },
+    {
+      "id": "ϟ₁₂",
+      "short_name": "NO_CAUSAL_ASSERT",
+      "name": "ABX-NO_CAUSAL_ASSERT",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.5.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₂_NO_CAUSAL_ASSERT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_12_no_causal_assert.json"
+    },
+    {
+      "id": "ϟ₁₃",
+      "short_name": "NO_DOMAIN_PRIOR",
+      "name": "ABX-NO_DOMAIN_PRIOR",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.5.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₃_NO_DOMAIN_PRIOR.svg",
+      "definition_path": "abraxas/runes/definitions/rune_13_no_domain_prior.json"
+    },
+    {
+      "id": "ϟ₁₄",
+      "short_name": "SOURCE_RESOLVE",
+      "name": "ABX-SOURCE_RESOLVE",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.6.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₄_SOURCE_RESOLVE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_14_source_resolve.json"
+    },
+    {
+      "id": "ϟ₁₅",
+      "short_name": "TEMPORAL_NORMALIZE",
+      "name": "ABX-TEMPORAL_NORMALIZE",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.6.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₅_TEMPORAL_NORMALIZE.svg",
+      "definition_path": "abraxas/runes/definitions/rune_15_temporal_normalize.json"
+    },
+    {
+      "id": "ϟ₁₆",
+      "short_name": "SOURCE_REDUNDANCY_CHECK",
+      "name": "ABX-SOURCE_REDUNDANCY_CHECK",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.6.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₆_SOURCE_REDUNDANCY_CHECK.svg",
+      "definition_path": "abraxas/runes/definitions/rune_16_source_redundancy_check.json"
+    },
+    {
+      "id": "ϟ₁₇",
+      "short_name": "SOURCE_DISCOVER",
+      "name": "ABX-SOURCE_DISCOVER",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.6.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₇_SOURCE_DISCOVER.svg",
+      "definition_path": "abraxas/runes/definitions/rune_17_source_discover.json"
+    },
+    {
+      "id": "ϟ₁₈",
+      "short_name": "PROVENANCE_SEAL",
+      "name": "ABX-PROVENANCE_SEAL",
+      "layer": "Governance",
+      "status": "canonical",
+      "introduced_version": "1.6.0",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₈_PROVENANCE_SEAL.svg",
+      "definition_path": "abraxas/runes/definitions/rune_18_provenance_seal.json"
+    },
+    {
+      "id": "ϟ₁₉",
+      "short_name": "METRIC_EXTRACT",
+      "name": "ABX-METRIC_EXTRACT",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.6.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₁₉_METRIC_EXTRACT.svg",
+      "definition_path": "abraxas/runes/definitions/rune_19_metric_extract.json"
+    },
+    {
+      "id": "ϟ₂₀",
+      "short_name": "TVM_FRAME",
+      "name": "ABX-TVM_FRAME",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.6.1",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₀_TVM_FRAME.svg",
+      "definition_path": "abraxas/runes/definitions/rune_20_tvm_frame.json"
+    },
+    {
+      "id": "ϟ₂₁",
+      "short_name": "LINGUISTIC_SOURCE_DISCOVER",
+      "name": "ABX-LINGUISTIC_SOURCE_DISCOVER",
+      "layer": "Validation",
+      "status": "canonical",
+      "introduced_version": "1.6.2",
+      "sigil_path": "abraxas/runes/sigils/ϟ₂₁_LINGUISTIC_SOURCE_DISCOVER.svg",
+      "definition_path": "abraxas/runes/definitions/rune_21_linguistic_source_discover.json"
     }
   ],
   "provenance": {

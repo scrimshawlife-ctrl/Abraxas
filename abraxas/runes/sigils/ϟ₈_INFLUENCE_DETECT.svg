@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<g id="sigil">
+<circle cx="256.000" cy="256.000" r="201.662" stroke="#000" stroke-width="4" fill="none"/>
+<circle cx="256.000" cy="256.000" r="94.791" stroke="#000" stroke-width="3" fill="none"/>
+<circle cx="256.000" cy="256.000" r="6.000" stroke="#000" stroke-width="0" fill="#000"/>
+<line x1="412.217" y1="275.831" x2="332.361" y2="368.605" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="99.998" y1="267.756" x2="95.665" y2="195.745" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="412.151" y1="279.638" x2="375.317" y2="331.499" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="430.429" y1="245.166" x2="272.962" y2="359.697" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="160.999" y1="380.655" x2="127.609" y2="167.464" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="354.071" y1="164.086" x2="329.346" y2="363.163" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="266.907" y1="367.758" x2="176.510" y2="343.080" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="154.522" y1="233.513" x2="309.024" y2="159.743" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="210.975" y1="117.990" x2="353.371" y2="110.925" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="147.080" y1="219.466" x2="210.695" y2="133.582" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="290.629" y1="354.845" x2="241.994" y2="414.968" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="130.400" y1="336.799" x2="76.899" y2="232.359" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+<line x1="144.210" y1="221.403" x2="320.389" y2="139.059" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+</g>
+</svg>
