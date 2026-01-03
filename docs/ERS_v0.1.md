@@ -35,7 +35,58 @@ out = s.run_tick(
 
 ## Integration with Abraxas
 
-Replace your existing cycle/tick function with ERS-based execution:
+### Canonical Runtime Tick Orchestrator (Recommended)
+
+Use the canonical `abraxas.runtime.tick` orchestrator which handles ERS execution + artifact emission:
+
+```python
+from abraxas.runtime import abraxas_tick
+
+# Define your pipeline functions
+def run_signal(ctx):
+    # Your signal extraction logic
+    return {"signal": "detected"}
+
+def run_compress(ctx):
+    # Your compression logic
+    return {"compressed": True}
+
+def run_overlay(ctx):
+    # Your overlay logic
+    return {"overlay": "applied"}
+
+# Optional: define shadow tasks
+shadow_tasks = {
+    "anagram": run_anagram_detector,
+    "sei": run_sei_metric,
+}
+
+# Execute tick with automatic artifact emission
+result = abraxas_tick(
+    tick=0,
+    run_id="RUN-001",
+    mode="production",
+    context={"input": "data"},
+    artifacts_dir="./out",
+    run_signal=run_signal,
+    run_compress=run_compress,
+    run_overlay=run_overlay,
+    run_shadow_tasks=shadow_tasks,
+)
+
+# Artifacts automatically written to:
+# ./out/viz/RUN-001/000000.trendpack.json
+print(result["artifacts"]["trendpack"])
+```
+
+The runtime orchestrator owns:
+- **ERS scheduler execution**: Deterministic task ordering
+- **Artifact emission**: TrendPack format for visualization
+- **Structured output**: Results + remaining budgets + artifact refs
+
+### Direct ERS Usage (Advanced)
+
+For custom integration, use ERS directly:
 
 ```python
 from abraxas.ers import Budget, DeterministicScheduler
@@ -121,8 +172,112 @@ hash: ae7e4fe3526ad0e133d2f46de48f5941e5cf24382490e9d25088d8920decfd16
 
 The invariance gate enforces determinism at the scheduler level - if your tasks or runtime introduce non-determinism, the gate **will** catch it.
 
+## TrendPack Format (v0.1)
+
+ERS traces are automatically converted to TrendPack format by the runtime orchestrator. TrendPack is a queryable, denormalized format optimized for visualization ingestion.
+
+### Structure
+
+```json
+{
+  "version": "0.1",
+  "run_id": "RUN-001",
+  "tick": 0,
+  "provenance": {
+    "engine": "abraxas",
+    "mode": "production",
+    "ers": "v0.2"
+  },
+  "timeline": [
+    {
+      "task": "oracle:signal",
+      "lane": "forecast",
+      "status": "ok",
+      "cost_ops": 10,
+      "cost_entropy": 0,
+      "meta": {}
+    }
+  ],
+  "budget": {
+    "forecast": {
+      "spent_ops": 30,
+      "spent_entropy": 0
+    },
+    "shadow": {
+      "spent_ops": 4,
+      "spent_entropy": 0
+    }
+  },
+  "errors": [],
+  "skipped": [],
+  "stats": {
+    "total_events": 5,
+    "forecast_events": 3,
+    "shadow_events": 2,
+    "errors": 0,
+    "skipped": 0,
+    "ok_events": 5
+  }
+}
+```
+
+### Use Cases
+
+TrendPack supports:
+- **Lane Timelines**: Visualize forecast vs shadow execution order
+- **Budget Heat Maps**: Track `skipped_budget` events and resource exhaustion
+- **Error Cluster Detection**: Isolate error events with lane/task context
+- **Task Cost Analysis**: Aggregate ops/entropy costs per lane
+- **Stats Summary**: Quick metrics for dashboard displays
+
+### Viz Adapter (Pure Transformer)
+
+The `abraxas.viz` module provides pure data transformations (no rendering logic):
+
+```python
+from abraxas.viz import ers_trace_to_trendpack
+
+trendpack = ers_trace_to_trendpack(
+    trace=scheduler_output["trace"],
+    run_id="RUN-001",
+    tick=0,
+    provenance={"engine": "abraxas"},
+)
+```
+
+This is Abraxas-owned emission, not external viz code. The transformer stays pure - it reshapes data without opinions about visualization frameworks.
+
+## Architecture Layers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  External Viz Tools (AAL-Viz, Grafana, etc.)               │
+│  ↑ Consumes TrendPack JSON artifacts                        │
+└─────────────────────────────────────────────────────────────┘
+                            ↑
+┌─────────────────────────────────────────────────────────────┐
+│  abraxas.runtime.tick — Canonical Orchestrator              │
+│  • ERS execution                                            │
+│  • Artifact emission (TrendPack)                            │
+│  • Structured output                                        │
+└─────────────────────────────────────────────────────────────┘
+           ↑                              ↑
+┌──────────────────────┐      ┌──────────────────────────────┐
+│  abraxas.ers         │      │  abraxas.viz                 │
+│  • DeterministicSch  │      │  • ers_trace_to_trendpack    │
+│  • Trace hashing     │      │  (Pure transformer)          │
+│  • Invariance gate   │      │                              │
+└──────────────────────┘      └──────────────────────────────┘
+```
+
+**Strict Separation**:
+- **ERS**: Pure scheduler (no IO, no artifacts)
+- **Viz**: Pure transformer (no rendering, no opinions)
+- **Runtime**: Orchestration + artifact emission (owns where/when)
+
 ## Next Steps
 
-- **AAL-Viz Integration**: Ingest trace events for visualization (TraceEvent → TrendPack.v0)
+- **Artifact Manifest Hash**: SHA-256 hash of TrendPack + run index emission
 - **Promotion Lifecycle**: Bind metric promotion to tick-based canary windows
 - **Extended Stabilization**: Multi-tick windows with budget variation testing
+- **Run Index**: Queryable index of all ticks for a run_id
