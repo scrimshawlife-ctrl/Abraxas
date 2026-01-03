@@ -6,6 +6,7 @@ import argparse
 
 from abraxas.cli.atlas import run_atlas_cmd
 from abraxas.cli.atlas_delta import run_atlas_delta_cmd
+from abraxas.cli.deform import run_deform_cmd
 from abraxas.cli.manifest import run_bulk_plan, run_execute_plan, run_manifest_discovery
 from abraxas.cli.live import run_live_cmd
 from abraxas.cli.profile import run_profile_command, run_profile_ingest
@@ -50,6 +51,7 @@ def main() -> int:
     year_run_parser.add_argument("--include-linguistic", action="store_true")
     year_run_parser.add_argument("--include-economics", action="store_true")
     year_run_parser.add_argument("--include-governance", action="store_true")
+    year_run_parser.add_argument("--allow-simulated", action="store_true", help="Allow packets marked data_grade=simulated")
 
     atlas_parser = subparsers.add_parser("atlas", help="Generate semantic weather atlas")
     atlas_parser.add_argument("--year", type=int, required=True)
@@ -58,6 +60,32 @@ def main() -> int:
     atlas_parser.add_argument("--out", required=True, help="Atlas output path")
     atlas_parser.add_argument("--trendpack-out", help="Trendpack output path")
     atlas_parser.add_argument("--chronoscope-out", help="Chronoscope output path")
+    atlas_parser.add_argument(
+        "--attach-synch-clusters",
+        action="store_true",
+        help="Attach topology-aware synch clusters (shadow-only)",
+    )
+    atlas_parser.add_argument("--synch-seed", type=int, default=133742)
+    atlas_parser.add_argument("--synch-min-strength", type=float, default=0.15)
+    atlas_parser.add_argument("--synch-top-k", type=int, default=50)
+    atlas_parser.add_argument("--coupling-watchlist-out", required=False)
+    atlas_parser.add_argument("--watchlist-top-k-edges", type=int, default=200)
+    atlas_parser.add_argument("--watchlist-top-k-clusters", type=int, default=100)
+    atlas_parser.add_argument("--watchlist-min-persistence", type=int, default=2)
+
+    deform_parser = subparsers.add_parser("deform", help="Deformation stack from coupling watchlist")
+    deform_parser.add_argument("--watchlist", required=True, help="Current coupling_watchlist.v0.1.json")
+    deform_parser.add_argument("--prev-watchlist", help="Previous watchlist for delta alerts")
+    deform_parser.add_argument("--bridge-out", required=True, help="Output path for bridge_set.v0.1.json")
+    deform_parser.add_argument("--alerts-out", required=True, help="Output path for watchlist_alerts.v0.1.json")
+    deform_parser.add_argument("--report-out", required=True, help="Output path for deformation_report.v0.1.json")
+    deform_parser.add_argument("--top-k-edges-considered", type=int, default=200)
+    deform_parser.add_argument("--bridge-min-score", type=float, default=0.35)
+    deform_parser.add_argument("--bridge-min-persistence", type=int, default=3)
+    deform_parser.add_argument("--bridge-node-min-degree", type=int, default=2)
+    deform_parser.add_argument("--alert-min-score-delta", type=float, default=0.10)
+    deform_parser.add_argument("--alert-min-persistence-delta", type=int, default=1)
+    deform_parser.add_argument("--alert-top-k", type=int, default=50)
 
     atlas_delta_parser = subparsers.add_parser("atlas-delta", help="Generate delta atlas pack")
     atlas_delta_parser.add_argument("--base", required=True, help="Base atlas path")
@@ -83,6 +111,9 @@ def main() -> int:
     visualize_parser = subparsers.add_parser("visualize", help="Generate visual control frames from atlas")
     visualize_parser.add_argument("--atlas", required=True, help="Atlas pack path")
     visualize_parser.add_argument("--out", required=True, help="Output path for control frames")
+    visualize_parser.add_argument("--bridge-set", help="Optional bridge_set.v0.1.json")
+    visualize_parser.add_argument("--alerts", help="Optional watchlist_alerts.v0.1.json")
+    visualize_parser.add_argument("--events-out", help="Optional overlay_events.v0.1.json output path")
 
     manifest_parser = subparsers.add_parser("manifest", help="Manifest discovery (manifest-first)")
     manifest_parser.add_argument("--source", required=True, help="Source ID")
@@ -175,6 +206,7 @@ def main() -> int:
             args.include_linguistic,
             args.include_economics,
             args.include_governance,
+            args.allow_simulated,
         )
     if args.command == "atlas":
         return run_atlas_cmd(
@@ -184,6 +216,14 @@ def main() -> int:
             args.out,
             args.trendpack_out,
             args.chronoscope_out,
+            args.attach_synch_clusters,
+            args.synch_seed,
+            args.synch_min_strength,
+            args.synch_top_k,
+            args.coupling_watchlist_out,
+            args.watchlist_top_k_edges,
+            args.watchlist_top_k_clusters,
+            args.watchlist_min_persistence,
         )
     if args.command == "atlas-delta":
         return run_atlas_delta_cmd(
@@ -192,6 +232,21 @@ def main() -> int:
             args.out,
             args.label,
             args.trendpack_out,
+        )
+    if args.command == "deform":
+        return run_deform_cmd(
+            args.watchlist,
+            args.bridge_out,
+            args.alerts_out,
+            args.report_out,
+            args.prev_watchlist,
+            args.top_k_edges_considered,
+            args.bridge_min_score,
+            args.bridge_min_persistence,
+            args.bridge_node_min_degree,
+            args.alert_min_score_delta,
+            args.alert_min_persistence_delta,
+            args.alert_top_k,
         )
     if args.command == "live":
         return run_live_cmd(
@@ -207,7 +262,7 @@ def main() -> int:
     if args.command == "sonify":
         return run_sonify_cmd(args.atlas, args.out)
     if args.command == "visualize":
-        return run_visualize_cmd(args.atlas, args.out)
+        return run_visualize_cmd(args.atlas, args.out, args.bridge_set, args.alerts, args.events_out)
     if args.command == "manifest":
         return run_manifest_discovery(args.source, args.out, args.seed, args.now)
     if args.command == "plan":

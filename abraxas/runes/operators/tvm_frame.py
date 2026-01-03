@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.metric_extractors.base import MetricPoint
-from abraxas.tvm.frame import compose_frames
+from abraxas.tvm.frame import compose_frames_by_domain
 
 
 class TVMFrameResult(BaseModel):
@@ -28,10 +28,10 @@ def apply_tvm_frame(
         raise NotImplementedError("TVM_FRAME requires metrics")
 
     points = [MetricPoint(**metric) for metric in metrics]
-    frame = compose_frames(points, window_start_utc=window_start_utc, window_end_utc=window_end_utc)
-    payload = frame.model_dump()
+    frames = compose_frames_by_domain(points, window_start_utc=window_start_utc, window_end_utc=window_end_utc)
+    payload = [frame.model_dump() for frame in frames]
     provenance = {
         "inputs_hash": sha256_hex(canonical_json(metrics or [])),
-        "frame_hash": frame.frame_hash(),
+        "frame_hashes": [frame.frame_hash() for frame in frames],
     }
-    return TVMFrameResult(frames=[payload], provenance=provenance).model_dump()
+    return TVMFrameResult(frames=payload, provenance=provenance).model_dump()

@@ -26,6 +26,7 @@ class AtlasConstants:
     cyclone_cdec_threshold: float = 1.0
     calm_variance_threshold: float = 0.0005
     calm_min_windows: int = 3
+    pressure_cell_co_motifs: int = 3
 
 
 ATLAS_CONSTANTS = AtlasConstants()
@@ -50,7 +51,7 @@ def build_atlas_pack(
     jetstreams = _build_jetstreams(windows)
     cyclones = _build_cyclones(windows, influence, synchronicity)
     calm_zones = _build_calm_zones(windows)
-    synchronicity_clusters = _build_synchronicity_clusters(synchronicity)
+    synchronicity_clusters = _build_synchronicity_clusters(synchronicity, windows)
 
     seedpack_hash = seedpack.get("seedpack_hash") or sha256_hex(canonical_json(seedpack))
     provenance = {
@@ -128,9 +129,32 @@ def _extract_provenance_refs(frame: Dict[str, Any]) -> List[str]:
     return refs
 
 
+def _motif_edge(a: str, b: str) -> str:
+    aa = str(a or "")
+    bb = str(b or "")
+    if aa <= bb:
+        return f"{aa}--{bb}"
+    return f"{bb}--{aa}"
+
+
 def _build_pressure_cells(windows: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     pressure_cells: List[PressureCell] = []
     previous_values: Dict[str, Optional[float]] = {}
+    coactive_by_window: Dict[str, List[str]] = {}
+    for window in windows:
+        window_id = _window_id(window)
+        vectors = window.get("vectors") or {}
+        ranked = []
+        for vid in TVM_VECTOR_IDS:
+            value = vectors.get(vid.value)
+            if value is None:
+                continue
+            try:
+                ranked.append((float(value), vid.value))
+            except (TypeError, ValueError):
+                continue
+        ranked.sort(key=lambda item: (-item[0], item[1]))
+        coactive_by_window[window_id] = [vid for _, vid in ranked]
     for window in windows:
         window_id = _window_id(window)
         vectors = window.get("vectors") or {}
@@ -141,6 +165,10 @@ def _build_pressure_cells(windows: Sequence[Dict[str, Any]]) -> List[Dict[str, A
             if value is not None and prev is not None:
                 gradient = float(value) - float(prev)
             cell_id = f"{vid.value}:{window_id}"
+            coactive = [v for v in (coactive_by_window.get(window_id) or []) if v != vid.value]
+            coactive = coactive[: max(0, int(ATLAS_CONSTANTS.pressure_cell_co_motifs))]
+            motifs = [vid.value] + coactive
+            motif_edges = [_motif_edge(vid.value, other) for other in coactive]
             pressure_cells.append(
                 PressureCell(
                     cell_id=cell_id,
@@ -149,6 +177,8 @@ def _build_pressure_cells(windows: Sequence[Dict[str, Any]]) -> List[Dict[str, A
                     intensity=value,
                     gradient=gradient,
                     provenance_refs=window.get("provenance_refs") or [],
+                    motifs=motifs,
+                    motif_edges=motif_edges,
                 )
             )
             previous_values[vid.value] = value
@@ -325,14 +355,42 @@ def _finalize_calm_zone(
     )
 
 
-def _build_synchronicity_clusters(synchronicity: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _build_synchronicity_clusters(
+    synchronicity: Dict[str, Any], windows: Sequence[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
     clusters: List[SynchronicityCluster] = []
+    windows_by_id = {_window_id(window): window for window in windows}
     for envelope in synchronicity.get("envelopes") or []:
         domains = list(envelope.get("domains_involved") or [])
         vectors = list(envelope.get("vectors_activated") or [])
         time_window = str(envelope.get("time_window") or "")
         metrics = envelope.get("metrics") or {}
-        density_score = _mean([metrics.get(key) for key in ("TCI", "SIS", "CPA", "RAC", "PUR") if metrics.get(key) is not None])
+        density_score = _mean(
+            [metrics.get(key) for key in ("TCI", "SIS", "CPA", "RAC", "PUR") if metrics.get(key) is not None]
+        )
+        if density_score is None:
+            breadth = 0.0
+            if domains:
+                breadth += min(1.0, 0.10 * float(len(domains)))
+            if vectors:
+                breadth += min(1.0, 0.05 * float(len(vectors)))
+            breadth = min(1.0, breadth)
+            activation = None
+            window = windows_by_id.get(time_window)
+            if window is not None:
+                window_vectors = window.get("vectors") or {}
+                values: List[float] = []
+                for vector in vectors:
+                    if vector in window_vectors and window_vectors.get(vector) is not None:
+                        try:
+                            values.append(float(window_vectors.get(vector)))
+                        except (TypeError, ValueError):
+                            continue
+                activation = _mean(values)
+            if activation is None:
+                density_score = breadth
+            else:
+                density_score = _mean([breadth, activation])
         provenance_refs = _synchronicity_refs(envelope)
         cluster_id = sha256_hex(canonical_json({"domains": domains, "vectors": vectors, "time_window": time_window}))
         clusters.append(

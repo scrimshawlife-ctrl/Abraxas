@@ -15,6 +15,7 @@ from abraxas.policy.utp import load_active_utp
 from abraxas.runtime.concurrency import ConcurrencyConfig
 from abraxas.runtime.deterministic_executor import commit_results, execute_parallel, WorkResult
 from abraxas.runtime.work_units import WorkUnit
+from abraxas.sources.domain_map import domain_for_source_id
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ class YearRunConfig:
     include_linguistic: bool = False
     include_economics: bool = False
     include_governance: bool = False
+    allow_simulated: bool = False
 
 
 def _load_packets(cache_dir: Path) -> List[Dict[str, Any]]:
@@ -55,6 +57,14 @@ def _weekly_windows(year: int) -> List[Dict[str, str]]:
 
 def run_year(config: YearRunConfig) -> Dict[str, Any]:
     packets = _load_packets(config.cache_dir)
+    if not config.allow_simulated:
+        filtered = []
+        for packet in packets:
+            grade = str(packet.get("data_grade") or (packet.get("provenance") or {}).get("data_grade") or "real")
+            if grade == "simulated":
+                continue
+            filtered.append(packet)
+        packets = filtered
     if not config.include_linguistic:
         packets = [packet for packet in packets if not str(packet.get("source_id", "")).startswith("LINGUISTIC_")]
     if not config.include_economics:
@@ -76,8 +86,10 @@ def run_year(config: YearRunConfig) -> Dict[str, Any]:
     committed = commit_results(results.results)
 
     frames: List[Dict[str, Any]] = []
+    coverage: List[Dict[str, Any]] = []
     for result in committed:
         frames.extend(result.output_refs.get("frames") or [])
+        coverage.extend(result.output_refs.get("coverage") or [])
 
     influence_frames = [_flatten_frame(frame) for frame in frames]
     influence = invoke_capability("rune:influence_detect", {"frames": influence_frames}, ctx=ctx)
@@ -88,6 +100,7 @@ def run_year(config: YearRunConfig) -> Dict[str, Any]:
         frames=frames,
         influence=influence,
         synchronicity=synchronicity,
+        coverage=coverage,
         out_path=config.out_path,
     )
 
@@ -103,6 +116,8 @@ def _flatten_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "window_start_utc": frame.get("window_start_utc"),
         "window_end_utc": frame.get("window_end_utc"),
+        "domain": frame.get("domain") or "unknown",
+        "data_grade": frame.get("data_grade") or "real",
         "vectors": flattened,
         "provenance": frame.get("provenance") or {},
     }
@@ -132,6 +147,17 @@ def _process_window_unit(unit: WorkUnit, packets: List[Dict[str, Any]], ctx: Run
         if (packet.get("window_start_utc") or "") <= window.get("end", "")
         and (packet.get("window_end_utc") or "") >= window.get("start", "")
     ]
+    packets_by_domain: Dict[str, int] = {}
+    packets_by_source: Dict[str, int] = {}
+    for packet in window_packets:
+        source_id = str(packet.get("source_id") or "unknown")
+        domain = str(
+            packet.get("domain")
+            or (packet.get("provenance") or {}).get("domain")
+            or domain_for_source_id(source_id)
+        )
+        packets_by_domain[domain] = packets_by_domain.get(domain, 0) + 1
+        packets_by_source[source_id] = packets_by_source.get(source_id, 0) + 1
     metrics = invoke_capability("rune:metric_extract", {"packets": window_packets}, ctx=ctx)
     tvm_frame = invoke_capability(
         "rune:tvm_frame",
@@ -142,10 +168,37 @@ def _process_window_unit(unit: WorkUnit, packets: List[Dict[str, Any]], ctx: Run
         },
         ctx=ctx,
     )
+    coverage_items: List[Dict[str, Any]] = []
+    for frame in tvm_frame.get("frames") or []:
+        domain = str(frame.get("domain") or "unknown")
+        vectors = frame.get("vectors") or {}
+        computed = 0
+        not_computable = 0
+        reasons: List[str] = []
+        for value in vectors.values():
+            if isinstance(value, dict) and value.get("computability") == "computed":
+                computed += 1
+            elif isinstance(value, dict) and value.get("computability") == "not_computable":
+                not_computable += 1
+                note = value.get("notes")
+                if isinstance(note, str) and note:
+                    reasons.append(note)
+        coverage_items.append(
+            {
+                "window_start_utc": window.get("start"),
+                "window_end_utc": window.get("end"),
+                "domain": domain,
+                "packets_seen": packets_by_domain.get(domain, 0),
+                "vectors_computed": computed,
+                "vectors_not_computable": not_computable,
+                "not_computable_reasons": sorted(set(reasons)),
+                "packets_by_source": {key: packets_by_source[key] for key in sorted(packets_by_source.keys())},
+            }
+        )
     return WorkResult(
         unit_id=unit.unit_id,
         key=unit.key,
-        output_refs={"frames": tvm_frame.get("frames") or []},
+        output_refs={"frames": tvm_frame.get("frames") or [], "coverage": coverage_items},
         bytes_processed=0,
         stage=unit.stage,
     )
@@ -163,6 +216,7 @@ def main() -> int:
     parser.add_argument("--include-linguistic", action="store_true")
     parser.add_argument("--include-economics", action="store_true")
     parser.add_argument("--include-governance", action="store_true")
+    parser.add_argument("--allow-simulated", action="store_true", help="Allow packets marked data_grade=simulated")
     args = parser.parse_args()
 
     config = YearRunConfig(
@@ -174,6 +228,7 @@ def main() -> int:
         include_linguistic=args.include_linguistic,
         include_economics=args.include_economics,
         include_governance=args.include_governance,
+        allow_simulated=args.allow_simulated,
     )
     run_year(config)
     return 0

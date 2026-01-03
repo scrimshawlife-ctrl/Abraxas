@@ -36,6 +36,7 @@ VISUAL_CONSTANTS = VisualConstants()
 def build_visual_frames(
     atlas_pack: Dict[str, Any],
     *,
+    overlay_signals: Optional[Dict[str, Dict[str, float]]] = None,
     constants: VisualConstants = VISUAL_CONSTANTS,
 ) -> List[VisualControlFrame]:
     pressure_cells = atlas_pack.get("pressure_cells") or []
@@ -43,6 +44,7 @@ def build_visual_frames(
         return []
 
     windows = _group_pressure_by_window(pressure_cells)
+    overlay_signals = overlay_signals or {}
     jetstreams = atlas_pack.get("jetstreams") or []
     cyclones = atlas_pack.get("cyclones") or []
     calm_zones = atlas_pack.get("calm_zones") or []
@@ -62,8 +64,14 @@ def build_visual_frames(
         layering_depth = _layering_from_cyclones(cyclones, window_utc, constants)
         noise_floor = _noise_from_variance(window_vectors, constants)
         stillness_probability = _stillness_from_calm_zones(calm_zones, window_utc, constants)
+        overlay = overlay_signals.get(window_utc) or {}
+        bridge_signal = float(overlay.get("bridge_signal") or 0.0)
+        alert_signal = float(overlay.get("alert_signal") or 0.0)
 
         noise_floor = _clamp(noise_floor - stillness_probability, constants.noise_floor_min, constants.noise_floor_max)
+        motion_vector_strength = _clamp(motion_vector_strength + 0.20 * bridge_signal, 0.0, 1.0)
+        distortion_intensity = _clamp(distortion_intensity + 0.20 * alert_signal, 0.0, 1.0)
+        layering_depth = _clamp(layering_depth + 0.15 * alert_signal, 0.0, 1.0)
 
         hue_min, hue_max = _centered_hue_range(constants.hue_center, hue_range_width, constants.hue_min, constants.hue_max)
 
@@ -87,6 +95,9 @@ def build_visual_frames(
                     "synchronicity_clusters": len(clusters),
                 },
                 "mapping_version": constants.mapping_version,
+                "overlay_bridge_signal": bridge_signal,
+                "overlay_alert_signal": alert_signal,
+                "overlay_present": True if (bridge_signal > 0.0 or alert_signal > 0.0) else False,
             },
         )
         frames.append(frame)

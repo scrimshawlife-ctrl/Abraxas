@@ -30,9 +30,25 @@ class SynchronicityEnvelope(BaseModel):
     provenance: Dict[str, Any]
 
 
+class SynchronicityCluster(BaseModel):
+    cluster_id: str
+    domain: str = Field(default="unknown")
+    motifs: List[str] = Field(default_factory=list)
+    edges: List[str] = Field(default_factory=list)
+    strength: float = Field(default=0.0)
+    window_start_utc: Optional[str] = None
+    window_end_utc: Optional[str] = None
+    provenance: Dict[str, Any] = Field(default_factory=dict)
+
+
 class SynchronicityBundle(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
+    stage: str = Field(
+        default="envelope",
+        description="Contract stage: envelope (pre-topology) or clustered (topology-aware)",
+    )
     envelopes: List[SynchronicityEnvelope] = Field(default_factory=list)
+    clusters: List[SynchronicityCluster] = Field(default_factory=list)
     not_computable: bool = Field(False, description="True if no synchronicity could be computed")
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
@@ -236,6 +252,7 @@ def apply_synchronicity_map(frames: List[Dict[str, Any]], *, strict_execution: b
             envelopes.append(envelope)
 
     bundle = SynchronicityBundle(
+        stage="envelope",
         envelopes=envelopes,
         not_computable=not domains,
         provenance={"inputs_hash": sha256_hex(canonical_json({"frames": frames or []}))},

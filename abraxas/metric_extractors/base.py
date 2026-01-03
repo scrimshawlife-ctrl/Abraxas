@@ -16,6 +16,8 @@ class MetricPoint(BaseModel):
     window_start_utc: Optional[str]
     window_end_utc: Optional[str]
     source_id: str
+    domain: str = Field(default="unknown")
+    data_grade: str = Field(default="real")
     provenance: Dict[str, Any] = Field(default_factory=dict)
     computability: str = "computed"
 

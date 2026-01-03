@@ -63,7 +63,13 @@ def run_source_shadow_flow(*, env: Dict[str, Any], subsystem_id: str = "mda") ->
     )
     tvm_frames = invoke_capability(
         "rune:tvm_frame",
-        {\n            "metrics": metrics.get("metrics") or [],\n            "window_start_utc": env.get("window_start_utc") or env.get("run_at") or "1970-01-01T00:00:00Z",\n            "window_end_utc": env.get("window_end_utc") or env.get("run_at") or "1970-01-01T00:00:00Z",\n        },\n        ctx=ctx,\n    )
+        {
+            "metrics": metrics.get("metrics") or [],
+            "window_start_utc": env.get("window_start_utc") or env.get("run_at") or "1970-01-01T00:00:00Z",
+            "window_end_utc": env.get("window_end_utc") or env.get("run_at") or "1970-01-01T00:00:00Z",
+        },
+        ctx=ctx,
+    )
 
     shadow_payload = {
         "source_resolution": source_resolution,

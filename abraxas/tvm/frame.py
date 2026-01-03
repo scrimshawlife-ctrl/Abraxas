@@ -21,6 +21,8 @@ class VectorValue(BaseModel):
 class TVMFrame(BaseModel):
     window_start_utc: str
     window_end_utc: str
+    domain: str = Field(default="unknown")
+    data_grade: str = Field(default="real")
     vectors: Dict[str, VectorValue]
     provenance: Dict[str, Any]
 
@@ -33,7 +35,9 @@ def _scale_to_unit(value: float, max_value: float) -> float:
     return max(0.0, min(1.0, value / max_value))
 
 
-def compose_frames(points: List[MetricPoint], *, window_start_utc: str, window_end_utc: str) -> TVMFrame:
+def compose_frames(
+    points: List[MetricPoint], *, window_start_utc: str, window_end_utc: str, domain: str = "unknown"
+) -> TVMFrame:
     vectors: Dict[str, VectorValue] = {}
     evidence = {point.metric_id: point.point_hash() for point in points}
 
@@ -273,6 +277,35 @@ def compose_frames(points: List[MetricPoint], *, window_start_utc: str, window_e
     return TVMFrame(
         window_start_utc=window_start_utc,
         window_end_utc=window_end_utc,
+        domain=domain,
+        data_grade=_select_data_grade(points),
         vectors=vectors,
         provenance=provenance,
     )
+
+
+def compose_frames_by_domain(
+    points: List[MetricPoint], *, window_start_utc: str, window_end_utc: str
+) -> List[TVMFrame]:
+    grouped: Dict[str, List[MetricPoint]] = {}
+    for point in points:
+        domain = str(getattr(point, "domain", None) or "unknown")
+        grouped.setdefault(domain, []).append(point)
+    frames = [
+        compose_frames(points=domain_points, window_start_utc=window_start_utc, window_end_utc=window_end_utc, domain=domain)
+        for domain, domain_points in sorted(grouped.items(), key=lambda item: item[0])
+    ]
+    return frames
+
+
+def _select_data_grade(points: List[MetricPoint]) -> str:
+    priority = {"real": 3, "derived": 2, "simulated": 1}
+    best_grade = "real"
+    best_rank = -1
+    for point in points:
+        grade = str(getattr(point, "data_grade", None) or "real")
+        rank = priority.get(grade, 0)
+        if rank > best_rank:
+            best_grade = grade
+            best_rank = rank
+    return best_grade
