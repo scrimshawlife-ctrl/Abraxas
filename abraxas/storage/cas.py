@@ -1,12 +1,33 @@
-"""Content-addressable storage (CAS) for deterministic acquisition artifacts."""
+"""Content-Addressed Storage (CAS) - Unified implementation.
+
+Combines:
+- Performance Drop v1.0: Function-based API with SQLite index and temporal partitioning
+- Acquisition CAS: Class-based CASStore with URL tracking
+"""
 
 from __future__ import annotations
 
+import json
+import sqlite3
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.storage.hashes import stable_hash_bytes, stable_hash_json
+from abraxas.storage.layout import (
+    CASNamespace,
+    ensure_cas_dirs,
+    get_cas_path,
+    get_cas_root,
+    parse_timestamp_components,
+)
+
+
+# ============================================================================
+# Acquisition CAS (Class-based, URL tracking)
+# ============================================================================
 
 
 @dataclass(frozen=True)
@@ -50,6 +71,8 @@ class CASIndexEntry:
 
 
 class CASStore:
+    """Class-based CAS for acquisition with URL tracking."""
+
     def __init__(self, base_dir: str | Path = "data/cas", index_path: str | Path | None = None) -> None:
         self.base_dir = Path(base_dir)
         self.index_path = Path(index_path) if index_path else self.base_dir / "index.jsonl"
@@ -145,7 +168,7 @@ class CASStore:
             if not line.strip():
                 continue
             try:
-                payload = json_loads(line)
+                payload = json.loads(line)
             except ValueError:
                 continue
             if payload.get("url") != url:
@@ -168,7 +191,176 @@ class CASStore:
             f.write(payload + "\n")
 
 
-def json_loads(text: str) -> Dict[str, Any]:
-    import json
+# ============================================================================
+# Performance CAS (Function-based, SQLite index, temporal partitioning)
+# ============================================================================
 
-    return json.loads(text)
+CASIndexMode = Literal["sqlite", "json"]
+INDEX_MODE: CASIndexMode = "sqlite"
+
+
+def _get_index_path() -> Path:
+    """Get CAS index database path."""
+    return get_cas_root() / "index" / "cas_index.db"
+
+
+def _init_index() -> None:
+    """Initialize CAS index database."""
+    index_path = _get_index_path()
+    ensure_cas_dirs(index_path)
+
+    conn = sqlite3.connect(str(index_path))
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cas_entries (
+            hash TEXT PRIMARY KEY,
+            namespace TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            year INTEGER,
+            month INTEGER,
+            ext TEXT,
+            created_at_utc TEXT NOT NULL,
+            size_bytes INTEGER,
+            metadata TEXT
+        )
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_source_id ON cas_entries(source_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_namespace ON cas_entries(namespace)")
+    conn.commit()
+    conn.close()
+
+
+def _add_to_index(
+    file_hash: str,
+    namespace: CASNamespace,
+    source_id: str,
+    year: int | None,
+    month: int | None,
+    ext: str,
+    size_bytes: int,
+    metadata: dict[str, Any],
+) -> None:
+    """Add entry to CAS index."""
+    index_path = _get_index_path()
+    conn = sqlite3.connect(str(index_path))
+
+    created_at_utc = metadata.get("created_at_utc") or datetime.now(timezone.utc).isoformat()
+
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO cas_entries
+        (hash, namespace, source_id, year, month, ext, created_at_utc, size_bytes, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            file_hash,
+            namespace,
+            source_id,
+            year,
+            month,
+            ext,
+            created_at_utc,
+            size_bytes,
+            json.dumps(metadata),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def cas_put_bytes(
+    namespace: CASNamespace,
+    raw_bytes: bytes,
+    source_id: str,
+    *,
+    meta: dict[str, Any] | None = None,
+    timestamp_utc: str | None = None,
+) -> Path:
+    """Store raw bytes in CAS with temporal partitioning."""
+    meta = meta or {}
+    file_hash = stable_hash_bytes(raw_bytes)
+
+    year, month = None, None
+    if timestamp_utc:
+        year, month = parse_timestamp_components(timestamp_utc)
+
+    path = get_cas_path(namespace, source_id, file_hash, year=year, month=month, ext="bin")
+    ensure_cas_dirs(path)
+
+    with open(path, "wb") as f:
+        f.write(raw_bytes)
+
+    _init_index()
+    _add_to_index(
+        file_hash=file_hash,
+        namespace=namespace,
+        source_id=source_id,
+        year=year,
+        month=month,
+        ext="bin",
+        size_bytes=len(raw_bytes),
+        metadata=meta,
+    )
+
+    return path
+
+
+def cas_get_bytes(file_hash: str) -> bytes | None:
+    """Retrieve bytes from CAS by hash."""
+    index_path = _get_index_path()
+    if not index_path.exists():
+        return None
+
+    conn = sqlite3.connect(str(index_path))
+    cursor = conn.execute(
+        "SELECT namespace, source_id, year, month, ext FROM cas_entries WHERE hash = ?",
+        (file_hash,),
+    )
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    namespace, source_id, year, month, ext = row
+    path = get_cas_path(namespace, source_id, file_hash, year=year, month=month, ext=ext)
+
+    if not path.exists():
+        return None
+
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def cas_put_json(
+    namespace: CASNamespace,
+    obj: dict[str, Any],
+    source_id: str,
+    *,
+    meta: dict[str, Any] | None = None,
+    timestamp_utc: str | None = None,
+) -> Path:
+    """Store JSON object in CAS."""
+    json_bytes = stable_hash_json(obj).encode("utf-8")
+    return cas_put_bytes(namespace, json_bytes, source_id, meta=meta, timestamp_utc=timestamp_utc)
+
+
+def cas_get_json(file_hash: str) -> dict[str, Any] | None:
+    """Retrieve JSON object from CAS by hash."""
+    raw_bytes = cas_get_bytes(file_hash)
+    if not raw_bytes:
+        return None
+    return json.loads(raw_bytes.decode("utf-8"))
+
+
+def cas_exists(file_hash: str) -> bool:
+    """Check if hash exists in CAS."""
+    index_path = _get_index_path()
+    if not index_path.exists():
+        return False
+
+    conn = sqlite3.connect(str(index_path))
+    cursor = conn.execute("SELECT 1 FROM cas_entries WHERE hash = ? LIMIT 1", (file_hash,))
+    exists = cursor.fetchone() is not None
+    conn.close()
+
+    return exists
