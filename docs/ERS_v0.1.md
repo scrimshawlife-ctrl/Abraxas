@@ -1,6 +1,6 @@
-# ERS v0.1 — Execution & Resource Scheduler
+# ERS v0.2 — Execution & Resource Scheduler
 
-Deterministic tick scheduler for Abraxas.
+Deterministic tick scheduler for Abraxas with trace hashing and invariance verification.
 
 ## Design Laws
 - No wall-clock time.
@@ -75,9 +75,54 @@ def abraxas_tick(context: dict, tick: int):
 5. **Trace Provenance**: Every execution produces auditable trace suitable for AAL-Viz
 6. **Stabilization Windows**: Run N ticks with fixed budgets → compare trace hashes for invariance
 
+## Trace Hashing & Invariance Gate (v0.2)
+
+ERS now includes deterministic trace canonicalization and SHA-256 hashing for drift detection:
+
+```python
+from abraxas.ers import trace_hash_sha256, dozen_run_invariance_gate
+
+# Hash a single trace
+trace = out["trace"]
+hash_value = trace_hash_sha256(trace)
+
+# Run 12-run invariance gate
+def make_trace(run_index: int):
+    # Your deterministic trace generation
+    return scheduler.run_tick(...)["trace"]
+
+result = dozen_run_invariance_gate(make_trace=make_trace, runs=12)
+if result.ok:
+    print(f"PASS: All traces identical (hash: {result.expected_hash})")
+else:
+    print(f"FAIL: Drift detected at run {result.first_mismatch_index}")
+    print(f"Divergence: {result.divergence}")
+```
+
+### Runnable Invariance Check
+
+```bash
+python -m scripts.ers_invariance_check
+```
+
+Output:
+```
+ERS INVARIANCE: PASS
+hash: ae7e4fe3526ad0e133d2f46de48f5941e5cf24382490e9d25088d8920decfd16
+```
+
+### What This Gives You
+
+1. **Drift Detection**: Catch non-deterministic behavior before it ships
+2. **Stabilization Windows**: 12-run gate makes stability measurable (not vibes)
+3. **Canonical Hashing**: SHA-256 provenance for every execution trace
+4. **Divergence Reports**: When drift occurs, get exact event index + diff
+5. **Governance Latch**: Prevents silent drift from "harmless" edits
+
+The invariance gate enforces determinism at the scheduler level - if your tasks or runtime introduce non-determinism, the gate **will** catch it.
+
 ## Next Steps
 
-- **Trace Hashing**: Add SHA-256 hashing of trace events for drift detection
-- **12-Run Invariance Gate**: Stabilization windows measured in scheduled runs
-- **AAL-Viz Integration**: Ingest trace events for visualization
+- **AAL-Viz Integration**: Ingest trace events for visualization (TraceEvent → TrendPack.v0)
 - **Promotion Lifecycle**: Bind metric promotion to tick-based canary windows
+- **Extended Stabilization**: Multi-tick windows with budget variation testing
