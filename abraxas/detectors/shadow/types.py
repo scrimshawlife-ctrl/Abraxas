@@ -15,6 +15,14 @@ import json
 DetectorStatus = Literal["computed", "not_computable", "error"]
 
 
+def clamp01(value: float) -> float:
+    if value < 0.0:
+        return 0.0
+    if value > 1.0:
+        return 1.0
+    return value
+
+
 class ShadowEvidence(BaseModel):
     """
     Evidence bundle from a shadow detector.

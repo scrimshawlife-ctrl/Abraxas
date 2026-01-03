@@ -16,6 +16,7 @@ def run_year_cmd(
     include_linguistic: bool,
     include_economics: bool,
     include_governance: bool,
+    allow_simulated: bool,
 ) -> int:
     config = YearRunConfig(
         year=year,
@@ -26,6 +27,7 @@ def run_year_cmd(
         include_linguistic=include_linguistic,
         include_economics=include_economics,
         include_governance=include_governance,
+        allow_simulated=allow_simulated,
     )
     run_year(config)
     return 0

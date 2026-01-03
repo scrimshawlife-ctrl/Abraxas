@@ -17,6 +17,7 @@ def emit_seedpack(
     frames: List[Dict[str, Any]],
     influence: Dict[str, Any],
     synchronicity: Dict[str, Any],
+    coverage: List[Dict[str, Any]] | None = None,
     out_path: Path,
 ) -> Dict[str, Any]:
     payload = {
@@ -25,7 +26,10 @@ def emit_seedpack(
         "frames": frames,
         "influence": influence,
         "synchronicity": synchronicity,
+        "coverage": coverage or [],
     }
+    if isinstance(payload.get("synchronicity"), dict) and "stage" not in payload["synchronicity"]:
+        payload["synchronicity"]["stage"] = "envelope"
     payload["seedpack_hash"] = sha256_hex(canonical_json(payload))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)

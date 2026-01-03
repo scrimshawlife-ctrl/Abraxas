@@ -102,3 +102,7 @@ def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, An
         "max_signal_strength": max_signal,
         "provenance_hashes": provenance_hashes,
     }
+
+
+def serialize_detector_results(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:
+    return {name: result.model_dump() for name, result in results.items()}

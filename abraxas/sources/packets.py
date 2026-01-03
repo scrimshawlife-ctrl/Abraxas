@@ -9,11 +9,17 @@ from pydantic import BaseModel, Field
 from abraxas.core.canonical import canonical_json, sha256_hex
 
 
+SOURCE_PACKET_SCHEMA_VERSION = "source_packet.v0.2"
+
+
 class SourcePacket(BaseModel):
     source_id: str
     observed_at_utc: str
     window_start_utc: Optional[str]
     window_end_utc: Optional[str]
+    schema_version: str = Field(default=SOURCE_PACKET_SCHEMA_VERSION)
+    domain: str = Field(default="unknown")
+    data_grade: str = Field(default="real")  # real | simulated | derived
     payload: Dict[str, Any]
     provenance: Dict[str, Any] = Field(default_factory=dict)
 

@@ -176,6 +176,8 @@ def _flatten_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "window_start_utc": frame.get("window_start_utc"),
         "window_end_utc": frame.get("window_end_utc"),
+        "domain": frame.get("domain") or "unknown",
+        "data_grade": frame.get("data_grade") or "real",
         "vectors": flattened,
         "provenance": frame.get("provenance") or {},
     }

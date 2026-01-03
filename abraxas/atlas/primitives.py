@@ -10,6 +10,10 @@ def _sorted_refs(refs: Iterable[str]) -> List[str]:
     return sorted({str(ref) for ref in refs if ref})
 
 
+def _sorted_strs(items: Iterable[str]) -> List[str]:
+    return sorted({str(x) for x in items if x})
+
+
 @dataclass(frozen=True)
 class PressureCell:
     cell_id: str
@@ -18,6 +22,8 @@ class PressureCell:
     intensity: Optional[float]
     gradient: Optional[float]
     provenance_refs: Sequence[str]
+    motifs: Sequence[str] = ()
+    motif_edges: Sequence[str] = ()
 
     def to_payload(self) -> Dict[str, Any]:
         return {
@@ -27,6 +33,8 @@ class PressureCell:
             "intensity": self.intensity,
             "gradient": self.gradient,
             "provenance_refs": _sorted_refs(self.provenance_refs),
+            "motifs": list(_sorted_strs(self.motifs)),
+            "motif_edges": list(_sorted_strs(self.motif_edges)),
         }
 
 
