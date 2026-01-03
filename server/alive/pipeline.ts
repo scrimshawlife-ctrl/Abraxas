@@ -4,17 +4,18 @@
  * Orchestrates the flow: ingest → normalize → call Python core → persist → return tier-filtered view
  */
 
-import type { ALIVERunInput, ALIVEFieldSignature } from "@shared/alive/schema";
-import { applyTierFilter } from "./policy";
-import { spawn } from "child_process";
+import type { AliveRunInput, AliveRunResult, AliveTier } from "@shared/alive/schema";
+import { ALIVE_ENGINE_VERSION, ALIVE_SCHEMA_VERSION } from "@shared/alive/schema";
+import { applyTierPolicy } from "./policy";
+import { createHash } from "crypto";
 import { promisify } from "util";
 
 const execFile = promisify(require("child_process").execFile);
 
 export interface ALIVEPipelineResult {
-  fieldSignature: ALIVEFieldSignature;
-  tier: string;
-  filteredView: Partial<ALIVEFieldSignature>;
+  run: AliveRunResult;
+  tier: AliveTier;
+  filtered: AliveRunResult;
 }
 
 /**
@@ -24,47 +25,32 @@ export interface ALIVEPipelineResult {
  * @returns Promise resolving to tier-filtered field signature
  */
 export async function runALIVEPipeline(
-  input: ALIVERunInput
+  input: AliveRunInput
 ): Promise<ALIVEPipelineResult> {
   // Step 1: Normalize and validate input
   const normalizedInput = normalizeInput(input);
 
   // Step 2: Call Python core engine
-  const fieldSignature = await callPythonEngine(normalizedInput);
+  const run = await callPythonEngine(normalizedInput);
 
   // Step 3: Persist raw results (TODO: add DB storage)
-  // await persistFieldSignature(fieldSignature);
+  // await persistRunResult(run);
 
   // Step 4: Apply tier-based filtering
-  const filteredView = applyTierFilter(fieldSignature, input.tier);
+  const filtered = applyTierPolicy(run, input.tier);
 
   return {
-    fieldSignature,
+    run,
     tier: input.tier,
-    filteredView,
+    filtered,
   };
 }
 
 /**
  * Normalize input data before processing.
  */
-function normalizeInput(input: ALIVERunInput): ALIVERunInput {
-  // Add default timestamp if not present
-  const normalized = { ...input };
-
-  if (!normalized.corpusConfig.timeRange) {
-    // Default to last 30 days
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 30);
-
-    normalized.corpusConfig.timeRange = {
-      start: start.toISOString(),
-      end: end.toISOString(),
-    };
-  }
-
-  return normalized;
+function normalizeInput(input: AliveRunInput): AliveRunInput {
+  return { ...input };
 }
 
 /**
@@ -73,19 +59,17 @@ function normalizeInput(input: ALIVERunInput): ALIVERunInput {
  * TODO: Consider using a persistent Python worker or HTTP bridge for better performance.
  */
 async function callPythonEngine(
-  input: ALIVERunInput
-): Promise<ALIVEFieldSignature> {
+  input: AliveRunInput
+): Promise<AliveRunResult> {
   try {
-    // Serialize input to JSON
-    const inputJson = JSON.stringify(input);
-
     // Call Python module
-    const { stdout, stderr } = await execFile("python3", [
-      "-m",
-      "abraxas.alive.core",
-      "--input",
-      inputJson,
-    ]);
+    const args = ["-m", "abraxas.alive.core", JSON.stringify(input.artifact), input.tier];
+
+    if (input.profile) {
+      args.push(JSON.stringify(input.profile));
+    }
+
+    const { stdout, stderr } = await execFile("python3", args);
 
     if (stderr) {
       console.warn("Python stderr:", stderr);
@@ -93,69 +77,52 @@ async function callPythonEngine(
 
     // Parse output
     const result = JSON.parse(stdout);
-    return result as ALIVEFieldSignature;
+    return result as AliveRunResult;
   } catch (error) {
     console.error("Error calling Python engine:", error);
 
     // For now, return stub data on error
     // TODO: Implement proper error handling
-    return createStubFieldSignature(input);
+    return createStubRunResult(input);
   }
 }
 
 /**
- * Create stub field signature (fallback).
+ * Create stub run result (fallback).
  */
-function createStubFieldSignature(input: ALIVERunInput): ALIVEFieldSignature {
+function createStubRunResult(input: AliveRunInput): AliveRunResult {
   const now = new Date().toISOString();
+  const inputHash = createHash("sha256")
+    .update(JSON.stringify(input.artifact))
+    .digest("hex");
+  const profileHash = input.profile
+    ? createHash("sha256").update(JSON.stringify(input.profile)).digest("hex")
+    : undefined;
+  const signature = {
+    influence: [],
+    vitality: [],
+    life_logistics: [],
+  };
 
   return {
-    analysisId: `stub_${Date.now()}`,
-    subjectId: input.subjectId,
-    timestamp: now,
-    influence: [
-      {
-        metricId: "influence.network_position",
-        metricVersion: "1.0.0",
-        status: "promoted",
-        value: 0.65,
-        confidence: 0.8,
-        timestamp: now,
+    provenance: {
+      run_id: `stub_${Date.now()}`,
+      created_at: now,
+      schema_version: ALIVE_SCHEMA_VERSION,
+      engine_version: ALIVE_ENGINE_VERSION,
+      metric_registry_hash: "unwired",
+      input_hash: inputHash,
+      profile_hash: profileHash,
+      corpus_context: {
+        corpus_version: "unwired",
+        decay_policy_hash: "unwired",
       },
-    ],
-    vitality: [
-      {
-        metricId: "vitality.creative_momentum",
-        metricVersion: "1.0.0",
-        status: "promoted",
-        value: 0.58,
-        confidence: 0.7,
-        timestamp: now,
-      },
-    ],
-    lifeLogistics: [
-      {
-        metricId: "life_logistics.time_debt",
-        metricVersion: "1.0.0",
-        status: "promoted",
-        value: 0.45,
-        confidence: 0.65,
-        timestamp: now,
-      },
-    ],
-    compositeScore: {
-      overall: 0.62,
-      influenceWeight: 0.33,
-      vitalityWeight: 0.34,
-      lifeLogisticsWeight: 0.33,
     },
-    corpusProvenance: [
-      {
-        sourceId: "stub_source",
-        sourceType: "twitter",
-        weight: 1.0,
-        timestamp: now,
-      },
-    ],
+    artifact: input.artifact,
+    signature,
+    view: {
+      tier: input.tier,
+      metrics: input.tier === "psychonaut" ? null : signature,
+    },
   };
 }
