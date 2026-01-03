@@ -1,0 +1,16 @@
+{
+  "id": "ϟ₂₇",
+  "name": "Performance Tune Promote",
+  "short_name": "PERF_TUNE_PROMOTE",
+  "layer": "Tuning",
+  "motto": "Promote only if rent is paid.",
+  "function": "Promotes canary to ACTIVE if rent gates pass. Checks: compression improvement, duration regression, cache hits, network calls, Decodo usage. Atomic ACTIVE pointer update.",
+  "inputs": ["metrics_before", "metrics_after", "run_ctx"],
+  "outputs": ["promoted", "gate_results", "rationale"],
+  "constraints": ["rent_gates_required", "atomic_promotion"],
+  "hooks": ["post_canary"],
+  "evidence_tier": "canonical",
+  "provenance_sources": ["Performance Tuning Plane v0.1 spec", "Rent gate thresholds"],
+  "canonical_statement": "Promote only if rent is paid.",
+  "introduced_version": "1.0.0"
+}

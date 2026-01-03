@@ -1,0 +1,16 @@
+{
+  "id": "ϟ₂₆",
+  "name": "Performance Tune Canary",
+  "short_name": "PERF_TUNE_CANARY",
+  "layer": "Tuning",
+  "motto": "Test in shadow. Record delta.",
+  "function": "Applies candidate PerfTuningIR in canary mode (shadow deployment). Records before/after metrics for rent gate evaluation. Does not affect ACTIVE.",
+  "inputs": ["proposal_ir", "run_ctx"],
+  "outputs": ["status", "canary_path", "ir_hash"],
+  "constraints": ["canary_only", "atomic_write", "metrics_tracking"],
+  "hooks": ["post_propose"],
+  "evidence_tier": "canonical",
+  "provenance_sources": ["Performance Tuning Plane v0.1 spec", "Atomic apply layer"],
+  "canonical_statement": "Test in shadow. Record delta.",
+  "introduced_version": "1.0.0"
+}

@@ -1,6 +1,7 @@
 """Dynamic compression router with codec selection.
 
 Performance Drop v1.0 - Intelligent compression codec selection.
+Performance Tuning Plane v0.1 - Reads ACTIVE tuning IR for per-source settings.
 """
 
 from __future__ import annotations
@@ -15,6 +16,14 @@ from abraxas.storage.entropy import estimate_entropy, estimate_repetition
 
 
 Codec = Literal["zstd", "gzip", "lz4", "none"]
+
+# Import tuning IR loader (optional - graceful degradation)
+try:
+    from abraxas.tuning.perf_ir import load_active_tuning_ir
+    TUNING_AVAILABLE = True
+except ImportError:
+    TUNING_AVAILABLE = False
+    load_active_tuning_ir = None
 
 
 @dataclass(frozen=True)
@@ -36,6 +45,8 @@ def choose_codec(
 ) -> CompressionChoice:
     """Choose optimal compression codec based on content characteristics.
 
+    Performance Tuning Plane v0.1: Reads ACTIVE tuning IR for per-source settings.
+
     Args:
         raw_bytes: Raw byte content to compress
         source_id: Optional source identifier for source-specific tuning
@@ -45,6 +56,14 @@ def choose_codec(
     Returns:
         CompressionChoice with codec, level, and reasoning
     """
+    # Load tuning IR if available
+    tuning_ir = None
+    if TUNING_AVAILABLE and load_active_tuning_ir:
+        try:
+            tuning_ir = load_active_tuning_ir()
+        except Exception:
+            pass  # Graceful degradation if tuning not configured
+
     if force_codec:
         return CompressionChoice(
             codec=force_codec,
@@ -77,19 +96,22 @@ def choose_codec(
 
     # High repetition = good zstd candidate
     if repetition > 0.3 and dict_path and dict_path.exists():
+        # Use tuning IR level if available
+        level = tuning_ir.knobs.zstd_level_cold if tuning_ir else 3
         return CompressionChoice(
             codec="zstd",
-            level=3,
+            level=level,
             dict_path=dict_path,
-            reason=f"high_repetition:{repetition:.2f}",
+            reason=f"high_repetition:{repetition:.2f},tuned_level={level}",
         )
 
-    # Default: zstd level 3
+    # Default: zstd with tuned level (or level 3 if no tuning)
+    default_level = tuning_ir.knobs.zstd_level_cold if tuning_ir else 3
     return CompressionChoice(
         codec="zstd",
-        level=3,
+        level=default_level,
         dict_path=dict_path if dict_path and dict_path.exists() else None,
-        reason="default",
+        reason=f"default,tuned_level={default_level}",
     )
 
 
