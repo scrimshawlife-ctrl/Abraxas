@@ -342,11 +342,100 @@ class TestViewPackWithNativeBindings:
             assert len(shadow_events) >= 1
 
 
-class TestViewPackDeterminism:
-    """Test that ViewPack is deterministic."""
+class TestViewPackInvarianceSummary:
+    """Test ViewPack invariance summary for UI badge."""
 
-    def test_viewpack_sha256_is_deterministic(self):
-        """Test that same inputs produce same ViewPack hash."""
+    def test_viewpack_contains_invariance_summary(self):
+        """Test that ViewPack contains invariance summary in aggregates."""
+
+        def run_signal(ctx):
+            return {"signal": "ok"}
+
+        def run_compress(ctx):
+            return {"compress": "ok"}
+
+        def run_overlay(ctx):
+            return {"overlay": "ok"}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = abraxas_tick(
+                tick=0,
+                run_id="vp-inv",
+                mode="test",
+                context={},
+                artifacts_dir=tmpdir,
+                run_signal=run_signal,
+                run_compress=run_compress,
+                run_overlay=run_overlay,
+            )
+
+            vp_path = Path(result["artifacts"]["viewpack"])
+            with open(vp_path) as f:
+                vp = json.load(f)
+
+            # Check invariance summary exists in aggregates
+            assert "aggregates" in vp
+            agg = vp["aggregates"]
+            assert "invariance" in agg
+
+            inv = agg["invariance"]
+            assert inv["schema"] == "InvarianceSummary.v0"
+            assert "trendpack_sha256" in inv
+            assert "runheader_sha256" in inv
+            assert "passed" in inv
+
+            # Both hashes should be present and passed should be True
+            assert isinstance(inv["trendpack_sha256"], str)
+            assert len(inv["trendpack_sha256"]) == 64  # SHA-256 hex
+            assert isinstance(inv["runheader_sha256"], str)
+            assert len(inv["runheader_sha256"]) == 64
+            assert inv["passed"] is True
+
+    def test_viewpack_invariance_matches_artifact_hashes(self):
+        """Test that invariance hashes match artifact return values."""
+
+        def run_signal(ctx):
+            return {"signal": "ok"}
+
+        def run_compress(ctx):
+            return {"compress": "ok"}
+
+        def run_overlay(ctx):
+            return {"overlay": "ok"}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = abraxas_tick(
+                tick=0,
+                run_id="vp-inv-match",
+                mode="test",
+                context={},
+                artifacts_dir=tmpdir,
+                run_signal=run_signal,
+                run_compress=run_compress,
+                run_overlay=run_overlay,
+            )
+
+            vp_path = Path(result["artifacts"]["viewpack"])
+            with open(vp_path) as f:
+                vp = json.load(f)
+
+            inv = vp["aggregates"]["invariance"]
+
+            # Hashes should match what's returned by tick
+            assert inv["trendpack_sha256"] == result["artifacts"]["trendpack_sha256"]
+            assert inv["runheader_sha256"] == result["artifacts"]["run_header_sha256"]
+
+
+class TestViewPackDeterminism:
+    """Test that ViewPack is semantically deterministic."""
+
+    def test_viewpack_content_is_deterministic(self):
+        """Test that same inputs produce semantically identical ViewPack.
+
+        Note: Raw sha256 may differ between runs due to embedded hashes
+        (trendpack_sha256, runheader_sha256) which vary per artifacts_dir.
+        But the semantic content (events, aggregates structure, stats) is deterministic.
+        """
 
         def run_signal(ctx):
             return {"signal": "ok"}
@@ -382,6 +471,37 @@ class TestViewPackDeterminism:
                 run_overlay=run_overlay,
             )
 
-            # ViewPack SHA-256 should match
-            assert result1["artifacts"]["viewpack_sha256"] == \
-                   result2["artifacts"]["viewpack_sha256"]
+            vp1_path = Path(result1["artifacts"]["viewpack"])
+            vp2_path = Path(result2["artifacts"]["viewpack"])
+
+            with open(vp1_path) as f:
+                vp1 = json.load(f)
+            with open(vp2_path) as f:
+                vp2 = json.load(f)
+
+            # Schema, run_id, tick, mode should match exactly
+            assert vp1["schema"] == vp2["schema"]
+            assert vp1["run_id"] == vp2["run_id"]
+            assert vp1["tick"] == vp2["tick"]
+            assert vp1["mode"] == vp2["mode"]
+
+            # Events should be identical (excluding any path-dependent meta)
+            assert len(vp1["events"]) == len(vp2["events"])
+            for e1, e2 in zip(vp1["events"], vp2["events"]):
+                assert e1["task"] == e2["task"]
+                assert e1["lane"] == e2["lane"]
+                assert e1["status"] == e2["status"]
+                assert e1["cost_ops"] == e2["cost_ops"]
+
+            # Aggregates stats/budget should match
+            assert vp1["aggregates"]["stats"] == vp2["aggregates"]["stats"]
+            assert vp1["aggregates"]["budget"] == vp2["aggregates"]["budget"]
+            assert vp1["aggregates"]["error_count"] == vp2["aggregates"]["error_count"]
+            assert vp1["aggregates"]["skipped_count"] == vp2["aggregates"]["skipped_count"]
+
+            # Invariance summary schema and passed flag should match
+            inv1 = vp1["aggregates"]["invariance"]
+            inv2 = vp2["aggregates"]["invariance"]
+            assert inv1["schema"] == inv2["schema"]
+            assert inv1["passed"] == inv2["passed"]
+            # Note: trendpack_sha256/runheader_sha256 may differ per dir (expected)

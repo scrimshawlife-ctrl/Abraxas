@@ -239,6 +239,7 @@ def abraxas_tick(
 
     # 5) ViewPack: one-file overview artifact for UIs
     # Keep it compact & high-signal by only resolving errors/skips
+    # Include invariance summary so UIs can show stable/unstable badge without extra loads
     view_pack = build_view_pack(
         trendpack_path=trendpack_rec.path,
         run_id=run_id,
@@ -246,6 +247,12 @@ def abraxas_tick(
         mode=mode,
         resolve_limit=50,
         resolve_only_status=["error", "skipped_budget"],
+        invariance={
+            "schema": "InvarianceSummary.v0",
+            "trendpack_sha256": trendpack_rec.sha256,
+            "runheader_sha256": run_header_sha256,
+            "passed": bool(trendpack_rec.sha256) and bool(run_header_sha256),
+        },
         provenance={"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
     )
 

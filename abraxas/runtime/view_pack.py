@@ -61,6 +61,8 @@ def build_view_pack(
     # If provided, include resolved results only for events with status in this set
     # None means resolve all (up to limit)
     resolve_only_status: Optional[List[str]] = None,
+    # Invariance summary for UI badge (trendpack_sha256, runheader_sha256, passed)
+    invariance: Optional[Dict[str, Any]] = None,
     provenance: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
@@ -78,6 +80,9 @@ def build_view_pack(
         resolve_limit: Maximum number of events to resolve (default 50)
         resolve_only_status: If provided, only resolve events with these statuses
             (e.g., ["error", "skipped_budget"] for compact high-signal output)
+        invariance: Optional invariance summary for UI badge display.
+            Expected shape: {"schema": "InvarianceSummary.v0",
+                           "trendpack_sha256": str, "runheader_sha256": str, "passed": bool}
         provenance: Optional provenance metadata
 
     Returns:
@@ -123,6 +128,10 @@ def build_view_pack(
         "error_count": len(tp.get("errors", [])),
         "skipped_count": len(tp.get("skipped", [])),
     }
+
+    # Embed invariance summary if provided (for UI stable/unstable badge)
+    if invariance is not None:
+        aggregates["invariance"] = invariance
 
     # Store relative ref pattern instead of absolute path
     # Consumer can reconstruct: {artifacts_dir}/viz/{run_id}/{tick:06d}.trendpack.json
