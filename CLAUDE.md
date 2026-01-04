@@ -1437,6 +1437,75 @@ ABX_UI_PORT=8780
 
 ---
 
+## ABX-Runes Coupling Rules (MANDATORY)
+
+**CRITICAL**: All cross-subsystem communication must flow through ABX-Runes capability contracts. Direct imports between `abx/` and `abraxas/` are forbidden.
+
+### DO NOT Do This (Coupling Violation) ❌
+
+```python
+# ❌ WRONG - Direct import across subsystem boundary
+from abraxas.oracle.v2.pipeline import run_oracle
+from abraxas.memetic.metrics_reduce import reduce_provenance_means
+
+result = run_oracle(observations, config)
+means = reduce_provenance_means(profiles)
+```
+
+### DO This Instead (Rune Contract) ✅
+
+```python
+# ✅ CORRECT - Via capability contract
+from abraxas.runes.capabilities import load_capability_registry
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
+
+# Create invocation context
+ctx = RuneInvocationContext(
+    run_id="RUN-001",
+    caller="abx.mymodule",
+    environment="production"
+)
+
+# Invoke oracle capability
+oracle_result = invoke_capability(
+    capability="oracle.v2.run",
+    inputs={
+        "run_id": "RUN-001",
+        "observations": observations,
+        "config": config,
+        "seed": 42  # For determinism
+    },
+    ctx=ctx,
+    strict_execution=True
+)
+
+# Extract results with provenance
+oracle_output = oracle_result["oracle_output"]
+provenance = oracle_result["provenance"]
+```
+
+### Allowed Exceptions
+
+Only these `abraxas.*` imports are allowed in `abx/`:
+- ✅ `abraxas.runes.*` - Rune system itself (capabilities, invoke, ctx, registry)
+- ✅ `abraxas.core.provenance` - Provenance utilities (canonical_envelope, hash_canonical_json)
+- ✅ Test files only: Any import for testing purposes
+
+**All other imports must use capability contracts.**
+
+### How to Add a New Capability
+
+1. **Create JSON schemas** for inputs/outputs in `schemas/capabilities/`
+2. **Create rune adapter** in the subsystem (thin wrapper, no core logic changes)
+3. **Register capability** in `abraxas/runes/registry.json`
+4. **Add golden test** proving determinism
+5. **Update coupling lint** to verify violation count decreased
+
+See `docs/migration/abx_runes_coupling.md` for detailed migration guide.
+
+---
+
 ## Getting Help
 
 ### When Working on Tasks
@@ -1446,6 +1515,7 @@ ABX_UI_PORT=8780
 3. **Run tests**: Ensure changes don't break existing functionality
 4. **Verify determinism**: Same inputs should produce same outputs
 5. **Add provenance**: Include SHA-256 hashes for traceability
+6. **Use capability contracts**: Never directly import across subsystems
 
 ### Best Practices for AI Assistants
 
@@ -1457,6 +1527,7 @@ ABX_UI_PORT=8780
 6. **Include provenance**: Track all transformations with hashes
 7. **Avoid over-engineering**: Keep solutions simple and focused
 8. **No security vulnerabilities**: Check for injection, XSS, etc.
+9. **Respect ABX-Runes boundaries**: Use capability contracts, not direct imports
 
 ---
 

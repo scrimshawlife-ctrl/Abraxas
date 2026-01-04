@@ -1,31 +1,230 @@
 {
-  "scope": [
-    "abraxas/runes/operators"
+  "version": "2.0.0",
+  "generated_at": "auto",
+  "scopes": [
+    {
+      "path": "abraxas/runes/operators",
+      "type": "operators"
+    },
+    {
+      "path": "abraxas/storage",
+      "type": "modules"
+    },
+    {
+      "path": "abraxas/sources/adapters",
+      "type": "interfaces"
+    },
+    {
+      "path": "abraxas/runtime",
+      "type": "modules"
+    },
+    {
+      "path": "abraxas/shadow_metrics",
+      "type": "shadow"
+    },
+    {
+      "path": "abraxas/metric_extractors",
+      "type": "interfaces"
+    },
+    {
+      "path": "abraxas/detectors",
+      "type": "detectors"
+    },
+    {
+      "path": "abraxas/narratives",
+      "type": "modules"
+    },
+    {
+      "path": "abx/core",
+      "type": "core"
+    },
+    {
+      "path": "abx/kernel.py",
+      "type": "kernel"
+    }
   ],
   "stubs": [
     {
+      "file": "abraxas/detectors/shadow/types.py",
+      "marker": "raise NotImplementedError(\"Subclasses must implement detect()\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "not_implemented"
+    },
+    {
+      "file": "abraxas/metric_extractors/base.py",
+      "marker": "raise NotImplementedError",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "interface"
+    },
+    {
+      "file": "abraxas/narratives/templates.py",
+      "marker": "raise NotImplementedError(\"Subclasses must implement render()\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "not_implemented"
+    },
+    {
+      "file": "abraxas/runes/operators/cohesion_score.py",
+      "marker": "raise NotImplementedError(\"COHESION_SCORE requires synchronicity_envelopes\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/influence_detect.py",
+      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented operator",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/influence_weight.py",
+      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented operator",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/linguistic_source_discover.py",
+      "marker": "raise NotImplementedError(\"LINGUISTIC_SOURCE_DISCOVER requires tokens\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/metric_extract.py",
+      "marker": "raise NotImplementedError(\"METRIC_EXTRACT requires packets\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/no_causal_assert.py",
+      "marker": "raise NotImplementedError(\"NO_CAUSAL_ASSERT requires payload\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/no_domain_prior.py",
+      "marker": "raise NotImplementedError(\"NO_DOMAIN_PRIOR requires payload\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/provenance_seal.py",
+      "marker": "raise NotImplementedError(\"PROVENANCE_SEAL requires payload\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
       "file": "abraxas/runes/operators/rfa.py",
-      "marker": "Operator RFA not implemented yet"
+      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented operator",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/source_discover.py",
+      "marker": "raise NotImplementedError(\"SOURCE_DISCOVER requires at least one input list\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/source_redundancy_check.py",
+      "marker": "raise NotImplementedError(\"SOURCE_REDUNDANCY_CHECK requires sources\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/source_resolve.py",
+      "marker": "raise NotImplementedError(\"SOURCE_RESOLVE requires source_ids\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/synchronicity_map.py",
+      "marker": "raise NotImplementedError(\"SYNCHRONICITY_MAP requires frames\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
     },
     {
       "file": "abraxas/runes/operators/tam.py",
-      "marker": "Operator TAM not implemented yet"
+      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented operator",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/temporal_normalize.py",
+      "marker": "raise NotImplementedError(\"TEMPORAL_NORMALIZE requires timestamp\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
+      "file": "abraxas/runes/operators/tvm_frame.py",
+      "marker": "raise NotImplementedError(\"TVM_FRAME requires metrics\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
     },
     {
       "file": "abraxas/runes/operators/wsss.py",
-      "marker": "Operator WSSS not implemented yet"
+      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented operator",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
     },
     {
-      "file": "abraxas/runes/operators/sds.py",
-      "marker": "Operator SDS not implemented yet"
+      "file": "abraxas/shadow_metrics/patch_registry.py",
+      "marker": "# TODO: Actually apply code changes (would need implementation)",
+      "type": "todo",
+      "priority": "P2",
+      "stub_type": "module"
     },
     {
-      "file": "abraxas/runes/operators/ipl.py",
-      "marker": "Operator IPL not implemented yet"
+      "file": "abraxas/sources/adapters/base.py",
+      "marker": "raise NotImplementedError",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "interface"
     },
     {
-      "file": "abraxas/runes/operators/add.py",
-      "marker": "Operator ADD not implemented yet"
+      "file": "abx/core/pipeline.py",
+      "marker": "# TODO: Wire real oracle generation logic here",
+      "type": "todo",
+      "priority": "P2",
+      "stub_type": "core"
+    },
+    {
+      "file": "abx/kernel.py",
+      "marker": "raise NotImplementedError(",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "not_implemented"
     }
-  ]
+  ],
+  "summary": {
+    "total_stubs": 24,
+    "by_priority": {
+      "P0": 0,
+      "P1": 22,
+      "P2": 2
+    },
+    "by_type": {
+      "operator": 17,
+      "interface": 2,
+      "not_implemented": 3,
+      "module": 1
+    }
+  }
 }
