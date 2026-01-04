@@ -18,6 +18,7 @@ from abraxas.ers import Budget, DeterministicScheduler
 from abraxas.ers.bindings import bind_callable
 from abraxas.viz import ers_trace_to_trendpack
 from abraxas.runtime.artifacts import ArtifactWriter
+from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
 
 
 def abraxas_tick(
@@ -27,11 +28,13 @@ def abraxas_tick(
     mode: str,
     context: Dict[str, Any],
     artifacts_dir: str,
-    # These are your *existing* pipeline steps; pass the real functions from your engine.
-    run_signal: Callable[[Dict[str, Any]], Any],
-    run_compress: Callable[[Dict[str, Any]], Any],
-    run_overlay: Callable[[Dict[str, Any]], Any],
-    # Optional shadow steps
+    # Native bindings: resolved from repo when None
+    bindings: Optional[PipelineBindings] = None,
+    # Legacy parameters: kept for backward compatibility with tests
+    # If provided, these override the bindings (test mode)
+    run_signal: Optional[Callable[[Dict[str, Any]], Any]] = None,
+    run_compress: Optional[Callable[[Dict[str, Any]], Any]] = None,
+    run_overlay: Optional[Callable[[Dict[str, Any]], Any]] = None,
     run_shadow_tasks: Optional[Dict[str, Callable[[Dict[str, Any]], Any]]] = None,
 ) -> Dict[str, Any]:
     """
@@ -46,20 +49,70 @@ def abraxas_tick(
     - What executed (ERS trace)
     - What the run identity is (run_id/tick/mode)
     - Where artifacts live (artifacts_dir)
+
+    Args:
+        tick: Current tick number
+        run_id: Run identifier for provenance
+        mode: Execution mode (e.g., "live", "test", "backtest")
+        context: Shared context dict passed to all pipeline functions
+        artifacts_dir: Directory for artifact emission
+        bindings: Optional PipelineBindings (resolved from repo if None)
+        run_signal: Legacy param - override signal function (for tests)
+        run_compress: Legacy param - override compress function (for tests)
+        run_overlay: Legacy param - override overlay function (for tests)
+        run_shadow_tasks: Legacy param - override shadow tasks (for tests)
+
+    Returns:
+        Dict with tick results, remaining budgets, and artifact references
     """
+
+    # Resolve pipeline functions
+    # Priority: explicit legacy params > bindings > auto-resolve
+    if run_signal is not None and run_compress is not None and run_overlay is not None:
+        # Legacy mode: all three explicit params provided (backward compat)
+        actual_signal = run_signal
+        actual_compress = run_compress
+        actual_overlay = run_overlay
+        actual_shadow = run_shadow_tasks or {}
+        bindings_provenance = {
+            "bindings": "legacy_explicit",
+            "oracle": {
+                "signal": "explicit",
+                "compress": "explicit",
+                "overlay": "explicit",
+            },
+            "shadow": {
+                "provider": "explicit" if run_shadow_tasks else None,
+                "task_count": len(run_shadow_tasks) if run_shadow_tasks else 0,
+            },
+        }
+    elif bindings is not None:
+        # Bindings explicitly provided
+        actual_signal = bindings.run_signal
+        actual_compress = bindings.run_compress
+        actual_overlay = bindings.run_overlay
+        actual_shadow = bindings.shadow_tasks
+        bindings_provenance = bindings.provenance
+    else:
+        # Auto-resolve from repo (native mode)
+        resolved = resolve_pipeline_bindings()
+        actual_signal = resolved.run_signal
+        actual_compress = resolved.run_compress
+        actual_overlay = resolved.run_overlay
+        actual_shadow = resolved.shadow_tasks
+        bindings_provenance = resolved.provenance
 
     s = DeterministicScheduler()
 
     # Forecast lane (primary)
-    s.add(bind_callable(name="oracle:signal",   lane="forecast", priority=0, cost_ops=10, fn=run_signal))
-    s.add(bind_callable(name="oracle:compress", lane="forecast", priority=1, cost_ops=10, fn=run_compress))
-    s.add(bind_callable(name="oracle:overlay",  lane="forecast", priority=2, cost_ops=10, fn=run_overlay))
+    s.add(bind_callable(name="oracle:signal",   lane="forecast", priority=0, cost_ops=10, fn=actual_signal))
+    s.add(bind_callable(name="oracle:compress", lane="forecast", priority=1, cost_ops=10, fn=actual_compress))
+    s.add(bind_callable(name="oracle:overlay",  lane="forecast", priority=2, cost_ops=10, fn=actual_overlay))
 
     # Shadow lane (observation-only)
-    if run_shadow_tasks:
-        # stable ordering by name via scheduler keying
-        for name, fn in sorted(run_shadow_tasks.items(), key=lambda kv: kv[0]):
-            s.add(bind_callable(name=f"shadow:{name}", lane="shadow", priority=0, cost_ops=2, fn=fn))
+    # Stable ordering by name via scheduler keying
+    for name, fn in sorted(actual_shadow.items(), key=lambda kv: kv[0]):
+        s.add(bind_callable(name=f"shadow:{name}", lane="shadow", priority=0, cost_ops=2, fn=fn))
 
     out = s.run_tick(
         tick=tick,
@@ -79,6 +132,7 @@ def abraxas_tick(
             "engine": "abraxas",
             "mode": mode,
             "ers": "v0.2",
+            "pipeline_bindings": bindings_provenance,
         },
     )
 

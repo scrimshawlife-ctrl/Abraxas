@@ -21,7 +21,7 @@ from abraxas.detectors.shadow.types import (
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
-from abraxas.detectors.shadow.registry import compute_all_detectors, aggregate_evidence, DETECTOR_REGISTRY
+from abraxas.detectors.shadow.registry import compute_all_detectors, aggregate_evidence, get_shadow_tasks, DETECTOR_REGISTRY
 from abraxas.detectors.shadow.lane_guard import LaneGuard, LaneViolationError
 
 __version__ = "0.1.0"
@@ -35,6 +35,7 @@ __all__ = [
     "NegativeSpaceDetector",
     "compute_all_detectors",
     "aggregate_evidence",
+    "get_shadow_tasks",
     "DETECTOR_REGISTRY",
     "LaneGuard",
     "LaneViolationError",

@@ -6,7 +6,7 @@ Provides `compute_all_detectors()` function to run all detectors and
 aggregate evidence.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Callable, Dict, List
 from abraxas.detectors.shadow.types import ShadowDetectorResult
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
@@ -106,3 +106,47 @@ def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, An
 
 def serialize_detector_results(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:
     return {name: result.model_dump() for name, result in results.items()}
+
+
+def get_shadow_tasks(ctx: Dict[str, Any]) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+    """
+    Return shadow detector tasks as callables for the pipeline bindings resolver.
+
+    Each returned callable wraps a detector's detect() method, returning
+    a serialized ShadowDetectorResult.
+
+    Args:
+        ctx: Context dict (currently unused, reserved for future configuration).
+
+    Returns:
+        Dict mapping detector_name -> callable(ctx) -> dict
+
+    Note:
+        This function is called by abraxas.runtime.pipeline_bindings.resolve_pipeline_bindings()
+        to discover shadow tasks for the ERS scheduler.
+    """
+
+    def make_task(detector_name: str) -> Callable[[Dict[str, Any]], Any]:
+        """Create a task callable for a specific detector."""
+
+        def task(ctx: Dict[str, Any]) -> Dict[str, Any]:
+            detector = DETECTOR_REGISTRY.get(detector_name)
+            if detector is None:
+                return {
+                    "status": "error",
+                    "error": f"Detector {detector_name} not found in registry",
+                }
+            try:
+                result = detector.detect(ctx)
+                return result.model_dump()
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "error": str(e),
+                    "detector": detector_name,
+                }
+
+        return task
+
+    # Return stable-ordered dict of task callables
+    return {name: make_task(name) for name in sorted(DETECTOR_REGISTRY.keys())}
