@@ -2,7 +2,7 @@
 Tests for abraxas.runtime.pipeline_bindings - Native Pipeline Resolution.
 
 Tests that the resolver correctly finds and binds the Oracle pipeline
-functions and shadow tasks from the repo.
+functions and shadow tasks from canonical registries.
 """
 
 import tempfile
@@ -14,42 +14,15 @@ import pytest
 from abraxas.runtime.pipeline_bindings import (
     PipelineBindings,
     resolve_pipeline_bindings,
-    _try_import_attr,
 )
 from abraxas.runtime import abraxas_tick
-
-
-class TestTryImportAttr:
-    """Test the _try_import_attr helper."""
-
-    def test_import_existing_module_attr(self):
-        """Test importing an existing attribute from a module."""
-        fn = _try_import_attr("abraxas.oracle.registry", "run_signal")
-        assert fn is not None
-        assert callable(fn)
-
-    def test_import_nonexistent_module(self):
-        """Test importing from a nonexistent module returns None."""
-        fn = _try_import_attr("abraxas.nonexistent.module", "run_signal")
-        assert fn is None
-
-    def test_import_nonexistent_attr(self):
-        """Test importing a nonexistent attribute returns None."""
-        fn = _try_import_attr("abraxas.oracle.registry", "nonexistent_function")
-        assert fn is None
-
-    def test_import_non_callable(self):
-        """Test importing a non-callable attribute returns None."""
-        # __version__ is a string, not callable
-        fn = _try_import_attr("abraxas.detectors.shadow", "__version__")
-        assert fn is None
 
 
 class TestResolvePipelineBindings:
     """Test the pipeline bindings resolver."""
 
     def test_resolve_succeeds(self):
-        """Test that resolve_pipeline_bindings() succeeds with real repo."""
+        """Test that resolve_pipeline_bindings() succeeds with canonical registries."""
         bindings = resolve_pipeline_bindings()
 
         assert isinstance(bindings, PipelineBindings)
@@ -71,6 +44,7 @@ class TestResolvePipelineBindings:
         bindings = resolve_pipeline_bindings()
 
         assert "bindings" in bindings.provenance
+        assert bindings.provenance["bindings"] == "PipelineBindings.v1"
         assert "oracle" in bindings.provenance
         assert "shadow" in bindings.provenance
 
@@ -94,15 +68,18 @@ class TestResolvePipelineBindings:
         for name, fn in bindings.shadow_tasks.items():
             assert callable(fn), f"Shadow task {name} is not callable"
 
-    def test_provenance_shows_registry_source(self):
+    def test_provenance_shows_canonical_registry_source(self):
         """Test that provenance shows the canonical registry as source."""
         bindings = resolve_pipeline_bindings()
 
         oracle_prov = bindings.provenance["oracle"]
-        # Should find functions in abraxas.oracle.registry
-        assert "abraxas.oracle.registry" in oracle_prov["signal"]
-        assert "abraxas.oracle.registry" in oracle_prov["compress"]
-        assert "abraxas.oracle.registry" in oracle_prov["overlay"]
+        # Should show canonical registry paths
+        assert oracle_prov["signal"] == "abraxas.oracle.registry:run_signal"
+        assert oracle_prov["compress"] == "abraxas.oracle.registry:run_compress"
+        assert oracle_prov["overlay"] == "abraxas.oracle.registry:run_overlay"
+
+        shadow_prov = bindings.provenance["shadow"]
+        assert shadow_prov["provider"] == "abraxas.detectors.shadow.registry:get_shadow_tasks"
 
 
 class TestPipelineFunctionExecution:
@@ -208,7 +185,7 @@ class TestAbraxasTickWithNativeBindings:
 
             assert "pipeline_bindings" in trendpack["provenance"]
             prov = trendpack["provenance"]["pipeline_bindings"]
-            assert prov["bindings"] == "PipelineBindings.v0"
+            assert prov["bindings"] == "PipelineBindings.v1"
             assert "oracle" in prov
             assert "shadow" in prov
 
@@ -324,3 +301,36 @@ class TestDeterminism:
 
         assert names1 == names2
         assert names1 == sorted(names1)  # Should be sorted
+
+
+class TestCanonicalRegistryImports:
+    """Test that canonical registry imports work correctly."""
+
+    def test_oracle_registry_direct_import(self):
+        """Test that oracle registry can be imported directly."""
+        from abraxas.oracle import registry as oracle_registry
+
+        assert callable(oracle_registry.run_signal)
+        assert callable(oracle_registry.run_compress)
+        assert callable(oracle_registry.run_overlay)
+
+    def test_shadow_registry_direct_import(self):
+        """Test that shadow registry can be imported directly."""
+        from abraxas.detectors.shadow import registry as shadow_registry
+
+        assert callable(shadow_registry.get_shadow_tasks)
+
+        tasks = shadow_registry.get_shadow_tasks({})
+        assert isinstance(tasks, dict)
+
+    def test_shadow_registry_impl_direct_import(self):
+        """Test that shadow registry_impl can be imported directly."""
+        from abraxas.detectors.shadow.registry_impl import build_shadow_task_map, get_detector_names
+
+        tasks = build_shadow_task_map()
+        assert isinstance(tasks, dict)
+        assert len(tasks) > 0
+
+        names = get_detector_names()
+        assert isinstance(names, list)
+        assert names == sorted(names)  # Should be sorted

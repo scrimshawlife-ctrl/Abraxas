@@ -2,23 +2,49 @@
 Shadow Detector Registry.
 
 Centralized registry of all shadow detectors with deterministic execution.
-Provides `compute_all_detectors()` function to run all detectors and
-aggregate evidence.
+
+Canonical exports:
+- get_shadow_tasks(ctx) -> Dict[str, Callable] — for pipeline bindings
+- compute_all_detectors(inputs) -> Dict[str, ShadowDetectorResult]
+- aggregate_evidence(results) -> Dict[str, Any]
 """
 
+from __future__ import annotations
+
 from typing import Any, Callable, Dict, List
+
 from abraxas.detectors.shadow.types import ShadowDetectorResult
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
 
 
-# Global detector registry
+# Global detector registry (for compute_all_detectors and legacy access)
 DETECTOR_REGISTRY = {
     "compliance_remix": ComplianceRemixDetector(),
     "meta_awareness": MetaAwarenessDetector(),
     "negative_space": NegativeSpaceDetector(),
 }
+
+
+def get_shadow_tasks(_ctx: Dict[str, Any]) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+    """
+    Canonical shadow task provider for pipeline bindings.
+
+    Returns dict[name -> callable(context)->Any].
+
+    Deterministic discovery:
+    - Imports from registry_impl (the single source of truth)
+    - If registry_impl not found, returns {} (shadow lane is optional)
+    - Never fails silently with placeholder data
+    """
+    try:
+        from abraxas.detectors.shadow.registry_impl import build_shadow_task_map
+
+        return build_shadow_task_map()
+    except ImportError:
+        # Shadow lane is optional — empty is valid and deterministic
+        return {}
 
 
 def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorResult]:
@@ -105,48 +131,14 @@ def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, An
 
 
 def serialize_detector_results(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:
+    """Serialize detector results to dicts."""
     return {name: result.model_dump() for name, result in results.items()}
 
 
-def get_shadow_tasks(ctx: Dict[str, Any]) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
-    """
-    Return shadow detector tasks as callables for the pipeline bindings resolver.
-
-    Each returned callable wraps a detector's detect() method, returning
-    a serialized ShadowDetectorResult.
-
-    Args:
-        ctx: Context dict (currently unused, reserved for future configuration).
-
-    Returns:
-        Dict mapping detector_name -> callable(ctx) -> dict
-
-    Note:
-        This function is called by abraxas.runtime.pipeline_bindings.resolve_pipeline_bindings()
-        to discover shadow tasks for the ERS scheduler.
-    """
-
-    def make_task(detector_name: str) -> Callable[[Dict[str, Any]], Any]:
-        """Create a task callable for a specific detector."""
-
-        def task(ctx: Dict[str, Any]) -> Dict[str, Any]:
-            detector = DETECTOR_REGISTRY.get(detector_name)
-            if detector is None:
-                return {
-                    "status": "error",
-                    "error": f"Detector {detector_name} not found in registry",
-                }
-            try:
-                result = detector.detect(ctx)
-                return result.model_dump()
-            except Exception as e:
-                return {
-                    "status": "error",
-                    "error": str(e),
-                    "detector": detector_name,
-                }
-
-        return task
-
-    # Return stable-ordered dict of task callables
-    return {name: make_task(name) for name in sorted(DETECTOR_REGISTRY.keys())}
+__all__ = [
+    "DETECTOR_REGISTRY",
+    "get_shadow_tasks",
+    "compute_all_detectors",
+    "aggregate_evidence",
+    "serialize_detector_results",
+]
