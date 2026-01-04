@@ -54,6 +54,11 @@ from .run_stability import (
     verify_run_stability,
     get_stability_ref_path,
 )
+from .stability_read import (
+    read_run_stability,
+    read_stability_summary,
+    stability_exists,
+)
 
 __all__ = [
     # Tick orchestration
@@ -99,4 +104,8 @@ __all__ = [
     "load_stability_ref",
     "verify_run_stability",
     "get_stability_ref_path",
+    # Stability reader utility
+    "read_run_stability",
+    "read_stability_summary",
+    "stability_exists",
 ]
