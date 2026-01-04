@@ -476,6 +476,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "evolve.non_truncation.enforce",
+      "rune_id": "ϟ_EVOLVE_NON_TRUNCATION",
+      "operator_path": "abraxas.evolve.rune_adapter:enforce_non_truncation_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evolve_non_truncation_input.schema.json",
+      "output_schema": "schemas/capabilities/evolve_non_truncation_output.schema.json",
+      "provenance_required": false,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "evolve.ledger.append_chained_jsonl",
+      "rune_id": "ϟ_EVOLVE_APPEND_CHAINED_JSONL",
+      "operator_path": "abraxas.evolve.rune_adapter:append_chained_jsonl_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evolve_append_chained_jsonl_input.schema.json",
+      "output_schema": "schemas/capabilities/evolve_append_chained_jsonl_output.schema.json",
+      "provenance_required": false,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
     }
   ],
   "provenance": {

@@ -6,10 +6,10 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
 from abraxas.memetic.dmx import compute_dmx
 from abraxas.memetic.extract import build_mimetic_weather, extract_terms, read_oracle_texts
-from abraxas.evolve.ledger import append_chained_jsonl
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -58,10 +58,12 @@ def main() -> int:
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths)},
     }
-    a2 = enforce_non_truncation(
-        artifact=a2,
-        raw_full={"terms": [t.to_dict() for t in terms]},
-    )
+    a2 = invoke_capability(
+        "evolve.non_truncation.enforce",
+        {"artifact": a2, "raw_full": {"terms": [t.to_dict() for t in terms]}},
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.mwr"),
+        strict_execution=True,
+    )["artifact"]
     a2["views"] = {"top_terms": [t.to_dict() for t in terms[:25]]}
     a2_json = os.path.join(args.out_dir, f"a2_{args.run_id}.json")
     a2_md = os.path.join(args.out_dir, f"a2_{args.run_id}.md")
@@ -86,10 +88,12 @@ def main() -> int:
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths), "a2_terms": a2_json},
     }
-    mwr = enforce_non_truncation(
-        artifact=mwr,
-        raw_full={"units": [u.to_dict() for u in units]},
-    )
+    mwr = invoke_capability(
+        "evolve.non_truncation.enforce",
+        {"artifact": mwr, "raw_full": {"units": [u.to_dict() for u in units]}},
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.mwr"),
+        strict_execution=True,
+    )["artifact"]
     mwr["views"] = {
         "top_units": [u.to_dict() for u in units[:8]],
     }
@@ -109,14 +113,19 @@ def main() -> int:
             if unit.supporting_terms:
                 f.write(f"  - terms: {', '.join(unit.supporting_terms[:12])}\n")
 
-    append_chained_jsonl(
-        args.value_ledger,
+    invoke_capability(
+        "evolve.ledger.append_chained_jsonl",
         {
-            "run_id": args.run_id,
-            "mwr_json": mwr_json,
-            "a2_json": a2_json,
-            "oracle_paths": list(args.oracle_paths),
+            "ledger_path": args.value_ledger,
+            "record": {
+                "run_id": args.run_id,
+                "mwr_json": mwr_json,
+                "a2_json": a2_json,
+                "oracle_paths": list(args.oracle_paths),
+            },
         },
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.mwr"),
+        strict_execution=True,
     )
     print(f"[A2] wrote: {a2_json}")
     print(f"[A2] wrote: {a2_md}")

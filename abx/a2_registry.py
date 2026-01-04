@@ -4,8 +4,9 @@ import argparse
 import json
 import os
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
 from abraxas.memetic.registry import append_a2_terms_to_registry, compute_missed_terms
+from abx.runes_ctx import build_rune_ctx
 
 
 def _write_json(path: str, obj: object) -> None:
@@ -40,18 +41,23 @@ def main() -> int:
             registry_path=args.registry,
             resurrect_after_days=int(args.resurrect_after_days),
         )
-        rep = enforce_non_truncation(
-            artifact=rep,
-            raw_full={
-                "missed": list(rep.get("missed") or []),
-                "resurrected": list(rep.get("resurrected") or []),
+        run_id = str(args.run_id or rep.get("run_id") or "unknown")
+        rep = invoke_capability(
+            "evolve.non_truncation.enforce",
+            {
+                "artifact": rep,
+                "raw_full": {
+                    "missed": list(rep.get("missed") or []),
+                    "resurrected": list(rep.get("resurrected") or []),
+                },
             },
-        )
+            ctx=build_rune_ctx(run_id=run_id, subsystem_id="abx.a2_registry"),
+            strict_execution=True,
+        )["artifact"]
         rep["views"] = {
             "missed_top": list((rep.get("missed") or [])[:40]),
             "resurrected_top": list((rep.get("resurrected") or [])[:40]),
         }
-        run_id = args.run_id or rep.get("run_id") or "unknown"
         jpath = os.path.join(args.out_reports, f"a2_missed_{run_id}.json")
         mpath = os.path.join(args.out_reports, f"a2_missed_{run_id}.md")
         _write_json(jpath, rep)

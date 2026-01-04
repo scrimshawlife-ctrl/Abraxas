@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 
 from abraxas.evolve.canon_diff import build_canon_diff
-from abraxas.evolve.ledger import append_chained_jsonl
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def main() -> int:
@@ -33,9 +34,11 @@ def main() -> int:
         rim_manifest_path=args.rim,
         canon_snapshot_path=args.canon_snapshot,
     )
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "canon_diff_json": json_path, "meta": meta},
+    invoke_capability(
+        "evolve.ledger.append_chained_jsonl",
+        {"ledger_path": args.value_ledger, "record": {"run_id": args.run_id, "canon_diff_json": json_path, "meta": meta}},
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.canon_diff"),
+        strict_execution=True,
     )
     print(f"[CANON_DIFF] wrote: {json_path}")
     print(f"[CANON_DIFF] wrote: {md_path}")

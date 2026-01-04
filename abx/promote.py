@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 
-from abraxas.evolve.ledger import append_chained_jsonl
 from abraxas.evolve.promotion_builder import build_promotion_packet
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def main() -> int:
@@ -35,9 +36,11 @@ def main() -> int:
         emit_canon_snapshot=bool(args.emit_canon_snapshot),
         force=bool(args.force),
     )
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "promotion_json": json_path, "meta": meta},
+    invoke_capability(
+        "evolve.ledger.append_chained_jsonl",
+        {"ledger_path": args.value_ledger, "record": {"run_id": args.run_id, "promotion_json": json_path, "meta": meta}},
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.promote"),
+        strict_execution=True,
     )
     print(f"[PROMOTE] wrote: {json_path}")
     print(f"[PROMOTE] wrote: {md_path}")
