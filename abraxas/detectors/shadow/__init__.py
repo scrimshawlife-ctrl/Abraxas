@@ -17,25 +17,54 @@ from abraxas.detectors.shadow.types import (
     ShadowDetectorResult,
     ShadowEvidence,
     DetectorStatus,
+    ShadowResult,
+    ShadowStatus,
 )
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
-from abraxas.detectors.shadow.registry import compute_all_detectors, aggregate_evidence, DETECTOR_REGISTRY
+from abraxas.detectors.shadow.registry import compute_all_detectors, aggregate_evidence, get_shadow_tasks, DETECTOR_REGISTRY
 from abraxas.detectors.shadow.lane_guard import LaneGuard, LaneViolationError
+from abraxas.detectors.shadow.normalize import (
+    normalize_shadow_output,
+    wrap_shadow_task,
+)
+from abraxas.detectors.shadow.util import (
+    ok,
+    not_computable,
+    err,
+)
 
-__version__ = "0.1.0"
+# Backward compatibility alias
+error = err
+
+__version__ = "0.1.1"
 
 __all__ = [
+    # Types
     "ShadowDetectorResult",
     "ShadowEvidence",
     "DetectorStatus",
+    "ShadowResult",
+    "ShadowStatus",
+    # Detectors
     "ComplianceRemixDetector",
     "MetaAwarenessDetector",
     "NegativeSpaceDetector",
+    # Registry
     "compute_all_detectors",
     "aggregate_evidence",
+    "get_shadow_tasks",
     "DETECTOR_REGISTRY",
+    # Lane guard
     "LaneGuard",
     "LaneViolationError",
+    # Normalize
+    "normalize_shadow_output",
+    "wrap_shadow_task",
+    # Util helpers
+    "ok",
+    "not_computable",
+    "err",
+    "error",  # backward compat alias for err
 ]

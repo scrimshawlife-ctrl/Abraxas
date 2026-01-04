@@ -18,6 +18,11 @@ from abraxas.ers import Budget, DeterministicScheduler
 from abraxas.ers.bindings import bind_callable
 from abraxas.viz import ers_trace_to_trendpack
 from abraxas.runtime.artifacts import ArtifactWriter
+from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
+from abraxas.runtime.results_pack import build_results_pack, make_result_ref
+from abraxas.runtime.view_pack import build_view_pack
+from abraxas.runtime.policy_ref import policy_ref_for_retention
+from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
 def abraxas_tick(
@@ -27,11 +32,13 @@ def abraxas_tick(
     mode: str,
     context: Dict[str, Any],
     artifacts_dir: str,
-    # These are your *existing* pipeline steps; pass the real functions from your engine.
-    run_signal: Callable[[Dict[str, Any]], Any],
-    run_compress: Callable[[Dict[str, Any]], Any],
-    run_overlay: Callable[[Dict[str, Any]], Any],
-    # Optional shadow steps
+    # Native bindings: resolved from repo when None
+    bindings: Optional[PipelineBindings] = None,
+    # Legacy parameters: kept for backward compatibility with tests
+    # If provided, these override the bindings (test mode)
+    run_signal: Optional[Callable[[Dict[str, Any]], Any]] = None,
+    run_compress: Optional[Callable[[Dict[str, Any]], Any]] = None,
+    run_overlay: Optional[Callable[[Dict[str, Any]], Any]] = None,
     run_shadow_tasks: Optional[Dict[str, Callable[[Dict[str, Any]], Any]]] = None,
 ) -> Dict[str, Any]:
     """
@@ -46,20 +53,72 @@ def abraxas_tick(
     - What executed (ERS trace)
     - What the run identity is (run_id/tick/mode)
     - Where artifacts live (artifacts_dir)
+
+    Args:
+        tick: Current tick number
+        run_id: Run identifier for provenance
+        mode: Execution mode (e.g., "live", "test", "backtest")
+        context: Shared context dict passed to all pipeline functions
+        artifacts_dir: Directory for artifact emission
+        bindings: Optional PipelineBindings (resolved from repo if None)
+        run_signal: Legacy param - override signal function (for tests)
+        run_compress: Legacy param - override compress function (for tests)
+        run_overlay: Legacy param - override overlay function (for tests)
+        run_shadow_tasks: Legacy param - override shadow tasks (for tests)
+
+    Returns:
+        Dict with tick results, remaining budgets, and artifact references
     """
+
+    # Resolve pipeline functions
+    # Priority: explicit legacy params > bindings > auto-resolve
+    if run_signal is not None and run_compress is not None and run_overlay is not None:
+        # Legacy mode: all three explicit params provided (backward compat)
+        actual_signal = run_signal
+        actual_compress = run_compress
+        actual_overlay = run_overlay
+        actual_shadow = run_shadow_tasks or {}
+        bindings_provenance = {
+            "bindings": "legacy_explicit",
+            "oracle": {
+                "signal": "explicit",
+                "compress": "explicit",
+                "overlay": "explicit",
+            },
+            "shadow": {
+                "provider": "explicit" if run_shadow_tasks else None,
+                "task_count": len(run_shadow_tasks) if run_shadow_tasks else 0,
+            },
+        }
+    elif bindings is not None:
+        # Bindings explicitly provided
+        actual_signal = bindings.run_signal
+        actual_compress = bindings.run_compress
+        actual_overlay = bindings.run_overlay
+        actual_shadow = bindings.shadow_tasks
+        bindings_provenance = bindings.provenance
+    else:
+        # Auto-resolve from repo (native mode)
+        resolved = resolve_pipeline_bindings()
+        actual_signal = resolved.run_signal
+        actual_compress = resolved.run_compress
+        actual_overlay = resolved.run_overlay
+        actual_shadow = resolved.shadow_tasks
+        bindings_provenance = resolved.provenance
 
     s = DeterministicScheduler()
 
     # Forecast lane (primary)
-    s.add(bind_callable(name="oracle:signal",   lane="forecast", priority=0, cost_ops=10, fn=run_signal))
-    s.add(bind_callable(name="oracle:compress", lane="forecast", priority=1, cost_ops=10, fn=run_compress))
-    s.add(bind_callable(name="oracle:overlay",  lane="forecast", priority=2, cost_ops=10, fn=run_overlay))
+    s.add(bind_callable(name="oracle:signal",   lane="forecast", priority=0, cost_ops=10, fn=actual_signal))
+    s.add(bind_callable(name="oracle:compress", lane="forecast", priority=1, cost_ops=10, fn=actual_compress))
+    s.add(bind_callable(name="oracle:overlay",  lane="forecast", priority=2, cost_ops=10, fn=actual_overlay))
 
     # Shadow lane (observation-only)
-    if run_shadow_tasks:
-        # stable ordering by name via scheduler keying
-        for name, fn in sorted(run_shadow_tasks.items(), key=lambda kv: kv[0]):
-            s.add(bind_callable(name=f"shadow:{name}", lane="shadow", priority=0, cost_ops=2, fn=fn))
+    # Stable ordering by name via scheduler keying
+    # Wrap each shadow task to normalize outputs to canonical shape
+    for name, fn in sorted(actual_shadow.items(), key=lambda kv: kv[0]):
+        wrapped = wrap_shadow_task(name, fn)
+        s.add(bind_callable(name=f"shadow:{name}", lane="shadow", priority=0, cost_ops=2, fn=wrapped))
 
     out = s.run_tick(
         tick=tick,
@@ -71,6 +130,36 @@ def abraxas_tick(
     # === STRICTLY HERE: Abraxas artifact emission ===
     aw = ArtifactWriter(artifacts_dir)
 
+    # Capture PolicyRef.v0 at emission time for provenance continuity
+    pol_ref = policy_ref_for_retention(artifacts_dir)
+
+    # 1) Write ResultsPack first (so TrendPack can point at it)
+    results_pack = build_results_pack(
+        run_id=run_id,
+        tick=out["tick"],
+        results=out["results"],
+        provenance={"engine": "abraxas", "mode": mode, "ers": "v0.2", "policy_ref": pol_ref},
+    )
+
+    results_pack_rec = aw.write_json(
+        run_id=run_id,
+        tick=tick,
+        kind="results_pack",
+        schema="ResultsPack.v0",
+        obj=results_pack,
+        rel_path=f"results/{run_id}/{tick:06d}.resultspack.json",
+        extra={"mode": mode, "policy_ref": pol_ref},
+    )
+
+    # 2) Build deterministic result_ref map for TrendPack events
+    result_ref_by_task = {}
+    for e in out["trace"]:
+        result_ref_by_task[e.task] = make_result_ref(
+            results_pack_path=results_pack_rec.path,
+            task_name=e.task,
+        )
+
+    # 3) Build TrendPack with result refs injected
     trendpack = ers_trace_to_trendpack(
         trace=out["trace"],
         run_id=run_id,
@@ -79,7 +168,10 @@ def abraxas_tick(
             "engine": "abraxas",
             "mode": mode,
             "ers": "v0.2",
+            "pipeline_bindings": bindings_provenance,
+            "policy_ref": pol_ref,
         },
+        result_ref_by_task=result_ref_by_task,
     )
 
     trendpack_rec = aw.write_json(
@@ -89,18 +181,24 @@ def abraxas_tick(
         schema="TrendPack.v0",
         obj=trendpack,
         rel_path=f"viz/{run_id}/{tick:06d}.trendpack.json",
-        extra={"mode": mode, "ers": "v0.2"},
+        extra={"mode": mode, "ers": "v0.2", "policy_ref": pol_ref},
     )
 
-    # Minimal RunIndex.v0 (Abraxas-side)
+    # 4) Minimal RunIndex.v0 (Abraxas-side) — now references both TrendPack + ResultsPack
     runindex = {
         "schema": "RunIndex.v0",
         "run_id": run_id,
         "tick": int(tick),
-        "refs": {"trendpack": trendpack_rec.path},
-        "hashes": {"trendpack_sha256": trendpack_rec.sha256},
+        "refs": {
+            "trendpack": trendpack_rec.path,
+            "results_pack": results_pack_rec.path,
+        },
+        "hashes": {
+            "trendpack_sha256": trendpack_rec.sha256,
+            "results_pack_sha256": results_pack_rec.sha256,
+        },
         "tags": [],
-        "provenance": {"engine": "abraxas", "mode": mode},
+        "provenance": {"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
     }
 
     runindex_rec = aw.write_json(
@@ -110,7 +208,29 @@ def abraxas_tick(
         schema="RunIndex.v0",
         obj=runindex,
         rel_path=f"run_index/{run_id}/{tick:06d}.runindex.json",
-        extra={"mode": mode},
+        extra={"mode": mode, "policy_ref": pol_ref},
+    )
+
+    # 5) ViewPack: one-file overview artifact for UIs
+    # Keep it compact & high-signal by only resolving errors/skips
+    view_pack = build_view_pack(
+        trendpack_path=trendpack_rec.path,
+        run_id=run_id,
+        tick=tick,
+        mode=mode,
+        resolve_limit=50,
+        resolve_only_status=["error", "skipped_budget"],
+        provenance={"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
+    )
+
+    viewpack_rec = aw.write_json(
+        run_id=run_id,
+        tick=tick,
+        kind="viewpack",
+        schema="ViewPack.v0",
+        obj=view_pack,
+        rel_path=f"view/{run_id}/{tick:06d}.viewpack.json",
+        extra={"mode": mode, "policy_ref": pol_ref},
     )
 
     return {
@@ -125,8 +245,12 @@ def abraxas_tick(
         "artifacts": {
             "trendpack": trendpack_rec.path,
             "trendpack_sha256": trendpack_rec.sha256,
+            "results_pack": results_pack_rec.path,
+            "results_pack_sha256": results_pack_rec.sha256,
             "runindex": runindex_rec.path,
             "runindex_sha256": runindex_rec.sha256,
+            "viewpack": viewpack_rec.path,
+            "viewpack_sha256": viewpack_rec.sha256,
         },
     }
 

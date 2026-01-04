@@ -7,6 +7,8 @@ import unicodedata
 
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.lexicon.anagram_lexicon_v0 import DEFAULT_LEXICON_V0, AnagramLexiconV0
+from abraxas.detectors.shadow.util import ok, not_computable
+from abraxas.detectors.shadow.types import ShadowResult
 
 
 _ALNUM_RE = re.compile(r"[a-z0-9]+")
@@ -314,3 +316,56 @@ def detect_shadow_anagrams(
         payload["shadow_anagram_v1"]["evidence_refs"] = ev
 
     return payload
+
+
+def run_shadow_anagrams(ctx: Dict[str, Any]) -> ShadowResult:
+    """
+    Shadow Anagram Detector — context-based adapter using canonical helpers.
+
+    Wraps detect_shadow_anagrams() with ok() / not_computable() semantics.
+
+    Args:
+        ctx: Context dict with:
+            - tokens: List[str] (required) - tokens to analyze for anagrams
+            - context: Optional[Dict] - domain/subdomain context
+            - config: Optional[AnagramConfig] - detector configuration
+            - evidence_refs: Optional[List[str]] - evidence references
+
+    Returns:
+        ShadowResult with canonical status/value/missing/error structure
+    """
+    tokens = ctx.get("tokens")
+    if tokens is None:
+        return not_computable(["tokens"])
+
+    # Validate tokens is iterable of strings
+    if not hasattr(tokens, "__iter__"):
+        return not_computable(["tokens"], provenance={"reason": "tokens_not_iterable"})
+
+    # Convert to list and filter empty
+    tok_list = [str(t) for t in tokens if str(t).strip()]
+    if not tok_list:
+        return not_computable(["tokens"], provenance={"reason": "no_valid_tokens"})
+
+    # Extract optional parameters from context
+    inner_context = ctx.get("context")
+    config = ctx.get("config")
+    evidence_refs = ctx.get("evidence_refs")
+
+    # Call the core detector
+    payload = detect_shadow_anagrams(
+        tokens=tok_list,
+        context=inner_context,
+        config=config,
+        evidence_refs=evidence_refs,
+    )
+
+    # Extract provenance from payload for ShadowResult
+    inner = payload.get("shadow_anagram_v1", {})
+    provenance = {
+        "module": "shadow_anagram_v1",
+        "artifact_hash": inner.get("artifact_hash"),
+        "has_evidence": inner.get("provenance", {}).get("has_evidence", False),
+    }
+
+    return ok(payload, provenance=provenance)
