@@ -426,6 +426,138 @@ class TestViewPackInvarianceSummary:
             assert inv["runheader_sha256"] == result["artifacts"]["run_header_sha256"]
 
 
+class TestViewPackStabilitySummary:
+    """Test ViewPack stability_summary for run-level badge."""
+
+    def test_viewpack_without_stability_has_no_summary(self):
+        """Test that ViewPack without stability record has no summary."""
+
+        def run_signal(ctx):
+            return {"signal": "ok"}
+
+        def run_compress(ctx):
+            return {"compress": "ok"}
+
+        def run_overlay(ctx):
+            return {"overlay": "ok"}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = abraxas_tick(
+                tick=0,
+                run_id="vp-no-stab",
+                mode="test",
+                context={},
+                artifacts_dir=tmpdir,
+                run_signal=run_signal,
+                run_compress=run_compress,
+                run_overlay=run_overlay,
+            )
+
+            vp_path = Path(result["artifacts"]["viewpack"])
+            with open(vp_path) as f:
+                vp = json.load(f)
+
+            # No stability record exists, so no summary
+            assert "stability_summary" not in vp["aggregates"]
+
+    def test_viewpack_with_stability_has_summary(self):
+        """Test that ViewPack with stability record includes summary."""
+        from abraxas.runtime.run_stability import write_run_stability
+
+        def run_signal(ctx):
+            return {"signal": "ok"}
+
+        def run_compress(ctx):
+            return {"compress": "ok"}
+
+        def run_overlay(ctx):
+            return {"overlay": "ok"}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # First create a stability record
+            write_run_stability(
+                artifacts_dir=tmpdir,
+                run_id="vp-with-stab",
+                gate_result={
+                    "ok": True,
+                    "first_mismatch_run": None,
+                    "divergence": None,
+                },
+                note="test stability",
+            )
+
+            # Then run tick
+            result = abraxas_tick(
+                tick=0,
+                run_id="vp-with-stab",
+                mode="test",
+                context={},
+                artifacts_dir=tmpdir,
+                run_signal=run_signal,
+                run_compress=run_compress,
+                run_overlay=run_overlay,
+            )
+
+            vp_path = Path(result["artifacts"]["viewpack"])
+            with open(vp_path) as f:
+                vp = json.load(f)
+
+            # Stability summary should exist
+            assert "stability_summary" in vp["aggregates"]
+            ss = vp["aggregates"]["stability_summary"]
+            assert ss["schema"] == "StabilitySummary.v0"
+            assert ss["ok"] is True
+            assert ss["first_mismatch_run"] is None
+            assert ss["divergence_kind"] is None
+
+    def test_viewpack_stability_summary_shows_failure(self):
+        """Test that ViewPack stability summary shows failure info."""
+        from abraxas.runtime.run_stability import write_run_stability
+
+        def run_signal(ctx):
+            return {"signal": "ok"}
+
+        def run_compress(ctx):
+            return {"compress": "ok"}
+
+        def run_overlay(ctx):
+            return {"overlay": "ok"}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a failing stability record
+            write_run_stability(
+                artifacts_dir=tmpdir,
+                run_id="vp-fail-stab",
+                gate_result={
+                    "ok": False,
+                    "first_mismatch_run": 3,
+                    "divergence": {"kind": "trendpack_content_mismatch"},
+                },
+            )
+
+            # Then run tick
+            result = abraxas_tick(
+                tick=0,
+                run_id="vp-fail-stab",
+                mode="test",
+                context={},
+                artifacts_dir=tmpdir,
+                run_signal=run_signal,
+                run_compress=run_compress,
+                run_overlay=run_overlay,
+            )
+
+            vp_path = Path(result["artifacts"]["viewpack"])
+            with open(vp_path) as f:
+                vp = json.load(f)
+
+            # Stability summary should show failure
+            ss = vp["aggregates"]["stability_summary"]
+            assert ss["ok"] is False
+            assert ss["first_mismatch_run"] == 3
+            assert ss["divergence_kind"] == "trendpack_content_mismatch"
+
+
 class TestViewPackDeterminism:
     """Test that ViewPack is semantically deterministic."""
 

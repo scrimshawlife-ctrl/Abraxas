@@ -24,6 +24,7 @@ from abraxas.runtime.results_pack import build_results_pack, make_result_ref
 from abraxas.runtime.view_pack import build_view_pack
 from abraxas.runtime.policy_snapshot import ensure_policy_snapshot, policy_ref_from_snapshot
 from abraxas.runtime.run_header import ensure_run_header
+from abraxas.runtime.stability_read import read_stability_summary
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -240,6 +241,8 @@ def abraxas_tick(
     # 5) ViewPack: one-file overview artifact for UIs
     # Keep it compact & high-signal by only resolving errors/skips
     # Include invariance summary so UIs can show stable/unstable badge without extra loads
+    # Include stability summary if run-level stability record exists (for PASS/FAIL badge)
+    stability_summary = read_stability_summary(artifacts_dir, run_id)
     view_pack = build_view_pack(
         trendpack_path=trendpack_rec.path,
         run_id=run_id,
@@ -253,6 +256,7 @@ def abraxas_tick(
             "runheader_sha256": run_header_sha256,
             "passed": bool(trendpack_rec.sha256) and bool(run_header_sha256),
         },
+        stability_summary=stability_summary,
         provenance={"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
     )
 

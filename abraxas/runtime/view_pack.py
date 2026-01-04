@@ -63,6 +63,8 @@ def build_view_pack(
     resolve_only_status: Optional[List[str]] = None,
     # Invariance summary for UI badge (trendpack_sha256, runheader_sha256, passed)
     invariance: Optional[Dict[str, Any]] = None,
+    # Stability summary for run-level PASS/FAIL badge (if stability record exists)
+    stability_summary: Optional[Dict[str, Any]] = None,
     provenance: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
@@ -83,6 +85,9 @@ def build_view_pack(
         invariance: Optional invariance summary for UI badge display.
             Expected shape: {"schema": "InvarianceSummary.v0",
                            "trendpack_sha256": str, "runheader_sha256": str, "passed": bool}
+        stability_summary: Optional stability summary for run-level PASS/FAIL badge.
+            Expected shape: {"schema": "StabilitySummary.v0",
+                           "ok": bool, "first_mismatch_run": int|None, "divergence_kind": str|None}
         provenance: Optional provenance metadata
 
     Returns:
@@ -132,6 +137,10 @@ def build_view_pack(
     # Embed invariance summary if provided (for UI stable/unstable badge)
     if invariance is not None:
         aggregates["invariance"] = invariance
+
+    # Embed stability summary if provided (for run-level PASS/FAIL badge)
+    if stability_summary is not None:
+        aggregates["stability_summary"] = stability_summary
 
     # Store relative ref pattern instead of absolute path
     # Consumer can reconstruct: {artifacts_dir}/viz/{run_id}/{tick:06d}.trendpack.json
