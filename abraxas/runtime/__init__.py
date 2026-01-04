@@ -3,7 +3,7 @@ Abraxas Runtime — Tick Orchestration
 
 Canonical runtime layer that owns:
 - ERS scheduler execution
-- Artifact emission (TrendPack, ResultsPack, RunIndex)
+- Artifact emission (TrendPack, ResultsPack, ViewPack, RunIndex)
 - Structured tick output
 - Pipeline bindings resolution
 - Viz artifact resolution (event + result merging)
@@ -12,6 +12,7 @@ Canonical runtime layer that owns:
 from .tick import abraxas_tick
 from .pipeline_bindings import PipelineBindings, PipelineFn, resolve_pipeline_bindings
 from .results_pack import build_results_pack, make_result_ref
+from .view_pack import build_view_pack
 from .viz_resolve import (
     load_trendpack,
     load_resultspack,
@@ -31,6 +32,8 @@ __all__ = [
     # Results pack
     "build_results_pack",
     "make_result_ref",
+    # View pack
+    "build_view_pack",
     # Viz resolution
     "load_trendpack",
     "load_resultspack",

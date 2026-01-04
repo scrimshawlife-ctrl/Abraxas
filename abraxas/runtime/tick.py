@@ -20,6 +20,7 @@ from abraxas.viz import ers_trace_to_trendpack
 from abraxas.runtime.artifacts import ArtifactWriter
 from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
 from abraxas.runtime.results_pack import build_results_pack, make_result_ref
+from abraxas.runtime.view_pack import build_view_pack
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -205,6 +206,28 @@ def abraxas_tick(
         extra={"mode": mode},
     )
 
+    # 5) ViewPack: one-file overview artifact for UIs
+    # Keep it compact & high-signal by only resolving errors/skips
+    view_pack = build_view_pack(
+        trendpack_path=trendpack_rec.path,
+        run_id=run_id,
+        tick=tick,
+        mode=mode,
+        resolve_limit=50,
+        resolve_only_status=["error", "skipped_budget"],
+        provenance={"engine": "abraxas", "mode": mode},
+    )
+
+    viewpack_rec = aw.write_json(
+        run_id=run_id,
+        tick=tick,
+        kind="viewpack",
+        schema="ViewPack.v0",
+        obj=view_pack,
+        rel_path=f"view/{run_id}/{tick:06d}.viewpack.json",
+        extra={"mode": mode},
+    )
+
     return {
         "tick": out["tick"],
         "run_id": run_id,
@@ -221,6 +244,8 @@ def abraxas_tick(
             "results_pack_sha256": results_pack_rec.sha256,
             "runindex": runindex_rec.path,
             "runindex_sha256": runindex_rec.sha256,
+            "viewpack": viewpack_rec.path,
+            "viewpack_sha256": viewpack_rec.sha256,
         },
     }
 
