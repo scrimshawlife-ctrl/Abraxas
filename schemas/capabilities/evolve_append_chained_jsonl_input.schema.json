@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/evolve_append_chained_jsonl_input.json",
+  "title": "Evolve Ledger Append Chained JSONL Input",
+  "description": "Input schema for evolve.ledger.append_chained_jsonl capability",
+  "type": "object",
+  "required": ["ledger_path", "record"],
+  "properties": {
+    "ledger_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "JSONL ledger file path"
+    },
+    "record": {
+      "type": "object",
+      "description": "Record object to append (will be chained with prev_hash and step_hash)"
+    }
+  },
+  "additionalProperties": false
+}
+

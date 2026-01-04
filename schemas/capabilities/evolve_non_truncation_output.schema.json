@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/evolve_non_truncation_output.json",
+  "title": "Evolve Non-Truncation Enforce Output",
+  "description": "Output schema for evolve.non_truncation.enforce capability",
+  "type": "object",
+  "required": ["artifact"],
+  "properties": {
+    "artifact": {
+      "type": "object",
+      "description": "Annotated artifact with raw_full or raw_full_path set"
+    }
+  },
+  "additionalProperties": false
+}
+

@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/forecast_horizon_bucket_output.json",
+  "title": "Forecast Horizon Bucket Output",
+  "description": "Output schema for forecast.horizon_bins.horizon_bucket capability",
+  "type": "object",
+  "required": ["bucket"],
+  "properties": {
+    "bucket": { "type": "string" }
+  },
+  "additionalProperties": false
+}
+

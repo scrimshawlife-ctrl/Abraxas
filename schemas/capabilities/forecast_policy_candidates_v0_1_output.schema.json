@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/forecast_policy_candidates_v0_1_output.json",
+  "title": "Forecast Policy Candidates v0.1 Output",
+  "description": "Output schema for forecast.policy_candidates.v0_1 capability",
+  "type": "object",
+  "required": ["candidates"],
+  "properties": {
+    "candidates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["days", "weeks", "months", "years"],
+        "properties": {
+          "days": { "type": "number" },
+          "weeks": { "type": "number" },
+          "months": { "type": "number" },
+          "years": { "type": "number" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

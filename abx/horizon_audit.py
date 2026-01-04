@@ -6,8 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.horizon_bins import horizon_bucket
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -62,6 +62,31 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
+    ctx = build_rune_ctx(run_id=args.run_id, subsystem_id="abx.horizon_audit")
+    hb_cache: Dict[str, str] = {}
+
+    def _hbucket(h: Any) -> str:
+        key = str(h or "").strip().lower()
+        if key in hb_cache:
+            return hb_cache[key]
+        b = invoke_capability(
+            "forecast.horizon_bins.horizon_bucket",
+            {"horizon": h},
+            ctx=ctx,
+            strict_execution=True,
+        )["bucket"]
+        hb_cache[key] = b
+        return b
+
+    def _brier(pp: List[float], yy: List[int]) -> float:
+        return float(
+            invoke_capability(
+                "forecast.scoring.brier_score",
+                {"probs": list(pp), "outcomes": [int(x) for x in yy]},
+                ctx=ctx,
+                strict_execution=True,
+            )["brier"]
+        )
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
@@ -86,7 +111,7 @@ def main() -> int:
         result = str(out.get("result") or "")
         y = 1 if result == "hit" else 0
         p0 = float(pred.get("p") or 0.5)
-        horizon = horizon_bucket(pred.get("horizon"))
+        horizon = _hbucket(pred.get("horizon"))
         dmx_b = _dmx_bucket(pred)
 
         by_h.setdefault(horizon, ([], []))[0].append(p0)
@@ -101,14 +126,14 @@ def main() -> int:
         pair.setdefault(base, {})[role] = {"p": p0, "y": y, "h": horizon, "dmx": dmx_b}
 
     calibration = {
-        h: {"n": len(pp), "brier": brier_score(pp, yy), "sharpness": _sharpness(pp)}
+        h: {"n": len(pp), "brier": _brier(pp, yy), "sharpness": _sharpness(pp)}
         for h, (pp, yy) in by_h.items()
     }
 
     calibration_by_bucket: Dict[str, Any] = {}
     for bucket, hmap in by_h_dmx.items():
         calibration_by_bucket[bucket] = {
-            h: {"n": len(pp), "brier": brier_score(pp, yy), "sharpness": _sharpness(pp)}
+            h: {"n": len(pp), "brier": _brier(pp, yy), "sharpness": _sharpness(pp)}
             for h, (pp, yy) in hmap.items()
         }
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/forecast_brier_score_output.json",
+  "title": "Forecast Brier Score Output",
+  "description": "Output schema for forecast.scoring.brier_score capability",
+  "type": "object",
+  "required": ["brier"],
+  "properties": {
+    "brier": { "type": "number" }
+  },
+  "additionalProperties": false
+}
+

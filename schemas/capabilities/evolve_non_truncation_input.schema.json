@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/evolve_non_truncation_input.json",
+  "title": "Evolve Non-Truncation Enforce Input",
+  "description": "Input schema for evolve.non_truncation.enforce capability",
+  "type": "object",
+  "required": ["artifact", "raw_full"],
+  "properties": {
+    "artifact": {
+      "type": "object",
+      "description": "Artifact object to annotate with non-truncation policy fields"
+    },
+    "raw_full": {
+      "description": "Full raw output to preserve (embedded unless raw_full_path is provided)"
+    },
+    "raw_full_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to write raw_full and store reference instead"
+    }
+  },
+  "additionalProperties": false
+}
+

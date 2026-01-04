@@ -6,11 +6,12 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
 from abraxas.forecast.gating_policy import decide_gate
 from abraxas.forecast.scoring import ExpectedErrorBand, brier_score, expected_error_band
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
 from abraxas.memetic.dmx_context import load_dmx_context
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -166,10 +167,12 @@ def main() -> int:
         "views": {"annotated_top_30": annotated[:30]},
         "provenance": {"builder": "abx.forecast_score.v0.1"},
     }
-    out = enforce_non_truncation(
-        artifact=out_core,
-        raw_full={"annotated": list(annotated)},
-    )
+    out = invoke_capability(
+        "evolve.non_truncation.enforce",
+        {"artifact": out_core, "raw_full": {"annotated": list(annotated)}},
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.forecast_score"),
+        strict_execution=True,
+    )["artifact"]
 
     jpath = os.path.join(args.out_reports, f"forecast_score_{args.run_id}.json")
     mpath = os.path.join(args.out_reports, f"forecast_score_{args.run_id}.md")

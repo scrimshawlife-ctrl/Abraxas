@@ -6,15 +6,15 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
 from abraxas.evidence.lift import load_bundles_from_index, term_lift, uplift_factors
 from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
-from abraxas.evolve.ledger import append_chained_jsonl
 from abraxas.conspiracy.csp import compute_term_csp
 from abraxas.forecast.term_classify import classify_term
 from abx.truth_pollution import compute_tpi_for_run
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -338,10 +338,12 @@ def main() -> int:
     }
     out["views"]["top_by_phase"] = top_by_phase
 
-    out = enforce_non_truncation(
-        artifact=out,
-        raw_full={"profiles": profiles_full_dicts},
-    )
+    out = invoke_capability(
+        "evolve.non_truncation.enforce",
+        {"artifact": out, "raw_full": {"profiles": profiles_full_dicts}},
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.a2_phase"),
+        strict_execution=True,
+    )["artifact"]
     jpath = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     mpath = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.md")
     _write_json(jpath, out)
@@ -373,9 +375,14 @@ def main() -> int:
                 )
             f.write("\n")
 
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry},
+    invoke_capability(
+        "evolve.ledger.append_chained_jsonl",
+        {
+            "ledger_path": args.value_ledger,
+            "record": {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry},
+        },
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.a2_phase"),
+        strict_execution=True,
     )
     print(f"[A2_PHASE] wrote: {jpath}")
     print(f"[A2_PHASE] wrote: {mpath}")

@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
 from abraxas.memetic.claim_cluster import cluster_claims
 from abraxas.memetic.claim_extract import extract_claim_items_from_sources
 from abraxas.memetic.claims_sources import load_sources_from_osh
@@ -14,6 +14,7 @@ from abraxas.memetic.term_assign import build_term_token_index, assign_claim_to_
 from abraxas.evidence.index import evidence_by_term
 from abraxas.evidence.support import support_weight_for_claim
 from abraxas.conspiracy.csp import compute_claim_csp
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -220,16 +221,21 @@ def main() -> int:
         },
     }
 
-    out = enforce_non_truncation(
-        artifact=core,
-        raw_full={
-            "sources": sources,
-            "signals": sig,
-            "items": items,
-            "term_bins": term_bins,
-            "term_clusters": term_clusters,
+    out = invoke_capability(
+        "evolve.non_truncation.enforce",
+        {
+            "artifact": core,
+            "raw_full": {
+                "sources": sources,
+                "signals": sig,
+                "items": items,
+                "term_bins": term_bins,
+                "term_clusters": term_clusters,
+            },
         },
-    )
+        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.term_claims_run"),
+        strict_execution=True,
+    )["artifact"]
     path = os.path.join(args.out_reports, f"term_claims_{args.run_id}.json")
     _write_json(path, out)
     print(f"[TERM_CLAIMS_RUN] wrote: {path}")

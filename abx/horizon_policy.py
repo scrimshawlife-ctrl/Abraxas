@@ -6,8 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.horizon_bins import horizon_bucket
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -69,6 +69,32 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
+    ctx = build_rune_ctx(run_id=args.run_id, subsystem_id="abx.horizon_policy")
+    hb_cache: Dict[str, str] = {}
+
+    def _hbucket(h: Any) -> str:
+        key = str(h or "").strip().lower()
+        if key in hb_cache:
+            return hb_cache[key]
+        b = invoke_capability(
+            "forecast.horizon_bins.horizon_bucket",
+            {"horizon": h},
+            ctx=ctx,
+            strict_execution=True,
+        )["bucket"]
+        hb_cache[key] = b
+        return b
+
+    def _brier(pp: List[float], yy: List[int]) -> float:
+        return float(
+            invoke_capability(
+                "forecast.scoring.brier_score",
+                {"probs": list(pp), "outcomes": list(yy)},
+                ctx=ctx,
+                strict_execution=True,
+            )["brier"]
+        )
+
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
@@ -89,7 +115,7 @@ def main() -> int:
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": horizon_bucket(pr.get("horizon")),
+                "h": _hbucket(pr.get("horizon")),
                 "dmx": _dmx_bucket(pr),
             }
         )
@@ -108,7 +134,7 @@ def main() -> int:
     for b, hmap in by.items():
         roll[b] = {}
         for h, (pp, yy) in hmap.items():
-            roll[b][h] = {"n": len(pp), "brier": brier_score(pp, yy)}
+            roll[b][h] = {"n": len(pp), "brier": _brier(pp, yy)}
 
     thresholds = {
         "days": float(args.brier_days),

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/forecast_load_term_class_map_output.json",
+  "title": "Forecast Load Term Class Map Output",
+  "description": "Output schema for forecast.term_class_map.load capability",
+  "type": "object",
+  "required": ["term_class_map"],
+  "properties": {
+    "term_class_map": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
+

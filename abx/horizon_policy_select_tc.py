@@ -6,10 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.horizon_bins import horizon_bucket
-from abraxas.forecast.policy_candidates import candidates_v0_1
-from abraxas.forecast.scoring import brier_score
-from abraxas.forecast.term_class_map import load_term_class_map
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -53,7 +51,9 @@ def _term_key(pr: Dict[str, Any]) -> str:
     return ""
 
 
-def _rolling_stats(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, Dict[str, Any]]]]:
+def _rolling_stats(
+    rows: List[Dict[str, Any]], *, brier_fn
+) -> Dict[str, Dict[str, Dict[str, Dict[str, Any]]]]:
     """
     bucket -> class -> horizon -> {n,brier}
     """
@@ -72,7 +72,7 @@ def _rolling_stats(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, 
         for c, hmap in cmap.items():
             out[b][c] = {}
             for h, d in hmap.items():
-                out[b][c][h] = {"n": len(d["p"]), "brier": brier_score(d["p"], d["y"])}
+                out[b][c][h] = {"n": len(d["p"]), "brier": float(brier_fn(d["p"], d["y"]))}
     return out
 
 
@@ -90,12 +90,42 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
+    ctx = build_rune_ctx(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc")
+    hb_cache: Dict[str, str] = {}
+
+    def _hbucket(h: Any) -> str:
+        key = str(h or "").strip().lower()
+        if key in hb_cache:
+            return hb_cache[key]
+        b = invoke_capability(
+            "forecast.horizon_bins.horizon_bucket",
+            {"horizon": h},
+            ctx=ctx,
+            strict_execution=True,
+        )["bucket"]
+        hb_cache[key] = b
+        return b
+
+    def _brier(pp: List[float], yy: List[int]) -> float:
+        return float(
+            invoke_capability(
+                "forecast.scoring.brier_score",
+                {"probs": list(pp), "outcomes": [int(x) for x in yy]},
+                ctx=ctx,
+                strict_execution=True,
+            )["brier"]
+        )
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
 
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
-    term_class = load_term_class_map(a2_path)
+    term_class = invoke_capability(
+        "forecast.term_class_map.load",
+        {"a2_phase_path": a2_path},
+        ctx=ctx,
+        strict_execution=True,
+    )["term_class_map"]
 
     resolved: List[Dict[str, Any]] = []
     for pr in preds:
@@ -115,16 +145,21 @@ def main() -> int:
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": horizon_bucket(pr.get("horizon")),
+                "h": _hbucket(pr.get("horizon")),
                 "dmx": _dmx_bucket(pr),
                 "class": cls,
             }
         )
 
     window = resolved[-int(args.window_resolved) :] if resolved else []
-    roll = _rolling_stats(window)
+    roll = _rolling_stats(window, brier_fn=_brier)
 
-    cand = candidates_v0_1()
+    cand = invoke_capability(
+        "forecast.policy_candidates.v0_1",
+        {},
+        ctx=ctx,
+        strict_execution=True,
+    )["candidates"]
     buckets = ("LOW", "MED", "HIGH", "UNKNOWN")
     classes = ("stable", "emerging", "volatile", "contested", "unknown")
 
