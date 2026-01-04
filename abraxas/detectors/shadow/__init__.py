@@ -28,10 +28,15 @@ from abraxas.detectors.shadow.lane_guard import LaneGuard, LaneViolationError
 from abraxas.detectors.shadow.normalize import (
     normalize_shadow_output,
     wrap_shadow_task,
-    not_computable,
-    ok,
-    error,
 )
+from abraxas.detectors.shadow.util import (
+    ok,
+    not_computable,
+    err,
+)
+
+# Backward compatibility alias
+error = err
 
 __version__ = "0.1.1"
 
@@ -54,10 +59,12 @@ __all__ = [
     # Lane guard
     "LaneGuard",
     "LaneViolationError",
-    # Normalize helpers
+    # Normalize
     "normalize_shadow_output",
     "wrap_shadow_task",
-    "not_computable",
+    # Util helpers
     "ok",
-    "error",
+    "not_computable",
+    "err",
+    "error",  # backward compat alias for err
 ]

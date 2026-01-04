@@ -112,80 +112,11 @@ def wrap_shadow_task(
     return _wrapped
 
 
-# === Helper functions for detectors ===
+# Re-export helpers from util.py for backward compatibility
+from abraxas.detectors.shadow.util import ok, not_computable, err
 
-
-def not_computable(missing: List[str], provenance: Optional[Dict[str, Any]] = None) -> ShadowResult:
-    """
-    Create a not_computable ShadowResult.
-
-    Use this in detectors when required inputs are missing:
-
-        if "text" not in ctx:
-            return not_computable(["text"])
-
-    Args:
-        missing: List of missing input keys
-        provenance: Optional provenance metadata
-
-    Returns:
-        ShadowResult with status="not_computable"
-    """
-    return ShadowResult(
-        status="not_computable",
-        value=None,
-        missing=missing,
-        error=None,
-        provenance=provenance or {},
-    )
-
-
-def ok(value: Any, provenance: Optional[Dict[str, Any]] = None) -> ShadowResult:
-    """
-    Create an ok ShadowResult.
-
-    Use this in detectors for successful computation:
-
-        return ok({"score": 0.75, "confidence": 0.9})
-
-    Args:
-        value: Result payload
-        provenance: Optional provenance metadata
-
-    Returns:
-        ShadowResult with status="ok"
-    """
-    return ShadowResult(
-        status="ok",
-        value=value,
-        missing=[],
-        error=None,
-        provenance=provenance or {},
-    )
-
-
-def error(message: str, provenance: Optional[Dict[str, Any]] = None) -> ShadowResult:
-    """
-    Create an error ShadowResult.
-
-    Use this in detectors when computation fails:
-
-        return error("Division by zero in metric calculation")
-
-    Args:
-        message: Error message
-        provenance: Optional provenance metadata
-
-    Returns:
-        ShadowResult with status="error"
-    """
-    return ShadowResult(
-        status="error",
-        value=None,
-        missing=[],
-        error=message,
-        provenance=provenance or {},
-    )
+# Alias for backward compatibility with previous normalize.py API
+error = err
 
 
 __all__ = [
@@ -194,4 +125,5 @@ __all__ = [
     "not_computable",
     "ok",
     "error",
+    "err",
 ]
