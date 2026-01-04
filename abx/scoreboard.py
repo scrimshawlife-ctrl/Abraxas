@@ -6,7 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -60,6 +61,7 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
+    ctx = build_rune_ctx(run_id=args.run_id, subsystem_id="abx.scoreboard")
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
@@ -98,7 +100,20 @@ def main() -> int:
 
     calibration = []
     for horizon, (pp, yy) in sorted(by_horizon.items(), key=lambda kv: kv[0]):
-        calibration.append((horizon, len(pp), brier_score(pp, yy)))
+        calibration.append(
+            (
+                horizon,
+                len(pp),
+                float(
+                    invoke_capability(
+                        "forecast.scoring.brier_score",
+                        {"probs": list(pp), "outcomes": list(yy)},
+                        ctx=ctx,
+                        strict_execution=True,
+                    )["brier"]
+                ),
+            )
+        )
 
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
     mwr = _read_json(mwr_path)

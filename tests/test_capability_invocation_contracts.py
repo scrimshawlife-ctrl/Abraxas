@@ -39,3 +39,32 @@ def test_invoke_capability_contract_appends_chained_jsonl(tmp_path) -> None:
     assert out2["prev_hash"] == out1["step_hash"]
     assert out2["step_hash"] != out1["step_hash"]
 
+
+def test_invoke_capability_contract_forecast_helpers() -> None:
+    ctx = {"run_id": "TEST_RUN", "subsystem_id": "tests", "git_hash": "deadbeef"}
+
+    hb = invoke_capability(
+        "forecast.horizon_bins.horizon_bucket",
+        {"horizon": "Weeks"},
+        ctx=ctx,
+        strict_execution=True,
+    )
+    assert hb["bucket"] == "weeks"
+
+    br = invoke_capability(
+        "forecast.scoring.brier_score",
+        {"probs": [0.0, 1.0], "outcomes": [0, 1]},
+        ctx=ctx,
+        strict_execution=True,
+    )
+    assert float(br["brier"]) == 0.0
+
+    cand = invoke_capability(
+        "forecast.policy_candidates.v0_1",
+        {},
+        ctx=ctx,
+        strict_execution=True,
+    )["candidates"]
+    assert "balanced" in cand
+
+

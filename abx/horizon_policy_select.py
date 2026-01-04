@@ -6,9 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.horizon_bins import horizon_bucket
-from abraxas.forecast.policy_candidates import candidates_v0_1
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.invoke import invoke_capability
+from abx.runes_ctx import build_rune_ctx
 
 
 def _utc_now_iso() -> str:
@@ -57,7 +56,9 @@ def _choose_max_horizon(allowed: Dict[str, bool]) -> str:
     return best
 
 
-def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, Any]]]:
+def _rolling_stats(
+    window: List[Dict[str, Any]], *, brier_fn
+) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
     bucket -> horizon -> {n,brier}
     """
@@ -72,7 +73,7 @@ def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str
     for b, hmap in tmp.items():
         by[b] = {}
         for h, d in hmap.items():
-            by[b][h] = {"n": len(d["p"]), "brier": brier_score(d["p"], d["y"])}
+            by[b][h] = {"n": len(d["p"]), "brier": float(brier_fn(d["p"], d["y"]))}
     return by
 
 
@@ -87,6 +88,31 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
+    ctx = build_rune_ctx(run_id=args.run_id, subsystem_id="abx.horizon_policy_select")
+    hb_cache: Dict[str, str] = {}
+
+    def _hbucket(h: Any) -> str:
+        key = str(h or "").strip().lower()
+        if key in hb_cache:
+            return hb_cache[key]
+        b = invoke_capability(
+            "forecast.horizon_bins.horizon_bucket",
+            {"horizon": h},
+            ctx=ctx,
+            strict_execution=True,
+        )["bucket"]
+        hb_cache[key] = b
+        return b
+
+    def _brier(pp: List[float], yy: List[int]) -> float:
+        return float(
+            invoke_capability(
+                "forecast.scoring.brier_score",
+                {"probs": list(pp), "outcomes": [int(x) for x in yy]},
+                ctx=ctx,
+                strict_execution=True,
+            )["brier"]
+        )
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
@@ -107,7 +133,7 @@ def main() -> int:
             "pred_id": pid,
             "p": float(pr.get("p") or 0.5),
             "y": y,
-            "h": horizon_bucket(pr.get("horizon")),
+            "h": _hbucket(pr.get("horizon")),
             "dmx": _dmx_bucket(pr),
         }
         resolved_rows.append(row)
@@ -116,7 +142,7 @@ def main() -> int:
         pair.setdefault(base, {})[role] = row
 
     window = resolved_rows[-int(args.window_resolved) :] if resolved_rows else []
-    roll = _rolling_stats(window)
+    roll = _rolling_stats(window, brier_fn=_brier)
 
     shadow_rate: Dict[str, float] = {}
     shadow_counts: Dict[str, List[int]] = {}
@@ -132,7 +158,12 @@ def main() -> int:
     for bucket, (n, sb) in shadow_counts.items():
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
-    cand = candidates_v0_1()
+    cand = invoke_capability(
+        "forecast.policy_candidates.v0_1",
+        {},
+        ctx=ctx,
+        strict_execution=True,
+    )["candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 
     def eval_candidate(bucket: str, thr: Dict[str, float]) -> Dict[str, Any]:

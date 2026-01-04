@@ -498,6 +498,50 @@
       "provenance_required": false,
       "deterministic": true,
       "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "forecast.scoring.brier_score",
+      "rune_id": "ϟ_FORECAST_BRIER",
+      "operator_path": "abraxas.forecast.rune_adapter:brier_score_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/forecast_brier_score_input.schema.json",
+      "output_schema": "schemas/capabilities/forecast_brier_score_output.schema.json",
+      "provenance_required": false,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "forecast.horizon_bins.horizon_bucket",
+      "rune_id": "ϟ_FORECAST_HORIZON_BUCKET",
+      "operator_path": "abraxas.forecast.rune_adapter:horizon_bucket_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/forecast_horizon_bucket_input.schema.json",
+      "output_schema": "schemas/capabilities/forecast_horizon_bucket_output.schema.json",
+      "provenance_required": false,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "forecast.policy_candidates.v0_1",
+      "rune_id": "ϟ_FORECAST_POLICY_CANDIDATES_V0_1",
+      "operator_path": "abraxas.forecast.rune_adapter:policy_candidates_v0_1_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/forecast_policy_candidates_v0_1_input.schema.json",
+      "output_schema": "schemas/capabilities/forecast_policy_candidates_v0_1_output.schema.json",
+      "provenance_required": false,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "forecast.term_class_map.load",
+      "rune_id": "ϟ_FORECAST_TERM_CLASS_MAP_LOAD",
+      "operator_path": "abraxas.forecast.rune_adapter:load_term_class_map_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/forecast_load_term_class_map_input.schema.json",
+      "output_schema": "schemas/capabilities/forecast_load_term_class_map_output.schema.json",
+      "provenance_required": false,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
     }
   ],
   "provenance": {

@@ -26,7 +26,7 @@ ALLOWED_PREFIXES: tuple[str, ...] = (
 )
 
 # Update this value downward as violations are removed.
-MAX_VIOLATIONS = 68
+MAX_VIOLATIONS = 55
 
 
 _FROM_ABRAXAS_RE = re.compile(r"^\s*from\s+abraxas\.")

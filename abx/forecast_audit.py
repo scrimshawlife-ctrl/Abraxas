@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
 from abraxas.runes.invoke import invoke_capability
-from abraxas.forecast.scoring import brier_score
 from abx.runes_ctx import build_rune_ctx
 
 
@@ -97,14 +96,31 @@ def main() -> int:
 
     calibration = {}
     for horizon, (probs, outcomes) in by_horizon.items():
-        calibration[horizon] = {"brier": brier_score(probs, outcomes), "n": len(probs)}
+        calibration[horizon] = {
+            "brier": float(
+                invoke_capability(
+                    "forecast.scoring.brier_score",
+                    {"probs": list(probs), "outcomes": list(outcomes)},
+                    ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.forecast_audit"),
+                    strict_execution=True,
+                )["brier"]
+            ),
+            "n": len(probs),
+        }
 
     calibration_by_bucket: Dict[str, Any] = {}
     for bucket, horizons in by_bucket.items():
         bucket_metrics: Dict[str, Any] = {}
         for horizon, (probs, outcomes) in horizons.items():
             bucket_metrics[horizon] = {
-                "brier": brier_score(probs, outcomes),
+                "brier": float(
+                    invoke_capability(
+                        "forecast.scoring.brier_score",
+                        {"probs": list(probs), "outcomes": list(outcomes)},
+                        ctx=build_rune_ctx(run_id=args.run_id, subsystem_id="abx.forecast_audit"),
+                        strict_execution=True,
+                    )["brier"]
+                ),
                 "n": len(probs),
             }
         calibration_by_bucket[bucket] = bucket_metrics

@@ -7,8 +7,6 @@ import importlib
 from pathlib import Path
 from typing import Any
 
-import jsonschema
-
 from abraxas.runes.capabilities import load_capability_registry
 from abraxas.runes.ctx import RuneInvocationContext, require_ctx
 from abraxas.runes.ledger import RuneInvocationLedger, build_record
@@ -41,6 +39,13 @@ def _repo_root() -> Path:
 def _validate_with_schema(schema_relpath: str | None, payload: dict[str, Any], *, label: str) -> None:
     if not schema_relpath:
         return
+    try:
+        import jsonschema  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        raise RuneInvocationError(
+            "jsonschema is required for capability contract validation. "
+            "Install with: pip install 'abraxas[dev]' (or add jsonschema to your environment)."
+        ) from exc
     schema_path = _repo_root() / schema_relpath
     if not schema_path.exists():
         raise RuneInvocationError(f"Missing {label} schema: {schema_relpath}")
