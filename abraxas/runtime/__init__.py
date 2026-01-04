@@ -3,12 +3,13 @@ Abraxas Runtime — Tick Orchestration
 
 Canonical runtime layer that owns:
 - ERS scheduler execution
-- Artifact emission (TrendPack, ResultsPack, ViewPack, RunIndex)
+- Artifact emission (TrendPack, ResultsPack, ViewPack, RunIndex, RunHeader)
 - Structured tick output
 - Pipeline bindings resolution
 - Viz artifact resolution (event + result merging)
 - Artifact retention and pruning
 - Policy provenance tracking
+- Run-level provenance (RunHeader)
 """
 
 from .tick import abraxas_tick
@@ -32,6 +33,31 @@ from .policy_ref import (
     policy_ref_for_retention,
     policy_ref_for_file,
     verify_policy_ref,
+)
+from .policy_snapshot import (
+    ensure_policy_snapshot,
+    policy_ref_from_snapshot,
+    resolve_snapshot_path,
+    load_policy_snapshot,
+    verify_policy_snapshot,
+)
+from .run_header import (
+    ensure_run_header,
+    load_run_header,
+    verify_run_header,
+)
+from .run_stability import (
+    write_run_stability,
+    write_stability_ref,
+    load_run_stability,
+    load_stability_ref,
+    verify_run_stability,
+    get_stability_ref_path,
+)
+from .stability_read import (
+    read_run_stability,
+    read_stability_summary,
+    stability_exists,
 )
 
 __all__ = [
@@ -61,4 +87,25 @@ __all__ = [
     "policy_ref_for_retention",
     "policy_ref_for_file",
     "verify_policy_ref",
+    # Policy snapshot
+    "ensure_policy_snapshot",
+    "policy_ref_from_snapshot",
+    "resolve_snapshot_path",
+    "load_policy_snapshot",
+    "verify_policy_snapshot",
+    # Run header
+    "ensure_run_header",
+    "load_run_header",
+    "verify_run_header",
+    # Run stability
+    "write_run_stability",
+    "write_stability_ref",
+    "load_run_stability",
+    "load_stability_ref",
+    "verify_run_stability",
+    "get_stability_ref_path",
+    # Stability reader utility
+    "read_run_stability",
+    "read_stability_summary",
+    "stability_exists",
 ]

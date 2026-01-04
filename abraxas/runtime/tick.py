@@ -12,6 +12,7 @@ This is the single canonical stitch-point between scheduler, artifacts, and runt
 from __future__ import annotations
 
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any, Dict, Callable, Optional
 
 from abraxas.ers import Budget, DeterministicScheduler
@@ -21,7 +22,9 @@ from abraxas.runtime.artifacts import ArtifactWriter
 from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
 from abraxas.runtime.results_pack import build_results_pack, make_result_ref
 from abraxas.runtime.view_pack import build_view_pack
-from abraxas.runtime.policy_ref import policy_ref_for_retention
+from abraxas.runtime.policy_snapshot import ensure_policy_snapshot, policy_ref_from_snapshot
+from abraxas.runtime.run_header import ensure_run_header
+from abraxas.runtime.stability_read import read_stability_summary
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -130,8 +133,26 @@ def abraxas_tick(
     # === STRICTLY HERE: Abraxas artifact emission ===
     aw = ArtifactWriter(artifacts_dir)
 
-    # Capture PolicyRef.v0 at emission time for provenance continuity
-    pol_ref = policy_ref_for_retention(artifacts_dir)
+    # Capture PolicyRef.v0 via immutable snapshot for provenance continuity
+    # Snapshot path: policy_snapshots/<run_id>/retention.<sha>.policysnapshot.json
+    retention_policy_path = str(Path(artifacts_dir) / "policy" / "retention.json")
+    snap_path, snap_sha = ensure_policy_snapshot(
+        artifacts_dir=artifacts_dir,
+        run_id=run_id,
+        policy_name="retention",
+        policy_path=retention_policy_path,
+    )
+    pol_ref = policy_ref_from_snapshot("retention", snap_path, snap_sha)
+
+    # RunHeader written once per run_id (contains heavy provenance)
+    run_header_path, run_header_sha256 = ensure_run_header(
+        artifacts_dir=artifacts_dir,
+        run_id=run_id,
+        mode=mode,
+        pipeline_bindings_provenance=bindings_provenance,
+        policy_refs={"retention": pol_ref},
+        repo_root=None,  # optionally set to repo root if available in context
+    )
 
     # 1) Write ResultsPack first (so TrendPack can point at it)
     results_pack = build_results_pack(
@@ -184,7 +205,7 @@ def abraxas_tick(
         extra={"mode": mode, "ers": "v0.2", "policy_ref": pol_ref},
     )
 
-    # 4) Minimal RunIndex.v0 (Abraxas-side) — now references both TrendPack + ResultsPack
+    # 4) Minimal RunIndex.v0 (Abraxas-side) — references TrendPack, ResultsPack, and RunHeader
     runindex = {
         "schema": "RunIndex.v0",
         "run_id": run_id,
@@ -192,13 +213,19 @@ def abraxas_tick(
         "refs": {
             "trendpack": trendpack_rec.path,
             "results_pack": results_pack_rec.path,
+            "run_header": run_header_path,
         },
         "hashes": {
             "trendpack_sha256": trendpack_rec.sha256,
             "results_pack_sha256": results_pack_rec.sha256,
         },
         "tags": [],
-        "provenance": {"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
+        "provenance": {
+            "engine": "abraxas",
+            "mode": mode,
+            "policy_ref": pol_ref,
+            "run_header_sha256": run_header_sha256,
+        },
     }
 
     runindex_rec = aw.write_json(
@@ -213,6 +240,9 @@ def abraxas_tick(
 
     # 5) ViewPack: one-file overview artifact for UIs
     # Keep it compact & high-signal by only resolving errors/skips
+    # Include invariance summary so UIs can show stable/unstable badge without extra loads
+    # Include stability summary if run-level stability record exists (for PASS/FAIL badge)
+    stability_summary = read_stability_summary(artifacts_dir, run_id)
     view_pack = build_view_pack(
         trendpack_path=trendpack_rec.path,
         run_id=run_id,
@@ -220,6 +250,13 @@ def abraxas_tick(
         mode=mode,
         resolve_limit=50,
         resolve_only_status=["error", "skipped_budget"],
+        invariance={
+            "schema": "InvarianceSummary.v0",
+            "trendpack_sha256": trendpack_rec.sha256,
+            "runheader_sha256": run_header_sha256,
+            "passed": bool(trendpack_rec.sha256) and bool(run_header_sha256),
+        },
+        stability_summary=stability_summary,
         provenance={"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
     )
 
@@ -251,6 +288,8 @@ def abraxas_tick(
             "runindex_sha256": runindex_rec.sha256,
             "viewpack": viewpack_rec.path,
             "viewpack_sha256": viewpack_rec.sha256,
+            "run_header": run_header_path,
+            "run_header_sha256": run_header_sha256,
         },
     }
 

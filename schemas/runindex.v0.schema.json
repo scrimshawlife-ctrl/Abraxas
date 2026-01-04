@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/runindex.v0.schema.json",
+  "title": "RunIndex.v0",
+  "description": "Minimal per-tick entrypoint pointing to other artifacts",
+  "type": "object",
+  "required": ["schema", "run_id", "tick", "refs", "hashes", "provenance"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "RunIndex.v0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tick": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "refs": {
+      "type": "object",
+      "required": ["trendpack", "results_pack", "run_header"],
+      "properties": {
+        "trendpack": { "type": "string" },
+        "results_pack": { "type": "string" },
+        "run_header": { "type": "string" }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "hashes": {
+      "type": "object",
+      "properties": {
+        "trendpack_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "results_pack_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["engine", "mode"],
+      "properties": {
+        "engine": { "type": "string" },
+        "mode": { "type": "string" },
+        "policy_ref": { "type": "object" },
+        "run_header_sha256": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
