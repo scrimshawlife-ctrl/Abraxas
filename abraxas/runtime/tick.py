@@ -21,6 +21,7 @@ from abraxas.runtime.artifacts import ArtifactWriter
 from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
 from abraxas.runtime.results_pack import build_results_pack, make_result_ref
 from abraxas.runtime.view_pack import build_view_pack
+from abraxas.runtime.policy_ref import policy_ref_for_retention
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -129,12 +130,15 @@ def abraxas_tick(
     # === STRICTLY HERE: Abraxas artifact emission ===
     aw = ArtifactWriter(artifacts_dir)
 
+    # Capture PolicyRef.v0 at emission time for provenance continuity
+    pol_ref = policy_ref_for_retention(artifacts_dir)
+
     # 1) Write ResultsPack first (so TrendPack can point at it)
     results_pack = build_results_pack(
         run_id=run_id,
         tick=out["tick"],
         results=out["results"],
-        provenance={"engine": "abraxas", "mode": mode, "ers": "v0.2"},
+        provenance={"engine": "abraxas", "mode": mode, "ers": "v0.2", "policy_ref": pol_ref},
     )
 
     results_pack_rec = aw.write_json(
@@ -144,7 +148,7 @@ def abraxas_tick(
         schema="ResultsPack.v0",
         obj=results_pack,
         rel_path=f"results/{run_id}/{tick:06d}.resultspack.json",
-        extra={"mode": mode},
+        extra={"mode": mode, "policy_ref": pol_ref},
     )
 
     # 2) Build deterministic result_ref map for TrendPack events
@@ -165,6 +169,7 @@ def abraxas_tick(
             "mode": mode,
             "ers": "v0.2",
             "pipeline_bindings": bindings_provenance,
+            "policy_ref": pol_ref,
         },
         result_ref_by_task=result_ref_by_task,
     )
@@ -176,7 +181,7 @@ def abraxas_tick(
         schema="TrendPack.v0",
         obj=trendpack,
         rel_path=f"viz/{run_id}/{tick:06d}.trendpack.json",
-        extra={"mode": mode, "ers": "v0.2"},
+        extra={"mode": mode, "ers": "v0.2", "policy_ref": pol_ref},
     )
 
     # 4) Minimal RunIndex.v0 (Abraxas-side) — now references both TrendPack + ResultsPack
@@ -193,7 +198,7 @@ def abraxas_tick(
             "results_pack_sha256": results_pack_rec.sha256,
         },
         "tags": [],
-        "provenance": {"engine": "abraxas", "mode": mode},
+        "provenance": {"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
     }
 
     runindex_rec = aw.write_json(
@@ -203,7 +208,7 @@ def abraxas_tick(
         schema="RunIndex.v0",
         obj=runindex,
         rel_path=f"run_index/{run_id}/{tick:06d}.runindex.json",
-        extra={"mode": mode},
+        extra={"mode": mode, "policy_ref": pol_ref},
     )
 
     # 5) ViewPack: one-file overview artifact for UIs
@@ -215,7 +220,7 @@ def abraxas_tick(
         mode=mode,
         resolve_limit=50,
         resolve_only_status=["error", "skipped_budget"],
-        provenance={"engine": "abraxas", "mode": mode},
+        provenance={"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
     )
 
     viewpack_rec = aw.write_json(
@@ -225,7 +230,7 @@ def abraxas_tick(
         schema="ViewPack.v0",
         obj=view_pack,
         rel_path=f"view/{run_id}/{tick:06d}.viewpack.json",
-        extra={"mode": mode},
+        extra={"mode": mode, "policy_ref": pol_ref},
     )
 
     return {

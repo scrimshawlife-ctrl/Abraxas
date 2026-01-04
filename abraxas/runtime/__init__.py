@@ -8,6 +8,7 @@ Canonical runtime layer that owns:
 - Pipeline bindings resolution
 - Viz artifact resolution (event + result merging)
 - Artifact retention and pruning
+- Policy provenance tracking
 """
 
 from .tick import abraxas_tick
@@ -26,6 +27,11 @@ from .retention import (
     ArtifactPruner,
     PruneReport,
     DEFAULT_POLICY,
+)
+from .policy_ref import (
+    policy_ref_for_retention,
+    policy_ref_for_file,
+    verify_policy_ref,
 )
 
 __all__ = [
@@ -51,4 +57,8 @@ __all__ = [
     "ArtifactPruner",
     "PruneReport",
     "DEFAULT_POLICY",
+    # Policy ref
+    "policy_ref_for_retention",
+    "policy_ref_for_file",
+    "verify_policy_ref",
 ]
