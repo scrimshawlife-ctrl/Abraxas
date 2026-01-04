@@ -12,6 +12,7 @@ This is the single canonical stitch-point between scheduler, artifacts, and runt
 from __future__ import annotations
 
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any, Dict, Callable, Optional
 
 from abraxas.ers import Budget, DeterministicScheduler
@@ -21,7 +22,7 @@ from abraxas.runtime.artifacts import ArtifactWriter
 from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
 from abraxas.runtime.results_pack import build_results_pack, make_result_ref
 from abraxas.runtime.view_pack import build_view_pack
-from abraxas.runtime.policy_ref import policy_ref_for_retention
+from abraxas.runtime.policy_snapshot import ensure_policy_snapshot, policy_ref_from_snapshot
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -130,8 +131,16 @@ def abraxas_tick(
     # === STRICTLY HERE: Abraxas artifact emission ===
     aw = ArtifactWriter(artifacts_dir)
 
-    # Capture PolicyRef.v0 at emission time for provenance continuity
-    pol_ref = policy_ref_for_retention(artifacts_dir)
+    # Capture PolicyRef.v0 via immutable snapshot for provenance continuity
+    # Snapshot path: policy_snapshots/<run_id>/retention.<sha>.policysnapshot.json
+    retention_policy_path = str(Path(artifacts_dir) / "policy" / "retention.json")
+    snap_path, snap_sha = ensure_policy_snapshot(
+        artifacts_dir=artifacts_dir,
+        run_id=run_id,
+        policy_name="retention",
+        policy_path=retention_policy_path,
+    )
+    pol_ref = policy_ref_from_snapshot("retention", snap_path, snap_sha)
 
     # 1) Write ResultsPack first (so TrendPack can point at it)
     results_pack = build_results_pack(

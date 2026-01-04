@@ -319,7 +319,7 @@ class TestPolicyRefWithRetentionPolicy:
     """Test PolicyRef when retention policy exists."""
 
     def test_policy_ref_tracks_existing_policy(self):
-        """Test that policy_ref correctly captures existing policy hash."""
+        """Test that policy_ref correctly captures existing policy hash via snapshot."""
 
         def run_signal(ctx):
             return {"signal": "ok"}
@@ -355,12 +355,22 @@ class TestPolicyRefWithRetentionPolicy:
                 tp = json.load(f)
 
             pol_ref = tp["provenance"]["policy_ref"]
-            assert pol_ref["present"] is True
-            assert pol_ref["sha256"] is not None
+            # New snapshot-based schema: has snapshot_path and snapshot_sha256
+            assert pol_ref["schema"] == "PolicyRef.v0"
+            assert pol_ref["policy"] == "retention"
+            assert "snapshot_path" in pol_ref
+            assert "snapshot_sha256" in pol_ref
 
-            # Verify the ref matches current policy
-            verification = verify_policy_ref(pol_ref, artifacts_dir=tmpdir)
-            assert verification["drift"] is False
+            # Load the snapshot and verify its content (resolve relative path)
+            from abraxas.runtime.policy_snapshot import resolve_snapshot_path
+            resolved_path = resolve_snapshot_path(pol_ref["snapshot_path"], tmpdir)
+            with open(resolved_path) as f:
+                snapshot = json.load(f)
+            assert snapshot["schema"] == "PolicySnapshot.v0"
+            assert snapshot["present"] is True
+            assert snapshot["policy_obj"] is not None
+            assert snapshot["policy_obj"]["enabled"] is True
+            assert snapshot["policy_obj"]["keep_last_ticks"] == 100
 
 
 class TestPolicyRefDeterminism:

@@ -33,6 +33,13 @@ from .policy_ref import (
     policy_ref_for_file,
     verify_policy_ref,
 )
+from .policy_snapshot import (
+    ensure_policy_snapshot,
+    policy_ref_from_snapshot,
+    resolve_snapshot_path,
+    load_policy_snapshot,
+    verify_policy_snapshot,
+)
 
 __all__ = [
     # Tick orchestration
@@ -61,4 +68,10 @@ __all__ = [
     "policy_ref_for_retention",
     "policy_ref_for_file",
     "verify_policy_ref",
+    # Policy snapshot
+    "ensure_policy_snapshot",
+    "policy_ref_from_snapshot",
+    "resolve_snapshot_path",
+    "load_policy_snapshot",
+    "verify_policy_snapshot",
 ]
