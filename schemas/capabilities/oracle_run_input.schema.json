@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/oracle_run_input.json",
+  "title": "Oracle V2 Run Input",
+  "description": "Input schema for oracle.v2.run capability",
+  "type": "object",
+  "required": ["run_id", "observations"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_-]+$",
+      "description": "Unique run identifier (e.g., 'RUN-001', 'ORACLE_2026_01_04')"
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["term", "context", "timestamp"],
+        "properties": {
+          "term": {"type": "string"},
+          "context": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"}
+        }
+      },
+      "minItems": 1,
+      "description": "Observation records for oracle processing"
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "description": "Domain for analysis (e.g., 'music', 'politics')"
+        },
+        "max_terms": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of terms to process"
+        },
+        "min_obs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum observations required per term"
+        }
+      },
+      "additionalProperties": true
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Deterministic seed (required for reproducibility)"
+    }
+  },
+  "additionalProperties": false
+}

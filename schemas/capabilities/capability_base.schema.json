@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/capability_base.schema.json",
+  "title": "Capability Contract Base Schema",
+  "description": "Base schema for all capability contracts",
+  "type": "object",
+  "required": ["capability_id", "rune_id", "operator_path", "version"],
+  "properties": {
+    "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z_]+\\.[a-z_0-9]+\\.[a-z_]+$",
+      "description": "Capability identifier (e.g., 'oracle.v2.run')"
+    },
+    "rune_id": {
+      "type": "string",
+      "description": "Associated rune ID"
+    },
+    "operator_path": {
+      "type": "string",
+      "pattern": "^[a-z_\\.:]+(:[a-z_]+)?$",
+      "description": "Module path to operator function"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version"
+    },
+    "input_schema": {
+      "type": "string",
+      "description": "Relative path to input JSON schema"
+    },
+    "output_schema": {
+      "type": "string",
+      "description": "Relative path to output JSON schema"
+    },
+    "provenance_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "deterministic": {
+      "type": "boolean",
+      "default": true
+    },
+    "evidence_mode": {
+      "type": "string",
+      "enum": ["prediction_lane", "shadow_lane", "detector_only", "ops_actuator"],
+      "default": "prediction_lane"
+    }
+  },
+  "additionalProperties": false
+}
