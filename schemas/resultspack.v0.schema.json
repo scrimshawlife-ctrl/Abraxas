@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/resultspack.v0.schema.json",
+  "title": "ResultsPack.v0",
+  "description": "All TaskResult outputs for a tick",
+  "type": "object",
+  "required": ["schema", "run_id", "tick", "items", "provenance"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "ResultsPack.v0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tick": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task", "result"],
+        "properties": {
+          "task": { "type": "string" },
+          "result": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

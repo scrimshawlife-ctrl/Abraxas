@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/stabilityref.v0.schema.json",
+  "title": "StabilityRef.v0",
+  "description": "Pointer to RunStability without rewriting RunHeader",
+  "type": "object",
+  "required": ["schema", "run_id", "runstability_path", "runstability_sha256"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "StabilityRef.v0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runstability_path": {
+      "type": "string"
+    },
+    "runstability_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": false
+}

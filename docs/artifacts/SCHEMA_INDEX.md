@@ -474,10 +474,85 @@ assert result["valid"]
 
 ---
 
+## JSON Schema Files
+
+Machine-readable JSON Schema definitions are available in `schemas/`:
+
+| Schema | File |
+|--------|------|
+| RunIndex.v0 | `schemas/runindex.v0.schema.json` |
+| RunHeader.v0 | `schemas/runheader.v0.schema.json` |
+| TrendPack.v0 | `schemas/trendpack.v0.schema.json` |
+| ResultsPack.v0 | `schemas/resultspack.v0.schema.json` |
+| ViewPack.v0 | `schemas/viewpack.v0.schema.json` |
+| PolicySnapshot.v0 | `schemas/policysnapshot.v0.schema.json` |
+| RunStability.v0 | `schemas/runstability.v0.schema.json` |
+| StabilityRef.v0 | `schemas/stabilityref.v0.schema.json` |
+| SealReport.v0 | `schemas/sealreport.v0.schema.json` |
+
+---
+
+## Validation Tooling
+
+### Validate Artifacts CLI
+
+```bash
+# Validate a specific tick
+python -m scripts.validate_artifacts --artifacts_dir ./artifacts --run_id my_run --tick 0
+
+# Validate all ticks for a run
+python -m scripts.validate_artifacts --artifacts_dir ./artifacts --run_id my_run
+
+# JSON output
+python -m scripts.validate_artifacts --artifacts_dir ./artifacts --run_id my_run --json
+```
+
+### Seal Release Script
+
+```bash
+# Run full seal validation (tick + validation + dozen-run gate)
+python -m scripts.seal_release --run_id seal
+
+# Or use make
+make seal
+```
+
+**Outputs:**
+- `./artifacts_seal/` — Sealed artifacts with SealReport.v0
+- `./artifacts_gate/` — Dozen-run gate artifacts (for determinism verification)
+
+---
+
+## SealReport.v0
+
+**Purpose:** Release validation report containing:
+- Version and version pack
+- Seal tick artifacts with paths/hashes
+- Validation result (pass/fail + failures)
+- Dozen-run gate result (determinism check)
+- Overall ok status
+
+**Path:** `runs/<run_id>.sealreport.json`
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `schema` | `"SealReport.v0"` | Schema identifier |
+| `version` | `string` | Release version |
+| `version_pack` | `object` | Full AbraxasVersionPack.v0 |
+| `seal_tick_artifacts` | `object` | Artifact paths and hashes |
+| `validation_result` | `object` | Validation result summary |
+| `dozen_gate_result` | `object` | Gate result summary |
+| `ok` | `boolean` | Overall pass/fail |
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-01-04 | Added JSON schemas, validation tooling, SealReport.v0 |
 | 1.0.0 | 2026-01-04 | Initial canonical release |
 
 ---

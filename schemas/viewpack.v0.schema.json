@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/viewpack.v0.schema.json",
+  "title": "ViewPack.v0",
+  "description": "One-file UI overview artifact with optional resolved results",
+  "type": "object",
+  "required": ["schema", "run_id", "tick", "mode", "aggregates", "events", "provenance"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "ViewPack.v0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tick": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mode": {
+      "type": "string"
+    },
+    "trendpack_ref": {
+      "type": "object",
+      "properties": {
+        "schema": { "type": "string" },
+        "pattern": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "aggregates": {
+      "type": "object",
+      "properties": {
+        "stats": { "type": "object" },
+        "budget": { "type": "object" },
+        "error_count": { "type": "integer" },
+        "skipped_count": { "type": "integer" },
+        "invariance": {
+          "type": "object",
+          "properties": {
+            "schema": { "type": "string", "const": "InvarianceSummary.v0" },
+            "trendpack_sha256": { "type": "string" },
+            "runheader_sha256": { "type": "string" },
+            "passed": { "type": "boolean" }
+          }
+        },
+        "stability_summary": {
+          "type": ["object", "null"],
+          "properties": {
+            "schema": { "type": "string", "const": "StabilitySummary.v0" },
+            "ok": { "type": "boolean" },
+            "first_mismatch_run": { "type": ["integer", "null"] },
+            "divergence_kind": { "type": ["string", "null"] }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "events": {
+      "type": "array"
+    },
+    "resolved": {
+      "type": "array"
+    },
+    "resolved_filter": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
