@@ -12,20 +12,12 @@ This is the single canonical stitch-point between scheduler, artifacts, and runt
 from __future__ import annotations
 
 from dataclasses import asdict
-from pathlib import Path
-import json
 from typing import Any, Dict, Callable, Optional
 
 from abraxas.ers import Budget, DeterministicScheduler
 from abraxas.ers.bindings import bind_callable
 from abraxas.viz import ers_trace_to_trendpack
-
-
-def _write_json(path: Path, obj: Dict[str, Any]) -> str:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    path.write_text(data, encoding="utf-8")
-    return str(path)
+from abraxas.runtime.artifacts import ArtifactWriter
 
 
 def abraxas_tick(
@@ -46,6 +38,8 @@ def abraxas_tick(
     Canonical Abraxas tick orchestrator.
     - Runs ERS scheduler with deterministic ordering
     - Emits TrendPack artifact (Abraxas-owned)
+    - Emits RunIndex artifact (Abraxas-owned)
+    - Writes manifest records with SHA-256
     - Returns structured tick output with artifact references
 
     This is where runtime meets scheduler - the only layer that legitimately knows:
@@ -75,6 +69,8 @@ def abraxas_tick(
     )
 
     # === STRICTLY HERE: Abraxas artifact emission ===
+    aw = ArtifactWriter(artifacts_dir)
+
     trendpack = ers_trace_to_trendpack(
         trace=out["trace"],
         run_id=run_id,
@@ -86,8 +82,36 @@ def abraxas_tick(
         },
     )
 
-    artifact_path = Path(artifacts_dir) / "viz" / run_id / f"{tick:06d}.trendpack.json"
-    trendpack_ref = _write_json(artifact_path, trendpack)
+    trendpack_rec = aw.write_json(
+        run_id=run_id,
+        tick=tick,
+        kind="trendpack",
+        schema="TrendPack.v0",
+        obj=trendpack,
+        rel_path=f"viz/{run_id}/{tick:06d}.trendpack.json",
+        extra={"mode": mode, "ers": "v0.2"},
+    )
+
+    # Minimal RunIndex.v0 (Abraxas-side)
+    runindex = {
+        "schema": "RunIndex.v0",
+        "run_id": run_id,
+        "tick": int(tick),
+        "refs": {"trendpack": trendpack_rec.path},
+        "hashes": {"trendpack_sha256": trendpack_rec.sha256},
+        "tags": [],
+        "provenance": {"engine": "abraxas", "mode": mode},
+    }
+
+    runindex_rec = aw.write_json(
+        run_id=run_id,
+        tick=tick,
+        kind="runindex",
+        schema="RunIndex.v0",
+        obj=runindex,
+        rel_path=f"run_index/{run_id}/{tick:06d}.runindex.json",
+        extra={"mode": mode},
+    )
 
     return {
         "tick": out["tick"],
@@ -99,7 +123,10 @@ def abraxas_tick(
             "shadow": asdict(out["remaining"]["shadow"]),
         },
         "artifacts": {
-            "trendpack": trendpack_ref,
+            "trendpack": trendpack_rec.path,
+            "trendpack_sha256": trendpack_rec.sha256,
+            "runindex": runindex_rec.path,
+            "runindex_sha256": runindex_rec.sha256,
         },
     }
 

@@ -48,12 +48,18 @@ def test_abraxas_tick_basic_execution():
         assert "remaining" in result
         assert "artifacts" in result
 
-        # Verify artifact was written
-        artifact_path = result["artifacts"]["trendpack"]
-        assert Path(artifact_path).exists()
+        # Verify artifacts include hashes
+        assert "trendpack" in result["artifacts"]
+        assert "trendpack_sha256" in result["artifacts"]
+        assert "runindex" in result["artifacts"]
+        assert "runindex_sha256" in result["artifacts"]
+
+        # Verify TrendPack artifact was written
+        trendpack_path = result["artifacts"]["trendpack"]
+        assert Path(trendpack_path).exists()
 
         # Verify TrendPack structure
-        with open(artifact_path) as f:
+        with open(trendpack_path) as f:
             trendpack = json.load(f)
         assert trendpack["version"] == "0.1"
         assert trendpack["run_id"] == "TEST-RUN-001"
@@ -61,6 +67,29 @@ def test_abraxas_tick_basic_execution():
         assert trendpack["provenance"]["engine"] == "abraxas"
         assert trendpack["provenance"]["mode"] == "test"
         assert trendpack["provenance"]["ers"] == "v0.2"
+
+        # Verify RunIndex artifact was written
+        runindex_path = result["artifacts"]["runindex"]
+        assert Path(runindex_path).exists()
+
+        # Verify RunIndex structure
+        with open(runindex_path) as f:
+            runindex = json.load(f)
+        assert runindex["schema"] == "RunIndex.v0"
+        assert runindex["run_id"] == "TEST-RUN-001"
+        assert runindex["tick"] == 0
+        assert runindex["refs"]["trendpack"] == trendpack_path
+        assert runindex["hashes"]["trendpack_sha256"] == result["artifacts"]["trendpack_sha256"]
+
+        # Verify manifest was created
+        manifest_path = Path(tmpdir) / "manifests" / "TEST-RUN-001.manifest.json"
+        assert manifest_path.exists()
+
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+        assert manifest["schema"] == "Manifest.v0"
+        assert manifest["run_id"] == "TEST-RUN-001"
+        assert len(manifest["records"]) == 2  # trendpack + runindex
 
 
 def test_abraxas_tick_with_shadow_tasks():
@@ -176,5 +205,12 @@ def test_abraxas_tick_deterministic_artifact():
             tp1 = json.load(f1)
             tp2 = json.load(f2)
 
-        # Should be identical (deterministic)
+        # TrendPacks should be identical (deterministic content)
         assert tp1 == tp2
+
+        # TrendPack SHA-256 hashes should match (same content → same hash)
+        assert result1["artifacts"]["trendpack_sha256"] == result2["artifacts"]["trendpack_sha256"]
+
+        # RunIndex hashes will differ because they contain different artifact paths
+        # (This is expected - RunIndex is path-dependent, TrendPack content is not)
+        assert result1["artifacts"]["runindex_sha256"] != result2["artifacts"]["runindex_sha256"]

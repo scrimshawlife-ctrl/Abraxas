@@ -74,15 +74,22 @@ result = abraxas_tick(
     run_shadow_tasks=shadow_tasks,
 )
 
-# Artifacts automatically written to:
+# Artifacts automatically written with SHA-256 provenance:
 # ./out/viz/RUN-001/000000.trendpack.json
-print(result["artifacts"]["trendpack"])
+# ./out/run_index/RUN-001/000000.runindex.json
+# ./out/manifests/RUN-001.manifest.json
+
+print(f"TrendPack: {result['artifacts']['trendpack']}")
+print(f"TrendPack SHA-256: {result['artifacts']['trendpack_sha256']}")
+print(f"RunIndex: {result['artifacts']['runindex']}")
+print(f"RunIndex SHA-256: {result['artifacts']['runindex_sha256']}")
 ```
 
 The runtime orchestrator owns:
 - **ERS scheduler execution**: Deterministic task ordering
-- **Artifact emission**: TrendPack format for visualization
-- **Structured output**: Results + remaining budgets + artifact refs
+- **Artifact emission**: TrendPack + RunIndex with SHA-256 provenance
+- **Manifest ledger**: Append-only per-run artifact tracking
+- **Structured output**: Results + remaining budgets + artifact refs with hashes
 
 ### Direct ERS Usage (Advanced)
 
@@ -115,6 +122,111 @@ def abraxas_tick(context: dict, tick: int):
     store_trace(out["trace"])
 
     return out
+```
+
+## Provenance-Sealed Artifacts
+
+Every tick produces provenance-sealed artifacts with SHA-256 hashing:
+
+### Artifact Types
+
+**1. TrendPack (visualization format)**
+```json
+{
+  "version": "0.1",
+  "run_id": "RUN-001",
+  "tick": 0,
+  "provenance": {"engine": "abraxas", "mode": "production", "ers": "v0.2"},
+  "timeline": [...],
+  "budget": {...},
+  "errors": [],
+  "skipped": [],
+  "stats": {...}
+}
+```
+
+**2. RunIndex (artifact index)**
+```json
+{
+  "schema": "RunIndex.v0",
+  "run_id": "RUN-001",
+  "tick": 0,
+  "refs": {"trendpack": "/path/to/trendpack.json"},
+  "hashes": {"trendpack_sha256": "a1b2c3..."},
+  "tags": [],
+  "provenance": {"engine": "abraxas", "mode": "production"}
+}
+```
+
+**3. Manifest (per-run ledger)**
+```json
+{
+  "schema": "Manifest.v0",
+  "run_id": "RUN-001",
+  "records": [
+    {
+      "tick": 0,
+      "kind": "trendpack",
+      "schema": "TrendPack.v0",
+      "path": "/path/to/trendpack.json",
+      "sha256": "a1b2c3...",
+      "bytes": 1234,
+      "extra": {"mode": "production", "ers": "v0.2"}
+    },
+    {
+      "tick": 0,
+      "kind": "runindex",
+      "schema": "RunIndex.v0",
+      "path": "/path/to/runindex.json",
+      "sha256": "d4e5f6...",
+      "bytes": 567,
+      "extra": {"mode": "production"}
+    }
+  ]
+}
+```
+
+### Directory Structure
+
+```
+artifacts_dir/
+├── viz/
+│   └── RUN-001/
+│       ├── 000000.trendpack.json
+│       ├── 000001.trendpack.json
+│       └── ...
+├── run_index/
+│   └── RUN-001/
+│       ├── 000000.runindex.json
+│       ├── 000001.runindex.json
+│       └── ...
+└── manifests/
+    └── RUN-001.manifest.json
+```
+
+### Provenance Guarantees
+
+1. **Deterministic JSON**: Stable serialization (sorted keys, fixed separators)
+2. **SHA-256 Hashing**: Every artifact includes provenance hash
+3. **Append-Only Manifest**: Per-run ledger with deterministic sort
+4. **Content Integrity**: TrendPack hash verifies content, RunIndex verifies references
+
+### Usage
+
+```python
+from abraxas.runtime import abraxas_tick
+
+result = abraxas_tick(...)
+
+# Access artifacts with hashes
+trendpack_path = result["artifacts"]["trendpack"]
+trendpack_hash = result["artifacts"]["trendpack_sha256"]
+
+# Verify artifact integrity
+import hashlib, json
+with open(trendpack_path, 'rb') as f:
+    computed_hash = hashlib.sha256(f.read()).hexdigest()
+assert computed_hash == trendpack_hash  # Integrity verified
 ```
 
 ## Benefits
