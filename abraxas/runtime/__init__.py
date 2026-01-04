@@ -46,6 +46,14 @@ from .run_header import (
     load_run_header,
     verify_run_header,
 )
+from .run_stability import (
+    write_run_stability,
+    write_stability_ref,
+    load_run_stability,
+    load_stability_ref,
+    verify_run_stability,
+    get_stability_ref_path,
+)
 
 __all__ = [
     # Tick orchestration
@@ -84,4 +92,11 @@ __all__ = [
     "ensure_run_header",
     "load_run_header",
     "verify_run_header",
+    # Run stability
+    "write_run_stability",
+    "write_stability_ref",
+    "load_run_stability",
+    "load_stability_ref",
+    "verify_run_stability",
+    "get_stability_ref_path",
 ]

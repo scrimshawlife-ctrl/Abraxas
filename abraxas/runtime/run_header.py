@@ -125,6 +125,10 @@ def ensure_run_header(
         },
         "pipeline_bindings": pipeline_bindings_provenance,
         "policy_refs": policy_refs,
+        # Convention: stability ref pattern (relative to artifacts_dir).
+        # RunHeader remains write-once; stability is stored separately.
+        # Resolve: {artifacts_dir}/runs/{run_id}.stability_ref.json
+        "stability_ref_pattern": f"runs/{run_id}.stability_ref.json",
         "env": _env_fingerprint(),
     }
 
