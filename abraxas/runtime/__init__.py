@@ -7,6 +7,7 @@ Canonical runtime layer that owns:
 - Structured tick output
 - Pipeline bindings resolution
 - Viz artifact resolution (event + result merging)
+- Artifact retention and pruning
 """
 
 from .tick import abraxas_tick
@@ -20,6 +21,11 @@ from .viz_resolve import (
     resolve_trendpack_events,
     get_event_result_by_task,
     clear_resultspack_cache,
+)
+from .retention import (
+    ArtifactPruner,
+    PruneReport,
+    DEFAULT_POLICY,
 )
 
 __all__ = [
@@ -41,4 +47,8 @@ __all__ = [
     "resolve_trendpack_events",
     "get_event_result_by_task",
     "clear_resultspack_cache",
+    # Retention
+    "ArtifactPruner",
+    "PruneReport",
+    "DEFAULT_POLICY",
 ]
