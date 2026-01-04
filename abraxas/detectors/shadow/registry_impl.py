@@ -21,6 +21,7 @@ from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
 from abraxas.detectors.shadow.token_density import run_token_density
+from abraxas.detectors.shadow.anagram import run_shadow_anagrams
 
 
 # Class-based detector instances (deterministic, no per-call construction)
@@ -32,6 +33,7 @@ _CLASS_DETECTORS = {
 
 # Function-based detectors using new util helpers (ok/not_computable/err)
 _FUNCTION_DETECTORS: Dict[str, Callable[[Dict[str, Any]], ShadowResult]] = {
+    "anagram": run_shadow_anagrams,
     "token_density": run_token_density,
 }
 
