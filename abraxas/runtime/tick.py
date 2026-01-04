@@ -19,6 +19,7 @@ from abraxas.ers.bindings import bind_callable
 from abraxas.viz import ers_trace_to_trendpack
 from abraxas.runtime.artifacts import ArtifactWriter
 from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
+from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
 def abraxas_tick(
@@ -111,8 +112,10 @@ def abraxas_tick(
 
     # Shadow lane (observation-only)
     # Stable ordering by name via scheduler keying
+    # Wrap each shadow task to normalize outputs to canonical shape
     for name, fn in sorted(actual_shadow.items(), key=lambda kv: kv[0]):
-        s.add(bind_callable(name=f"shadow:{name}", lane="shadow", priority=0, cost_ops=2, fn=fn))
+        wrapped = wrap_shadow_task(name, fn)
+        s.add(bind_callable(name=f"shadow:{name}", lane="shadow", priority=0, cost_ops=2, fn=wrapped))
 
     out = s.run_tick(
         tick=tick,
