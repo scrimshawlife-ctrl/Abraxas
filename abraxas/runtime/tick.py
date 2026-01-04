@@ -23,6 +23,7 @@ from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline
 from abraxas.runtime.results_pack import build_results_pack, make_result_ref
 from abraxas.runtime.view_pack import build_view_pack
 from abraxas.runtime.policy_snapshot import ensure_policy_snapshot, policy_ref_from_snapshot
+from abraxas.runtime.run_header import ensure_run_header
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -142,6 +143,16 @@ def abraxas_tick(
     )
     pol_ref = policy_ref_from_snapshot("retention", snap_path, snap_sha)
 
+    # RunHeader written once per run_id (contains heavy provenance)
+    run_header_path, run_header_sha256 = ensure_run_header(
+        artifacts_dir=artifacts_dir,
+        run_id=run_id,
+        mode=mode,
+        pipeline_bindings_provenance=bindings_provenance,
+        policy_refs={"retention": pol_ref},
+        repo_root=None,  # optionally set to repo root if available in context
+    )
+
     # 1) Write ResultsPack first (so TrendPack can point at it)
     results_pack = build_results_pack(
         run_id=run_id,
@@ -193,7 +204,7 @@ def abraxas_tick(
         extra={"mode": mode, "ers": "v0.2", "policy_ref": pol_ref},
     )
 
-    # 4) Minimal RunIndex.v0 (Abraxas-side) — now references both TrendPack + ResultsPack
+    # 4) Minimal RunIndex.v0 (Abraxas-side) — references TrendPack, ResultsPack, and RunHeader
     runindex = {
         "schema": "RunIndex.v0",
         "run_id": run_id,
@@ -201,13 +212,19 @@ def abraxas_tick(
         "refs": {
             "trendpack": trendpack_rec.path,
             "results_pack": results_pack_rec.path,
+            "run_header": run_header_path,
         },
         "hashes": {
             "trendpack_sha256": trendpack_rec.sha256,
             "results_pack_sha256": results_pack_rec.sha256,
         },
         "tags": [],
-        "provenance": {"engine": "abraxas", "mode": mode, "policy_ref": pol_ref},
+        "provenance": {
+            "engine": "abraxas",
+            "mode": mode,
+            "policy_ref": pol_ref,
+            "run_header_sha256": run_header_sha256,
+        },
     }
 
     runindex_rec = aw.write_json(
@@ -260,6 +277,8 @@ def abraxas_tick(
             "runindex_sha256": runindex_rec.sha256,
             "viewpack": viewpack_rec.path,
             "viewpack_sha256": viewpack_rec.sha256,
+            "run_header": run_header_path,
+            "run_header_sha256": run_header_sha256,
         },
     }
 

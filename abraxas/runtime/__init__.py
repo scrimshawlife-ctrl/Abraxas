@@ -3,12 +3,13 @@ Abraxas Runtime — Tick Orchestration
 
 Canonical runtime layer that owns:
 - ERS scheduler execution
-- Artifact emission (TrendPack, ResultsPack, ViewPack, RunIndex)
+- Artifact emission (TrendPack, ResultsPack, ViewPack, RunIndex, RunHeader)
 - Structured tick output
 - Pipeline bindings resolution
 - Viz artifact resolution (event + result merging)
 - Artifact retention and pruning
 - Policy provenance tracking
+- Run-level provenance (RunHeader)
 """
 
 from .tick import abraxas_tick
@@ -39,6 +40,11 @@ from .policy_snapshot import (
     resolve_snapshot_path,
     load_policy_snapshot,
     verify_policy_snapshot,
+)
+from .run_header import (
+    ensure_run_header,
+    load_run_header,
+    verify_run_header,
 )
 
 __all__ = [
@@ -74,4 +80,8 @@ __all__ = [
     "resolve_snapshot_path",
     "load_policy_snapshot",
     "verify_policy_snapshot",
+    # Run header
+    "ensure_run_header",
+    "load_run_header",
+    "verify_run_header",
 ]
