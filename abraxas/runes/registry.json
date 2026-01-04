@@ -1,5 +1,6 @@
 {
   "version": "1.6.0",
+  "capability_version": "2.0.0",
   "generated": "2026-01-02T00:00:00Z",
   "registry_type": "abx_runes",
   "runes": [
@@ -462,6 +463,19 @@
       "introduced_version": "1.7.4",
       "sigil_path": "abraxas/runes/sigils/ϟ₄₆_ACTIVE_POINTER_ATOMIC.svg",
       "definition_path": "abraxas/runes/definitions/rune_46_active_pointer_atomic.json"
+    }
+  ],
+  "capabilities": [
+    {
+      "capability_id": "oracle.v2.run",
+      "rune_id": "ϟ_ORACLE_RUN",
+      "operator_path": "abraxas.oracle.v2.rune_adapter:run_oracle_deterministic",
+      "version": "2.0.0",
+      "input_schema": "schemas/capabilities/oracle_run_input.schema.json",
+      "output_schema": "schemas/capabilities/oracle_run_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
     }
   ],
   "provenance": {

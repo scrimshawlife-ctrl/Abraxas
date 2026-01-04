@@ -116,6 +116,43 @@ pytest tests/
 
 Abraxas operates as a **multi-layer stack** combining Python linguistic analysis with TypeScript orchestration:
 
+### ABX-Runes Coupling Architecture
+
+**CRITICAL DESIGN PRINCIPLE**: All cross-subsystem communication flows through ABX-Runes capability contracts.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  ABX Runtime Layer                       │
+│                                                          │
+│   ✅ Uses: abraxas.runes.capabilities                   │
+│   ✅ invoke_capability("oracle.v2.run", inputs, ctx)    │
+│   ❌ Never: from abraxas.oracle import run_oracle       │
+└──────────────────┬───────────────────────────────────────┘
+                   │
+          ABX-Runes Capability Contract
+          (JSON Schema + Provenance Envelope)
+                   │
+┌──────────────────▼───────────────────────────────────────┐
+│              ABRAXAS Core Engine                         │
+│                                                          │
+│   Rune Adapters expose capabilities:                    │
+│   • oracle.v2.run         - Oracle pipeline             │
+│   • memetic.profiles      - Temporal analysis           │
+│   • forecast.classify     - Forecast classification     │
+│   • evidence.load         - Evidence bundles            │
+│   • ... (20+ capabilities planned)                      │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- ✅ **Determinism**: All inputs/outputs validated against JSON schemas
+- ✅ **Provenance**: Every invocation tracked with SHA-256 hashes
+- ✅ **Testability**: Subsystems can be tested independently
+- ✅ **Deployability**: Enables multi-process architecture
+- ✅ **Governance**: Policy enforcement at capability boundary
+
+### System Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     ABRAXAS ECOSYSTEM                            │
