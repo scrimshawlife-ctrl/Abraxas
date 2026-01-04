@@ -19,6 +19,7 @@ from abraxas.ers.bindings import bind_callable
 from abraxas.viz import ers_trace_to_trendpack
 from abraxas.runtime.artifacts import ArtifactWriter
 from abraxas.runtime.pipeline_bindings import PipelineBindings, resolve_pipeline_bindings
+from abraxas.runtime.results_pack import build_results_pack, make_result_ref
 from abraxas.detectors.shadow.normalize import wrap_shadow_task
 
 
@@ -127,6 +128,33 @@ def abraxas_tick(
     # === STRICTLY HERE: Abraxas artifact emission ===
     aw = ArtifactWriter(artifacts_dir)
 
+    # 1) Write ResultsPack first (so TrendPack can point at it)
+    results_pack = build_results_pack(
+        run_id=run_id,
+        tick=out["tick"],
+        results=out["results"],
+        provenance={"engine": "abraxas", "mode": mode, "ers": "v0.2"},
+    )
+
+    results_pack_rec = aw.write_json(
+        run_id=run_id,
+        tick=tick,
+        kind="results_pack",
+        schema="ResultsPack.v0",
+        obj=results_pack,
+        rel_path=f"results/{run_id}/{tick:06d}.resultspack.json",
+        extra={"mode": mode},
+    )
+
+    # 2) Build deterministic result_ref map for TrendPack events
+    result_ref_by_task = {}
+    for e in out["trace"]:
+        result_ref_by_task[e.task] = make_result_ref(
+            results_pack_path=results_pack_rec.path,
+            task_name=e.task,
+        )
+
+    # 3) Build TrendPack with result refs injected
     trendpack = ers_trace_to_trendpack(
         trace=out["trace"],
         run_id=run_id,
@@ -137,6 +165,7 @@ def abraxas_tick(
             "ers": "v0.2",
             "pipeline_bindings": bindings_provenance,
         },
+        result_ref_by_task=result_ref_by_task,
     )
 
     trendpack_rec = aw.write_json(
@@ -149,13 +178,19 @@ def abraxas_tick(
         extra={"mode": mode, "ers": "v0.2"},
     )
 
-    # Minimal RunIndex.v0 (Abraxas-side)
+    # 4) Minimal RunIndex.v0 (Abraxas-side) — now references both TrendPack + ResultsPack
     runindex = {
         "schema": "RunIndex.v0",
         "run_id": run_id,
         "tick": int(tick),
-        "refs": {"trendpack": trendpack_rec.path},
-        "hashes": {"trendpack_sha256": trendpack_rec.sha256},
+        "refs": {
+            "trendpack": trendpack_rec.path,
+            "results_pack": results_pack_rec.path,
+        },
+        "hashes": {
+            "trendpack_sha256": trendpack_rec.sha256,
+            "results_pack_sha256": results_pack_rec.sha256,
+        },
         "tags": [],
         "provenance": {"engine": "abraxas", "mode": mode},
     }
@@ -182,6 +217,8 @@ def abraxas_tick(
         "artifacts": {
             "trendpack": trendpack_rec.path,
             "trendpack_sha256": trendpack_rec.sha256,
+            "results_pack": results_pack_rec.path,
+            "results_pack_sha256": results_pack_rec.sha256,
             "runindex": runindex_rec.path,
             "runindex_sha256": runindex_rec.sha256,
         },

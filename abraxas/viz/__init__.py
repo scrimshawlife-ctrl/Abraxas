@@ -18,6 +18,7 @@ def ers_trace_to_trendpack(
     run_id: str,
     tick: int,
     provenance: Optional[Dict[str, Any]] = None,
+    result_ref_by_task: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Convert ERS trace to TrendPack format for visualization ingestion.
@@ -29,17 +30,34 @@ def ers_trace_to_trendpack(
     - Task cost burn-down per tick
 
     This is a pure data transformation with no rendering logic.
+
+    Args:
+        trace: List of TraceEvent from ERS scheduler
+        run_id: Run identifier
+        tick: Tick number
+        provenance: Optional provenance metadata
+        result_ref_by_task: Optional mapping of task name to ResultRef.v0 dict.
+            If provided, each event's meta will include result_ref pointing to
+            the ResultsPack location for that task's full output.
     """
+    result_ref_by_task = result_ref_by_task or {}
+
     # Timeline: ordered events with full context
     timeline = []
     for event in trace:
+        # Build meta with optional result_ref injection
+        meta = dict(event.meta) if event.meta else {}
+        result_ref = result_ref_by_task.get(event.task)
+        if result_ref is not None:
+            meta["result_ref"] = result_ref
+
         timeline.append({
             "task": event.task,
             "lane": event.lane,
             "status": event.status,
             "cost_ops": event.cost_ops,
             "cost_entropy": event.cost_entropy,
-            "meta": event.meta,
+            "meta": meta,
         })
 
     # Budget analysis: aggregate costs by lane
