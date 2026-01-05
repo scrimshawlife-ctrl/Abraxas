@@ -1713,11 +1713,26 @@ See `docs/migration/abx_runes_coupling.md` for detailed migration guide.
 
 ## Current State & Next Steps
 
-**Last Session**: 2026-01-04
+**Last Session**: 2026-01-05
 **Current Version**: 2.2.0
-**Current Branch**: `claude/update-claude-md-RUixN`
+**Current Branch**: `claude/continue-todo-list-tCX95`
 
-### What Was Just Completed (v2.2.0)
+### What Was Just Completed (Session 2026-01-05)
+
+1. ✅ **ABX-Runes Coupling Migration** - 3 capability contracts implemented
+   - `evolve.ledger.append` capability (7 usages migrated)
+   - `evolve.policy.enforce_non_truncation` capability (7 usages migrated)
+   - `forecast.horizon.bucket` capability (4 usages migrated)
+   - **Progress**: 81 → 58 violations (-23, 28% complete)
+   - **Commits**: 81d6aaa, 01333f8, 1e9039f
+
+2. ✅ **Capability Contract Infrastructure**
+   - 3 rune adapters with deterministic provenance
+   - 6 JSON schemas for input/output validation
+   - Comprehensive testing (all tests passing)
+   - Registry updated with 3 new capabilities
+
+### Previous Completion (v2.2.0)
 
 1. ✅ **Seal Release Pack** - Production validation infrastructure
    - Scripts: `seal_release.py`, `validate_artifacts.py`
@@ -1749,26 +1764,30 @@ See `docs/migration/abx_runes_coupling.md` for detailed migration guide.
 **Stability**: ✅ Production-ready
 - All tests passing (Python: pytest, TypeScript: vitest)
 - Seal validation infrastructure operational
-- ABX-Runes coupling enforced
+- ABX-Runes coupling migration in progress
 
 **Active Branches**:
 - `main` - Production baseline (PR #84 merged)
-- `claude/update-claude-md-RUixN` - This documentation update (current)
+- `claude/continue-todo-list-tCX95` - ABX-Runes coupling migration (current)
 - `claude/abx-core-refactor-3AuJ9` - Available for reference
 
 **Key Metrics**:
 - Python modules: 74 packages in `abraxas/`
-- New in v2.2.0: `runtime/`, `ers/`, `runes/`, enhanced `detectors/shadow/`
+- Capability contracts: 4 registered (oracle.v2.run + 3 new)
+- Coupling violations: 58 remaining (from 81, 28% progress)
 - Test coverage: Comprehensive (determinism, bounds, missing inputs)
 - Documentation: Up-to-date with current implementation
 
 ### What's Next (Suggested)
 
 **High Priority**:
-1. **Complete ABX-Runes Migration** - Migrate remaining direct imports in `abx/` to capability contracts
-   - Run coupling lint: `grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance"`
-   - Target: Zero violations (currently tracking progress)
-   - See: `docs/migration/abx_runes_coupling.md`
+1. **Continue ABX-Runes Migration** - 58 violations remaining (from 81, 28% complete)
+   - **forecast module** (17 violations) - decide_gate, classify_term, load_term_class_map, etc.
+   - **memetic module** (16 violations) - metrics_reduce, dmx_context, temporal operations
+   - **evolve module** (5 violations) - canon_diff, epp_builder, evogate_builder
+   - **Next capability candidates**: memetic.metrics_reduce, forecast.gating.decide_gate
+   - Run coupling lint: `grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance" | wc -l`
+   - See: `docs/migration/abx_runes_coupling.md`, `docs/migration/coupling_violations_inventory.md`
 
 2. **Validate Seal Artifacts** - Run full seal validation on v2.2.0
    ```bash

@@ -454,6 +454,12 @@ Production-grade reliability for edge deployment:
   - [x] **Domain Compression Engines (DCE)** — Lifecycle-aware, lineage-tracked compression
   - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative assembly
   - [x] **Phase Detection Engine** — Cross-domain alignment, synchronicity, early warnings
+- [ ] **ABX-Runes Coupling Migration** — Capability contract implementation (**28% complete** as of 2026-01-05)
+  - [x] `evolve.ledger.append` capability (7 usages migrated) — Chained JSONL ledger operations
+  - [x] `evolve.policy.enforce_non_truncation` capability (7 usages migrated) — NT-0 policy enforcement
+  - [x] `forecast.horizon.bucket` capability (4 usages migrated) — Horizon normalization
+  - **Progress**: 81 → 58 coupling violations (-23, 28% complete)
+  - **Next**: forecast, memetic, evolve module capabilities
 
 ### Abraxas v1.4: Temporal & Adversarial Expansion
 
