@@ -8,7 +8,6 @@ from typing import Any, Dict
 from abraxas.forecast.horizon_policy import compare_horizon, enforce_horizon_policy
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.forecast.term_class_map import load_term_class_map
 from abraxas.forecast.ledger import issue_prediction
 from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
 from abraxas.memetic.term_index import build_term_index, reduce_weighted_metrics
@@ -65,7 +64,13 @@ def main() -> int:
         except Exception:
             policy = {}
     a2_path = os.path.join("out", "reports", f"a2_phase_{args.run_id}.json")
-    term_class = load_term_class_map(a2_path)
+    term_class_result = invoke_capability(
+        "forecast.term_class_map.load",
+        {"a2_phase_path": a2_path},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_class = term_class_result["term_class_map"]
     term_csp: Dict[str, Any] = {}
     try:
         if os.path.exists(a2_path):
