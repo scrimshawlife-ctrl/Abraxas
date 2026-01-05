@@ -5,8 +5,9 @@ import json
 import os
 from typing import Any, Dict
 
-from abraxas.forecast.gating_policy import decide_gate
 from abraxas.forecast.horizon_policy import compare_horizon, enforce_horizon_policy
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.forecast.term_class_map import load_term_class_map
 from abraxas.forecast.ledger import issue_prediction
 from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
@@ -146,13 +147,20 @@ def main() -> int:
             else float(metrics.get("manipulation_risk_mean") or 0.0)
         )
 
-        gate = decide_gate(
-            dmx_overall=dmx_overall,
-            attribution_strength=att,
-            source_diversity=sd,
-            consensus_gap=cg,
-            manipulation_risk_mean=mr,
-        ).to_dict()
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_log", git_hash="unknown")
+        gate_result = invoke_capability(
+            "forecast.gating.decide_gate",
+            {
+                "dmx_overall": dmx_overall,
+                "attribution_strength": att,
+                "source_diversity": sd,
+                "consensus_gap": cg,
+                "manipulation_risk_mean": mr,
+            },
+            ctx=ctx,
+            strict_execution=True
+        )
+        gate = gate_result["gate_decision"]
         primary_term = str(item.get("term") or "").strip().lower()
         if not primary_term:
             tl = item.get("terms") if isinstance(item.get("terms"), list) else []

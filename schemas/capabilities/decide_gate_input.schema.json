@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/decide_gate_input.json",
+  "title": "Decide Gate Input",
+  "description": "Input schema for forecast.gating.decide_gate capability",
+  "type": "object",
+  "required": [
+    "dmx_overall",
+    "attribution_strength",
+    "source_diversity",
+    "consensus_gap",
+    "manipulation_risk_mean"
+  ],
+  "properties": {
+    "dmx_overall": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Overall DMX (Disinformation/Misinformation) score [0,1]"
+    },
+    "attribution_strength": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Attribution strength score [0,1]"
+    },
+    "source_diversity": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Source diversity score [0,1]"
+    },
+    "consensus_gap": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Consensus gap score [0,1]"
+    },
+    "manipulation_risk_mean": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Mean manipulation risk score [0,1]"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for decide_gate, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.gating.decide_gate",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": false
+  }
+}

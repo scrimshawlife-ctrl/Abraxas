@@ -520,6 +520,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "pure_function"
+    },
+    {
+      "capability_id": "forecast.gating.decide_gate",
+      "rune_id": "ϟ_FORECAST_DECIDE_GATE",
+      "operator_path": "abraxas.forecast.gating_rune_adapter:decide_gate_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/decide_gate_input.schema.json",
+      "output_schema": "schemas/capabilities/decide_gate_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "pure_function"
     }
   ],
   "provenance": {
