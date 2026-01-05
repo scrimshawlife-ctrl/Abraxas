@@ -8,7 +8,8 @@ from typing import Any, Dict, List
 
 from abraxas.forecast.horizon_bins import horizon_bucket
 from abraxas.forecast.policy_candidates import candidates_v0_1
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -72,7 +73,9 @@ def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str
     for b, hmap in tmp.items():
         by[b] = {}
         for h, d in hmap.items():
-            by[b][h] = {"n": len(d["p"]), "brier": brier_score(d["p"], d["y"])}
+            ctx = RuneInvocationContext(run_id="ROLLING_STATS", subsystem_id="abx.horizon_policy_select", git_hash="unknown")
+            result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
+            by[b][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return by
 
 

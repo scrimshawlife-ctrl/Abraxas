@@ -476,6 +476,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "forecast.scoring.brier",
+      "rune_id": "ϟ_FORECAST_BRIER",
+      "operator_path": "abraxas.forecast.rune_adapter:compute_brier_score_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/brier_score_input.schema.json",
+      "output_schema": "schemas/capabilities/brier_score_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
     }
   ],
   "provenance": {
