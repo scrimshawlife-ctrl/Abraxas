@@ -564,6 +564,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "pure_function"
+    },
+    {
+      "capability_id": "conspiracy.csp.compute_term",
+      "rune_id": "ϟ_CONSPIRACY_CSP_COMPUTE_TERM",
+      "operator_path": "abraxas.conspiracy.csp_rune_adapter:compute_term_csp_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/compute_term_csp_input.schema.json",
+      "output_schema": "schemas/capabilities/compute_term_csp_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "pure_function"
     }
   ],
   "provenance": {

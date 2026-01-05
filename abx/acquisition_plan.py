@@ -9,7 +9,6 @@ from typing import Any, Dict, List
 
 from abraxas.acquire.decodo_client import build_decodo_query, decodo_status
 from abraxas.acquire.vector_map_schema import default_vector_map_v0_1
-from abraxas.conspiracy.csp import compute_term_csp
 from abx.ml_index import load_ml_map
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -140,13 +139,19 @@ def main() -> int:
         )
         tcls = classify_result["classification"]
         miss = _missing_signals(p0, dmx_overall)
-        csp = compute_term_csp(
-            term=term,
-            profile=p0,
-            dmx_bucket=dmx_bucket,
-            dmx_overall=dmx_overall,
-            term_class=tcls,
+        csp_result = invoke_capability(
+            "conspiracy.csp.compute_term",
+            {
+                "term": term,
+                "profile": p0,
+                "dmx_bucket": dmx_bucket,
+                "dmx_overall": dmx_overall,
+                "term_class": tcls,
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        csp = csp_result["csp_result"]
         if float(csp.get("EA") or 0.0) < 0.50:
             miss.append("CSP_NEED_EVIDENCE_ADEQUACY")
         if float(csp.get("FF") or 0.0) < 0.50:

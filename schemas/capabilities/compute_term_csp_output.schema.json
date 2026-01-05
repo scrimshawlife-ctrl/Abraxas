@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/compute_term_csp_output.json",
+  "title": "Compute Term CSP Output",
+  "description": "Output schema for conspiracy.csp.compute_term capability",
+  "type": "object",
+  "required": ["success", "csp_result", "provenance", "not_computable"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the computation succeeded"
+    },
+    "csp_result": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["COH", "CIP", "EA", "FF", "MIO", "tag", "flags"],
+          "properties": {
+            "COH": {
+              "type": "boolean",
+              "description": "Coordination Hypothesis flag (inferred from term)"
+            },
+            "CIP": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Coordination Inference Plausibility [0,1]"
+            },
+            "EA": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Evidence Adequacy [0,1]"
+            },
+            "FF": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Falsifiability / Fork resistance [0,1]"
+            },
+            "MIO": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Manipulation/Operation Pressure [0,1]"
+            },
+            "tag": {
+              "type": "string",
+              "enum": [
+                "investigative",
+                "plausible_unproven",
+                "speculative",
+                "opportunistic_op",
+                "noise_halo",
+                "unknown"
+              ],
+              "description": "CSP tag classification (non-moral, label-only)"
+            },
+            "flags": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Diagnostic flags (COH_PRESENT_TERM_HEUR, EA_LOW, FF_LOW, MIO_HIGH)"
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "CSP result object (null if failed)"
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "config_sha256", "inputs_sha256"],
+          "properties": {
+            "operation_id": {"type": "string"},
+            "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "seed": {"type": ["integer", "null"]}
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Provenance envelope with SHA-256 hashes"
+    },
+    "not_computable": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason", "missing_inputs"],
+          "properties": {
+            "reason": {"type": "string"},
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Error details if operation failed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "conspiracy.csp.compute_term",
+    "version": "1.0.0"
+  }
+}
