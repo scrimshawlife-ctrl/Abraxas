@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -134,7 +133,8 @@ def main() -> int:
     window = resolved[-int(args.window_resolved) :] if resolved else []
     roll = _rolling_stats(window)
 
-    cand = candidates_v0_1()
+    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand = cand_result["policy_candidates"]
     buckets = ("LOW", "MED", "HIGH", "UNKNOWN")
     classes = ("stable", "emerging", "volatile", "contested", "unknown")
 

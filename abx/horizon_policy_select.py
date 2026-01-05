@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -136,7 +135,9 @@ def main() -> int:
     for bucket, (n, sb) in shadow_counts.items():
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
-    cand = candidates_v0_1()
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
+    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand = cand_result["policy_candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 
     def eval_candidate(bucket: str, thr: Dict[str, float]) -> Dict[str, Any]:

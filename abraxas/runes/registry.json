@@ -575,6 +575,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "pure_function"
+    },
+    {
+      "capability_id": "forecast.policy.candidates_v0_1",
+      "rune_id": "ϟ_FORECAST_POLICY_CANDIDATES_V0_1",
+      "operator_path": "abraxas.forecast.policy_candidates_rune_adapter:candidates_v0_1_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/policy_candidates_v0_1_input.schema.json",
+      "output_schema": "schemas/capabilities/policy_candidates_v0_1_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "pure_function"
     }
   ],
   "provenance": {
