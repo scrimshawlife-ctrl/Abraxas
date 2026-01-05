@@ -9,7 +9,8 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.ledger import append_chained_jsonl
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -507,7 +508,9 @@ def _finalize(
         ],
         "artifacts": dict(artifacts),
     }
-    append_chained_jsonl(ledger_path, record)
+    # Use capability contract for ledger append
+    ctx = RuneInvocationContext(run_id=run_id, subsystem_id="abx.evolve_run", git_hash="unknown")
+    invoke_capability("evolve.ledger.append", {"path": ledger_path, "record": record}, ctx=ctx, strict_execution=True)
     summary_path = os.path.join(out_reports, f"run_bundle_{run_id}.json")
     os.makedirs(os.path.dirname(summary_path), exist_ok=True)
     with open(summary_path, "w", encoding="utf-8") as f:

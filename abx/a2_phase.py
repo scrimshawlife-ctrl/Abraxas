@@ -11,10 +11,11 @@ from abraxas.evidence.lift import load_bundles_from_index, term_lift, uplift_fac
 from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
-from abraxas.evolve.ledger import append_chained_jsonl
 from abraxas.conspiracy.csp import compute_term_csp
 from abraxas.forecast.term_classify import classify_term
 from abx.truth_pollution import compute_tpi_for_run
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -373,9 +374,13 @@ def main() -> int:
                 )
             f.write("\n")
 
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry},
+    # Use capability contract for ledger append
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.a2_phase", git_hash="unknown")
+    invoke_capability(
+        "evolve.ledger.append",
+        {"path": args.value_ledger, "record": {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry}},
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[A2_PHASE] wrote: {jpath}")
     print(f"[A2_PHASE] wrote: {mpath}")
