@@ -35,6 +35,7 @@ def load_registry(registry_path: str | Path | None = None) -> list[RuneBinding]:
     payload = json.loads(registry_path.read_text())
     bindings: list[RuneBinding] = []
 
+    # Load traditional runes
     for entry in payload.get("runes", []):
         definition_path = _repo_root() / entry["definition_path"]
         definition = RuneDefinition(**json.loads(definition_path.read_text()))
@@ -53,6 +54,23 @@ def load_registry(registry_path: str | Path | None = None) -> list[RuneBinding]:
                 definition_path=str(entry["definition_path"]),
                 sigil_path=str(entry["sigil_path"]),
                 operator_path=operator_path,
+            )
+        )
+
+    # Load capability contracts (v2.0+ - for ABX-Runes coupling)
+    for cap_entry in payload.get("capabilities", []):
+        bindings.append(
+            RuneBinding(
+                rune_id=cap_entry["rune_id"],
+                short_name=cap_entry["capability_id"].split(".")[-1],
+                name=cap_entry["capability_id"],
+                version=cap_entry["version"],
+                capability=cap_entry["capability_id"],
+                inputs=[],
+                outputs=[],
+                definition_path="",
+                sigil_path="",
+                operator_path=cap_entry["operator_path"],
             )
         )
 
