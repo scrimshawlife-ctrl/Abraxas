@@ -11,7 +11,6 @@ from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
 from abraxas.conspiracy.csp import compute_term_csp
-from abraxas.forecast.term_classify import classify_term
 from abx.truth_pollution import compute_tpi_for_run
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -38,6 +37,9 @@ def main() -> int:
     p.add_argument("--now", default=None, help="Optional ISO now override")
     p.add_argument("--value-ledger", default="out/value_ledgers/a2_phase_runs.jsonl")
     args = p.parse_args()
+
+    # Create rune context early for use in nested functions
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.a2_phase", git_hash="unknown")
 
     ts = _utc_now_iso()
     profiles_full = build_temporal_profiles(
@@ -284,7 +286,13 @@ def main() -> int:
         term = str(out_profile.get("term") or "").strip()
         if not term:
             return out_profile
-        term_class = classify_term(out_profile)
+        classify_result = invoke_capability(
+            "forecast.term.classify",
+            {"profile": out_profile},
+            ctx=ctx,
+            strict_execution=True
+        )
+        term_class = classify_result["classification"]
         out_profile["term_csp_summary"] = compute_term_csp(
             term=term,
             profile=out_profile,
@@ -338,7 +346,6 @@ def main() -> int:
     }
     out["views"]["top_by_phase"] = top_by_phase
 
-    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.a2_phase", git_hash="unknown")
     result = invoke_capability(
         "evolve.policy.enforce_non_truncation",
         {"artifact": out, "raw_full": {"profiles": profiles_full_dicts}},
@@ -378,7 +385,6 @@ def main() -> int:
             f.write("\n")
 
     # Use capability contract for ledger append
-    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.a2_phase", git_hash="unknown")
     invoke_capability(
         "evolve.ledger.append",
         {"path": args.value_ledger, "record": {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry}},

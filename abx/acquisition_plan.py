@@ -10,8 +10,9 @@ from typing import Any, Dict, List
 from abraxas.acquire.decodo_client import build_decodo_query, decodo_status
 from abraxas.acquire.vector_map_schema import default_vector_map_v0_1
 from abraxas.conspiracy.csp import compute_term_csp
-from abraxas.forecast.term_classify import classify_term
 from abx.ml_index import load_ml_map
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -83,6 +84,9 @@ def main() -> int:
     p.add_argument("--max-terms", type=int, default=20)
     args = p.parse_args()
 
+    # Create rune context for capability invocations
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.acquisition_plan", git_hash="unknown")
+
     ts = _utc_now_iso()
     a2_path = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     mwr_path = os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
@@ -128,7 +132,13 @@ def main() -> int:
         term = str(p0.get("term") or "").strip()
         if not term:
             continue
-        tcls = classify_term(p0)
+        classify_result = invoke_capability(
+            "forecast.term.classify",
+            {"profile": p0},
+            ctx=ctx,
+            strict_execution=True
+        )
+        tcls = classify_result["classification"]
         miss = _missing_signals(p0, dmx_overall)
         csp = compute_term_csp(
             term=term,
