@@ -6,8 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
 from abraxas.memetic.claim_cluster import cluster_claims
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.memetic.claim_extract import extract_claim_items_from_sources
 from abraxas.memetic.claims_sources import load_sources_from_osh
 
@@ -65,10 +66,14 @@ def main() -> int:
         },
     }
 
-    out = enforce_non_truncation(
-        artifact=core,
-        raw_full={"sources": sources, "signals": sig, "items": items, "clusters": clusters},
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.claims_run", git_hash="unknown")
+    result = invoke_capability(
+        "evolve.policy.enforce_non_truncation",
+        {"artifact": core, "raw_full": {"sources": sources, "signals": sig, "items": items, "clusters": clusters}},
+        ctx=ctx,
+        strict_execution=True
     )
+    out = result["artifact"]
     path = os.path.join(args.out_reports, f"claims_{args.run_id}.json")
     _write_json(path, out)
     print(f"[CLAIMS_RUN] wrote: {path}")

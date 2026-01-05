@@ -498,6 +498,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "mutation"
+    },
+    {
+      "capability_id": "evolve.policy.enforce_non_truncation",
+      "rune_id": "ϟ_EVOLVE_NON_TRUNCATION",
+      "operator_path": "abraxas.evolve.policy_rune_adapter:enforce_non_truncation_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/non_truncation_input.schema.json",
+      "output_schema": "schemas/capabilities/non_truncation_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "mutation"
     }
   ],
   "provenance": {

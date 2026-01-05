@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/non_truncation_output.json",
+  "title": "Non-Truncation Policy Output",
+  "description": "Output schema for evolve.policy.enforce_non_truncation capability",
+  "type": "object",
+  "required": ["success", "artifact", "provenance", "not_computable"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the policy enforcement succeeded"
+    },
+    "artifact": {
+      "oneOf": [
+        {"type": "object"},
+        {"type": "null"}
+      ],
+      "description": "Enhanced artifact with non-truncation policy applied (null if failed)"
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "result_hash", "config_hash", "inputs_hash"],
+          "properties": {
+            "operation_id": {"type": "string"},
+            "result_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "config_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "seed": {"type": ["integer", "null"]}
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Provenance envelope with SHA-256 hashes"
+    },
+    "not_computable": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason", "missing_inputs"],
+          "properties": {
+            "reason": {"type": "string"},
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Error details if operation failed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "evolve.policy.enforce_non_truncation",
+    "version": "1.0.0"
+  }
+}

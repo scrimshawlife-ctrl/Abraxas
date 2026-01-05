@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/non_truncation_input.json",
+  "title": "Non-Truncation Policy Input",
+  "description": "Input schema for evolve.policy.enforce_non_truncation capability",
+  "type": "object",
+  "required": ["artifact", "raw_full"],
+  "properties": {
+    "artifact": {
+      "type": "object",
+      "minProperties": 0,
+      "description": "Base artifact dictionary to enhance with non-truncation policy"
+    },
+    "raw_full": {
+      "description": "Full raw data to preserve (any type: dict, list, string, etc.)"
+    },
+    "raw_full_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional path to write raw_full to disk (if omitted, raw_full is embedded)"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for non-truncation, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "evolve.policy.enforce_non_truncation",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": true
+  }
+}

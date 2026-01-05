@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
 from abraxas.evidence.lift import load_bundles_from_index, term_lift, uplift_factors
 from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
@@ -339,10 +338,14 @@ def main() -> int:
     }
     out["views"]["top_by_phase"] = top_by_phase
 
-    out = enforce_non_truncation(
-        artifact=out,
-        raw_full={"profiles": profiles_full_dicts},
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.a2_phase", git_hash="unknown")
+    result = invoke_capability(
+        "evolve.policy.enforce_non_truncation",
+        {"artifact": out, "raw_full": {"profiles": profiles_full_dicts}},
+        ctx=ctx,
+        strict_execution=True
     )
+    out = result["artifact"]
     jpath = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     mpath = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.md")
     _write_json(jpath, out)

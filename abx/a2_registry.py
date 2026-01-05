@@ -4,8 +4,9 @@ import argparse
 import json
 import os
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
 from abraxas.memetic.registry import append_a2_terms_to_registry, compute_missed_terms
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _write_json(path: str, obj: object) -> None:
@@ -40,18 +41,25 @@ def main() -> int:
             registry_path=args.registry,
             resurrect_after_days=int(args.resurrect_after_days),
         )
-        rep = enforce_non_truncation(
-            artifact=rep,
-            raw_full={
-                "missed": list(rep.get("missed") or []),
-                "resurrected": list(rep.get("resurrected") or []),
+        run_id = args.run_id or rep.get("run_id") or "unknown"
+        ctx = RuneInvocationContext(run_id=run_id, subsystem_id="abx.a2_registry", git_hash="unknown")
+        result = invoke_capability(
+            "evolve.policy.enforce_non_truncation",
+            {
+                "artifact": rep,
+                "raw_full": {
+                    "missed": list(rep.get("missed") or []),
+                    "resurrected": list(rep.get("resurrected") or []),
+                },
             },
+            ctx=ctx,
+            strict_execution=True
         )
+        rep = result["artifact"]
         rep["views"] = {
             "missed_top": list((rep.get("missed") or [])[:40]),
             "resurrected_top": list((rep.get("resurrected") or [])[:40]),
         }
-        run_id = args.run_id or rep.get("run_id") or "unknown"
         jpath = os.path.join(args.out_reports, f"a2_missed_{run_id}.json")
         mpath = os.path.join(args.out_reports, f"a2_missed_{run_id}.md")
         _write_json(jpath, rep)
