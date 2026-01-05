@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/load_dmx_context_input.json",
+  "title": "Load DMX Context Input",
+  "description": "Input schema for memetic.dmx_context.load capability",
+  "type": "object",
+  "required": ["mwr_path"],
+  "properties": {
+    "mwr_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Path to MWR (Mimetic Weather Report) artifact file"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for load_dmx_context, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.dmx_context.load",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": true
+  }
+}

@@ -531,6 +531,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "pure_function"
+    },
+    {
+      "capability_id": "memetic.dmx_context.load",
+      "rune_id": "ϟ_MEMETIC_DMX_LOAD",
+      "operator_path": "abraxas.memetic.dmx_rune_adapter:load_dmx_context_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/load_dmx_context_input.schema.json",
+      "output_schema": "schemas/capabilities/load_dmx_context_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "pure_function"
     }
   ],
   "provenance": {

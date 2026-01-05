@@ -11,7 +11,6 @@ from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.forecast.term_class_map import load_term_class_map
 from abraxas.forecast.ledger import issue_prediction
 from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
-from abraxas.memetic.dmx_context import load_dmx_context
 from abraxas.memetic.term_index import build_term_index, reduce_weighted_metrics
 
 
@@ -40,7 +39,14 @@ def main() -> int:
         annotated = []
 
     mwr_path = args.mwr or os.path.join("out", "reports", f"mwr_{args.run_id}.json")
-    dmx_ctx = load_dmx_context(mwr_path)
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_log", git_hash="unknown")
+    dmx_result = invoke_capability(
+        "memetic.dmx_context.load",
+        {"mwr_path": mwr_path},
+        ctx=ctx,
+        strict_execution=True
+    )
+    dmx_ctx = dmx_result["dmx_context"]
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
     dmx_bucket = str(dmx_ctx.get("bucket") or "LOW").upper()
 

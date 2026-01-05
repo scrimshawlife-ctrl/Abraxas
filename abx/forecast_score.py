@@ -10,7 +10,6 @@ from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.forecast.scoring import ExpectedErrorBand, brier_score, expected_error_band
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
-from abraxas.memetic.dmx_context import load_dmx_context
 
 
 def _utc_now_iso() -> str:
@@ -91,9 +90,15 @@ def main() -> int:
 
     gate_inputs = _extract_gate_inputs(a2_phase)
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
-    dmx_ctx = load_dmx_context(mwr_path)
-    dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_score", git_hash="unknown")
+    dmx_result = invoke_capability(
+        "memetic.dmx_context.load",
+        {"mwr_path": mwr_path},
+        ctx=ctx,
+        strict_execution=True
+    )
+    dmx_ctx = dmx_result["dmx_context"]
+    dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
     base_gate_result = invoke_capability(
         "forecast.gating.decide_gate",
         {
