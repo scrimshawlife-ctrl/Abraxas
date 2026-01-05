@@ -5,7 +5,8 @@ import json
 import os
 
 from abraxas.evolve.evogate_builder import build_evogate
-from abraxas.evolve.ledger import append_chained_jsonl
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def main() -> int:
@@ -67,9 +68,13 @@ def main() -> int:
         replay_cmd=args.replay_cmd,
         thresholds=thresholds,
     )
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "evogate_json": json_path, "meta": meta},
+    # Use capability contract for ledger append
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.evogate", git_hash="unknown")
+    invoke_capability(
+        "evolve.ledger.append",
+        {"path": args.value_ledger, "record": {"run_id": args.run_id, "evogate_json": json_path, "meta": meta}},
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[EVOGATE] wrote: {json_path}")
     print(f"[EVOGATE] wrote: {md_path}")

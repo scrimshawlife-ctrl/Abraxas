@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/ledger_append_input.json",
+  "title": "Ledger Append Input",
+  "description": "Input schema for evolve.ledger.append capability",
+  "type": "object",
+  "required": ["path", "record"],
+  "properties": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Path to the JSONL ledger file (creates parent directories if needed)"
+    },
+    "record": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Dictionary record to append to the ledger (will be enhanced with prev_hash and step_hash)"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for ledger append, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "evolve.ledger.append",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": true
+  }
+}

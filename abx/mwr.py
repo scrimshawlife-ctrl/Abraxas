@@ -9,7 +9,8 @@ from typing import Any, Dict, List
 from abraxas.evolve.non_truncation import enforce_non_truncation
 from abraxas.memetic.dmx import compute_dmx
 from abraxas.memetic.extract import build_mimetic_weather, extract_terms, read_oracle_texts
-from abraxas.evolve.ledger import append_chained_jsonl
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -109,14 +110,21 @@ def main() -> int:
             if unit.supporting_terms:
                 f.write(f"  - terms: {', '.join(unit.supporting_terms[:12])}\n")
 
-    append_chained_jsonl(
-        args.value_ledger,
+    # Use capability contract for ledger append
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.mwr", git_hash="unknown")
+    invoke_capability(
+        "evolve.ledger.append",
         {
-            "run_id": args.run_id,
-            "mwr_json": mwr_json,
-            "a2_json": a2_json,
-            "oracle_paths": list(args.oracle_paths),
+            "path": args.value_ledger,
+            "record": {
+                "run_id": args.run_id,
+                "mwr_json": mwr_json,
+                "a2_json": a2_json,
+                "oracle_paths": list(args.oracle_paths),
+            }
         },
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[A2] wrote: {a2_json}")
     print(f"[A2] wrote: {a2_md}")

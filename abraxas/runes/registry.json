@@ -487,6 +487,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "evolve.ledger.append",
+      "rune_id": "ϟ_EVOLVE_LEDGER_APPEND",
+      "operator_path": "abraxas.evolve.rune_adapter:append_ledger_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/ledger_append_input.schema.json",
+      "output_schema": "schemas/capabilities/ledger_append_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "mutation"
     }
   ],
   "provenance": {
