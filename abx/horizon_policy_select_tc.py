@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.horizon_bins import horizon_bucket
 from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -113,12 +112,14 @@ def main() -> int:
         y = 1 if res == "hit" else 0
         tk = _term_key(pr)
         cls = term_class.get(tk, "unknown") if tk else "unknown"
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
+        h_result = invoke_capability("forecast.horizon.bucket", {"horizon": pr.get("horizon")}, ctx=ctx, strict_execution=True)
         resolved.append(
             {
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": horizon_bucket(pr.get("horizon")),
+                "h": h_result["bucket"],
                 "dmx": _dmx_bucket(pr),
                 "class": cls,
             }

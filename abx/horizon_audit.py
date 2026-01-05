@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.horizon_bins import horizon_bucket
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -87,7 +86,9 @@ def main() -> int:
         result = str(out.get("result") or "")
         y = 1 if result == "hit" else 0
         p0 = float(pred.get("p") or 0.5)
-        horizon = horizon_bucket(pred.get("horizon"))
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_audit", git_hash="unknown")
+        h_result = invoke_capability("forecast.horizon.bucket", {"horizon": pred.get("horizon")}, ctx=ctx, strict_execution=True)
+        horizon = h_result["bucket"]
         dmx_b = _dmx_bucket(pred)
 
         by_h.setdefault(horizon, ([], []))[0].append(p0)

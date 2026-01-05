@@ -509,6 +509,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "mutation"
+    },
+    {
+      "capability_id": "forecast.horizon.bucket",
+      "rune_id": "ϟ_FORECAST_HORIZON_BUCKET",
+      "operator_path": "abraxas.forecast.horizon_rune_adapter:horizon_bucket_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/horizon_bucket_input.schema.json",
+      "output_schema": "schemas/capabilities/horizon_bucket_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "pure_function"
     }
   ],
   "provenance": {
