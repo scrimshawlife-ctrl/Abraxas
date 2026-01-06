@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.horizon_bins import horizon_bucket
+# horizon_bucket replaced by forecast.horizon.classify capability
 from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -118,7 +118,12 @@ def main() -> int:
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": horizon_bucket(pr.get("horizon")),
+                "h": invoke_capability(
+                    "forecast.horizon.classify",
+                    {"horizon": pr.get("horizon")},
+                    ctx=ctx,
+                    strict_execution=True
+                )["horizon_bucket"],
                 "dmx": _dmx_bucket(pr),
                 "class": cls,
             }

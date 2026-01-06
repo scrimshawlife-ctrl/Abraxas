@@ -509,6 +509,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "policy_enforcement"
+    },
+    {
+      "capability_id": "forecast.horizon.classify",
+      "rune_id": "ϟ_FORECAST_HORIZON",
+      "operator_path": "abraxas.forecast.rune_adapter:classify_horizon_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/horizon_classify_input.schema.json",
+      "output_schema": "schemas/capabilities/horizon_classify_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
     }
   ],
   "provenance": {
