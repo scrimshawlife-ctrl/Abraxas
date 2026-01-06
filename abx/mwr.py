@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
 from abraxas.memetic.dmx import compute_dmx
 from abraxas.memetic.extract import build_mimetic_weather, extract_terms, read_oracle_texts
 from abraxas.runes.invoke import invoke_capability
@@ -59,10 +58,24 @@ def main() -> int:
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths)},
     }
-    a2 = enforce_non_truncation(
-        artifact=a2,
-        raw_full={"terms": [t.to_dict() for t in terms]},
+
+    # Enforce non-truncation policy for a2 artifact
+    ctx_a2 = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
     )
+    result_a2 = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": a2,
+            "raw_full": {"terms": [t.to_dict() for t in terms]}
+        },
+        ctx=ctx_a2,
+        strict_execution=True
+    )
+    a2 = result_a2["artifact"]
+
     a2["views"] = {"top_terms": [t.to_dict() for t in terms[:25]]}
     a2_json = os.path.join(args.out_dir, f"a2_{args.run_id}.json")
     a2_md = os.path.join(args.out_dir, f"a2_{args.run_id}.md")
@@ -87,10 +100,24 @@ def main() -> int:
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths), "a2_terms": a2_json},
     }
-    mwr = enforce_non_truncation(
-        artifact=mwr,
-        raw_full={"units": [u.to_dict() for u in units]},
+
+    # Enforce non-truncation policy for mwr artifact
+    ctx_mwr = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
     )
+    result_mwr = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": mwr,
+            "raw_full": {"units": [u.to_dict() for u in units]}
+        },
+        ctx=ctx_mwr,
+        strict_execution=True
+    )
+    mwr = result_mwr["artifact"]
+
     mwr["views"] = {
         "top_units": [u.to_dict() for u in units[:8]],
     }

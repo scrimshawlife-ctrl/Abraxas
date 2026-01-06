@@ -6,7 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.forecast.gating_policy import decide_gate
 from abraxas.forecast.scoring import ExpectedErrorBand, brier_score, expected_error_band
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
@@ -166,10 +167,23 @@ def main() -> int:
         "views": {"annotated_top_30": annotated[:30]},
         "provenance": {"builder": "abx.forecast_score.v0.1"},
     }
-    out = enforce_non_truncation(
-        artifact=out_core,
-        raw_full={"annotated": list(annotated)},
+
+    # Enforce non-truncation policy via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_score",
+        git_hash="unknown"
     )
+    result = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": out_core,
+            "raw_full": {"annotated": list(annotated)}
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    out = result["artifact"]
 
     jpath = os.path.join(args.out_reports, f"forecast_score_{args.run_id}.json")
     mpath = os.path.join(args.out_reports, f"forecast_score_{args.run_id}.md")

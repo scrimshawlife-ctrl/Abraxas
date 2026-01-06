@@ -1,6 +1,6 @@
-"""Rune adapter for evolution ledger capabilities.
+"""Rune adapter for evolution capabilities.
 
-Thin adapter layer exposing evolve.ledger via ABX-Runes capability system.
+Thin adapter layer exposing evolve.* modules via ABX-Runes capability system.
 SEED Compliant: Deterministic, provenance-tracked.
 """
 
@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 
 from abraxas.core.provenance import canonical_envelope, hash_canonical_json
 from abraxas.evolve.ledger import append_chained_jsonl as append_chained_jsonl_core
+from abraxas.evolve.non_truncation import enforce_non_truncation as enforce_non_truncation_core
 
 
 def append_ledger_deterministic(
@@ -119,6 +120,91 @@ def append_ledger_deterministic(
     }
 
 
+def enforce_non_truncation_deterministic(
+    artifact: Dict[str, Any],
+    raw_full: Any,
+    raw_full_path: Optional[str] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible non-truncation policy enforcer.
+
+    Wraps existing enforce_non_truncation with provenance envelope and validation.
+    Ensures artifact preserves full raw data per NT-0 policy.
+
+    Args:
+        artifact: The artifact to augment with non-truncation policy
+        raw_full: Full raw data to preserve (embedded or written to disk)
+        raw_full_path: Optional path to write raw_full to disk
+        seed: Optional deterministic seed (unused for policy enforcement, kept for consistency)
+
+    Returns:
+        Dictionary with artifact, provenance, and optionally not_computable
+    """
+    # Validate inputs
+    if not artifact or not isinstance(artifact, dict):
+        return {
+            "artifact": None,
+            "not_computable": {
+                "reason": "Invalid artifact: must be non-empty dictionary",
+                "missing_inputs": ["artifact"]
+            },
+            "provenance": None
+        }
+
+    # raw_full can be any type (dict, list, string, number, etc.)
+    # so we don't validate its type, but we do need it to exist
+    if raw_full is None and "raw_full" not in artifact:
+        return {
+            "artifact": None,
+            "not_computable": {
+                "reason": "Invalid raw_full: must be provided",
+                "missing_inputs": ["raw_full"]
+            },
+            "provenance": None
+        }
+
+    # Call existing enforce_non_truncation function (no changes to core logic)
+    try:
+        result_artifact = enforce_non_truncation_core(
+            artifact=artifact,
+            raw_full=raw_full,
+            raw_full_path=raw_full_path
+        )
+    except Exception as e:
+        # Not computable - return structured error
+        return {
+            "artifact": None,
+            "not_computable": {
+                "reason": str(e),
+                "missing_inputs": []
+            },
+            "provenance": None
+        }
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"artifact": result_artifact},
+        config={},
+        inputs={
+            "artifact": artifact,
+            "raw_full": raw_full,
+            "raw_full_path": raw_full_path
+        },
+        operation_id="evolve.policy.enforce_non_truncation",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "artifact": result_artifact,
+        "provenance": envelope["provenance"],
+        "not_computable": envelope["not_computable"]
+    }
+
+
 __all__ = [
-    "append_ledger_deterministic"
+    "append_ledger_deterministic",
+    "enforce_non_truncation_deterministic"
 ]
