@@ -9,7 +9,9 @@ from typing import Any, Dict, Optional
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.forecast.gating_policy import decide_gate
-from abraxas.forecast.scoring import ExpectedErrorBand, brier_score, expected_error_band
+# brier_score and expected_error_band replaced by forecast.scoring capabilities
+# ExpectedErrorBand still needed for type reconstruction from capability result
+from abraxas.forecast.scoring import ExpectedErrorBand
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
 from abraxas.memetic.dmx_context import load_dmx_context
 
@@ -102,6 +104,13 @@ def main() -> int:
         manipulation_risk_mean=gate_inputs["manipulation_risk_mean"],
     ).to_dict()
 
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_score",
+        git_hash="unknown"
+    )
+
     annotated = []
     probs = []
     outcomes = []
@@ -130,13 +139,20 @@ def main() -> int:
             consensus_gap=gate_inputs["consensus_gap"],
             manipulation_risk_mean=risk,
         ).to_dict()
-        eeb = expected_error_band(
-            horizon=horizon,
-            phase=phase,
-            half_life_days=half_life,
-            manipulation_risk=risk,
-            recurrence_days=recurrence if recurrence is None else float(recurrence),
+        eeb_result = invoke_capability(
+            "forecast.scoring.expected_error_band",
+            {
+                "horizon": horizon,
+                "phase": phase,
+                "half_life_days": half_life,
+                "manipulation_risk": risk,
+                "recurrence_days": recurrence if recurrence is None else float(recurrence),
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        # expected_error_band returns dict, reconstruct ExpectedErrorBand object
+        eeb = ExpectedErrorBand(**eeb_result["error_band"])
         eeb_dict = _apply_eeb_multiplier(eeb, horizon_uncertainty_multiplier(horizon))
         eeb_dict = _scale_eeb_dict(eeb_dict, float(gate.get("eeb_multiplier") or 1.0))
         out_item = {
@@ -155,7 +171,13 @@ def main() -> int:
 
     calibration = {}
     if probs and outcomes:
-        calibration = {"brier": brier_score(probs, outcomes), "n_scored": len(probs)}
+        brier_result = invoke_capability(
+            "forecast.scoring.brier",
+            {"probs": probs, "outcomes": outcomes},
+            ctx=ctx,
+            strict_execution=True
+        )
+        calibration = {"brier": brier_result["brier_score"], "n_scored": len(probs)}
 
     out_core = {
         "version": "forecast_score.v0.1",
