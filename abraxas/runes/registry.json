@@ -487,6 +487,72 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "prediction_lane"
+    },
+    {
+      "capability_id": "evolve.ledger.append",
+      "rune_id": "ϟ_EVOLVE_LEDGER_APPEND",
+      "operator_path": "abraxas.evolve.rune_adapter:append_ledger_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/ledger_append_input.schema.json",
+      "output_schema": "schemas/capabilities/ledger_append_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "ledger_integrity"
+    },
+    {
+      "capability_id": "evolve.policy.enforce_non_truncation",
+      "rune_id": "ϟ_EVOLVE_NT_POLICY",
+      "operator_path": "abraxas.evolve.rune_adapter:enforce_non_truncation_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/non_truncation_input.schema.json",
+      "output_schema": "schemas/capabilities/non_truncation_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "policy_enforcement"
+    },
+    {
+      "capability_id": "forecast.horizon.classify",
+      "rune_id": "ϟ_FORECAST_HORIZON",
+      "operator_path": "abraxas.forecast.rune_adapter:classify_horizon_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/horizon_classify_input.schema.json",
+      "output_schema": "schemas/capabilities/horizon_classify_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
+    },
+    {
+      "capability_id": "forecast.term.classify",
+      "rune_id": "ϟ_FORECAST_TERM_CLASS",
+      "operator_path": "abraxas.forecast.rune_adapter:classify_term_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_classify_input.schema.json",
+      "output_schema": "schemas/capabilities/term_classify_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
+    },
+    {
+      "capability_id": "forecast.term_class_map.load",
+      "rune_id": "ϟ_FORECAST_TERM_MAP",
+      "operator_path": "abraxas.forecast.rune_adapter:load_term_class_map_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_class_map_input.schema.json",
+      "output_schema": "schemas/capabilities/term_class_map_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.claims_sources.load",
+      "rune_id": "ϟ_MEMETIC_SOURCES_LOAD",
+      "operator_path": "abraxas.memetic.rune_adapter:load_sources_from_osh_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/load_sources_osh_input.schema.json",
+      "output_schema": "schemas/capabilities/load_sources_osh_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
     }
   ],
   "provenance": {

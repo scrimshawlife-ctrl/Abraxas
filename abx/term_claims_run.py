@@ -6,10 +6,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.memetic.claim_cluster import cluster_claims
 from abraxas.memetic.claim_extract import extract_claim_items_from_sources
-from abraxas.memetic.claims_sources import load_sources_from_osh
+# load_sources_from_osh replaced by memetic.claims_sources.load capability
 from abraxas.memetic.term_assign import build_term_token_index, assign_claim_to_terms
 from abraxas.evidence.index import evidence_by_term
 from abraxas.evidence.support import support_weight_for_claim
@@ -75,7 +76,19 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
-    sources, sig = load_sources_from_osh(args.osh_ledger)
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.term_claims_run",
+        git_hash="unknown"
+    )
+    sources_result = invoke_capability(
+        "memetic.claims_sources.load",
+        {"osh_ledger_path": args.osh_ledger},
+        ctx=ctx,
+        strict_execution=True
+    )
+    sources, sig = sources_result["sources"], sources_result["stats"]
     items = extract_claim_items_from_sources(
         sources,
         run_id=args.run_id,
@@ -220,16 +233,29 @@ def main() -> int:
         },
     }
 
-    out = enforce_non_truncation(
-        artifact=core,
-        raw_full={
-            "sources": sources,
-            "signals": sig,
-            "items": items,
-            "term_bins": term_bins,
-            "term_clusters": term_clusters,
-        },
+    # Enforce non-truncation policy via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.term_claims_run",
+        git_hash="unknown"
     )
+    result = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": core,
+            "raw_full": {
+                "sources": sources,
+                "signals": sig,
+                "items": items,
+                "term_bins": term_bins,
+                "term_clusters": term_clusters,
+            }
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    out = result["artifact"]
+
     path = os.path.join(args.out_reports, f"term_claims_{args.run_id}.json")
     _write_json(path, out)
     print(f"[TERM_CLAIMS_RUN] wrote: {path}")

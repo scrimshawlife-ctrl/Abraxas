@@ -1,6 +1,6 @@
-"""Rune adapter for forecast scoring capabilities.
+"""Rune adapter for forecast capabilities.
 
-Thin adapter layer exposing forecast.scoring via ABX-Runes capability system.
+Thin adapter layer exposing forecast.* modules via ABX-Runes capability system.
 SEED Compliant: Deterministic, provenance-tracked.
 """
 
@@ -11,6 +11,9 @@ from typing import Any, Dict, List, Optional
 from abraxas.core.provenance import canonical_envelope
 from abraxas.forecast.scoring import brier_score as brier_score_core
 from abraxas.forecast.scoring import expected_error_band as expected_error_band_core
+from abraxas.forecast.horizon_bins import horizon_bucket as horizon_bucket_core
+from abraxas.forecast.term_classify import classify_term as classify_term_core
+from abraxas.forecast.term_class_map import load_term_class_map as load_term_class_map_core
 
 
 def compute_brier_score_deterministic(
@@ -167,7 +170,124 @@ def compute_expected_error_band_deterministic(
     }
 
 
+def classify_horizon_deterministic(
+    horizon: Any,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible horizon classifier.
+
+    Wraps existing horizon_bucket with provenance envelope.
+    Normalizes horizon values into stable bins (days/weeks/months/years/unknown).
+
+    Args:
+        horizon: Horizon value to classify (any type - converted to string)
+        seed: Optional deterministic seed (unused for classification, kept for consistency)
+
+    Returns:
+        Dictionary with horizon_bucket, provenance, and not_computable (always None)
+    """
+    # Call existing horizon_bucket function (no changes to core logic)
+    bucket = horizon_bucket_core(horizon)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"horizon_bucket": bucket},
+        config={},
+        inputs={"horizon": horizon},
+        operation_id="forecast.horizon.classify",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "horizon_bucket": bucket,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # horizon classification never fails
+    }
+
+
+def classify_term_deterministic(
+    profile: Dict[str, Any],
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term stability classifier.
+
+    Wraps existing classify_term with provenance envelope.
+    Classifies terms into stability categories based on A2 profile metrics.
+
+    Args:
+        profile: A2 profile dict with metrics (consensus_gap_term, half_life_days, manipulation_risk, momentum, flags)
+        seed: Optional deterministic seed (unused for classification, kept for consistency)
+
+    Returns:
+        Dictionary with term_class, provenance, and not_computable (always None)
+    """
+    # Call existing classify_term function (no changes to core logic)
+    term_class = classify_term_core(profile)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_class": term_class},
+        config={},
+        inputs={"profile": profile},
+        operation_id="forecast.term.classify",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_class": term_class,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # term classification never fails, returns "unknown" for invalid inputs
+    }
+
+
+def load_term_class_map_deterministic(
+    a2_phase_path: str,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term class map loader.
+
+    Wraps existing load_term_class_map with provenance envelope.
+    Loads mapping from terms (lowercase) to their classification categories.
+
+    Args:
+        a2_phase_path: Path to a2_phase JSON artifact with term profiles
+        seed: Optional deterministic seed (unused for loading, kept for consistency)
+
+    Returns:
+        Dictionary with term_class_map, provenance, and not_computable (always None)
+    """
+    # Call existing load_term_class_map function (no changes to core logic)
+    term_map = load_term_class_map_core(a2_phase_path)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_class_map": term_map},
+        config={},
+        inputs={"a2_phase_path": a2_phase_path},
+        operation_id="forecast.term_class_map.load",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_class_map": term_map,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # map loading never fails, returns empty dict on error
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
-    "compute_expected_error_band_deterministic"
+    "compute_expected_error_band_deterministic",
+    "classify_horizon_deterministic",
+    "classify_term_deterministic",
+    "load_term_class_map_deterministic"
 ]

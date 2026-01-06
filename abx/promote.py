@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 
-from abraxas.evolve.ledger import append_chained_jsonl
 from abraxas.evolve.promotion_builder import build_promotion_packet
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def main() -> int:
@@ -35,9 +36,21 @@ def main() -> int:
         emit_canon_snapshot=bool(args.emit_canon_snapshot),
         force=bool(args.force),
     )
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "promotion_json": json_path, "meta": meta},
+
+    # Append to value ledger via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.promote",
+        git_hash="unknown"
+    )
+    invoke_capability(
+        capability="evolve.ledger.append",
+        inputs={
+            "ledger_path": args.value_ledger,
+            "record": {"run_id": args.run_id, "promotion_json": json_path, "meta": meta}
+        },
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[PROMOTE] wrote: {json_path}")
     print(f"[PROMOTE] wrote: {md_path}")
