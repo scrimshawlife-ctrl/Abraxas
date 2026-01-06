@@ -11,7 +11,7 @@ from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
 from abraxas.conspiracy.csp import compute_term_csp
-from abraxas.forecast.term_classify import classify_term
+# classify_term replaced by forecast.term.classify capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 from abx.truth_pollution import compute_tpi_for_run
@@ -279,12 +279,24 @@ def main() -> int:
     profiles_full_dicts = [_apply_tpi(p) for p in profiles_full_dicts]
     profiles_view_dicts = [_apply_tpi(p) for p in profiles_view_dicts]
 
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.a2_phase",
+        git_hash="unknown"
+    )
+
     def _apply_term_csp(profile: Dict[str, Any]) -> Dict[str, Any]:
         out_profile = dict(profile)
         term = str(out_profile.get("term") or "").strip()
         if not term:
             return out_profile
-        term_class = classify_term(out_profile)
+        term_class = invoke_capability(
+            "forecast.term.classify",
+            {"profile": out_profile},
+            ctx=ctx,
+            strict_execution=True
+        )["term_class"]
         out_profile["term_csp_summary"] = compute_term_csp(
             term=term,
             profile=out_profile,

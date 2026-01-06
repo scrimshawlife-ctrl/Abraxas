@@ -520,6 +520,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "classification"
+    },
+    {
+      "capability_id": "forecast.term.classify",
+      "rune_id": "ϟ_FORECAST_TERM_CLASS",
+      "operator_path": "abraxas.forecast.rune_adapter:classify_term_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_classify_input.schema.json",
+      "output_schema": "schemas/capabilities/term_classify_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
     }
   ],
   "provenance": {

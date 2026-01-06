@@ -12,6 +12,7 @@ from abraxas.core.provenance import canonical_envelope
 from abraxas.forecast.scoring import brier_score as brier_score_core
 from abraxas.forecast.scoring import expected_error_band as expected_error_band_core
 from abraxas.forecast.horizon_bins import horizon_bucket as horizon_bucket_core
+from abraxas.forecast.term_classify import classify_term as classify_term_core
 
 
 def compute_brier_score_deterministic(
@@ -206,8 +207,47 @@ def classify_horizon_deterministic(
     }
 
 
+def classify_term_deterministic(
+    profile: Dict[str, Any],
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term stability classifier.
+
+    Wraps existing classify_term with provenance envelope.
+    Classifies terms into stability categories based on A2 profile metrics.
+
+    Args:
+        profile: A2 profile dict with metrics (consensus_gap_term, half_life_days, manipulation_risk, momentum, flags)
+        seed: Optional deterministic seed (unused for classification, kept for consistency)
+
+    Returns:
+        Dictionary with term_class, provenance, and not_computable (always None)
+    """
+    # Call existing classify_term function (no changes to core logic)
+    term_class = classify_term_core(profile)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_class": term_class},
+        config={},
+        inputs={"profile": profile},
+        operation_id="forecast.term.classify",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_class": term_class,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # term classification never fails, returns "unknown" for invalid inputs
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
-    "classify_horizon_deterministic"
+    "classify_horizon_deterministic",
+    "classify_term_deterministic"
 ]

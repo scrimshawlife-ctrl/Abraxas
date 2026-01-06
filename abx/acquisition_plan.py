@@ -10,7 +10,9 @@ from typing import Any, Dict, List
 from abraxas.acquire.decodo_client import build_decodo_query, decodo_status
 from abraxas.acquire.vector_map_schema import default_vector_map_v0_1
 from abraxas.conspiracy.csp import compute_term_csp
-from abraxas.forecast.term_classify import classify_term
+# classify_term replaced by forecast.term.classify capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abx.ml_index import load_ml_map
 
 
@@ -124,11 +126,23 @@ def main() -> int:
     channels = vm.get("channels") if isinstance(vm, dict) else []
     channels = [c for c in channels if isinstance(c, dict) and c.get("enabled")]
 
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.acquisition_plan",
+        git_hash="unknown"
+    )
+
     for p0 in profs_sorted:
         term = str(p0.get("term") or "").strip()
         if not term:
             continue
-        tcls = classify_term(p0)
+        tcls = invoke_capability(
+            "forecast.term.classify",
+            {"profile": p0},
+            ctx=ctx,
+            strict_execution=True
+        )["term_class"]
         miss = _missing_signals(p0, dmx_overall)
         csp = compute_term_csp(
             term=term,
