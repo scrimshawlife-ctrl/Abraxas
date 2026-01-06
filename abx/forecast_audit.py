@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.evolve.ledger import append_chained_jsonl
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -124,7 +123,19 @@ def main() -> int:
         "coverage_by_bucket": bucket_counts,
         "provenance": {"method": "abx.forecast_audit.v0.1"},
     }
-    append_chained_jsonl(args.audit_ledger, row)
+
+    # Append to audit ledger via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_audit",
+        git_hash="unknown"
+    )
+    invoke_capability(
+        capability="evolve.ledger.append",
+        inputs={"ledger_path": args.audit_ledger, "record": row},
+        ctx=ctx,
+        strict_execution=True
+    )
     json_path = os.path.join(args.out_reports, f"forecast_audit_{args.run_id}.json")
     md_path = os.path.join(args.out_reports, f"forecast_audit_{args.run_id}.md")
     os.makedirs(os.path.dirname(json_path), exist_ok=True)
