@@ -7,11 +7,13 @@ from typing import Any, Dict
 
 from abraxas.forecast.gating_policy import decide_gate
 from abraxas.forecast.horizon_policy import compare_horizon, enforce_horizon_policy
-from abraxas.forecast.term_class_map import load_term_class_map
+# load_term_class_map replaced by forecast.term_class_map.load capability
 from abraxas.forecast.ledger import issue_prediction
 from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
 from abraxas.memetic.dmx_context import load_dmx_context
 from abraxas.memetic.term_index import build_term_index, reduce_weighted_metrics
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _read_json(path: str) -> Dict[str, Any]:
@@ -58,7 +60,18 @@ def main() -> int:
         except Exception:
             policy = {}
     a2_path = os.path.join("out", "reports", f"a2_phase_{args.run_id}.json")
-    term_class = load_term_class_map(a2_path)
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_log",
+        git_hash="unknown"
+    )
+    term_class = invoke_capability(
+        "forecast.term_class_map.load",
+        {"a2_phase_path": a2_path},
+        ctx=ctx,
+        strict_execution=True
+    )["term_class_map"]
     term_csp: Dict[str, Any] = {}
     try:
         if os.path.exists(a2_path):

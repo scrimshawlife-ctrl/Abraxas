@@ -13,6 +13,7 @@ from abraxas.forecast.scoring import brier_score as brier_score_core
 from abraxas.forecast.scoring import expected_error_band as expected_error_band_core
 from abraxas.forecast.horizon_bins import horizon_bucket as horizon_bucket_core
 from abraxas.forecast.term_classify import classify_term as classify_term_core
+from abraxas.forecast.term_class_map import load_term_class_map as load_term_class_map_core
 
 
 def compute_brier_score_deterministic(
@@ -245,9 +246,48 @@ def classify_term_deterministic(
     }
 
 
+def load_term_class_map_deterministic(
+    a2_phase_path: str,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term class map loader.
+
+    Wraps existing load_term_class_map with provenance envelope.
+    Loads mapping from terms (lowercase) to their classification categories.
+
+    Args:
+        a2_phase_path: Path to a2_phase JSON artifact with term profiles
+        seed: Optional deterministic seed (unused for loading, kept for consistency)
+
+    Returns:
+        Dictionary with term_class_map, provenance, and not_computable (always None)
+    """
+    # Call existing load_term_class_map function (no changes to core logic)
+    term_map = load_term_class_map_core(a2_phase_path)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_class_map": term_map},
+        config={},
+        inputs={"a2_phase_path": a2_phase_path},
+        operation_id="forecast.term_class_map.load",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_class_map": term_map,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # map loading never fails, returns empty dict on error
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
     "classify_horizon_deterministic",
-    "classify_term_deterministic"
+    "classify_term_deterministic",
+    "load_term_class_map_deterministic"
 ]

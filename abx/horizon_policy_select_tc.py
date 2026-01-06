@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 # horizon_bucket replaced by forecast.horizon.classify capability
+# load_term_class_map replaced by forecast.term_class_map.load capability
 from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.forecast.term_class_map import load_term_class_map
 
 
 def _utc_now_iso() -> str:
@@ -98,7 +98,18 @@ def main() -> int:
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
 
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
-    term_class = load_term_class_map(a2_path)
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.horizon_policy_select_tc",
+        git_hash="unknown"
+    )
+    term_class = invoke_capability(
+        "forecast.term_class_map.load",
+        {"a2_phase_path": a2_path},
+        ctx=ctx,
+        strict_execution=True
+    )["term_class_map"]
 
     resolved: List[Dict[str, Any]] = []
     for pr in preds:

@@ -531,6 +531,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "classification"
+    },
+    {
+      "capability_id": "forecast.term_class_map.load",
+      "rune_id": "ϟ_FORECAST_TERM_MAP",
+      "operator_path": "abraxas.forecast.rune_adapter:load_term_class_map_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_class_map_input.schema.json",
+      "output_schema": "schemas/capabilities/term_class_map_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
     }
   ],
   "provenance": {
