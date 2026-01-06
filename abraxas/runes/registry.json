@@ -542,6 +542,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.claims_sources.load",
+      "rune_id": "ϟ_MEMETIC_SOURCES_LOAD",
+      "operator_path": "abraxas.memetic.rune_adapter:load_sources_from_osh_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/load_sources_osh_input.schema.json",
+      "output_schema": "schemas/capabilities/load_sources_osh_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
     }
   ],
   "provenance": {
