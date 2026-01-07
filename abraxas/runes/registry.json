@@ -553,6 +553,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.claim_extract.extract",
+      "rune_id": "ϟ_MEMETIC_EXTRACT_CLAIMS",
+      "operator_path": "abraxas.memetic.rune_adapter:extract_claim_items_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/extract_claims_input.schema.json",
+      "output_schema": "schemas/capabilities/extract_claims_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.claim_cluster.cluster",
+      "rune_id": "ϟ_MEMETIC_CLUSTER_CLAIMS",
+      "operator_path": "abraxas.memetic.rune_adapter:cluster_claims_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/cluster_claims_input.schema.json",
+      "output_schema": "schemas/capabilities/cluster_claims_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
     }
   ],
   "provenance": {

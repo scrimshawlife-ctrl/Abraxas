@@ -8,9 +8,9 @@ from typing import Any, Dict, List
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.memetic.claim_cluster import cluster_claims
-from abraxas.memetic.claim_extract import extract_claim_items_from_sources
 # load_sources_from_osh replaced by memetic.claims_sources.load capability
+# extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
+# cluster_claims replaced by memetic.claim_cluster.cluster capability
 
 
 def _utc_now_iso() -> str:
@@ -47,16 +47,28 @@ def main() -> int:
         strict_execution=True
     )
     sources, sig = sources_result["sources"], sources_result["stats"]
-    items = extract_claim_items_from_sources(
-        sources,
-        run_id=args.run_id,
-        max_per_source=int(args.max_per_source),
+    items_result = invoke_capability(
+        "memetic.claim_extract.extract",
+        {
+            "sources": sources,
+            "run_id": args.run_id,
+            "max_per_source": int(args.max_per_source)
+        },
+        ctx=ctx,
+        strict_execution=True
     )
-    clusters, metrics = cluster_claims(
-        items,
-        sim_threshold=float(args.sim_threshold),
-        max_pairs=int(args.max_pairs),
+    items = items_result["items"]
+    cluster_result = invoke_capability(
+        "memetic.claim_cluster.cluster",
+        {
+            "items": items,
+            "sim_threshold": float(args.sim_threshold),
+            "max_pairs": int(args.max_pairs)
+        },
+        ctx=ctx,
+        strict_execution=True
     )
+    clusters, metrics = cluster_result["clusters"], cluster_result["metrics"]
 
     top_clusters = []
     for cluster in clusters[:8]:

@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from abraxas.core.provenance import canonical_envelope
 from abraxas.memetic.claims_sources import load_sources_from_osh as load_sources_from_osh_core
+from abraxas.memetic.claim_extract import extract_claim_items_from_sources as extract_claim_items_core
+from abraxas.memetic.claim_cluster import cluster_claims as cluster_claims_core
 
 
 def load_sources_from_osh_deterministic(
@@ -51,6 +53,104 @@ def load_sources_from_osh_deterministic(
     }
 
 
+def extract_claim_items_deterministic(
+    sources: List[Dict[str, Any]],
+    run_id: str,
+    max_per_source: int = 5,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible claim item extractor.
+
+    Wraps existing extract_claim_items_from_sources with provenance envelope.
+    Extracts claim sentences from source documents.
+
+    Args:
+        sources: List of source documents (from load_sources_from_osh)
+        run_id: Run identifier for provenance tracking
+        max_per_source: Maximum claim sentences to extract per source (default: 5)
+        seed: Optional deterministic seed (unused for extraction, kept for consistency)
+
+    Returns:
+        Dictionary with items list, provenance, and not_computable (always None)
+    """
+    # Call existing extract_claim_items_from_sources function (no changes to core logic)
+    items = extract_claim_items_core(
+        sources,
+        run_id=run_id,
+        max_per_source=max_per_source
+    )
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"items": items},
+        config={"max_per_source": max_per_source},
+        inputs={"sources": sources, "run_id": run_id},
+        operation_id="memetic.claim_extract.extract",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "items": items,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # extraction never fails, returns empty list on error
+    }
+
+
+def cluster_claims_deterministic(
+    items: List[Dict[str, Any]],
+    sim_threshold: float = 0.42,
+    max_pairs: int = 250000,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible claim clusterer.
+
+    Wraps existing cluster_claims with provenance envelope.
+    Clusters similar claim sentences using token Jaccard similarity.
+
+    Args:
+        items: List of claim items (from extract_claim_items_from_sources)
+        sim_threshold: Similarity threshold for clustering (default: 0.42)
+        max_pairs: Maximum pairwise comparisons to perform (default: 250000)
+        seed: Optional deterministic seed (unused for clustering, kept for consistency)
+
+    Returns:
+        Dictionary with clusters list, metrics dict, provenance, and not_computable (always None)
+    """
+    # Call existing cluster_claims function (no changes to core logic)
+    clusters, metrics = cluster_claims_core(
+        items,
+        sim_threshold=sim_threshold,
+        max_pairs=max_pairs
+    )
+
+    # Convert metrics to dict
+    metrics_dict = metrics.to_dict()
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"clusters": clusters, "metrics": metrics_dict},
+        config={"sim_threshold": sim_threshold, "max_pairs": max_pairs},
+        inputs={"items": items},
+        operation_id="memetic.claim_cluster.cluster",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "clusters": clusters,
+        "metrics": metrics_dict,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # clustering never fails, returns empty clusters on error
+    }
+
+
 __all__ = [
-    "load_sources_from_osh_deterministic"
+    "load_sources_from_osh_deterministic",
+    "extract_claim_items_deterministic",
+    "cluster_claims_deterministic"
 ]

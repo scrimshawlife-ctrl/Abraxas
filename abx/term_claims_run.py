@@ -8,9 +8,9 @@ from typing import Any, Dict, List
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.memetic.claim_cluster import cluster_claims
-from abraxas.memetic.claim_extract import extract_claim_items_from_sources
 # load_sources_from_osh replaced by memetic.claims_sources.load capability
+# extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
+# cluster_claims replaced by memetic.claim_cluster.cluster capability
 from abraxas.memetic.term_assign import build_term_token_index, assign_claim_to_terms
 from abraxas.evidence.index import evidence_by_term
 from abraxas.evidence.support import support_weight_for_claim
@@ -89,11 +89,17 @@ def main() -> int:
         strict_execution=True
     )
     sources, sig = sources_result["sources"], sources_result["stats"]
-    items = extract_claim_items_from_sources(
-        sources,
-        run_id=args.run_id,
-        max_per_source=int(args.max_per_source),
+    items_result = invoke_capability(
+        "memetic.claim_extract.extract",
+        {
+            "sources": sources,
+            "run_id": args.run_id,
+            "max_per_source": int(args.max_per_source)
+        },
+        ctx=ctx,
+        strict_execution=True
     )
+    items = items_result["items"]
 
     ev_by_term = evidence_by_term("out/evidence_bundles")
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
@@ -175,11 +181,17 @@ def main() -> int:
             cloned["evidence_support_debug"] = dbg
             cloned["claim_csp"] = claim_csp
             sub_items.append(cloned)
-        clusters, metrics = cluster_claims(
-            sub_items,
-            sim_threshold=float(args.sim_threshold),
-            max_pairs=int(args.max_pairs),
+        cluster_result = invoke_capability(
+            "memetic.claim_cluster.cluster",
+            {
+                "items": sub_items,
+                "sim_threshold": float(args.sim_threshold),
+                "max_pairs": int(args.max_pairs)
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        clusters, metrics = cluster_result["clusters"], cluster_result["metrics"]
         masses = []
         for cluster in clusters:
             mass = 0.0
