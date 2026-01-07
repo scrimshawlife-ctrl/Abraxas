@@ -608,6 +608,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.term_assign.build_index",
+      "rune_id": "ϟ_MEMETIC_TERM_TOKEN_INDEX",
+      "operator_path": "abraxas.memetic.rune_adapter:build_term_token_index_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_token_index_build_input.schema.json",
+      "output_schema": "schemas/capabilities/term_token_index_build_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.term_assign.assign",
+      "rune_id": "ϟ_MEMETIC_TERM_ASSIGN",
+      "operator_path": "abraxas.memetic.rune_adapter:assign_claim_to_terms_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_assign_input.schema.json",
+      "output_schema": "schemas/capabilities/term_assign_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
     }
   ],
   "provenance": {

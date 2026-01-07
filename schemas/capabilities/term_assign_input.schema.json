@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Assign Claim to Terms Input",
+  "description": "Input schema for memetic.term_assign.assign capability - assigns claim to terms via token overlap",
+  "type": "object",
+  "required": ["claim", "term_token_index"],
+  "properties": {
+    "claim": {
+      "type": "string",
+      "description": "Claim text to assign to terms"
+    },
+    "term_token_index": {
+      "type": "object",
+      "description": "Term → token set index (from build_index capability)",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "min_overlap": {
+      "type": "integer",
+      "description": "Minimum token overlap required (default: 1)",
+      "default": 1,
+      "minimum": 1
+    },
+    "max_terms": {
+      "type": "integer",
+      "description": "Maximum terms to return (default: 5)",
+      "default": 5,
+      "minimum": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

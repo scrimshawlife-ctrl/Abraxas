@@ -15,6 +15,8 @@ from abraxas.memetic.claim_cluster import cluster_claims as cluster_claims_core
 from abraxas.memetic.dmx_context import load_dmx_context as load_dmx_context_core
 from abraxas.memetic.term_index import build_term_index as build_term_index_core
 from abraxas.memetic.term_index import reduce_weighted_metrics as reduce_weighted_metrics_core
+from abraxas.memetic.term_assign import build_term_token_index as build_term_token_index_core
+from abraxas.memetic.term_assign import assign_claim_to_terms as assign_claim_to_terms_core
 
 
 def load_sources_from_osh_deterministic(
@@ -268,11 +270,110 @@ def reduce_weighted_metrics_deterministic(
     }
 
 
+def build_term_token_index_deterministic(
+    terms: List[str],
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term token index builder.
+
+    Wraps existing build_term_token_index with provenance envelope.
+    Builds term → token set index for claim assignment.
+
+    Args:
+        terms: List of term strings to tokenize and index
+        seed: Optional deterministic seed (unused for indexing, kept for consistency)
+
+    Returns:
+        Dictionary with term_token_index dict, provenance, and not_computable (always None)
+    """
+    # Call existing build_term_token_index function (returns dict[str, set[str]])
+    term_token_index_sets = build_term_token_index_core(terms)
+
+    # Convert sets to sorted lists for JSON serialization
+    term_token_index = {
+        term: sorted(list(tokens)) for term, tokens in term_token_index_sets.items()
+    }
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_token_index": term_token_index},
+        config={},
+        inputs={"terms": terms},
+        operation_id="memetic.term_assign.build_index",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_token_index": term_token_index,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # index building never fails, returns empty dict on error
+    }
+
+
+def assign_claim_to_terms_deterministic(
+    claim: str,
+    term_token_index: Dict[str, List[str]],
+    min_overlap: int = 1,
+    max_terms: int = 5,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible claim→term assigner.
+
+    Wraps existing assign_claim_to_terms with provenance envelope.
+    Assigns claim to terms via token overlap ranking.
+
+    Args:
+        claim: Claim text to assign to terms
+        term_token_index: Term → token list index (from build_term_token_index)
+        min_overlap: Minimum token overlap required (default: 1)
+        max_terms: Maximum terms to return (default: 5)
+        seed: Optional deterministic seed (unused for assignment, kept for consistency)
+
+    Returns:
+        Dictionary with assigned_terms list, provenance, and not_computable (always None)
+    """
+    # Convert lists back to sets for core function
+    term_token_index_sets = {
+        term: set(tokens) for term, tokens in term_token_index.items()
+    }
+
+    # Call existing assign_claim_to_terms function
+    assigned_terms = assign_claim_to_terms_core(
+        claim,
+        term_token_index_sets,
+        min_overlap=min_overlap,
+        max_terms=max_terms
+    )
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"assigned_terms": assigned_terms},
+        config={"min_overlap": min_overlap, "max_terms": max_terms},
+        inputs={"claim": claim, "term_token_index": term_token_index},
+        operation_id="memetic.term_assign.assign",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "assigned_terms": assigned_terms,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # term assignment never fails, returns empty list on error
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
     "cluster_claims_deterministic",
     "load_dmx_context_deterministic",
     "build_term_index_deterministic",
-    "reduce_weighted_metrics_deterministic"
+    "reduce_weighted_metrics_deterministic",
+    "build_term_token_index_deterministic",
+    "assign_claim_to_terms_deterministic"
 ]

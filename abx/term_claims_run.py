@@ -11,7 +11,7 @@ from abraxas.runes.ctx import RuneInvocationContext
 # load_sources_from_osh replaced by memetic.claims_sources.load capability
 # extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
 # cluster_claims replaced by memetic.claim_cluster.cluster capability
-from abraxas.memetic.term_assign import build_term_token_index, assign_claim_to_terms
+# build_term_token_index, assign_claim_to_terms replaced by memetic.term_assign.* capabilities
 from abraxas.evidence.index import evidence_by_term
 from abraxas.evidence.support import support_weight_for_claim
 from abraxas.conspiracy.csp import compute_claim_csp
@@ -124,17 +124,29 @@ def main() -> int:
     except Exception:
         term_csp_map = {}
     terms = _load_terms_from_a2(a2_path, max_terms=int(args.max_terms))
-    term_tok = build_term_token_index([t.lower() for t in terms])
+    term_tok_result = invoke_capability(
+        "memetic.term_assign.build_index",
+        {"terms": [t.lower() for t in terms]},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_tok = term_tok_result["term_token_index"]
 
     term_bins: Dict[str, List[int]] = {}
     for ix, item in enumerate(items):
         claim = str(item.get("claim") or "")
-        assigned = assign_claim_to_terms(
-            claim,
-            term_tok,
-            min_overlap=int(args.min_overlap),
-            max_terms=int(args.max_terms_per_claim),
+        assigned_result = invoke_capability(
+            "memetic.term_assign.assign",
+            {
+                "claim": claim,
+                "term_token_index": term_tok,
+                "min_overlap": int(args.min_overlap),
+                "max_terms": int(args.max_terms_per_claim)
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        assigned = assigned_result["assigned_terms"]
         for term in assigned:
             term_bins.setdefault(term, []).append(ix)
 
