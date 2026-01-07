@@ -489,6 +489,17 @@
       "evidence_mode": "prediction_lane"
     },
     {
+      "capability_id": "forecast.scoring.expected_error_band",
+      "rune_id": "ϟ_FORECAST_EEB",
+      "operator_path": "abraxas.forecast.rune_adapter:compute_expected_error_band_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/expected_error_band_input.schema.json",
+      "output_schema": "schemas/capabilities/expected_error_band_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane"
+    },
+    {
       "capability_id": "evolve.ledger.append",
       "rune_id": "ϟ_EVOLVE_LEDGER_APPEND",
       "operator_path": "abraxas.evolve.rune_adapter:append_ledger_deterministic",
@@ -608,6 +619,61 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "memetic.oracle_texts.read",
+      "rune_id": "ϟ_MEMETIC_ORACLE_TEXTS",
+      "operator_path": "abraxas.memetic.rune_adapter:read_oracle_texts_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/memetic_oracle_texts_input.schema.json",
+      "output_schema": "schemas/capabilities/memetic_oracle_texts_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.terms.extract",
+      "rune_id": "ϟ_MEMETIC_TERMS_EXTRACT",
+      "operator_path": "abraxas.memetic.rune_adapter:extract_terms_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/memetic_terms_extract_input.schema.json",
+      "output_schema": "schemas/capabilities/memetic_terms_extract_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "memetic.weather.build",
+      "rune_id": "ϟ_MEMETIC_WEATHER_BUILD",
+      "operator_path": "abraxas.memetic.rune_adapter:build_mimetic_weather_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/memetic_weather_build_input.schema.json",
+      "output_schema": "schemas/capabilities/memetic_weather_build_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "memetic.dmx.compute",
+      "rune_id": "ϟ_MEMETIC_DMX_COMPUTE",
+      "operator_path": "abraxas.memetic.rune_adapter:compute_dmx_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/memetic_dmx_compute_input.schema.json",
+      "output_schema": "schemas/capabilities/memetic_dmx_compute_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "memetic.dmx_context.load",
+      "rune_id": "ϟ_MEMETIC_DMX_CONTEXT",
+      "operator_path": "abraxas.memetic.rune_adapter:load_dmx_context_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/memetic_dmx_context_input.schema.json",
+      "output_schema": "schemas/capabilities/memetic_dmx_context_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
     }
   ],
   "provenance": {

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_oracle_texts_input.json",
+  "title": "Memetic Oracle Texts Read Input",
+  "description": "Input schema for memetic.oracle_texts.read capability",
+  "type": "object",
+  "required": ["path"],
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "Path to oracle output file (json/jsonl/md)"
+    },
+    "max_items": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 200,
+      "description": "Maximum number of entries to read"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.oracle_texts.read",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

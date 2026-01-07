@@ -10,7 +10,6 @@ from abraxas.forecast.horizon_policy import compare_horizon, enforce_horizon_pol
 # load_term_class_map replaced by forecast.term_class_map.load capability
 from abraxas.forecast.ledger import issue_prediction
 from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
-from abraxas.memetic.dmx_context import load_dmx_context
 from abraxas.memetic.term_index import build_term_index, reduce_weighted_metrics
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -40,8 +39,18 @@ def main() -> int:
     if not isinstance(annotated, list):
         annotated = []
 
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_log",
+        git_hash="unknown"
+    )
     mwr_path = args.mwr or os.path.join("out", "reports", f"mwr_{args.run_id}.json")
-    dmx_ctx = load_dmx_context(mwr_path)
+    dmx_ctx = invoke_capability(
+        "memetic.dmx_context.load",
+        {"mwr_path": mwr_path},
+        ctx=ctx,
+        strict_execution=True
+    ).get("dmx_context", {})
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
     dmx_bucket = str(dmx_ctx.get("bucket") or "LOW").upper()
 
@@ -60,12 +69,6 @@ def main() -> int:
         except Exception:
             policy = {}
     a2_path = os.path.join("out", "reports", f"a2_phase_{args.run_id}.json")
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.forecast_log",
-        git_hash="unknown"
-    )
     term_class = invoke_capability(
         "forecast.term_class_map.load",
         {"a2_phase_path": a2_path},

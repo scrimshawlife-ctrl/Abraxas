@@ -57,8 +57,43 @@
 
 ## TODO
 
-- Add determinism tests whenever new ABX-Runes capabilities are introduced.
-- Review and reduce remaining cross-subsystem coupling violations in `abx/`.
+- P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD).
+- P1 (in progress): Review and reduce remaining cross-subsystem coupling violations in `abx/`.
+  Initial audit targets:
+  - `abx/mwr.py` (memetic imports), `abx/forecast_log.py`, `abx/forecast_score.py`
+  - `abx/a2_phase.py`, `abx/term_claims_run.py`
+  - `abx/kernel.py`, `abx/server/app.py`, `abx/cli.py`
+  - `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
+  - `abx/operators/alive_*`
+
+## RuneInvocationContext (Oracle Pipeline)
+
+Oracle pipeline rune calls require a validated `RuneInvocationContext` with:
+
+- `run_id`: stable ID for the session/run (string)
+- `subsystem_id`: caller identifier (string, use `abx.core.pipeline` for `run_oracle`)
+- `git_hash`: repo revision identifier (string)
+
+Example:
+
+```python
+from abraxas.runes.ctx import RuneInvocationContext
+
+ctx = RuneInvocationContext(
+    run_id="ORACLE_RUN",
+    subsystem_id="abx.core.pipeline",
+    git_hash="unknown",
+)
+```
+
+## Recommendations
+
+- Standardize rune invocation context construction by centralizing defaults in a helper
+  (e.g., `abx.oracle.context.build_rune_ctx`) to prevent drift across pipelines.
+- Expand oracle pipeline tests to cover strict execution behavior (stub blocking and error
+  propagation) in addition to provenance checks.
+- Audit ABX-Runes capability IDs to ensure naming consistency (`rune:*` vs domain-specific
+  namespaces) and update migration docs accordingly.
 
 ---
 

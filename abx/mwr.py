@@ -6,8 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.memetic.dmx import compute_dmx
-from abraxas.memetic.extract import build_mimetic_weather, extract_terms, read_oracle_texts
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -39,22 +37,53 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
-    docs: List[tuple[str, str]] = []
+    docs: List[Dict[str, str]] = []
     for path in args.oracle_paths:
-        docs.extend(read_oracle_texts(path))
+        ctx = RuneInvocationContext(
+            run_id=args.run_id,
+            subsystem_id="abx.mwr",
+            git_hash="unknown"
+        )
+        result = invoke_capability(
+            "memetic.oracle_texts.read",
+            {"path": path},
+            ctx=ctx,
+            strict_execution=True
+        )
+        docs.extend(result.get("docs", []))
 
-    terms = extract_terms(docs, max_terms=int(args.max_terms))
-    units = build_mimetic_weather(args.run_id, terms, ts=ts)
-    dmx = compute_dmx(
-        sources=[],
-        signals=_extract_disinfo_signals(units),
-    ).to_dict()
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
+    )
+    terms_result = invoke_capability(
+        "memetic.terms.extract",
+        {"docs": docs, "max_terms": int(args.max_terms)},
+        ctx=ctx,
+        strict_execution=True
+    )
+    terms = terms_result.get("terms", [])
+    units_result = invoke_capability(
+        "memetic.weather.build",
+        {"run_id": args.run_id, "terms": terms, "ts": ts},
+        ctx=ctx,
+        strict_execution=True
+    )
+    units = units_result.get("units", [])
+    dmx_result = invoke_capability(
+        "memetic.dmx.compute",
+        {"sources": [], "signals": _extract_disinfo_signals(units)},
+        ctx=ctx,
+        strict_execution=True
+    )
+    dmx = dmx_result.get("dmx", {})
 
     a2 = {
         "version": "a2_terms.v0.1",
         "run_id": args.run_id,
         "ts": ts,
-        "terms": [t.to_dict() for t in terms],
+        "terms": list(terms),
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths)},
     }
@@ -69,14 +98,14 @@ def main() -> int:
         capability="evolve.policy.enforce_non_truncation",
         inputs={
             "artifact": a2,
-            "raw_full": {"terms": [t.to_dict() for t in terms]}
+            "raw_full": {"terms": list(terms)}
         },
         ctx=ctx_a2,
         strict_execution=True
     )
     a2 = result_a2["artifact"]
 
-    a2["views"] = {"top_terms": [t.to_dict() for t in terms[:25]]}
+    a2["views"] = {"top_terms": list(terms[:25])}
     a2_json = os.path.join(args.out_dir, f"a2_{args.run_id}.json")
     a2_md = os.path.join(args.out_dir, f"a2_{args.run_id}.md")
     _write_json(a2_json, a2)
@@ -86,17 +115,21 @@ def main() -> int:
         f.write(f"- run_id: `{args.run_id}`\n- ts: `{ts}`\n\n")
         f.write("## Top term candidates\n")
         for term in terms[:25]:
+            velocity = float(term.get("velocity_per_day") or 0.0)
+            novelty = float(term.get("novelty_score") or 0.0)
+            propagation = float(term.get("propagation_score") or 0.0)
+            risk = float(term.get("manipulation_risk") or 0.0)
             f.write(
-                f"- **{term.term}** count={term.count} vel/day={term.velocity_per_day:.2f} "
-                f"novelty={term.novelty_score:.2f} prop={term.propagation_score:.2f} "
-                f"risk={term.manipulation_risk:.2f} tags={term.tags}\n"
+                f"- **{term.get('term')}** count={term.get('count')} vel/day={velocity:.2f} "
+                f"novelty={novelty:.2f} prop={propagation:.2f} "
+                f"risk={risk:.2f} tags={term.get('tags')}\n"
             )
 
     mwr = {
         "version": "mimetic_weather.v0.1",
         "run_id": args.run_id,
         "ts": ts,
-        "units": [u.to_dict() for u in units],
+        "units": list(units),
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths), "a2_terms": a2_json},
     }
@@ -111,7 +144,7 @@ def main() -> int:
         capability="evolve.policy.enforce_non_truncation",
         inputs={
             "artifact": mwr,
-            "raw_full": {"units": [u.to_dict() for u in units]}
+            "raw_full": {"units": list(units)}
         },
         ctx=ctx_mwr,
         strict_execution=True
@@ -119,7 +152,7 @@ def main() -> int:
     mwr = result_mwr["artifact"]
 
     mwr["views"] = {
-        "top_units": [u.to_dict() for u in units[:8]],
+        "top_units": list(units[:8]),
     }
     mwr_json = os.path.join(args.out_dir, f"mwr_{args.run_id}.json")
     mwr_md = os.path.join(args.out_dir, f"mwr_{args.run_id}.md")
@@ -129,13 +162,16 @@ def main() -> int:
         f.write(f"- run_id: `{args.run_id}`\n- ts: `{ts}`\n\n")
         f.write("## Weather fronts\n")
         for unit in units:
+            intensity = float(unit.get("intensity") or 0.0)
+            confidence = float(unit.get("confidence") or 0.0)
             f.write(
-                f"- **{unit.label}** intensity={unit.intensity:.2f} dir={unit.direction} "
-                f"conf={unit.confidence:.2f} horizon={unit.horizon_tags} "
-                f"disinfo={unit.disinfo_metrics}\n"
+                f"- **{unit.get('label')}** intensity={intensity:.2f} dir={unit.get('direction')} "
+                f"conf={confidence:.2f} horizon={unit.get('horizon_tags')} "
+                f"disinfo={unit.get('disinfo_metrics')}\n"
             )
-            if unit.supporting_terms:
-                f.write(f"  - terms: {', '.join(unit.supporting_terms[:12])}\n")
+            supporting_terms = unit.get("supporting_terms") or []
+            if supporting_terms:
+                f.write(f"  - terms: {', '.join(supporting_terms[:12])}\n")
 
     # Append to value ledger via capability contract
     ctx = RuneInvocationContext(
@@ -167,12 +203,12 @@ def main() -> int:
 def _extract_disinfo_signals(units: List[Any]) -> Dict[str, Any]:
     disinfo_unit = None
     for unit in units:
-        if getattr(unit, "label", None) == "disinfo_fog":
+        if (unit.get("label") if isinstance(unit, dict) else None) == "disinfo_fog":
             disinfo_unit = unit
             break
     if not disinfo_unit:
         return {"ai_markers": 0.0, "bot_markers": 0.0, "incentive_markers": 0.0, "forensics_flags": 0}
-    metrics = getattr(disinfo_unit, "disinfo_metrics", {}) or {}
+    metrics = disinfo_unit.get("disinfo_metrics", {}) if isinstance(disinfo_unit, dict) else {}
     ai_markers = float(metrics.get("deepfake_pollution_risk") or 0.0)
     bot_markers = float(metrics.get("manipulation_risk_mean") or 0.0)
     return {

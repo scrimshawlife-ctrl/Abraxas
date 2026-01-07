@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_dmx_compute_input.json",
+  "title": "Memetic DMX Compute Input",
+  "description": "Input schema for memetic.dmx.compute capability",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": "array",
+      "items": {"type": "object", "additionalProperties": true}
+    },
+    "signals": {"type": "object", "additionalProperties": true},
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.dmx.compute",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

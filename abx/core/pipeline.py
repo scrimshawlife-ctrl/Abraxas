@@ -10,6 +10,7 @@ from typing import Any, Dict
 from abx.oracle.rune_gate import compute_gate, enforce_depth, schedule_insight_window
 from abx.oracle.drift import drift_check, append_drift_log
 from abx.oracle.provenance import stamp
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def run_oracle(
@@ -18,7 +19,9 @@ def run_oracle(
     context: Dict[str, Any] | None = None,
     requested_depth: str = "deep",
     anchor: str | None = None,
-    outputs_history: list[str] | None = None
+    outputs_history: list[str] | None = None,
+    rune_ctx: RuneInvocationContext | dict | None = None,
+    strict_execution: bool = True,
 ) -> Dict[str, Any]:
     """Run Abraxas Oracle pipeline with ABX-Runes integration.
 
@@ -54,11 +57,22 @@ def run_oracle(
         # Use input intent as anchor fallback
         anchor = input_obj.get("intent", "oracle")
 
+    if rune_ctx is None:
+        run_id = input_obj.get("run_id") or context.get("run_id") or "ORACLE_RUN"
+        git_hash = input_obj.get("git_hash") or context.get("git_hash") or "unknown"
+        rune_ctx = RuneInvocationContext(
+            run_id=str(run_id),
+            subsystem_id="abx.core.pipeline",
+            git_hash=str(git_hash),
+        )
+
     # B) Compute SDS gate (ϟ₄)
     gate_bundle = compute_gate(
         state_vector=state_vector,
         context=context,
-        interaction_kind="oracle"
+        interaction_kind="oracle",
+        ctx=rune_ctx,
+        strict_execution=strict_execution,
     )
 
     # C) Enforce depth based on gate state
@@ -89,14 +103,18 @@ def run_oracle(
     phase_series = output.get("phase_series", None)
     ipl_schedule = schedule_insight_window(
         phase_series=phase_series,
-        gate_bundle=gate_bundle
+        gate_bundle=gate_bundle,
+        ctx=rune_ctx,
+        strict_execution=strict_execution,
     )
 
     # F) Check anchor drift (ϟ₆)
     drift_bundle = drift_check(
         anchor=anchor,
         outputs_history=outputs_history,
-        window=20
+        window=20,
+        ctx=rune_ctx,
+        strict_execution=strict_execution,
     )
 
     # If auto_recenter is True, annotate output (do NOT mutate history)
