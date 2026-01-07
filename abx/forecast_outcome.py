@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 
-from abraxas.forecast.ledger import record_outcome
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 
 
 def main() -> int:
@@ -23,13 +24,23 @@ def main() -> int:
         if not isinstance(evidence, list):
             evidence = []
 
-    record_outcome(
-        pred_id=args.pred_id,
-        result=args.result,
+    ctx = RuneInvocationContext(
         run_id=args.run_id,
-        evidence=evidence,
-        notes=args.notes,
-        ledger_path=args.out_ledger,
+        subsystem_id="abx.forecast_outcome",
+        git_hash="unknown",
+    )
+    invoke_capability(
+        "forecast.outcome.record",
+        {
+            "pred_id": args.pred_id,
+            "result": args.result,
+            "run_id": args.run_id,
+            "evidence": evidence,
+            "notes": args.notes,
+            "ledger_path": args.out_ledger,
+        },
+        ctx=ctx,
+        strict_execution=True,
     )
     print(f"[FORECAST_OUTCOME] appended outcome for {args.pred_id} → {args.out_ledger}")
     return 0

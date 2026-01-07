@@ -4,13 +4,11 @@ import argparse
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.memetic.claim_cluster import cluster_claims
-from abraxas.memetic.claim_extract import extract_claim_items_from_sources
-# load_sources_from_osh replaced by memetic.claims_sources.load capability
+# memetic functions wired through capabilities
 
 
 def _utc_now_iso() -> str:
@@ -47,16 +45,29 @@ def main() -> int:
         strict_execution=True
     )
     sources, sig = sources_result["sources"], sources_result["stats"]
-    items = extract_claim_items_from_sources(
-        sources,
-        run_id=args.run_id,
-        max_per_source=int(args.max_per_source),
+    items_result = invoke_capability(
+        "memetic.claim_extract.items",
+        {
+            "sources": sources,
+            "run_id": args.run_id,
+            "max_per_source": int(args.max_per_source),
+        },
+        ctx=ctx,
+        strict_execution=True,
     )
-    clusters, metrics = cluster_claims(
-        items,
-        sim_threshold=float(args.sim_threshold),
-        max_pairs=int(args.max_pairs),
+    items = items_result["items"]
+    clusters_result = invoke_capability(
+        "memetic.claim_cluster.cluster",
+        {
+            "items": items,
+            "sim_threshold": float(args.sim_threshold),
+            "max_pairs": int(args.max_pairs),
+        },
+        ctx=ctx,
+        strict_execution=True,
     )
+    clusters = clusters_result["clusters"]
+    metrics = clusters_result["metrics"]
 
     top_clusters = []
     for cluster in clusters[:8]:
@@ -68,7 +79,7 @@ def main() -> int:
         "version": "claims.v0.1",
         "run_id": args.run_id,
         "ts": ts,
-        "metrics": metrics.to_dict(),
+        "metrics": metrics,
         "views": {"top_clusters": top_clusters},
         "provenance": {
             "builder": "abx.claims_run.v0.1",

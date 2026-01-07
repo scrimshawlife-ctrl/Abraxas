@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/forecast_outcome_output.json",
+  "title": "Forecast Outcome Output",
+  "description": "Output schema for forecast.outcome.record capability",
+  "type": "object",
+  "required": ["outcome", "provenance", "not_computable"],
+  "properties": {
+    "outcome": {
+      "type": "object",
+      "required": [
+        "version",
+        "pred_id",
+        "ts_observed",
+        "result",
+        "notes",
+        "evidence",
+        "provenance"
+      ],
+      "properties": {
+        "version": {"type": "string"},
+        "pred_id": {"type": "string"},
+        "ts_observed": {"type": "string"},
+        "result": {"type": "string"},
+        "notes": {"type": "string"},
+        "evidence": {"type": "array", "items": {"type": "object"}},
+        "provenance": {"type": "object"}
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "forecast.outcome.record"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - outcome recording is deterministic"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.outcome.record",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

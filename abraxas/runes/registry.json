@@ -544,6 +544,39 @@
       "evidence_mode": "data_loading"
     },
     {
+      "capability_id": "artifacts.proof_bundle.generate",
+      "rune_id": "ϟ_ARTIFACTS_PROOF_BUNDLE",
+      "operator_path": "abraxas.artifacts.rune_adapter:generate_proof_bundle_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/proof_bundle_input.schema.json",
+      "output_schema": "schemas/capabilities/proof_bundle_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "artifact_bundle"
+    },
+    {
+      "capability_id": "forecast.outcome.record",
+      "rune_id": "ϟ_FORECAST_OUTCOME",
+      "operator_path": "abraxas.forecast.rune_adapter:record_forecast_outcome_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/forecast_outcome_input.schema.json",
+      "output_schema": "schemas/capabilities/forecast_outcome_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "ledger_integrity"
+    },
+    {
+      "capability_id": "economics.costing.compute",
+      "rune_id": "ϟ_ECONOMICS_COST",
+      "operator_path": "abraxas.economics.rune_adapter:compute_cost_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/economics_cost_input.schema.json",
+      "output_schema": "schemas/capabilities/economics_cost_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "accounting"
+    },
+    {
       "capability_id": "memetic.claims_sources.load",
       "rune_id": "ϟ_MEMETIC_SOURCES_LOAD",
       "operator_path": "abraxas.memetic.rune_adapter:load_sources_from_osh_deterministic",
@@ -553,6 +586,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.claim_extract.items",
+      "rune_id": "ϟ_MEMETIC_CLAIM_EXTRACT",
+      "operator_path": "abraxas.memetic.rune_adapter:extract_claim_items_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/claim_extract_input.schema.json",
+      "output_schema": "schemas/capabilities/claim_extract_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "memetic.claim_cluster.cluster",
+      "rune_id": "ϟ_MEMETIC_CLAIM_CLUSTER",
+      "operator_path": "abraxas.memetic.rune_adapter:cluster_claims_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/claim_cluster_input.schema.json",
+      "output_schema": "schemas/capabilities/claim_cluster_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
     }
   ],
   "provenance": {
