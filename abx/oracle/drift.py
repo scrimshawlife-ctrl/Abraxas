@@ -5,13 +5,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from abraxas.runes.operators.add import apply_add
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 
 
 def drift_check(
     anchor: str,
     outputs_history: list[str],
-    window: int = 20
+    window: int = 20,
+    *,
+    ctx: RuneInvocationContext | dict,
+    strict_execution: bool = True,
 ) -> Dict[str, Any]:
     """Check for anchor drift using ADD rune.
 
@@ -23,10 +27,15 @@ def drift_check(
     Returns:
         ADD drift bundle with keys: drift_magnitude, integrity_score, auto_recenter, etc.
     """
-    return apply_add(
-        anchor=anchor,
-        outputs_history=outputs_history,
-        window=window
+    return invoke_capability(
+        "rune:add",
+        {
+            "anchor": anchor,
+            "outputs_history": outputs_history,
+            "window": window,
+        },
+        ctx=ctx,
+        strict_execution=strict_execution,
     )
 
 
