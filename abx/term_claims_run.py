@@ -12,8 +12,7 @@ from abraxas.runes.ctx import RuneInvocationContext
 # extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
 # cluster_claims replaced by memetic.claim_cluster.cluster capability
 # build_term_token_index, assign_claim_to_terms replaced by memetic.term_assign.* capabilities
-from abraxas.evidence.index import evidence_by_term
-from abraxas.evidence.support import support_weight_for_claim
+# evidence_by_term, support_weight_for_claim replaced by evidence.* capabilities
 from abraxas.conspiracy.csp import compute_claim_csp
 
 
@@ -101,7 +100,13 @@ def main() -> int:
     )
     items = items_result["items"]
 
-    ev_by_term = evidence_by_term("out/evidence_bundles")
+    ev_by_term_result = invoke_capability(
+        "evidence.index.evidence_by_term",
+        {"bundles_dir": "out/evidence_bundles"},
+        ctx=ctx,
+        strict_execution=True
+    )
+    ev_by_term = ev_by_term_result["evidence_by_term"]
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     term_csp_map: Dict[str, Dict[str, Any]] = {}
     try:
@@ -162,11 +167,17 @@ def main() -> int:
             text = str(item.get("claim") or "")
             key = (term, i)
             if key not in support_cache:
-                support_cache[key] = support_weight_for_claim(
-                    term=term,
-                    claim_text=text,
-                    evidence_by_term=ev_by_term,
+                support_result = invoke_capability(
+                    "evidence.support.support_weight",
+                    {
+                        "term": term,
+                        "claim_text": text,
+                        "evidence_by_term": ev_by_term
+                    },
+                    ctx=ctx,
+                    strict_execution=True
                 )
+                support_cache[key] = (support_result["support_weight"], support_result["debug"])
             bonus, dbg = support_cache[key]
             item.setdefault("evidence_support_weight_by_term", {})[term] = float(bonus)
             item.setdefault("evidence_support_debug_by_term", {})[term] = dbg

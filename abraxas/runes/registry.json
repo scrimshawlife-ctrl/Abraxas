@@ -630,6 +630,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "classification"
+    },
+    {
+      "capability_id": "evidence.index.evidence_by_term",
+      "rune_id": "ϟ_EVIDENCE_INDEX_BY_TERM",
+      "operator_path": "abraxas.evidence.rune_adapter:evidence_by_term_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evidence_by_term_input.schema.json",
+      "output_schema": "schemas/capabilities/evidence_by_term_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "evidence.support.support_weight",
+      "rune_id": "ϟ_EVIDENCE_SUPPORT_WEIGHT",
+      "operator_path": "abraxas.evidence.rune_adapter:support_weight_for_claim_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evidence_support_weight_input.schema.json",
+      "output_schema": "schemas/capabilities/evidence_support_weight_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
     }
   ],
   "provenance": {

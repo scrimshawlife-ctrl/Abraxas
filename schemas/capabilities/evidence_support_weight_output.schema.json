@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Support Weight Output",
+  "description": "Output schema for evidence.support.support_weight capability",
+  "type": "object",
+  "required": ["support_weight", "debug", "provenance", "not_computable"],
+  "properties": {
+    "support_weight": {
+      "type": "number",
+      "description": "Support weight bonus [0, max_bonus] based on evidence overlap",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "debug": {
+      "type": "object",
+      "description": "Debug information about best match",
+      "properties": {
+        "best_overlap_score": {
+          "type": "number",
+          "description": "Best Jaccard similarity score found"
+        },
+        "best_bundle_id": {
+          "type": ["string", "null"],
+          "description": "Bundle ID of best match"
+        },
+        "best_bundle_credence": {
+          "type": "number",
+          "description": "Credence of best matching bundle"
+        },
+        "best_source_ref": {
+          "type": ["string", "null"],
+          "description": "Source reference of best match"
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "evidence.support.support_weight"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - support weight computation never fails, returns 0.0 on error"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence By Term Input",
+  "description": "Input schema for evidence.index.evidence_by_term capability - loads evidence bundles indexed by term",
+  "type": "object",
+  "required": ["bundles_dir"],
+  "properties": {
+    "bundles_dir": {
+      "type": "string",
+      "description": "Directory path containing evidence bundle JSON files"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}
