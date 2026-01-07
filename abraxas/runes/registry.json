@@ -652,6 +652,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "conspiracy.csp.compute_claim",
+      "rune_id": "ϟ_CSP_COMPUTE_CLAIM",
+      "operator_path": "abraxas.conspiracy.rune_adapter:compute_claim_csp_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/csp_compute_claim_input.schema.json",
+      "output_schema": "schemas/capabilities/csp_compute_claim_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
     }
   ],
   "provenance": {

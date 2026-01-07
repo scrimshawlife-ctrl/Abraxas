@@ -13,7 +13,7 @@ from abraxas.runes.ctx import RuneInvocationContext
 # cluster_claims replaced by memetic.claim_cluster.cluster capability
 # build_term_token_index, assign_claim_to_terms replaced by memetic.term_assign.* capabilities
 # evidence_by_term, support_weight_for_claim replaced by evidence.* capabilities
-from abraxas.conspiracy.csp import compute_claim_csp
+# compute_claim_csp replaced by conspiracy.csp.compute_claim capability
 
 
 def _utc_now_iso() -> str:
@@ -187,11 +187,17 @@ def main() -> int:
                 item["evidence_support_debug"] = dbg
             term_key = str(term).strip().lower()
             base_csp = term_csp_map.get(term_key, {})
-            claim_csp = compute_claim_csp(
-                claim_text=text,
-                term_csp=base_csp,
-                evidence_support_weight=float(bonus),
+            csp_result = invoke_capability(
+                "conspiracy.csp.compute_claim",
+                {
+                    "claim_text": text,
+                    "term_csp": base_csp,
+                    "evidence_support_weight": float(bonus)
+                },
+                ctx=ctx,
+                strict_execution=True
             )
+            claim_csp = csp_result["claim_csp"]
             item.setdefault("claim_csp_by_term", {})[term] = claim_csp
             if not isinstance(item.get("claim_csp"), dict):
                 item["claim_csp"] = claim_csp
