@@ -14,6 +14,7 @@ from abraxas.forecast.scoring import expected_error_band as expected_error_band_
 from abraxas.forecast.horizon_bins import horizon_bucket as horizon_bucket_core
 from abraxas.forecast.term_classify import classify_term as classify_term_core
 from abraxas.forecast.term_class_map import load_term_class_map as load_term_class_map_core
+from abraxas.forecast.gating_policy import decide_gate as decide_gate_core
 
 
 def compute_brier_score_deterministic(
@@ -284,10 +285,72 @@ def load_term_class_map_deterministic(
     }
 
 
+def decide_gate_deterministic(
+    dmx_overall: float,
+    attribution_strength: float,
+    source_diversity: float,
+    consensus_gap: float,
+    manipulation_risk_mean: float,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible forecast gating policy decision.
+
+    Wraps existing decide_gate with provenance envelope.
+    Determines forecast constraints based on DMX risk and evidence quality.
+
+    Args:
+        dmx_overall: Overall DMX manipulation risk [0, 1]
+        attribution_strength: Attribution strength metric [0, 1]
+        source_diversity: Source diversity metric [0, 1]
+        consensus_gap: Consensus gap metric [0, 1]
+        manipulation_risk_mean: Mean manipulation risk across terms [0, 1]
+        seed: Optional deterministic seed (unused for gating, kept for consistency)
+
+    Returns:
+        Dictionary with gate_decision, provenance, and not_computable (always None)
+    """
+    # Call existing decide_gate function (returns GateDecision dataclass)
+    gate_decision_obj = decide_gate_core(
+        dmx_overall=dmx_overall,
+        attribution_strength=attribution_strength,
+        source_diversity=source_diversity,
+        consensus_gap=consensus_gap,
+        manipulation_risk_mean=manipulation_risk_mean
+    )
+
+    # Convert dataclass to dict
+    gate_decision = gate_decision_obj.to_dict()
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"gate_decision": gate_decision},
+        config={},
+        inputs={
+            "dmx_overall": dmx_overall,
+            "attribution_strength": attribution_strength,
+            "source_diversity": source_diversity,
+            "consensus_gap": consensus_gap,
+            "manipulation_risk_mean": manipulation_risk_mean
+        },
+        operation_id="forecast.gating_policy.decide_gate",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "gate_decision": gate_decision,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # gating decision never fails, returns default values on error
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
     "classify_horizon_deterministic",
     "classify_term_deterministic",
-    "load_term_class_map_deterministic"
+    "load_term_class_map_deterministic",
+    "decide_gate_deterministic"
 ]

@@ -663,6 +663,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "classification"
+    },
+    {
+      "capability_id": "forecast.gating_policy.decide_gate",
+      "rune_id": "ϟ_FORECAST_GATING_POLICY",
+      "operator_path": "abraxas.forecast.rune_adapter:decide_gate_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/gating_policy_decide_input.schema.json",
+      "output_schema": "schemas/capabilities/gating_policy_decide_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "policy_enforcement"
     }
   ],
   "provenance": {

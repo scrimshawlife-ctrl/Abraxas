@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.forecast.gating_policy import decide_gate
+# decide_gate replaced by forecast.gating_policy.decide_gate capability
 # brier_score and expected_error_band replaced by forecast.scoring capabilities
 # ExpectedErrorBand still needed for type reconstruction from capability result
 from abraxas.forecast.scoring import ExpectedErrorBand
@@ -102,13 +102,6 @@ def main() -> int:
     )
     dmx_ctx = dmx_result["dmx_context"]
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
-    base_gate = decide_gate(
-        dmx_overall=dmx_overall,
-        attribution_strength=gate_inputs["attribution_strength"],
-        source_diversity=gate_inputs["source_diversity"],
-        consensus_gap=gate_inputs["consensus_gap"],
-        manipulation_risk_mean=gate_inputs["manipulation_risk_mean"],
-    ).to_dict()
 
     # Create context for capability invocations
     ctx = RuneInvocationContext(
@@ -116,6 +109,21 @@ def main() -> int:
         subsystem_id="abx.forecast_score",
         git_hash="unknown"
     )
+
+    # Compute base gate for overall report
+    base_gate_result = invoke_capability(
+        "forecast.gating_policy.decide_gate",
+        {
+            "dmx_overall": dmx_overall,
+            "attribution_strength": gate_inputs["attribution_strength"],
+            "source_diversity": gate_inputs["source_diversity"],
+            "consensus_gap": gate_inputs["consensus_gap"],
+            "manipulation_risk_mean": gate_inputs["manipulation_risk_mean"]
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    base_gate = base_gate_result["gate_decision"]
 
     annotated = []
     probs = []
@@ -138,13 +146,19 @@ def main() -> int:
         )
         recurrence = (profile or {}).get("recurrence_days")
 
-        gate = decide_gate(
-            dmx_overall=dmx_overall,
-            attribution_strength=gate_inputs["attribution_strength"],
-            source_diversity=gate_inputs["source_diversity"],
-            consensus_gap=gate_inputs["consensus_gap"],
-            manipulation_risk_mean=risk,
-        ).to_dict()
+        gate_result = invoke_capability(
+            "forecast.gating_policy.decide_gate",
+            {
+                "dmx_overall": dmx_overall,
+                "attribution_strength": gate_inputs["attribution_strength"],
+                "source_diversity": gate_inputs["source_diversity"],
+                "consensus_gap": gate_inputs["consensus_gap"],
+                "manipulation_risk_mean": risk
+            },
+            ctx=ctx,
+            strict_execution=True
+        )
+        gate = gate_result["gate_decision"]
         eeb_result = invoke_capability(
             "forecast.scoring.expected_error_band",
             {
