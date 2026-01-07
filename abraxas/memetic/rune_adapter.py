@@ -12,6 +12,7 @@ from abraxas.core.provenance import canonical_envelope
 from abraxas.memetic.claims_sources import load_sources_from_osh as load_sources_from_osh_core
 from abraxas.memetic.claim_extract import extract_claim_items_from_sources as extract_claim_items_core
 from abraxas.memetic.claim_cluster import cluster_claims as cluster_claims_core
+from abraxas.memetic.dmx_context import load_dmx_context as load_dmx_context_core
 
 
 def load_sources_from_osh_deterministic(
@@ -149,8 +150,47 @@ def cluster_claims_deterministic(
     }
 
 
+def load_dmx_context_deterministic(
+    mwr_path: str,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible DMX context loader.
+
+    Wraps existing load_dmx_context with provenance envelope.
+    Loads DMX (Disinformation/Misinformation) context from MWR artifact.
+
+    Args:
+        mwr_path: Path to MWR (Memetic Weather Report) artifact JSON file
+        seed: Optional deterministic seed (unused for loading, kept for consistency)
+
+    Returns:
+        Dictionary with dmx_context dict, provenance, and not_computable (always None)
+    """
+    # Call existing load_dmx_context function (no changes to core logic)
+    dmx_context = load_dmx_context_core(mwr_path)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"dmx_context": dmx_context},
+        config={},
+        inputs={"mwr_path": mwr_path},
+        operation_id="memetic.dmx_context.load",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "dmx_context": dmx_context,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # DMX loading never fails, returns default LOW bucket on error
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
-    "cluster_claims_deterministic"
+    "cluster_claims_deterministic",
+    "load_dmx_context_deterministic"
 ]

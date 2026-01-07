@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Load DMX Context Input",
+  "description": "Input schema for memetic.dmx_context.load capability - loads DMX context from MWR artifact",
+  "type": "object",
+  "required": ["mwr_path"],
+  "properties": {
+    "mwr_path": {
+      "type": "string",
+      "description": "Path to MWR (Memetic Weather Report) artifact JSON file",
+      "minLength": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

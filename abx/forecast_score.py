@@ -13,7 +13,7 @@ from abraxas.forecast.gating_policy import decide_gate
 # ExpectedErrorBand still needed for type reconstruction from capability result
 from abraxas.forecast.scoring import ExpectedErrorBand
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
-from abraxas.memetic.dmx_context import load_dmx_context
+# load_dmx_context replaced by memetic.dmx_context.load capability
 
 
 def _utc_now_iso() -> str:
@@ -94,7 +94,13 @@ def main() -> int:
 
     gate_inputs = _extract_gate_inputs(a2_phase)
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
-    dmx_ctx = load_dmx_context(mwr_path)
+    dmx_result = invoke_capability(
+        "memetic.dmx_context.load",
+        {"mwr_path": mwr_path},
+        ctx=ctx,
+        strict_execution=True
+    )
+    dmx_ctx = dmx_result["dmx_context"]
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
     base_gate = decide_gate(
         dmx_overall=dmx_overall,
