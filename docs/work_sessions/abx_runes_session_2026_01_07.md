@@ -3,15 +3,15 @@
 **Session ID**: `claude/continue-work-ILQQS`
 **Date**: 2026-01-07
 **Starting violations**: 48
-**Ending violations**: 42
-**Eliminated**: 6 violations (12.5% session reduction)
-**Total progress**: 75 → 42 (44% total reduction)
+**Ending violations**: 39
+**Eliminated**: 9 violations (18.75% session reduction)
+**Total progress**: 75 → 39 (48% total reduction)
 
 ---
 
 ## Session Summary
 
-Successfully implemented 7 new capability contracts across 3 subsystems (memetic, evidence):
+Successfully implemented 9 new capability contracts across 4 subsystems (memetic, evidence, conspiracy, forecast):
 
 ### Capabilities Implemented
 
@@ -66,62 +66,85 @@ Successfully implemented 7 new capability contracts across 3 subsystems (memetic
 - **Migrated**: `abx/term_claims_run.py`
 - **Commit**: `b9045e3`
 
+#### 8. **conspiracy.csp.compute_claim** (ϟ_CSP_COMPUTE_CLAIM)
+- **Files**: `schemas/capabilities/csp_compute_claim_{input,output}.schema.json`
+- **Adapter**: `abraxas/conspiracy/rune_adapter.py:compute_claim_csp_deterministic` (NEW FILE)
+- **Purpose**: Computes Conspiracy Susceptibility Profile (CSP) for claims
+- **Algorithm**: Inherits term CSP, infers COH (Coordination Hypothesis) from claim text, boosts EA with evidence
+- **Output**: CSP dict with {COH, EA, CIP, MIO, FF, tag, flags}
+- **Migrated**: `abx/term_claims_run.py`
+- **Commit**: `2548c07`
+
+#### 9. **forecast.gating_policy.decide_gate** (ϟ_FORECAST_GATING_POLICY)
+- **Files**: `schemas/capabilities/gating_policy_decide_{input,output}.schema.json`
+- **Adapter**: `abraxas/forecast/rune_adapter.py:decide_gate_deterministic`
+- **Purpose**: Determines forecast gating decision based on DMX context and metrics
+- **Algorithm**: Applies DMX bucket logic (LOW/MED/HIGH), returns EEB multiplier, horizon_max, evidence escalation
+- **Output**: GateDecision dict with version, eeb_multiplier, horizon_max, evidence_escalation, flags, provenance
+- **Migrated**: `abx/forecast_log.py`, `abx/forecast_score.py` (2 calls)
+- **Commit**: `5c1e071`
+
 ---
 
 ## Files Modified This Session
 
-### New Files Created (18 total)
-**Schemas** (14 files):
+### New Files Created (22 total)
+**Schemas** (18 files):
 - `schemas/capabilities/load_dmx_context_{input,output}.schema.json`
 - `schemas/capabilities/term_index_{build,reduce}_{input,output}.schema.json`
 - `schemas/capabilities/term_token_index_build_{input,output}.schema.json`
 - `schemas/capabilities/term_assign_{input,output}.schema.json`
 - `schemas/capabilities/evidence_by_term_{input,output}.schema.json`
 - `schemas/capabilities/evidence_support_weight_{input,output}.schema.json`
+- `schemas/capabilities/csp_compute_claim_{input,output}.schema.json`
+- `schemas/capabilities/gating_policy_decide_{input,output}.schema.json`
 
-**Adapters** (1 file):
+**Adapters** (2 files):
 - `abraxas/evidence/rune_adapter.py` - NEW rune adapter for evidence subsystem
+- `abraxas/conspiracy/rune_adapter.py` - NEW rune adapter for conspiracy subsystem
 
 **Documentation** (1 file):
 - `docs/work_sessions/abx_runes_session_2026_01_07.md` - This file
 
-### Modified Files (4 total)
+### Modified Files (6 total)
 - `abraxas/memetic/rune_adapter.py` - Extended with 5 new functions (380 lines total)
-- `abraxas/runes/registry.json` - Added 7 capability registrations
-- `abx/forecast_log.py` - Migrated dmx_context, term_index capabilities
-- `abx/term_claims_run.py` - Migrated term_assign, evidence capabilities
+- `abraxas/forecast/rune_adapter.py` - Extended with decide_gate_deterministic
+- `abraxas/runes/registry.json` - Added 9 capability registrations
+- `abx/forecast_log.py` - Migrated dmx_context, term_index, decide_gate capabilities
+- `abx/forecast_score.py` - Migrated decide_gate capability (2 calls)
+- `abx/term_claims_run.py` - Migrated term_assign, evidence, compute_claim_csp capabilities
 
 ---
 
-## Remaining Violations Analysis (42 total)
+## Remaining Violations Analysis (39 total)
 
 ### Top 10 Files by Violation Count
 ```
 5 - abx/a2_phase.py
-4 - abx/forecast_log.py
 3 - abx/acquisition_plan.py
-3 - abx/forecast_score.py
-2 - abx/term_claims_run.py (conspiracy.csp only)
+2 - abx/forecast_log.py (conspiracy.policy, forecast.horizon_policy, forecast.ledger)
 2 - abx/ui/chat_engine.py
 2 - abx/operators/alive_run.py
 2 - abx/mwr.py
 2 - abx/evogate.py
 2 - abx/cli.py
+1 - abx/forecast_score.py (forecast.uncertainty only)
+1 - abx/term_claims_run.py (conspiracy.csp.compute_term_csp only)
 ```
 
 ### Violation Breakdown by Module
 
-**forecast.* (11 violations)**:
-- `forecast.gating_policy.decide_gate` (2x: forecast_log, forecast_score)
-- `forecast.horizon_policy.{compare_horizon, enforce_horizon_policy}` (1x: forecast_log)
+**forecast.* (9 violations)**:
+- ~~`forecast.gating_policy.decide_gate`~~ ✅ MIGRATED (was 2x: forecast_log, forecast_score)
+- `forecast.horizon_policy.{compare_horizon, enforce_horizon_policy}` (2x: forecast_log)
 - `forecast.ledger.issue_prediction` (1x: forecast_log)
 - `forecast.uncertainty.horizon_uncertainty_multiplier` (1x: forecast_score)
 - `forecast.scoring.ExpectedErrorBand` (1x: forecast_score - TYPE import only)
 - `forecast.policy_candidates.candidates_v0_1` (2x: horizon_policy_select, horizon_policy_select_tc)
 
-**conspiracy.* (4 violations)**:
-- `conspiracy.csp.{compute_term_csp, compute_claim_csp}` (2x: a2_phase, term_claims_run)
-- `conspiracy.policy.{csp_horizon_clamp, apply_horizon_cap}` (1x: forecast_log)
+**conspiracy.* (3 violations)**:
+- `conspiracy.csp.compute_term_csp` (1x: a2_phase) - NOTE: compute_claim_csp migrated ✅
+- `conspiracy.policy.{csp_horizon_clamp, apply_horizon_cap}` (2x: forecast_log)
 
 **memetic.* (5 violations)**:
 - `memetic.metrics_reduce.reduce_provenance_means` (1x: a2_phase)
@@ -144,27 +167,13 @@ Successfully implemented 7 new capability contracts across 3 subsystems (memetic
 
 ### High-Priority Targets (Most Impact)
 
-#### 1. **conspiracy.csp.compute_claim_csp** (2 usages → 2 violations)
-- **Used in**: `term_claims_run.py`, `a2_phase.py`
-- **Function signature**:
-  ```python
-  def compute_claim_csp(
-      *,
-      claim_text: str,
-      term_csp: Dict[str, Any],
-      evidence_support_weight: float = 0.0,
-  ) -> Dict[str, Any]:
-  ```
-- **Purpose**: Computes Conspiracy Susceptibility Profile (CSP) for claims
-- **Algorithm**: Inherits term CSP, infers COH (Coordination Hypothesis) from claim text, boosts EA with evidence
-- **Output**: CSP dict with {COH, EA, FF, MIO, CIP, tag, flags}
-- **Complexity**: Medium (requires CSP schema understanding)
+#### 1. ~~**conspiracy.csp.compute_claim_csp**~~ ✅ COMPLETED
+- Migrated in capability `conspiracy.csp.compute_claim` (ϟ_CSP_COMPUTE_CLAIM)
+- Reduced violations: 42 → 41
 
-#### 2. **forecast.gating_policy.decide_gate** (2 usages → 2 violations)
-- **Used in**: `forecast_log.py`, `forecast_score.py`
-- **Purpose**: Determines forecast gating decision based on DMX context and metrics
-- **Expected output**: Gate dict with horizon constraints, flags, provenance
-- **Impact**: Core forecast decision-making logic
+#### 2. ~~**forecast.gating_policy.decide_gate**~~ ✅ COMPLETED
+- Migrated in capability `forecast.gating_policy.decide_gate` (ϟ_FORECAST_GATING_POLICY)
+- Reduced violations: 41 → 39
 
 #### 3. **evidence.lift.* functions** (3 functions, 1 file → 3 violations)
 - **Used in**: `a2_phase.py`
@@ -387,24 +396,33 @@ git push -u origin claude/continue-work-ILQQS
 
 ### Git Branch
 - **Branch**: `claude/continue-work-ILQQS`
-- **Last commit**: `b9045e3` - evidence.* capabilities
-- **Commits this session**: 4 total
+- **Last commit**: `5c1e071` - forecast.gating_policy.decide_gate capability
+- **Commits this session**: 6 total
+  - `1a7a27c` - memetic.dmx_context.load
+  - `dca5e16` - memetic.term_index.{build,reduce}
+  - `3c48bdd` - memetic.term_assign.{build_index,assign}
+  - `b9045e3` - evidence.{index,support}
+  - `2548c07` - conspiracy.csp.compute_claim
+  - `5c1e071` - forecast.gating_policy.decide_gate
 
 ### Violations Progress
 ```
-Session start:  48 violations
+Session start:         48 violations
 After dmx/term_index:  45 violations (-3)
 After term_assign:     44 violations (-1)
 After evidence:        42 violations (-2)
-Total session:         -6 violations (12.5% reduction)
+After csp:             41 violations (-1)
+After gating_policy:   39 violations (-2)
+Total session:         -9 violations (18.75% reduction)
 ```
 
 ### Capability Registry State
-Total capabilities: 15
-- forecast.* : 4 capabilities
+Total capabilities: 17
+- forecast.* : 5 capabilities
 - evolve.* : 2 capabilities
 - memetic.* : 7 capabilities
 - evidence.* : 2 capabilities
+- conspiracy.* : 1 capability
 
 ---
 
@@ -472,9 +490,9 @@ git log --oneline -5
 
 # 2. Check current violations
 grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance" | wc -l
-# Should show: 42
+# Should show: 39
 
-# 3. Pick next target (recommended: conspiracy.csp.compute_claim_csp)
+# 3. Pick next target (recommended: evidence.lift.* functions or conspiracy.csp.compute_term_csp)
 # See "Next Recommended Steps" section above
 
 # 4. Follow implementation patterns
