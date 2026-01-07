@@ -11,7 +11,7 @@ from abraxas.forecast.horizon_policy import compare_horizon, enforce_horizon_pol
 from abraxas.forecast.ledger import issue_prediction
 from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
 # load_dmx_context replaced by memetic.dmx_context.load capability
-from abraxas.memetic.term_index import build_term_index, reduce_weighted_metrics
+# build_term_index, reduce_weighted_metrics replaced by memetic.term_index.* capabilities
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -122,7 +122,13 @@ def main() -> int:
                 metrics = a2.get("metrics") or {}
     except Exception:
         metrics = {}
-    term_idx = build_term_index(a2) if isinstance(a2, dict) else {}
+    term_idx_result = invoke_capability(
+        "memetic.term_index.build",
+        {"a2_phase": a2 if isinstance(a2, dict) else {}},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_idx = term_idx_result["term_index"]
 
     wrote = 0
     for item in annotated:
@@ -139,7 +145,16 @@ def main() -> int:
         elif term:
             terms = [term]
 
-        weighted = reduce_weighted_metrics(terms, term_idx) if terms else {"matched_terms": 0.0}
+        if terms:
+            weighted_result = invoke_capability(
+                "memetic.term_index.reduce",
+                {"terms": terms, "term_index": term_idx},
+                ctx=ctx,
+                strict_execution=True
+            )
+            weighted = weighted_result["weighted_metrics"]
+        else:
+            weighted = {"matched_terms": 0.0}
         matched = bool(weighted.get("matched_terms"))
         has_attr = float(weighted.get("attribution_strength_count") or 0.0) > 0
         has_sd = float(weighted.get("source_diversity_count") or 0.0) > 0

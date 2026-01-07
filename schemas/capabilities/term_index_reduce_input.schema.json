@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reduce Weighted Metrics Input",
+  "description": "Input schema for memetic.term_index.reduce capability - aggregates metrics across terms",
+  "type": "object",
+  "required": ["terms", "term_index"],
+  "properties": {
+    "terms": {
+      "type": "array",
+      "description": "List of term strings to aggregate metrics for",
+      "items": {
+        "type": "string"
+      }
+    },
+    "term_index": {
+      "type": "object",
+      "description": "Term → metrics index (from memetic.term_index.build)",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

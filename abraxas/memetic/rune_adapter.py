@@ -13,6 +13,8 @@ from abraxas.memetic.claims_sources import load_sources_from_osh as load_sources
 from abraxas.memetic.claim_extract import extract_claim_items_from_sources as extract_claim_items_core
 from abraxas.memetic.claim_cluster import cluster_claims as cluster_claims_core
 from abraxas.memetic.dmx_context import load_dmx_context as load_dmx_context_core
+from abraxas.memetic.term_index import build_term_index as build_term_index_core
+from abraxas.memetic.term_index import reduce_weighted_metrics as reduce_weighted_metrics_core
 
 
 def load_sources_from_osh_deterministic(
@@ -188,9 +190,89 @@ def load_dmx_context_deterministic(
     }
 
 
+def build_term_index_deterministic(
+    a2_phase: Dict[str, Any],
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term index builder.
+
+    Wraps existing build_term_index with provenance envelope.
+    Builds term → metrics index from A2 phase artifact.
+
+    Args:
+        a2_phase: A2 phase artifact dict with profiles
+        seed: Optional deterministic seed (unused for indexing, kept for consistency)
+
+    Returns:
+        Dictionary with term_index dict, provenance, and not_computable (always None)
+    """
+    # Call existing build_term_index function (no changes to core logic)
+    term_index = build_term_index_core(a2_phase)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_index": term_index},
+        config={},
+        inputs={"a2_phase": a2_phase},
+        operation_id="memetic.term_index.build",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_index": term_index,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # index building never fails, returns empty dict on error
+    }
+
+
+def reduce_weighted_metrics_deterministic(
+    terms: List[str],
+    term_index: Dict[str, Dict[str, float]],
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible weighted metrics reducer.
+
+    Wraps existing reduce_weighted_metrics with provenance envelope.
+    Aggregates metrics across terms using term index.
+
+    Args:
+        terms: List of term strings to aggregate metrics for
+        term_index: Term → metrics index (from build_term_index)
+        seed: Optional deterministic seed (unused for reduction, kept for consistency)
+
+    Returns:
+        Dictionary with weighted_metrics dict, provenance, and not_computable (always None)
+    """
+    # Call existing reduce_weighted_metrics function (no changes to core logic)
+    weighted_metrics = reduce_weighted_metrics_core(terms, term_index)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"weighted_metrics": weighted_metrics},
+        config={},
+        inputs={"terms": terms, "term_index": term_index},
+        operation_id="memetic.term_index.reduce",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "weighted_metrics": weighted_metrics,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # metric reduction never fails, returns zeros if no matches
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
     "cluster_claims_deterministic",
-    "load_dmx_context_deterministic"
+    "load_dmx_context_deterministic",
+    "build_term_index_deterministic",
+    "reduce_weighted_metrics_deterministic"
 ]

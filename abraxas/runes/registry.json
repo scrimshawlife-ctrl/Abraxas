@@ -586,6 +586,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.term_index.build",
+      "rune_id": "ϟ_MEMETIC_TERM_INDEX_BUILD",
+      "operator_path": "abraxas.memetic.rune_adapter:build_term_index_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_index_build_input.schema.json",
+      "output_schema": "schemas/capabilities/term_index_build_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.term_index.reduce",
+      "rune_id": "ϟ_MEMETIC_TERM_INDEX_REDUCE",
+      "operator_path": "abraxas.memetic.rune_adapter:reduce_weighted_metrics_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_index_reduce_input.schema.json",
+      "output_schema": "schemas/capabilities/term_index_reduce_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
     }
   ],
   "provenance": {
