@@ -1,7 +1,7 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2026-01-04
-**Guide Version:** 2.2.0
+**Last Updated:** 2026-01-05
+**Guide Version:** 2.2.1
 **Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
 
@@ -52,6 +52,13 @@
    - `abraxas/detectors/shadow/registry_impl.py` - Enhanced registry implementation
 
 **Total Changes**: 30+ new files, comprehensive testing infrastructure, production-ready release validation
+
+---
+
+## TODO
+
+- Add determinism tests whenever new ABX-Runes capabilities are introduced.
+- Review and reduce remaining cross-subsystem coupling violations in `abx/`.
 
 ---
 

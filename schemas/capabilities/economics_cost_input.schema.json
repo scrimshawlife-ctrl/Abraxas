@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/economics_cost_input.json",
+  "title": "Economics Cost Input",
+  "description": "Input schema for economics.costing.compute capability",
+  "type": "object",
+  "required": ["n_sources", "n_claims", "n_clusters", "n_terms", "n_predictions"],
+  "properties": {
+    "n_sources": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_claims": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_clusters": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_terms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_predictions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "economics.costing.compute",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

@@ -14,6 +14,7 @@ from abraxas.forecast.scoring import expected_error_band as expected_error_band_
 from abraxas.forecast.horizon_bins import horizon_bucket as horizon_bucket_core
 from abraxas.forecast.term_classify import classify_term as classify_term_core
 from abraxas.forecast.term_class_map import load_term_class_map as load_term_class_map_core
+from abraxas.forecast.ledger import record_outcome as record_outcome_core
 
 
 def compute_brier_score_deterministic(
@@ -284,10 +285,75 @@ def load_term_class_map_deterministic(
     }
 
 
+def record_forecast_outcome_deterministic(
+    *,
+    pred_id: str,
+    result: str,
+    run_id: str,
+    evidence: Optional[List[Dict[str, Any]]] = None,
+    notes: str = "",
+    ts_observed: Optional[str] = None,
+    ledger_path: str = "out/forecast_ledger/outcomes.jsonl",
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible forecast outcome recorder.
+
+    Wraps existing record_outcome with provenance envelope.
+    Appends outcome rows to the forecast outcomes ledger.
+
+    Args:
+        pred_id: Prediction identifier
+        result: Outcome result (hit/miss/partial)
+        run_id: Run identifier for provenance
+        evidence: Optional evidence list
+        notes: Optional notes string
+        ts_observed: Optional observed timestamp (ISO8601)
+        ledger_path: Output ledger path
+        seed: Optional deterministic seed (unused, kept for consistency)
+
+    Returns:
+        Dictionary with outcome row, provenance, and not_computable (always None)
+    """
+    row = record_outcome_core(
+        pred_id=pred_id,
+        result=result,
+        run_id=run_id,
+        evidence=evidence,
+        notes=notes,
+        ts_observed=ts_observed,
+        ledger_path=ledger_path,
+    )
+
+    envelope = canonical_envelope(
+        result={"outcome": row},
+        config={},
+        inputs={
+            "pred_id": pred_id,
+            "result": result,
+            "run_id": run_id,
+            "evidence": evidence or [],
+            "notes": notes,
+            "ts_observed": ts_observed,
+            "ledger_path": ledger_path,
+        },
+        operation_id="forecast.outcome.record",
+        seed=seed,
+    )
+
+    return {
+        "outcome": row,
+        "provenance": envelope["provenance"],
+        "not_computable": envelope["not_computable"],
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
     "classify_horizon_deterministic",
     "classify_term_deterministic",
-    "load_term_class_map_deterministic"
+    "load_term_class_map_deterministic",
+    "record_forecast_outcome_deterministic",
 ]

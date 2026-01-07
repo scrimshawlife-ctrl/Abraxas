@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/claim_extract_input.json",
+  "title": "Claim Extract Input",
+  "description": "Input schema for memetic.claim_extract.items capability",
+  "type": "object",
+  "required": ["sources", "run_id"],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "List of source documents with text fields",
+      "items": {
+        "type": "object",
+        "description": "Source document dict"
+      }
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier for deterministic tagging",
+      "minLength": 1
+    },
+    "max_per_source": {
+      "type": "integer",
+      "description": "Maximum number of sentences per source",
+      "minimum": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.claim_extract.items",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

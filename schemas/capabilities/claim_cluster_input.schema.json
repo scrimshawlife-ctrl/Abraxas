@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/claim_cluster_input.json",
+  "title": "Claim Cluster Input",
+  "description": "Input schema for memetic.claim_cluster.cluster capability",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Claim items to cluster",
+      "items": {
+        "type": "object",
+        "description": "Claim item dict"
+      }
+    },
+    "sim_threshold": {
+      "type": "number",
+      "description": "Jaccard similarity threshold for clustering",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "max_pairs": {
+      "type": "integer",
+      "description": "Safety cap on pairwise comparisons",
+      "minimum": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.claim_cluster.cluster",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}
