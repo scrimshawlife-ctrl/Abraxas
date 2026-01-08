@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.memetic.temporal import build_temporal_profiles
 # classify_term replaced by forecast.term.classify capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -43,15 +42,19 @@ def main() -> int:
     )
 
     ts = _utc_now_iso()
-    profiles_full = build_temporal_profiles(
-        args.registry,
-        now_iso=args.now,
-        max_terms=2000000,
-        min_obs=int(args.min_obs),
+    profiles_result = invoke_capability(
+        "memetic.temporal.build_temporal_profiles",
+        {
+            "registry_path": args.registry,
+            "now_iso": args.now,
+            "max_terms": 2000000,
+            "min_obs": int(args.min_obs)
+        },
+        ctx=ctx,
+        strict_execution=True
     )
-    profiles_view = profiles_full[: int(args.max_terms)]
-
-    profiles_full_dicts = [p.to_dict() for p in profiles_full]
+    profiles_full_dicts = profiles_result["profiles"]
+    profiles_view_dicts = profiles_full_dicts[: int(args.max_terms)]
     means_result = invoke_capability(
         "memetic.metrics_reduce.reduce_provenance_means",
         {"profiles": profiles_full_dicts},
@@ -106,8 +109,8 @@ def main() -> int:
             out_profile["flags"] = flags
         return out_profile
 
-    profiles_full_dicts = [_annotate_profile(p.to_dict()) for p in profiles_full]
-    profiles_view_dicts = [_annotate_profile(p.to_dict()) for p in profiles_view]
+    profiles_full_dicts = [_annotate_profile(p) for p in profiles_full_dicts]
+    profiles_view_dicts = [_annotate_profile(p) for p in profiles_view_dicts]
     if profiles_full_dicts:
         means["term_consensus_gap_mean"] = float(
             sum(p.get("consensus_gap_term") or 0.0 for p in profiles_full_dicts)

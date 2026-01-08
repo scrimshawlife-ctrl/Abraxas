@@ -19,6 +19,7 @@ from abraxas.memetic.term_assign import build_term_token_index as build_term_tok
 from abraxas.memetic.term_assign import assign_claim_to_terms as assign_claim_to_terms_core
 from abraxas.memetic.metrics_reduce import reduce_provenance_means as reduce_provenance_means_core
 from abraxas.memetic.term_consensus_map import load_term_consensus_map as load_term_consensus_map_core
+from abraxas.memetic.temporal import build_temporal_profiles as build_temporal_profiles_core
 
 
 def load_sources_from_osh_deterministic(
@@ -443,6 +444,57 @@ def load_term_consensus_map_deterministic(
     }
 
 
+def build_temporal_profiles_deterministic(
+    registry_path: str,
+    now_iso: Optional[str] = None,
+    max_terms: int = 2000,
+    min_obs: int = 2,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible temporal profiles builder.
+
+    Wraps existing build_temporal_profiles with provenance envelope.
+    Builds temporal profiles from term registry with velocity, phase, and provenance metrics.
+
+    Args:
+        registry_path: Path to term registry JSONL file
+        now_iso: Optional ISO timestamp override for 'now' (defaults to current UTC time)
+        max_terms: Maximum number of terms to process (default: 2000)
+        min_obs: Minimum observations required per term (default: 2)
+        seed: Optional deterministic seed
+
+    Returns:
+        Dictionary with profiles list (as dicts), provenance, and not_computable (always None)
+    """
+    # Call existing build_temporal_profiles function (returns List[TermTemporalProfile])
+    profile_objects = build_temporal_profiles_core(
+        registry_path,
+        now_iso=now_iso,
+        max_terms=max_terms,
+        min_obs=min_obs
+    )
+
+    # Convert to list of dicts (call .to_dict() on each profile object)
+    profiles = [p.to_dict() for p in profile_objects]
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"profiles": profiles},
+        config={"max_terms": max_terms, "min_obs": min_obs},
+        inputs={"registry_path": registry_path, "now_iso": now_iso},
+        operation_id="memetic.temporal.build_temporal_profiles",
+        seed=seed
+    )
+
+    return {
+        "profiles": profiles,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # profile building never fails, returns empty list on error
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
@@ -453,5 +505,6 @@ __all__ = [
     "build_term_token_index_deterministic",
     "assign_claim_to_terms_deterministic",
     "reduce_provenance_means_deterministic",
-    "load_term_consensus_map_deterministic"
+    "load_term_consensus_map_deterministic",
+    "build_temporal_profiles_deterministic"
 ]
