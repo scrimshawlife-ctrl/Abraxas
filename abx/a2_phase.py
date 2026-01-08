@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
 # classify_term replaced by forecast.term.classify capability
@@ -54,7 +53,13 @@ def main() -> int:
     profiles_view = profiles_full[: int(args.max_terms)]
 
     profiles_full_dicts = [p.to_dict() for p in profiles_full]
-    means = reduce_provenance_means(profiles_full_dicts)
+    means_result = invoke_capability(
+        "memetic.metrics_reduce.reduce_provenance_means",
+        {"profiles": profiles_full_dicts},
+        ctx=ctx,
+        strict_execution=True
+    )
+    means = means_result["means"]
 
     dmx = {}
     try:

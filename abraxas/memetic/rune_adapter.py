@@ -17,6 +17,7 @@ from abraxas.memetic.term_index import build_term_index as build_term_index_core
 from abraxas.memetic.term_index import reduce_weighted_metrics as reduce_weighted_metrics_core
 from abraxas.memetic.term_assign import build_term_token_index as build_term_token_index_core
 from abraxas.memetic.term_assign import assign_claim_to_terms as assign_claim_to_terms_core
+from abraxas.memetic.metrics_reduce import reduce_provenance_means as reduce_provenance_means_core
 
 
 def load_sources_from_osh_deterministic(
@@ -367,6 +368,43 @@ def assign_claim_to_terms_deterministic(
     }
 
 
+def reduce_provenance_means_deterministic(
+    profiles: List[Dict[str, Any]],
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible provenance means calculator.
+
+    Wraps existing reduce_provenance_means with provenance envelope.
+    Extracts mean values from temporal profiles (attribution, diversity, consensus_gap, manipulation_risk).
+
+    Args:
+        profiles: List of temporal profile dictionaries
+        seed: Optional deterministic seed
+
+    Returns:
+        Dictionary with means dict, provenance, and not_computable (always None)
+    """
+    # Call existing reduce_provenance_means function
+    means = reduce_provenance_means_core(profiles)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"means": means},
+        config={},
+        inputs={"profiles": profiles},
+        operation_id="memetic.metrics_reduce.reduce_provenance_means",
+        seed=seed
+    )
+
+    return {
+        "means": means,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # mean computation never fails, returns 0.0 on empty input
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
@@ -375,5 +413,6 @@ __all__ = [
     "build_term_index_deterministic",
     "reduce_weighted_metrics_deterministic",
     "build_term_token_index_deterministic",
-    "assign_claim_to_terms_deterministic"
+    "assign_claim_to_terms_deterministic",
+    "reduce_provenance_means_deterministic"
 ]

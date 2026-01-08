@@ -632,6 +632,17 @@
       "evidence_mode": "classification"
     },
     {
+      "capability_id": "memetic.metrics_reduce.reduce_provenance_means",
+      "rune_id": "ϟ_MEMETIC_REDUCE_MEANS",
+      "operator_path": "abraxas.memetic.rune_adapter:reduce_provenance_means_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/reduce_provenance_means_input.schema.json",
+      "output_schema": "schemas/capabilities/reduce_provenance_means_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "evidence.index.evidence_by_term",
       "rune_id": "ϟ_EVIDENCE_INDEX_BY_TERM",
       "operator_path": "abraxas.evidence.rune_adapter:evidence_by_term_deterministic",

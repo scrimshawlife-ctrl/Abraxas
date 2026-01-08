@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Reduce Provenance Means Output",
+  "description": "Output schema for memetic.metrics_reduce.reduce_provenance_means capability",
+  "type": "object",
+  "required": ["means", "provenance", "not_computable"],
+  "properties": {
+    "means": {
+      "type": "object",
+      "description": "Mean values across all profiles",
+      "required": [
+        "attribution_strength_mean",
+        "source_diversity_mean",
+        "consensus_gap_mean",
+        "manipulation_risk_mean"
+      ],
+      "properties": {
+        "attribution_strength_mean": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Mean attribution strength (prefers uplifted if available)"
+        },
+        "source_diversity_mean": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Mean source diversity (prefers uplifted if available)"
+        },
+        "consensus_gap_mean": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Mean consensus gap"
+        },
+        "manipulation_risk_mean": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Mean manipulation risk"
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.metrics_reduce.reduce_provenance_means"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - operation never fails (returns 0.0 means on empty input)"
+    }
+  },
+  "additionalProperties": false
+}
