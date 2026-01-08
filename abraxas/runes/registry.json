@@ -643,6 +643,17 @@
       "evidence_mode": "data_processing"
     },
     {
+      "capability_id": "memetic.term_consensus_map.load",
+      "rune_id": "ϟ_MEMETIC_TERM_CONSENSUS_LOAD",
+      "operator_path": "abraxas.memetic.rune_adapter:load_term_consensus_map_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/term_consensus_map_load_input.schema.json",
+      "output_schema": "schemas/capabilities/term_consensus_map_load_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
       "capability_id": "evidence.index.evidence_by_term",
       "rune_id": "ϟ_EVIDENCE_INDEX_BY_TERM",
       "operator_path": "abraxas.evidence.rune_adapter:evidence_by_term_deterministic",

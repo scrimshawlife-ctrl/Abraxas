@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
 # classify_term replaced by forecast.term.classify capability
 from abraxas.runes.invoke import invoke_capability
@@ -85,7 +84,13 @@ def main() -> int:
     # term consensus handled via load_term_consensus_map below
 
     term_claims_path = os.path.join(args.out_reports, f"term_claims_{args.run_id}.json")
-    term_gap = load_term_consensus_map(term_claims_path)
+    term_gap_result = invoke_capability(
+        "memetic.term_consensus_map.load",
+        {"path": term_claims_path},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_gap = term_gap_result["term_consensus_map"]
 
     def _annotate_profile(profile: Dict[str, Any]) -> Dict[str, Any]:
         out_profile = dict(profile)

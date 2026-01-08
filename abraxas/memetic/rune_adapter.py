@@ -18,6 +18,7 @@ from abraxas.memetic.term_index import reduce_weighted_metrics as reduce_weighte
 from abraxas.memetic.term_assign import build_term_token_index as build_term_token_index_core
 from abraxas.memetic.term_assign import assign_claim_to_terms as assign_claim_to_terms_core
 from abraxas.memetic.metrics_reduce import reduce_provenance_means as reduce_provenance_means_core
+from abraxas.memetic.term_consensus_map import load_term_consensus_map as load_term_consensus_map_core
 
 
 def load_sources_from_osh_deterministic(
@@ -405,6 +406,43 @@ def reduce_provenance_means_deterministic(
     }
 
 
+def load_term_consensus_map_deterministic(
+    path: str,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term consensus map loader.
+
+    Wraps existing load_term_consensus_map with provenance envelope.
+    Loads term(lowercase) → consensus_gap mapping from term_claims JSON file.
+
+    Args:
+        path: Path to term_claims_<run>.json file
+        seed: Optional deterministic seed (unused for file I/O, kept for consistency)
+
+    Returns:
+        Dictionary with term_consensus_map dict, provenance, and not_computable (always None)
+    """
+    # Call existing load_term_consensus_map function
+    term_consensus_map = load_term_consensus_map_core(path)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_consensus_map": term_consensus_map},
+        config={},
+        inputs={"path": path},
+        operation_id="memetic.term_consensus_map.load",
+        seed=seed
+    )
+
+    return {
+        "term_consensus_map": term_consensus_map,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # loading never fails, returns empty dict on error
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
@@ -414,5 +452,6 @@ __all__ = [
     "reduce_weighted_metrics_deterministic",
     "build_term_token_index_deterministic",
     "assign_claim_to_terms_deterministic",
-    "reduce_provenance_means_deterministic"
+    "reduce_provenance_means_deterministic",
+    "load_term_consensus_map_deterministic"
 ]
