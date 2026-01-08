@@ -20,6 +20,12 @@ from abraxas.memetic.term_assign import assign_claim_to_terms as assign_claim_to
 from abraxas.memetic.metrics_reduce import reduce_provenance_means as reduce_provenance_means_core
 from abraxas.memetic.term_consensus_map import load_term_consensus_map as load_term_consensus_map_core
 from abraxas.memetic.temporal import build_temporal_profiles as build_temporal_profiles_core
+from abraxas.memetic.dmx import compute_dmx as compute_dmx_core
+from abraxas.memetic.extract import (
+    read_oracle_texts as read_oracle_texts_core,
+    extract_terms as extract_terms_core,
+    build_mimetic_weather as build_mimetic_weather_core
+)
 
 
 def load_sources_from_osh_deterministic(
@@ -495,6 +501,200 @@ def build_temporal_profiles_deterministic(
     }
 
 
+def compute_dmx_deterministic(
+    sources: Optional[List[Dict[str, Any]]] = None,
+    signals: Optional[Dict[str, Any]] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible DMX calculator.
+
+    Wraps existing compute_dmx with provenance envelope.
+    Computes Disinformation/Misinformation eXposure metrics from sources and signals.
+
+    Args:
+        sources: Optional list of source dicts with credibility/independence flags
+        signals: Optional dict of extracted signal flags (ai_markers, bot_markers, etc.)
+        seed: Optional deterministic seed (unused for DMX, kept for consistency)
+
+    Returns:
+        Dictionary with dmx dict, provenance, and not_computable (always None)
+    """
+    # Call existing compute_dmx function (returns DMX dataclass)
+    dmx_obj = compute_dmx_core(sources=sources, signals=signals)
+
+    # Convert dataclass to dict
+    dmx = dmx_obj.to_dict()
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"dmx": dmx},
+        config={},
+        inputs={"sources": sources, "signals": signals},
+        operation_id="memetic.dmx.compute",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "dmx": dmx,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # DMX computation never fails, returns defaults on error
+    }
+
+
+def read_oracle_texts_deterministic(
+    path: str,
+    max_items: int = 200,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible oracle text reader.
+
+    Wraps existing read_oracle_texts with provenance envelope.
+    Reads oracle texts from file and returns as list of (timestamp, text) tuples.
+
+    Args:
+        path: Path to oracle texts file (JSON or JSONL)
+        max_items: Maximum number of items to read (default: 200)
+        seed: Optional deterministic seed (unused for reading, kept for consistency)
+
+    Returns:
+        Dictionary with documents list, provenance, and not_computable (always None)
+    """
+    # Call existing read_oracle_texts function (returns List[Tuple[str, str]])
+    documents = read_oracle_texts_core(path, max_items=max_items)
+
+    # Convert tuples to dicts for JSON serialization
+    documents_dicts = [{"timestamp": ts, "text": txt} for ts, txt in documents]
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"documents": documents_dicts},
+        config={"max_items": max_items},
+        inputs={"path": path},
+        operation_id="memetic.extract.read_oracle_texts",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "documents": documents_dicts,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # reading never fails, returns empty list on error
+    }
+
+
+def extract_terms_deterministic(
+    documents: List[Dict[str, str]],
+    n_values: Optional[List[int]] = None,
+    max_terms: int = 60,
+    baseline_counts: Optional[Dict[str, int]] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible term extractor.
+
+    Wraps existing extract_terms with provenance envelope.
+    Extracts term candidates from documents with velocity and risk metrics.
+
+    Args:
+        documents: List of {timestamp, text} dicts
+        n_values: N-gram sizes to extract (default: [1, 2, 3])
+        max_terms: Maximum number of terms to return (default: 60)
+        baseline_counts: Optional baseline term counts for novelty calculation
+        seed: Optional deterministic seed (unused for extraction, kept for consistency)
+
+    Returns:
+        Dictionary with term_candidates list (dicts), provenance, and not_computable (always None)
+    """
+    # Convert documents from dicts back to tuples for core function
+    docs_tuples = [(doc["timestamp"], doc["text"]) for doc in documents]
+
+    # Call existing extract_terms function (returns List[TermCandidate])
+    term_objs = extract_terms_core(
+        docs=docs_tuples,
+        n_values=n_values,
+        max_terms=max_terms,
+        baseline_counts=baseline_counts
+    )
+
+    # Convert dataclass objects to dicts
+    term_candidates = [t.to_dict() for t in term_objs]
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"term_candidates": term_candidates},
+        config={"n_values": n_values, "max_terms": max_terms},
+        inputs={"documents": documents, "baseline_counts": baseline_counts},
+        operation_id="memetic.extract.extract_terms",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "term_candidates": term_candidates,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # extraction never fails, returns empty list on error
+    }
+
+
+def build_mimetic_weather_deterministic(
+    run_id: str,
+    term_candidates: List[Dict[str, Any]],
+    ts: Optional[str] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible mimetic weather builder.
+
+    Wraps existing build_mimetic_weather with provenance envelope.
+    Builds weather units (fronts) from term candidates.
+
+    Args:
+        run_id: Run identifier for provenance tracking
+        term_candidates: List of term candidate dicts (from extract_terms)
+        ts: Optional timestamp override (ISO format)
+        seed: Optional deterministic seed (unused for building, kept for consistency)
+
+    Returns:
+        Dictionary with weather_units list (dicts), provenance, and not_computable (always None)
+    """
+    # Convert term_candidates from dicts to TermCandidate objects
+    from abraxas.memetic.types import TermCandidate
+    term_objs = [TermCandidate(**tc) for tc in term_candidates]
+
+    # Call existing build_mimetic_weather function (returns List[MimeticWeatherUnit])
+    weather_objs = build_mimetic_weather_core(
+        run_id=run_id,
+        terms=term_objs,
+        ts=ts
+    )
+
+    # Convert dataclass objects to dicts
+    weather_units = [w.to_dict() for w in weather_objs]
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"weather_units": weather_units},
+        config={},
+        inputs={"run_id": run_id, "term_candidates": term_candidates, "ts": ts},
+        operation_id="memetic.extract.build_mimetic_weather",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "weather_units": weather_units,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # weather building never fails, returns empty list on error
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
@@ -506,5 +706,9 @@ __all__ = [
     "assign_claim_to_terms_deterministic",
     "reduce_provenance_means_deterministic",
     "load_term_consensus_map_deterministic",
-    "build_temporal_profiles_deterministic"
+    "build_temporal_profiles_deterministic",
+    "compute_dmx_deterministic",
+    "read_oracle_texts_deterministic",
+    "extract_terms_deterministic",
+    "build_mimetic_weather_deterministic"
 ]

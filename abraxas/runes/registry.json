@@ -839,6 +839,50 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_access"
+    },
+    {
+      "capability_id": "memetic.dmx.compute",
+      "rune_id": "ϟ_MEMETIC_DMX_COMPUTE",
+      "operator_path": "abraxas.memetic.rune_adapter:compute_dmx_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/compute_dmx_input.schema.json",
+      "output_schema": "schemas/capabilities/compute_dmx_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.extract.read_oracle_texts",
+      "rune_id": "ϟ_MEMETIC_READ_ORACLE_TEXTS",
+      "operator_path": "abraxas.memetic.rune_adapter:read_oracle_texts_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/read_oracle_texts_input.schema.json",
+      "output_schema": "schemas/capabilities/read_oracle_texts_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "memetic.extract.extract_terms",
+      "rune_id": "ϟ_MEMETIC_EXTRACT_TERMS",
+      "operator_path": "abraxas.memetic.rune_adapter:extract_terms_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/extract_terms_input.schema.json",
+      "output_schema": "schemas/capabilities/extract_terms_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.extract.build_mimetic_weather",
+      "rune_id": "ϟ_MEMETIC_BUILD_WEATHER",
+      "operator_path": "abraxas.memetic.rune_adapter:build_mimetic_weather_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_mimetic_weather_input.schema.json",
+      "output_schema": "schemas/capabilities/build_mimetic_weather_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
     }
   ],
   "provenance": {

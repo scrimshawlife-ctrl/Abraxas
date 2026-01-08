@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Build Mimetic Weather Input",
+  "description": "Input schema for memetic.extract.build_mimetic_weather capability",
+  "type": "object",
+  "required": ["run_id", "term_candidates"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier for provenance tracking"
+    },
+    "term_candidates": {
+      "type": "array",
+      "items": {"type": "object"},
+      "description": "List of term candidate dicts (from extract_terms)"
+    },
+    "ts": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Optional timestamp override (ISO format)"
+    }
+  },
+  "additionalProperties": false
+}

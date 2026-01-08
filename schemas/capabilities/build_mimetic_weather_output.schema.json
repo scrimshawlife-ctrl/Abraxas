@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Build Mimetic Weather Output",
+  "description": "Output schema for memetic.extract.build_mimetic_weather capability",
+  "type": "object",
+  "required": ["weather_units", "provenance", "not_computable"],
+  "properties": {
+    "weather_units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["unit_id", "label", "kind", "intensity", "direction", "confidence", "first_seen_ts", "last_seen_ts", "horizon_tags", "supporting_terms", "disinfo_metrics", "provenance"],
+        "properties": {
+          "unit_id": {"type": "string"},
+          "label": {"type": "string"},
+          "kind": {"type": "string"},
+          "intensity": {"type": "number"},
+          "direction": {"type": "string"},
+          "confidence": {"type": "number"},
+          "first_seen_ts": {"type": "string"},
+          "last_seen_ts": {"type": "string"},
+          "horizon_tags": {"type": "array", "items": {"type": "string"}},
+          "supporting_terms": {"type": "array", "items": {"type": "string"}},
+          "disinfo_metrics": {"type": "object"},
+          "provenance": {"type": "object"}
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.extract.build_mimetic_weather"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - weather building never fails"
+    }
+  },
+  "additionalProperties": false
+}
