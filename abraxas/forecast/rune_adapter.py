@@ -18,6 +18,7 @@ from abraxas.forecast.gating_policy import decide_gate as decide_gate_core
 from abraxas.forecast.horizon_policy import compare_horizon as compare_horizon_core
 from abraxas.forecast.horizon_policy import enforce_horizon_policy as enforce_horizon_policy_core
 from abraxas.forecast.ledger import issue_prediction as issue_prediction_core
+from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier as horizon_uncertainty_multiplier_core
 
 
 def compute_brier_score_deterministic(
@@ -517,6 +518,44 @@ def issue_prediction_deterministic(
     }
 
 
+def horizon_uncertainty_multiplier_deterministic(
+    horizon: Any,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible horizon uncertainty multiplier calculator.
+
+    Wraps existing horizon_uncertainty_multiplier with provenance envelope.
+    Maps horizon values to uncertainty multipliers (1.00 for days, 1.05 for weeks, etc.).
+
+    Args:
+        horizon: Horizon value (days, weeks, months, years, or any string)
+        seed: Optional deterministic seed (unused for multiplier, kept for consistency)
+
+    Returns:
+        Dictionary with multiplier, provenance, and not_computable (always None)
+    """
+    # Call existing horizon_uncertainty_multiplier function (no changes to core logic)
+    multiplier = horizon_uncertainty_multiplier_core(horizon)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"multiplier": multiplier},
+        config={},
+        inputs={"horizon": horizon},
+        operation_id="forecast.uncertainty.horizon_multiplier",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "multiplier": multiplier,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # multiplier calculation never fails, returns default on unknown
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
@@ -526,5 +565,6 @@ __all__ = [
     "decide_gate_deterministic",
     "compare_horizon_deterministic",
     "enforce_horizon_policy_deterministic",
-    "issue_prediction_deterministic"
+    "issue_prediction_deterministic",
+    "horizon_uncertainty_multiplier_deterministic"
 ]

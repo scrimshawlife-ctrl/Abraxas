@@ -10,9 +10,7 @@ from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 # decide_gate replaced by forecast.gating_policy.decide_gate capability
 # brier_score and expected_error_band replaced by forecast.scoring capabilities
-# ExpectedErrorBand still needed for type reconstruction from capability result
-from abraxas.forecast.scoring import ExpectedErrorBand
-from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
+# horizon_uncertainty_multiplier replaced by forecast.uncertainty.horizon_multiplier capability
 # load_dmx_context replaced by memetic.dmx_context.load capability
 
 
@@ -34,15 +32,15 @@ def _write_json(path: str, obj: Any) -> None:
         json.dump(obj, f, ensure_ascii=False, indent=2)
 
 
-def _apply_eeb_multiplier(eeb: ExpectedErrorBand, multiplier: float) -> Dict[str, Any]:
+def _apply_eeb_multiplier(eeb_dict: Dict[str, Any], multiplier: float) -> Dict[str, Any]:
     mul = max(1.0, float(multiplier))
-    eeb_dict = eeb.to_dict()
-    eeb_dict["timing_days_min"] = float(eeb_dict["timing_days_min"]) * mul
-    eeb_dict["timing_days_max"] = float(eeb_dict["timing_days_max"]) * mul
-    eeb_dict["magnitude_pct_min"] = min(0.99, float(eeb_dict["magnitude_pct_min"]) * mul)
-    eeb_dict["magnitude_pct_max"] = min(0.99, float(eeb_dict["magnitude_pct_max"]) * mul)
-    eeb_dict["multiplier"] = mul
-    return eeb_dict
+    out = dict(eeb_dict)
+    out["timing_days_min"] = float(out.get("timing_days_min") or 0.0) * mul
+    out["timing_days_max"] = float(out.get("timing_days_max") or 0.0) * mul
+    out["magnitude_pct_min"] = min(0.99, float(out.get("magnitude_pct_min") or 0.0) * mul)
+    out["magnitude_pct_max"] = min(0.99, float(out.get("magnitude_pct_max") or 0.0) * mul)
+    out["multiplier"] = mul
+    return out
 
 
 def _scale_eeb_dict(eeb_dict: Dict[str, Any], multiplier: float) -> Dict[str, Any]:
@@ -171,9 +169,15 @@ def main() -> int:
             ctx=ctx,
             strict_execution=True
         )
-        # expected_error_band returns dict, reconstruct ExpectedErrorBand object
-        eeb = ExpectedErrorBand(**eeb_result["error_band"])
-        eeb_dict = _apply_eeb_multiplier(eeb, horizon_uncertainty_multiplier(horizon))
+        # Get horizon uncertainty multiplier via capability
+        multiplier_result = invoke_capability(
+            "forecast.uncertainty.horizon_multiplier",
+            {"horizon": horizon},
+            ctx=ctx,
+            strict_execution=True
+        )
+        # Apply multipliers to error band dict
+        eeb_dict = _apply_eeb_multiplier(eeb_result["error_band"], multiplier_result["multiplier"])
         eeb_dict = _scale_eeb_dict(eeb_dict, float(gate.get("eeb_multiplier") or 1.0))
         out_item = {
             **item,

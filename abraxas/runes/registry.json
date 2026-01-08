@@ -544,6 +544,17 @@
       "evidence_mode": "data_loading"
     },
     {
+      "capability_id": "forecast.uncertainty.horizon_multiplier",
+      "rune_id": "ϟ_FORECAST_HORIZON_MULT",
+      "operator_path": "abraxas.forecast.rune_adapter:horizon_uncertainty_multiplier_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/horizon_multiplier_input.schema.json",
+      "output_schema": "schemas/capabilities/horizon_multiplier_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "memetic.claims_sources.load",
       "rune_id": "ϟ_MEMETIC_SOURCES_LOAD",
       "operator_path": "abraxas.memetic.rune_adapter:load_sources_from_osh_deterministic",
