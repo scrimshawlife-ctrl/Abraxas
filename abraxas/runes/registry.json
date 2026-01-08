@@ -806,6 +806,39 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "policy_enforcement"
+    },
+    {
+      "capability_id": "acquire.decodo.status",
+      "rune_id": "ϟ_ACQUIRE_DECODO_STATUS",
+      "operator_path": "abraxas.acquire.rune_adapter:decodo_status_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/decodo_status_input.schema.json",
+      "output_schema": "schemas/capabilities/decodo_status_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_access"
+    },
+    {
+      "capability_id": "acquire.decodo.build_query",
+      "rune_id": "ϟ_ACQUIRE_DECODO_BUILD_QUERY",
+      "operator_path": "abraxas.acquire.rune_adapter:build_decodo_query_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_decodo_query_input.schema.json",
+      "output_schema": "schemas/capabilities/build_decodo_query_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "acquire.vector_map.default",
+      "rune_id": "ϟ_ACQUIRE_VECTOR_MAP_DEFAULT",
+      "operator_path": "abraxas.acquire.rune_adapter:default_vector_map_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/default_vector_map_input.schema.json",
+      "output_schema": "schemas/capabilities/default_vector_map_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_access"
     }
   ],
   "provenance": {
