@@ -654,6 +654,39 @@
       "evidence_mode": "data_processing"
     },
     {
+      "capability_id": "evidence.lift.load_bundles_from_index",
+      "rune_id": "ϟ_EVIDENCE_LOAD_BUNDLES",
+      "operator_path": "abraxas.evidence.rune_adapter:load_bundles_from_index_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evidence_load_bundles_input.schema.json",
+      "output_schema": "schemas/capabilities/evidence_load_bundles_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "evidence.lift.term_lift",
+      "rune_id": "ϟ_EVIDENCE_TERM_LIFT",
+      "operator_path": "abraxas.evidence.rune_adapter:term_lift_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evidence_term_lift_input.schema.json",
+      "output_schema": "schemas/capabilities/evidence_term_lift_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "evidence.lift.uplift_factors",
+      "rune_id": "ϟ_EVIDENCE_UPLIFT_FACTORS",
+      "operator_path": "abraxas.evidence.rune_adapter:uplift_factors_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/evidence_uplift_factors_input.schema.json",
+      "output_schema": "schemas/capabilities/evidence_uplift_factors_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "conspiracy.csp.compute_claim",
       "rune_id": "ϟ_CSP_COMPUTE_CLAIM",
       "operator_path": "abraxas.conspiracy.rune_adapter:compute_claim_csp_deterministic",

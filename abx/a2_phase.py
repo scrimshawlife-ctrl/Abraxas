@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evidence.lift import load_bundles_from_index, term_lift, uplift_factors
 from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
@@ -38,6 +37,13 @@ def main() -> int:
     p.add_argument("--now", default=None, help="Optional ISO now override")
     p.add_argument("--value-ledger", default="out/value_ledgers/a2_phase_runs.jsonl")
     args = p.parse_args()
+
+    # Create rune invocation context for capability calls
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.a2_phase",
+        git_hash="unknown"
+    )
 
     ts = _utc_now_iso()
     profiles_full = build_temporal_profiles(
@@ -100,8 +106,24 @@ def main() -> int:
         )
 
     evidence_index_path = os.path.join(args.out_reports, f"evidence_index_{args.run_id}.json")
-    bundles = load_bundles_from_index("out/evidence_bundles", evidence_index_path)
-    lift_by_term = term_lift(bundles)
+    bundles_result = invoke_capability(
+        "evidence.lift.load_bundles_from_index",
+        {
+            "bundles_dir": "out/evidence_bundles",
+            "index_path": evidence_index_path
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    bundles = bundles_result["bundles"]
+
+    lift_result = invoke_capability(
+        "evidence.lift.term_lift",
+        {"bundles": bundles},
+        ctx=ctx,
+        strict_execution=True
+    )
+    lift_by_term = lift_result["lift_by_term"]
     bundles_by_term: Dict[str, List[Dict[str, Any]]] = {}
     for bundle in bundles:
         terms = bundle.get("terms") if isinstance(bundle.get("terms"), list) else []
@@ -121,7 +143,14 @@ def main() -> int:
 
         att0 = float(out_profile.get("attribution_strength") or 0.0)
         sd0 = float(out_profile.get("source_diversity") or 0.0)
-        att_u, sd_u = uplift_factors(lift)
+        uplift_result = invoke_capability(
+            "evidence.lift.uplift_factors",
+            {"lift": lift},
+            ctx=ctx,
+            strict_execution=True
+        )
+        att_u = uplift_result["attribution_uplift"]
+        sd_u = uplift_result["diversity_uplift"]
 
         att1 = min(1.0, max(0.0, att0 + att_u))
         sd1 = min(1.0, max(0.0, sd0 + sd_u))
