@@ -698,6 +698,17 @@
       "evidence_mode": "classification"
     },
     {
+      "capability_id": "conspiracy.csp.compute_term",
+      "rune_id": "ϟ_CSP_COMPUTE_TERM",
+      "operator_path": "abraxas.conspiracy.rune_adapter:compute_term_csp_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/csp_compute_term_input.schema.json",
+      "output_schema": "schemas/capabilities/csp_compute_term_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "classification"
+    },
+    {
       "capability_id": "forecast.gating_policy.decide_gate",
       "rune_id": "ϟ_FORECAST_GATING_POLICY",
       "operator_path": "abraxas.forecast.rune_adapter:decide_gate_deterministic",

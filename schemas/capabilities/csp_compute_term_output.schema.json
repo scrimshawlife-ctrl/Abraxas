@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Conspiracy CSP Compute Term Output",
+  "description": "Output schema for conspiracy.csp.compute_term capability",
+  "type": "object",
+  "required": ["term_csp", "provenance", "not_computable"],
+  "properties": {
+    "term_csp": {
+      "type": "object",
+      "description": "Conspiracy Susceptibility Profile for the term",
+      "required": ["COH", "EA", "CIP", "MIO", "FF", "tag", "flags"],
+      "properties": {
+        "COH": {
+          "type": "boolean",
+          "description": "Coordination Hypothesis flag (inferred from term text)"
+        },
+        "EA": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Evidence Adequacy (attribution + diversity blend)"
+        },
+        "CIP": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Conspiracy Implication Probability"
+        },
+        "MIO": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Manipulation Impact Opacity"
+        },
+        "FF": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Falsifiability / Fork resistance"
+        },
+        "tag": {
+          "type": "string",
+          "enum": ["LOW_RISK", "ELEVATED", "HIGH_RISK", "CRITICAL"],
+          "description": "Risk category tag"
+        },
+        "flags": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Diagnostic flags (e.g., 'COH_PRESENT_TERM_HEUR', 'EA_LOW', 'FF_LOW', 'MIO_HIGH')"
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "conspiracy.csp.compute_term"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - operation never fails"
+    }
+  },
+  "additionalProperties": false
+}

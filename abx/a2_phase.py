@@ -9,7 +9,6 @@ from typing import Any, Dict, List
 from abraxas.memetic.metrics_reduce import reduce_provenance_means
 from abraxas.memetic.term_consensus_map import load_term_consensus_map
 from abraxas.memetic.temporal import build_temporal_profiles
-from abraxas.conspiracy.csp import compute_term_csp
 # classify_term replaced by forecast.term.classify capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
@@ -326,13 +325,19 @@ def main() -> int:
             ctx=ctx,
             strict_execution=True
         )["term_class"]
-        out_profile["term_csp_summary"] = compute_term_csp(
-            term=term,
-            profile=out_profile,
-            dmx_bucket=str(dmx.get("bucket") or "UNKNOWN").upper(),
-            dmx_overall=float(dmx.get("overall_manipulation_risk") or 0.0),
-            term_class=term_class,
+        csp_result = invoke_capability(
+            "conspiracy.csp.compute_term",
+            {
+                "term": term,
+                "profile": out_profile,
+                "dmx_bucket": str(dmx.get("bucket") or "UNKNOWN").upper(),
+                "dmx_overall": float(dmx.get("overall_manipulation_risk") or 0.0),
+                "term_class": term_class
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        out_profile["term_csp_summary"] = csp_result["term_csp"]
         flags = out_profile.get("flags")
         if not isinstance(flags, list):
             flags = []
