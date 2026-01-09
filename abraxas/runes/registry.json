@@ -819,6 +819,17 @@
       "evidence_mode": "data_write"
     },
     {
+      "capability_id": "forecast.ledger.record_outcome",
+      "rune_id": "ϟ_FORECAST_LEDGER_RECORD",
+      "operator_path": "abraxas.forecast.rune_adapter:record_outcome_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/record_outcome_input.schema.json",
+      "output_schema": "schemas/capabilities/record_outcome_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_write"
+    },
+    {
       "capability_id": "conspiracy.policy.horizon_clamp",
       "rune_id": "ϟ_CONSPIRACY_HORIZON_CLAMP",
       "operator_path": "abraxas.conspiracy.rune_adapter:csp_horizon_clamp_deterministic",

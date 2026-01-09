@@ -18,6 +18,7 @@ from abraxas.forecast.gating_policy import decide_gate as decide_gate_core
 from abraxas.forecast.horizon_policy import compare_horizon as compare_horizon_core
 from abraxas.forecast.horizon_policy import enforce_horizon_policy as enforce_horizon_policy_core
 from abraxas.forecast.ledger import issue_prediction as issue_prediction_core
+from abraxas.forecast.ledger import record_outcome as record_outcome_core
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier as horizon_uncertainty_multiplier_core
 
 
@@ -556,6 +557,82 @@ def horizon_uncertainty_multiplier_deterministic(
     }
 
 
+def record_outcome_deterministic(
+    pred_id: str,
+    result: str,
+    run_id: str,
+    evidence: Optional[List[Dict[str, Any]]] = None,
+    notes: str = "",
+    ts_observed: Optional[str] = None,
+    ledger_path: str = "out/forecast_ledger/outcomes.jsonl",
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible forecast outcome recorder.
+
+    Wraps existing record_outcome with provenance envelope.
+    Records forecast outcome to ledger with observation timestamp.
+
+    Args:
+        pred_id: Prediction ID (from issue_prediction)
+        result: Outcome result (e.g., "success", "failure", "pending")
+        run_id: Run identifier
+        evidence: Optional evidence list
+        notes: Optional notes about the outcome
+        ts_observed: Optional timestamp override for observation
+        ledger_path: Path to outcomes ledger JSONL
+        seed: Optional deterministic seed (unused for ledger write, kept for consistency)
+
+    Returns:
+        Dictionary with outcome_row, provenance, and not_computable (always None)
+    """
+    # Call existing record_outcome function (writes to ledger, returns row dict)
+    try:
+        outcome_row = record_outcome_core(
+            pred_id=pred_id,
+            result=result,
+            run_id=run_id,
+            evidence=evidence,
+            notes=notes,
+            ts_observed=ts_observed,
+            ledger_path=ledger_path
+        )
+    except Exception as e:
+        # Not computable - return structured error
+        return {
+            "outcome_row": None,
+            "not_computable": {
+                "reason": str(e),
+                "missing_inputs": []
+            },
+            "provenance": None
+        }
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"outcome_row": outcome_row},
+        config={"ledger_path": ledger_path},
+        inputs={
+            "pred_id": pred_id,
+            "result": result,
+            "run_id": run_id,
+            "evidence": evidence,
+            "notes": notes,
+            "ts_observed": ts_observed
+        },
+        operation_id="forecast.ledger.record_outcome",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "outcome_row": outcome_row,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # ledger write never fails (core function handles errors)
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
@@ -566,5 +643,6 @@ __all__ = [
     "compare_horizon_deterministic",
     "enforce_horizon_policy_deterministic",
     "issue_prediction_deterministic",
-    "horizon_uncertainty_multiplier_deterministic"
+    "horizon_uncertainty_multiplier_deterministic",
+    "record_outcome_deterministic"
 ]
