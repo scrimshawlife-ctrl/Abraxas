@@ -10,6 +10,7 @@ from abraxas.oracle.mda_bridge import run_mda_for_oracle
 from abraxas.mda.signal_layer_v2 import mda_to_oracle_signal_v2, shallow_schema_check
 from abraxas.oracle.renderers import render_from_signal_v2
 from abraxas.oracle.packet import OraclePacket, OraclePacketRun, write_packet
+from abraxas.overlays.abx_gt_shadow import try_run_abx_gt_shadow
 
 
 def _write_text(path: str, text: str) -> None:
@@ -111,6 +112,26 @@ def _ensure_slice_hash(sig: Dict[str, Any]) -> str:
     return slice_hash
 
 
+def _shadow_seed(seed: str) -> int:
+    try:
+        return int(seed)
+    except (TypeError, ValueError):
+        return int(sha256_hex(str(seed))[:8], 16)
+
+
+def _shadow_context(payload: Dict[str, Any], *, run_at: str) -> Dict[str, Any]:
+    ctx: Dict[str, Any] = {
+        "oracle_date": str(payload.get("oracle_date") or payload.get("date") or run_at.split("T")[0]),
+    }
+    location = payload.get("location")
+    if location:
+        ctx["location"] = location
+    signals = payload.get("signals")
+    if isinstance(signals, dict):
+        ctx["signals"] = signals
+    return ctx
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     p = argparse.ArgumentParser(description="Run oracle batch packaging.")
     p.add_argument("--payload-dir", required=True)
@@ -132,6 +153,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     subdomains = _parse_domains(args.subdomains)
 
     packet_runs: List[OraclePacketRun] = []
+    shadow_context: Optional[Dict[str, Any]] = None
     for idx, payload_path in enumerate(payloads, start=1):
         run_id = f"run_{idx:02d}"
         run_dir = os.path.join(args.out, run_id)
@@ -139,6 +161,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
         with open(payload_path, "r", encoding="utf-8") as f:
             payload = json.load(f)
+        if shadow_context is None and isinstance(payload, dict):
+            shadow_context = _shadow_context(payload, run_at=args.run_at)
 
         mda_out = run_mda_for_oracle(payload, env=args.env, run_at=args.run_at)
         sig = mda_to_oracle_signal_v2(mda_out)
@@ -176,6 +200,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         run_at=args.run_at,
         seed=args.seed,
         runs=tuple(packet_runs),
+        shadow={"abx_gt": try_run_abx_gt_shadow(seed=_shadow_seed(args.seed), context=shadow_context or {})},
     )
     write_packet(packet, os.path.join(args.out, "oracle_packet.json"))
     _write_text(os.path.join(args.out, "index.md"), _make_index_md(packet_runs, out_dir=args.out))
