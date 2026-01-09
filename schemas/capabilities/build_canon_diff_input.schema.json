@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Canon Diff Input",
+  "description": "Input schema for evolve.canon_diff.build capability",
+  "type": "object",
+  "required": ["run_id", "out_reports_dir", "candidate_policy_path"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "out_reports_dir": {
+      "type": "string",
+      "description": "Output directory for canon diff artifacts"
+    },
+    "candidate_policy_path": {
+      "type": "string",
+      "description": "Path to candidate policy JSON"
+    },
+    "epp_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to EPP artifact"
+    },
+    "evogate_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to EvoGate artifact"
+    },
+    "rim_manifest_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to RIM manifest"
+    },
+    "canon_snapshot_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to canon snapshot (defaults to latest)"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional seed for SEED compliance"
+    }
+  },
+  "additionalProperties": false
+}
