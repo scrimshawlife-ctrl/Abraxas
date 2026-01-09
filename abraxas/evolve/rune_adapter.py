@@ -16,6 +16,7 @@ from abraxas.evolve.evogate_builder import build_evogate as build_evogate_core
 from abraxas.evolve.rim_builder import build_rim_from_osh_ledger as build_rim_from_osh_ledger_core
 from abraxas.evolve.epp_builder import build_epp as build_epp_core
 from abraxas.evolve.canon_diff import build_canon_diff as build_canon_diff_core
+from abraxas.evolve.promotion_builder import build_promotion_packet as build_promotion_packet_core
 
 
 def append_ledger_deterministic(
@@ -548,11 +549,91 @@ def build_canon_diff_deterministic(
     }
 
 
+def build_promotion_packet_deterministic(
+    run_id: str,
+    out_dir: str,
+    epp_path: str,
+    evogate_path: str,
+    rim_manifest_path: str,
+    candidate_policy_path: str,
+    emit_canon_snapshot: bool = False,
+    force: bool = False,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible promotion packet builder.
+
+    Wraps existing build_promotion_packet with provenance envelope.
+    Generates human-approved promotion packet for policy candidate.
+
+    Args:
+        run_id: Run identifier
+        out_dir: Output directory for promotion artifacts
+        epp_path: Path to EPP artifact (required)
+        evogate_path: Path to EvoGate artifact (required)
+        rim_manifest_path: Path to RIM manifest (required)
+        candidate_policy_path: Path to candidate policy JSON (required)
+        emit_canon_snapshot: Whether to emit canonical snapshot
+        force: Force promotion even with warnings
+        seed: Optional deterministic seed (unused for promotion, kept for consistency)
+        **kwargs: Additional arguments (captured for provenance)
+
+    Returns:
+        Dictionary with json_path (str), md_path (str), canon_snapshot_path (str), meta (dict),
+        provenance, and not_computable
+    """
+    # Call core function (returns tuple of (json_path, md_path, canon_snapshot_path, meta))
+    json_path, md_path, canon_snapshot_path, meta = build_promotion_packet_core(
+        run_id=run_id,
+        out_dir=out_dir,
+        epp_path=epp_path,
+        evogate_path=evogate_path,
+        rim_manifest_path=rim_manifest_path,
+        candidate_policy_path=candidate_policy_path,
+        emit_canon_snapshot=emit_canon_snapshot,
+        force=force
+    )
+
+    # Build canonical envelope
+    inputs_dict = {
+        "run_id": run_id,
+        "out_dir": out_dir,
+        "epp_path": epp_path,
+        "evogate_path": evogate_path,
+        "rim_manifest_path": rim_manifest_path,
+        "candidate_policy_path": candidate_policy_path,
+        "emit_canon_snapshot": emit_canon_snapshot,
+        "force": force
+    }
+    config_dict = {
+        "seed": seed,
+        **kwargs
+    }
+
+    envelope = canonical_envelope(
+        inputs=inputs_dict,
+        outputs={"json_path": json_path, "md_path": md_path, "canon_snapshot_path": canon_snapshot_path, "meta": meta},
+        config=config_dict,
+        errors=None
+    )
+
+    return {
+        "json_path": json_path,
+        "md_path": md_path,
+        "canon_snapshot_path": canon_snapshot_path,
+        "meta": meta,
+        "provenance": envelope["provenance"],
+        "not_computable": None
+    }
+
+
 __all__ = [
     "append_ledger_deterministic",
     "enforce_non_truncation_deterministic",
     "build_evogate_deterministic",
     "build_rim_from_osh_ledger_deterministic",
     "build_epp_deterministic",
-    "build_canon_diff_deterministic"
+    "build_canon_diff_deterministic",
+    "build_promotion_packet_deterministic"
 ]

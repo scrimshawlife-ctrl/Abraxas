@@ -555,6 +555,17 @@
       "evidence_mode": "data_processing"
     },
     {
+      "capability_id": "evolve.promotion.build",
+      "rune_id": "ϟ_EVOLVE_PROMOTION_BUILD",
+      "operator_path": "abraxas.evolve.rune_adapter:build_promotion_packet_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_promotion_packet_input.schema.json",
+      "output_schema": "schemas/capabilities/build_promotion_packet_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "forecast.horizon.classify",
       "rune_id": "ϟ_FORECAST_HORIZON",
       "operator_path": "abraxas.forecast.rune_adapter:classify_horizon_deterministic",
