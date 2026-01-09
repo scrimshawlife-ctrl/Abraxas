@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 
 # horizon_bucket replaced by forecast.horizon.classify capability
 # load_term_class_map replaced by forecast.term_class_map.load capability
-from abraxas.forecast.policy_candidates import candidates_v0_1
+# candidates_v0_1 replaced by forecast.policy.candidates_v0_1 capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -143,7 +143,15 @@ def main() -> int:
     window = resolved[-int(args.window_resolved) :] if resolved else []
     roll = _rolling_stats(window)
 
-    cand = candidates_v0_1()
+    # Load policy candidates via capability contract
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
+    cand_result = invoke_capability(
+        "forecast.policy.candidates_v0_1",
+        {},
+        ctx=ctx,
+        strict_execution=True
+    )
+    cand = cand_result["candidates"]
     buckets = ("LOW", "MED", "HIGH", "UNKNOWN")
     classes = ("stable", "emerging", "volatile", "contested", "unknown")
 

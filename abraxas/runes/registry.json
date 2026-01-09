@@ -610,6 +610,17 @@
       "evidence_mode": "data_processing"
     },
     {
+      "capability_id": "forecast.policy.candidates_v0_1",
+      "rune_id": "ϟ_FORECAST_POLICY_CANDIDATES",
+      "operator_path": "abraxas.forecast.rune_adapter:policy_candidates_v0_1_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/policy_candidates_v0_1_input.schema.json",
+      "output_schema": "schemas/capabilities/policy_candidates_v0_1_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
       "capability_id": "memetic.claims_sources.load",
       "rune_id": "ϟ_MEMETIC_SOURCES_LOAD",
       "operator_path": "abraxas.memetic.rune_adapter:load_sources_from_osh_deterministic",
