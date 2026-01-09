@@ -511,6 +511,28 @@
       "evidence_mode": "policy_enforcement"
     },
     {
+      "capability_id": "evolve.evogate.build",
+      "rune_id": "ϟ_EVOLVE_EVOGATE_BUILD",
+      "operator_path": "abraxas.evolve.rune_adapter:build_evogate_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_evogate_input.schema.json",
+      "output_schema": "schemas/capabilities/build_evogate_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "evolve.rim.build_from_osh_ledger",
+      "rune_id": "ϟ_EVOLVE_RIM_BUILD",
+      "operator_path": "abraxas.evolve.rune_adapter:build_rim_from_osh_ledger_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_rim_input.schema.json",
+      "output_schema": "schemas/capabilities/build_rim_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "forecast.horizon.classify",
       "rune_id": "ϟ_FORECAST_HORIZON",
       "operator_path": "abraxas.forecast.rune_adapter:classify_horizon_deterministic",
