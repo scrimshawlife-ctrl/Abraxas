@@ -973,6 +973,28 @@
       "evidence_mode": "data_processing"
     },
     {
+      "capability_id": "memetic.registry.append",
+      "rune_id": "ϟ_MEMETIC_REGISTRY_APPEND",
+      "operator_path": "abraxas.memetic.rune_adapter:append_a2_terms_to_registry_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/append_a2_terms_input.schema.json",
+      "output_schema": "schemas/capabilities/append_a2_terms_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "memetic.registry.compute_missed",
+      "rune_id": "ϟ_MEMETIC_REGISTRY_COMPUTE_MISSED",
+      "operator_path": "abraxas.memetic.rune_adapter:compute_missed_terms_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/compute_missed_terms_input.schema.json",
+      "output_schema": "schemas/capabilities/compute_missed_terms_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "core.rendering.render_output",
       "rune_id": "ϟ_CORE_RENDER_OUTPUT",
       "operator_path": "abraxas.core.rune_adapter:render_output_deterministic",

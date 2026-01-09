@@ -26,6 +26,10 @@ from abraxas.memetic.extract import (
     extract_terms as extract_terms_core,
     build_mimetic_weather as build_mimetic_weather_core
 )
+from abraxas.memetic.registry import (
+    append_a2_terms_to_registry as append_a2_terms_to_registry_core,
+    compute_missed_terms as compute_missed_terms_core
+)
 
 
 def load_sources_from_osh_deterministic(
@@ -695,6 +699,119 @@ def build_mimetic_weather_deterministic(
     }
 
 
+def append_a2_terms_to_registry_deterministic(
+    a2_path: str,
+    registry_path: str = "out/a2_registry/terms.jsonl",
+    source_run_id: Optional[str] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible A2 terms registry appender.
+
+    Wraps existing append_a2_terms_to_registry with provenance envelope.
+    Appends A2 slang terms to registry with chained JSONL ledger.
+
+    Args:
+        a2_path: Path to A2 artifact JSON
+        registry_path: Path to registry JSONL (default: out/a2_registry/terms.jsonl)
+        source_run_id: Optional source run ID override
+        seed: Optional deterministic seed (unused, kept for consistency)
+        **kwargs: Additional arguments (captured for provenance)
+
+    Returns:
+        Dictionary with appended (int), registry_path (str), source_run_id (str),
+        provenance, and not_computable
+    """
+    # Call core function (returns dict)
+    result = append_a2_terms_to_registry_core(
+        a2_path=a2_path,
+        registry_path=registry_path,
+        source_run_id=source_run_id
+    )
+
+    # Build canonical envelope
+    inputs_dict = {
+        "a2_path": a2_path,
+        "registry_path": registry_path,
+        "source_run_id": source_run_id
+    }
+    config_dict = {
+        "seed": seed,
+        **kwargs
+    }
+
+    envelope = canonical_envelope(
+        inputs=inputs_dict,
+        outputs=result,
+        config=config_dict,
+        errors=None
+    )
+
+    return {
+        **result,
+        "provenance": envelope["provenance"],
+        "not_computable": None
+    }
+
+
+def compute_missed_terms_deterministic(
+    a2_path: str,
+    registry_path: str = "out/a2_registry/terms.jsonl",
+    resurrect_after_days: int = 10,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible missed terms calculator.
+
+    Wraps existing compute_missed_terms with provenance envelope.
+    Computes missed (first-time) and resurrected (returned after absence) terms.
+
+    Args:
+        a2_path: Path to A2 artifact JSON
+        registry_path: Path to registry JSONL (default: out/a2_registry/terms.jsonl)
+        resurrect_after_days: Days threshold for resurrection (default: 10)
+        seed: Optional deterministic seed (unused, kept for consistency)
+        **kwargs: Additional arguments (captured for provenance)
+
+    Returns:
+        Dictionary with version, ts, run_id, a2_path, registry_path, present (int),
+        known (int), missed (list), resurrected (list), params, provenance (nested from core),
+        capability provenance, and not_computable
+    """
+    # Call core function (returns dict with nested provenance)
+    result = compute_missed_terms_core(
+        a2_path=a2_path,
+        registry_path=registry_path,
+        resurrect_after_days=resurrect_after_days
+    )
+
+    # Build canonical envelope
+    inputs_dict = {
+        "a2_path": a2_path,
+        "registry_path": registry_path,
+        "resurrect_after_days": resurrect_after_days
+    }
+    config_dict = {
+        "seed": seed,
+        **kwargs
+    }
+
+    envelope = canonical_envelope(
+        inputs=inputs_dict,
+        outputs=result,
+        config=config_dict,
+        errors=None
+    )
+
+    return {
+        **result,
+        "capability_provenance": envelope["provenance"],
+        "not_computable": None
+    }
+
+
 __all__ = [
     "load_sources_from_osh_deterministic",
     "extract_claim_items_deterministic",
@@ -710,5 +827,7 @@ __all__ = [
     "compute_dmx_deterministic",
     "read_oracle_texts_deterministic",
     "extract_terms_deterministic",
-    "build_mimetic_weather_deterministic"
+    "build_mimetic_weather_deterministic",
+    "append_a2_terms_to_registry_deterministic",
+    "compute_missed_terms_deterministic"
 ]

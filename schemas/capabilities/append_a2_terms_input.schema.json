@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Append A2 Terms Input",
+  "description": "Input schema for memetic.registry.append capability",
+  "type": "object",
+  "required": ["a2_path"],
+  "properties": {
+    "a2_path": {
+      "type": "string",
+      "description": "Path to A2 artifact JSON"
+    },
+    "registry_path": {
+      "type": "string",
+      "description": "Path to registry JSONL",
+      "default": "out/a2_registry/terms.jsonl"
+    },
+    "source_run_id": {
+      "type": ["string", "null"],
+      "description": "Optional source run ID override"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional seed for SEED compliance"
+    }
+  },
+  "additionalProperties": false
+}
