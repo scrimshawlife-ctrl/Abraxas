@@ -14,6 +14,7 @@ from abraxas.evolve.ledger import append_chained_jsonl as append_chained_jsonl_c
 from abraxas.evolve.non_truncation import enforce_non_truncation as enforce_non_truncation_core
 from abraxas.evolve.evogate_builder import build_evogate as build_evogate_core
 from abraxas.evolve.rim_builder import build_rim_from_osh_ledger as build_rim_from_osh_ledger_core
+from abraxas.evolve.epp_builder import build_epp as build_epp_core
 
 
 def append_ledger_deterministic(
@@ -369,9 +370,114 @@ def build_rim_from_osh_ledger_deterministic(
     }
 
 
+def build_epp_deterministic(
+    run_id: str,
+    out_dir: str = "out/reports",
+    inputs_dir: str = "out/reports",
+    osh_ledger_path: str = "out/osh_ledgers/fetch_artifacts.jsonl",
+    integrity_snapshot_path: Optional[str] = None,
+    dap_path: Optional[str] = None,
+    mwr_path: Optional[str] = None,
+    a2_path: Optional[str] = None,
+    a2_phase_path: Optional[str] = None,
+    audit_path: Optional[str] = None,
+    ledger_path: str = "out/value_ledgers/epp_runs.jsonl",
+    max_proposals: int = 25,
+    ts: Optional[str] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible EPP (Evolution Proposal Pack) builder.
+
+    Wraps existing build_epp with provenance envelope.
+    Builds proposal pack from SMV/CRE reports, DAP, integrity snapshots, and forecasts.
+
+    Args:
+        run_id: Run identifier
+        out_dir: Output directory for reports
+        inputs_dir: Input directory for reports
+        osh_ledger_path: Path to OSH ledger JSONL
+        integrity_snapshot_path: Optional path to integrity snapshot
+        dap_path: Optional path to DAP artifact
+        mwr_path: Optional path to mimetic weather artifact
+        a2_path: Optional path to AAlmanac/slang terms artifact
+        a2_phase_path: Optional path to A2 temporal profiles artifact
+        audit_path: Optional path to forecast audit artifact
+        ledger_path: Path to EPP ledger
+        max_proposals: Maximum proposals to include (default: 25)
+        ts: Optional timestamp override
+        seed: Optional deterministic seed (unused for epp, kept for consistency)
+
+    Returns:
+        Dictionary with json_path, md_path, provenance, and optionally not_computable
+    """
+    # Call existing build_epp function (returns tuple: json_path, md_path)
+    try:
+        json_path, md_path = build_epp_core(
+            run_id=run_id,
+            out_dir=out_dir,
+            inputs_dir=inputs_dir,
+            osh_ledger_path=osh_ledger_path,
+            integrity_snapshot_path=integrity_snapshot_path,
+            dap_path=dap_path,
+            mwr_path=mwr_path,
+            a2_path=a2_path,
+            a2_phase_path=a2_phase_path,
+            audit_path=audit_path,
+            ledger_path=ledger_path,
+            max_proposals=max_proposals,
+            ts=ts
+        )
+    except Exception as e:
+        # Not computable - return structured error
+        return {
+            "json_path": None,
+            "md_path": None,
+            "not_computable": {
+                "reason": str(e),
+                "missing_inputs": []
+            },
+            "provenance": None
+        }
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"json_path": json_path, "md_path": md_path},
+        config={
+            "out_dir": out_dir,
+            "inputs_dir": inputs_dir,
+            "max_proposals": max_proposals
+        },
+        inputs={
+            "run_id": run_id,
+            "osh_ledger_path": osh_ledger_path,
+            "integrity_snapshot_path": integrity_snapshot_path,
+            "dap_path": dap_path,
+            "mwr_path": mwr_path,
+            "a2_path": a2_path,
+            "a2_phase_path": a2_phase_path,
+            "audit_path": audit_path,
+            "ledger_path": ledger_path,
+            "ts": ts
+        },
+        operation_id="evolve.epp.build",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "json_path": json_path,
+        "md_path": md_path,
+        "provenance": envelope["provenance"],
+        "not_computable": envelope["not_computable"]
+    }
+
+
 __all__ = [
     "append_ledger_deterministic",
     "enforce_non_truncation_deterministic",
     "build_evogate_deterministic",
-    "build_rim_from_osh_ledger_deterministic"
+    "build_rim_from_osh_ledger_deterministic",
+    "build_epp_deterministic"
 ]

@@ -533,6 +533,17 @@
       "evidence_mode": "data_processing"
     },
     {
+      "capability_id": "evolve.epp.build",
+      "rune_id": "ϟ_EVOLVE_EPP_BUILD",
+      "operator_path": "abraxas.evolve.rune_adapter:build_epp_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_epp_input.schema.json",
+      "output_schema": "schemas/capabilities/build_epp_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "forecast.horizon.classify",
       "rune_id": "ϟ_FORECAST_HORIZON",
       "operator_path": "abraxas.forecast.rune_adapter:classify_horizon_deterministic",
