@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build DAP Output",
+  "description": "Output schema for acquire.dap.build capability",
+  "type": "object",
+  "required": ["json_path", "md_path", "provenance", "not_computable"],
+  "properties": {
+    "json_path": {
+      "type": "string",
+      "description": "Path to generated DAP JSON artifact (dap_<run_id>.json)"
+    },
+    "md_path": {
+      "type": "string",
+      "description": "Path to generated DAP markdown report (dap_<run_id>.md)"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

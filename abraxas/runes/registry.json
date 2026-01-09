@@ -896,6 +896,17 @@
       "evidence_mode": "data_access"
     },
     {
+      "capability_id": "acquire.dap.build",
+      "rune_id": "ϟ_ACQUIRE_DAP_BUILD",
+      "operator_path": "abraxas.acquire.rune_adapter:build_dap_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/build_dap_input.schema.json",
+      "output_schema": "schemas/capabilities/build_dap_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "memetic.dmx.compute",
       "rune_id": "ϟ_MEMETIC_DMX_COMPUTE",
       "operator_path": "abraxas.memetic.rune_adapter:compute_dmx_deterministic",

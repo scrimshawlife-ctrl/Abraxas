@@ -14,6 +14,7 @@ from abraxas.acquire.decodo_client import (
     build_decodo_query as build_decodo_query_core
 )
 from abraxas.acquire.vector_map_schema import default_vector_map_v0_1 as default_vector_map_core
+from abraxas.acquire.dap_builder import build_dap as build_dap_core, DapInputs
 
 
 def decodo_status_deterministic(
@@ -131,8 +132,99 @@ def default_vector_map_deterministic(
     }
 
 
+def build_dap_deterministic(
+    run_id: str,
+    out_dir: str,
+    playbook_path: str,
+    forecast_scores_path: Optional[str] = None,
+    regime_scores_path: Optional[str] = None,
+    component_scores_path: Optional[str] = None,
+    drift_report_path: Optional[str] = None,
+    smv_report_path: Optional[str] = None,
+    integrity_snapshot_path: Optional[str] = None,
+    ts: Optional[str] = None,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible DAP builder.
+
+    Wraps existing build_dap with provenance envelope.
+    Detects data gaps and generates acquisition actions based on playbook.
+
+    Args:
+        run_id: Run identifier
+        out_dir: Output directory for DAP artifacts
+        playbook_path: Path to acquisition playbook YAML
+        forecast_scores_path: Optional path to forecast scores JSON
+        regime_scores_path: Optional path to regime scores JSON
+        component_scores_path: Optional path to component scores JSON
+        drift_report_path: Optional path to drift report JSON
+        smv_report_path: Optional path to SMV report JSON
+        integrity_snapshot_path: Optional path to integrity snapshot JSON
+        ts: Optional timestamp override (ISO8601)
+        seed: Optional deterministic seed (unused for DAP build, kept for consistency)
+
+    Returns:
+        Dictionary with json_path (str), md_path (str), provenance, and not_computable (always None)
+    """
+    # Build DapInputs dataclass
+    inputs = DapInputs(
+        forecast_scores_path=forecast_scores_path,
+        regime_scores_path=regime_scores_path,
+        component_scores_path=component_scores_path,
+        drift_report_path=drift_report_path,
+        smv_report_path=smv_report_path,
+        integrity_snapshot_path=integrity_snapshot_path
+    )
+
+    # Call core function (returns tuple of (json_path, md_path))
+    json_path, md_path = build_dap_core(
+        run_id=run_id,
+        out_dir=out_dir,
+        playbook_path=playbook_path,
+        inputs=inputs,
+        ts=ts
+    )
+
+    # Build canonical envelope
+    inputs_dict = {
+        "run_id": run_id,
+        "out_dir": out_dir,
+        "playbook_path": playbook_path,
+        "inputs": {
+            "forecast_scores_path": forecast_scores_path,
+            "regime_scores_path": regime_scores_path,
+            "component_scores_path": component_scores_path,
+            "drift_report_path": drift_report_path,
+            "smv_report_path": smv_report_path,
+            "integrity_snapshot_path": integrity_snapshot_path
+        },
+        "ts": ts
+    }
+    config_dict = {
+        "seed": seed,
+        **kwargs
+    }
+
+    envelope = canonical_envelope(
+        inputs=inputs_dict,
+        outputs={"json_path": json_path, "md_path": md_path},
+        config=config_dict,
+        errors=None
+    )
+
+    return {
+        "json_path": json_path,
+        "md_path": md_path,
+        "provenance": envelope["provenance"],
+        "not_computable": None
+    }
+
+
 __all__ = [
     "decodo_status_deterministic",
     "build_decodo_query_deterministic",
-    "default_vector_map_deterministic"
+    "default_vector_map_deterministic",
+    "build_dap_deterministic"
 ]
