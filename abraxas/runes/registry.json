@@ -1026,6 +1026,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "observation"
+    },
+    {
+      "capability_id": "disinfo.apply.metrics",
+      "rune_id": "ϟ_DISINFO_APPLY_METRICS",
+      "operator_path": "abraxas.disinfo.rune_adapter:apply_disinfo_metrics_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/apply_disinfo_metrics_input.schema.json",
+      "output_schema": "schemas/capabilities/apply_disinfo_metrics_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
     }
   ],
   "provenance": {

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Apply Disinfo Metrics Output",
+  "description": "Output schema for disinfo.apply.metrics capability",
+  "type": "object",
+  "required": ["enriched_item", "provenance", "not_computable"],
+  "properties": {
+    "enriched_item": {
+      "type": "object",
+      "description": "Item enriched with disinfo metrics (PI, SML, NMP)",
+      "properties": {
+        "disinfo": {
+          "type": "object",
+          "description": "Disinfo metrics",
+          "properties": {
+            "PI": {"type": "object", "description": "Provenance Integrity"},
+            "SML": {"type": "object", "description": "Synthetic Media Likelihood"},
+            "NMP": {"type": "object", "description": "Narrative Manipulation Pressure"}
+          }
+        },
+        "pi": {"type": "object", "description": "PI metrics (for SML reuse)"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}
