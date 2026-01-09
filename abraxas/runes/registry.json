@@ -938,6 +938,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "core.rendering.render_output",
+      "rune_id": "ϟ_CORE_RENDER_OUTPUT",
+      "operator_path": "abraxas.core.rune_adapter:render_output_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/render_output_input.schema.json",
+      "output_schema": "schemas/capabilities/render_output_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "policy_enforcement"
+    },
+    {
+      "capability_id": "drift.orchestrator.analyze_text_for_drift",
+      "rune_id": "ϟ_DRIFT_ANALYZE_TEXT",
+      "operator_path": "abraxas.drift.rune_adapter:analyze_text_for_drift_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/analyze_drift_input.schema.json",
+      "output_schema": "schemas/capabilities/analyze_drift_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "observation"
     }
   ],
   "provenance": {

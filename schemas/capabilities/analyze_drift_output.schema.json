@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Analyze Drift Output",
+  "description": "Output schema for drift.orchestrator.analyze_text_for_drift capability",
+  "type": "object",
+  "required": ["drift_report", "provenance", "not_computable"],
+  "properties": {
+    "drift_report": {
+      "type": "object",
+      "description": "DriftReport with text SHA-256, provenance, flags, and notes",
+      "required": ["text_sha256", "provenance", "flags", "notes"],
+      "properties": {
+        "text_sha256": {
+          "type": "string",
+          "description": "SHA-256 hash of the analyzed text"
+        },
+        "provenance": {
+          "type": "object",
+          "description": "ProvenanceBundle that was passed in"
+        },
+        "flags": {
+          "type": "array",
+          "description": "List of DriftFlag objects (code, description, positions)",
+          "items": {
+            "type": "object",
+            "required": ["code", "description", "positions"],
+            "properties": {
+              "code": {"type": "string"},
+              "description": {"type": "string"},
+              "positions": {
+                "type": "array",
+                "items": {"type": "integer"}
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "array",
+          "description": "List of note strings about the analysis",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope for this capability invocation",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}
