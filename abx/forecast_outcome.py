@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import json
 
-from abraxas.runes.ctx import RuneInvocationContext
+# record_outcome replaced by forecast.ledger.record_outcome capability
 from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def main() -> int:
@@ -24,23 +25,26 @@ def main() -> int:
         if not isinstance(evidence, list):
             evidence = []
 
+    # Create context for capability invocation
     ctx = RuneInvocationContext(
         run_id=args.run_id,
         subsystem_id="abx.forecast_outcome",
-        git_hash="unknown",
+        git_hash="unknown"
     )
+
+    # Record outcome via capability contract
     invoke_capability(
-        "forecast.outcome.record",
+        "forecast.ledger.record_outcome",
         {
             "pred_id": args.pred_id,
             "result": args.result,
             "run_id": args.run_id,
             "evidence": evidence,
             "notes": args.notes,
-            "ledger_path": args.out_ledger,
+            "ledger_path": args.out_ledger
         },
         ctx=ctx,
-        strict_execution=True,
+        strict_execution=True
     )
     print(f"[FORECAST_OUTCOME] appended outcome for {args.pred_id} → {args.out_ledger}")
     return 0

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build EvoGate Output",
+  "description": "Output schema for evolve.evogate.build capability",
+  "type": "object",
+  "required": ["json_path", "md_path", "meta", "provenance", "not_computable"],
+  "properties": {
+    "json_path": {
+      "type": ["string", "null"],
+      "description": "Path to generated EvoGate JSON report"
+    },
+    "md_path": {
+      "type": ["string", "null"],
+      "description": "Path to generated EvoGate Markdown report"
+    },
+    "meta": {
+      "type": ["object", "null"],
+      "description": "Metadata about the EvoGate build (pack_id, applied_ids, gate_status, etc.)"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "evolve.evogate.build"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "properties": {
+        "reason": {"type": "string"},
+        "missing_inputs": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "additionalProperties": false
+}

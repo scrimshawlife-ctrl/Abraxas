@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Acquire Default Vector Map Output",
+  "description": "Output schema for acquire.vector_map.default capability",
+  "type": "object",
+  "required": ["vector_map", "provenance", "not_computable"],
+  "properties": {
+    "vector_map": {
+      "type": "object",
+      "description": "Default vector map with channel definitions"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "acquire.vector_map.default"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - default map never fails"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Promotion Packet Output",
+  "description": "Output schema for evolve.promotion.build capability",
+  "type": "object",
+  "required": ["json_path", "md_path", "canon_snapshot_path", "meta", "provenance", "not_computable"],
+  "properties": {
+    "json_path": {
+      "type": "string",
+      "description": "Path to generated promotion packet JSON artifact"
+    },
+    "md_path": {
+      "type": "string",
+      "description": "Path to generated promotion packet markdown report"
+    },
+    "canon_snapshot_path": {
+      "type": ["string", "null"],
+      "description": "Path to canon snapshot if emit_canon_snapshot=true, null otherwise"
+    },
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the promotion (promotion_recommended, emit_canon_snapshot)",
+      "required": ["promotion_recommended", "emit_canon_snapshot"],
+      "properties": {
+        "promotion_recommended": {"type": "boolean"},
+        "emit_canon_snapshot": {"type": "boolean"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

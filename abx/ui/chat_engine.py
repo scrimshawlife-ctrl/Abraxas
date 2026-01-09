@@ -3,8 +3,10 @@ from typing import Any, Dict, List
 
 from abx.bus.runtime import process
 from abraxas.core.provenance import ProvenanceBundle, ProvenanceRef, hash_string
-from abraxas.core.rendering import render_output
-from abraxas.drift.orchestrator import analyze_text_for_drift
+# render_output replaced by core.rendering.render_output capability
+# analyze_text_for_drift replaced by drift.orchestrator.analyze_text_for_drift capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None = None) -> Dict[str, Any]:
     # messages: [{"role":"user"|"assistant"|"system","content":"..."}]
@@ -25,7 +27,24 @@ def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None =
     draft_text = str(frame.get("output", {}).get("message", ""))
     frame_id = str(frame.get("meta", {}).get("frame_id", "unknown_frame"))
     context = {"intent": payload.get("intent", "chat"), "frame_id": frame_id}
-    rendered_text = render_output(draft_text, context=context)
+
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=frame_id,
+        subsystem_id="abx.ui.chat_engine",
+        git_hash="unknown"
+    )
+
+    # Render output via capability contract
+    render_result = invoke_capability(
+        "core.rendering.render_output",
+        {"draft_text": draft_text, "context": context},
+        ctx=ctx,
+        strict_execution=True
+    )
+    rendered_text = render_result["rendered_text"]
+
+    # Build provenance bundle
     provenance = ProvenanceBundle(
         inputs=[
             ProvenanceRef(
@@ -37,7 +56,15 @@ def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None =
         transforms=["abx.bus.process"],
         metadata={"context": context, "selected_modules": selected_modules or []},
     )
-    drift_report = analyze_text_for_drift(rendered_text, provenance)
+
+    # Analyze drift via capability contract
+    drift_result = invoke_capability(
+        "drift.orchestrator.analyze_text_for_drift",
+        {"text": rendered_text, "provenance": provenance.model_dump()},
+        ctx=ctx,
+        strict_execution=True
+    )
+    drift_report_dict = drift_result["drift_report"]
 
     assistant = {
         "role": "assistant",
@@ -45,7 +72,7 @@ def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None =
         "meta": {
             "frame_id": frame_id,
             "modules": selected_modules or [],
-            "drift_report": drift_report.model_dump(),
+            "drift_report": drift_report_dict,
         },
     }
     return {"assistant": assistant, "frame": frame}

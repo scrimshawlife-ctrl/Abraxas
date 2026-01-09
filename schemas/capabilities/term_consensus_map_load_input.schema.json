@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Load Term Consensus Map Input",
+  "description": "Input schema for memetic.term_consensus_map.load capability",
+  "type": "object",
+  "required": ["path"],
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "Path to term_claims_<run>.json file containing term consensus data"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused for file I/O, kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Conspiracy Apply Horizon Cap Output",
+  "description": "Output schema for conspiracy.policy.apply_cap capability",
+  "type": "object",
+  "required": ["final_cap", "provenance", "not_computable"],
+  "properties": {
+    "final_cap": {
+      "type": ["string", "null"],
+      "description": "Final horizon cap (minimum of policy_cap and csp_cap) or null"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "conspiracy.policy.apply_cap"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - cap application never fails"
+    }
+  },
+  "additionalProperties": false
+}

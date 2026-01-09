@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Load Bundles Output",
+  "description": "Output schema for evidence.lift.load_bundles_from_index capability",
+  "type": "object",
+  "required": ["bundles", "provenance", "not_computable"],
+  "properties": {
+    "bundles": {
+      "type": "array",
+      "description": "List of evidence bundle dictionaries, each containing bundle_id, terms, source_type, credence, etc.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bundle_id": {
+            "type": "string",
+            "description": "Unique bundle identifier"
+          },
+          "terms": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "List of terms associated with this bundle"
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Type of evidence source (e.g., 'academic', 'investigative')"
+          },
+          "credence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Credence/reliability score for this bundle"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "evidence.lift.load_bundles_from_index"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - operation never fails (returns empty list on error)"
+    }
+  },
+  "additionalProperties": false
+}

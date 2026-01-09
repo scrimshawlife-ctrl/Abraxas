@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Load DMX Context Output",
+  "description": "Output schema for memetic.dmx_context.load capability",
+  "type": "object",
+  "required": ["dmx_context", "provenance", "not_computable"],
+  "properties": {
+    "dmx_context": {
+      "type": "object",
+      "description": "DMX context dict with manipulation risk metrics",
+      "required": ["version", "overall_manipulation_risk", "bucket"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "DMX version identifier"
+        },
+        "overall_manipulation_risk": {
+          "type": "number",
+          "description": "Overall manipulation risk score [0, 1]",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "bucket": {
+          "type": "string",
+          "enum": ["LOW", "MED", "HIGH"],
+          "description": "Risk bucket classification"
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.dmx_context.load"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - DMX context loading never fails, returns default LOW bucket on error"
+    }
+  },
+  "additionalProperties": false
+}

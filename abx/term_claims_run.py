@@ -8,11 +8,12 @@ from typing import Any, Dict, List
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-# memetic functions wired through capabilities
-from abraxas.memetic.term_assign import build_term_token_index, assign_claim_to_terms
-from abraxas.evidence.index import evidence_by_term
-from abraxas.evidence.support import support_weight_for_claim
-from abraxas.conspiracy.csp import compute_claim_csp
+# load_sources_from_osh replaced by memetic.claims_sources.load capability
+# extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
+# cluster_claims replaced by memetic.claim_cluster.cluster capability
+# build_term_token_index, assign_claim_to_terms replaced by memetic.term_assign.* capabilities
+# evidence_by_term, support_weight_for_claim replaced by evidence.* capabilities
+# compute_claim_csp replaced by conspiracy.csp.compute_claim capability
 
 
 def _utc_now_iso() -> str:
@@ -88,18 +89,24 @@ def main() -> int:
     )
     sources, sig = sources_result["sources"], sources_result["stats"]
     items_result = invoke_capability(
-        "memetic.claim_extract.items",
+        "memetic.claim_extract.extract",
         {
             "sources": sources,
             "run_id": args.run_id,
-            "max_per_source": int(args.max_per_source),
+            "max_per_source": int(args.max_per_source)
         },
         ctx=ctx,
-        strict_execution=True,
+        strict_execution=True
     )
     items = items_result["items"]
 
-    ev_by_term = evidence_by_term("out/evidence_bundles")
+    ev_by_term_result = invoke_capability(
+        "evidence.index.evidence_by_term",
+        {"bundles_dir": "out/evidence_bundles"},
+        ctx=ctx,
+        strict_execution=True
+    )
+    ev_by_term = ev_by_term_result["evidence_by_term"]
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     term_csp_map: Dict[str, Dict[str, Any]] = {}
     try:
@@ -122,17 +129,29 @@ def main() -> int:
     except Exception:
         term_csp_map = {}
     terms = _load_terms_from_a2(a2_path, max_terms=int(args.max_terms))
-    term_tok = build_term_token_index([t.lower() for t in terms])
+    term_tok_result = invoke_capability(
+        "memetic.term_assign.build_index",
+        {"terms": [t.lower() for t in terms]},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_tok = term_tok_result["term_token_index"]
 
     term_bins: Dict[str, List[int]] = {}
     for ix, item in enumerate(items):
         claim = str(item.get("claim") or "")
-        assigned = assign_claim_to_terms(
-            claim,
-            term_tok,
-            min_overlap=int(args.min_overlap),
-            max_terms=int(args.max_terms_per_claim),
+        assigned_result = invoke_capability(
+            "memetic.term_assign.assign",
+            {
+                "claim": claim,
+                "term_token_index": term_tok,
+                "min_overlap": int(args.min_overlap),
+                "max_terms": int(args.max_terms_per_claim)
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        assigned = assigned_result["assigned_terms"]
         for term in assigned:
             term_bins.setdefault(term, []).append(ix)
 
@@ -148,11 +167,17 @@ def main() -> int:
             text = str(item.get("claim") or "")
             key = (term, i)
             if key not in support_cache:
-                support_cache[key] = support_weight_for_claim(
-                    term=term,
-                    claim_text=text,
-                    evidence_by_term=ev_by_term,
+                support_result = invoke_capability(
+                    "evidence.support.support_weight",
+                    {
+                        "term": term,
+                        "claim_text": text,
+                        "evidence_by_term": ev_by_term
+                    },
+                    ctx=ctx,
+                    strict_execution=True
                 )
+                support_cache[key] = (support_result["support_weight"], support_result["debug"])
             bonus, dbg = support_cache[key]
             item.setdefault("evidence_support_weight_by_term", {})[term] = float(bonus)
             item.setdefault("evidence_support_debug_by_term", {})[term] = dbg
@@ -162,11 +187,17 @@ def main() -> int:
                 item["evidence_support_debug"] = dbg
             term_key = str(term).strip().lower()
             base_csp = term_csp_map.get(term_key, {})
-            claim_csp = compute_claim_csp(
-                claim_text=text,
-                term_csp=base_csp,
-                evidence_support_weight=float(bonus),
+            csp_result = invoke_capability(
+                "conspiracy.csp.compute_claim",
+                {
+                    "claim_text": text,
+                    "term_csp": base_csp,
+                    "evidence_support_weight": float(bonus)
+                },
+                ctx=ctx,
+                strict_execution=True
             )
+            claim_csp = csp_result["claim_csp"]
             item.setdefault("claim_csp_by_term", {})[term] = claim_csp
             if not isinstance(item.get("claim_csp"), dict):
                 item["claim_csp"] = claim_csp
@@ -179,18 +210,17 @@ def main() -> int:
             cloned["evidence_support_debug"] = dbg
             cloned["claim_csp"] = claim_csp
             sub_items.append(cloned)
-        clusters_result = invoke_capability(
+        cluster_result = invoke_capability(
             "memetic.claim_cluster.cluster",
             {
                 "items": sub_items,
                 "sim_threshold": float(args.sim_threshold),
-                "max_pairs": int(args.max_pairs),
+                "max_pairs": int(args.max_pairs)
             },
             ctx=ctx,
-            strict_execution=True,
+            strict_execution=True
         )
-        clusters = clusters_result["clusters"]
-        metrics = clusters_result["metrics"]
+        clusters, metrics = cluster_result["clusters"], cluster_result["metrics"]
         masses = []
         for cluster in clusters:
             mass = 0.0
@@ -203,7 +233,7 @@ def main() -> int:
         consensus_gap = 1.0 - (largest / total) if total > 0 else 0.0
         global_clusters = [[ixs[j] for j in cluster] for cluster in clusters]
         term_clusters[term] = global_clusters
-        metrics_dict = dict(metrics)
+        metrics_dict = metrics.to_dict()
         metrics_dict["consensus_gap_unweighted"] = metrics_dict.get("consensus_gap")
         metrics_dict["consensus_gap"] = float(consensus_gap)
         metrics_dict["evidence_weighted"] = True

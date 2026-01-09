@@ -5,12 +5,13 @@ import json
 import os
 from typing import Any, Dict
 
-from abraxas.forecast.gating_policy import decide_gate
-from abraxas.forecast.horizon_policy import compare_horizon, enforce_horizon_policy
+# decide_gate replaced by forecast.gating_policy.decide_gate capability
+# compare_horizon, enforce_horizon_policy replaced by forecast.horizon_policy.* capabilities
 # load_term_class_map replaced by forecast.term_class_map.load capability
-from abraxas.forecast.ledger import issue_prediction
-from abraxas.conspiracy.policy import csp_horizon_clamp, apply_horizon_cap
-from abraxas.memetic.term_index import build_term_index, reduce_weighted_metrics
+# issue_prediction replaced by forecast.ledger.issue capability
+# csp_horizon_clamp, apply_horizon_cap replaced by conspiracy.policy.* capabilities
+# load_dmx_context replaced by memetic.dmx_context.load capability
+# build_term_index, reduce_weighted_metrics replaced by memetic.term_index.* capabilities
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -39,18 +40,21 @@ def main() -> int:
     if not isinstance(annotated, list):
         annotated = []
 
+    mwr_path = args.mwr or os.path.join("out", "reports", f"mwr_{args.run_id}.json")
+
+    # Create context for capability invocations
     ctx = RuneInvocationContext(
         run_id=args.run_id,
         subsystem_id="abx.forecast_log",
         git_hash="unknown"
     )
-    mwr_path = args.mwr or os.path.join("out", "reports", f"mwr_{args.run_id}.json")
-    dmx_ctx = invoke_capability(
+    dmx_result = invoke_capability(
         "memetic.dmx_context.load",
         {"mwr_path": mwr_path},
         ctx=ctx,
         strict_execution=True
-    ).get("dmx_context", {})
+    )
+    dmx_ctx = dmx_result["dmx_context"]
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
     dmx_bucket = str(dmx_ctx.get("bucket") or "LOW").upper()
 
@@ -118,7 +122,13 @@ def main() -> int:
                 metrics = a2.get("metrics") or {}
     except Exception:
         metrics = {}
-    term_idx = build_term_index(a2) if isinstance(a2, dict) else {}
+    term_idx_result = invoke_capability(
+        "memetic.term_index.build",
+        {"a2_phase": a2 if isinstance(a2, dict) else {}},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_idx = term_idx_result["term_index"]
 
     wrote = 0
     for item in annotated:
@@ -135,7 +145,16 @@ def main() -> int:
         elif term:
             terms = [term]
 
-        weighted = reduce_weighted_metrics(terms, term_idx) if terms else {"matched_terms": 0.0}
+        if terms:
+            weighted_result = invoke_capability(
+                "memetic.term_index.reduce",
+                {"terms": terms, "term_index": term_idx},
+                ctx=ctx,
+                strict_execution=True
+            )
+            weighted = weighted_result["weighted_metrics"]
+        else:
+            weighted = {"matched_terms": 0.0}
         matched = bool(weighted.get("matched_terms"))
         has_attr = float(weighted.get("attribution_strength_count") or 0.0) > 0
         has_sd = float(weighted.get("source_diversity_count") or 0.0) > 0
@@ -162,13 +181,19 @@ def main() -> int:
             else float(metrics.get("manipulation_risk_mean") or 0.0)
         )
 
-        gate = decide_gate(
-            dmx_overall=dmx_overall,
-            attribution_strength=att,
-            source_diversity=sd,
-            consensus_gap=cg,
-            manipulation_risk_mean=mr,
-        ).to_dict()
+        gate_result = invoke_capability(
+            "forecast.gating_policy.decide_gate",
+            {
+                "dmx_overall": dmx_overall,
+                "attribution_strength": att,
+                "source_diversity": sd,
+                "consensus_gap": cg,
+                "manipulation_risk_mean": mr
+            },
+            ctx=ctx,
+            strict_execution=True
+        )
+        gate = gate_result["gate_decision"]
         primary_term = str(item.get("term") or "").strip().lower()
         if not primary_term:
             tl = item.get("terms") if isinstance(item.get("terms"), list) else []
@@ -186,45 +211,72 @@ def main() -> int:
                     policy_cap = cell.get("max_horizon")
         if not policy_cap:
             policy_cap = cap_by_bucket.get(dmx_bucket) or cap_by_bucket.get("UNKNOWN")
-        csp_cap, csp_flags = csp_horizon_clamp(
-            csp=csp,
-            dmx_bucket=dmx_bucket,
-            term_class=tcls,
+        clamp_result = invoke_capability(
+            "conspiracy.policy.horizon_clamp",
+            {"csp": csp, "dmx_bucket": dmx_bucket, "term_class": tcls},
+            ctx=ctx,
+            strict_execution=True
         )
-        final_cap = apply_horizon_cap(policy_cap=policy_cap, csp_cap=csp_cap)
-        if final_cap and compare_horizon(gate.get("horizon_max"), final_cap) > 0:
-            gate["horizon_max"] = final_cap
-            gate.setdefault("flags", []).append("POLICY_HORIZON_MAX")
-            gate.setdefault("provenance", {})["policy"] = (
-                policy_tc_path if policy_tc else policy_path
+        csp_cap = clamp_result["cap"]
+        csp_flags = clamp_result["flags"]
+        cap_result = invoke_capability(
+            "conspiracy.policy.apply_cap",
+            {"policy_cap": policy_cap, "csp_cap": csp_cap},
+            ctx=ctx,
+            strict_execution=True
+        )
+        final_cap = cap_result["final_cap"]
+        if final_cap:
+            compare_result = invoke_capability(
+                "forecast.horizon_policy.compare",
+                {"horizon": gate.get("horizon_max"), "max_horizon": final_cap},
+                ctx=ctx,
+                strict_execution=True
             )
+            if compare_result["comparison_result"] > 0:
+                gate["horizon_max"] = final_cap
+                gate.setdefault("flags", []).append("POLICY_HORIZON_MAX")
+                gate.setdefault("provenance", {})["policy"] = (
+                    policy_tc_path if policy_tc else policy_path
+                )
         if csp_flags:
             gate_flags = gate.get("flags") if isinstance(gate.get("flags"), list) else []
             gate["flags"] = gate_flags + csp_flags
-        flags, shadow_horizon = enforce_horizon_policy(
-            horizon=horizon, gate=gate, emit_shadow=True
+        enforce_result = invoke_capability(
+            "forecast.horizon_policy.enforce",
+            {"horizon": horizon, "gate": gate, "emit_shadow": True},
+            ctx=ctx,
+            strict_execution=True
         )
+        flags = enforce_result["flags"]
+        shadow_horizon = enforce_result["shadow_horizon"]
         base_context = {
             "dmx": dict(dmx_ctx),
             "gate": gate,
             "gate_inputs": {"terms": terms, "weighted_metrics": weighted},
         }
-        row = issue_prediction(
-            term=term,
-            p=prob,
-            horizon=horizon,
-            run_id=args.run_id,
-            expected_error_band=item.get("expected_error_band") or {},
-            phase_context={
-                "phase": item.get("phase"),
-                "half_life_days_fit": item.get("half_life_days_fit"),
-                "manipulation_risk_mean": item.get("manipulation_risk_mean"),
+        issue_result = invoke_capability(
+            "forecast.ledger.issue",
+            {
+                "term": term,
+                "p": prob,
+                "horizon": horizon,
+                "run_id": args.run_id,
+                "expected_error_band": item.get("expected_error_band") or {},
+                "phase_context": {
+                    "phase": item.get("phase"),
+                    "half_life_days_fit": item.get("half_life_days_fit"),
+                    "manipulation_risk_mean": item.get("manipulation_risk_mean"),
+                },
+                "evidence": item.get("evidence") or [],
+                "context": base_context,
+                "flags": flags,
+                "ledger_path": args.pred_ledger
             },
-            evidence=item.get("evidence") or [],
-            context=base_context,
-            flags=flags,
-            ledger_path=args.pred_ledger,
+            ctx=ctx,
+            strict_execution=True
         )
+        row = issue_result["prediction_row"]
         wrote += 1
         if shadow_horizon:
             shadow_flags = list(flags) + ["SHADOW_CONSTRAINED_HORIZON"]
@@ -232,21 +284,26 @@ def main() -> int:
                 **base_context,
                 "shadow_of": row.get("pred_id"),
             }
-            issue_prediction(
-                term=term,
-                p=prob,
-                horizon=shadow_horizon,
-                run_id=args.run_id,
-                expected_error_band=item.get("expected_error_band") or {},
-                phase_context={
-                    "phase": item.get("phase"),
-                    "half_life_days_fit": item.get("half_life_days_fit"),
-                    "manipulation_risk_mean": item.get("manipulation_risk_mean"),
+            invoke_capability(
+                "forecast.ledger.issue",
+                {
+                    "term": term,
+                    "p": prob,
+                    "horizon": shadow_horizon,
+                    "run_id": args.run_id,
+                    "expected_error_band": item.get("expected_error_band") or {},
+                    "phase_context": {
+                        "phase": item.get("phase"),
+                        "half_life_days_fit": item.get("half_life_days_fit"),
+                        "manipulation_risk_mean": item.get("manipulation_risk_mean"),
+                    },
+                    "evidence": item.get("evidence") or [],
+                    "context": shadow_context,
+                    "flags": shadow_flags,
+                    "ledger_path": args.pred_ledger
                 },
-                evidence=item.get("evidence") or [],
-                context=shadow_context,
-                flags=shadow_flags,
-                ledger_path=args.pred_ledger,
+                ctx=ctx,
+                strict_execution=True
             )
             wrote += 1
 

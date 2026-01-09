@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Canon Diff Output",
+  "description": "Output schema for evolve.canon_diff.build capability",
+  "type": "object",
+  "required": ["json_path", "md_path", "meta", "provenance", "not_computable"],
+  "properties": {
+    "json_path": {
+      "type": "string",
+      "description": "Path to generated canon diff JSON artifact (canon_diff_<run_id>.json)"
+    },
+    "md_path": {
+      "type": "string",
+      "description": "Path to generated canon diff markdown report (canon_diff_<run_id>.md)"
+    },
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the diff (added, removed, changed counts)",
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added": {"type": "integer"},
+        "removed": {"type": "integer"},
+        "changed": {"type": "integer"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

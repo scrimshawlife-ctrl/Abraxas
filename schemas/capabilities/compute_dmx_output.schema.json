@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Compute DMX Output",
+  "description": "Output schema for memetic.dmx.compute capability",
+  "type": "object",
+  "required": ["dmx", "provenance", "not_computable"],
+  "properties": {
+    "dmx": {
+      "type": "object",
+      "required": ["version", "synthetic_likelihood", "attribution_strength", "coordination_signature", "incentive_gradient", "forensics_flags", "source_diversity", "consensus_gap", "overall_manipulation_risk", "provenance"],
+      "properties": {
+        "version": {"type": "string"},
+        "synthetic_likelihood": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "attribution_strength": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "coordination_signature": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "incentive_gradient": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "forensics_flags": {"type": "integer", "minimum": 0},
+        "source_diversity": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "consensus_gap": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "overall_manipulation_risk": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "provenance": {"type": "object"}
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.dmx.compute"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - DMX computation never fails"
+    }
+  },
+  "additionalProperties": false
+}

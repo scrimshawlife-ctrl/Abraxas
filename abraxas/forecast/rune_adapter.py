@@ -14,7 +14,12 @@ from abraxas.forecast.scoring import expected_error_band as expected_error_band_
 from abraxas.forecast.horizon_bins import horizon_bucket as horizon_bucket_core
 from abraxas.forecast.term_classify import classify_term as classify_term_core
 from abraxas.forecast.term_class_map import load_term_class_map as load_term_class_map_core
+from abraxas.forecast.gating_policy import decide_gate as decide_gate_core
+from abraxas.forecast.horizon_policy import compare_horizon as compare_horizon_core
+from abraxas.forecast.horizon_policy import enforce_horizon_policy as enforce_horizon_policy_core
+from abraxas.forecast.ledger import issue_prediction as issue_prediction_core
 from abraxas.forecast.ledger import record_outcome as record_outcome_core
+from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier as horizon_uncertainty_multiplier_core
 
 
 def compute_brier_score_deterministic(
@@ -285,6 +290,273 @@ def load_term_class_map_deterministic(
     }
 
 
+def decide_gate_deterministic(
+    dmx_overall: float,
+    attribution_strength: float,
+    source_diversity: float,
+    consensus_gap: float,
+    manipulation_risk_mean: float,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible forecast gating policy decision.
+
+    Wraps existing decide_gate with provenance envelope.
+    Determines forecast constraints based on DMX risk and evidence quality.
+
+    Args:
+        dmx_overall: Overall DMX manipulation risk [0, 1]
+        attribution_strength: Attribution strength metric [0, 1]
+        source_diversity: Source diversity metric [0, 1]
+        consensus_gap: Consensus gap metric [0, 1]
+        manipulation_risk_mean: Mean manipulation risk across terms [0, 1]
+        seed: Optional deterministic seed (unused for gating, kept for consistency)
+
+    Returns:
+        Dictionary with gate_decision, provenance, and not_computable (always None)
+    """
+    # Call existing decide_gate function (returns GateDecision dataclass)
+    gate_decision_obj = decide_gate_core(
+        dmx_overall=dmx_overall,
+        attribution_strength=attribution_strength,
+        source_diversity=source_diversity,
+        consensus_gap=consensus_gap,
+        manipulation_risk_mean=manipulation_risk_mean
+    )
+
+    # Convert dataclass to dict
+    gate_decision = gate_decision_obj.to_dict()
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"gate_decision": gate_decision},
+        config={},
+        inputs={
+            "dmx_overall": dmx_overall,
+            "attribution_strength": attribution_strength,
+            "source_diversity": source_diversity,
+            "consensus_gap": consensus_gap,
+            "manipulation_risk_mean": manipulation_risk_mean
+        },
+        operation_id="forecast.gating_policy.decide_gate",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "gate_decision": gate_decision,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # gating decision never fails, returns default values on error
+    }
+
+
+def compare_horizon_deterministic(
+    horizon: str,
+    max_horizon: str,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible horizon comparison.
+
+    Wraps existing compare_horizon with provenance envelope.
+    Compares two horizon values returning -1, 0, or +1.
+
+    Args:
+        horizon: Horizon to compare (days, weeks, months, years, years_1, years_5)
+        max_horizon: Maximum horizon to compare against
+        seed: Optional deterministic seed (unused for comparison, kept for consistency)
+
+    Returns:
+        Dictionary with comparison_result (-1, 0, +1), provenance, and not_computable (always None)
+    """
+    # Call existing compare_horizon function (no changes to core logic)
+    result = compare_horizon_core(horizon, max_horizon)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"comparison_result": result},
+        config={},
+        inputs={"horizon": horizon, "max_horizon": max_horizon},
+        operation_id="forecast.horizon_policy.compare",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "comparison_result": result,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # comparison never fails
+    }
+
+
+def enforce_horizon_policy_deterministic(
+    horizon: str,
+    gate: Dict[str, Any],
+    emit_shadow: bool = True,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible horizon policy enforcement.
+
+    Wraps existing enforce_horizon_policy with provenance envelope.
+    Returns flags and optional shadow horizon when policy is exceeded.
+
+    Args:
+        horizon: Requested horizon
+        gate: Gate decision dict with horizon_max field
+        emit_shadow: Whether to emit shadow prediction on policy violation
+        seed: Optional deterministic seed (unused for enforcement, kept for consistency)
+
+    Returns:
+        Dictionary with flags (list), shadow_horizon (str|null), provenance, and not_computable (always None)
+    """
+    # Call existing enforce_horizon_policy function (returns tuple: flags, shadow_horizon)
+    flags, shadow_horizon = enforce_horizon_policy_core(
+        horizon=horizon,
+        gate=gate,
+        emit_shadow=emit_shadow
+    )
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"flags": flags, "shadow_horizon": shadow_horizon},
+        config={"emit_shadow": emit_shadow},
+        inputs={"horizon": horizon, "gate": gate},
+        operation_id="forecast.horizon_policy.enforce",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "flags": flags,
+        "shadow_horizon": shadow_horizon,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # enforcement never fails
+    }
+
+
+def issue_prediction_deterministic(
+    term: str,
+    p: float,
+    horizon: str,
+    run_id: str,
+    expected_error_band: Optional[Dict[str, Any]] = None,
+    phase_context: Optional[Dict[str, Any]] = None,
+    context: Optional[Dict[str, Any]] = None,
+    flags: Optional[List[str]] = None,
+    evidence: Optional[List[Dict[str, Any]]] = None,
+    ts_issued: Optional[str] = None,
+    ledger_path: str = "out/forecast_ledger/predictions.jsonl",
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible prediction issuance to ledger.
+
+    Wraps existing issue_prediction with provenance envelope.
+    Creates prediction record and appends to forecast ledger.
+
+    Args:
+        term: Term being predicted
+        p: Probability [0, 1]
+        horizon: Horizon band (days, weeks, months, years_1, years_5)
+        run_id: Run identifier
+        expected_error_band: Optional error band dict
+        phase_context: Optional phase context (phase, half_life_days_fit, manipulation_risk_mean)
+        context: Optional additional context (dmx, gate, etc.)
+        flags: Optional flags list
+        evidence: Optional evidence list
+        ts_issued: Optional timestamp override
+        ledger_path: Path to forecast ledger JSONL
+        seed: Optional deterministic seed (unused for ledger write, kept for consistency)
+
+    Returns:
+        Dictionary with prediction_row, provenance, and not_computable (always None)
+    """
+    # Call existing issue_prediction function (writes to ledger, returns row dict)
+    prediction_row = issue_prediction_core(
+        term=term,
+        p=p,
+        horizon=horizon,
+        run_id=run_id,
+        expected_error_band=expected_error_band,
+        phase_context=phase_context,
+        context=context,
+        flags=flags,
+        evidence=evidence,
+        ts_issued=ts_issued,
+        ledger_path=ledger_path
+    )
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"prediction_row": prediction_row},
+        config={"ledger_path": ledger_path},
+        inputs={
+            "term": term,
+            "p": p,
+            "horizon": horizon,
+            "run_id": run_id,
+            "expected_error_band": expected_error_band,
+            "phase_context": phase_context,
+            "context": context,
+            "flags": flags,
+            "evidence": evidence,
+            "ts_issued": ts_issued
+        },
+        operation_id="forecast.ledger.issue",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "prediction_row": prediction_row,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # ledger write never fails (core function handles errors)
+    }
+
+
+def horizon_uncertainty_multiplier_deterministic(
+    horizon: Any,
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible horizon uncertainty multiplier calculator.
+
+    Wraps existing horizon_uncertainty_multiplier with provenance envelope.
+    Maps horizon values to uncertainty multipliers (1.00 for days, 1.05 for weeks, etc.).
+
+    Args:
+        horizon: Horizon value (days, weeks, months, years, or any string)
+        seed: Optional deterministic seed (unused for multiplier, kept for consistency)
+
+    Returns:
+        Dictionary with multiplier, provenance, and not_computable (always None)
+    """
+    # Call existing horizon_uncertainty_multiplier function (no changes to core logic)
+    multiplier = horizon_uncertainty_multiplier_core(horizon)
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"multiplier": multiplier},
+        config={},
+        inputs={"horizon": horizon},
+        operation_id="forecast.uncertainty.horizon_multiplier",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "multiplier": multiplier,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # multiplier calculation never fails, returns default on unknown
+    }
+
+
 def record_forecast_outcome_deterministic(
     *,
     pred_id: str,
@@ -355,5 +627,10 @@ __all__ = [
     "classify_horizon_deterministic",
     "classify_term_deterministic",
     "load_term_class_map_deterministic",
-    "record_forecast_outcome_deterministic",
+    "decide_gate_deterministic",
+    "compare_horizon_deterministic",
+    "enforce_horizon_policy_deterministic",
+    "issue_prediction_deterministic",
+    "horizon_uncertainty_multiplier_deterministic",
+    "record_forecast_outcome_deterministic"
 ]

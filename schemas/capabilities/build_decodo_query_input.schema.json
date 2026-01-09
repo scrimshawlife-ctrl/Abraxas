@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Acquire Build Decodo Query Input",
+  "description": "Input schema for acquire.decodo.build_query capability",
+  "type": "object",
+  "required": ["term"],
+  "properties": {
+    "term": {
+      "type": "string",
+      "description": "Search term for Decodo query"
+    },
+    "domains": {
+      "type": ["array", "null"],
+      "items": {"type": "string"},
+      "description": "Optional list of domain filters"
+    }
+  },
+  "additionalProperties": false
+}

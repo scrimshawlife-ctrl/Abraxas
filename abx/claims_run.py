@@ -4,11 +4,13 @@ import argparse
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict, List
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-# memetic functions wired through capabilities
+# load_sources_from_osh replaced by memetic.claims_sources.load capability
+# extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
+# cluster_claims replaced by memetic.claim_cluster.cluster capability
 
 
 def _utc_now_iso() -> str:
@@ -46,28 +48,27 @@ def main() -> int:
     )
     sources, sig = sources_result["sources"], sources_result["stats"]
     items_result = invoke_capability(
-        "memetic.claim_extract.items",
+        "memetic.claim_extract.extract",
         {
             "sources": sources,
             "run_id": args.run_id,
-            "max_per_source": int(args.max_per_source),
+            "max_per_source": int(args.max_per_source)
         },
         ctx=ctx,
-        strict_execution=True,
+        strict_execution=True
     )
     items = items_result["items"]
-    clusters_result = invoke_capability(
+    cluster_result = invoke_capability(
         "memetic.claim_cluster.cluster",
         {
             "items": items,
             "sim_threshold": float(args.sim_threshold),
-            "max_pairs": int(args.max_pairs),
+            "max_pairs": int(args.max_pairs)
         },
         ctx=ctx,
-        strict_execution=True,
+        strict_execution=True
     )
-    clusters = clusters_result["clusters"]
-    metrics = clusters_result["metrics"]
+    clusters, metrics = cluster_result["clusters"], cluster_result["metrics"]
 
     top_clusters = []
     for cluster in clusters[:8]:
@@ -79,7 +80,7 @@ def main() -> int:
         "version": "claims.v0.1",
         "run_id": args.run_id,
         "ts": ts,
-        "metrics": metrics,
+        "metrics": metrics.to_dict(),
         "views": {"top_clusters": top_clusters},
         "provenance": {
             "builder": "abx.claims_run.v0.1",

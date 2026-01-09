@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Build Temporal Profiles Input",
+  "description": "Input schema for memetic.temporal.build_temporal_profiles capability",
+  "type": "object",
+  "required": ["registry_path"],
+  "properties": {
+    "registry_path": {
+      "type": "string",
+      "description": "Path to term registry JSONL file (e.g., out/a2_registry/terms.jsonl)"
+    },
+    "now_iso": {
+      "type": ["string", "null"],
+      "description": "Optional ISO timestamp override for 'now' (defaults to current UTC time)",
+      "format": "date-time"
+    },
+    "max_terms": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 2000,
+      "description": "Maximum number of terms to process"
+    },
+    "min_obs": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 2,
+      "description": "Minimum number of observations required per term"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused for computation, kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

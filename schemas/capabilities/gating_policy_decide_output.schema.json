@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Decide Gate Output",
+  "description": "Output schema for forecast.gating_policy.decide_gate capability",
+  "type": "object",
+  "required": ["gate_decision", "provenance", "not_computable"],
+  "properties": {
+    "gate_decision": {
+      "type": "object",
+      "description": "Forecast gating decision",
+      "required": ["version", "eeb_multiplier", "horizon_max", "evidence_escalation", "flags", "provenance"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Gate policy version",
+          "const": "gate_policy.v0.1"
+        },
+        "eeb_multiplier": {
+          "type": "number",
+          "description": "Expected Error Band multiplier (adjusts forecast uncertainty)",
+          "minimum": 1.0
+        },
+        "horizon_max": {
+          "type": "string",
+          "description": "Maximum forecast horizon",
+          "enum": ["days", "weeks", "months", "years"]
+        },
+        "evidence_escalation": {
+          "type": "string",
+          "description": "Evidence escalation requirement",
+          "enum": ["none", "online_escalation", "offline_escalation"]
+        },
+        "flags": {
+          "type": "array",
+          "description": "List of gating flags (FOG_HIGH, PROVENANCE_WEAK, etc.)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Gate decision provenance",
+          "properties": {
+            "method": {
+              "type": "string",
+              "const": "decide_gate.v0.1"
+            },
+            "dmx_bucket": {
+              "type": "string",
+              "enum": ["LOW", "MED", "HIGH"]
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Capability provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "forecast.gating_policy.decide_gate"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - gating decision never fails, returns default values on error"
+    }
+  },
+  "additionalProperties": false
+}

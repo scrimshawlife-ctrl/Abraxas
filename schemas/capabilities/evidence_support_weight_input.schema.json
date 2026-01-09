@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Support Weight Input",
+  "description": "Input schema for evidence.support.support_weight capability - computes evidence support weight for claim",
+  "type": "object",
+  "required": ["term", "claim_text", "evidence_by_term"],
+  "properties": {
+    "term": {
+      "type": "string",
+      "description": "Term to look up evidence for"
+    },
+    "claim_text": {
+      "type": "string",
+      "description": "Claim text to compare against evidence bundles"
+    },
+    "evidence_by_term": {
+      "type": "object",
+      "description": "Term → evidence bundles index (from evidence_by_term capability)",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "max_bonus": {
+      "type": "number",
+      "description": "Maximum support weight bonus (default: 0.35)",
+      "default": 0.35,
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}
