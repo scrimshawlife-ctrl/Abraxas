@@ -1,7 +1,8 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2026-01-04
-**Version:** 2.2.0
+**Last Updated:** 2026-01-05
+**Guide Version:** 2.2.1
+**Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
 
 ---
@@ -51,6 +52,48 @@
    - `abraxas/detectors/shadow/registry_impl.py` - Enhanced registry implementation
 
 **Total Changes**: 30+ new files, comprehensive testing infrastructure, production-ready release validation
+
+---
+
+## TODO
+
+- P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD).
+- P1 (in progress): Review and reduce remaining cross-subsystem coupling violations in `abx/`.
+  Initial audit targets:
+  - `abx/mwr.py` (memetic imports), `abx/forecast_log.py`, `abx/forecast_score.py`
+  - `abx/a2_phase.py`, `abx/term_claims_run.py`
+  - `abx/kernel.py`, `abx/server/app.py`, `abx/cli.py`
+  - `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
+  - `abx/operators/alive_*`
+
+## RuneInvocationContext (Oracle Pipeline)
+
+Oracle pipeline rune calls require a validated `RuneInvocationContext` with:
+
+- `run_id`: stable ID for the session/run (string)
+- `subsystem_id`: caller identifier (string, use `abx.core.pipeline` for `run_oracle`)
+- `git_hash`: repo revision identifier (string)
+
+Example:
+
+```python
+from abraxas.runes.ctx import RuneInvocationContext
+
+ctx = RuneInvocationContext(
+    run_id="ORACLE_RUN",
+    subsystem_id="abx.core.pipeline",
+    git_hash="unknown",
+)
+```
+
+## Recommendations
+
+- Standardize rune invocation context construction by centralizing defaults in a helper
+  (e.g., `abx.oracle.context.build_rune_ctx`) to prevent drift across pipelines.
+- Expand oracle pipeline tests to cover strict execution behavior (stub blocking and error
+  propagation) in addition to provenance checks.
+- Audit ABX-Runes capability IDs to ensure naming consistency (`rune:*` vs domain-specific
+  namespaces) and update migration docs accordingly.
 
 ---
 
@@ -1711,165 +1754,29 @@ See `docs/migration/abx_runes_coupling.md` for detailed migration guide.
 
 ---
 
-## Current State & Next Steps
+## Maintenance Notes (Keep This Doc Timeless)
 
-**Last Session**: 2026-01-04
-**Current Version**: 2.2.0
-**Current Branch**: `claude/update-claude-md-RUixN`
+- Avoid embedding **session-specific state** (current branch names, “last session”, active branches). Prefer links to canonical docs (`docs/`) and code locations.
+- Update **Guide Version** when making structural edits to this document (new major sections, new enforcement rules, new subsystems).
+- Keep the **Ecosystem Baseline** aligned with repo-wide docs (e.g. `CONFLICT_RESOLUTION_GUIDE.md`) when the overall system versioning changes.
 
-### What Was Just Completed (v2.2.0)
+### Operational checklists
 
-1. ✅ **Seal Release Pack** - Production validation infrastructure
-   - Scripts: `seal_release.py`, `validate_artifacts.py`
-   - 9 JSON schemas for artifact validation
-   - Makefile with `seal` and `validate` targets
+**When changing `abx/` and any cross-subsystem boundary**
 
-2. ✅ **ABX-Runes Coupling Architecture** (PR #83, #84)
-   - Capability contracts for all cross-subsystem communication
-   - Oracle v2 rune adapter implemented
-   - Migration guide published
+- Run coupling lint:
+  - `grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance"`
+- If you add a new capability:
+  - Add JSON schemas under `schemas/capabilities/`
+  - Register it in `abraxas/runes/registry.json`
+  - Add a determinism test (golden or equivalent)
 
-3. ✅ **Shadow Detectors v0.1**
-   - 5 detectors: Compliance/Remix, Meta-Awareness, Negative Space, Anagram, Token Density
-   - Complete infrastructure with 22 passing tests
-   - Integration with Shadow Structural Metrics
+**Before release / sealing**
 
-4. ✅ **Runtime Infrastructure**
-   - Policy snapshots with immutable provenance
-   - DozenRunGate for invariance validation
-   - Artifact retention and management
-
-5. ✅ **Documentation Updates**
-   - Updated CLAUDE.md to v2.2.0
-   - Added migration guide for ABX-Runes
-   - Comprehensive detector documentation
-
-### Current System State
-
-**Stability**: ✅ Production-ready
-- All tests passing (Python: pytest, TypeScript: vitest)
-- Seal validation infrastructure operational
-- ABX-Runes coupling enforced
-
-**Active Branches**:
-- `main` - Production baseline (PR #84 merged)
-- `claude/update-claude-md-RUixN` - This documentation update (current)
-- `claude/abx-core-refactor-3AuJ9` - Available for reference
-
-**Key Metrics**:
-- Python modules: 74 packages in `abraxas/`
-- New in v2.2.0: `runtime/`, `ers/`, `runes/`, enhanced `detectors/shadow/`
-- Test coverage: Comprehensive (determinism, bounds, missing inputs)
-- Documentation: Up-to-date with current implementation
-
-### What's Next (Suggested)
-
-**High Priority**:
-1. **Complete ABX-Runes Migration** - Migrate remaining direct imports in `abx/` to capability contracts
-   - Run coupling lint: `grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance"`
-   - Target: Zero violations (currently tracking progress)
-   - See: `docs/migration/abx_runes_coupling.md`
-
-2. **Validate Seal Artifacts** - Run full seal validation on v2.2.0
-   ```bash
-   make seal            # Run seal tick + dozen-run gate
-   make validate        # Validate all artifacts against schemas
-   ```
-
-3. **Test Shadow Detectors in Production** - Collect real-world detector evidence
-   - Run detectors on live data feeds
-   - Verify `no_influence=True` guarantee holds
-   - Monitor detector provenance chains
-
-**Medium Priority**:
-4. **Extend Capability Registry** - Add more capability contracts
-   - Candidates: memetic weather, slang extraction, forecast accuracy
-   - Create JSON schemas for each
-   - Add rune adapters
-
-5. **Enhance Runtime Artifacts** - Additional artifact types
-   - Consider: TrendPack, StabilityRef, additional validation schemas
-   - Ensure all artifacts follow canonical patterns
-
-6. **Shadow Metrics v1.1** - Evaluate promotion candidates
-   - Review detector evidence accumulation
-   - Consider promoting stable detectors through 6-gate process
-   - Update patch registry
-
-**Low Priority / Future Work**:
-7. **Performance Optimization** - Profile runtime overhead
-   - Measure capability invocation latency
-   - Optimize policy snapshot creation
-   - Review artifact retention policies
-
-8. **Enhanced Documentation** - Additional developer guides
-   - Tutorial: Creating a new capability contract
-   - Guide: Shadow detector development lifecycle
-   - Runbook: Seal validation troubleshooting
-
-9. **Integration Testing** - End-to-end workflow validation
-   - Full oracle → weather → task → acquisition cycle
-   - Detector evidence → shadow metrics flow
-   - Policy snapshot → invariance gate validation
-
-### Known Issues & Considerations
-
-**ABX-Runes Coupling**:
-- Migration in progress - not all `abx/` modules converted yet
-- Monitor for coupling violations during development
-- Use coupling lint before each commit
-
-**Shadow Detectors**:
-- Current detectors are observe-only (v0.1)
-- Evidence accumulation needs real-world validation
-- Consider promotion to stable metrics after validation period
-
-**Seal Validation**:
-- New infrastructure - needs production validation
-- Schema validation comprehensive but untested at scale
-- Monitor for edge cases in artifact generation
-
-### Context for Next Developer/AI
-
-**Architecture Philosophy**:
-- ✅ **Determinism First**: Every operation must be reproducible
-- ✅ **Provenance Always**: SHA-256 hashes for all transformations
-- ✅ **Capability Contracts**: No direct cross-subsystem imports
-- ✅ **Observe-Only**: Shadow metrics never influence predictions
-- ✅ **Write-Once**: Canonical data is immutable, annotations only
-
-**Critical Files to Review**:
-1. `VERSION` - Current version (2.2.0)
-2. `CHANGELOG.md` - Recent changes and release notes
-3. `docs/migration/abx_runes_coupling.md` - Coupling migration guide
-4. `abraxas/runes/registry.json` - Available capability contracts
-5. `docs/detectors/shadow_detectors_v0_1.md` - Detector specification
-
-**Testing Before Committing**:
-```bash
-# Python tests
-pytest tests/ -v
-
-# TypeScript tests
-npm test
-
-# System diagnostic
-abx doctor
-
-# Seal validation (if touching runtime)
-make seal
-
-# Coupling lint (if touching abx/)
-grep -r "from abraxas\." abx/ --include="*.py" | \
-  grep -v "abraxas.runes" | \
-  grep -v "abraxas.core.provenance"
-```
-
-**Where to Start**:
-- If adding features: Check `docs/plan/` for implementation plans
-- If fixing bugs: Run `abx doctor` and check test failures
-- If refactoring: Verify coupling lint passes
-- If documenting: Update CLAUDE.md, CHANGELOG.md, and relevant specs
+- `pytest tests/ -v`
+- `npm test`
+- `make seal`
+- `make validate`
 
 ---
 

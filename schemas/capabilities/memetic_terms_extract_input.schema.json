@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_terms_extract_input.json",
+  "title": "Memetic Terms Extract Input",
+  "description": "Input schema for memetic.terms.extract capability",
+  "type": "object",
+  "required": ["docs"],
+  "properties": {
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ts", "text"],
+        "properties": {
+          "ts": {"type": "string"},
+          "text": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "max_terms": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 60
+    },
+    "n_values": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 1},
+      "description": "N-gram sizes to evaluate"
+    },
+    "baseline_counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer"}
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.terms.extract",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

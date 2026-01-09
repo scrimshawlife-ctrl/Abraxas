@@ -557,7 +557,8 @@ def horizon_uncertainty_multiplier_deterministic(
     }
 
 
-def record_outcome_deterministic(
+def record_forecast_outcome_deterministic(
+    *,
     pred_id: str,
     result: str,
     run_id: str,
@@ -572,64 +573,51 @@ def record_outcome_deterministic(
     Rune-compatible forecast outcome recorder.
 
     Wraps existing record_outcome with provenance envelope.
-    Records forecast outcome to ledger with observation timestamp.
+    Appends outcome rows to the forecast outcomes ledger.
 
     Args:
-        pred_id: Prediction ID (from issue_prediction)
-        result: Outcome result (e.g., "success", "failure", "pending")
-        run_id: Run identifier
+        pred_id: Prediction identifier
+        result: Outcome result (hit/miss/partial)
+        run_id: Run identifier for provenance
         evidence: Optional evidence list
-        notes: Optional notes about the outcome
-        ts_observed: Optional timestamp override for observation
-        ledger_path: Path to outcomes ledger JSONL
-        seed: Optional deterministic seed (unused for ledger write, kept for consistency)
+        notes: Optional notes string
+        ts_observed: Optional observed timestamp (ISO8601)
+        ledger_path: Output ledger path
+        seed: Optional deterministic seed (unused, kept for consistency)
 
     Returns:
-        Dictionary with outcome_row, provenance, and not_computable (always None)
+        Dictionary with outcome row, provenance, and not_computable (always None)
     """
-    # Call existing record_outcome function (writes to ledger, returns row dict)
-    try:
-        outcome_row = record_outcome_core(
-            pred_id=pred_id,
-            result=result,
-            run_id=run_id,
-            evidence=evidence,
-            notes=notes,
-            ts_observed=ts_observed,
-            ledger_path=ledger_path
-        )
-    except Exception as e:
-        # Not computable - return structured error
-        return {
-            "outcome_row": None,
-            "not_computable": {
-                "reason": str(e),
-                "missing_inputs": []
-            },
-            "provenance": None
-        }
+    row = record_outcome_core(
+        pred_id=pred_id,
+        result=result,
+        run_id=run_id,
+        evidence=evidence,
+        notes=notes,
+        ts_observed=ts_observed,
+        ledger_path=ledger_path,
+    )
 
-    # Wrap in canonical envelope
     envelope = canonical_envelope(
-        result={"outcome_row": outcome_row},
-        config={"ledger_path": ledger_path},
+        result={"outcome": row},
+        config={},
         inputs={
             "pred_id": pred_id,
             "result": result,
             "run_id": run_id,
-            "evidence": evidence,
+            "evidence": evidence or [],
             "notes": notes,
-            "ts_observed": ts_observed
+            "ts_observed": ts_observed,
+            "ledger_path": ledger_path,
         },
-        operation_id="forecast.ledger.record_outcome",
-        seed=seed
+        operation_id="forecast.outcome.record",
+        seed=seed,
     )
 
-    # Return with renamed keys for clarity
     return {
-        "outcome_row": outcome_row,
+        "outcome": row,
         "provenance": envelope["provenance"],
-        "not_computable": None  # ledger write never fails (core function handles errors)
+        "not_computable": envelope["not_computable"],
     }
 
 
@@ -644,5 +632,5 @@ __all__ = [
     "enforce_horizon_policy_deterministic",
     "issue_prediction_deterministic",
     "horizon_uncertainty_multiplier_deterministic",
-    "record_outcome_deterministic"
+    "record_forecast_outcome_deterministic"
 ]

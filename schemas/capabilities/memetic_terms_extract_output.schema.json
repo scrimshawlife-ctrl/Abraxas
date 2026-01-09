@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_terms_extract_output.json",
+  "title": "Memetic Terms Extract Output",
+  "description": "Output schema for memetic.terms.extract capability",
+  "type": "object",
+  "required": ["terms"],
+  "properties": {
+    "terms": {
+      "type": "array",
+      "items": {"type": "object", "additionalProperties": true}
+    },
+    "provenance": {"type": ["object", "null"]},
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.terms.extract",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}
