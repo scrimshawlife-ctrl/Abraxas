@@ -29,6 +29,11 @@ from shared.stabilization import (
     save_state,
 )
 from shared.governance import find_receipt
+
+# compression.detect replaced by compression.detect capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
+
 REGISTRY_PATH = os.path.join(
     os.path.dirname(__file__),
     "..",
@@ -186,9 +191,18 @@ def invoke(
 
                 result = run_doctor(payload)
             elif rune_id == "compression.detect":
-                from abraxas.compression.dispatch import detect_compression
-
-                result = detect_compression(payload)
+                # Use capability contract
+                ctx = RuneInvocationContext(
+                    run_id=run_id,
+                    subsystem_id="abx.kernel",
+                    git_hash=git_commit
+                )
+                result = invoke_capability(
+                    "compression.detect",
+                    payload,
+                    ctx=ctx,
+                    strict_execution=True
+                )
             elif rune_id == "infra.self_heal":
                 from infra.self_heal_advisory import generate_plan
 

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compression Detection Output",
+  "description": "Output schema for compression.detect capability",
+  "type": "object",
+  "required": ["compression_event", "metrics", "labels", "confidence", "events", "provenance", "not_computable"],
+  "properties": {
+    "compression_event": {
+      "type": ["object", "null"],
+      "description": "First compression event detected (if any)"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Detection metrics",
+      "properties": {
+        "event_count": {"type": "integer"}
+      },
+      "required": ["event_count"]
+    },
+    "labels": {
+      "type": "array",
+      "description": "Detection labels (e.g., 'compression_detected', 'no_input')",
+      "items": {"type": "string"}
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence score (0.0 to 1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "events": {
+      "type": "array",
+      "description": "All compression events detected",
+      "items": {"type": "object"}
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

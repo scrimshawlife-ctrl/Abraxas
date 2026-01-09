@@ -1037,6 +1037,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "compression.detect",
+      "rune_id": "ϟ_COMPRESSION_DETECT",
+      "operator_path": "abraxas.compression.rune_adapter:detect_compression_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/detect_compression_input.schema.json",
+      "output_schema": "schemas/capabilities/detect_compression_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
     }
   ],
   "provenance": {
