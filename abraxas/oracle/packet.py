@@ -42,6 +42,7 @@ class OraclePacket:
     run_at: str
     seed: str
     runs: Tuple[OraclePacketRun, ...]
+    shadow: Optional[Dict[str, Any]] = None
 
     def to_json(self) -> Dict[str, Any]:
         obj = {
@@ -55,6 +56,8 @@ class OraclePacket:
                 "runs": [r.to_json() for r in self.runs],
             }
         }
+        if isinstance(self.shadow, dict):
+            obj["oracle_packet_v0_1"]["shadow"] = self.shadow
         obj["oracle_packet_hash"] = sha256_hex(canonical_json(obj))
         return obj
 
