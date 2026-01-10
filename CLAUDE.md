@@ -72,9 +72,32 @@
 **Analysis Date:** 2026-01-10
 **Main Branch:** 8672ab0 (AALmanac integration PR #95)
 
+### Quick Reference - Branch URLs & Checkout Commands
+
+```bash
+# Priority 1: Acceptance Test Suite + Dashboard (8 conflicts)
+git fetch origin claude/resolve-merge-conflicts-Vg6qy
+git checkout -b codex/resolve-vg6qy-<session-id> origin/claude/resolve-merge-conflicts-Vg6qy
+# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/claude/resolve-merge-conflicts-Vg6qy
+
+# Priority 2: MDA Signal Layer (3 conflicts)
+git fetch origin cursor/mda-signal-layer-v2-2c0d
+git checkout -b codex/resolve-mda-signal-<session-id> origin/cursor/mda-signal-layer-v2-2c0d
+# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/mda-signal-layer-v2-2c0d
+
+# Priority 3: Oracle Bridge + MDA Engine (9+ conflicts)
+git fetch origin cursor/oracle-bridge-mda-canary-87a3
+git checkout -b codex/resolve-oracle-mda-<session-id> origin/cursor/oracle-bridge-mda-canary-87a3
+# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/oracle-bridge-mda-canary-87a3
+```
+
+---
+
 ### Priority 1: claude/resolve-merge-conflicts-Vg6qy
 **Status:** 7 commits ahead, 122 commits behind main
 **Severity:** HIGH - 8 file conflicts
+**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/claude/resolve-merge-conflicts-Vg6qy
+
 **Key Features:**
 - Abraxas Acceptance Test Suite v1.0
 - Dashboard Lens artifact viewer (merged PRs #58, #57, #55, #54)
@@ -97,6 +120,8 @@
 ### Priority 2: cursor/mda-signal-layer-v2-2c0d
 **Status:** 1 commit ahead, 108 commits behind main
 **Severity:** MEDIUM - 3 file conflicts (all add/add)
+**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/mda-signal-layer-v2-2c0d
+
 **Key Features:**
 - New `abraxas.mda` package for MDA (Multi-Dimensional Analysis)
 
@@ -112,6 +137,8 @@
 ### Priority 3: cursor/oracle-bridge-mda-canary-87a3
 **Status:** 1 commit ahead, 108 commits behind main
 **Severity:** HIGH - 9+ file conflicts
+**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/oracle-bridge-mda-canary-87a3
+
 **Key Features:**
 - MDA engine and Oracle bridge implementation
 - Extends shadow detectors and symbolic compression
@@ -161,6 +188,62 @@ These branches have NO unique commits and are significantly behind main:
 1. Review all conflicting changes in detail
 2. Determine if features duplicate existing main branch work
 3. Cherry-pick valuable commits instead of full merge
+
+---
+
+### Next Steps for Codex
+
+**Immediate Actions Required:**
+
+1. **Choose Resolution Strategy** - Select Option A, B, or C based on:
+   - Available time/resources (parallel vs sequential)
+   - Risk tolerance (audit first vs merge and test)
+   - Feature priority (acceptance tests vs MDA infrastructure)
+
+2. **Create Working Branch** - For each conflict resolution:
+   ```bash
+   # Create new branch with proper session ID format
+   git checkout -b codex/<descriptive-name>-<session-id>
+   git fetch origin
+   git merge origin/<source-branch> origin/main
+   # Resolve conflicts...
+   ```
+
+3. **Conflict Resolution Checklist** - For each branch:
+   - [ ] Checkout target branch and merge main
+   - [ ] Resolve conflicts following `CONFLICT_RESOLUTION_GUIDE.md`
+   - [ ] Verify determinism (same inputs → same outputs)
+   - [ ] Run all tests: `pytest tests/` and `npm test`
+   - [ ] Check provenance integrity (SHA-256 hashes preserved)
+   - [ ] Verify ABX-Runes coupling rules (no direct imports)
+   - [ ] Update CLAUDE.md TODO section when complete
+   - [ ] Create PR with conflict resolution summary
+   - [ ] Push and verify CI passes
+
+4. **Stale Branch Cleanup** - After verifying no valuable work lost:
+   ```bash
+   # Delete stale branches (backup first if uncertain)
+   git push origin --delete claude/merge-pull-requests-xCwWp
+   git push origin --delete claude/resolve-merge-conflicts-a9OJO
+   git push origin --delete claude/resolve-merge-conflicts-au7CD
+   git push origin --delete codex/refactor-code-for-improvements
+   git push origin --delete codex/add-bell-constraint-canon-entry-and-abx-rune
+   git push origin --delete cursor/pull-request-conflict-resolution-5149
+   ```
+
+5. **Documentation Updates** - After all resolutions:
+   - Update this section in CLAUDE.md with completion status
+   - Remove "P0 (NEW - 2026-01-10)" from TODO when done
+   - Add any new architectural patterns to relevant sections
+
+**Critical Reminders:**
+- ✅ Preserve determinism in all conflict resolutions
+- ✅ Include provenance metadata (SHA-256 hashes)
+- ✅ Follow ABX-Runes coupling rules (capability contracts only)
+- ✅ Run full test suite before creating PRs
+- ✅ Use descriptive commit messages with conflict resolution context
+
+---
 
 ## RuneInvocationContext (Oracle Pipeline)
 
