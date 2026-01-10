@@ -15,7 +15,8 @@ except ImportError:
 from abx.runtime.config import load_config
 from abx.assets.manifest import read_manifest
 from abx.runtime.provenance import make_provenance, compute_config_hash
-from abraxas.fn_exports import router as fn_router
+# fn_exports moved from abraxas/ to abx/ (server infrastructure, not core logic)
+from abx.fn_exports import router as fn_router
 
 def build_app() -> Any:
     """Build FastAPI application with health endpoints."""
