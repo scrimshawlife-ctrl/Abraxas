@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.schemas.neon_genie_output.v0",
+  "title": "Neon Genie Output v0",
+  "type": "object",
+  "required": ["mode", "dense_vectors", "candidates"],
+  "properties": {
+    "mode": { "type": "string", "enum": ["pure", "balanced"] },
+    "dense_vectors": {
+      "type": "array",
+      "items": { "type": ["string", "number", "object", "array", "boolean", "null"] },
+      "maxItems": 12
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "handle",
+          "thesis",
+          "novelty_score",
+          "vc_gap_signal",
+          "integration_collision",
+          "recommended_path"
+        ],
+        "properties": {
+          "handle": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+          "thesis": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+          "novelty_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "vc_gap_signal": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "integration_collision": { "type": "string" },
+          "recommended_path": { "type": "string", "enum": ["new_app", "submodule_upgrade", "research_only"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

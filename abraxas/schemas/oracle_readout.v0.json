@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.schemas.oracle_readout.v0",
+  "title": "Oracle Readout v0",
+  "type": "object",
+  "required": [
+    "header",
+    "vector_mix",
+    "kairos",
+    "runic_weather",
+    "gate_and_trial",
+    "memetic_futurecast",
+    "financials",
+    "overlays",
+    "provenance"
+  ],
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["date", "location", "headline"],
+      "properties": {
+        "date": { "$ref": "common.v0.json#/definitions/ISODate" },
+        "location": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "headline": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "tier": { "$ref": "common.v0.json#/definitions/Tier" }
+      },
+      "additionalProperties": false
+    },
+    "vector_mix": {
+      "type": "object",
+      "required": [
+        "ritual_density",
+        "meme_velocity",
+        "nostalgia",
+        "symbolic_modulator",
+        "signal_noise",
+        "drift_charge",
+        "coherence",
+        "notes"
+      ],
+      "properties": {
+        "ritual_density": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "meme_velocity": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "nostalgia": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "symbolic_modulator": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "signal_noise": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "drift_charge": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "coherence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "notes": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "kairos": {
+      "type": "object",
+      "required": ["axis_of_fate", "framebreaker", "continuum_binder", "silent_sovereign"],
+      "properties": {
+        "axis_of_fate": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "framebreaker": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "continuum_binder": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "silent_sovereign": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "runic_weather": {
+      "type": "object",
+      "required": ["active", "interpretations"],
+      "properties": {
+        "active": {
+          "type": "array",
+          "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+          "minItems": 1
+        },
+        "interpretations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rune", "short"],
+            "properties": {
+              "rune": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+              "short": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "gate_and_trial": {
+      "type": "array",
+      "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+    },
+    "memetic_futurecast": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "schema": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+        },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "financials": {
+      "type": "object",
+      "required": ["macro", "tickers", "crypto", "risk_note"],
+      "properties": {
+        "schema": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+        "macro": {
+          "type": "array",
+          "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+        },
+        "tickers": {
+          "type": "array",
+          "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+        },
+        "crypto": {
+          "type": "array",
+          "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+        },
+        "risk_note": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "overlays": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

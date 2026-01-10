@@ -22,6 +22,7 @@ import {
   Palette,
   FolderSearch,
   LayoutDashboard,
+  Shield,
 } from "lucide-react";
 
 const menuItems = [
@@ -90,6 +91,12 @@ const menuItems = [
     url: "/artifacts",
     icon: FolderSearch,
     description: "Inspect out/ artifacts + pointer diffs"
+  },
+  {
+    title: "Training Admin",
+    url: "/training-admin",
+    icon: Shield,
+    description: "KITE ingest + candidate queue"
   }
 ];
 
