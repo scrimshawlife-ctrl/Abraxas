@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RuneProposalExport",
+  "type": "object",
+  "required": ["proposals"],
+  "properties": {
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "proposal_id",
+          "rune_name",
+          "semantics",
+          "oppositions",
+          "activation_conditions",
+          "deactivation_conditions",
+          "mapping",
+          "provenance"
+        ],
+        "properties": {
+          "proposal_id": {"type": "string"},
+          "rune_name": {"type": "string"},
+          "glyph_ref": {"type": ["string", "null"]},
+          "semantics": {"type": "string"},
+          "oppositions": {"type": "array", "items": {"type": "string"}},
+          "activation_conditions": {"type": "array", "items": {"type": "string"}},
+          "deactivation_conditions": {"type": "array", "items": {"type": "string"}},
+          "mapping": {
+            "type": "object",
+            "required": ["codepoint", "deck"],
+            "properties": {
+              "codepoint": {"type": ["string", "null"]},
+              "deck": {"type": ["string", "null"]}
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "required": ["source_ids"],
+            "properties": {
+              "source_ids": {"type": "array", "items": {"type": "string"}},
+              "created_at": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

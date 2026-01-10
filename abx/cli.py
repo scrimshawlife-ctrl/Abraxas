@@ -12,6 +12,9 @@ Subcommands:
 - ingest: Run always-on Decodo ingestion scheduler
 - ui: Start chat-like UI server
 - admin: Print admin handshake (module discovery)
+- aalmanac-admin: AALmanac review system admin CLI
+- lens: Local Evaluation & Notation Studio (admin training mode)
+- diag deps: Check optional dependency availability for LENS
 """
 
 from __future__ import annotations
@@ -22,6 +25,8 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict
+
+import typer
 
 from abx.kernel import invoke
 from abx.runtime.config import load_config
@@ -34,10 +39,18 @@ from abx.runtime.drift import take_snapshot, save_snapshot, check_drift
 from abx.runtime.watchdog import watchdog_loop
 from abraxas.cli.counterfactual import run_counterfactual_cli
 from abraxas.cli.smv import run_smv_cli
+from abraxas.cli.aalmanac_cmd import app as aalmanac_app
+from abraxas.cli.aalmanac_review_cmd import app as aalmanac_review_app
 from abx.runtime.updater import update_atomic
 from abx.ingest.scheduler import run_ingest_forever
 from abx.ui.server import build_ui_app
 from abx.ui.admin_handshake import admin_prompt
+from abx.plugins import load_plugins
+from abraxas.admin.kite.cli import register as register_kite
+
+typer_app = typer.Typer(help="ABX admin toolset.")
+typer_app.add_typer(aalmanac_app, name="aalmanac")
+typer_app.add_typer(aalmanac_review_app, name="aalmanac-admin")
 
 def _cmd_ok(msg: str) -> None:
     """Print success message."""
@@ -100,6 +113,35 @@ def apply_cmd(args: argparse.Namespace) -> int:
     from abx.apply_cli import run as run_apply
 
     return run_apply(args)
+
+def _lens_missing_deps() -> list[str]:
+    import importlib
+
+    deps = ["fastapi", "uvicorn", "jinja2", "multipart"]
+    return [name for name in deps if importlib.util.find_spec(name) is None]
+
+def diag_deps_cmd() -> int:
+    """Check optional dependency availability for LENS."""
+    print("deps: OK (core)")
+    missing = _lens_missing_deps()
+    if missing:
+        missing_list = ", ".join(missing)
+        print(f"deps: MISSING (lens) missing={missing_list} -> install: pip install -e \".[lens]\"")
+        return 1
+    print("deps: OK (lens)")
+    return 0
+
+def diag_cmd(args: argparse.Namespace) -> int:
+    if args.diag_action == "deps":
+        return diag_deps_cmd()
+    raise RuntimeError("unknown diag action")
+
+def _register_lens_typer() -> None:
+    from abraxas.cli.lens_cmd import app as lens_app
+
+    typer_app.add_typer(lens_app, name="lens")
+
+_register_lens_typer()
 def assets_sync() -> int:
     """Generate and write asset manifest."""
     cfg = load_config()
@@ -214,10 +256,37 @@ def ui_cmd(args: argparse.Namespace) -> int:
         return 2
 
 def admin_cmd(args: argparse.Namespace) -> int:
-    """Print admin handshake (module discovery)."""
-    result = admin_prompt()
-    print(dumps_stable(result))
-    return 0
+    """Admin panel commands."""
+    if args.admin_action == "handshake":
+        result = admin_prompt()
+        print(dumps_stable(result))
+        return 0
+    if args.admin_action == "up":
+        from abx.admin.panel import run_up
+
+        return run_up()
+    if args.admin_action == "ingest":
+        from abx.admin.panel import run_ingest
+
+        if not args.path:
+            _cmd_err("--path is required for admin ingest")
+            return 2
+        payload = {
+            "path": args.path,
+            "title": args.title,
+            "source_type": args.source_type,
+            "author": args.author,
+            "date": args.date,
+            "license_note": args.license_note,
+            "tags": args.tags.split(",") if args.tags else [],
+            "options": {},
+        }
+        return run_ingest(payload)
+    if args.admin_action == "review":
+        from abx.admin.panel import run_review
+
+        return run_review()
+    raise RuntimeError("unknown admin action")
 
 
 def counterfactual_cmd(args: argparse.Namespace) -> int:
@@ -266,6 +335,12 @@ def overlay_cmd(args: argparse.Namespace) -> int:
 
 def main() -> None:
     """CLI entry point."""
+    if len(sys.argv) > 1 and sys.argv[1] in {"aalmanac", "aalmanac-admin", "lens"}:
+        from typer.main import get_command
+
+        command = get_command(typer_app)
+        command.main(args=sys.argv[1:], prog_name="abx")
+        raise SystemExit(0)
     p = argparse.ArgumentParser(prog="abx", description="Abraxas Boot eXtensions")
     sub = p.add_subparsers(dest="cmd", required=True)
 
@@ -312,7 +387,20 @@ def main() -> None:
 
     sub.add_parser("ingest", help="Run always-on Decodo ingestion scheduler")
     sub.add_parser("ui", help="Start chat-like UI server")
-    sub.add_parser("admin", help="Print admin handshake (module discovery)")
+    p_admin = sub.add_parser("admin", help="Admin panel commands")
+    p_admin.add_argument(
+        "admin_action",
+        nargs="?",
+        default="handshake",
+        choices=["handshake", "up", "ingest", "review"],
+    )
+    p_admin.add_argument("--path", default=None, help="Path to ingest file")
+    p_admin.add_argument("--title", default="Untitled", help="Source title")
+    p_admin.add_argument("--source-type", default="note", help="Source type")
+    p_admin.add_argument("--author", default=None)
+    p_admin.add_argument("--date", default=None)
+    p_admin.add_argument("--license-note", default="local-only")
+    p_admin.add_argument("--tags", default="")
     p_comp = sub.add_parser("compress", help="Run compression detection")
     p_comp.add_argument("--text", required=True, help="Input text event")
     p_comp.add_argument(
@@ -390,6 +478,12 @@ def main() -> None:
     p_apply.add_argument("--receipt", required=True, help="governance_receipt_id")
     p_apply.add_argument("--plan", required=True, help="Path to plan json")
 
+    p_diag = sub.add_parser("diag", help="Diagnostics")
+    p_diag.add_argument("diag_action", choices=["deps"], help="Diagnostic action")
+
+    register_kite(sub)
+    load_plugins(sub)
+
     args = p.parse_args()
 
     if args.cmd == "doctor":
@@ -432,6 +526,8 @@ def main() -> None:
         raise SystemExit(govern_cmd(args))
     if args.cmd == "apply":
         raise SystemExit(apply_cmd(args))
+    if args.cmd == "diag":
+        raise SystemExit(diag_cmd(args))
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeonGenieExport",
+  "type": "object",
+  "required": ["run_id", "date", "apps"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "date": {"type": "string"},
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "novelty_claim",
+          "why_now",
+          "category_tags",
+          "violates_existing_systems",
+          "differentiation",
+          "vc_gap_hypothesis",
+          "risk_notes",
+          "build_vector",
+          "provenance"
+        ],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "novelty_claim": {"type": "string"},
+          "why_now": {"type": "string"},
+          "category_tags": {"type": "array", "items": {"type": "string"}},
+          "violates_existing_systems": {"type": "boolean", "const": false},
+          "differentiation": {"type": "string"},
+          "vc_gap_hypothesis": {"type": "string"},
+          "risk_notes": {"type": "string"},
+          "build_vector": {
+            "type": "object",
+            "required": ["complexity_estimate", "time_estimate", "compute_estimate"],
+            "properties": {
+              "complexity_estimate": {"type": "string"},
+              "time_estimate": {"type": "string"},
+              "compute_estimate": {"type": "string"}
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "required": ["source_ids"],
+            "properties": {
+              "source_ids": {"type": "array", "items": {"type": "string"}},
+              "created_at": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
