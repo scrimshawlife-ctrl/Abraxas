@@ -6,6 +6,37 @@ from typing import Any, Dict
 from .schema import OverlayRequest, OverlayResponse, Phase
 from .phases import dispatch
 
+
+class OverlayAdapter:
+    """Adapter for overlay operations providing a high-level interface."""
+
+    def __init__(self):
+        """Initialize the overlay adapter."""
+        pass
+
+    def parse_request(self, raw: str) -> OverlayRequest:
+        """Parse a raw request string into an OverlayRequest.
+
+        Args:
+            raw: Raw JSON string
+
+        Returns:
+            Parsed OverlayRequest
+        """
+        return parse_request(raw)
+
+    def handle(self, req: OverlayRequest) -> OverlayResponse:
+        """Handle an overlay request.
+
+        Args:
+            req: The overlay request
+
+        Returns:
+            Response from handling the request
+        """
+        return handle(req)
+
+
 def _sha256(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
 

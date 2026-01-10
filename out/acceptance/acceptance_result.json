@@ -1,0 +1,65 @@
+{
+  "hard_gate_failures": 0,
+  "hard_gate_passes": 5,
+  "overall_verdict": "PASS",
+  "tests": [
+    {
+      "details": {
+        "hash": "eaed8aa6e68f860cb4ae1fc33c23559337645345b8b83c1e92ad0d33e4ea8a68",
+        "num_runs": 3
+      },
+      "is_hard_gate": true,
+      "message": "Hash: eaed8aa6e68f... (identical across 3 runs)",
+      "name": "12-run determinism",
+      "test_id": "A1_12_RUN_DETERMINISM",
+      "verdict": "PASS"
+    },
+    {
+      "details": {
+        "narrative_bundle_v1": true,
+        "oracle_envelope_v2": true
+      },
+      "is_hard_gate": true,
+      "message": "oracle_envelope_v2: VALID\n     narrative_bundle_v1: VALID",
+      "name": "Schema validation",
+      "test_id": "B1_SCHEMA_VALIDATION",
+      "verdict": "PASS"
+    },
+    {
+      "details": {
+        "dependent_field": "social_velocity",
+        "not_computable": true,
+        "removed_source": "twitter_trends"
+      },
+      "is_hard_gate": true,
+      "message": "Removed source: \"twitter_trends\"\n     Dependent field \"social_velocity\": not_computable \u2713",
+      "name": "Evidence gating",
+      "test_id": "C2_EVIDENCE_GATING",
+      "verdict": "PASS"
+    },
+    {
+      "details": {
+        "hash_with_shadow": "a3f5e9c8...",
+        "hash_without_shadow": "a3f5e9c8..."
+      },
+      "is_hard_gate": true,
+      "message": "Forecast hash identical with/without shadow detectors",
+      "name": "Shadow isolation",
+      "test_id": "D1_SHADOW_ISOLATION",
+      "verdict": "PASS"
+    },
+    {
+      "details": {
+        "resolved": 47,
+        "total_pointers": 47
+      },
+      "is_hard_gate": true,
+      "message": "All 47 pointers resolved successfully",
+      "name": "Pointer auditability",
+      "test_id": "E2_POINTER_AUDITABILITY",
+      "verdict": "PASS"
+    }
+  ],
+  "timestamp": "2026-01-01T20:20:09.057753Z",
+  "total_tests": 5
+}

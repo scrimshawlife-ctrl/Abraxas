@@ -1,0 +1,26 @@
+{
+  "sources": [
+    "oracle_v1",
+    "lexicon_v1"
+  ],
+  "domain": "crypto",
+  "observations": [
+    {
+      "term": "hodl",
+      "context": "Diamond hands hodl through the dip",
+      "timestamp": "2026-01-01T00:00:00Z",
+      "source": "twitter"
+    },
+    {
+      "term": "degen",
+      "context": "Full degen mode on this new token",
+      "timestamp": "2026-01-01T00:05:00Z",
+      "source": "discord"
+    }
+  ],
+  "config": {
+    "enable_shadow_metrics": false,
+    "deterministic": true,
+    "seed": 42
+  }
+}
