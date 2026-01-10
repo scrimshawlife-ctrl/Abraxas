@@ -72,9 +72,32 @@
 **Analysis Date:** 2026-01-10
 **Main Branch:** 8672ab0 (AALmanac integration PR #95)
 
+### Quick Reference - Branch URLs & Checkout Commands
+
+```bash
+# Priority 1: Acceptance Test Suite + Dashboard (8 conflicts)
+git fetch origin claude/resolve-merge-conflicts-Vg6qy
+git checkout -b codex/resolve-vg6qy-<session-id> origin/claude/resolve-merge-conflicts-Vg6qy
+# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/claude/resolve-merge-conflicts-Vg6qy
+
+# Priority 2: MDA Signal Layer (3 conflicts)
+git fetch origin cursor/mda-signal-layer-v2-2c0d
+git checkout -b codex/resolve-mda-signal-<session-id> origin/cursor/mda-signal-layer-v2-2c0d
+# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/mda-signal-layer-v2-2c0d
+
+# Priority 3: Oracle Bridge + MDA Engine (9+ conflicts)
+git fetch origin cursor/oracle-bridge-mda-canary-87a3
+git checkout -b codex/resolve-oracle-mda-<session-id> origin/cursor/oracle-bridge-mda-canary-87a3
+# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/oracle-bridge-mda-canary-87a3
+```
+
+---
+
 ### Priority 1: claude/resolve-merge-conflicts-Vg6qy
 **Status:** 7 commits ahead, 122 commits behind main
 **Severity:** HIGH - 8 file conflicts
+**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/claude/resolve-merge-conflicts-Vg6qy
+
 **Key Features:**
 - Abraxas Acceptance Test Suite v1.0
 - Dashboard Lens artifact viewer (merged PRs #58, #57, #55, #54)
@@ -97,6 +120,8 @@
 ### Priority 2: cursor/mda-signal-layer-v2-2c0d
 **Status:** 1 commit ahead, 108 commits behind main
 **Severity:** MEDIUM - 3 file conflicts (all add/add)
+**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/mda-signal-layer-v2-2c0d
+
 **Key Features:**
 - New `abraxas.mda` package for MDA (Multi-Dimensional Analysis)
 
@@ -112,6 +137,8 @@
 ### Priority 3: cursor/oracle-bridge-mda-canary-87a3
 **Status:** 1 commit ahead, 108 commits behind main
 **Severity:** HIGH - 9+ file conflicts
+**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/oracle-bridge-mda-canary-87a3
+
 **Key Features:**
 - MDA engine and Oracle bridge implementation
 - Extends shadow detectors and symbolic compression
