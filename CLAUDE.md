@@ -162,6 +162,62 @@ These branches have NO unique commits and are significantly behind main:
 2. Determine if features duplicate existing main branch work
 3. Cherry-pick valuable commits instead of full merge
 
+---
+
+### Next Steps for Codex
+
+**Immediate Actions Required:**
+
+1. **Choose Resolution Strategy** - Select Option A, B, or C based on:
+   - Available time/resources (parallel vs sequential)
+   - Risk tolerance (audit first vs merge and test)
+   - Feature priority (acceptance tests vs MDA infrastructure)
+
+2. **Create Working Branch** - For each conflict resolution:
+   ```bash
+   # Create new branch with proper session ID format
+   git checkout -b codex/<descriptive-name>-<session-id>
+   git fetch origin
+   git merge origin/<source-branch> origin/main
+   # Resolve conflicts...
+   ```
+
+3. **Conflict Resolution Checklist** - For each branch:
+   - [ ] Checkout target branch and merge main
+   - [ ] Resolve conflicts following `CONFLICT_RESOLUTION_GUIDE.md`
+   - [ ] Verify determinism (same inputs → same outputs)
+   - [ ] Run all tests: `pytest tests/` and `npm test`
+   - [ ] Check provenance integrity (SHA-256 hashes preserved)
+   - [ ] Verify ABX-Runes coupling rules (no direct imports)
+   - [ ] Update CLAUDE.md TODO section when complete
+   - [ ] Create PR with conflict resolution summary
+   - [ ] Push and verify CI passes
+
+4. **Stale Branch Cleanup** - After verifying no valuable work lost:
+   ```bash
+   # Delete stale branches (backup first if uncertain)
+   git push origin --delete claude/merge-pull-requests-xCwWp
+   git push origin --delete claude/resolve-merge-conflicts-a9OJO
+   git push origin --delete claude/resolve-merge-conflicts-au7CD
+   git push origin --delete codex/refactor-code-for-improvements
+   git push origin --delete codex/add-bell-constraint-canon-entry-and-abx-rune
+   git push origin --delete cursor/pull-request-conflict-resolution-5149
+   ```
+
+5. **Documentation Updates** - After all resolutions:
+   - Update this section in CLAUDE.md with completion status
+   - Remove "P0 (NEW - 2026-01-10)" from TODO when done
+   - Add any new architectural patterns to relevant sections
+
+**Critical Reminders:**
+- ✅ Preserve determinism in all conflict resolutions
+- ✅ Include provenance metadata (SHA-256 hashes)
+- ✅ Follow ABX-Runes coupling rules (capability contracts only)
+- ✅ Run full test suite before creating PRs
+- ✅ Use descriptive commit messages with conflict resolution context
+
+---
+
 ## RuneInvocationContext (Oracle Pipeline)
 
 Oracle pipeline rune calls require a validated `RuneInvocationContext` with:
