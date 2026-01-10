@@ -22,6 +22,7 @@ import DynamicWatchlist from "@/components/DynamicWatchlist";
 import AalDemo from "@/pages/AalDemo";
 import ArtifactsDashboard from "@/components/dashboard/ArtifactsDashboard";
 import DashboardLens from "@/components/DashboardLens";
+import AdminTrainingPanel from "@/components/AdminTrainingPanel";
 
 function AuthenticatedApp() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -64,6 +65,8 @@ function AuthenticatedApp() {
         return <AalDemo />;
       case "/artifacts":
         return <ArtifactsDashboard />;
+      case "/training-admin":
+        return <AdminTrainingPanel />;
       default:
         return <RitualRunner />;
     }

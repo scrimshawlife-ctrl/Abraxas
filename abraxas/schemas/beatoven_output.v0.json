@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.schemas.beatoven_output.v0",
+  "title": "BeatOven Output v0",
+  "type": "object",
+  "required": ["tempo", "scale", "chords", "rhythm_density", "midi_clips", "cv_gate_map", "emotional_signature"],
+  "properties": {
+    "tempo": { "type": "integer", "minimum": 40, "maximum": 220 },
+    "scale": { "type": "string" },
+    "chords": {
+      "type": "array",
+      "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+      "minItems": 1
+    },
+    "rhythm_density": { "type": "string", "enum": ["low", "medium", "high"] },
+    "midi_clips": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "required": ["name", "pattern"],
+        "properties": {
+          "name": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+          "pattern": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "cv_gate_map": {
+      "type": "object",
+      "required": ["clock_hz", "gate_pattern"],
+      "properties": {
+        "clock_hz": { "type": "number", "minimum": 0.1, "maximum": 10.0 },
+        "gate_pattern": { "type": "string", "minLength": 8, "maxLength": 64 }
+      },
+      "additionalProperties": false
+    },
+    "emotional_signature": {
+      "type": "object",
+      "required": ["pressure", "coherence"],
+      "properties": {
+        "pressure": { "type": "number" },
+        "coherence": { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.schemas.oracle_run.v0",
+  "title": "Oracle Run Envelope v0",
+  "type": "object",
+  "required": ["run_id", "tier", "oracle", "overlays", "provenance", "logs"],
+  "properties": {
+    "run_id": { "$ref": "common.v0.json#/definitions/Hash" },
+    "tier": { "$ref": "common.v0.json#/definitions/Tier" },
+    "oracle": {
+      "type": "object",
+      "required": ["vector_mix", "runic_weather", "notes"],
+      "properties": {
+        "vector_mix": {
+          "type": "object",
+          "required": ["pressure_index", "coherence", "quantification"],
+          "properties": {
+            "pressure_index": { "type": ["number", "integer"] },
+            "coherence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "quantification": { "type": "string", "enum": ["low", "medium", "high"] }
+          },
+          "additionalProperties": false
+        },
+        "runic_weather": {
+          "type": "object",
+          "required": ["active_runes", "count"],
+          "properties": {
+            "active_runes": {
+              "type": "array",
+              "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+              "minItems": 1,
+              "maxItems": 3
+            },
+            "count": { "type": "integer", "minimum": 1, "maximum": 3 }
+          },
+          "additionalProperties": false
+        },
+        "notes": {
+          "type": "object",
+          "required": ["sources", "simulation"],
+          "properties": {
+            "sources": { "type": "string" },
+            "simulation": { "type": ["boolean", "string"] }
+          },
+          "additionalProperties": false
+        },
+        "overlay_outputs": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "overlays": {
+      "type": "array",
+      "items": { "$ref": "common.v0.json#/definitions/NonEmptyString" }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["signal_hash", "symbolic_hash", "metric_hash", "runic_hash", "overlay_hashes"],
+      "properties": {
+        "signal_hash": { "$ref": "common.v0.json#/definitions/Hash" },
+        "symbolic_hash": { "$ref": "common.v0.json#/definitions/Hash" },
+        "metric_hash": { "$ref": "common.v0.json#/definitions/Hash" },
+        "runic_hash": { "$ref": "common.v0.json#/definitions/Hash" },
+        "overlay_hashes": {
+          "type": "object",
+          "additionalProperties": { "$ref": "common.v0.json#/definitions/Hash" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "logs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "data"],
+        "properties": {
+          "kind": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+          "data": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

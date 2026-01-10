@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.schemas.aalmanac_entry.v0",
+  "title": "AALmanac Output v0",
+  "type": "object",
+  "required": ["entries", "note"],
+  "properties": {
+    "entries": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "required": [
+          "term",
+          "type",
+          "origin_context",
+          "current_context",
+          "drift_score",
+          "velocity",
+          "half_life",
+          "tier_visibility"
+        ],
+        "properties": {
+          "term": { "$ref": "common.v0.json#/definitions/NonEmptyString" },
+          "type": { "type": "string", "enum": ["single", "compound"] },
+          "origin_context": { "type": "string" },
+          "current_context": { "type": "string" },
+          "drift_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "velocity": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "half_life": { "type": "string" },
+          "tier_visibility": { "$ref": "common.v0.json#/definitions/Tier" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "note": { "type": "string" }
+  },
+  "additionalProperties": false
+}
