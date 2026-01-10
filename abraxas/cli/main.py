@@ -24,6 +24,7 @@ from abraxas.cli.sources import list_sources_cmd
 from abraxas.cli.temporal import tzdb_version_cmd
 from abraxas.cli.visualize import run_visualize_cmd
 from abraxas.cli.year_run import run_year_cmd
+from abraxas.admin.kite.cli import register as register_kite
 
 
 def main() -> int:
@@ -185,6 +186,8 @@ def main() -> int:
     select_parser.add_argument("--dry-run", action="store_true")
     apply_parser = device_sub.add_parser("apply", help="Apply device profile selection")
     apply_parser.add_argument("--now", help="Override current time (UTC ISO8601)")
+
+    register_kite(subparsers)
 
     args = parser.parse_args()
 

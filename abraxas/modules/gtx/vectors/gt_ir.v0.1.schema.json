@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GT-IR v0.1",
+  "type": "object",
+  "required": ["version", "game", "rounds", "players", "seed"],
+  "properties": {
+    "version": {"type": "string"},
+    "game": {"type": "string"},
+    "rounds": {"type": "integer", "minimum": 1},
+    "players": {"type": "integer", "minimum": 2},
+    "seed": {"type": "integer"},
+    "payoff_matrix": {"type": ["object", "null"]},
+    "strategies": {"type": ["array", "null"], "items": {"type": "string"}},
+    "strategy_params": {"type": ["object", "null"]},
+    "notes": {"type": ["string", "null"]}
+  }
+}

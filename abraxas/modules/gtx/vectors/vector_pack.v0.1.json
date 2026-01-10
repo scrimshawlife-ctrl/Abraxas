@@ -1,0 +1,35 @@
+{
+  "version": "0.1",
+  "vectors": [
+    {
+      "id": "PD_TFT_vs_AD_50",
+      "game": "prisoners_dilemma",
+      "rounds": 50,
+      "seed": 1337,
+      "strategy_p1": "tit_for_tat",
+      "strategy_p2": "always_defect",
+      "params_p1": {},
+      "params_p2": {}
+    },
+    {
+      "id": "PD_TFT_vs_TFT_50",
+      "game": "prisoners_dilemma",
+      "rounds": 50,
+      "seed": 1337,
+      "strategy_p1": "tit_for_tat",
+      "strategy_p2": "tit_for_tat",
+      "params_p1": {},
+      "params_p2": {}
+    },
+    {
+      "id": "MP_RAND_vs_RAND_100",
+      "game": "matching_pennies",
+      "rounds": 100,
+      "seed": 42,
+      "strategy_p1": "random_p",
+      "strategy_p2": "random_p",
+      "params_p1": {"p_defect": 0.5},
+      "params_p2": {"p_defect": 0.5}
+    }
+  ]
+}

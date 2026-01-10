@@ -1,0 +1,31 @@
+{
+  "version": "0.1",
+  "expectations": [
+    {
+      "id": "PD_TFT_vs_AD_50",
+      "must_match_seed": true,
+      "must_match_rounds": 50,
+      "assertions": {
+        "p2_avg_min": 1.0,
+        "p1_avg_max": 2.5
+      }
+    },
+    {
+      "id": "PD_TFT_vs_TFT_50",
+      "must_match_seed": true,
+      "must_match_rounds": 50,
+      "assertions": {
+        "p1_avg_min": 2.9,
+        "p2_avg_min": 2.9
+      }
+    },
+    {
+      "id": "MP_RAND_vs_RAND_100",
+      "must_match_seed": true,
+      "must_match_rounds": 100,
+      "assertions": {
+        "abs_diff_avg_max": 0.3
+      }
+    }
+  ]
+}

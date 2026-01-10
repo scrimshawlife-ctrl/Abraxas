@@ -75,11 +75,20 @@ cd Abraxas
 # Install Python dependencies
 pip install -e .
 
+# Install LENS optional dependencies
+pip install -e ".[lens]"
+
 # Install Node.js dependencies
 npm install
 
 # Run system diagnostic
 abx doctor
+
+# Check optional deps for LENS
+abx diag deps
+
+# Overlay contract
+cat docs/overlay_contract.md
 ```
 
 ### Run Your First Analysis

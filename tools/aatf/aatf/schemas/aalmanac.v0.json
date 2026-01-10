@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AALmanacExport",
+  "type": "object",
+  "required": ["entries"],
+  "properties": {
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "term_type", "term", "context_shift", "domain_tags", "signals", "provenance"],
+        "properties": {
+          "id": {"type": "string"},
+          "term_type": {"enum": ["single", "compound"]},
+          "term": {"type": "string"},
+          "context_shift": {"type": "string"},
+          "domain_tags": {"type": "array", "items": {"type": "string"}},
+          "signals": {
+            "type": "object",
+            "required": ["novelty_score", "adoption_pressure", "drift_charge"],
+            "properties": {
+              "novelty_score": {"type": "number", "minimum": 0, "maximum": 1},
+              "adoption_pressure": {"type": "number", "minimum": 0, "maximum": 1},
+              "drift_charge": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "required": ["source_ids"],
+            "properties": {
+              "source_ids": {"type": "array", "items": {"type": "string"}},
+              "created_at": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
