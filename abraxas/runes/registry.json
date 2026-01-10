@@ -1006,6 +1006,17 @@
       "evidence_mode": "policy_enforcement"
     },
     {
+      "capability_id": "disinfo.metrics.apply",
+      "rune_id": "ϟ_DISINFO_METRICS_APPLY",
+      "operator_path": "abraxas.disinfo.rune_adapter:apply_disinfo_metrics_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/apply_disinfo_metrics_input.schema.json",
+      "output_schema": "schemas/capabilities/apply_disinfo_metrics_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "observation"
+    },
+    {
       "capability_id": "drift.orchestrator.analyze_text_for_drift",
       "rune_id": "ϟ_DRIFT_ANALYZE_TEXT",
       "operator_path": "abraxas.drift.rune_adapter:analyze_text_for_drift_deterministic",
