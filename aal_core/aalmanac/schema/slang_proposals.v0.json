@@ -1,0 +1,92 @@
+{
+  "schema": "slang_proposals.v0",
+  "type": "object",
+  "required": ["schema", "provenance", "proposals"],
+  "properties": {
+    "schema": {"type": "string"},
+    "provenance": {
+      "type": "object",
+      "required": ["run_id", "ts", "deterministic_hash"],
+      "properties": {
+        "run_id": {"type": "string"},
+        "ts": {"type": "string"},
+        "deterministic_hash": {"type": "string"}
+      }
+    },
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["term_raw", "intent", "signals"],
+        "properties": {
+          "term_raw": {"type": "string"},
+          "intent": {
+            "type": "string",
+            "enum": [
+              "context_shift",
+              "neologism",
+              "clip",
+              "blend",
+              "phonetic_flip",
+              "metaphor_bind"
+            ]
+          },
+          "base_term": {"type": "string"},
+          "suggested_senses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["sense", "domain"],
+              "properties": {
+                "sense": {"type": "string"},
+                "domain": {"type": "string"}
+              }
+            }
+          },
+          "signals": {
+            "type": "object",
+            "required": ["stickiness", "plausibility", "adoption_pressure", "compression_gain"],
+            "properties": {
+              "stickiness": {"type": "number", "minimum": 0, "maximum": 1},
+              "plausibility": {"type": "number", "minimum": 0, "maximum": 1},
+              "adoption_pressure": {"type": "number", "minimum": 0, "maximum": 1},
+              "compression_gain": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "handles": {"type": "array", "items": {"type": "string"}},
+              "motifs": {"type": "array", "items": {"type": "string"}},
+              "co_occurrence": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "context_shift": {
+            "type": "object",
+            "properties": {
+              "domain_shift": {"type": "string"},
+              "valence_shift": {"type": "string"},
+              "scope_shift": {"type": "string"}
+            }
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "base_term_exists": {"type": "number", "minimum": 0, "maximum": 1},
+              "morphological_validity": {"type": "number", "minimum": 0, "maximum": 1},
+              "attested_patterns_score": {"type": "number", "minimum": 0, "maximum": 1},
+              "semantic_coherence": {"type": "number", "minimum": 0, "maximum": 1},
+              "expanded_phrase_len": {"type": "number", "minimum": 0, "maximum": 50},
+              "semantic_density": {"type": "number", "minimum": 0, "maximum": 1},
+              "motif_overlap_count": {"type": "number", "minimum": 0, "maximum": 10},
+              "domain_crossings": {"type": "number", "minimum": 0, "maximum": 10},
+              "event_intensity": {"type": "number", "minimum": 0, "maximum": 1},
+              "platform_velocity": {"type": "number", "minimum": 0, "maximum": 1},
+              "collision_penalty": {"type": "number", "minimum": 0, "maximum": 0.4}
+            }
+          }
+        }
+      }
+    }
+  }
+}

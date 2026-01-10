@@ -50,3 +50,5 @@ out/test_daily/
 artifacts_seal/
 artifacts_gate/
 .aal/
+
+tools/aatf/.aatf/

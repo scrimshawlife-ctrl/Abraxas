@@ -1,0 +1,8 @@
+{
+  "schema_version": "aatf.export.memetic_weather.v0",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {"type": "array"}
+  }
+}

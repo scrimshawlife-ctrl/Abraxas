@@ -1,0 +1,7 @@
+# Ledger path (default):
+#   ~/.aal/ledger/training_sessions.jsonl
+# Rules:
+#   - append-only
+#   - each record includes deterministic hashes of inputs and outputs
+#   - never store secrets
+#   - optionally encrypt at rest (future drop: echotome integration)
