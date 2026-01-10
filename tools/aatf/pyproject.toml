@@ -1,0 +1,18 @@
+[project]
+name = "aatf"
+version = "0.1.0"
+description = "Abraxas Admin & Training Forge"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[project.scripts]
+aatf = "aatf.cli:main"
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"

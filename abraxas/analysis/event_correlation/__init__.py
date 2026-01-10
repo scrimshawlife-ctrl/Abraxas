@@ -1,11 +1,9 @@
-"""
-Event Correlation (offline, shadow lane).
+"""Event Correlation (v0.1).
 
-Public contract:
-  correlate(envelopes: list[dict]) -> drift_report_v1 dict
+Offline-first, deterministic correlator that emits pointer-auditable evidence refs.
 """
 
-from .correlator import correlate
+from .correlator import CorrelatorConfig, correlate
 
-__all__ = ["correlate"]
+__all__ = ["CorrelatorConfig", "correlate"]
 

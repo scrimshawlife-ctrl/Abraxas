@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₂",
+  "short_name": "DEVICE_FINGERPRINT",
+  "name": "ABX-DEVICE_FINGERPRINT",
+  "layer": "Device",
+  "introduced_version": "1.7.4",
+  "function": "Compute deterministic device fingerprint.",
+  "inputs": ["run_ctx"],
+  "outputs": ["fingerprint"],
+  "constraints": ["deterministic_order"],
+  "canonical_statement": "ABX-DEVICE_FINGERPRINT emits a deterministic hardware fingerprint."
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Build Temporal Profiles Output",
+  "description": "Output schema for memetic.temporal.build_temporal_profiles capability",
+  "type": "object",
+  "required": ["profiles", "provenance", "not_computable"],
+  "properties": {
+    "profiles": {
+      "type": "array",
+      "description": "List of temporal profile dictionaries",
+      "items": {
+        "type": "object",
+        "required": [
+          "term_key",
+          "term",
+          "first_seen_ts",
+          "last_seen_ts",
+          "obs_n",
+          "v14",
+          "v60",
+          "half_life_days_fit",
+          "phase",
+          "manipulation_risk_mean",
+          "novelty_mean",
+          "propagation_mean",
+          "tags_union",
+          "provenance"
+        ],
+        "properties": {
+          "term_key": {"type": "string"},
+          "term": {"type": "string"},
+          "first_seen_ts": {"type": "string", "format": "date-time"},
+          "last_seen_ts": {"type": "string", "format": "date-time"},
+          "obs_n": {"type": "integer", "minimum": 1},
+          "v14": {"type": "number", "description": "14-day velocity"},
+          "v60": {"type": "number", "description": "60-day velocity"},
+          "recurrence_days": {"type": ["number", "null"], "description": "Recurrence interval in days"},
+          "half_life_days_fit": {"type": "number"},
+          "phase": {"type": "string"},
+          "manipulation_risk_mean": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+          "novelty_mean": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+          "propagation_mean": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+          "tags_union": {"type": "array", "items": {"type": "string"}},
+          "provenance": {"type": "object"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.temporal.build_temporal_profiles"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - operation never fails (returns empty list on error)"
+    }
+  },
+  "additionalProperties": false
+}

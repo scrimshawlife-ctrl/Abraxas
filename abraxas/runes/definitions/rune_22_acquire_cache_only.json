@@ -1,0 +1,40 @@
+{
+  "id": "ß‚‚",
+  "name": "Acquisition Layer - Cache Only",
+  "short_name": "ACQUIRE_CACHE_ONLY",
+  "layer": "Acquisition",
+  "motto": "Offline replay only. Network forbidden.",
+  "function": "Retrieves data from cache only. Fails with clear error if cache missing. Never touches network. Ensures deterministic offline replay for backtesting and forensics.",
+  "inputs": [
+    "cache_keys",
+    "run_ctx"
+  ],
+  "outputs": [
+    "paths",
+    "cache_hits",
+    "failures"
+  ],
+  "constraints": [
+    "cache_only",
+    "no_network_calls",
+    "fail_on_miss",
+    "deterministic_replay"
+  ],
+  "hooks": [
+    "pre_cache_lookup",
+    "perf_logging"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Performance Drop v1.0 spec",
+    "CAS deterministic storage layer",
+    "Backtest replay doctrine"
+  ],
+  "canonical_statement": "Offline replay only. Network forbidden.",
+  "introduced_version": "1.0.0",
+  "metadata": {
+    "first_deployed": "2026-01-03",
+    "stability_class": "high",
+    "integration_priority": "high"
+  }
+}

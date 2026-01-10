@@ -22,6 +22,7 @@ import DynamicWatchlist from "@/components/DynamicWatchlist";
 import AalDemo from "@/pages/AalDemo";
 import DashboardLens from "@/components/DashboardLens";
 import ArtifactsDashboard from "@/components/dashboard/ArtifactsDashboard";
+import DashboardLens from "@/components/DashboardLens";
 
 function AuthenticatedApp() {
   const [currentPath, setCurrentPath] = useState("/ritual");

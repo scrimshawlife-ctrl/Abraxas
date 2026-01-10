@@ -1,0 +1,39 @@
+{
+  "id": "ϟ₁₀",
+  "name": "ABX-SYNCHRONICITY_MAP",
+  "short_name": "SYNCHRONICITY_MAP",
+  "layer": "Validation",
+  "motto": "Map convergence, refuse causality.",
+  "function": "Computes synchronicity envelopes (SE) across domains using structured TVM frames and deterministic metrics (TCI, SIS, CPA, RAC, PUR).",
+  "inputs": [
+    "frames: List of TVM vector frames (structured, numeric)"
+  ],
+  "outputs": [
+    "synchronicity_envelopes: SE packets with metrics and provenance",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output (no routing/prediction impact)",
+    "Deterministic computation",
+    "No causal assertions",
+    "No domain priors"
+  ],
+  "hooks": [
+    "pre_compute: validate_tvm_frames",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Synchronicity Envelope spec v0.1",
+    "TVM schema v0.1",
+    "SEED framework compliance"
+  ],
+  "canonical_statement": "ϟ₁₀ (SYNCHRONICITY_MAP) detects cross-domain synchronicity envelopes via deterministic metrics and emits observation-only SE packets without causal assertions or domain privilege.",
+  "introduced_version": "1.5.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_causal_assert": true,
+    "no_domain_prior": true
+  }
+}

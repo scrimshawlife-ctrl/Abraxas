@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₁",
+  "short_name": "RAW_NO_DELETE",
+  "name": "ABX-RAW_NO_DELETE",
+  "layer": "Governance",
+  "introduced_version": "1.7.1",
+  "function": "Block raw deletions unless explicitly allowed.",
+  "inputs": ["steps", "allow_raw_delete"],
+  "outputs": ["allowed", "raw_deletes"],
+  "constraints": ["raw_no_delete"],
+  "canonical_statement": "ABX-RAW_NO_DELETE enforces raw retention unless explicitly overridden."
+}

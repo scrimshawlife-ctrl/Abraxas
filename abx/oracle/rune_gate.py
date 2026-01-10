@@ -2,14 +2,17 @@
 from __future__ import annotations
 from typing import Any, Dict
 
-from abraxas.runes.operators.sds import apply_sds
-from abraxas.runes.operators.ipl import apply_ipl
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 
 
 def compute_gate(
     state_vector: Dict[str, float],
     context: Dict[str, Any],
-    interaction_kind: str = "oracle"
+    interaction_kind: str = "oracle",
+    *,
+    ctx: RuneInvocationContext | dict,
+    strict_execution: bool = True,
 ) -> Dict[str, Any]:
     """Compute SDS gate state from receiver state.
 
@@ -21,10 +24,15 @@ def compute_gate(
     Returns:
         SDS gate bundle with keys: susceptibility_score, gate_state, etc.
     """
-    return apply_sds(
-        state_vector=state_vector,
-        context=context,
-        interaction_kind=interaction_kind
+    return invoke_capability(
+        "rune:sds",
+        {
+            "state_vector": state_vector,
+            "context": context,
+            "interaction_kind": interaction_kind,
+        },
+        ctx=ctx,
+        strict_execution=strict_execution,
     )
 
 
@@ -56,7 +64,10 @@ def schedule_insight_window(
     gate_bundle: Dict[str, Any],
     window_s: float = 2.0,
     lock_threshold: float = 0.35,
-    refractory_s: float = 8.0
+    refractory_s: float = 8.0,
+    *,
+    ctx: RuneInvocationContext | dict,
+    strict_execution: bool = True,
 ) -> Dict[str, Any]:
     """Schedule IPL windows if gate is OPEN.
 
@@ -82,10 +93,15 @@ def schedule_insight_window(
             "reason": f"Gate not OPEN (state={gate_state})"
         }
 
-    return apply_ipl(
-        phase_series=phase_series,
-        gate_bundle=gate_bundle,
-        window_s=window_s,
-        lock_threshold=lock_threshold,
-        refractory_s=refractory_s
+    return invoke_capability(
+        "rune:ipl",
+        {
+            "phase_series": phase_series,
+            "gate_bundle": gate_bundle,
+            "window_s": window_s,
+            "lock_threshold": lock_threshold,
+            "refractory_s": refractory_s,
+        },
+        ctx=ctx,
+        strict_execution=strict_execution,
     )

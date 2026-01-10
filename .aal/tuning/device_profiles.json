@@ -1,0 +1,24 @@
+{
+  "profiles": [
+    {
+      "profile_id": "default",
+      "label": "desktop",
+      "match_criteria": {
+        "cpu_arch": ["*"],
+        "platform": ["*"],
+        "mem_max_bytes": null,
+        "storage_class": "*",
+        "gpu_present": null
+      },
+      "portfolio_ref": {
+        "portfolio_ir_hash": "969c949e13bc99c486d4e6f8eeb29c1d095cab3563d787c26bbc18264410b836"
+      },
+      "priority": 100,
+      "provenance": {
+        "created_at_utc": "2026-01-01T00:00:00Z",
+        "author": "system",
+        "evidence_profiles": []
+      }
+    }
+  ]
+}

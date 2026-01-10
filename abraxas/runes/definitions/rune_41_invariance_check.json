@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₁",
+  "short_name": "INVARIANCE_CHECK",
+  "name": "ABX-INVARIANCE_CHECK",
+  "layer": "Governance",
+  "introduced_version": "1.7.3",
+  "function": "Fail profile runs when output hashes vary across repetitions.",
+  "inputs": ["hashes"],
+  "outputs": ["invariant", "count"],
+  "constraints": ["invariance_check"],
+  "canonical_statement": "ABX-INVARIANCE_CHECK enforces deterministic output invariance."
+}

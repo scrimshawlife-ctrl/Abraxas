@@ -1,0 +1,38 @@
+{
+  "id": "ϟ₉",
+  "name": "ABX-INFLUENCE_WEIGHT",
+  "short_name": "INFLUENCE_WEIGHT",
+  "layer": "Governance",
+  "motto": "Weight without steering.",
+  "function": "Derives deterministic influence weights from ICS bundles for shadow observation only; never mutates routing or prediction state.",
+  "inputs": [
+    "ics_bundle: Influence metrics per domain"
+  ],
+  "outputs": [
+    "weights: Per-domain influence weights",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output (no routing/prediction impact)",
+    "Deterministic computation",
+    "No causal assertions",
+    "No domain priors"
+  ],
+  "hooks": [
+    "pre_compute: validate_ics",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Influence Detection Metrics (IDM) v0.1",
+    "ABX governance constraints"
+  ],
+  "canonical_statement": "ϟ₉ (INFLUENCE_WEIGHT) converts ICS metrics into stable, shadow-only weights that are logged for observation but never used to drive causal claims, routing, or prediction logic.",
+  "introduced_version": "1.5.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_causal_assert": true,
+    "no_domain_prior": true
+  }
+}

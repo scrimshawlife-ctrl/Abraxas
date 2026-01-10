@@ -1,23 +1,28 @@
 """Overlay phase dispatcher that routes phase execution to the kernel.
 Maintains backward compatibility with legacy PhaseManager.
+
+This module is intentionally thin: it forwards overlay phase requests to the
+kernel router so phase behavior stays centralized and deterministic.
 """
 
 from __future__ import annotations
+
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from .schema import Phase
+
 from abraxas.kernel.entry import run_phase
+from .schema import Phase
 
 
 def dispatch(phase: Phase, payload: Dict[str, Any]) -> Dict[str, Any]:
     """Dispatch a phase execution request to the kernel.
 
     Args:
-        phase: The phase to execute (OPEN, ALIGN, ASCEND, CLEAR, SEAL)
-        payload: Input data for the phase
+        phase: The phase to execute
+        payload: Phase-specific payload data
 
     Returns:
-        Result dictionary from the kernel phase execution
+        Phase execution result
     """
     return run_phase(phase, payload)
 

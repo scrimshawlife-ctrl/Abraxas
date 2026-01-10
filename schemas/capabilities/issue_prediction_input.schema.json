@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Issue Prediction Input",
+  "description": "Input schema for forecast.ledger.issue capability",
+  "type": "object",
+  "required": ["term", "p", "horizon", "run_id"],
+  "properties": {
+    "term": {
+      "type": "string",
+      "description": "Term being predicted"
+    },
+    "p": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Forecast probability"
+    },
+    "horizon": {
+      "type": "string",
+      "description": "Horizon band (days, weeks, months, years_1, years_5)"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "expected_error_band": {
+      "type": ["object", "null"],
+      "description": "Optional expected error band"
+    },
+    "phase_context": {
+      "type": ["object", "null"],
+      "description": "Optional phase context (phase, half_life_days_fit, manipulation_risk_mean)"
+    },
+    "context": {
+      "type": ["object", "null"],
+      "description": "Optional additional context (dmx, gate, etc.)"
+    },
+    "flags": {
+      "type": ["array", "null"],
+      "items": {"type": "string"},
+      "description": "Optional flags list"
+    },
+    "evidence": {
+      "type": ["array", "null"],
+      "items": {"type": "object"},
+      "description": "Optional evidence list"
+    },
+    "ts_issued": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Optional timestamp override"
+    },
+    "ledger_path": {
+      "type": "string",
+      "default": "out/forecast_ledger/predictions.jsonl",
+      "description": "Path to forecast ledger JSONL file"
+    }
+  },
+  "additionalProperties": false
+}

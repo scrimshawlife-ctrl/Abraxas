@@ -11,6 +11,10 @@ class _Missing:
 _MISSING = _Missing()
 
 
+class ValidationError(Exception):
+    """Minimal ValidationError shim for local BaseModel usage."""
+
+
 class FieldInfo:
     def __init__(self, default: Any = _MISSING, default_factory: Callable[[], Any] | None = None, **metadata: Any):
         if default is not _MISSING and default_factory is not None:

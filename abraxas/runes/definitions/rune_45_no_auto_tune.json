@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₅",
+  "short_name": "NO_AUTO_TUNE",
+  "name": "ABX-NO_AUTO_TUNE",
+  "layer": "Governance",
+  "introduced_version": "1.7.4",
+  "function": "Ensure device selection does not trigger optimization.",
+  "inputs": [],
+  "outputs": ["selection_only"],
+  "constraints": ["no_auto_tune"],
+  "canonical_statement": "ABX-NO_AUTO_TUNE guarantees selection-only behavior."
+}

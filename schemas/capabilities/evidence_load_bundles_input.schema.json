@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Load Bundles Input",
+  "description": "Input schema for evidence.lift.load_bundles_from_index capability",
+  "type": "object",
+  "required": ["bundles_dir", "index_path"],
+  "properties": {
+    "bundles_dir": {
+      "type": "string",
+      "description": "Path to directory containing evidence bundle JSON files"
+    },
+    "index_path": {
+      "type": "string",
+      "description": "Path to evidence_index_<run>.json file (falls back to directory scan if missing)"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (not used for file I/O, but included for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,34 @@
+{
+  "id": "ϟ₁₉",
+  "name": "ABX-METRIC_EXTRACT",
+  "short_name": "METRIC_EXTRACT",
+  "layer": "Validation",
+  "motto": "Extract without inference.",
+  "function": "Extracts shadow metric points from source packets using deterministic extractors.",
+  "inputs": [
+    "packets: List of SourcePacket payloads"
+  ],
+  "outputs": [
+    "metrics: List of MetricPoint payloads",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No domain priors"
+  ],
+  "hooks": [
+    "pre_compute: validate_packets",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Metric extractor suite v0.1"
+  ],
+  "canonical_statement": "ϟ₁₉ (METRIC_EXTRACT) transforms cached source packets into shadow metric points without causal assertions.",
+  "introduced_version": "1.6.1",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true
+  }
+}

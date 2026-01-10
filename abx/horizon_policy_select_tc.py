@@ -6,10 +6,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.forecast.horizon_bins import horizon_bucket
+# horizon_bucket replaced by forecast.horizon.classify capability
+# load_term_class_map replaced by forecast.term_class_map.load capability
 from abraxas.forecast.policy_candidates import candidates_v0_1
-from abraxas.forecast.scoring import brier_score
-from abraxas.forecast.term_class_map import load_term_class_map
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -72,7 +73,9 @@ def _rolling_stats(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, 
         for c, hmap in cmap.items():
             out[b][c] = {}
             for h, d in hmap.items():
-                out[b][c][h] = {"n": len(d["p"]), "brier": brier_score(d["p"], d["y"])}
+                ctx = RuneInvocationContext(run_id="ROLLING_STATS_TC", subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
+                result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
+                out[b][c][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return out
 
 
@@ -95,7 +98,18 @@ def main() -> int:
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
 
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
-    term_class = load_term_class_map(a2_path)
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.horizon_policy_select_tc",
+        git_hash="unknown"
+    )
+    term_class = invoke_capability(
+        "forecast.term_class_map.load",
+        {"a2_phase_path": a2_path},
+        ctx=ctx,
+        strict_execution=True
+    )["term_class_map"]
 
     resolved: List[Dict[str, Any]] = []
     for pr in preds:
@@ -115,7 +129,12 @@ def main() -> int:
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": horizon_bucket(pr.get("horizon")),
+                "h": invoke_capability(
+                    "forecast.horizon.classify",
+                    {"horizon": pr.get("horizon")},
+                    ctx=ctx,
+                    strict_execution=True
+                )["horizon_bucket"],
                 "dmx": _dmx_bucket(pr),
                 "class": cls,
             }

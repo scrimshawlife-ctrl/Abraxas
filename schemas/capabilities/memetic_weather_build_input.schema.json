@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_weather_build_input.json",
+  "title": "Memetic Weather Build Input",
+  "description": "Input schema for memetic.weather.build capability",
+  "type": "object",
+  "required": ["run_id", "terms"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "terms": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+    "ts": {"type": "string"},
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.weather.build",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

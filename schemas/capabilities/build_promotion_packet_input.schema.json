@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Promotion Packet Input",
+  "description": "Input schema for evolve.promotion.build capability",
+  "type": "object",
+  "required": ["run_id", "out_dir", "epp_path", "evogate_path", "rim_manifest_path", "candidate_policy_path"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "out_dir": {
+      "type": "string",
+      "description": "Output directory for promotion artifacts"
+    },
+    "epp_path": {
+      "type": "string",
+      "description": "Path to EPP artifact (required)"
+    },
+    "evogate_path": {
+      "type": "string",
+      "description": "Path to EvoGate artifact (required)"
+    },
+    "rim_manifest_path": {
+      "type": "string",
+      "description": "Path to RIM manifest (required)"
+    },
+    "candidate_policy_path": {
+      "type": "string",
+      "description": "Path to candidate policy JSON (required)"
+    },
+    "emit_canon_snapshot": {
+      "type": "boolean",
+      "description": "Whether to emit canonical snapshot",
+      "default": false
+    },
+    "force": {
+      "type": "boolean",
+      "description": "Force promotion even with warnings",
+      "default": false
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional seed for SEED compliance"
+    }
+  },
+  "additionalProperties": false
+}

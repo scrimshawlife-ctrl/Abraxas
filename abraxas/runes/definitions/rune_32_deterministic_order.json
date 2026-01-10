@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₂",
+  "short_name": "DETERMINISTIC_ORDER",
+  "name": "ABX-DETERMINISTIC_ORDER",
+  "layer": "Governance",
+  "introduced_version": "1.7.1",
+  "function": "Validate deterministic ordering of plan steps.",
+  "inputs": ["steps"],
+  "outputs": ["ordered", "count"],
+  "constraints": ["deterministic_order"],
+  "canonical_statement": "ABX-DETERMINISTIC_ORDER rejects non-deterministic plan ordering."
+}

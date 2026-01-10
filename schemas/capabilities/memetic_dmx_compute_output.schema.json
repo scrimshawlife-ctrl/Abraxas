@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_dmx_compute_output.json",
+  "title": "Memetic DMX Compute Output",
+  "description": "Output schema for memetic.dmx.compute capability",
+  "type": "object",
+  "required": ["dmx"],
+  "properties": {
+    "dmx": {"type": "object", "additionalProperties": true},
+    "provenance": {"type": ["object", "null"]},
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.dmx.compute",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

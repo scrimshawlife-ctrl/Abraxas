@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₂₉",
+  "short_name": "LIFECYCLE_EXECUTE",
+  "name": "ABX-LIFECYCLE_EXECUTE",
+  "layer": "Storage",
+  "introduced_version": "1.7.1",
+  "function": "Execute lifecycle plans under budgets and emit perf ledgers.",
+  "inputs": ["plan", "allow_raw_delete"],
+  "outputs": ["result"],
+  "constraints": ["raw_no_delete", "deterministic_order"],
+  "canonical_statement": "ABX-LIFECYCLE_EXECUTE enforces lifecycle plans with rent metrics and safety guards."
+}

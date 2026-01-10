@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_weather_build_output.json",
+  "title": "Memetic Weather Build Output",
+  "description": "Output schema for memetic.weather.build capability",
+  "type": "object",
+  "required": ["units"],
+  "properties": {
+    "units": {
+      "type": "array",
+      "items": {"type": "object", "additionalProperties": true}
+    },
+    "provenance": {"type": ["object", "null"]},
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.weather.build",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

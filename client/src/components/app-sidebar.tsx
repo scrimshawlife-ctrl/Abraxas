@@ -20,8 +20,8 @@ import {
   Settings,
   TrendingUp,
   Palette,
+  FolderSearch,
   LayoutDashboard,
-  FolderSearch
 } from "lucide-react";
 
 const menuItems = [

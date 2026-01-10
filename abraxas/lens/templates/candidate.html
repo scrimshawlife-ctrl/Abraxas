@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LENS — Candidate</title>
+  <link rel="stylesheet" href="/static/lens.css">
+</head>
+<body>
+  <header class="hdr">
+    <div class="title">Candidate</div>
+    <div class="meta"><a href="/">← back</a></div>
+  </header>
+
+  <section class="card">
+    <div><b>id:</b> <code>{{ row.id }}</code></div>
+    <div><b>kind:</b> {{ row.kind }} | <b>score:</b> {{ row.score }} | <b>term:</b> {{ row.term }}</div>
+  </section>
+
+  <section class="grid">
+    <div class="pane">
+      <h3>Payload</h3>
+      <pre class="pre">{{ payload_pretty }}</pre>
+    </div>
+
+    <div class="pane">
+      <h3>Decision</h3>
+
+      <form method="post" action="/approve" class="form">
+        <input type="hidden" name="candidate_id" value="{{ row.id }}">
+        <label>note <input type="text" name="note" placeholder="why approve"></label>
+        <label>reviewer <input type="text" name="reviewer" value="admin"></label>
+        <button type="submit">Approve</button>
+      </form>
+
+      <form method="post" action="/deny" class="form">
+        <input type="hidden" name="candidate_id" value="{{ row.id }}">
+        <label>note <input type="text" name="note" placeholder="why deny"></label>
+        <label>reviewer <input type="text" name="reviewer" value="admin"></label>
+        <button type="submit">Deny</button>
+      </form>
+
+      <form method="post" action="/merge" class="form">
+        <input type="hidden" name="candidate_id" value="{{ row.id }}">
+        <label>merge_into_id <input type="text" name="merge_into_id" placeholder="target candidate id"></label>
+        <label>note <input type="text" name="note" placeholder="merge rationale"></label>
+        <label>reviewer <input type="text" name="reviewer" value="admin"></label>
+        <button type="submit">Merge</button>
+      </form>
+
+      {% if decision %}
+        <div class="card small">
+          <div><b>latest:</b> {{ decision.decision }}</div>
+          <div><b>note:</b> {{ decision.note }}</div>
+          <div><b>reviewer:</b> {{ decision.reviewer }}</div>
+        </div>
+      {% else %}
+        <div class="hint">No decision yet.</div>
+      {% endif %}
+    </div>
+  </section>
+</body>
+</html>

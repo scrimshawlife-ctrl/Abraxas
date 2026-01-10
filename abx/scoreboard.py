@@ -6,7 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.capabilities import load_capability_registry
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -98,7 +100,20 @@ def main() -> int:
 
     calibration = []
     for horizon, (pp, yy) in sorted(by_horizon.items(), key=lambda kv: kv[0]):
-        calibration.append((horizon, len(pp), brier_score(pp, yy)))
+        # Use capability contract for brier_score
+        ctx = RuneInvocationContext(
+            run_id=args.run_id,
+            subsystem_id="abx.scoreboard",
+            git_hash="unknown"
+        )
+        result = invoke_capability(
+            capability="forecast.scoring.brier",
+            inputs={"probs": pp, "outcomes": yy},
+            ctx=ctx,
+            strict_execution=True
+        )
+        score = result.get("brier_score", float("nan"))
+        calibration.append((horizon, len(pp), score))
 
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
     mwr = _read_json(mwr_path)

@@ -6,14 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
-from abraxas.evidence.lift import load_bundles_from_index, term_lift, uplift_factors
-from abraxas.memetic.metrics_reduce import reduce_provenance_means
-from abraxas.memetic.term_consensus_map import load_term_consensus_map
-from abraxas.memetic.temporal import build_temporal_profiles
-from abraxas.evolve.ledger import append_chained_jsonl
-from abraxas.conspiracy.csp import compute_term_csp
-from abraxas.forecast.term_classify import classify_term
+# classify_term replaced by forecast.term.classify capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abx.truth_pollution import compute_tpi_for_run
 
 
@@ -39,17 +34,34 @@ def main() -> int:
     p.add_argument("--value-ledger", default="out/value_ledgers/a2_phase_runs.jsonl")
     args = p.parse_args()
 
-    ts = _utc_now_iso()
-    profiles_full = build_temporal_profiles(
-        args.registry,
-        now_iso=args.now,
-        max_terms=2000000,
-        min_obs=int(args.min_obs),
+    # Create rune invocation context for capability calls
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.a2_phase",
+        git_hash="unknown"
     )
-    profiles_view = profiles_full[: int(args.max_terms)]
 
-    profiles_full_dicts = [p.to_dict() for p in profiles_full]
-    means = reduce_provenance_means(profiles_full_dicts)
+    ts = _utc_now_iso()
+    profiles_result = invoke_capability(
+        "memetic.temporal.build_temporal_profiles",
+        {
+            "registry_path": args.registry,
+            "now_iso": args.now,
+            "max_terms": 2000000,
+            "min_obs": int(args.min_obs)
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    profiles_full_dicts = profiles_result["profiles"]
+    profiles_view_dicts = profiles_full_dicts[: int(args.max_terms)]
+    means_result = invoke_capability(
+        "memetic.metrics_reduce.reduce_provenance_means",
+        {"profiles": profiles_full_dicts},
+        ctx=ctx,
+        strict_execution=True
+    )
+    means = means_result["means"]
 
     dmx = {}
     try:
@@ -75,7 +87,13 @@ def main() -> int:
     # term consensus handled via load_term_consensus_map below
 
     term_claims_path = os.path.join(args.out_reports, f"term_claims_{args.run_id}.json")
-    term_gap = load_term_consensus_map(term_claims_path)
+    term_gap_result = invoke_capability(
+        "memetic.term_consensus_map.load",
+        {"path": term_claims_path},
+        ctx=ctx,
+        strict_execution=True
+    )
+    term_gap = term_gap_result["term_consensus_map"]
 
     def _annotate_profile(profile: Dict[str, Any]) -> Dict[str, Any]:
         out_profile = dict(profile)
@@ -91,8 +109,8 @@ def main() -> int:
             out_profile["flags"] = flags
         return out_profile
 
-    profiles_full_dicts = [_annotate_profile(p.to_dict()) for p in profiles_full]
-    profiles_view_dicts = [_annotate_profile(p.to_dict()) for p in profiles_view]
+    profiles_full_dicts = [_annotate_profile(p) for p in profiles_full_dicts]
+    profiles_view_dicts = [_annotate_profile(p) for p in profiles_view_dicts]
     if profiles_full_dicts:
         means["term_consensus_gap_mean"] = float(
             sum(p.get("consensus_gap_term") or 0.0 for p in profiles_full_dicts)
@@ -100,8 +118,24 @@ def main() -> int:
         )
 
     evidence_index_path = os.path.join(args.out_reports, f"evidence_index_{args.run_id}.json")
-    bundles = load_bundles_from_index("out/evidence_bundles", evidence_index_path)
-    lift_by_term = term_lift(bundles)
+    bundles_result = invoke_capability(
+        "evidence.lift.load_bundles_from_index",
+        {
+            "bundles_dir": "out/evidence_bundles",
+            "index_path": evidence_index_path
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    bundles = bundles_result["bundles"]
+
+    lift_result = invoke_capability(
+        "evidence.lift.term_lift",
+        {"bundles": bundles},
+        ctx=ctx,
+        strict_execution=True
+    )
+    lift_by_term = lift_result["lift_by_term"]
     bundles_by_term: Dict[str, List[Dict[str, Any]]] = {}
     for bundle in bundles:
         terms = bundle.get("terms") if isinstance(bundle.get("terms"), list) else []
@@ -121,7 +155,14 @@ def main() -> int:
 
         att0 = float(out_profile.get("attribution_strength") or 0.0)
         sd0 = float(out_profile.get("source_diversity") or 0.0)
-        att_u, sd_u = uplift_factors(lift)
+        uplift_result = invoke_capability(
+            "evidence.lift.uplift_factors",
+            {"lift": lift},
+            ctx=ctx,
+            strict_execution=True
+        )
+        att_u = uplift_result["attribution_uplift"]
+        sd_u = uplift_result["diversity_uplift"]
 
         att1 = min(1.0, max(0.0, att0 + att_u))
         sd1 = min(1.0, max(0.0, sd0 + sd_u))
@@ -279,19 +320,37 @@ def main() -> int:
     profiles_full_dicts = [_apply_tpi(p) for p in profiles_full_dicts]
     profiles_view_dicts = [_apply_tpi(p) for p in profiles_view_dicts]
 
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.a2_phase",
+        git_hash="unknown"
+    )
+
     def _apply_term_csp(profile: Dict[str, Any]) -> Dict[str, Any]:
         out_profile = dict(profile)
         term = str(out_profile.get("term") or "").strip()
         if not term:
             return out_profile
-        term_class = classify_term(out_profile)
-        out_profile["term_csp_summary"] = compute_term_csp(
-            term=term,
-            profile=out_profile,
-            dmx_bucket=str(dmx.get("bucket") or "UNKNOWN").upper(),
-            dmx_overall=float(dmx.get("overall_manipulation_risk") or 0.0),
-            term_class=term_class,
+        term_class = invoke_capability(
+            "forecast.term.classify",
+            {"profile": out_profile},
+            ctx=ctx,
+            strict_execution=True
+        )["term_class"]
+        csp_result = invoke_capability(
+            "conspiracy.csp.compute_term",
+            {
+                "term": term,
+                "profile": out_profile,
+                "dmx_bucket": str(dmx.get("bucket") or "UNKNOWN").upper(),
+                "dmx_overall": float(dmx.get("overall_manipulation_risk") or 0.0),
+                "term_class": term_class
+            },
+            ctx=ctx,
+            strict_execution=True
         )
+        out_profile["term_csp_summary"] = csp_result["term_csp"]
         flags = out_profile.get("flags")
         if not isinstance(flags, list):
             flags = []
@@ -338,10 +397,23 @@ def main() -> int:
     }
     out["views"]["top_by_phase"] = top_by_phase
 
-    out = enforce_non_truncation(
-        artifact=out,
-        raw_full={"profiles": profiles_full_dicts},
+    # Enforce non-truncation policy via capability contract
+    ctx_nt = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.a2_phase",
+        git_hash="unknown"
     )
+    result_nt = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": out,
+            "raw_full": {"profiles": profiles_full_dicts}
+        },
+        ctx=ctx_nt,
+        strict_execution=True
+    )
+    out = result_nt["artifact"]
+
     jpath = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     mpath = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.md")
     _write_json(jpath, out)
@@ -373,9 +445,20 @@ def main() -> int:
                 )
             f.write("\n")
 
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry},
+    # Append to value ledger via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.a2_phase",
+        git_hash="unknown"
+    )
+    invoke_capability(
+        capability="evolve.ledger.append",
+        inputs={
+            "ledger_path": args.value_ledger,
+            "record": {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry}
+        },
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[A2_PHASE] wrote: {jpath}")
     print(f"[A2_PHASE] wrote: {mpath}")

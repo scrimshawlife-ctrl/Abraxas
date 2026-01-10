@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_oracle_texts_output.json",
+  "title": "Memetic Oracle Texts Read Output",
+  "description": "Output schema for memetic.oracle_texts.read capability",
+  "type": "object",
+  "required": ["docs"],
+  "properties": {
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ts", "text"],
+        "properties": {
+          "ts": {"type": "string"},
+          "text": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "provenance": {"type": ["object", "null"]},
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.oracle_texts.read",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

@@ -222,7 +222,7 @@ function JsonTree(props: {
     // Ensure ancestors are open.
     setOpen((prev) => {
       const next = { ...prev };
-      for (const p of selectedAncestors) next[p] = true;
+      for (const p of Array.from(selectedAncestors)) next[p] = true;
       return next;
     });
     const el = nodesRef.current.get(normalizePointer(selectedPointer) || "/");

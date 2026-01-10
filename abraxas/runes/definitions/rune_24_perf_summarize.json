@@ -1,0 +1,16 @@
+{
+  "id": "ϟ₂₄",
+  "name": "Performance Summarize",
+  "short_name": "PERF_SUMMARIZE",
+  "layer": "Tuning",
+  "motto": "Evidence over intuition. Metrics before changes.",
+  "function": "Reads performance ledger and computes deterministic summary statistics for tuning decisions. Returns rent metrics with provenance hash.",
+  "inputs": ["window_hours", "run_ctx"],
+  "outputs": ["metrics", "summary_hash", "provenance"],
+  "constraints": ["deterministic", "ledger_read_only"],
+  "hooks": ["pre_tuning"],
+  "evidence_tier": "canonical",
+  "provenance_sources": ["Performance Tuning Plane v0.1 spec"],
+  "canonical_statement": "Evidence over intuition. Metrics before changes.",
+  "introduced_version": "1.0.0"
+}

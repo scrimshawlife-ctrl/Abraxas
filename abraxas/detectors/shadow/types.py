@@ -3,8 +3,15 @@ Shadow Detector Base Types.
 
 Defines the core types and interfaces for shadow detectors.
 All shadow detectors must be deterministic and include provenance.
+
+Canonical output contract:
+- ShadowResult: Normalized result shape for all shadow outputs
+- ShadowStatus: "ok" | "not_computable" | "error"
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional, Literal
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -12,7 +19,42 @@ import hashlib
 import json
 
 
+# Legacy status (for existing ShadowDetectorResult)
 DetectorStatus = Literal["computed", "not_computable", "error"]
+
+# Canonical status for normalized outputs
+ShadowStatus = Literal["ok", "not_computable", "error"]
+
+
+@dataclass(frozen=True)
+class ShadowResult:
+    """
+    Canonical result shape for SHADOW detectors.
+
+    Observational only; does not influence prediction.
+    All shadow task outputs are normalized to this shape.
+
+    Attributes:
+        status: "ok" | "not_computable" | "error"
+        value: Payload (if ok)
+        missing: List of missing inputs (if not_computable)
+        error: Error message (if error)
+        provenance: Deterministic metadata for auditability
+    """
+
+    status: ShadowStatus
+    value: Optional[Any] = None
+    missing: List[str] = field(default_factory=list)
+    error: Optional[str] = None
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+
+def clamp01(value: float) -> float:
+    if value < 0.0:
+        return 0.0
+    if value > 1.0:
+        return 1.0
+    return value
 
 
 class ShadowEvidence(BaseModel):

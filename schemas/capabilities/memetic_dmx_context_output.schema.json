@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/memetic_dmx_context_output.json",
+  "title": "Memetic DMX Context Output",
+  "description": "Output schema for memetic.dmx_context.load capability",
+  "type": "object",
+  "required": ["dmx_context"],
+  "properties": {
+    "dmx_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "provenance": {"type": ["object", "null"]},
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.dmx_context.load",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

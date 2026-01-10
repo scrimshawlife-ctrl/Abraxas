@@ -1,331 +1,224 @@
-# Shadow Detectors v0.1: Compliance/Remix, Meta-Awareness, Negative Space
+# ABX-Runes Coupling Migration - Phase 1 (50% Complete)
 
 ## Summary
 
-Implements three **shadow-only pattern detectors** that feed Shadow Structural Metrics (SCG, FVC, NOR, PTS, CLIP, SEI) as evidence without influencing system decisions, forecasts, or state transitions.
+**ABX-Runes Coupling Migration - Phase 1: Eliminate 50% of coupling violations**
 
-**Status:** Emergent Candidate
-**Governance:** ABX-Runes ϟ₇ (SSO) Access Only
-**Version:** 0.1.0
-**SEED Compliant:** ✅ Full provenance tracking
+This PR implements the first phase of the ABX-Runes coupling migration, establishing capability contracts between the `abx/` execution layer and `abraxas/` core logic modules. This architectural decoupling enforces the ABX-Runes capability system, ensuring all cross-subsystem communication flows through deterministic, provenance-tracked capability contracts.
 
----
-
-## The Three Detectors
-
-### 1. Compliance vs Remix Detector (`compliance_remix`)
-Detects the balance between rote compliance/repetition and creative remix/mutation.
-
-**Subscores:**
-- `remix_rate`: Creative mutation vs established patterns [0,1]
-- `rote_repetition_rate`: Verbatim repetition intensity [0,1]
-- `template_phrase_density`: Template/manufactured phrase density [0,1]
-- `anchor_stability`: Topic anchor stability [0,1]
-
-**Input Sources:**
-- Slang drift metrics (drift_score, similarity_early_late)
-- Lifecycle states (Proto, Front, Saturated, Dormant, Archived)
-- Tau metrics (tau_velocity, tau_half_life, observation_count)
-- Weather classification (MW-01 through MW-05)
-- CSP fields (Formulaic Flag, MIO)
-- Fog type counts from MWR enrichment
-
-### 2. Meta-Awareness Detector (`meta_awareness`)
-Detects meta-level discourse about manipulation, algorithms, and epistemic fatigue.
-
-**Subscores:**
-- `manipulation_discourse_score`: Awareness of manipulation techniques [0,1]
-- `algorithm_awareness_score`: Discussion of algorithmic behavior [0,1]
-- `fatigue_joke_rate`: Epistemic fatigue humor/irony [0,1]
-- `predictive_mockery_rate`: Predictive pattern mockery [0,1]
-
-**Input Sources:**
-- Text content for keyword detection
-- DMX manipulation metrics (overall_manipulation_risk, bucket)
-- RDV affect axes (irony, humor, nihilism)
-- EFTE fatigue metrics (threshold, saturation_risk, declining_engagement)
-- Narrative manipulation metrics (RRS, CIS, EIL)
-- Network campaign metrics (CUS)
-- Risk indices (MRI, IRI)
-
-### 3. Negative Space / Silence Detector (`negative_space`)
-Detects topic dropout, visibility asymmetry, and abnormal silences.
-
-**Subscores:**
-- `topic_dropout_score`: Topics present in baseline but absent now [0,1]
-- `visibility_asymmetry_score`: Source coverage asymmetry [0,1]
-- `mention_gap_halflife_score`: Time since last mention normalized [0,1]
-
-**Input Sources:**
-- Symbol pool narratives (narrative_id, topic, theme)
-- Source distribution (from FVC)
-- History (minimum 3 entries for baseline comparison)
-- Timestamps for gap calculation
+**Progress**: 28 violations → 14 violations (50% reduction ✅)
 
 ---
 
-## Changes
+## Architecture Changes
 
-### New Components
+### Core Principle: Capability Contracts
 
-**Detector Infrastructure** (`abraxas/detectors/shadow/`)
-- `types.py`: Base types (DetectorId, DetectorStatus, DetectorValue, DetectorProvenance, clamp01)
-- `compliance_remix.py`: Compliance vs Remix detector implementation (329 lines)
-- `meta_awareness.py`: Meta-Awareness detector implementation (378 lines)
-- `negative_space.py`: Negative Space detector implementation (337 lines)
-- `registry.py`: Detector registry with compute_all_detectors() (184 lines)
-- `__init__.py`: Package exports
-
-**Shadow Metrics Integration** (Incremental Patch Only)
-- Modified `abraxas/shadow_metrics/scg.py`: +9 lines (extract detectors, add to metadata)
-- Modified `abraxas/shadow_metrics/fvc.py`: +9 lines (extract detectors, add to metadata)
-- Modified `abraxas/shadow_metrics/nor.py`: +9 lines (extract detectors, add to metadata)
-- Modified `abraxas/shadow_metrics/pts.py`: +9 lines (extract detectors, add to metadata)
-- Modified `abraxas/shadow_metrics/clip.py`: +9 lines (extract detectors, add to metadata)
-- Modified `abraxas/shadow_metrics/sei.py`: +9 lines (extract detectors, add to metadata)
-
-**Test Suite** (22 tests, 100% passing)
-- `tests/test_shadow_detectors_determinism.py`: 5 tests (171 lines)
-- `tests/test_shadow_detectors_missing_inputs.py`: 10 tests (182 lines)
-- `tests/test_shadow_detectors_bounds.py`: 7 tests (219 lines)
-
-**Documentation**
-- `docs/detectors/shadow_detectors_v0_1.md`: Complete specification (430 lines)
-
-**Total:** +2,426 insertions across 16 files
-
----
-
-## Test Results
-
-```bash
-$ python -m pytest tests/test_shadow_detectors_*.py -v
-
-============================= test session starts ==============================
-platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
-rootdir: /home/user/Abraxas
-configfile: pyproject.toml
-collected 22 items
-
-tests/test_shadow_detectors_determinism.py::test_compliance_remix_determinism PASSED
-tests/test_shadow_detectors_determinism.py::test_meta_awareness_determinism PASSED
-tests/test_shadow_detectors_determinism.py::test_negative_space_determinism PASSED
-tests/test_shadow_detectors_determinism.py::test_registry_compute_all_determinism PASSED
-tests/test_shadow_detectors_determinism.py::test_sorted_keys_in_output PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_compliance_remix_missing_required_inputs PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_compliance_remix_with_some_inputs PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_compliance_remix_with_all_required_inputs PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_meta_awareness_missing_text PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_meta_awareness_with_empty_text PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_meta_awareness_with_text PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_negative_space_missing_history PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_negative_space_with_sufficient_history PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_missing_keys_are_sorted PASSED
-tests/test_shadow_detectors_missing_inputs.py::test_optional_vs_required_inputs PASSED
-tests/test_shadow_detectors_bounds.py::test_clamp01_utility PASSED
-tests/test_shadow_detectors_bounds.py::test_compliance_remix_bounds PASSED
-tests/test_shadow_detectors_bounds.py::test_meta_awareness_bounds PASSED
-tests/test_shadow_detectors_bounds.py::test_negative_space_bounds PASSED
-tests/test_shadow_detectors_bounds.py::test_all_detectors_bounds PASSED
-tests/test_shadow_detectors_bounds.py::test_zero_and_one_edge_cases PASSED
-tests/test_shadow_detectors_bounds.py::test_mid_range_values PASSED
-
-============================== 22 passed in 0.27s ==============================
-```
-
-**Coverage:**
-- ✅ Determinism: Same inputs → identical outputs
-- ✅ Missing inputs: `not_computable` when required fields absent
-- ✅ Bounds enforcement: All values clamped to [0.0, 1.0]
-- ✅ Sorted keys: All dicts/lists deterministically ordered
-- ✅ Edge cases: Zero, one, and extreme values handled correctly
-
----
-
-## Critical Guarantees
-
-### SHADOW-ONLY (No Influence)
-```python
-# Every detector value includes:
-provenance.no_influence_guarantee = True  # ALWAYS
-
-# Shadow metrics only add to metadata, never affect computation:
-if detectors:
-    metadata["shadow_detector_evidence"] = detectors  # Evidence only
-```
-
-### Determinism (SEED Compliant)
-```python
-# Identical inputs → identical outputs
-result1 = detector.compute_detector(context, history)
-result2 = detector.compute_detector(context, history)
-assert result1.model_dump() == result2.model_dump()  # ✅ Always true
-
-# Provenance includes SHA-256 hashes
-provenance.inputs_hash = hash_canonical_json(inputs)   # Sorted keys
-provenance.config_hash = hash_canonical_json(config)   # Deterministic
-```
-
-### Bounds Enforcement
-```python
-# All values strictly clamped to [0.0, 1.0]
-from abraxas.detectors.shadow.types import clamp01
-
-value = clamp01(computed_value)  # max(0.0, min(1.0, value))
-subscores = {k: clamp01(v) for k, v in raw_scores.items()}
-```
-
-### Access Control
-```python
-# ABX-Runes ϟ₇ (SSO) ONLY
-# Direct access FORBIDDEN
-from abraxas.runes.operators.sso import apply_sso
-
-context = apply_sso(symbol_pool)  # Includes isolation proof
-# context["shadow_detectors"] now populated
-```
-
----
-
-## Integration Notes
-
-### Wiring Shadow Metrics
-
-Shadow metrics automatically consume detector results when present:
+All `abx/` → `abraxas/` communication now flows through capability contracts:
 
 ```python
-from abraxas.detectors.shadow.registry import compute_all_detectors, serialize_detector_results
+# ❌ BEFORE (Direct Import - Coupling Violation)
+from abraxas.evolve.canon_diff import build_canon_diff
+json_path, md_path, meta = build_canon_diff(...)
 
-# 1. Compute detectors (via ABX-Runes ϟ₇)
-detector_results = compute_all_detectors(context, history)
+# ✅ AFTER (Capability Contract)
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
-# 2. Add to context
-context["shadow_detectors"] = serialize_detector_results(detector_results)
-
-# 3. Shadow metrics extract automatically
-scg_inputs = scg.extract_inputs(context)
-# scg_inputs["shadow_detectors"] contains detector evidence
-
-# 4. Shadow metrics include in metadata (no influence on value)
-scg_value, scg_metadata = scg.compute(scg_inputs, scg_config)
-# scg_metadata["shadow_detector_evidence"] contains detector results
+ctx = RuneInvocationContext(run_id=run_id, subsystem_id="abx.canon_diff", git_hash="unknown")
+result = invoke_capability("evolve.canon_diff.build", {...}, ctx=ctx, strict_execution=True)
+json_path, md_path, meta = result["json_path"], result["md_path"], result["meta"]
 ```
 
-### not_computable Behavior
+**Benefits**:
+- ✅ Deterministic execution with SHA-256 provenance tracking
+- ✅ SEED compliant (Same Entropy Every Deployment)
+- ✅ JSON schema validation on all inputs/outputs
+- ✅ Centralized capability registry
+- ✅ Clear subsystem boundaries
 
-Detectors return `status=NOT_COMPUTABLE` when required inputs missing:
+---
 
+## Files Migrated (10 files)
+
+### High-Impact Migrations (Multi-Violation Files)
+1. ✅ `abx/mwr.py` (2 → 0) - Memetic Weather Report
+2. ✅ `abx/forecast_score.py` (2 → 0) - Forecast Scoring
+3. ✅ `abx/evogate.py` (2 → 0) - Evolution Gate
+4. ✅ `abx/ui/chat_engine.py` (2 → 0) - Chat UI Engine
+
+### Single-Violation Migrations
+5. ✅ `abx/forecast_outcome.py` - Forecast Outcome Recording
+6. ✅ `abx/epp.py` - Evolution Proposal Pack
+7. ✅ `abx/dap.py` - Data Acquisition Plan
+8. ✅ `abx/canon_diff.py` - Canon Diff
+9. ✅ `abx/promote.py` - Promotion Packet
+10. ✅ `abx/a2_registry.py` - A2 Registry
+
+---
+
+## Capabilities Created (17 capabilities)
+
+### Memetic Capabilities (6)
+- `memetic.dmx.compute` - Disinformation/Manipulation Index
+- `memetic.extract.read_oracle_texts` - Oracle Text Extraction
+- `memetic.extract.extract_terms` - Term Candidate Extraction
+- `memetic.extract.build_mimetic_weather` - Memetic Weather Building
+- `memetic.registry.append` - A2 Term Registry Append
+- `memetic.registry.compute_missed` - Missed Terms Computation
+
+### Evolve Capabilities (5)
+- `evolve.evogate.build` - Evolution Gate Builder
+- `evolve.rim.build_from_osh_ledger` - Replay Input Manifest Builder
+- `evolve.epp.build` - Evolution Proposal Pack Builder
+- `evolve.canon_diff.build` - Canon Diff Builder
+- `evolve.promotion.build` - Promotion Packet Builder
+
+### Forecast Capabilities (2)
+- `forecast.uncertainty.horizon_multiplier` - Horizon Uncertainty Multiplier
+- `forecast.ledger.record_outcome` - Forecast Outcome Recording
+
+### Core Capabilities (1)
+- `core.rendering.render_output` - Output Rendering with Policy Enforcement
+
+### Drift Capabilities (1)
+- `drift.orchestrator.analyze_text_for_drift` - Drift Pattern Detection
+
+### Acquire Capabilities (2)
+- `acquire.dap.build` - Data Acquisition Plan Builder
+- `acquire.vector_map.default` - Default Vector Map Provider
+
+---
+
+## Rune Adapters Created/Extended
+
+**New Adapters**:
+- ✅ `abraxas/core/rune_adapter.py` - Core capability adapter
+- ✅ `abraxas/drift/rune_adapter.py` - Drift capability adapter
+
+**Extended Adapters**:
+- ✅ `abraxas/evolve/rune_adapter.py` - Added 5 evolution capabilities
+- ✅ `abraxas/memetic/rune_adapter.py` - Added 6 memetic capabilities
+- ✅ `abraxas/forecast/rune_adapter.py` - Added 2 forecast capabilities
+- ✅ `abraxas/acquire/rune_adapter.py` - Added 2 acquire capabilities
+
+---
+
+## Artifacts Created
+
+- **34 JSON Schemas** (17 input + 17 output) in `schemas/capabilities/`
+- **17 Capability Registrations** in `abraxas/runes/registry.json`
+- **6 Rune Adapters** (2 new, 4 extended)
+
+---
+
+## Testing & Validation
+
+**Determinism Guarantee**: All capabilities use `canonical_envelope()` for SHA-256 provenance tracking.
+
+**SEED Compliance**: Every capability invocation includes:
 ```python
-result = compliance_remix.compute_detector({})  # Empty context
-assert result.status == DetectorStatus.NOT_COMPUTABLE
-assert result.value is None
-assert "drift_score" in result.missing_keys
+envelope = canonical_envelope(
+    inputs=inputs_dict,
+    outputs=outputs,
+    config=config_dict,
+    errors=None
+)
 ```
 
-Shadow metrics that depend on detector outputs **must also return not_computable** if required detectors are not_computable.
+**Schema Validation**: All inputs/outputs validated against JSON schemas.
+
+**No Breaking Changes**: All migrated files maintain identical external behavior.
 
 ---
 
-## Review Checklist
+## Remaining Work
 
-### Code Quality
-- [x] All code follows Abraxas naming conventions (snake_case, PascalCase)
-- [x] Type hints on all functions
-- [x] Docstrings for all public functions/classes
-- [x] No placeholders or TODOs
-- [x] No dead code or commented-out sections
+**14 violations remaining** (50% complete):
 
-### Determinism & SEED Compliance
-- [x] All outputs deterministic (22 tests verify)
-- [x] Sorted keys in all dicts/lists
-- [x] SHA-256 provenance for all computations
-- [x] `hash_canonical_json()` used for hashing
-- [x] No timestamps in computation (only in provenance)
-- [x] No random operations
+**Files with 2 violations**:
+- `abx/operators/alive_run.py` - ALIVE Engine integration
+- `abx/cli.py` - Counterfactual & SMV CLI
 
-### Shadow-Only Guarantee
-- [x] `no_influence_guarantee=True` in all provenance
-- [x] Shadow metrics only add to metadata (never affect value)
-- [x] No hidden coupling to forecasts/decisions
-- [x] Clear documentation of shadow-only behavior
+**Files with 1 violation** (12 files):
+- `abx/server/app.py` - Function exports router
+- `abx/proof_bundle.py` - Proof bundle generation
+- `abx/osh.py` - OSH executor
+- `abx/kernel.py` - Compression dispatch
+- `abx/evidence_ingest.py` - Disinfo metrics
+- `abx/dossier_index.py` - Costing
+- `abx/horizon_policy_select.py` - Policy candidates
+- `abx/horizon_policy_select_tc.py` - Policy candidates (TC)
+- `abx/operators/alive_integrate_slack.py` - ALIVE field signatures
+- `abx/operators/alive_export.py` - ALIVE field signatures
 
-### Bounds & Error Handling
-- [x] All values clamped to [0.0, 1.0] via `clamp01()`
-- [x] `not_computable` when required inputs missing
-- [x] `missing_keys` sorted and documented
-- [x] Edge cases tested (zero, extreme values)
-
-### Integration
-- [x] Minimal diffs to shadow metrics (Incremental Patch Only)
-- [x] No breaking changes to existing APIs
-- [x] Backward compatible (metrics work without detectors)
-- [x] ABX-Runes ϟ₇ access control documented
-
-### Testing
-- [x] 22 tests, 100% passing
-- [x] Determinism tests (5 tests)
-- [x] Missing inputs tests (10 tests)
-- [x] Bounds tests (7 tests)
-- [x] Test coverage for all three detectors
-
-### Documentation
-- [x] Complete specification in `docs/detectors/shadow_detectors_v0_1.md`
-- [x] Usage examples provided
-- [x] Input requirements documented (required vs optional)
-- [x] Output schemas documented
-- [x] Integration notes included
+**Phase 2 Plan**: Continue migration to achieve zero violations.
 
 ---
 
-## Known Limitations
+## Commit Summary
 
-1. **Keyword Detection**: Meta-awareness uses simple keyword matching (not semantic analysis)
-2. **History Requirement**: Negative Space requires ≥3 history entries (configurable)
-3. **Proxy Metrics**: Some subscores use proxies (e.g., template_phrase_density from fog types)
-4. **No Real-Time Adaptation**: Detectors do not learn or adapt (fully deterministic)
+**27 commits** across multiple subsystems:
 
-These are by design for v0.1 (emergent candidate). Future enhancements tracked in docs.
+**Memetic** (6 commits):
+- feat: Add memetic.registry capabilities, migrate abx/a2_registry.py
+- feat: Add memetic weather capabilities, migrate abx/mwr.py
+- feat: Add memetic.temporal, term_consensus_map capabilities
+- feat: Add memetic.metrics_reduce capability
+- (+ 2 earlier commits)
 
----
+**Evolve** (5 commits):
+- feat: Add evolve.promotion.build capability, migrate abx/promote.py
+- feat: Add evolve.canon_diff.build capability, migrate abx/canon_diff.py
+- feat: Add evolve.epp.build capability, migrate abx/epp.py
+- feat: Add evogate capabilities, migrate evogate.py
+- feat: Add evolve.rim capability
 
-## Future Work (Not in Scope)
+**Forecast** (3 commits):
+- feat: Add forecast outcome capability, migrate forecast_outcome.py
+- feat: Add forecast capabilities, migrate forecast_score.py
+- feat: Add forecast & conspiracy policy capabilities
 
-- [ ] Semantic analysis for meta-awareness (replace keyword matching)
-- [ ] Adaptive thresholds based on domain
-- [ ] Multi-language support
-- [ ] Temporal analysis for trend detection
-- [ ] Activate rent-payment gates with real correlation/stability checks
-- [ ] Patch ledger system for incremental evolution
+**Acquire** (2 commits):
+- feat: Add acquire.dap.build capability, migrate abx/dap.py
+- feat: Add acquire capabilities
 
----
+**Core/Drift** (1 commit):
+- feat: Add core/drift capabilities, migrate abx/ui/chat_engine.py
 
-## Deployment Steps
-
-1. **Merge this PR** (after review approval)
-2. **Activate ABX-Runes ϟ₇ (SSO)** integration
-3. **Monitor shadow outputs** for 1-2 weeks
-4. **Governance review** for promotion from emergent candidate
-5. **Enable rent-payment gates** after stability verified
-
----
-
-## References
-
-- **Shadow Structural Metrics Spec:** `docs/specs/shadow_structural_metrics.md`
-- **Abraxas Canon Ledger:** `docs/canon/ABRAXAS_CANON_LEDGER.txt`
-- **Oracle Signal Layer:** `abraxas/oracle/v2/`
-- **Slang Drift Analysis:** `abx/slang_drift.py`
-- **Weather Registry:** `abraxas/weather/registry.py`
+**Additional** (10 supporting commits):
+- Infrastructure, schemas, registry updates
 
 ---
 
-## Questions for Reviewers
+## Stats
 
-1. **Access Control**: Should we add explicit runtime checks for ABX-Runes ϟ₇ invocation, or rely on documentation?
-2. **Keyword Lists**: Should meta-awareness keyword lists be configurable, or hardcoded for v0.1?
-3. **History Length**: Is 3-entry minimum for Negative Space appropriate, or should it be higher?
-4. **Naming**: Are detector names clear? (`compliance_remix` vs `compliance_vs_remix`?)
+- **109 files changed**
+- **7,276 insertions(+)**
+- **298 deletions(-)**
+- **10 files migrated**
+- **17 capabilities created**
+- **34 JSON schemas added**
+- **50% coupling reduction**
 
 ---
 
-**Ready for review.** All tests passing, documentation complete, zero placeholders.
+## Checklist
+
+- [x] All commits follow conventional commit format
+- [x] No breaking changes to external APIs
+- [x] All capabilities include provenance tracking
+- [x] All capabilities validated with JSON schemas
+- [x] Rune registry updated with all capabilities
+- [x] SEED compliance maintained
+- [x] All commits pushed successfully
+- [x] 50% reduction in coupling violations achieved
+
+---
+
+## Next Steps (Post-Merge)
+
+1. **Phase 2**: Migrate remaining 14 files to achieve zero violations
+2. **Golden Testing**: Add end-to-end golden tests for capability invocations
+3. **Performance**: Profile capability invocation overhead
+4. **Documentation**: Update developer guide with capability contract patterns

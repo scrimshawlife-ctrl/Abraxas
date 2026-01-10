@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Issue Prediction Output",
+  "description": "Output schema for forecast.ledger.issue capability",
+  "type": "object",
+  "required": ["prediction_row", "provenance", "not_computable"],
+  "properties": {
+    "prediction_row": {
+      "type": "object",
+      "required": ["version", "pred_id", "ts_issued", "horizon", "window_start_ts", "window_end_ts", "term", "p"],
+      "properties": {
+        "version": {"type": "string", "const": "forecast_pred_row.v0.1"},
+        "pred_id": {"type": "string"},
+        "ts_issued": {"type": "string", "format": "date-time"},
+        "horizon": {"type": "string"},
+        "window_start_ts": {"type": "string", "format": "date-time"},
+        "window_end_ts": {"type": "string", "format": "date-time"},
+        "term": {"type": "string"},
+        "p": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "context": {"type": "object"},
+        "phase_context": {"type": "object"},
+        "expected_error_band": {"type": "object"},
+        "evidence": {"type": "array"},
+        "provenance": {"type": "object"}
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "forecast.ledger.issue"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - ledger write handled by core function"
+    }
+  },
+  "additionalProperties": false
+}

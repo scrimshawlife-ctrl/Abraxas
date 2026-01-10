@@ -1,13 +1,19 @@
 """Overlay Runner
 
-Main entry point for running overlay operations.
-Uses the legacy phase system for backward compatibility.
+Reads an overlay request JSON object from stdin and writes a deterministic JSON
+response to stdout.
+
+Supports two modes:
+1. JSON file input: python -m abraxas.overlay.run <data.json>
+2. Stdin request: echo '<request>' | python -m abraxas.overlay.run
 """
 
 from __future__ import annotations
-import sys
+
 import json
+import sys
 from typing import Any, Dict, Optional
+
 from .adapter import OverlayAdapter, parse_request, handle
 from .phases import LegacyPhase, PhaseManager
 from .schema import OverlaySchema
@@ -103,6 +109,9 @@ def main() -> int:
     Supports two modes:
     1. JSON file input: python -m abraxas.overlay.run <data.json>
     2. Stdin request: echo '<request>' | python -m abraxas.overlay.run
+
+    Returns:
+        Exit code (0 for success, 1 for error)
     """
     if len(sys.argv) >= 2:
         # File mode - use OverlayRunner
@@ -118,20 +127,22 @@ def main() -> int:
         try:
             req = parse_request(raw)
             resp = handle(req)
-            sys.stdout.write(json.dumps({
-                "ok": resp.ok,
-                "overlay": resp.overlay,
-                "phase": resp.phase,
-                "request_id": resp.request_id,
-                "output": resp.output,
-                "error": resp.error,
-            }, sort_keys=True))
+            sys.stdout.write(
+                json.dumps(
+                    {
+                        "ok": resp.ok,
+                        "overlay": resp.overlay,
+                        "phase": resp.phase,
+                        "request_id": resp.request_id,
+                        "output": resp.output,
+                        "error": resp.error,
+                    },
+                    sort_keys=True,
+                )
+            )
             return 0
         except Exception as e:
-            sys.stdout.write(json.dumps({
-                "ok": False,
-                "error": str(e),
-            }, sort_keys=True))
+            sys.stdout.write(json.dumps({"ok": False, "error": str(e)}, sort_keys=True))
             return 1
 
 

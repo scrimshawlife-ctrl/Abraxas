@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Term Lift Output",
+  "description": "Output schema for evidence.lift.term_lift capability",
+  "type": "object",
+  "required": ["lift_by_term", "provenance", "not_computable"],
+  "properties": {
+    "lift_by_term": {
+      "type": "object",
+      "description": "Map of lowercase term → lift summary",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["bundle_count", "source_types", "credence_sum", "credence_mean"],
+        "properties": {
+          "bundle_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of bundles mentioning this term"
+          },
+          "source_types": {
+            "type": "object",
+            "description": "Map of source_type → count",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "credence_sum": {
+            "type": "number",
+            "minimum": 0.0,
+            "description": "Sum of credence values across all bundles"
+          },
+          "credence_mean": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Mean credence across all bundles"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "evidence.lift.term_lift"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - operation never fails"
+    }
+  },
+  "additionalProperties": false
+}

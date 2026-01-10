@@ -1,79 +1,89 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://abraxas.dev/schemas/analysis/event_correlation/v1/drift_report.schema.json",
-  "title": "Abraxas Drift Report v1 (Event Correlation v0.1)",
-  "description": "Offline, shadow-lane drift correlation report. Evidence is auditable via (artifact_id, JSON pointer).",
+  "$id": "schemas/analysis/event_correlation/v1/drift_report.schema.json",
+  "title": "Event Correlation Drift Report v1",
   "type": "object",
-  "required": ["schema_version", "window", "clusters"],
+  "additionalProperties": false,
+  "required": ["schema_version", "window", "clusters", "provenance"],
   "properties": {
-    "schema_version": {
-      "type": "string",
-      "const": "drift_report_v1"
-    },
+    "schema_version": { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" },
     "window": {
       "type": "object",
-      "required": ["start_artifact_ts", "end_artifact_ts", "artifact_count"],
+      "additionalProperties": false,
+      "required": ["start_created_at", "end_created_at", "artifact_count"],
       "properties": {
-        "start_artifact_ts": { "type": ["string", "null"] },
-        "end_artifact_ts": { "type": ["string", "null"] },
+        "start_created_at": { "type": ["string", "null"], "minLength": 10 },
+        "end_created_at": { "type": ["string", "null"], "minLength": 10 },
         "artifact_count": { "type": "integer", "minimum": 0 }
-      },
-      "additionalProperties": false
+      }
     },
     "clusters": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "cluster_id",
-          "domains_involved",
-          "shared_motifs",
-          "strength_score",
-          "confidence",
-          "lead_lag",
-          "evidence_refs"
-        ],
-        "properties": {
-          "cluster_id": { "type": "string", "minLength": 1 },
-          "domains_involved": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "shared_motifs": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "strength_score": {
-            "type": "number",
-            "minimum": 0.0,
-            "maximum": 1.0
-          },
-          "confidence": {
-            "type": "number",
-            "minimum": 0.0,
-            "maximum": 1.0
-          },
-          "lead_lag": {
-            "description": "Reserved for future time-series rigor; null in v0.1.",
-            "type": ["object", "null"]
-          },
-          "evidence_refs": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["artifact_id", "pointer", "value_preview"],
-              "properties": {
-                "artifact_id": { "type": "string", "minLength": 1 },
-                "pointer": { "type": "string", "minLength": 1 },
-                "value_preview": { "type": "string" }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
+      "items": { "$ref": "#/$defs/cluster" }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["created_at", "input_set_hash", "algorithm_id"],
+      "properties": {
+        "created_at": { "type": "string", "minLength": 10 },
+        "input_set_hash": { "type": "string", "minLength": 6 },
+        "algorithm_id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "commit": { "type": ["string", "null"] }
       }
     }
   },
-  "additionalProperties": false
+  "$defs": {
+    "json_pointer": {
+      "type": "string",
+      "pattern": "^(/([^/~]|~0|~1)*)*$"
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "pointer"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 6 },
+        "pointer": { "$ref": "#/$defs/json_pointer" },
+        "value_preview": { "type": ["string", "number", "boolean", "null"] }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cluster_id",
+        "domains_involved",
+        "shared_motifs",
+        "strength_score",
+        "confidence",
+        "lead_lag",
+        "evidence_refs"
+      ],
+      "properties": {
+        "cluster_id": { "type": "string", "minLength": 6, "maxLength": 64 },
+        "domains_involved": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 32 },
+          "minItems": 1
+        },
+        "shared_motifs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "minItems": 1
+        },
+        "strength_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "lead_lag": {
+          "description": "Reserved for later; v0.1 should emit null unless time-series rigor is added.",
+          "type": ["object", "null"]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence_ref" },
+          "minItems": 1
+        }
+      }
+    }
+  }
 }

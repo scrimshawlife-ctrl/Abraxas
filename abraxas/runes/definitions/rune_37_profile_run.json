@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₇",
+  "short_name": "PROFILE_RUN",
+  "name": "ABX-PROFILE_RUN",
+  "layer": "Profile",
+  "introduced_version": "1.7.3",
+  "function": "Run deterministic profiling suite and emit ProfilePack.",
+  "inputs": ["config", "run_ctx"],
+  "outputs": ["profile_pack", "profile_hash"],
+  "constraints": ["offline_enforce", "invariance_check"],
+  "canonical_statement": "ABX-PROFILE_RUN executes deterministic profiling and emits portable ProfilePack artifacts."
+}
