@@ -1103,6 +1103,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "cli_execution"
+    },
+    {
+      "capability_id": "osh.compile_jobs_from_dap",
+      "rune_id": "ϟ_OSH_COMPILE_JOBS",
+      "operator_path": "abraxas.osh.rune_adapter:compile_jobs_from_dap_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/osh_compile_jobs_input.schema.json",
+      "output_schema": "schemas/capabilities/osh_compile_jobs_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "osh.run_jobs",
+      "rune_id": "ϟ_OSH_RUN_JOBS",
+      "operator_path": "abraxas.osh.rune_adapter:run_osh_jobs_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/osh_run_jobs_input.schema.json",
+      "output_schema": "schemas/capabilities/osh_run_jobs_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "execution"
     }
   ],
   "provenance": {

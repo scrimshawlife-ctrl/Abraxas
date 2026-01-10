@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OSH Compile Jobs Input",
+  "description": "Input schema for osh.compile_jobs_from_dap capability",
+  "type": "object",
+  "required": ["dap_json_path", "run_id"],
+  "properties": {
+    "dap_json_path": {
+      "type": "string",
+      "description": "Path to dap_<run_id>.json file"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "allowlist_spec_path": {
+      "type": ["string", "null"],
+      "description": "Path to allowlist spec YAML/JSON"
+    },
+    "allowlist_map_fallback_path": {
+      "type": ["string", "null"],
+      "description": "Fallback JSON mapping: allowlist_source_id -> url"
+    },
+    "vector_map_path": {
+      "type": ["string", "null"],
+      "description": "Vector map YAML/JSON path"
+    },
+    "max_actions_per_run": {
+      "type": "integer",
+      "description": "Maximum actions to process",
+      "default": 10
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Deterministic seed for provenance"
+    }
+  },
+  "additionalProperties": false
+}
