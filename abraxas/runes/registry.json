@@ -1081,6 +1081,28 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "validation"
+    },
+    {
+      "capability_id": "cli.counterfactual",
+      "rune_id": "ϟ_CLI_COUNTERFACTUAL",
+      "operator_path": "abraxas.cli.rune_adapter:run_counterfactual_cli_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/cli_counterfactual_input.schema.json",
+      "output_schema": "schemas/capabilities/cli_counterfactual_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "cli_execution"
+    },
+    {
+      "capability_id": "cli.smv",
+      "rune_id": "ϟ_CLI_SMV",
+      "operator_path": "abraxas.cli.rune_adapter:run_smv_cli_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/cli_smv_input.schema.json",
+      "output_schema": "schemas/capabilities/cli_smv_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "cli_execution"
     }
   ],
   "provenance": {

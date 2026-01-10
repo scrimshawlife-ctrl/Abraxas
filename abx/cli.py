@@ -32,8 +32,9 @@ from abx.util.jsonutil import dumps_stable, dump_file
 from abx.overlays.manager import OverlayManager
 from abx.runtime.drift import take_snapshot, save_snapshot, check_drift
 from abx.runtime.watchdog import watchdog_loop
-from abraxas.cli.counterfactual import run_counterfactual_cli
-from abraxas.cli.smv import run_smv_cli
+# run_counterfactual_cli and run_smv_cli replaced by cli.counterfactual and cli.smv capabilities
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 from abx.runtime.updater import update_atomic
 from abx.ingest.scheduler import run_ingest_forever
 from abx.ui.server import build_ui_app
@@ -222,12 +223,48 @@ def admin_cmd(args: argparse.Namespace) -> int:
 
 def counterfactual_cmd(args: argparse.Namespace) -> int:
     """Run counterfactual replay engine."""
-    return run_counterfactual_cli(args)
+    # Convert args Namespace to dict for capability invocation
+    args_dict = vars(args)
+
+    # Create invocation context
+    ctx = RuneInvocationContext(
+        run_id=args_dict.get("run_id", "COUNTERFACTUAL"),
+        subsystem_id="abx.cli.counterfactual",
+        git_hash="unknown"
+    )
+
+    # Invoke capability
+    result = invoke_capability(
+        "cli.counterfactual",
+        {"args": args_dict},
+        ctx=ctx,
+        strict_execution=True
+    )
+
+    return result["exit_code"]
 
 
 def smv_cmd(args: argparse.Namespace) -> int:
     """Run signal marginal value analysis."""
-    return run_smv_cli(args)
+    # Convert args Namespace to dict for capability invocation
+    args_dict = vars(args)
+
+    # Create invocation context
+    ctx = RuneInvocationContext(
+        run_id=args_dict.get("run_id", "SMV"),
+        subsystem_id="abx.cli.smv",
+        git_hash="unknown"
+    )
+
+    # Invoke capability
+    result = invoke_capability(
+        "cli.smv",
+        {"args": args_dict},
+        ctx=ctx,
+        strict_execution=True
+    )
+
+    return result["exit_code"]
 
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""
