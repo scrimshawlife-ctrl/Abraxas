@@ -65,6 +65,102 @@
   - `abx/kernel.py`, `abx/server/app.py`, `abx/cli.py`
   - `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
   - `abx/operators/alive_*`
+- **P0 (NEW - 2026-01-10)**: Resolve pending merge conflicts in 3 active development branches
+
+## Pending Branch Conflicts (2026-01-10)
+
+**Analysis Date:** 2026-01-10
+**Main Branch:** 8672ab0 (AALmanac integration PR #95)
+
+### Priority 1: claude/resolve-merge-conflicts-Vg6qy
+**Status:** 7 commits ahead, 122 commits behind main
+**Severity:** HIGH - 8 file conflicts
+**Key Features:**
+- Abraxas Acceptance Test Suite v1.0
+- Dashboard Lens artifact viewer (merged PRs #58, #57, #55, #54)
+- Resonance narratives renderer
+
+**Conflicting Files:**
+1. `.gitignore`
+2. `abraxas/overlay/__init__.py`
+3. `abraxas/overlay/phases.py`
+4. `abraxas/overlay/run.py`
+5. `abraxas/overlay/schema.py`
+6. `client/src/components/DashboardLens.tsx` (add/add conflict)
+7. `client/src/components/app-sidebar.tsx`
+8. `tools/acceptance/run_acceptance_suite.py` (add/add conflict)
+
+**Recommendation:** Resolve first - contains valuable acceptance testing infrastructure and dashboard features.
+
+---
+
+### Priority 2: cursor/mda-signal-layer-v2-2c0d
+**Status:** 1 commit ahead, 108 commits behind main
+**Severity:** MEDIUM - 3 file conflicts (all add/add)
+**Key Features:**
+- New `abraxas.mda` package for MDA (Multi-Dimensional Analysis)
+
+**Conflicting Files:**
+1. `abraxas/mda/__init__.py` (add/add)
+2. `abraxas/mda/cli.py` (add/add)
+3. `abraxas/mda/signal_layer_v2.py` (add/add)
+
+**Recommendation:** Coordinate with Priority 3 - both branches add MDA infrastructure.
+
+---
+
+### Priority 3: cursor/oracle-bridge-mda-canary-87a3
+**Status:** 1 commit ahead, 108 commits behind main
+**Severity:** HIGH - 9+ file conflicts
+**Key Features:**
+- MDA engine and Oracle bridge implementation
+- Extends shadow detectors and symbolic compression
+
+**Conflicting Files:**
+1. `abraxas/detectors/shadow/registry.py`
+2. `abraxas/detectors/shadow/types.py`
+3. `abraxas/mda/__init__.py` (add/add - conflicts with Priority 2)
+4. `abraxas/mda/cli.py` (add/add - conflicts with Priority 2)
+5. `abraxas/mda/run.py` (add/add)
+6. `abraxas/mda/signal_layer_v2.py` (add/add - conflicts with Priority 2)
+7. `abraxas/operators/symbolic_compression.py`
+8. `abraxas/oracle/mda_bridge.py` (add/add)
+9. `pydantic/__init__.py`
+
+**Recommendation:** Merge after Priority 2, or merge both MDA branches together to avoid duplicate work.
+
+---
+
+### Stale Branches (Recommend Cleanup)
+
+These branches have NO unique commits and are significantly behind main:
+- `claude/merge-pull-requests-xCwWp` (0 ahead, 327 behind)
+- `claude/resolve-merge-conflicts-a9OJO` (0 ahead, 157 behind)
+- `claude/resolve-merge-conflicts-au7CD` (0 ahead, 0 behind - current, can be deleted)
+- `codex/refactor-code-for-improvements` (0 ahead, 306 behind)
+- `codex/add-bell-constraint-canon-entry-and-abx-rune` (0 ahead, 290 behind)
+- `cursor/pull-request-conflict-resolution-5149` (0 ahead, 120 behind)
+
+**Action:** Delete these branches after verifying no valuable work was lost.
+
+---
+
+### Resolution Strategy
+
+**Option A: Sequential (Safest)**
+1. Resolve `claude/resolve-merge-conflicts-Vg6qy` first (acceptance tests + dashboard)
+2. Merge both MDA branches (`cursor/mda-signal-layer-v2-2c0d` + `cursor/oracle-bridge-mda-canary-87a3`) together
+3. Clean up stale branches
+
+**Option B: Parallel (Faster)**
+1. Assign Vg6qy to one agent/session
+2. Assign combined MDA work to another agent/session
+3. Merge both PRs when complete
+
+**Option C: Audit First**
+1. Review all conflicting changes in detail
+2. Determine if features duplicate existing main branch work
+3. Cherry-pick valuable commits instead of full merge
 
 ## RuneInvocationContext (Oracle Pipeline)
 
