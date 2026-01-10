@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/brier_score_output.json",
+  "title": "Brier Score Output",
+  "description": "Output schema for forecast.scoring.brier capability",
+  "type": "object",
+  "required": ["brier_score", "provenance"],
+  "properties": {
+    "brier_score": {
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Brier score (lower is better, perfect score = 0.0)"
+        },
+        {
+          "type": "null",
+          "description": "Null if not computable"
+        }
+      ]
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "inputs_hash", "timestamp"],
+          "properties": {
+            "operation_id": {
+              "type": "string",
+              "const": "forecast.scoring.brier"
+            },
+            "inputs_hash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "SHA-256 hash of canonical inputs"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO8601 timestamp with Z timezone"
+            },
+            "seed": {
+              "type": "integer",
+              "description": "Deterministic seed used"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "null",
+          "description": "Null if not computable"
+        }
+      ]
+    },
+    "not_computable": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason"],
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Explanation of why result is not computable"
+            },
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "List of missing or invalid inputs"
+            }
+          }
+        },
+        {
+          "type": "null",
+          "description": "Null if result was computed successfully"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.scoring.brier",
+    "version": "1.0.0",
+    "deterministic": true,
+    "no_influence_guarantee": false,
+    "evidence_mode": "prediction_lane"
+  }
+}

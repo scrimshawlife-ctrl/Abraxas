@@ -1,39 +1,110 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2025-12-29
-**Version:** 1.4.1
+**Last Updated:** 2026-01-05
+**Guide Version:** 2.2.1
+**Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
 
 ---
 
-## Recent Updates (v1.4.1)
+## Recent Updates (v2.2.0)
 
-**2025-12-29** - Merged 4 major PRs consolidating governance, acquisition, and infrastructure:
+**2026-01-04** - Major release with seal validation, ABX-Runes coupling, and enhanced shadow metrics:
+
+### 1. **Seal Release Pack** - Production-grade release validation
+   - `VERSION` file + `abx_versions.json` for version management
+   - `scripts/seal_release.py` - Deterministic seal script with artifact validation
+   - `scripts/validate_artifacts.py` - Artifact validator CLI
+   - 9 JSON schemas for artifact validation (`schemas/*.schema.json`)
+   - `Makefile` with `seal` and `validate` targets
+   - Complete SealReport.v0 artifact with provenance tracking
+
+### 2. **ABX-Runes Coupling Architecture** (PR #83, #84)
+   - **MANDATORY**: All `abx/` → `abraxas/` communication via capability contracts
+   - New modules: `abraxas/runes/capabilities.py`, `abraxas/runes/registry.json`
+   - Oracle v2 rune adapter: `abraxas/oracle/v2/rune_adapter.py`
+   - Migration guide: `docs/migration/abx_runes_coupling.md`
+   - **Forbidden**: Direct imports across subsystem boundaries (except `abraxas.runes.*` and `abraxas.core.provenance`)
+
+### 3. **Shadow Detectors v0.1** - Observe-only pattern detection
+   - **3 New Detectors**: Compliance vs Remix, Meta-Awareness, Negative Space
+   - Complete infrastructure: `abraxas/detectors/shadow/` (7 files)
+   - Integration with Shadow Structural Metrics (incremental patches only)
+   - 22 comprehensive tests (determinism, bounds, missing inputs)
+   - Documentation: `docs/detectors/shadow_detectors_v0_1.md`
+   - **Guarantee**: `no_influence=True` - never affects forecasts or decisions
+
+### 4. **Runtime Infrastructure** - Policy snapshots & invariance gates
+   - `abraxas/runtime/` package (13 modules):
+     - `policy_snapshot.py` - Immutable policy snapshots for provenance
+     - `invariance_gate.py` - DozenRunGate for stability validation
+     - `pipeline_bindings.py` - Native pipeline binding resolution
+     - `artifacts.py`, `retention.py`, `results_pack.py` - Artifact management
+   - `abraxas/ers/` - Event Runtime System (6 modules)
+     - Scheduler, bindings, invariance, trace tracking
+   - Enhanced `abraxas/oracle/registry.py` with capability contracts
+
+### 5. **Enhanced Shadow Detectors** - Additional pattern detection
+   - `abraxas/detectors/shadow/anagram.py` - Anagram pattern detection
+   - `abraxas/detectors/shadow/token_density.py` - Token density analysis
+   - `abraxas/detectors/shadow/normalize.py` - Text normalization utilities
+   - `abraxas/detectors/shadow/util.py` - Shared utilities
+   - `abraxas/detectors/shadow/registry_impl.py` - Enhanced registry implementation
+
+**Total Changes**: 30+ new files, comprehensive testing infrastructure, production-ready release validation
+
+---
+
+## TODO
+
+- P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD).
+- P1 (in progress): Review and reduce remaining cross-subsystem coupling violations in `abx/`.
+  Initial audit targets:
+  - `abx/mwr.py` (memetic imports), `abx/forecast_log.py`, `abx/forecast_score.py`
+  - `abx/a2_phase.py`, `abx/term_claims_run.py`
+  - `abx/kernel.py`, `abx/server/app.py`, `abx/cli.py`
+  - `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
+  - `abx/operators/alive_*`
+
+## RuneInvocationContext (Oracle Pipeline)
+
+Oracle pipeline rune calls require a validated `RuneInvocationContext` with:
+
+- `run_id`: stable ID for the session/run (string)
+- `subsystem_id`: caller identifier (string, use `abx.core.pipeline` for `run_oracle`)
+- `git_hash`: repo revision identifier (string)
+
+Example:
+
+```python
+from abraxas.runes.ctx import RuneInvocationContext
+
+ctx = RuneInvocationContext(
+    run_id="ORACLE_RUN",
+    subsystem_id="abx.core.pipeline",
+    git_hash="unknown",
+)
+```
+
+## Recommendations
+
+- Standardize rune invocation context construction by centralizing defaults in a helper
+  (e.g., `abx.oracle.context.build_rune_ctx`) to prevent drift across pipelines.
+- Expand oracle pipeline tests to cover strict execution behavior (stub blocking and error
+  propagation) in addition to provenance checks.
+- Audit ABX-Runes capability IDs to ensure naming consistency (`rune:*` vs domain-specific
+  namespaces) and update migration docs accordingly.
+
+---
+
+## Previous Updates (v1.4.1 - 2025-12-29)
+
+Merged 4 major PRs consolidating governance, acquisition, and infrastructure:
 
 1. **PR #20** - Python cache patterns + kernel phase system
-   - Enhanced `.gitignore` for comprehensive Python cache handling
-   - Added 5-phase kernel system (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
-   - Overlay lifecycle management improvements
-
-2. **PR #22** - Anti-hallucination metric governance system
-   - 6-gate promotion framework for emergent metrics
-   - Simulation mapping layer with 22 academic papers
-   - 75+ test cases for metric evaluation
-   - Hash-based provenance chain verification
-   - **Philosophy**: "Metrics are Contracts, not Ideas"
-
+2. **PR #22** - Anti-hallucination metric governance system (6-gate promotion)
 3. **PR #28** - WO-100: Acquisition & analysis infrastructure
-   - Anchor → URL resolution system
-   - Reupload storm detection
-   - Forecast accuracy tracking with horizon bands
-   - Manipulation front detection & metrics
-   - Media origin verification
-   - 40+ new ABX modules with ledger systems
-
 4. **PR #36** - Documentation enhancements
-   - Comprehensive README improvements
-   - Quick start guide
-   - Architecture overview
 
 **Total Changes**: 120 files changed, 15,654 additions, 466 deletions
 
@@ -176,9 +247,14 @@ Abraxas/
 │   │       ├── __init__.py     # Package exports
 │   │       ├── types.py        # Base detector types
 │   │       ├── registry.py     # Detector registry
+│   │       ├── registry_impl.py # Enhanced registry implementation
 │   │       ├── compliance_remix.py       # Compliance vs Remix detector
 │   │       ├── meta_awareness.py         # Meta-Awareness detector
-│   │       └── negative_space.py         # Negative Space / Silence detector
+│   │       ├── negative_space.py         # Negative Space / Silence detector
+│   │       ├── anagram.py      # Anagram pattern detector
+│   │       ├── token_density.py # Token density analyzer
+│   │       ├── normalize.py    # Text normalization utilities
+│   │       └── util.py         # Shared utilities
 │   ├── overlay/                # Overlay management
 │   ├── drift/                  # Drift detection
 │   ├── storage/                # Data persistence
@@ -213,6 +289,40 @@ Abraxas/
 │   ├── economics/              # Economics models
 │   ├── conspiracy/             # Conspiracy detection
 │   ├── disinfo/                # Disinformation analysis
+│   │
+│   ├── runtime/                # Runtime infrastructure (NEW v2.2.0)
+│   │   ├── __init__.py         # Package exports
+│   │   ├── policy_snapshot.py  # Immutable policy snapshots for provenance
+│   │   ├── policy_ref.py       # Policy reference management
+│   │   ├── invariance_gate.py  # DozenRunGate for stability validation
+│   │   ├── pipeline_bindings.py # Native pipeline binding resolution
+│   │   ├── artifacts.py        # Artifact management utilities
+│   │   ├── retention.py        # Artifact retention & pruning
+│   │   ├── results_pack.py     # Results pack utilities
+│   │   ├── deterministic_executor.py # Deterministic execution
+│   │   ├── device_fingerprint.py # Device fingerprinting
+│   │   ├── concurrency.py      # Concurrency utilities
+│   │   └── perf_ledger.py      # Performance ledger
+│   │
+│   ├── ers/                    # Event Runtime System (NEW v2.2.0)
+│   │   ├── __init__.py         # Package exports
+│   │   ├── scheduler.py        # Event scheduling
+│   │   ├── bindings.py         # Event bindings
+│   │   ├── invariance.py       # Invariance tracking
+│   │   ├── trace.py            # Trace management
+│   │   └── types.py            # Type definitions
+│   │
+│   ├── runes/                  # ABX-Runes capability contracts (NEW v2.2.0)
+│   │   ├── capabilities.py     # Capability registry & invocation
+│   │   ├── invoke.py           # Capability invocation utilities
+│   │   ├── ctx.py              # RuneInvocationContext
+│   │   └── registry.json       # Capability registry
+│   │
+│   ├── oracle/                 # Oracle pipeline
+│   │   ├── registry.py         # Oracle capability registry
+│   │   └── v2/
+│   │       └── rune_adapter.py # Oracle v2 rune adapter
+│   │
 │   └── ...                     # Additional modules
 │
 ├── abx/                        # ABX runtime & utilities
@@ -793,13 +903,86 @@ Provides scoped execution environment for overlay operations.
 
 #### `abraxas/detectors/shadow/`
 
-**Shadow Detectors** - Pattern detectors that feed evidence to Shadow Structural Metrics:
+**Shadow Detectors v0.1** (NEW in v2.2.0) - Pattern detectors that feed evidence to Shadow Structural Metrics:
 
-- **Compliance vs Remix Detector**: Balance between rote repetition and creative remix
-- **Meta-Awareness Detector**: Meta-level discourse about manipulation and algorithms
-- **Negative Space / Silence Detector**: Topic dropout and visibility asymmetry
-- **Registry**: `compute_all_detectors()` with deterministic provenance tracking
-- See `docs/detectors/shadow_detectors_v0_1.md` for specification
+**Core Detectors**:
+- **Compliance vs Remix Detector** (`compliance_remix.py`): Balance between rote repetition and creative remix
+- **Meta-Awareness Detector** (`meta_awareness.py`): Meta-level discourse about manipulation and algorithms
+- **Negative Space / Silence Detector** (`negative_space.py`): Topic dropout and visibility asymmetry
+- **Anagram Detector** (`anagram.py`): Anagram pattern detection
+- **Token Density Analyzer** (`token_density.py`): Token density analysis
+
+**Infrastructure**:
+- **`types.py`**: Base detector types (DetectorId, DetectorStatus, DetectorValue, DetectorProvenance)
+- **`registry.py`**: Detector registry interface
+- **`registry_impl.py`**: Enhanced registry implementation
+- **`normalize.py`**: Text normalization utilities
+- **`util.py`**: Shared utilities (clamp01, etc.)
+
+**Integration**: `compute_all_detectors()` with deterministic provenance tracking
+
+See `docs/detectors/shadow_detectors_v0_1.md` for full specification
+
+#### `abraxas/runtime/` (NEW in v2.2.0)
+
+**Runtime Infrastructure** - Policy snapshots, invariance gates, and artifact management:
+
+**Policy & Provenance**:
+- **`policy_snapshot.py`**: Immutable policy snapshots for reproducibility
+  - Create versioned snapshots of policies at execution time
+  - SHA-256 hash-based provenance chain
+- **`policy_ref.py`**: Policy reference management and resolution
+- **`invariance_gate.py`**: DozenRunGate for stability validation
+  - Validates that dozen runs produce stable, equivalent results
+  - RunHeader invariance checking
+
+**Artifact Management**:
+- **`artifacts.py`**: Core artifact utilities and types
+- **`retention.py`**: Artifact retention policies and pruning
+- **`results_pack.py`**: Results pack creation and validation
+
+**Execution & Performance**:
+- **`pipeline_bindings.py`**: Native pipeline binding resolution
+- **`deterministic_executor.py`**: Deterministic execution environment
+- **`device_fingerprint.py`**: Device fingerprinting for provenance
+- **`concurrency.py`**: Concurrency control utilities
+- **`perf_ledger.py`**: Performance metrics ledger
+
+#### `abraxas/ers/` (NEW in v2.2.0)
+
+**Event Runtime System** - Event scheduling, bindings, and trace management:
+
+- **`scheduler.py`**: Event scheduling with priority and dependencies
+- **`bindings.py`**: Event binding management
+- **`invariance.py`**: Invariance tracking across event executions
+- **`trace.py`**: Execution trace management
+- **`types.py`**: Core type definitions for ERS
+
+#### `abraxas/runes/` (NEW in v2.2.0)
+
+**ABX-Runes Capability Contracts** - Cross-subsystem communication via capability contracts:
+
+- **`capabilities.py`**: Capability registry and invocation
+  - `load_capability_registry()` - Load available capabilities
+  - `find_capability()` - Lookup by ID
+  - `list_by_prefix()` - Filter by prefix
+- **`invoke.py`**: Capability invocation utilities
+- **`ctx.py`**: RuneInvocationContext for provenance tracking
+- **`registry.json`**: Capability registry (oracle.v2.run, etc.)
+
+**Philosophy**: All `abx/` → `abraxas/` communication MUST use capability contracts. Direct imports forbidden.
+
+See `docs/migration/abx_runes_coupling.md` for migration guide.
+
+#### `abraxas/oracle/`
+
+**Oracle Pipeline** - Deterministic daily oracle generation with capability contracts:
+
+- **`registry.py`** (ENHANCED in v2.2.0): Oracle capability registry with rune integration
+- **`v2/rune_adapter.py`** (NEW in v2.2.0): Oracle v2 rune adapter for capability invocation
+- Deterministic daily oracle generation
+- Correlation delta processing
+- Time-weighted decay
 
 ### TypeScript Server Modules
 
@@ -1395,10 +1578,25 @@ ABX_UI_PORT=8780
 - **Task ROI**: Return-on-investment tracking for acquisition tasks
 - **Truth Pollution**: Narrative contamination metrics
 
-**Kernel System (New in v1.4.1)**:
+**Kernel System (v1.4.1)**:
 - **5-Phase Model**: OPEN → ALIGN → ASCEND → CLEAR → SEAL
 - **ASCEND Operations**: Whitelisted execution environment (no IO, no writes)
 - **Overlay Lifecycle**: Phase-based overlay management
+
+**ABX-Runes & Runtime (NEW in v2.2.0)**:
+- **Capability Contracts**: All `abx/` → `abraxas/` communication via rune capabilities
+- **Policy Snapshots**: Immutable policy provenance with SHA-256 chains
+- **Invariance Gates**: DozenRunGate for stability validation
+- **Seal Validation**: Production-ready artifact validation infrastructure
+- **ERS**: Event Runtime System for scheduling and trace management
+- **No Direct Imports**: Cross-subsystem coupling forbidden (except runes & provenance)
+
+**Shadow Detectors (NEW in v2.2.0)**:
+- **Observe-Only**: Pattern detectors that feed evidence without influencing decisions
+- **5 Detectors**: Compliance/Remix, Meta-Awareness, Negative Space, Anagram, Token Density
+- **Evidence Chain**: Deterministic provenance for all detector outputs
+- **No Influence Guarantee**: `no_influence=True` - never affects forecasts
+- **Bounds Enforced**: All values clamped to [0.0, 1.0]
 
 ---
 
@@ -1421,19 +1619,113 @@ ABX_UI_PORT=8780
 - `paper_triage_rules.md` - Paper triage & classification
 - `paper_mapping_table_template.csv` - Mapping table template
 
+**Detector Documentation** (`docs/detectors/`) - NEW in v2.2.0:
+- `shadow_detectors_v0_1.md` - Shadow Detectors v0.1 specification (430 lines)
+  - Input requirements, output schemas, determinism guarantees
+  - Integration notes, governance policies
+
+**Migration Guides** (`docs/migration/`) - NEW in v2.2.0:
+- `abx_runes_coupling.md` - ABX-Runes coupling migration guide
+  - Step-by-step migration from direct imports to capability contracts
+  - Example code, best practices, troubleshooting
+
+**Artifact Schemas** (`schemas/`) - NEW in v2.2.0:
+- 9 JSON schemas for artifact validation:
+  - `runindex.v0.schema.json`, `runheader.v0.schema.json`
+  - `trendpack.v0.schema.json`, `resultspack.v0.schema.json`
+  - `viewpack.v0.schema.json`, `policysnapshot.v0.schema.json`
+  - `runstability.v0.schema.json`, `stabilityref.v0.schema.json`
+  - `sealreport.v0.schema.json`
+- `docs/artifacts/SCHEMA_INDEX.md` - Schema index and validation tooling
+
 **Implementation Plans** (`docs/plan/`):
 - `simulation_mapping_layer_plan.md` - Mapping layer implementation
 
 **Example Code**:
 - `examples/` - General examples
-- `abraxas/simulation/examples/` - Simulation exemplars (e.g., media_competition_exemplar.py)
+- `examples/shadow_detectors_integration.py` - NEW: Shadow detector usage
+- `abraxas/simulation/examples/` - Simulation exemplars
 - `registry/examples/` - Example candidate metrics
 - `data/sim_sources/examples/` - 22 academic paper extracts
+
+**Scripts** (`scripts/`) - NEW in v2.2.0:
+- `seal_release.py` - Deterministic seal script (seal tick + validation + dozen-run gate)
+- `validate_artifacts.py` - Artifact validator CLI
 
 **Test Resources**:
 - `tests/fixtures/` - Test fixture data
 - `tests/golden/` - Golden test reference data
-- New tests: `test_metric_governance.py`, `test_sim_mappings_*.py`, `test_promotion_ledger_chain.py`
+- `tests/test_metric_governance.py`, `test_sim_mappings_*.py`, `test_promotion_ledger_chain.py`
+- NEW in v2.2.0: `test_shadow_detectors_determinism.py`, `test_shadow_detectors_missing_inputs.py`, `test_shadow_detectors_bounds.py`
+
+---
+
+## ABX-Runes Coupling Rules (MANDATORY)
+
+**CRITICAL**: All cross-subsystem communication must flow through ABX-Runes capability contracts. Direct imports between `abx/` and `abraxas/` are forbidden.
+
+### DO NOT Do This (Coupling Violation) ❌
+
+```python
+# ❌ WRONG - Direct import across subsystem boundary
+from abraxas.oracle.v2.pipeline import run_oracle
+from abraxas.memetic.metrics_reduce import reduce_provenance_means
+
+result = run_oracle(observations, config)
+means = reduce_provenance_means(profiles)
+```
+
+### DO This Instead (Rune Contract) ✅
+
+```python
+# ✅ CORRECT - Via capability contract
+from abraxas.runes.capabilities import load_capability_registry
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
+
+# Create invocation context
+ctx = RuneInvocationContext(
+    run_id="RUN-001",
+    caller="abx.mymodule",
+    environment="production"
+)
+
+# Invoke oracle capability
+oracle_result = invoke_capability(
+    capability="oracle.v2.run",
+    inputs={
+        "run_id": "RUN-001",
+        "observations": observations,
+        "config": config,
+        "seed": 42  # For determinism
+    },
+    ctx=ctx,
+    strict_execution=True
+)
+
+# Extract results with provenance
+oracle_output = oracle_result["oracle_output"]
+provenance = oracle_result["provenance"]
+```
+
+### Allowed Exceptions
+
+Only these `abraxas.*` imports are allowed in `abx/`:
+- ✅ `abraxas.runes.*` - Rune system itself (capabilities, invoke, ctx, registry)
+- ✅ `abraxas.core.provenance` - Provenance utilities (canonical_envelope, hash_canonical_json)
+- ✅ Test files only: Any import for testing purposes
+
+**All other imports must use capability contracts.**
+
+### How to Add a New Capability
+
+1. **Create JSON schemas** for inputs/outputs in `schemas/capabilities/`
+2. **Create rune adapter** in the subsystem (thin wrapper, no core logic changes)
+3. **Register capability** in `abraxas/runes/registry.json`
+4. **Add golden test** proving determinism
+5. **Update coupling lint** to verify violation count decreased
+
+See `docs/migration/abx_runes_coupling.md` for detailed migration guide.
 
 ---
 
@@ -1446,6 +1738,7 @@ ABX_UI_PORT=8780
 3. **Run tests**: Ensure changes don't break existing functionality
 4. **Verify determinism**: Same inputs should produce same outputs
 5. **Add provenance**: Include SHA-256 hashes for traceability
+6. **Use capability contracts**: Never directly import across subsystems
 
 ### Best Practices for AI Assistants
 
@@ -1457,6 +1750,33 @@ ABX_UI_PORT=8780
 6. **Include provenance**: Track all transformations with hashes
 7. **Avoid over-engineering**: Keep solutions simple and focused
 8. **No security vulnerabilities**: Check for injection, XSS, etc.
+9. **Respect ABX-Runes boundaries**: Use capability contracts, not direct imports
+
+---
+
+## Maintenance Notes (Keep This Doc Timeless)
+
+- Avoid embedding **session-specific state** (current branch names, “last session”, active branches). Prefer links to canonical docs (`docs/`) and code locations.
+- Update **Guide Version** when making structural edits to this document (new major sections, new enforcement rules, new subsystems).
+- Keep the **Ecosystem Baseline** aligned with repo-wide docs (e.g. `CONFLICT_RESOLUTION_GUIDE.md`) when the overall system versioning changes.
+
+### Operational checklists
+
+**When changing `abx/` and any cross-subsystem boundary**
+
+- Run coupling lint:
+  - `grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance"`
+- If you add a new capability:
+  - Add JSON schemas under `schemas/capabilities/`
+  - Register it in `abraxas/runes/registry.json`
+  - Add a determinism test (golden or equivalent)
+
+**Before release / sealing**
+
+- `pytest tests/ -v`
+- `npm test`
+- `make seal`
+- `make validate`
 
 ---
 

@@ -425,6 +425,21 @@ def generate_sigil(rune_id: str, seed_material: str) -> str:
         "ϟ₄": generator.generate_sds,
         "ϟ₅": generator.generate_ipl,
         "ϟ₆": generator.generate_add,
+        "ϟ₇": generator.generate_wsss,
+        "ϟ₈": generator.generate_sds,
+        "ϟ₉": generator.generate_ipl,
+        "ϟ₁₀": generator.generate_tam,
+        "ϟ₁₁": generator.generate_rfa,
+        "ϟ₁₂": generator.generate_add,
+        "ϟ₁₃": generator.generate_wsss,
+        "ϟ₁₄": generator.generate_sds,
+        "ϟ₁₅": generator.generate_tam,
+        "ϟ₁₆": generator.generate_ipl,
+        "ϟ₁₇": generator.generate_rfa,
+        "ϟ₁₈": generator.generate_add,
+        "ϟ₁₉": generator.generate_wsss,
+        "ϟ₂₀": generator.generate_sds,
+        "ϟ₂₁": generator.generate_rfa,
     }
 
     generator_func = generators_map.get(rune_id)

@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₀",
+  "short_name": "LIFECYCLE_REVERT",
+  "name": "ABX-LIFECYCLE_REVERT",
+  "layer": "Storage",
+  "introduced_version": "1.7.1",
+  "function": "Revert lifecycle pointer to last backup when available.",
+  "inputs": ["pointer_path"],
+  "outputs": ["reverted", "path", "reason"],
+  "constraints": ["deterministic_order"],
+  "canonical_statement": "ABX-LIFECYCLE_REVERT restores lifecycle pointers without altering artifact data."
+}

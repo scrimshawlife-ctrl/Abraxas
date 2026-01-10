@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Horizon Multiplier Input",
+  "description": "Input schema for forecast.uncertainty.horizon_multiplier capability",
+  "type": "object",
+  "required": ["horizon"],
+  "properties": {
+    "horizon": {
+      "description": "Horizon value (days, weeks, months, years, or any string)"
+    }
+  },
+  "additionalProperties": false
+}

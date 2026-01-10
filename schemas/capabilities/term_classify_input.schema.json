@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Term Classification Input",
+  "description": "Input schema for forecast.term.classify capability - classifies term stability",
+  "type": "object",
+  "required": ["profile"],
+  "properties": {
+    "profile": {
+      "type": "object",
+      "description": "A2 profile with term metrics",
+      "additionalProperties": true,
+      "properties": {
+        "consensus_gap_term": {
+          "type": "number",
+          "description": "Consensus gap metric [0.0, 1.0]"
+        },
+        "half_life_days": {
+          "type": "number",
+          "description": "Half-life in days"
+        },
+        "manipulation_risk": {
+          "type": "number",
+          "description": "Manipulation risk score [0.0, 1.0]"
+        },
+        "momentum": {
+          "type": "string",
+          "description": "Momentum indicator (rising, surging, spiking, falling, stable)"
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Profile flags (e.g., CONSENSUS_MISSING)"
+        }
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

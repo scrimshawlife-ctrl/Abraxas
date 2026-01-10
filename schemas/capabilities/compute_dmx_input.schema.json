@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Compute DMX Input",
+  "description": "Input schema for memetic.dmx.compute capability",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": ["array", "null"],
+      "items": {"type": "object"},
+      "description": "Optional list of source dicts with credibility/independence flags"
+    },
+    "signals": {
+      "type": ["object", "null"],
+      "description": "Optional dict of extracted signal flags (ai_markers, bot_markers, etc.)"
+    }
+  },
+  "additionalProperties": false
+}

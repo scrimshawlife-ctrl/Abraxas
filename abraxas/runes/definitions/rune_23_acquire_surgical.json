@@ -1,0 +1,47 @@
+{
+  "id": "ß‚ƒ",
+  "name": "Acquisition Layer - Surgical (Decodo Gate)",
+  "short_name": "ACQUIRE_SURGICAL",
+  "layer": "Acquisition",
+  "motto": "Minimal scraping. Hard caps. Reason codes. Cache-first replay.",
+  "function": "Surgical web scraping via Decodo with strict caps and reason codes. ENFORCES hard_cap_requests. REQUIRES caching of every response. MUST support offline replay. MUST log decodo_used=true. Only for blocked/JS-required/manifest discovery cases.",
+  "inputs": [
+    "target",
+    "reason_code",
+    "hard_cap_requests",
+    "run_ctx"
+  ],
+  "outputs": [
+    "manifest_candidates",
+    "cached_paths",
+    "requests_used",
+    "provenance"
+  ],
+  "constraints": [
+    "hard_cap_enforced",
+    "cache_all_responses",
+    "offline_replay_support",
+    "log_decodo_usage",
+    "reason_code_required"
+  ],
+  "hooks": [
+    "pre_decodo_call",
+    "post_cache_write",
+    "budget_check",
+    "perf_logging"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Performance Drop v1.0 spec",
+    "Decodo API integration doctrine",
+    "ERS budget enforcement layer"
+  ],
+  "canonical_statement": "Minimal scraping. Hard caps. Reason codes. Cache-first replay.",
+  "introduced_version": "1.0.0",
+  "metadata": {
+    "first_deployed": "2026-01-03",
+    "stability_class": "high",
+    "integration_priority": "critical",
+    "legal_notes": "Only use for BLOCKED/MANIFEST_DISCOVERY/JS_REQUIRED cases. Respect robots.txt and rate limits."
+  }
+}

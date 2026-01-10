@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Decide Gate Input",
+  "description": "Input schema for forecast.gating_policy.decide_gate capability - forecast gating decision",
+  "type": "object",
+  "required": ["dmx_overall", "attribution_strength", "source_diversity", "consensus_gap", "manipulation_risk_mean"],
+  "properties": {
+    "dmx_overall": {
+      "type": "number",
+      "description": "Overall DMX manipulation risk [0, 1]",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "attribution_strength": {
+      "type": "number",
+      "description": "Attribution strength metric [0, 1]",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "source_diversity": {
+      "type": "number",
+      "description": "Source diversity metric [0, 1]",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "consensus_gap": {
+      "type": "number",
+      "description": "Consensus gap metric [0, 1]",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "manipulation_risk_mean": {
+      "type": "number",
+      "description": "Mean manipulation risk across terms [0, 1]",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

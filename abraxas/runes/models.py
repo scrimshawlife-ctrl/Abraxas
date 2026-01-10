@@ -14,7 +14,7 @@ class RuneDefinition(BaseModel):
     name: str = Field(..., description="Full name of the rune")
     short_name: str = Field(..., description="Short name/acronym (e.g., 'RFA')")
     layer: str = Field(..., description="Layer: Core, Validation, Governance, etc.")
-    motto: str = Field(..., description="Rune motto/principle")
+    motto: str = Field(default="", description="Rune motto/principle")
     function: str = Field(..., description="Primary function description")
     inputs: list[str] = Field(default_factory=list, description="Input types/signals")
     outputs: list[str] = Field(default_factory=list, description="Output types/signals")

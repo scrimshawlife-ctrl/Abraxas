@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/expected_error_band_output.json",
+  "title": "Expected Error Band Output",
+  "description": "Output schema for forecast.scoring.expected_error_band capability",
+  "type": "object",
+  "required": ["error_band"],
+  "properties": {
+    "error_band": {
+      "type": ["object", "null"],
+      "description": "Expected error band structure"
+    },
+    "provenance": {"type": ["object", "null"]},
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.scoring.expected_error_band",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

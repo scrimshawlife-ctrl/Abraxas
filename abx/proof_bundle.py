@@ -6,7 +6,8 @@ import os
 import subprocess
 from typing import Dict
 
-from abraxas.artifacts.proof_bundle import generate_proof_bundle
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 
 
 def main() -> int:
@@ -126,13 +127,24 @@ def main() -> int:
         "mwr_runs": "out/value_ledgers/mwr_runs.jsonl",
     }
 
-    result = generate_proof_bundle(
+    ctx = RuneInvocationContext(
         run_id=run_id,
-        artifacts=artifacts,
-        bundle_root=args.bundle_root,
-        ledger_pointer=ledger_pointer,
+        subsystem_id="abx.proof_bundle",
+        git_hash="unknown",
     )
-    print("[PROOF_BUNDLE] wrote:", result["bundle_dir"])
+    result = invoke_capability(
+        "artifacts.proof_bundle.generate",
+        {
+            "run_id": run_id,
+            "artifacts": artifacts,
+            "bundle_root": args.bundle_root,
+            "ledger_pointer": ledger_pointer,
+        },
+        ctx=ctx,
+        strict_execution=True,
+    )
+    bundle = result["bundle"]
+    print("[PROOF_BUNDLE] wrote:", bundle["bundle_dir"])
     return 0
 
 

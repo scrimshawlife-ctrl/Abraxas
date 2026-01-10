@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Term Token Index Input",
+  "description": "Input schema for memetic.term_assign.build_index capability - builds term → token set index",
+  "type": "object",
+  "required": ["terms"],
+  "properties": {
+    "terms": {
+      "type": "array",
+      "description": "List of term strings to tokenize and index",
+      "items": {
+        "type": "string"
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

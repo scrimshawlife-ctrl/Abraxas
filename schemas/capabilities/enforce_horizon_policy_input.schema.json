@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Enforce Horizon Policy Input",
+  "description": "Input schema for forecast.horizon_policy.enforce capability",
+  "type": "object",
+  "required": ["horizon", "gate"],
+  "properties": {
+    "horizon": {
+      "type": "string",
+      "description": "Requested forecast horizon"
+    },
+    "gate": {
+      "type": "object",
+      "description": "Gate decision with horizon_max constraint",
+      "properties": {
+        "horizon_max": {"type": "string"}
+      }
+    },
+    "emit_shadow": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to emit shadow prediction when policy is violated"
+    }
+  },
+  "additionalProperties": false
+}

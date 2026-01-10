@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compute Missed Terms Input",
+  "description": "Input schema for memetic.registry.compute_missed capability",
+  "type": "object",
+  "required": ["a2_path"],
+  "properties": {
+    "a2_path": {
+      "type": "string",
+      "description": "Path to A2 artifact JSON"
+    },
+    "registry_path": {
+      "type": "string",
+      "description": "Path to registry JSONL",
+      "default": "out/a2_registry/terms.jsonl"
+    },
+    "resurrect_after_days": {
+      "type": "integer",
+      "description": "Days threshold for resurrection",
+      "default": 10
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional seed for SEED compliance"
+    }
+  },
+  "additionalProperties": false
+}

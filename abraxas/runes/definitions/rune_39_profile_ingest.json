@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₉",
+  "short_name": "PROFILE_INGEST",
+  "name": "ABX-PROFILE_INGEST",
+  "layer": "Profile",
+  "introduced_version": "1.7.3",
+  "function": "Ingest ProfilePack into evidence ledgers.",
+  "inputs": ["profile_pack"],
+  "outputs": ["ingested", "ledger_path", "profile_hash"],
+  "constraints": ["deterministic_commit"],
+  "canonical_statement": "ABX-PROFILE_INGEST records ProfilePack evidence for tuning proposals."
+}

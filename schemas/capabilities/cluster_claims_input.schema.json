@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cluster Claims Input",
+  "description": "Input schema for memetic.claim_cluster.cluster capability - clusters similar claims",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "List of claim items to cluster (from extract_claim_items_from_sources)",
+      "items": {
+        "type": "object",
+        "description": "Claim item with run_id, source_i, claim_i, domain, url, type, claim"
+      }
+    },
+    "sim_threshold": {
+      "type": "number",
+      "description": "Similarity threshold for clustering (Jaccard token overlap)",
+      "default": 0.42,
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "max_pairs": {
+      "type": "integer",
+      "description": "Maximum pairwise comparisons to perform (safety cap)",
+      "default": 250000,
+      "minimum": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

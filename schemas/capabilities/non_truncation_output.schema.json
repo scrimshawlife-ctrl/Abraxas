@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/non_truncation_output.json",
+  "title": "Non-Truncation Policy Output",
+  "description": "Output schema for evolve.policy.enforce_non_truncation capability",
+  "type": "object",
+  "required": ["artifact", "provenance"],
+  "properties": {
+    "artifact": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Augmented artifact with non-truncation policy applied",
+          "required": ["policy"],
+          "properties": {
+            "policy": {
+              "type": "object",
+              "required": ["non_truncation"],
+              "properties": {
+                "non_truncation": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            },
+            "raw_full": {
+              "description": "Embedded raw data (if raw_full_path not provided)"
+            },
+            "raw_full_path": {
+              "type": "string",
+              "description": "Path to raw data file (if raw_full_path provided)"
+            },
+            "views": {
+              "type": "object",
+              "description": "Views of the data"
+            },
+            "flags": {
+              "type": "array",
+              "description": "Flags for the artifact"
+            },
+            "metrics": {
+              "type": "object",
+              "description": "Metrics for the artifact"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "null",
+          "description": "Null if not computable"
+        }
+      ]
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "inputs_hash", "timestamp"],
+          "properties": {
+            "operation_id": {
+              "type": "string",
+              "const": "evolve.policy.enforce_non_truncation"
+            },
+            "inputs_hash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "SHA-256 hash of canonical inputs"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO8601 timestamp with Z timezone"
+            },
+            "seed": {
+              "type": "integer",
+              "description": "Deterministic seed used"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "null",
+          "description": "Null if not computable"
+        }
+      ]
+    },
+    "not_computable": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason"],
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Explanation of why result is not computable"
+            },
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "List of missing or invalid inputs"
+            }
+          }
+        },
+        {
+          "type": "null",
+          "description": "Null if result was computed successfully"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "evolve.policy.enforce_non_truncation",
+    "version": "1.0.0",
+    "deterministic": true,
+    "no_influence_guarantee": false,
+    "evidence_mode": "policy_enforcement"
+  }
+}

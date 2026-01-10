@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/trendpack.v0.schema.json",
+  "title": "TrendPack.v0",
+  "description": "Timeline of ERS trace events for a tick",
+  "type": "object",
+  "required": ["version", "run_id", "tick", "timeline", "provenance"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tick": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task", "lane", "status", "meta"],
+        "properties": {
+          "task": { "type": "string" },
+          "lane": { "type": "string" },
+          "status": { "type": "string" },
+          "cost_ops": { "type": "integer" },
+          "cost_entropy": { "type": "number" },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "result_ref": {
+                "type": "object",
+                "required": ["schema", "results_pack", "task"],
+                "properties": {
+                  "schema": { "type": "string", "const": "ResultRef.v0" },
+                  "results_pack": { "type": "string" },
+                  "task": { "type": "string" }
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "errors": {
+      "type": "array"
+    },
+    "skipped": {
+      "type": "array"
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

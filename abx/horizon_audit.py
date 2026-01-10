@@ -6,8 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.horizon_bins import horizon_bucket
-from abraxas.forecast.scoring import brier_score
+# horizon_bucket replaced by forecast.horizon.classify capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -86,7 +87,12 @@ def main() -> int:
         result = str(out.get("result") or "")
         y = 1 if result == "hit" else 0
         p0 = float(pred.get("p") or 0.5)
-        horizon = horizon_bucket(pred.get("horizon"))
+        horizon = invoke_capability(
+            "forecast.horizon.classify",
+            {"horizon": pred.get("horizon")},
+            ctx=ctx,
+            strict_execution=True
+        )["horizon_bucket"]
         dmx_b = _dmx_bucket(pred)
 
         by_h.setdefault(horizon, ([], []))[0].append(p0)
@@ -100,17 +106,20 @@ def main() -> int:
         role = "shadow" if _is_shadow(pred_id) else "base"
         pair.setdefault(base, {})[role] = {"p": p0, "y": y, "h": horizon, "dmx": dmx_b}
 
-    calibration = {
-        h: {"n": len(pp), "brier": brier_score(pp, yy), "sharpness": _sharpness(pp)}
-        for h, (pp, yy) in by_h.items()
-    }
+    calibration = {}
+    for h, (pp, yy) in by_h.items():
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_audit", git_hash="unknown")
+        result = invoke_capability("forecast.scoring.brier", {"probs": pp, "outcomes": yy}, ctx=ctx, strict_execution=True)
+        calibration[h] = {"n": len(pp), "brier": result.get("brier_score", float("nan")), "sharpness": _sharpness(pp)}
 
     calibration_by_bucket: Dict[str, Any] = {}
     for bucket, hmap in by_h_dmx.items():
-        calibration_by_bucket[bucket] = {
-            h: {"n": len(pp), "brier": brier_score(pp, yy), "sharpness": _sharpness(pp)}
-            for h, (pp, yy) in hmap.items()
-        }
+        bucket_cal = {}
+        for h, (pp, yy) in hmap.items():
+            ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_audit", git_hash="unknown")
+            result = invoke_capability("forecast.scoring.brier", {"probs": pp, "outcomes": yy}, ctx=ctx, strict_execution=True)
+            bucket_cal[h] = {"n": len(pp), "brier": result.get("brier_score", float("nan")), "sharpness": _sharpness(pp)}
+        calibration_by_bucket[bucket] = bucket_cal
 
     shadow_cmp = {"n_pairs": 0, "shadow_better": 0, "base_better": 0, "tie": 0}
     for base_id, roles in pair.items():

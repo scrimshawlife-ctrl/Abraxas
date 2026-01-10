@@ -24,19 +24,34 @@ classifiers = [
 # Core dependencies
 dependencies = [
     "pydantic>=2.0.0",
+    "typer>=0.12.0",
 ]
 
 [project.optional-dependencies]
 # Server dependencies (FastAPI for full features)
 server = [
-    "fastapi>=0.104.0",
-    "uvicorn[standard]>=0.24.0",
+    "fastapi>=0.110.0",
+    "jinja2>=3.1.0",
+    "uvicorn[standard]>=0.27.0",
+    "sqlalchemy>=2.0.0",
+    "argon2-cffi>=23.1.0",
+    "pdfplumber>=0.11.0",
+    "python-docx>=1.1.0",
+    "sentence-transformers>=2.2.0",
+]
+
+lens = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "jinja2>=3.1.0",
+    "python-multipart>=0.0.9",
 ]
 
 # Development dependencies
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "jsonschema>=4.0.0",
 ]
 
 # Full installation (server + dev)
@@ -47,6 +62,10 @@ full = [
 [project.scripts]
 # CLI entry point
 abx = "abx.cli:main"
+abraxas = "abraxas.cli.main:main"
+
+[project.entry-points."abx.plugins"]
+abraxas = "abraxas.plugin:register"
 
 [tool.setuptools]
 packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
@@ -54,6 +73,11 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
             "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
             "abraxas.renderers", "abraxas.renderers.resonance_narratives",
+            "abraxas.schema", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
+            "abraxas.temporal", "abraxas.metric_extractors", "abraxas.influence",
+            "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
+            "abraxas.economics", "abraxas.governance", "abraxas.lens",
+            "abraxas.modules", "abraxas.modules.gtx", "abraxas.modules.gtx.sim",
             "abx", "abx.util", "abx.runtime", "abx.assets",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
 

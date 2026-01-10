@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExportBundle",
+  "type": "object",
+  "required": ["bundle_id", "created_date", "included_types", "file_manifest", "provenance"],
+  "properties": {
+    "bundle_id": {"type": "string"},
+    "created_date": {"type": "string"},
+    "included_types": {
+      "type": "array",
+      "items": {"enum": ["aalmanac", "memetic_weather", "neon_genie", "rune_proposals"]}
+    },
+    "file_manifest": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string"},
+          "sha256": {"type": "string"}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source_ids"],
+      "properties": {
+        "source_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

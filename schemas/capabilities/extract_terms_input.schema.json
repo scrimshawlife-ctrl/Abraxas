@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Extract Terms Input",
+  "description": "Input schema for memetic.extract.extract_terms capability",
+  "type": "object",
+  "required": ["documents"],
+  "properties": {
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "text"],
+        "properties": {
+          "timestamp": {"type": "string"},
+          "text": {"type": "string"}
+        }
+      },
+      "description": "List of {timestamp, text} dicts"
+    },
+    "n_values": {
+      "type": ["array", "null"],
+      "items": {"type": "integer", "minimum": 1},
+      "description": "N-gram sizes to extract (default: [1, 2, 3])"
+    },
+    "max_terms": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 60,
+      "description": "Maximum number of terms to return"
+    },
+    "baseline_counts": {
+      "type": ["object", "null"],
+      "description": "Optional baseline term counts for novelty calculation"
+    }
+  },
+  "additionalProperties": false
+}

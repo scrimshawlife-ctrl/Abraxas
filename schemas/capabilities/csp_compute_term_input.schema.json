@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Conspiracy CSP Compute Term Input",
+  "description": "Input schema for conspiracy.csp.compute_term capability",
+  "type": "object",
+  "required": ["term", "profile", "dmx_bucket", "dmx_overall", "term_class"],
+  "properties": {
+    "term": {
+      "type": "string",
+      "description": "Term string (used for COH inference heuristic)"
+    },
+    "profile": {
+      "type": "object",
+      "description": "Term profile dictionary with metrics (attribution_strength, source_diversity, consensus_gap_term, manipulation_risk, etc.)",
+      "additionalProperties": true
+    },
+    "dmx_bucket": {
+      "type": "string",
+      "enum": ["LOW", "MED", "HIGH", "UNKNOWN"],
+      "description": "DMX manipulation risk bucket classification"
+    },
+    "dmx_overall": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Overall DMX manipulation risk score"
+    },
+    "term_class": {
+      "type": "string",
+      "description": "Term classification (e.g., 'HIGH_RISK_FORECAST', 'MED_RISK_ONGOING', etc.)"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false
+}

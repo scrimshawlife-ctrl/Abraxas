@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/expected_error_band_input.json",
+  "title": "Expected Error Band Input",
+  "description": "Input schema for forecast.scoring.expected_error_band capability",
+  "type": "object",
+  "required": ["horizon", "phase", "half_life_days", "manipulation_risk"],
+  "properties": {
+    "horizon": {
+      "type": "string",
+      "description": "Forecast horizon bucket"
+    },
+    "phase": {
+      "type": "string",
+      "description": "Lifecycle phase"
+    },
+    "half_life_days": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Half-life in days"
+    },
+    "manipulation_risk": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Manipulation risk score"
+    },
+    "recurrence_days": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Optional recurrence period in days"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for error band, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.scoring.expected_error_band",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

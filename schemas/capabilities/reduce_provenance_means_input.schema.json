@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Reduce Provenance Means Input",
+  "description": "Input schema for memetic.metrics_reduce.reduce_provenance_means capability",
+  "type": "object",
+  "required": ["profiles"],
+  "properties": {
+    "profiles": {
+      "type": "array",
+      "description": "List of temporal profile dictionaries with metrics (attribution_strength, source_diversity, consensus_gap, manipulation_risk)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "attribution_strength": {"type": "number"},
+          "attribution_strength_uplifted": {"type": "number"},
+          "source_diversity": {"type": "number"},
+          "source_diversity_uplifted": {"type": "number"},
+          "consensus_gap": {"type": "number"},
+          "manipulation_risk": {"type": "number"},
+          "manipulation_risk_mean": {"type": "number"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false
+}

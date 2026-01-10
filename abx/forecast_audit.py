@@ -6,8 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.evolve.ledger import append_chained_jsonl
-from abraxas.forecast.scoring import brier_score
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _parse_dt(s: str) -> datetime:
@@ -96,14 +96,18 @@ def main() -> int:
 
     calibration = {}
     for horizon, (probs, outcomes) in by_horizon.items():
-        calibration[horizon] = {"brier": brier_score(probs, outcomes), "n": len(probs)}
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_audit", git_hash="unknown")
+        result = invoke_capability("forecast.scoring.brier", {"probs": probs, "outcomes": outcomes}, ctx=ctx, strict_execution=True)
+        calibration[horizon] = {"brier": result.get("brier_score", float("nan")), "n": len(probs)}
 
     calibration_by_bucket: Dict[str, Any] = {}
     for bucket, horizons in by_bucket.items():
         bucket_metrics: Dict[str, Any] = {}
         for horizon, (probs, outcomes) in horizons.items():
+            ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_audit", git_hash="unknown")
+            result = invoke_capability("forecast.scoring.brier", {"probs": probs, "outcomes": outcomes}, ctx=ctx, strict_execution=True)
             bucket_metrics[horizon] = {
-                "brier": brier_score(probs, outcomes),
+                "brier": result.get("brier_score", float("nan")),
                 "n": len(probs),
             }
         calibration_by_bucket[bucket] = bucket_metrics
@@ -119,7 +123,19 @@ def main() -> int:
         "coverage_by_bucket": bucket_counts,
         "provenance": {"method": "abx.forecast_audit.v0.1"},
     }
-    append_chained_jsonl(args.audit_ledger, row)
+
+    # Append to audit ledger via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_audit",
+        git_hash="unknown"
+    )
+    invoke_capability(
+        capability="evolve.ledger.append",
+        inputs={"ledger_path": args.audit_ledger, "record": row},
+        ctx=ctx,
+        strict_execution=True
+    )
     json_path = os.path.join(args.out_reports, f"forecast_audit_{args.run_id}.json")
     md_path = os.path.join(args.out_reports, f"forecast_audit_{args.run_id}.md")
     os.makedirs(os.path.dirname(json_path), exist_ok=True)

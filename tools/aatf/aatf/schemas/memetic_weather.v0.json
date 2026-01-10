@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MemeticWeatherExport",
+  "type": "object",
+  "required": ["report_id", "date", "regions", "motifs", "emergent_terms", "evidence"],
+  "properties": {
+    "report_id": {"type": "string"},
+    "date": {"type": "string"},
+    "regions": {"type": "array", "items": {"type": "string"}},
+    "motifs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["handle", "description", "velocity", "volatility", "polarity"],
+        "properties": {
+          "handle": {"type": "string"},
+          "description": {"type": "string"},
+          "velocity": {"type": "number", "minimum": 0, "maximum": 1},
+          "volatility": {"type": "number", "minimum": 0, "maximum": 1},
+          "polarity": {"type": "number", "minimum": -1, "maximum": 1}
+        }
+      }
+    },
+    "emergent_terms": {"type": "array", "items": {"type": "string"}},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "title"],
+        "properties": {
+          "source_id": {"type": "string"},
+          "title": {"type": "string"},
+          "url": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

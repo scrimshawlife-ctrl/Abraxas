@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memetic Read Oracle Texts Output",
+  "description": "Output schema for memetic.extract.read_oracle_texts capability",
+  "type": "object",
+  "required": ["documents", "provenance", "not_computable"],
+  "properties": {
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "text"],
+        "properties": {
+          "timestamp": {"type": "string"},
+          "text": {"type": "string"}
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.extract.read_oracle_texts"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - reading never fails"
+    }
+  },
+  "additionalProperties": false
+}

@@ -114,6 +114,20 @@ def invoke(
     evidence_mode = rune.get("evidence_mode", "")
     is_detector = evidence_mode == "detector_only"
     is_actuator = evidence_mode == "ops_actuator"
+    is_shadow_lane = evidence_mode == "shadow_lane"
+
+    # P0 SECURITY: Shadow metrics access gate (ϟ₇ SSO rune required)
+    if is_shadow_lane:
+        # Check if caller has ϟ₇ SSO rune authorization
+        caller_context = context or {}
+        authorized_runes = caller_context.get("authorized_runes", [])
+
+        if "ϟ₇" not in authorized_runes:
+            raise PermissionError(
+                f"Shadow lane access denied for {rune_id}. "
+                "Requires ϟ₇ (Shadow Structural Observer) rune authorization. "
+                "Shadow metrics are observe-only and must not be accessed directly."
+            )
 
     stabilization = policy_doc.get("stabilization", {}) or {}
     required_cycles = int(stabilization.get("required_advisory_cycles", 3))

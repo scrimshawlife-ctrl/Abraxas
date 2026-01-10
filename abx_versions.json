@@ -1,0 +1,32 @@
+{
+  "schema": "AbraxasVersionPack.v0",
+  "abraxas": "2.2.0",
+  "components": {
+    "abx.runtime": "0.4.0",
+    "abx.ers": "0.1.0",
+    "abx.artifacts": "0.2.0",
+    "abx.schemas": "0.1.0",
+    "abx.shadow": "0.3.0",
+    "abx.oracle": "0.2.0",
+    "abx.viz_bridge": "0.3.0",
+    "abx.governance": "0.2.0",
+    "abx.policy": "0.2.0"
+  },
+  "schema_contracts": {
+    "RunIndex.v0": 0,
+    "RunHeader.v0": 0,
+    "TrendPack.v0": 0,
+    "ResultsPack.v0": 0,
+    "ViewPack.v0": 0,
+    "PolicySnapshot.v0": 0,
+    "RunStability.v0": 0,
+    "StabilityRef.v0": 0,
+    "SealReport.v0": 0
+  },
+  "compat": {
+    "requires": {
+      "python_min": "3.10",
+      "abx.ers": ">=0.1.0,<0.2.0"
+    }
+  }
+}

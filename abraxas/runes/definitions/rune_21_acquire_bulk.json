@@ -1,0 +1,44 @@
+{
+  "id": "ﬂÇÅ",
+  "name": "Acquisition Layer - Bulk",
+  "short_name": "ACQUIRE_BULK",
+  "layer": "Acquisition",
+  "motto": "Bulk-first, cache-first, provenance-tracked.",
+  "function": "Performs bulk data acquisition via official APIs with cache-first policy. Stores raw + parsed artifacts in Content-Addressed Storage. Returns packet paths for lazy loading. Never calls Decodo.",
+  "inputs": [
+    "source_id",
+    "window_utc",
+    "params",
+    "run_ctx"
+  ],
+  "outputs": [
+    "raw_path",
+    "parsed_path",
+    "cache_hit",
+    "provenance"
+  ],
+  "constraints": [
+    "cache_first_policy",
+    "no_decodo_calls",
+    "provenance_tracked",
+    "returns_paths_not_blobs"
+  ],
+  "hooks": [
+    "pre_acquisition",
+    "post_storage",
+    "perf_logging"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Performance Drop v1.0 spec",
+    "SourceAtlas cache policy doctrine",
+    "CAS deterministic storage layer"
+  ],
+  "canonical_statement": "Bulk-first, cache-first, provenance-tracked.",
+  "introduced_version": "1.0.0",
+  "metadata": {
+    "first_deployed": "2026-01-03",
+    "stability_class": "high",
+    "integration_priority": "critical"
+  }
+}

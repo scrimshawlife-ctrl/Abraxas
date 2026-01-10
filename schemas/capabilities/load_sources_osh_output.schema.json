@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Load Sources from OSH Output",
+  "description": "Output schema for memetic.claims_sources.load capability",
+  "type": "object",
+  "required": ["sources", "stats", "provenance", "not_computable"],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "List of processed source documents from OSH ledger",
+      "items": {
+        "type": "object",
+        "description": "SourceRow dict with url, domain, type, title, snippet, summary, text, artifact_id"
+      }
+    },
+    "stats": {
+      "type": "object",
+      "description": "Statistics about source loading",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "description": "Total rows processed"
+        },
+        "ok": {
+          "type": "integer",
+          "description": "Rows with status=ok"
+        },
+        "missing_body": {
+          "type": "integer",
+          "description": "Rows missing body content"
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.claims_sources.load"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - source loading never fails, returns empty list on error"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,37 @@
+{
+  "id": "ϟ₁₁",
+  "name": "ABX-COHESION_SCORE",
+  "short_name": "COHESION_SCORE",
+  "layer": "Governance",
+  "motto": "Measure coherence, never mandate it.",
+  "function": "Computes a deterministic cohesion score from synchronicity envelopes for shadow-only monitoring.",
+  "inputs": [
+    "synchronicity_envelopes: SE packets with metrics"
+  ],
+  "outputs": [
+    "cohesion_score: Aggregate synchronicity cohesion score",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output (no routing/prediction impact)",
+    "Deterministic computation",
+    "No causal assertions",
+    "No domain priors"
+  ],
+  "hooks": [
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "Synchronicity Envelope spec v0.1",
+    "ABX governance constraints"
+  ],
+  "canonical_statement": "ϟ₁₁ (COHESION_SCORE) summarizes synchronicity envelopes into a deterministic cohesion score for observation only, explicitly barred from causal or routing influence.",
+  "introduced_version": "1.5.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_causal_assert": true,
+    "no_domain_prior": true
+  }
+}

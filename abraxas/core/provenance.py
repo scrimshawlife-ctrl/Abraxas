@@ -80,3 +80,64 @@ class Provenance:
     def now_iso_z() -> str:
         """Generate ISO8601 timestamp with Zulu timezone (no microseconds)."""
         return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def canonical_envelope(
+    result: Any,
+    config: dict,
+    inputs: dict,
+    operation_id: str,
+    seed: Optional[int] = None,
+) -> dict[str, Any]:
+    """
+    Create canonical provenance envelope for rune outputs.
+
+    Standard envelope format enforced across all ABX-Runes capabilities.
+
+    Args:
+        result: The actual computation result
+        config: Configuration used
+        inputs: Input data used
+        operation_id: Identifier for the operation (e.g., 'oracle.v2.run')
+        seed: Optional deterministic seed
+
+    Returns:
+        Dictionary with 'result', 'provenance', and optionally 'not_computable'
+    """
+    import subprocess
+    import platform
+
+    # Get git commit if available
+    git_commit = None
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            timeout=2
+        ).decode().strip()
+    except Exception:
+        pass
+
+    provenance = {
+        "timestamp_utc": Provenance.now_iso_z(),
+        "config_sha256": hash_canonical_json(config),
+        "inputs_sha256": hash_canonical_json(inputs),
+        "operation_id": operation_id,
+    }
+
+    if git_commit:
+        provenance["repo_commit"] = git_commit
+
+    if seed is not None:
+        provenance["seed"] = seed
+
+    provenance["runtime_fingerprint"] = {
+        "python": platform.python_version(),
+        "platform": platform.platform(),
+    }
+
+    return {
+        "result": result,
+        "provenance": provenance,
+        "not_computable": None
+    }

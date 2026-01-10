@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Record Outcome Input",
+  "description": "Input schema for forecast.ledger.record_outcome capability",
+  "type": "object",
+  "required": ["pred_id", "result", "run_id"],
+  "properties": {
+    "pred_id": {
+      "type": "string",
+      "description": "Prediction ID (from issue_prediction)"
+    },
+    "result": {
+      "type": "string",
+      "description": "Outcome result (e.g., 'success', 'failure', 'pending')"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "evidence": {
+      "type": ["array", "null"],
+      "description": "Optional evidence list",
+      "items": {"type": "object"}
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the outcome",
+      "default": ""
+    },
+    "ts_observed": {
+      "type": ["string", "null"],
+      "description": "Optional timestamp override for observation (ISO8601)"
+    },
+    "ledger_path": {
+      "type": "string",
+      "description": "Path to outcomes ledger JSONL",
+      "default": "out/forecast_ledger/outcomes.jsonl"
+    }
+  },
+  "additionalProperties": false
+}

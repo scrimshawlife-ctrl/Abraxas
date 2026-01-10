@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₅",
+  "short_name": "DETERMINISTIC_COMMIT_ORDER",
+  "name": "ABX-DETERMINISTIC_COMMIT_ORDER",
+  "layer": "Governance",
+  "introduced_version": "1.7.2",
+  "function": "Ensure commit results are deterministically ordered.",
+  "inputs": ["results"],
+  "outputs": ["ordered", "count"],
+  "constraints": ["deterministic_commit"],
+  "canonical_statement": "ABX-DETERMINISTIC_COMMIT_ORDER rejects non-deterministic commit ordering."
+}

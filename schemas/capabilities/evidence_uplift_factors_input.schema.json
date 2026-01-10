@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Uplift Factors Input",
+  "description": "Input schema for evidence.lift.uplift_factors capability",
+  "type": "object",
+  "required": ["lift"],
+  "properties": {
+    "lift": {
+      "type": "object",
+      "description": "Lift summary from term_lift for a single term",
+      "required": ["bundle_count", "source_types", "credence_mean"],
+      "properties": {
+        "bundle_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "credence_mean": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false
+}

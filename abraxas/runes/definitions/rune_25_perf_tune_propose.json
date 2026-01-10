@@ -1,0 +1,16 @@
+{
+  "id": "ϟ₂₅",
+  "name": "Performance Tune Propose",
+  "short_name": "PERF_TUNE_PROPOSE",
+  "layer": "Tuning",
+  "motto": "Propose deterministically. Never guess.",
+  "function": "Proposes candidate PerfTuningIR based on ledger evidence using deterministic optimization (grid search or greedy coordinate descent). Shadow-only, requires promotion to activate.",
+  "inputs": ["summary", "run_ctx"],
+  "outputs": ["proposal_ir", "predicted_improvement", "risk_score", "rationale"],
+  "constraints": ["deterministic_optimizer", "shadow_only"],
+  "hooks": ["post_summarize"],
+  "evidence_tier": "canonical",
+  "provenance_sources": ["Performance Tuning Plane v0.1 spec", "Optimizer algorithms"],
+  "canonical_statement": "Propose deterministically. Never guess.",
+  "introduced_version": "1.0.0"
+}

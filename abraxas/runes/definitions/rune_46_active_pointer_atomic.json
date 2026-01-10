@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₆",
+  "short_name": "ACTIVE_POINTER_ATOMIC",
+  "name": "ABX-ACTIVE_POINTER_ATOMIC",
+  "layer": "Governance",
+  "introduced_version": "1.7.4",
+  "function": "Ensure ACTIVE pointer switching is atomic.",
+  "inputs": ["path"],
+  "outputs": ["path", "atomic_ready"],
+  "constraints": ["active_pointer_atomic"],
+  "canonical_statement": "ABX-ACTIVE_POINTER_ATOMIC validates atomic pointer readiness."
+}

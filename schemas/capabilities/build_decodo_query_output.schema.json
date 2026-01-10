@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Acquire Build Decodo Query Output",
+  "description": "Output schema for acquire.decodo.build_query capability",
+  "type": "object",
+  "required": ["query", "provenance", "not_computable"],
+  "properties": {
+    "query": {
+      "type": "object",
+      "required": ["q", "domains"],
+      "properties": {
+        "q": {"type": "string"},
+        "domains": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "acquire.decodo.build_query"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - query build never fails"
+    }
+  },
+  "additionalProperties": false
+}

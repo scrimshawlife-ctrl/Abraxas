@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compute Missed Terms Output",
+  "description": "Output schema for memetic.registry.compute_missed capability",
+  "type": "object",
+  "required": ["version", "ts", "run_id", "a2_path", "registry_path", "present", "known", "missed", "resurrected", "params", "provenance", "capability_provenance", "not_computable"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version (a2_missed.v0.1)"
+    },
+    "ts": {
+      "type": "string",
+      "description": "Timestamp (ISO8601)"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "a2_path": {
+      "type": "string",
+      "description": "Path to A2 artifact"
+    },
+    "registry_path": {
+      "type": "string",
+      "description": "Path to registry JSONL"
+    },
+    "present": {
+      "type": "integer",
+      "description": "Count of unique present terms"
+    },
+    "known": {
+      "type": "integer",
+      "description": "Count of known registry keys"
+    },
+    "missed": {
+      "type": "array",
+      "description": "List of missed (first-time) term dicts"
+    },
+    "resurrected": {
+      "type": "array",
+      "description": "List of resurrected (returned after absence) term dicts"
+    },
+    "params": {
+      "type": "object",
+      "description": "Parameters used (resurrect_after_days)"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Provenance from core function (method: compute_missed_terms.v0.1)"
+    },
+    "capability_provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope from capability invocation",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": true
+}

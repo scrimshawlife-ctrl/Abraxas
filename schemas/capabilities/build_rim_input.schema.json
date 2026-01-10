@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build RIM from OSH Ledger Input",
+  "description": "Input schema for evolve.rim.build_from_osh_ledger capability",
+  "type": "object",
+  "required": ["run_id", "out_root"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "out_root": {
+      "type": "string",
+      "description": "Output root directory"
+    },
+    "osh_ledger_path": {
+      "type": ["string", "null"],
+      "description": "Path to OSH ledger JSONL"
+    },
+    "max_items": {
+      "type": "integer",
+      "description": "Maximum items to include",
+      "minimum": 1,
+      "default": 200
+    },
+    "ts": {
+      "type": ["string", "null"],
+      "description": "Optional timestamp override (ISO8601)"
+    }
+  },
+  "additionalProperties": false
+}
