@@ -9,7 +9,9 @@ from __future__ import annotations
 import json
 from typing import Any, Dict
 
-from abraxas.alive.models import ALIVEFieldSignature
+# ALIVEFieldSignature replaced by alive.parse_field_signature capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 class ALIVESlackIntegrationOperator:
@@ -43,11 +45,26 @@ class ALIVESlackIntegrationOperator:
         Returns:
             Response status
         """
-        # Parse signature
-        signature = ALIVEFieldSignature(**field_signature)
+        # Parse and validate signature via capability
+        ctx = RuneInvocationContext(
+            run_id="ALIVE_SLACK",
+            subsystem_id="abx.operators.alive_integrate_slack",
+            git_hash="unknown"
+        )
+
+        parse_result = invoke_capability(
+            "alive.parse_field_signature",
+            {"field_signature": field_signature},
+            ctx=ctx,
+            strict_execution=True
+        )
+
+        parsed_signature = parse_result["parsed_signature"]
+        if parsed_signature is None:
+            raise ValueError(f"Invalid field signature: {parse_result['parse_error']}")
 
         # Format message
-        message = self._format_slack_message(signature, channel)
+        message = self._format_slack_message(parsed_signature, channel)
 
         # TODO: Actually send to Slack webhook
         # For now, just return the formatted message
@@ -58,14 +75,14 @@ class ALIVESlackIntegrationOperator:
         }
 
     def _format_slack_message(
-        self, signature: ALIVEFieldSignature, channel: str
+        self, signature: Dict[str, Any], channel: str
     ) -> Dict[str, Any]:
         """
         Format field signature as Slack message.
 
         Returns Slack Block Kit formatted message.
         """
-        composite = signature.compositeScore
+        composite = signature.get("compositeScore", {})
 
         return {
             "channel": channel,
@@ -82,11 +99,11 @@ class ALIVESlackIntegrationOperator:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Subject:*\n{signature.subjectId}",
+                            "text": f"*Subject:*\n{signature.get('subjectId', 'Unknown')}",
                         },
                         {
                             "type": "mrkdwn",
-                            "text": f"*Timestamp:*\n{signature.timestamp}",
+                            "text": f"*Timestamp:*\n{signature.get('timestamp', 'Unknown')}",
                         },
                     ],
                 },
@@ -95,11 +112,11 @@ class ALIVESlackIntegrationOperator:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Overall Score:*\n{composite.overall:.2f}",
+                            "text": f"*Overall Score:*\n{composite.get('overall', 0.0):.2f}",
                         },
                         {
                             "type": "mrkdwn",
-                            "text": f"*Analysis ID:*\n`{signature.analysisId}`",
+                            "text": f"*Analysis ID:*\n`{signature.get('analysisId', 'Unknown')}`",
                         },
                     ],
                 },
@@ -111,9 +128,9 @@ class ALIVESlackIntegrationOperator:
                     "text": {
                         "type": "mrkdwn",
                         "text": "*Axis Scores:*\n"
-                        f"• Influence: {len(signature.influence)} metrics\n"
-                        f"• Vitality: {len(signature.vitality)} metrics\n"
-                        f"• Life-Logistics: {len(signature.lifeLogistics)} metrics",
+                        f"• Influence: {len(signature.get('influence', []))} metrics\n"
+                        f"• Vitality: {len(signature.get('vitality', []))} metrics\n"
+                        f"• Life-Logistics: {len(signature.get('lifeLogistics', []))} metrics",
                     },
                 },
             ],

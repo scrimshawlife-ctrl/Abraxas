@@ -9,7 +9,9 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, Literal
 
-from abraxas.alive.models import ALIVEFieldSignature
+# ALIVEFieldSignature replaced by alive.parse_field_signature capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 class ALIVEExportOperator:
@@ -34,24 +36,39 @@ class ALIVEExportOperator:
         Returns:
             Exported data as string
         """
-        # Parse signature
-        signature = ALIVEFieldSignature(**field_signature)
+        # Parse and validate signature via capability
+        ctx = RuneInvocationContext(
+            run_id="ALIVE_EXPORT",
+            subsystem_id="abx.operators.alive_export",
+            git_hash="unknown"
+        )
+
+        parse_result = invoke_capability(
+            "alive.parse_field_signature",
+            {"field_signature": field_signature},
+            ctx=ctx,
+            strict_execution=True
+        )
+
+        parsed_signature = parse_result["parsed_signature"]
+        if parsed_signature is None:
+            raise ValueError(f"Invalid field signature: {parse_result['parse_error']}")
 
         if format == "json":
-            return self._export_json(signature)
+            return self._export_json(parsed_signature)
         elif format == "csv":
-            return self._export_csv(signature)
+            return self._export_csv(parsed_signature)
         elif format == "pdf":
             # TODO: Implement PDF export
             raise NotImplementedError("PDF export not yet implemented")
         else:
             raise ValueError(f"Unknown export format: {format}")
 
-    def _export_json(self, signature: ALIVEFieldSignature) -> str:
+    def _export_json(self, signature: Dict[str, Any]) -> str:
         """Export as JSON."""
-        return signature.model_dump_json(indent=2)
+        return json.dumps(signature, indent=2)
 
-    def _export_csv(self, signature: ALIVEFieldSignature) -> str:
+    def _export_csv(self, signature: Dict[str, Any]) -> str:
         """Export as CSV."""
         # TODO: Implement CSV export with proper formatting
         # For now, return a simple CSV representation
@@ -59,22 +76,22 @@ class ALIVEExportOperator:
             "metric_id,metric_version,axis,value,confidence,timestamp",
         ]
 
-        for metric in signature.influence:
+        for metric in signature.get("influence", []):
             lines.append(
-                f"{metric.metricId},{metric.metricVersion},influence,"
-                f"{metric.value},{metric.confidence},{metric.timestamp}"
+                f"{metric['metricId']},{metric['metricVersion']},influence,"
+                f"{metric['value']},{metric['confidence']},{metric['timestamp']}"
             )
 
-        for metric in signature.vitality:
+        for metric in signature.get("vitality", []):
             lines.append(
-                f"{metric.metricId},{metric.metricVersion},vitality,"
-                f"{metric.value},{metric.confidence},{metric.timestamp}"
+                f"{metric['metricId']},{metric['metricVersion']},vitality,"
+                f"{metric['value']},{metric['confidence']},{metric['timestamp']}"
             )
 
-        for metric in signature.lifeLogistics:
+        for metric in signature.get("lifeLogistics", []):
             lines.append(
-                f"{metric.metricId},{metric.metricVersion},life_logistics,"
-                f"{metric.value},{metric.confidence},{metric.timestamp}"
+                f"{metric['metricId']},{metric['metricVersion']},life_logistics,"
+                f"{metric['value']},{metric['confidence']},{metric['timestamp']}"
             )
 
         return "\n".join(lines)

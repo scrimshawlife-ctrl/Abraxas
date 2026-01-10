@@ -1048,6 +1048,39 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "alive.run",
+      "rune_id": "ϟ_ALIVE_RUN",
+      "operator_path": "abraxas.alive.rune_adapter:alive_run_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/alive_run_input.schema.json",
+      "output_schema": "schemas/capabilities/alive_run_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "analysis"
+    },
+    {
+      "capability_id": "alive.parse_field_signature",
+      "rune_id": "ϟ_ALIVE_PARSE_FIELD_SIGNATURE",
+      "operator_path": "abraxas.alive.rune_adapter:alive_parse_field_signature_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/alive_parse_field_signature_input.schema.json",
+      "output_schema": "schemas/capabilities/alive_parse_field_signature_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "validation"
+    },
+    {
+      "capability_id": "alive.parse_run_input",
+      "rune_id": "ϟ_ALIVE_PARSE_RUN_INPUT",
+      "operator_path": "abraxas.alive.rune_adapter:alive_parse_run_input_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/alive_parse_run_input_input.schema.json",
+      "output_schema": "schemas/capabilities/alive_parse_run_input_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "validation"
     }
   ],
   "provenance": {

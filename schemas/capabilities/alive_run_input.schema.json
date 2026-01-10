@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ALIVE Run Input",
+  "description": "Input schema for alive.run capability",
+  "type": "object",
+  "required": ["artifact"],
+  "properties": {
+    "artifact": {
+      "type": "object",
+      "description": "Normalized artifact bundle (text/url/meta)",
+      "properties": {
+        "artifact_id": {"type": "string"},
+        "kind": {
+          "type": "string",
+          "enum": ["text", "media", "composite"]
+        },
+        "content": {"type": "string"},
+        "text": {"type": "string"},
+        "source": {"type": "string"},
+        "title": {"type": "string"},
+        "url": {"type": "string"},
+        "language": {"type": "string"},
+        "timestamp": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    },
+    "tier": {
+      "type": "string",
+      "description": "Analysis tier",
+      "enum": ["psychonaut", "academic", "enterprise"],
+      "default": "psychonaut"
+    },
+    "profile": {
+      "type": ["object", "null"],
+      "description": "Onboarding weights/traits",
+      "properties": {
+        "profileId": {"type": "string"},
+        "influenceWeight": {"type": "number"},
+        "vitalityWeight": {"type": "number"},
+        "lifeLogisticsWeight": {"type": "number"},
+        "preferences": {"type": "object"}
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Deterministic seed for provenance"
+    }
+  },
+  "additionalProperties": false
+}

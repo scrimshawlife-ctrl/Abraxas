@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from abraxas.alive import ALIVEEngine
-from abraxas.alive.models import ALIVERunInput
+# ALIVEEngine and ALIVERunInput replaced by alive.run capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 class ALIVERunOperator:
@@ -25,28 +26,47 @@ class ALIVERunOperator:
         Initialize ALIVE run operator.
 
         Args:
-            registry_path: Path to metric registry
+            registry_path: Path to metric registry (unused with capability)
         """
-        self.engine = ALIVEEngine(registry_path=registry_path)
+        # Registry path is unused with capability-based invocation
+        self.registry_path = registry_path
 
     def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute ALIVE analysis.
 
         Args:
-            input_data: Analysis configuration
+            input_data: Analysis configuration with artifact, tier, profile
 
         Returns:
             Field signature as dict
         """
-        # Parse input
-        run_input = ALIVERunInput(**input_data)
+        # Extract parameters
+        artifact = input_data.get("artifact", {})
+        tier = input_data.get("tier", "psychonaut")
+        profile = input_data.get("profile")
 
-        # Run engine
-        field_signature = self.engine.run(run_input)
+        # Create invocation context
+        ctx = RuneInvocationContext(
+            run_id=input_data.get("run_id", "ALIVE_RUN"),
+            subsystem_id="abx.operators.alive_run",
+            git_hash="unknown"
+        )
 
-        # Return as dict
-        return field_signature.model_dump()
+        # Invoke ALIVE capability
+        result = invoke_capability(
+            "alive.run",
+            {
+                "artifact": artifact,
+                "tier": tier,
+                "profile": profile
+            },
+            ctx=ctx,
+            strict_execution=True
+        )
+
+        # Return the analysis result
+        return result["result"]
 
     def __call__(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Allow operator to be called as function."""

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ALIVE Parse Run Input Input",
+  "description": "Input schema for alive.parse_run_input capability",
+  "type": "object",
+  "required": ["run_input"],
+  "properties": {
+    "run_input": {
+      "type": "object",
+      "description": "Raw run input dict to parse and validate",
+      "properties": {
+        "subjectId": {"type": "string"},
+        "tier": {"type": "string"},
+        "corpusConfig": {"type": "object"},
+        "metricConfig": {"type": "object"}
+      }
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Deterministic seed for provenance"
+    }
+  },
+  "additionalProperties": false
+}
