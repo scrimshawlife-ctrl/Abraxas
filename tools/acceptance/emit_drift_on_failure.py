@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from tools.acceptance.run_acceptance_suite import canonical_json, sha256  # reuse
+import re
+
+from tools.acceptance.utils import canonical_json, sha256
 
 
 def _write(out_dir: Path, obj: Dict[str, Any]) -> None:
@@ -18,13 +20,24 @@ def classify_drift(changed_pointers: List[str]) -> str:
     joined = " ".join(changed_pointers).lower()
     if "created_at" in joined or "timestamp" in joined:
         return "TIME_DEPENDENCE"
+    if _has_ordering_instability(changed_pointers):
+        return "ORDERING_INSTABILITY"
     if "seed" in joined or "random" in joined:
         return "NONDETERMINISM_RANDOMNESS"
     if "sources" in joined or "evidence" in joined:
         return "EXTERNAL_SOURCE_VARIANCE"
+    if "not_computable" in joined or "missing" in joined:
+        return "UNINITIALIZED_STATE"
     if "schema_version" in joined:
         return "VERSION_SKEW"
     return "UNKNOWN"
+
+
+def _has_ordering_instability(changed_pointers: List[str]) -> bool:
+    for pointer in changed_pointers:
+        if re.search(r"/\d+(?:/|$)", pointer):
+            return True
+    return False
 
 
 def emit(out_dir: Path, envelopes: List[Dict[str, Any]], changes: List[Dict[str, Any]]) -> None:
@@ -40,4 +53,3 @@ def emit(out_dir: Path, envelopes: List[Dict[str, Any]], changes: List[Dict[str,
         "diff_sample": changes[:200],
     }
     _write(out_dir, obj)
-

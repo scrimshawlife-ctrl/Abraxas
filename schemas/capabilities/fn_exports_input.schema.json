@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/fn_exports_input.json",
+  "title": "Function Exports Input",
+  "description": "Input schema for core.fn_exports.load capability",
+  "type": "object",
+  "properties": {
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "core.fn_exports.load",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

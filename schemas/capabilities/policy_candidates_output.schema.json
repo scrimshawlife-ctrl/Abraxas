@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/policy_candidates_output.json",
+  "title": "Policy Candidates Output",
+  "description": "Output schema for forecast.policy_candidates.v0_1 capability",
+  "type": "object",
+  "required": ["candidates", "provenance"],
+  "properties": {
+    "candidates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["days", "weeks", "months", "years"],
+        "properties": {
+          "days": {"type": "number"},
+          "weeks": {"type": "number"},
+          "months": {"type": "number"},
+          "years": {"type": "number"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["operation_id", "inputs_hash", "timestamp"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "forecast.policy_candidates.v0_1"
+        },
+        "inputs_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "seed": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": true
+    },
+    "not_computable": {
+      "type": ["object", "null"]
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.policy_candidates.v0_1",
+    "version": "1.0.0",
+    "deterministic": true,
+    "evidence_mode": "data_loading"
+  }
+}

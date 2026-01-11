@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 # horizon_bucket replaced by forecast.horizon.classify capability
-from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -58,7 +57,10 @@ def _choose_max_horizon(allowed: Dict[str, bool]) -> str:
     return best
 
 
-def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, Any]]]:
+def _rolling_stats(
+    window: List[Dict[str, Any]],
+    ctx: RuneInvocationContext,
+) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
     bucket -> horizon -> {n,brier}
     """
@@ -73,7 +75,6 @@ def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str
     for b, hmap in tmp.items():
         by[b] = {}
         for h, d in hmap.items():
-            ctx = RuneInvocationContext(run_id="ROLLING_STATS", subsystem_id="abx.horizon_policy_select", git_hash="unknown")
             result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
             by[b][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return by
@@ -93,6 +94,7 @@ def main() -> int:
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
 
     resolved_rows: List[Dict[str, Any]] = []
     pair: Dict[str, Dict[str, Dict[str, Any]]] = {}
@@ -124,7 +126,7 @@ def main() -> int:
         pair.setdefault(base, {})[role] = row
 
     window = resolved_rows[-int(args.window_resolved) :] if resolved_rows else []
-    roll = _rolling_stats(window)
+    roll = _rolling_stats(window, ctx)
 
     shadow_rate: Dict[str, float] = {}
     shadow_counts: Dict[str, List[int]] = {}
@@ -140,7 +142,12 @@ def main() -> int:
     for bucket, (n, sb) in shadow_counts.items():
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
-    cand = candidates_v0_1()
+    cand = invoke_capability(
+        "forecast.policy_candidates.v0_1",
+        {},
+        ctx=ctx,
+        strict_execution=True
+    )["candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 
     def eval_candidate(bucket: str, thr: Dict[str, float]) -> Dict[str, Any]:

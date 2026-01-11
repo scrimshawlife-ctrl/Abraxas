@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/osh_execute_input.json",
+  "title": "OSH Execute Input",
+  "description": "Input schema for osh.execute capability",
+  "type": "object",
+  "required": ["dap_json_path", "run_id", "out_dir"],
+  "properties": {
+    "dap_json_path": {"type": "string"},
+    "run_id": {"type": "string"},
+    "out_dir": {"type": "string"},
+    "allowlist_spec_path": {"type": ["string", "null"]},
+    "allowlist_map_fallback_path": {"type": ["string", "null"]},
+    "vector_map_path": {"type": ["string", "null"]},
+    "seed": {"type": "integer"}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "osh.execute",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}
