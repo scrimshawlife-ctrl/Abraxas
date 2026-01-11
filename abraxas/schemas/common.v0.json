@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.schemas.common.v0",
+  "title": "Abraxas Common Types v0",
+  "type": "object",
+  "definitions": {
+    "Tier": {
+      "type": "string",
+      "enum": ["psychonaut", "academic", "enterprise"]
+    },
+    "ISODate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "Hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "HalfLife": {
+      "type": "string",
+      "pattern": "^(\\d+)(m|h|d|w|mo|y)$"
+    },
+    "NonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

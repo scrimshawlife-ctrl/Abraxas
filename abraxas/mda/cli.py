@@ -3,72 +3,81 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from typing import List, Optional
+from typing import Any, Dict, List, Tuple
 
-from .run import run_mda
-from .signal_layer_v2 import mda_to_oracle_signal_v2, shallow_schema_check
+from .fusion_io import fusiongraph_from_json
+from .invariance import compute_report, write_report
+from .mode_router import render_mode
+from .registry import DomainRegistryV1
+from .run import run_mda, write_run_artifacts
+from .types import FusionGraph, MDARunEnvelope
 
 
-def main(argv: Optional[List[str]] = None) -> int:
-    p = argparse.ArgumentParser(description="Run MDA sandbox pipeline.")
-    p.add_argument("--bundle", default="", help="JSON bundle to process")
-    p.add_argument("--out", default=".sandbox/practice/mda", help="Output directory")
-    p.add_argument("--run-at", default="1970-01-01T00:00:00Z")
-    p.add_argument("--repeat", type=int, default=1)
-    p.add_argument("--version", default="dev")
-    p.add_argument("--emit-md", action="store_true")
-    p.add_argument("--emit-signal-v2", action="store_true")
-    p.add_argument("--signal-schema-check", action="store_true")
-    p.add_argument("--shadow-anagram", action="store_true")
-    p.add_argument("--shadow-anagram-watchlist", default="", help="Comma list of watch tokens (raw strings)")
-    args = p.parse_args(argv)
+def _load_json(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    payload = None
-    if args.bundle:
-        with open(args.bundle, "r", encoding="utf-8") as f:
-            payload = json.load(f)
 
-    watchlist = tuple()
-    if args.shadow_anagram_watchlist:
-        watchlist = tuple(x.strip() for x in args.shadow_anagram_watchlist.split(",") if x.strip())
+def _mode_filename(mode: str) -> str:
+    if mode == "oracle":
+        return "oracle_log.md"
+    if mode == "ritual":
+        return "ritual_map.md"
+    if mode == "analyst":
+        return "analyst_console.md"
+    return f"{mode}.md"
 
-    os.makedirs(args.out, exist_ok=True)
 
-    for i in range(1, args.repeat + 1):
-        env = {
-            "run_at": args.run_at,
-            "run_idx": i,
-        }
-        _, out = run_mda(env, abraxas_version=args.version, registry=None)
+def main() -> int:
+    p = argparse.ArgumentParser(prog="python -m abraxas.mda")
+    p.add_argument("--fixture", required=True, help="Path to MDA fixture JSON")
+    p.add_argument("--out", default=".sandbox/out/mda_run", help="Output directory")
+    p.add_argument("--env", default="sandbox", choices=["sandbox", "dev", "prod"])
+    p.add_argument("--seed", type=int, default=1337)
+    p.add_argument("--run-at", dest="run_at_iso", default="2026-01-01T00:00:00Z")
+    p.add_argument("--mode", default="analyst", choices=["oracle", "ritual", "analyst"])
+    p.add_argument("--emit-md", action="store_true", help="Write mode markdown outputs per run")
+    p.add_argument("--repeat", type=int, default=12)
+    p.add_argument("--version", default="0.0.0", help="Abraxas version string")
+    p.add_argument("--domains", default="*", help="Comma list of domains or '*'")
+    p.add_argument(
+        "--subdomains", default="*", help="Comma list of domain:subdomain pairs or '*'"
+    )
+    args = p.parse_args()
 
-        if args.shadow_anagram:
-            from .shadow_hooks import apply_shadow_anagram_detectors
-            ctx = {"domain": "unknown", "subdomain": "unknown"}
-            out = apply_shadow_anagram_detectors(
-                mda_out=out,
-                payload=payload,
-                context=ctx,
-                run_at_iso=args.run_at,
-                out_dir=args.out,
-                watchlist_tokens=watchlist,
-            )
+    fixture = _load_json(args.fixture)
+    vectors = fixture.get("vectors", {}) or {}
+    registry = DomainRegistryV1.from_vectors(vectors)
 
-        run_dir = os.path.join(args.out, f"run_{i:02d}")
-        os.makedirs(run_dir, exist_ok=True)
+    envelope = MDARunEnvelope(
+        env=str(args.env),
+        run_at_iso=str(args.run_at_iso),
+        seed=int(args.seed),
+        fixture_path=str(args.fixture),
+    )
+
+    dsp_runs: List[Tuple[Any, ...]] = []
+    fusion_runs: List[FusionGraph] = []
+
+    for i in range(int(args.repeat)):
+        run_dir = os.path.join(args.out, f"run_{i+1:02d}")
+        dsps, out = run_mda(
+            envelope,
+            abraxas_version=args.version,
+            registry=registry,
+            domains=args.domains,
+            subdomains=args.subdomains,
+        )
+        write_run_artifacts(out, run_dir)
+        dsp_runs.append(dsps)
+        fusion_runs.append(fusiongraph_from_json(out["fusion_graph"]))
 
         if args.emit_md:
-            with open(os.path.join(run_dir, "mda.md"), "w", encoding="utf-8") as f:
-                f.write("# MDA Sandbox Output\n")
+            rendered = render_mode(out, mode=args.mode)
+            with open(os.path.join(run_dir, _mode_filename(args.mode)), "w", encoding="utf-8") as f:
+                f.write(rendered.markdown)
 
-        if args.emit_signal_v2:
-            sig = mda_to_oracle_signal_v2(out)
-            if args.signal_schema_check:
-                shallow_schema_check(sig)
-            with open(os.path.join(run_dir, "signal_v2.json"), "w", encoding="utf-8") as f:
-                json.dump(sig, f, ensure_ascii=False, indent=2, sort_keys=True)
-
+    report = compute_report(envelope, dsp_runs=dsp_runs, fusion_runs=fusion_runs)
+    write_report(report, os.path.join(args.out, "invariance_report.json"))
     return 0
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())

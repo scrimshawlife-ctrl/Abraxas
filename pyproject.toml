@@ -25,6 +25,10 @@ classifiers = [
 dependencies = [
     "pydantic>=2.0.0",
     "typer>=0.12.0",
+    "jsonschema>=4.22.0",
+    "rich>=13.0.0",
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
 ]
 
 [project.optional-dependencies]
@@ -51,7 +55,7 @@ lens = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-    "jsonschema>=4.0.0",
+    "jsonschema>=4.22.0",
 ]
 
 # Full installation (server + dev)
@@ -61,7 +65,7 @@ full = [
 
 [project.scripts]
 # CLI entry point
-abx = "abx.cli:main"
+abx = "abraxas.cli.app:app"
 abraxas = "abraxas.cli.main:main"
 
 [project.entry-points."abx.plugins"]
@@ -72,14 +76,17 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.operators", "abraxas.overlay", "abraxas.pipelines",
             "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
             "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
+            "abraxas.disinfo",
             "abraxas.renderers", "abraxas.renderers.resonance_narratives",
-            "abraxas.schema", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
+            "abraxas.schema", "abraxas.schemas", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
             "abraxas.temporal", "abraxas.metric_extractors", "abraxas.influence",
             "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
             "abraxas.economics", "abraxas.governance", "abraxas.lens",
             "abraxas.modules", "abraxas.modules.gtx", "abraxas.modules.gtx.sim",
             "abx", "abx.util", "abx.runtime", "abx.assets",
-            "abx.overlays", "abx.core", "abx.server", "abx.ingest"]
+            "abx.overlays", "abx.core", "abx.server", "abx.ingest",
+            "abraxas.io", "abraxas.web", "abraxas.render",
+            "abraxas.kernel.v2", "abraxas.overlays"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

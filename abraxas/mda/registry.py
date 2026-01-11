@@ -40,53 +40,43 @@ class DomainRegistryV1:
     def domains(self) -> Tuple[str, ...]:
         return tuple(sorted(self.subdomains_by_domain.keys()))
 
-    def iter_pairs(self) -> List[Tuple[str, str]]:
+    @property
+    def all_pairs(self) -> List[Tuple[str, str]]:
         pairs: List[Tuple[str, str]] = []
         for d in self.domains:
-            for s in self.subdomains_by_domain.get(d, ()):
-                pairs.append((d, s))
+            for sub in self.subdomains_by_domain.get(d, ()):
+                pairs.append((d, sub))
         return pairs
 
     def filter_pairs(
         self,
-        domains: Union[str, Sequence[str]],
-        subdomains: Union[str, Sequence[str]],
+        *,
+        enabled_domains: Sequence[str],
+        enabled_subdomains: Sequence[str],
     ) -> List[Tuple[str, str]]:
-        # Supports both:
-        # - legacy CLI strings: "*" or "a,b"
-        # - v1.1 canary tuples: ("a", "b") and ("a:x", "b:y")
+        """
+        Return pairs (domain, subdomain) that match user selections.
 
-        if isinstance(domains, str):
-            if domains.strip() == "*":
-                allowed_domains = set(self.domains)
-            else:
-                allowed_domains = {d.strip() for d in domains.split(",") if d.strip()}
-        else:
-            allowed_domains = {str(d).strip() for d in domains if str(d).strip()}
+        Filtering logic:
+          - If both enabled_domains and enabled_subdomains are empty → all pairs
+          - If only enabled_domains is non-empty → all subdomains for those domains
+          - If only enabled_subdomains is non-empty → any (domain, subdomain) that matches subdomain
+          - If both are non-empty → intersection (domain in enabled_domains AND subdomain in enabled_subdomains)
+        """
+        if not enabled_domains and not enabled_subdomains:
+            return self.all_pairs
 
-        if isinstance(subdomains, str):
-            if subdomains.strip() == "*":
-                allowed_pairs = set(self.iter_pairs())
-            else:
-                allowed_pairs = set()
-                for item in subdomains.split(","):
-                    item = item.strip()
-                    if not item or ":" not in item:
-                        continue
-                    d, s = item.split(":", 1)
-                    allowed_pairs.add((d.strip(), s.strip()))
-        else:
-            allowed_pairs = set()
-            for item in subdomains:
-                item = str(item).strip()
-                if not item or ":" not in item:
-                    continue
-                d, s = item.split(":", 1)
-                allowed_pairs.add((d.strip(), s.strip()))
+        enabled_domains_set = set(enabled_domains) if enabled_domains else set()
+        enabled_subdomains_set = set(enabled_subdomains) if enabled_subdomains else set()
 
-        out: List[Tuple[str, str]] = []
-        for d, s in self.iter_pairs():
-            if d in allowed_domains and (d, s) in allowed_pairs:
-                out.append((d, s))
-        return sorted(out, key=lambda x: (x[0], x[1]))
+        filtered: List[Tuple[str, str]] = []
+        for d, sub in self.all_pairs:
+            domain_match = d in enabled_domains_set if enabled_domains_set else True
+            subdomain_match = sub in enabled_subdomains_set if enabled_subdomains_set else True
+            if domain_match and subdomain_match:
+                filtered.append((d, sub))
 
+        return filtered
+
+    def __repr__(self) -> str:
+        return f"DomainRegistryV1(domains={len(self.domains)}, pairs={len(self.all_pairs)})"

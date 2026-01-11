@@ -152,10 +152,9 @@ This document inventories all remaining direct import violations between `abx/` 
 
 ---
 
-### 8. Other Modules (11 violations total)
+### 8. Other Modules (10 violations total)
 
 - **cli (2)**: `run_counterfactual_cli`, `run_smv_cli`
-- **disinfo (1)**: `apply_disinfo_metrics`
 - **drift (1)**: `analyze_text_for_drift`
 - **economics (1)**: `compute_cost`
 - **compression (1)**: `detect_compression`

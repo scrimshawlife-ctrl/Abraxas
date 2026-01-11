@@ -1,3 +1,7 @@
-from abraxas.mda.adapters.router import AdapterRouter
+"""MDA payload adapters for different input formats."""
 
-__all__ = ["AdapterRouter"]
+from __future__ import annotations
+
+__all__ = ["AdapterRouter", "AdaptedPayload"]
+
+from .router import AdapterRouter, AdaptedPayload

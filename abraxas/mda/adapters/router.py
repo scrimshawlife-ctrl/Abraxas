@@ -42,4 +42,3 @@ class AdapterRouter:
             )
 
         return AdaptedPayload(vectors={}, notes=["adapter_route=unknown"], route="unknown")
-
