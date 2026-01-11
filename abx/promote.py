@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 
-from abraxas.evolve.ledger import append_chained_jsonl
-from abraxas.evolve.promotion_builder import build_promotion_packet
+# build_promotion_packet replaced by evolve.promotion.build capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def main() -> int:
@@ -25,19 +26,43 @@ def main() -> int:
     p.add_argument("--value-ledger", default="out/value_ledgers/promotion_runs.jsonl")
     args = p.parse_args()
 
-    json_path, md_path, canon_path, meta = build_promotion_packet(
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
         run_id=args.run_id,
-        out_dir=args.out_dir,
-        epp_path=args.epp,
-        evogate_path=args.evogate,
-        rim_manifest_path=args.rim,
-        candidate_policy_path=args.candidate_policy,
-        emit_canon_snapshot=bool(args.emit_canon_snapshot),
-        force=bool(args.force),
+        subsystem_id="abx.promote",
+        git_hash="unknown"
     )
-    append_chained_jsonl(
-        args.value_ledger,
-        {"run_id": args.run_id, "promotion_json": json_path, "meta": meta},
+
+    # Build promotion packet via capability contract
+    promotion_result = invoke_capability(
+        "evolve.promotion.build",
+        {
+            "run_id": args.run_id,
+            "out_dir": args.out_dir,
+            "epp_path": args.epp,
+            "evogate_path": args.evogate,
+            "rim_manifest_path": args.rim,
+            "candidate_policy_path": args.candidate_policy,
+            "emit_canon_snapshot": bool(args.emit_canon_snapshot),
+            "force": bool(args.force)
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    json_path = promotion_result["json_path"]
+    md_path = promotion_result["md_path"]
+    canon_path = promotion_result["canon_snapshot_path"]
+    meta = promotion_result["meta"]
+
+    # Append to value ledger via capability contract
+    invoke_capability(
+        capability="evolve.ledger.append",
+        inputs={
+            "ledger_path": args.value_ledger,
+            "record": {"run_id": args.run_id, "promotion_json": json_path, "meta": meta}
+        },
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[PROMOTE] wrote: {json_path}")
     print(f"[PROMOTE] wrote: {md_path}")

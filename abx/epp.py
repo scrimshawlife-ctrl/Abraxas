@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 
-from abraxas.evolve.epp_builder import build_epp
+# build_epp replaced by evolve.epp.build capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def main() -> int:
@@ -47,19 +49,35 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    json_path, md_path = build_epp(
+    # Create context for capability invocation
+    ctx = RuneInvocationContext(
         run_id=args.run_id,
-        out_dir=args.out_dir,
-        inputs_dir=args.inputs_dir,
-        osh_ledger_path=args.osh_ledger,
-        integrity_snapshot_path=args.integrity_snapshot,
-        dap_path=args.dap,
-        mwr_path=args.mwr,
-        a2_path=args.a2,
-        a2_phase_path=args.a2_phase,
-        audit_path=args.audit,
-        ledger_path=args.ledger_path,
+        subsystem_id="abx.epp",
+        git_hash="unknown"
     )
+
+    # Build EPP via capability contract
+    epp_result = invoke_capability(
+        "evolve.epp.build",
+        {
+            "run_id": args.run_id,
+            "out_dir": args.out_dir,
+            "inputs_dir": args.inputs_dir,
+            "osh_ledger_path": args.osh_ledger,
+            "integrity_snapshot_path": args.integrity_snapshot,
+            "dap_path": args.dap,
+            "mwr_path": args.mwr,
+            "a2_path": args.a2,
+            "a2_phase_path": args.a2_phase,
+            "audit_path": args.audit,
+            "ledger_path": args.ledger_path
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+    json_path = epp_result["json_path"]
+    md_path = epp_result["md_path"]
+
     print(f"[EPP] wrote {json_path}")
     print(f"[EPP] wrote {md_path}")
     return 0

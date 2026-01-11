@@ -6,8 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
-from abraxas.forecast.horizon_bins import horizon_bucket
-from abraxas.forecast.scoring import brier_score
+# horizon_bucket replaced by forecast.horizon.classify capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -89,7 +90,12 @@ def main() -> int:
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": horizon_bucket(pr.get("horizon")),
+                "h": invoke_capability(
+                    "forecast.horizon.classify",
+                    {"horizon": pr.get("horizon")},
+                    ctx=ctx,
+                    strict_execution=True
+                )["horizon_bucket"],
                 "dmx": _dmx_bucket(pr),
             }
         )
@@ -108,7 +114,20 @@ def main() -> int:
     for b, hmap in by.items():
         roll[b] = {}
         for h, (pp, yy) in hmap.items():
-            roll[b][h] = {"n": len(pp), "brier": brier_score(pp, yy)}
+            # Use capability contract for brier_score
+            ctx = RuneInvocationContext(
+                run_id=args.run_id,
+                subsystem_id="abx.horizon_policy",
+                git_hash="unknown"
+            )
+            result = invoke_capability(
+                capability="forecast.scoring.brier",
+                inputs={"probs": pp, "outcomes": yy},
+                ctx=ctx,
+                strict_execution=True
+            )
+            score = result.get("brier_score", float("nan"))
+            roll[b][h] = {"n": len(pp), "brier": score}
 
     thresholds = {
         "days": float(args.brier_days),

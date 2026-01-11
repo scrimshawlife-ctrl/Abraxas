@@ -6,7 +6,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.economics.costing import compute_cost
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 
 
 def _utc_now_iso() -> str:
@@ -51,13 +52,24 @@ def main() -> int:
 
     n_predictions = len(receipts)
 
-    cost = compute_cost(
-        n_sources=n_sources,
-        n_claims=n_claims,
-        n_clusters=n_clusters,
-        n_terms=n_terms,
-        n_predictions=n_predictions,
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.dossier_index",
+        git_hash="unknown",
     )
+    cost_result = invoke_capability(
+        "economics.costing.compute",
+        {
+            "n_sources": n_sources,
+            "n_claims": n_claims,
+            "n_clusters": n_clusters,
+            "n_terms": n_terms,
+            "n_predictions": n_predictions,
+        },
+        ctx=ctx,
+        strict_execution=True,
+    )
+    cost = cost_result["cost"]
 
     out = {
         "version": "dossier_index.v0.1",
@@ -74,7 +86,7 @@ def main() -> int:
             "terms": n_terms,
             "predictions": n_predictions,
         },
-        "cost": cost.to_dict(),
+        "cost": cost,
         "policy": {
             "browse_free": True,
             "export_metered": True,

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2025-12-21T08:03:23.392417+00:00",
+  "generated_at_utc": "2026-01-03T00:29:59.408232+00:00",
   "generator_version": "abx_runes_build@1",
   "entries": [
     {
@@ -53,6 +53,141 @@
       "svg_path": "sigils/ϟ₆_ADD.svg",
       "sha256": "2fe413ade4f473fd4f8b9b900038b36a41fe201287dfc4baa8572d4b42fa7c2a",
       "seed_material": "ϟ₆|Anchor Drift Detector|1.4.0|Detect drift from the anchor; log immutably; recenter conservatively.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₇",
+      "short_name": "SSO",
+      "svg_path": "sigils/ϟ₇_SSO.svg",
+      "sha256": "3b4aee4056dbe8831276d100dca8c908e0c56fa1238a250f9132996beb8bfa2a",
+      "seed_material": "ϟ₇|Shadow Structural Observer|1.4.0|ϟ₇ (SSO) enables observation of psychological manipulation vectors (SEI/CLIP/NOR/PTS/SCG/FVC) without allowing those observations to influence system decisions. It enforces strict isolation through ABX-Runes coupling, maintains SEED-compliant provenance for all computations, and provides cryptographic proof that computed metrics remain in shadow mode with zero influence on other system components.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₈",
+      "short_name": "INFLUENCE_DETECT",
+      "svg_path": "sigils/ϟ₈_INFLUENCE_DETECT.svg",
+      "sha256": "9596ffdd9dc18b7d5002b124838e88e35f3c1b086eec5b7ef2063d174b6a0c04",
+      "seed_material": "ϟ₈|ABX-INFLUENCE_DETECT|1.5.0|ϟ₈ (INFLUENCE_DETECT) frames structured observations into domain-agnostic influence metrics without asserting causality or privileging any domain, emitting deterministic ICS bundles with explicit not_computable fields when inputs are missing.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₉",
+      "short_name": "INFLUENCE_WEIGHT",
+      "svg_path": "sigils/ϟ₉_INFLUENCE_WEIGHT.svg",
+      "sha256": "2975bbd14e8adfdb8f8fabb0f17d0054b758a19318c33878bb468d4c4d6670d3",
+      "seed_material": "ϟ₉|ABX-INFLUENCE_WEIGHT|1.5.0|ϟ₉ (INFLUENCE_WEIGHT) converts ICS metrics into stable, shadow-only weights that are logged for observation but never used to drive causal claims, routing, or prediction logic.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₀",
+      "short_name": "SYNCHRONICITY_MAP",
+      "svg_path": "sigils/ϟ₁₀_SYNCHRONICITY_MAP.svg",
+      "sha256": "7c8d2301f04c27460dd6630331a07a78da773f6164297ba7d615c48a479aa1c7",
+      "seed_material": "ϟ₁₀|ABX-SYNCHRONICITY_MAP|1.5.0|ϟ₁₀ (SYNCHRONICITY_MAP) detects cross-domain synchronicity envelopes via deterministic metrics and emits observation-only SE packets without causal assertions or domain privilege.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₁",
+      "short_name": "COHESION_SCORE",
+      "svg_path": "sigils/ϟ₁₁_COHESION_SCORE.svg",
+      "sha256": "cf82f2088297d734b7076fa913c35139b720eec8653267cd0500fb4168b76b36",
+      "seed_material": "ϟ₁₁|ABX-COHESION_SCORE|1.5.0|ϟ₁₁ (COHESION_SCORE) summarizes synchronicity envelopes into a deterministic cohesion score for observation only, explicitly barred from causal or routing influence.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₂",
+      "short_name": "NO_CAUSAL_ASSERT",
+      "svg_path": "sigils/ϟ₁₂_NO_CAUSAL_ASSERT.svg",
+      "sha256": "00fecd70b474d495bb09d28c9e7fba79c64854351b883266071cc7bd3ddf89f1",
+      "seed_material": "ϟ₁₂|ABX-NO_CAUSAL_ASSERT|1.5.0|ϟ₁₂ (NO_CAUSAL_ASSERT) guarantees that influence and synchronicity layers emit observation-only outputs without causal assertions by producing deterministic compliance reports.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₃",
+      "short_name": "NO_DOMAIN_PRIOR",
+      "svg_path": "sigils/ϟ₁₃_NO_DOMAIN_PRIOR.svg",
+      "sha256": "ce6ae5263c5f18ee7b0fc3ce2857125c6d98d7504cd906358cc362a35684a0dd",
+      "seed_material": "ϟ₁₃|ABX-NO_DOMAIN_PRIOR|1.5.0|ϟ₁₃ (NO_DOMAIN_PRIOR) enforces non-exclusionary intake by detecting legitimacy gating and emitting deterministic compliance reports without altering payloads.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₄",
+      "short_name": "SOURCE_RESOLVE",
+      "svg_path": "sigils/ϟ₁₄_SOURCE_RESOLVE.svg",
+      "sha256": "89851969eadc830cec991d315a61e8c02ce7b19c43546788804ce980574079c0",
+      "seed_material": "ϟ₁₄|ABX-SOURCE_RESOLVE|1.6.0|ϟ₁₄ (SOURCE_RESOLVE) resolves SourceAtlas entries for declared IDs without legitimacy gating, emitting deterministic records and missing lists.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₅",
+      "short_name": "TEMPORAL_NORMALIZE",
+      "svg_path": "sigils/ϟ₁₅_TEMPORAL_NORMALIZE.svg",
+      "sha256": "991367826bdeba084be78324da899ef87ea548d7c86e84ef3267f6fb732378b6",
+      "seed_material": "ϟ₁₅|ABX-TEMPORAL_NORMALIZE|1.6.0|ϟ₁₅ (TEMPORAL_NORMALIZE) normalizes timestamps to UTC using vendored TZDB/CLDR snapshots with deterministic provenance.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₆",
+      "short_name": "SOURCE_REDUNDANCY_CHECK",
+      "svg_path": "sigils/ϟ₁₆_SOURCE_REDUNDANCY_CHECK.svg",
+      "sha256": "41b5eaaad19423fb1275509447a6ea0bd114365bc0daa6627c35fd0685adfaf9",
+      "seed_material": "ϟ₁₆|ABX-SOURCE_REDUNDANCY_CHECK|1.6.0|ϟ₁₆ (SOURCE_REDUNDANCY_CHECK) detects overlap without gating or excluding any domain.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₇",
+      "short_name": "SOURCE_DISCOVER",
+      "svg_path": "sigils/ϟ₁₇_SOURCE_DISCOVER.svg",
+      "sha256": "06c82f6dc703fa1c15dde84acbb8371ddc0973f71bf1636a3f51dc18d32d7024",
+      "seed_material": "ϟ₁₇|ABX-SOURCE_DISCOVER|1.6.0|ϟ₁₇ (SOURCE_DISCOVER) proposes new sources from residual and convergence evidence without automatic admission.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₈",
+      "short_name": "PROVENANCE_SEAL",
+      "svg_path": "sigils/ϟ₁₈_PROVENANCE_SEAL.svg",
+      "sha256": "6c5a8e3d9f9bdfa944e7215f2fba65c73c1a7b6b66d2e316b2b09509917426df",
+      "seed_material": "ϟ₁₈|ABX-PROVENANCE_SEAL|1.6.0|ϟ₁₈ (PROVENANCE_SEAL) seals payloads with deterministic hashes for traceable provenance.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₁₉",
+      "short_name": "METRIC_EXTRACT",
+      "svg_path": "sigils/ϟ₁₉_METRIC_EXTRACT.svg",
+      "sha256": "85d730de1888e7016aea4decc3cc1dfa3c7e8cd766411916431b994b9421165d",
+      "seed_material": "ϟ₁₉|ABX-METRIC_EXTRACT|1.6.1|ϟ₁₉ (METRIC_EXTRACT) transforms cached source packets into shadow metric points without causal assertions.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₂₀",
+      "short_name": "TVM_FRAME",
+      "svg_path": "sigils/ϟ₂₀_TVM_FRAME.svg",
+      "sha256": "d3f0e139b3a4244171a6925246ebd303999025bb439bf64aface86d1a87dac6a",
+      "seed_material": "ϟ₂₀|ABX-TVM_FRAME|1.6.1|ϟ₂₀ (TVM_FRAME) converts metric points into TVM frames with explicit not_computable handling.",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "ϟ₂₁",
+      "short_name": "LINGUISTIC_SOURCE_DISCOVER",
+      "svg_path": "sigils/ϟ₂₁_LINGUISTIC_SOURCE_DISCOVER.svg",
+      "sha256": "4fb9fa4df8539c99408fe69e77b135d1866246879eaf9dbb0e36f3390c70df73",
+      "seed_material": "ϟ₂₁|ABX-LINGUISTIC_SOURCE_DISCOVER|1.6.2|ϟ₂₁ (LINGUISTIC_SOURCE_DISCOVER) proposes linguistic sources from emergent tokens without automatic admission.",
       "width": 512,
       "height": 512
     }

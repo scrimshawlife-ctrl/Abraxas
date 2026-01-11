@@ -3,49 +3,58 @@ Shadow Detector Base Types.
 
 Defines the core types and interfaces for shadow detectors.
 All shadow detectors must be deterministic and include provenance.
+
+Canonical output contract:
+- ShadowResult: Normalized result shape for all shadow outputs
+- ShadowStatus: "ok" | "not_computable" | "error"
 """
 
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, Any, List, Optional, Literal
 from pydantic import BaseModel, Field
 from datetime import datetime
 import hashlib
 import json
 
 
-class DetectorStatus(str, Enum):
-    OK = "computed"
-    NOT_COMPUTABLE = "not_computable"
-    ERROR = "error"
+# Legacy status (for existing ShadowDetectorResult)
+DetectorStatus = Literal["computed", "not_computable", "error"]
+
+# Canonical status for normalized outputs
+ShadowStatus = Literal["ok", "not_computable", "error"]
 
 
-def clamp01(x: float) -> float:
-    try:
-        xf = float(x)
-    except Exception:
+@dataclass(frozen=True)
+class ShadowResult:
+    """
+    Canonical result shape for SHADOW detectors.
+
+    Observational only; does not influence prediction.
+    All shadow task outputs are normalized to this shape.
+
+    Attributes:
+        status: "ok" | "not_computable" | "error"
+        value: Payload (if ok)
+        missing: List of missing inputs (if not_computable)
+        error: Error message (if error)
+        provenance: Deterministic metadata for auditability
+    """
+
+    status: ShadowStatus
+    value: Optional[Any] = None
+    missing: List[str] = field(default_factory=list)
+    error: Optional[str] = None
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+
+def clamp01(value: float) -> float:
+    if value < 0.0:
         return 0.0
-    if xf <= 0.0:
-        return 0.0
-    if xf >= 1.0:
+    if value > 1.0:
         return 1.0
-    return xf
-
-
-class DetectorOutput(BaseModel):
-    """
-    Lightweight detector output used by `tests/test_shadow_detectors_*`.
-
-    Contract:
-      - `value` and all `subscores` are clamped to [0, 1]
-      - `missing_keys` is sorted for determinism
-      - `subscores` keys are sorted for determinism
-    """
-
-    status: DetectorStatus = Field(..., description="OK / NOT_COMPUTABLE / ERROR")
-    value: Optional[float] = Field(None, description="Main detector value in [0,1]")
-    subscores: Dict[str, float] = Field(default_factory=dict, description="Subscores in [0,1]")
-    missing_keys: List[str] = Field(default_factory=list, description="Sorted list of missing input keys")
-    bounds: Tuple[float, float] = Field(default=(0.0, 1.0), description="Output bounds")
+    return value
 
 
 class ShadowEvidence(BaseModel):

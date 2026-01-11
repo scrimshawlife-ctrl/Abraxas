@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/oracle_run_output.json",
+  "title": "Oracle V2 Run Output",
+  "description": "Output schema for oracle.v2.run capability",
+  "type": "object",
+  "properties": {
+    "oracle_output": {
+      "type": ["object", "null"],
+      "description": "Oracle processing results (null if not_computable)"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "required": ["timestamp_utc", "config_sha256", "inputs_sha256"],
+      "properties": {
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp with Z timezone"
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of configuration"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of inputs"
+        },
+        "repo_commit": {
+          "type": "string",
+          "description": "Git commit SHA"
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Deterministic seed used"
+        },
+        "operation_id": {
+          "type": "string",
+          "description": "Operation identifier"
+        }
+      }
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "description": "Present if inputs were insufficient to compute result",
+      "required": ["reason"],
+      "properties": {
+        "reason": {
+          "type": "string",
+          "description": "Explanation of why result could not be computed"
+        },
+        "missing_inputs": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of missing required inputs"
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["oracle_output", "provenance"],
+      "properties": {
+        "not_computable": {"type": "null"}
+      }
+    },
+    {
+      "required": ["not_computable"],
+      "properties": {
+        "oracle_output": {"type": "null"},
+        "provenance": {"type": "null"}
+      }
+    }
+  ]
+}

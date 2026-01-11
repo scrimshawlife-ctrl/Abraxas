@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build EvoGate Input",
+  "description": "Input schema for evolve.evogate.build capability",
+  "type": "object",
+  "required": ["run_id", "out_reports_dir", "staging_root_dir", "epp_path"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "out_reports_dir": {
+      "type": "string",
+      "description": "Directory for output reports"
+    },
+    "staging_root_dir": {
+      "type": "string",
+      "description": "Root directory for staging files"
+    },
+    "epp_path": {
+      "type": "string",
+      "description": "Path to EPP (Evolution Proposal Pack) JSON"
+    },
+    "base_policy_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to base policy JSON"
+    },
+    "baseline_metrics_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to baseline metrics JSON"
+    },
+    "replay_inputs_dir": {
+      "type": ["string", "null"],
+      "description": "Optional directory for replay inputs"
+    },
+    "replay_cmd": {
+      "type": ["string", "null"],
+      "description": "Optional override for ABRAXAS_REPLAY_CMD"
+    },
+    "thresholds": {
+      "type": ["object", "null"],
+      "description": "Optional thresholds (brier_max_delta, calibration_error_max_delta)",
+      "properties": {
+        "brier_max_delta": {"type": "number"},
+        "calibration_error_max_delta": {"type": "number"}
+      }
+    },
+    "ts": {
+      "type": ["string", "null"],
+      "description": "Optional timestamp override (ISO8601)"
+    }
+  },
+  "additionalProperties": false
+}

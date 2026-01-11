@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₄",
+  "short_name": "PORTFOLIO_SELECT",
+  "name": "ABX-PORTFOLIO_SELECT",
+  "layer": "Device",
+  "introduced_version": "1.7.4",
+  "function": "Select and apply active portfolio based on device profile.",
+  "inputs": ["run_ctx", "dry_run"],
+  "outputs": ["fingerprint", "selected_profile", "selected_portfolio_hash", "current_portfolio_hash", "changed"],
+  "constraints": ["no_auto_tune", "active_pointer_atomic"],
+  "canonical_statement": "ABX-PORTFOLIO_SELECT switches ACTIVE portfolio based on deterministic device selection."
+}

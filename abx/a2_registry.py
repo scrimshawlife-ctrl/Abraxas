@@ -4,8 +4,10 @@ import argparse
 import json
 import os
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
-from abraxas.memetic.registry import append_a2_terms_to_registry, compute_missed_terms
+# append_a2_terms_to_registry replaced by memetic.registry.append capability
+# compute_missed_terms replaced by memetic.registry.compute_missed capability
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _write_json(path: str, obj: object) -> None:
@@ -27,26 +29,54 @@ def main() -> int:
     p.add_argument("--resurrect-after-days", type=int, default=10)
     args = p.parse_args()
 
+    # Create context for capability invocations
+    run_id = args.run_id or "unknown"
+    ctx = RuneInvocationContext(
+        run_id=run_id,
+        subsystem_id="abx.a2_registry",
+        git_hash="unknown"
+    )
+
     if args.append:
-        append_a2_terms_to_registry(
-            a2_path=args.a2,
-            registry_path=args.registry,
-            source_run_id=args.run_id,
+        invoke_capability(
+            "memetic.registry.append",
+            {
+                "a2_path": args.a2,
+                "registry_path": args.registry,
+                "source_run_id": args.run_id
+            },
+            ctx=ctx,
+            strict_execution=True
         )
 
     if args.missed_report:
-        rep = compute_missed_terms(
-            a2_path=args.a2,
-            registry_path=args.registry,
-            resurrect_after_days=int(args.resurrect_after_days),
-        )
-        rep = enforce_non_truncation(
-            artifact=rep,
-            raw_full={
-                "missed": list(rep.get("missed") or []),
-                "resurrected": list(rep.get("resurrected") or []),
+        rep_result = invoke_capability(
+            "memetic.registry.compute_missed",
+            {
+                "a2_path": args.a2,
+                "registry_path": args.registry,
+                "resurrect_after_days": int(args.resurrect_after_days)
             },
+            ctx=ctx,
+            strict_execution=True
         )
+        rep = rep_result
+
+        # Enforce non-truncation policy via capability contract
+        result = invoke_capability(
+            capability="evolve.policy.enforce_non_truncation",
+            inputs={
+                "artifact": rep,
+                "raw_full": {
+                    "missed": list(rep.get("missed") or []),
+                    "resurrected": list(rep.get("resurrected") or []),
+                }
+            },
+            ctx=ctx,
+            strict_execution=True
+        )
+        rep = result["artifact"]
+
         rep["views"] = {
             "missed_top": list((rep.get("missed") or [])[:40]),
             "resurrected_top": list((rep.get("resurrected") or [])[:40]),

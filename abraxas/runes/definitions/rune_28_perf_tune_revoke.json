@@ -1,0 +1,16 @@
+{
+  "id": "ϟ₂₈",
+  "name": "Performance Tune Revoke",
+  "short_name": "PERF_TUNE_REVOKE",
+  "layer": "Tuning",
+  "motto": "Rollback is always an option.",
+  "function": "Reverts to previous ACTIVE tuning configuration. Creates backup before removal. Ensures safe rollback path for failed tuning experiments.",
+  "inputs": ["run_ctx"],
+  "outputs": ["revoked", "errors"],
+  "constraints": ["backup_required", "atomic_rollback"],
+  "hooks": ["emergency_rollback"],
+  "evidence_tier": "canonical",
+  "provenance_sources": ["Performance Tuning Plane v0.1 spec"],
+  "canonical_statement": "Rollback is always an option.",
+  "introduced_version": "1.0.0"
+}

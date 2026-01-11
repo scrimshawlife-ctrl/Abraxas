@@ -1,12 +1,9 @@
-"""
-MDA (Multi-Domain Analysis) practice-run engine.
+"""Minimal MDA sandbox helpers and wiring utilities."""
 
-This package is intentionally self-contained so it can be exercised in isolation
-from the rest of Abraxas while still emitting canonical output modes:
-- Oracle Log
-- Ritual Map
-- Analyst Console
-"""
+from __future__ import annotations
 
-__all__ = []
+__all__ = [
+    "run_mda",
+]
 
+from .run import run_mda

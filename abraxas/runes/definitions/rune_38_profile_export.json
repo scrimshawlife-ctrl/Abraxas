@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₈",
+  "short_name": "PROFILE_EXPORT",
+  "name": "ABX-PROFILE_EXPORT",
+  "layer": "Profile",
+  "introduced_version": "1.7.3",
+  "function": "Export ProfilePack to CAS and file outputs.",
+  "inputs": ["profile_pack", "out_path"],
+  "outputs": ["cas_ref", "out_path", "profile_hash"],
+  "constraints": ["deterministic_commit"],
+  "canonical_statement": "ABX-PROFILE_EXPORT stores ProfilePack artifacts deterministically."
+}

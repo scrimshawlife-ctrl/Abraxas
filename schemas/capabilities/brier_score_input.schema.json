@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/brier_score_input.json",
+  "title": "Brier Score Input",
+  "description": "Input schema for forecast.scoring.brier capability",
+  "type": "object",
+  "required": ["probs", "outcomes"],
+  "properties": {
+    "probs": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 1.0
+      },
+      "minItems": 1,
+      "description": "Predicted probabilities for binary outcomes (each value in [0, 1])"
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "enum": [0, 1]
+      },
+      "minItems": 1,
+      "description": "Actual binary outcomes (0 or 1)"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for brier score, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.scoring.brier",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

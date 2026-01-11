@@ -6,10 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from abraxas.evolve.non_truncation import enforce_non_truncation
-from abraxas.memetic.dmx import compute_dmx
-from abraxas.memetic.extract import build_mimetic_weather, extract_terms, read_oracle_texts
-from abraxas.evolve.ledger import append_chained_jsonl
+# compute_dmx, extract_terms, read_oracle_texts, build_mimetic_weather replaced by memetic.* capabilities
+from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def _utc_now_iso() -> str:
@@ -38,31 +37,75 @@ def main() -> int:
     p.add_argument("--value-ledger", default="out/value_ledgers/mwr_runs.jsonl")
     args = p.parse_args()
 
-    ts = _utc_now_iso()
-    docs: List[tuple[str, str]] = []
-    for path in args.oracle_paths:
-        docs.extend(read_oracle_texts(path))
+    # Create rune invocation context for capability calls
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
+    )
 
-    terms = extract_terms(docs, max_terms=int(args.max_terms))
-    units = build_mimetic_weather(args.run_id, terms, ts=ts)
-    dmx = compute_dmx(
-        sources=[],
-        signals=_extract_disinfo_signals(units),
-    ).to_dict()
+    ts = _utc_now_iso()
+    docs_list = []
+    for path in args.oracle_paths:
+        texts_result = invoke_capability(
+            "memetic.extract.read_oracle_texts",
+            {"path": path},
+            ctx=ctx,
+            strict_execution=True
+        )
+        docs_list.extend(texts_result["documents"])
+
+    terms_result = invoke_capability(
+        "memetic.extract.extract_terms",
+        {"documents": docs_list, "max_terms": int(args.max_terms)},
+        ctx=ctx,
+        strict_execution=True
+    )
+    terms = terms_result["term_candidates"]  # Already dicts
+
+    weather_result = invoke_capability(
+        "memetic.extract.build_mimetic_weather",
+        {"run_id": args.run_id, "term_candidates": terms, "ts": ts},
+        ctx=ctx,
+        strict_execution=True
+    )
+    units = weather_result["weather_units"]  # Already dicts
+
+    dmx_result = invoke_capability(
+        "memetic.dmx.compute",
+        {"sources": [], "signals": _extract_disinfo_signals(units)},
+        ctx=ctx,
+        strict_execution=True
+    )
+    dmx = dmx_result["dmx"]
 
     a2 = {
         "version": "a2_terms.v0.1",
         "run_id": args.run_id,
         "ts": ts,
-        "terms": [t.to_dict() for t in terms],
+        "terms": terms,  # Already dicts
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths)},
     }
-    a2 = enforce_non_truncation(
-        artifact=a2,
-        raw_full={"terms": [t.to_dict() for t in terms]},
+
+    # Enforce non-truncation policy for a2 artifact
+    ctx_a2 = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
     )
-    a2["views"] = {"top_terms": [t.to_dict() for t in terms[:25]]}
+    result_a2 = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": a2,
+            "raw_full": {"terms": terms}  # Already dicts
+        },
+        ctx=ctx_a2,
+        strict_execution=True
+    )
+    a2 = result_a2["artifact"]
+
+    a2["views"] = {"top_terms": terms[:25]}  # Already dicts
     a2_json = os.path.join(args.out_dir, f"a2_{args.run_id}.json")
     a2_md = os.path.join(args.out_dir, f"a2_{args.run_id}.md")
     _write_json(a2_json, a2)
@@ -73,25 +116,39 @@ def main() -> int:
         f.write("## Top term candidates\n")
         for term in terms[:25]:
             f.write(
-                f"- **{term.term}** count={term.count} vel/day={term.velocity_per_day:.2f} "
-                f"novelty={term.novelty_score:.2f} prop={term.propagation_score:.2f} "
-                f"risk={term.manipulation_risk:.2f} tags={term.tags}\n"
+                f"- **{term['term']}** count={term['count']} vel/day={term['velocity_per_day']:.2f} "
+                f"novelty={term['novelty_score']:.2f} prop={term['propagation_score']:.2f} "
+                f"risk={term['manipulation_risk']:.2f} tags={term['tags']}\n"
             )
 
     mwr = {
         "version": "mimetic_weather.v0.1",
         "run_id": args.run_id,
         "ts": ts,
-        "units": [u.to_dict() for u in units],
+        "units": units,
         "dmx": dmx,
         "provenance": {"oracle_paths": list(args.oracle_paths), "a2_terms": a2_json},
     }
-    mwr = enforce_non_truncation(
-        artifact=mwr,
-        raw_full={"units": [u.to_dict() for u in units]},
+
+    # Enforce non-truncation policy for mwr artifact
+    ctx_mwr = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
     )
+    result_mwr = invoke_capability(
+        capability="evolve.policy.enforce_non_truncation",
+        inputs={
+            "artifact": mwr,
+            "raw_full": {"units": units}
+        },
+        ctx=ctx_mwr,
+        strict_execution=True
+    )
+    mwr = result_mwr["artifact"]
+
     mwr["views"] = {
-        "top_units": [u.to_dict() for u in units[:8]],
+        "top_units": units[:8],
     }
     mwr_json = os.path.join(args.out_dir, f"mwr_{args.run_id}.json")
     mwr_md = os.path.join(args.out_dir, f"mwr_{args.run_id}.md")
@@ -102,21 +159,32 @@ def main() -> int:
         f.write("## Weather fronts\n")
         for unit in units:
             f.write(
-                f"- **{unit.label}** intensity={unit.intensity:.2f} dir={unit.direction} "
-                f"conf={unit.confidence:.2f} horizon={unit.horizon_tags} "
-                f"disinfo={unit.disinfo_metrics}\n"
+                f"- **{unit['label']}** intensity={unit['intensity']:.2f} dir={unit['direction']} "
+                f"conf={unit['confidence']:.2f} horizon={unit['horizon_tags']} "
+                f"disinfo={unit['disinfo_metrics']}\n"
             )
-            if unit.supporting_terms:
-                f.write(f"  - terms: {', '.join(unit.supporting_terms[:12])}\n")
+            if unit['supporting_terms']:
+                f.write(f"  - terms: {', '.join(unit['supporting_terms'][:12])}\n")
 
-    append_chained_jsonl(
-        args.value_ledger,
-        {
-            "run_id": args.run_id,
-            "mwr_json": mwr_json,
-            "a2_json": a2_json,
-            "oracle_paths": list(args.oracle_paths),
+    # Append to value ledger via capability contract
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.mwr",
+        git_hash="unknown"
+    )
+    invoke_capability(
+        capability="evolve.ledger.append",
+        inputs={
+            "ledger_path": args.value_ledger,
+            "record": {
+                "run_id": args.run_id,
+                "mwr_json": mwr_json,
+                "a2_json": a2_json,
+                "oracle_paths": list(args.oracle_paths),
+            }
         },
+        ctx=ctx,
+        strict_execution=True
     )
     print(f"[A2] wrote: {a2_json}")
     print(f"[A2] wrote: {a2_md}")
@@ -128,12 +196,12 @@ def main() -> int:
 def _extract_disinfo_signals(units: List[Any]) -> Dict[str, Any]:
     disinfo_unit = None
     for unit in units:
-        if getattr(unit, "label", None) == "disinfo_fog":
+        if unit.get("label") == "disinfo_fog":
             disinfo_unit = unit
             break
     if not disinfo_unit:
         return {"ai_markers": 0.0, "bot_markers": 0.0, "incentive_markers": 0.0, "forensics_flags": 0}
-    metrics = getattr(disinfo_unit, "disinfo_metrics", {}) or {}
+    metrics = disinfo_unit.get("disinfo_metrics") or {}
     ai_markers = float(metrics.get("deepfake_pollution_risk") or 0.0)
     bot_markers = float(metrics.get("manipulation_risk_mean") or 0.0)
     return {

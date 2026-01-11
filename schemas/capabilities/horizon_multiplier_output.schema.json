@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Horizon Multiplier Output",
+  "description": "Output schema for forecast.uncertainty.horizon_multiplier capability",
+  "type": "object",
+  "required": ["multiplier", "provenance", "not_computable"],
+  "properties": {
+    "multiplier": {
+      "type": "number",
+      "description": "Uncertainty multiplier for the given horizon",
+      "minimum": 1.0
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "forecast.uncertainty.horizon_multiplier"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - multiplier calculation never fails"
+    }
+  },
+  "additionalProperties": false
+}

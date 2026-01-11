@@ -5,6 +5,39 @@ All notable changes to the Abraxas project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-01-04
+
+### Added
+- **Seal Release Pack**: Complete release validation infrastructure
+  - `VERSION` file (single-line version)
+  - `abx_versions.json` (machine-readable component versions)
+  - `scripts/seal_release.py` - Deterministic seal script that:
+    - Runs seal tick into `./artifacts_seal`
+    - Validates artifacts against schemas
+    - Runs dozen-run gate into `./artifacts_gate`
+    - Writes `SealReport.v0` JSON with provenance
+  - `scripts/validate_artifacts.py` - Artifact validator CLI
+  - `Makefile` with `seal` and `validate` targets
+- **JSON Schemas** (`schemas/*.schema.json`):
+  - `runindex.v0.schema.json`
+  - `runheader.v0.schema.json`
+  - `trendpack.v0.schema.json`
+  - `resultspack.v0.schema.json`
+  - `viewpack.v0.schema.json`
+  - `policysnapshot.v0.schema.json`
+  - `runstability.v0.schema.json`
+  - `stabilityref.v0.schema.json`
+  - `sealreport.v0.schema.json`
+- **SealReport.v0**: New artifact schema for release validation results
+
+### Changed
+- Updated `docs/artifacts/SCHEMA_INDEX.md` with schemas directory and validation tooling
+
+### Fixed
+- None
+
+---
+
 ## [Unreleased]
 
 ### Added - Shadow Detectors v0.1 (2025-12-29)

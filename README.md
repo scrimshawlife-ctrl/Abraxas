@@ -25,6 +25,26 @@
 
 Think of it as a **weather system for language** — detecting when symbols compress ("eggcorns" like "apex twin" → "aphex twin"), tracking affective drift, and generating deterministic provenance for every linguistic event.
 
+### At a Glance
+
+- **Deterministic by design** — every output is reproducible with SHA-256 provenance
+- **Dual-lane architecture** — prediction and diagnostics stay strictly separated
+- **Edge-ready** — optimized for Jetson Orin with systemd and atomic updates
+- **Full-stack** — Python SCO/ECO core + TypeScript orchestration + UI tooling
+
+### Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Dual-Lane Architecture](#-dual-lane-architecture)
+- [Features](#-features)
+- [Project Status](#-project-status)
+- [Documentation](#-documentation)
+- [Configuration](#-configuration)
+- [Testing](#-testing)
+- [Contributing](#-contributing)
+- [License](#-license)
+
 ### Core Capabilities
 
 - **🔬 Symbolic Compression Detection (SCO/ECO)** — Detect and quantify when opaque symbols are replaced with semantically transparent substitutes
@@ -41,12 +61,9 @@ Think of it as a **weather system for language** — detecting when symbols comp
 
 ### Prerequisites
 
-```bash
-# System requirements
 - Python 3.11+
 - Node.js 18+
 - (Optional) NVIDIA Jetson Orin for edge deployment
-```
 
 ### Installation
 
@@ -58,11 +75,20 @@ cd Abraxas
 # Install Python dependencies
 pip install -e .
 
+# Install LENS optional dependencies
+pip install -e ".[lens]"
+
 # Install Node.js dependencies
 npm install
 
 # Run system diagnostic
 abx doctor
+
+# Check optional deps for LENS
+abx diag deps
+
+# Overlay contract
+cat docs/overlay_contract.md
 ```
 
 ### Run Your First Analysis
@@ -98,6 +124,43 @@ pytest tests/
 ## 🏗️ Architecture
 
 Abraxas operates as a **multi-layer stack** combining Python linguistic analysis with TypeScript orchestration:
+
+### ABX-Runes Coupling Architecture
+
+**CRITICAL DESIGN PRINCIPLE**: All cross-subsystem communication flows through ABX-Runes capability contracts.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  ABX Runtime Layer                       │
+│                                                          │
+│   ✅ Uses: abraxas.runes.capabilities                   │
+│   ✅ invoke_capability("oracle.v2.run", inputs, ctx)    │
+│   ❌ Never: from abraxas.oracle import run_oracle       │
+└──────────────────┬───────────────────────────────────────┘
+                   │
+          ABX-Runes Capability Contract
+          (JSON Schema + Provenance Envelope)
+                   │
+┌──────────────────▼───────────────────────────────────────┐
+│              ABRAXAS Core Engine                         │
+│                                                          │
+│   Rune Adapters expose capabilities:                    │
+│   • oracle.v2.run         - Oracle pipeline             │
+│   • memetic.profiles      - Temporal analysis           │
+│   • forecast.classify     - Forecast classification     │
+│   • evidence.load         - Evidence bundles            │
+│   • ... (20+ capabilities planned)                      │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- ✅ **Determinism**: All inputs/outputs validated against JSON schemas
+- ✅ **Provenance**: Every invocation tracked with SHA-256 hashes
+- ✅ **Testability**: Subsystems can be tested independently
+- ✅ **Deployability**: Enables multi-process architecture
+- ✅ **Governance**: Policy enforcement at capability boundary
+
+### System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -553,6 +616,21 @@ Abraxas implements a **dual-lane architecture** (see [Dual-Lane Architecture](#-
    - **Active forecasting** — generates predictions and narratives
 
 **Philosophy**: Shadow lane describes *what is happening psychologically*, prediction lane forecasts *what comes next symbolically*. Lane Guard ensures these never interfere. See `docs/specs/dual_lane_architecture.md` for full specification.
+
+---
+
+### 🧭 TVM Oracle Skeleton + Influence/Synchronicity (Canonical)
+
+**Canonical flow (shadow-only by default):**
+Sources → Metrics (Shadow) → **TVM Vector Framing (V1–V15)** → **ABX-INFLUENCE_DETECT (ICS)** → **ABX-INFLUENCE_WEIGHT** → **ABX-SYNCHRONICITY_MAP (SE)** → MDA Domain Graph → Oracle Output
+
+**Non-exclusionary intake**: symbolic domains (astrology, numerology, geomagnetic, Schumann, etc.) are accepted equally when structured inputs exist; no domain legitimacy priors are allowed.
+
+**Seed baseline**: deterministic 2025 year-in-review seed packs provide historical substrate for influence/synchronicity calibration.
+
+```bash
+abraxas seed --year 2025 --out data/year_seed/2025/seedpack.v0.1.json
+```
 
 ---
 

@@ -1,0 +1,36 @@
+{
+  "id": "ϟ₂₀",
+  "name": "ABX-TVM_FRAME",
+  "short_name": "TVM_FRAME",
+  "layer": "Validation",
+  "motto": "Frame vectors without speculation.",
+  "function": "Composes TVM frames from metric points using deterministic vector composers.",
+  "inputs": [
+    "metrics: List of MetricPoint payloads",
+    "window_start_utc: ISO start",
+    "window_end_utc: ISO end"
+  ],
+  "outputs": [
+    "frames: List of TVMFrame payloads",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No causal assertions"
+  ],
+  "hooks": [
+    "pre_compute: validate_metrics",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "TVM schema v0.1"
+  ],
+  "canonical_statement": "ϟ₂₀ (TVM_FRAME) converts metric points into TVM frames with explicit not_computable handling.",
+  "introduced_version": "1.6.1",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true
+  }
+}

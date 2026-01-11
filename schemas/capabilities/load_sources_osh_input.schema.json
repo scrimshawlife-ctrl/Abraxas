@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Load Sources from OSH Input",
+  "description": "Input schema for memetic.claims_sources.load capability - loads source data from OSH ledger",
+  "type": "object",
+  "required": ["osh_ledger_path"],
+  "properties": {
+    "osh_ledger_path": {
+      "type": "string",
+      "description": "Path to OSH (Open Source Harvest) ledger JSONL file",
+      "minLength": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

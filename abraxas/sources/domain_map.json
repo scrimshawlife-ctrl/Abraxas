@@ -1,0 +1,12 @@
+{
+  "LINGUISTIC_WEEKLY": "culture_memes",
+  "LINGUISTIC_ORACLE_SAMPLE": "culture_memes",
+  "GOV_POLICY_LOG": "geopolitics",
+  "GOV_INTERNAL_GOVLOG": "geopolitics",
+  "ECON_SYNTH_WEEKLY": "finance",
+  "NOAA_SWPC_PLANETARY_KP": "tech_ai",
+  "NOAA_NCEI_CDO_V2": "climate_energy",
+  "NASA_JPL_HORIZONS_EPHEM": "wildcards",
+  "TOMSK_SOS_SCHUMANN": "wildcards",
+  "IANA_TZDB": "wildcards"
+}

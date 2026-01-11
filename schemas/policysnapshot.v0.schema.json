@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/policysnapshot.v0.schema.json",
+  "title": "PolicySnapshot.v0",
+  "description": "Immutable snapshot of a policy file, hashed and referenced by PolicyRef",
+  "type": "object",
+  "required": ["schema", "policy", "present"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "PolicySnapshot.v0"
+    },
+    "policy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "present": {
+      "type": "boolean"
+    },
+    "source_path": {
+      "type": "string"
+    },
+    "source_path_pattern": {
+      "type": "string"
+    },
+    "policy_obj": {
+      "type": ["object", "null"]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,35 @@
+{
+  "id": "ϟ₁₆",
+  "name": "ABX-SOURCE_REDUNDANCY_CHECK",
+  "short_name": "SOURCE_REDUNDANCY_CHECK",
+  "layer": "Governance",
+  "motto": "Detect overlap without dismissal.",
+  "function": "Computes overlap metrics for SourceAtlas records to flag redundancy without excluding any domain.",
+  "inputs": [
+    "sources: List of SourceAtlas records"
+  ],
+  "outputs": [
+    "overlaps: Pairwise overlap metrics",
+    "provenance: Deterministic provenance bundle"
+  ],
+  "constraints": [
+    "Shadow-only output",
+    "Deterministic computation",
+    "No domain priors"
+  ],
+  "hooks": [
+    "pre_compute: validate_sources",
+    "post_compute: attach_provenance"
+  ],
+  "evidence_tier": "canonical",
+  "provenance_sources": [
+    "SourceAtlas v0.1"
+  ],
+  "canonical_statement": "ϟ₁₆ (SOURCE_REDUNDANCY_CHECK) detects overlap without gating or excluding any domain.",
+  "introduced_version": "1.6.0",
+  "metadata": {
+    "shadow_only": true,
+    "seed_compliant": true,
+    "no_domain_prior": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₃₄",
+  "short_name": "SERIAL_COMMIT",
+  "name": "ABX-SERIAL_COMMIT",
+  "layer": "Runtime",
+  "introduced_version": "1.7.2",
+  "function": "Commit stage results in deterministic order.",
+  "inputs": ["results"],
+  "outputs": ["committed", "count"],
+  "constraints": ["deterministic_commit"],
+  "canonical_statement": "ABX-SERIAL_COMMIT serializes commit of results in deterministic order."
+}

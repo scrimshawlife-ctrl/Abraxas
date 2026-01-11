@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/sealreport.v0.schema.json",
+  "title": "SealReport.v0",
+  "description": "Seal release report with validation and gate results",
+  "type": "object",
+  "required": ["schema", "version", "version_pack", "seal_tick_artifacts", "validation_result", "dozen_gate_result", "ok"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "SealReport.v0"
+    },
+    "version": {
+      "type": "string"
+    },
+    "version_pack": {
+      "type": "object"
+    },
+    "seal_tick_artifacts": {
+      "type": "object",
+      "properties": {
+        "trendpack": { "type": "string" },
+        "trendpack_sha256": { "type": "string" },
+        "results_pack": { "type": "string" },
+        "results_pack_sha256": { "type": "string" },
+        "runindex": { "type": "string" },
+        "runindex_sha256": { "type": "string" },
+        "viewpack": { "type": "string" },
+        "viewpack_sha256": { "type": "string" },
+        "run_header": { "type": "string" },
+        "run_header_sha256": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_result": {
+      "type": "object",
+      "properties": {
+        "ok": { "type": "boolean" },
+        "validated_ticks": { "type": "array" },
+        "failures": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "dozen_gate_result": {
+      "type": "object",
+      "properties": {
+        "ok": { "type": "boolean" },
+        "expected_trendpack_sha256": { "type": "string" },
+        "expected_runheader_sha256": { "type": ["string", "null"] },
+        "first_mismatch_run": { "type": ["integer", "null"] },
+        "divergence_kind": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "ok": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

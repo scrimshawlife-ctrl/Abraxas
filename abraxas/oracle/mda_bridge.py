@@ -1,43 +1,71 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Sequence, Tuple
+from typing import Any, Dict, Optional
 
-from abraxas.mda.adapters.router import AdapterRouter
-from abraxas.mda.registry import DomainRegistryV1
-from abraxas.mda.run import run_mda
-from abraxas.mda.types import MDARunEnvelope
+from abraxas.mda.source_flow import run_source_shadow_flow
+from abraxas.mda.tvm_flow import run_tvm_shadow_flow
+from abraxas.oracle.attachments_registry import ATTACHMENT_BUILDERS
+
+
+def _attach_aalmanac_shadow(payload: Optional[Dict[str, Any]], out: Dict[str, Any]) -> None:
+    if not isinstance(payload, dict):
+        return
+
+    spec = ATTACHMENT_BUILDERS.get("aalmanac_v1")
+    if not spec:
+        return
+
+    extracted_terms = payload.get("extracted_terms")
+    if isinstance(extracted_terms, dict):
+        raw_terms = extracted_terms.get("aalmanac_terms", [])
+        seed_inputs: Dict[str, Any] = {"payload": payload, "extracted_terms": extracted_terms}
+    else:
+        raw_terms = payload.get("aalmanac_terms", [])
+        seed_inputs = payload
+
+    if not isinstance(raw_terms, list) or not raw_terms:
+        return
+
+    attachment = spec["builder"](seed_inputs=seed_inputs, raw_terms=raw_terms, cfg=spec["config"])
+    shadow = out.get("shadow") if isinstance(out.get("shadow"), dict) else {}
+    shadow["aalmanac_v1"] = attachment
+    out["shadow"] = shadow
 
 
 def run_mda_for_oracle(
+    payload: Optional[Dict[str, Any]],
     *,
     env: str,
-    run_at_iso: str,
-    seed: int,
-    abraxas_version: str,
-    domains: Sequence[str],
-    subdomains: Sequence[str],
-    payload: Dict[str, Any],
+    run_at: str,
 ) -> Dict[str, Any]:
     """
-    Oracle bridge for MDA: deterministic, pure call path.
+    Minimal MDA bridge for batch packaging.
 
-    This is intentionally thin: it uses the same adapter router and `run_mda`
-    entrypoint as the CLI-equivalent direct path.
+    This produces an MDA-like output shell with optional shadow attachment
+    from the payload (if present). It is deterministic for stable inputs.
     """
-    registry = DomainRegistryV1()
-    router = AdapterRouter()
-    adapted = router.adapt(payload, registry=registry)
+    envelope = {
+        "env": env,
+        "run_at": run_at,
+    }
+    out: Dict[str, Any] = {
+        "envelope": envelope,
+        "domain_aggregates": {},
+        "dsp": [],
+        "fusion_graph": {},
+    }
+    if isinstance(payload, dict) and isinstance(payload.get("shadow"), dict):
+        out["shadow"] = payload.get("shadow")
 
-    inputs = {"vectors": adapted.vectors, "adapter_notes": adapted.notes}
-    envelope = MDARunEnvelope(
-        env=str(env),
-        run_at_iso=str(run_at_iso),
-        seed=int(seed),
-        promotion_enabled=False,
-        enabled_domains=tuple(str(d) for d in domains),
-        enabled_subdomains=tuple(str(s) for s in subdomains),
-        inputs=inputs,
-    )
-    _, out = run_mda(envelope, abraxas_version=str(abraxas_version), registry=registry)
+    observations = None
+    if isinstance(payload, dict):
+        observations = payload.get("observations")
+    source_flow = run_source_shadow_flow(env=envelope, subsystem_id="mda_bridge")
+    shadow_flow = run_tvm_shadow_flow(observations=observations, env=envelope, subsystem_id="mda_bridge")
+    out["shadow"] = {**(out.get("shadow") or {}), **source_flow["shadow"], **shadow_flow["shadow"]}
+    out["tvm_frames"] = shadow_flow["tvm_frames"]
+    out["envelope"]["mda_run_id"] = shadow_flow["run_id"]
+    out["envelope"]["source_run_id"] = source_flow["run_id"]
+    _attach_aalmanac_shadow(payload, out)
+
     return out
-

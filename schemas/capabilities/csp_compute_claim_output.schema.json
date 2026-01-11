@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compute Claim CSP Output",
+  "description": "Output schema for conspiracy.csp.compute_claim capability",
+  "type": "object",
+  "required": ["claim_csp", "provenance", "not_computable"],
+  "properties": {
+    "claim_csp": {
+      "type": "object",
+      "description": "Conspiracy Susceptibility Profile for claim",
+      "properties": {
+        "COH": {
+          "type": "boolean",
+          "description": "Coordination Hypothesis flag (detected via heuristics)"
+        },
+        "EA": {
+          "type": "number",
+          "description": "Evidence Adequacy [0, 1]",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "CIP": {
+          "type": "number",
+          "description": "Conspiracy Implication Probability [0, 1]",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "MIO": {
+          "type": "number",
+          "description": "Manipulation Impact Opacity [0, 1]",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "FF": {
+          "type": "number",
+          "description": "Falsifiability / Fork resistance [0, 1]",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "tag": {
+          "type": "string",
+          "description": "CSP tag (e.g., LOW_RISK, ELEVATED, HIGH_RISK)",
+          "enum": ["LOW_RISK", "ELEVATED", "HIGH_RISK", "CRITICAL"]
+        },
+        "flags": {
+          "type": "array",
+          "description": "List of CSP computation flags",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "conspiracy.csp.compute_claim"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - CSP computation never fails, returns default values on error"
+    }
+  },
+  "additionalProperties": false
+}

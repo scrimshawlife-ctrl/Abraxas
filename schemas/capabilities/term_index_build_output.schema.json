@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Term Index Output",
+  "description": "Output schema for memetic.term_index.build capability",
+  "type": "object",
+  "required": ["term_index", "provenance", "not_computable"],
+  "properties": {
+    "term_index": {
+      "type": "object",
+      "description": "Term → metrics index (lowercase term keys)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "manipulation_risk": {
+            "type": ["number", "null"],
+            "description": "Manipulation risk score [0, 1]"
+          },
+          "attribution_strength": {
+            "type": ["number", "null"],
+            "description": "Attribution strength score [0, 1]"
+          },
+          "source_diversity": {
+            "type": ["number", "null"],
+            "description": "Source diversity score [0, 1]"
+          },
+          "consensus_gap": {
+            "type": ["number", "null"],
+            "description": "Consensus gap score [0, 1]"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.term_index.build"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - term index building never fails, returns empty dict on error"
+    }
+  },
+  "additionalProperties": false
+}

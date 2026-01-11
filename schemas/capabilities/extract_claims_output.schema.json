@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Extract Claim Items Output",
+  "description": "Output schema for memetic.claim_extract.extract capability",
+  "type": "object",
+  "required": ["items", "provenance", "not_computable"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "List of extracted claim items",
+      "items": {
+        "type": "object",
+        "description": "Claim item with run_id, source_i, claim_i, domain, url, type, claim",
+        "required": ["run_id", "source_i", "claim_i", "domain", "url", "type", "claim"],
+        "properties": {
+          "run_id": {"type": "string"},
+          "source_i": {"type": "integer"},
+          "claim_i": {"type": "integer"},
+          "domain": {"type": "string"},
+          "url": {"type": "string"},
+          "type": {"type": "string"},
+          "claim": {"type": "string"}
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.claim_extract.extract"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - claim extraction never fails, returns empty list on error"
+    }
+  },
+  "additionalProperties": false
+}

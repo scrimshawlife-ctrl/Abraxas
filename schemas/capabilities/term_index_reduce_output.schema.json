@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reduce Weighted Metrics Output",
+  "description": "Output schema for memetic.term_index.reduce capability",
+  "type": "object",
+  "required": ["weighted_metrics", "provenance", "not_computable"],
+  "properties": {
+    "weighted_metrics": {
+      "type": "object",
+      "description": "Aggregated metrics across matched terms",
+      "required": [
+        "manipulation_risk_mean",
+        "attribution_strength_mean",
+        "source_diversity_mean",
+        "consensus_gap_mean",
+        "matched_terms"
+      ],
+      "properties": {
+        "manipulation_risk_mean": {
+          "type": "number",
+          "description": "Mean manipulation risk across matched terms"
+        },
+        "attribution_strength_mean": {
+          "type": "number",
+          "description": "Mean attribution strength across matched terms"
+        },
+        "source_diversity_mean": {
+          "type": "number",
+          "description": "Mean source diversity across matched terms"
+        },
+        "consensus_gap_mean": {
+          "type": "number",
+          "description": "Mean consensus gap across matched terms"
+        },
+        "manipulation_risk_count": {
+          "type": "number",
+          "description": "Number of terms with risk values"
+        },
+        "attribution_strength_count": {
+          "type": "number",
+          "description": "Number of terms with attribution values"
+        },
+        "source_diversity_count": {
+          "type": "number",
+          "description": "Number of terms with diversity values"
+        },
+        "consensus_gap_count": {
+          "type": "number",
+          "description": "Number of terms with consensus gap values"
+        },
+        "matched_terms": {
+          "type": "number",
+          "description": "Number of terms matched in index"
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "description": "Provenance envelope with SHA-256 hash",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "memetic.term_index.reduce"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - metric reduction never fails, returns zeros if no matches"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/proof_bundle_input.json",
+  "title": "Proof Bundle Input",
+  "description": "Input schema for artifacts.proof_bundle.generate capability",
+  "type": "object",
+  "required": ["run_id", "artifacts"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "bundle_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ledger_pointer": {
+      "type": "object"
+    },
+    "ts": {
+      "type": ["string", "null"]
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "artifacts.proof_bundle.generate",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

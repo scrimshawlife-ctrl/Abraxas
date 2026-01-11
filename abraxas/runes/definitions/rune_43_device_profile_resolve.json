@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₄₃",
+  "short_name": "DEVICE_PROFILE_RESOLVE",
+  "name": "ABX-DEVICE_PROFILE_RESOLVE",
+  "layer": "Device",
+  "introduced_version": "1.7.4",
+  "function": "Resolve device profile from fingerprint deterministically.",
+  "inputs": ["fingerprint"],
+  "outputs": ["selected_profile", "profile_id"],
+  "constraints": ["deterministic_order"],
+  "canonical_statement": "ABX-DEVICE_PROFILE_RESOLVE chooses the most specific matching device profile."
+}

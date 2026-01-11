@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compute Claim CSP Input",
+  "description": "Input schema for conspiracy.csp.compute_claim capability - computes Conspiracy Susceptibility Profile for claims",
+  "type": "object",
+  "required": ["claim_text", "term_csp"],
+  "properties": {
+    "claim_text": {
+      "type": "string",
+      "description": "Claim text to analyze for CSP computation"
+    },
+    "term_csp": {
+      "type": "object",
+      "description": "Base term-level CSP (from compute_term_csp or empty dict)",
+      "additionalProperties": true
+    },
+    "evidence_support_weight": {
+      "type": "number",
+      "description": "Evidence support weight bonus [0, 1] (default: 0.0)",
+      "default": 0.0,
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ϟ₂₈",
+  "short_name": "LIFECYCLE_PLAN",
+  "name": "ABX-LIFECYCLE_PLAN",
+  "layer": "Storage",
+  "introduced_version": "1.7.1",
+  "function": "Plan compaction and eviction steps under lifecycle IR.",
+  "inputs": ["index_path", "now_utc", "allow_raw_delete"],
+  "outputs": ["plan", "ir_hash"],
+  "constraints": ["deterministic_order"],
+  "canonical_statement": "ABX-LIFECYCLE_PLAN produces deterministic compaction and eviction plans."
+}

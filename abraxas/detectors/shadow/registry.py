@@ -2,22 +2,24 @@
 Shadow Detector Registry.
 
 Centralized registry of all shadow detectors with deterministic execution.
-Provides `compute_all_detectors()` function to run all detectors and
-aggregate evidence.
+
+Canonical exports:
+- get_shadow_tasks(ctx) -> Dict[str, Callable] — for pipeline bindings
+- compute_all_detectors(inputs) -> Dict[str, ShadowDetectorResult]
+- aggregate_evidence(results) -> Dict[str, Any]
 """
 
-from typing import Any, Dict, Optional
+from __future__ import annotations
 
-from abraxas.detectors.shadow.types import DetectorOutput, ShadowDetectorResult
+from typing import Any, Callable, Dict, List
+
+from abraxas.detectors.shadow.types import ShadowDetectorResult
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
-from abraxas.detectors.shadow import compliance_remix
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
-from abraxas.detectors.shadow import meta_awareness
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
-from abraxas.detectors.shadow import negative_space
 
 
-# Global detector registry
+# Global detector registry (for compute_all_detectors and legacy access)
 DETECTOR_REGISTRY = {
     "compliance_remix": ComplianceRemixDetector(),
     "meta_awareness": MetaAwarenessDetector(),
@@ -25,19 +27,36 @@ DETECTOR_REGISTRY = {
 }
 
 
-def compute_all_detectors(
-    context: Dict[str, Any],
-    history: Optional[list] = None,
-) -> Dict[str, Any]:
+def get_shadow_tasks(_ctx: Dict[str, Any]) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+    """
+    Canonical shadow task provider for pipeline bindings.
+
+    Returns dict[name -> callable(context)->Any].
+
+    Deterministic discovery:
+    - Imports from registry_impl (the single source of truth)
+    - If registry_impl not found, returns {} (shadow lane is optional)
+    - Never fails silently with placeholder data
+    """
+    try:
+        from abraxas.detectors.shadow.registry_impl import build_shadow_task_map
+
+        return build_shadow_task_map()
+    except ImportError:
+        # Shadow lane is optional — empty is valid and deterministic
+        return {}
+
+
+def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorResult]:
     """
     Run all shadow detectors on inputs.
 
-    This function supports two call signatures:
-      - `compute_all_detectors(context)` -> class-based detect() results (ShadowDetectorResult)
-      - `compute_all_detectors(context, history)` -> test-facing compute_detector() results (DetectorOutput)
+    Args:
+        inputs: Dictionary of input data. Each detector will extract
+                what it needs from this dict.
 
     Returns:
-        Dict mapping detector_name -> result model
+        Dict mapping detector_name -> ShadowDetectorResult
 
     Example:
         inputs = {
@@ -47,33 +66,15 @@ def compute_all_detectors(
         }
         results = compute_all_detectors(inputs)
     """
-    if history is not None:
-        # Test-facing deterministic API (context + optional history)
-        return {
-            "compliance_remix": compliance_remix.compute_detector(context),
-            "meta_awareness": meta_awareness.compute_detector(context),
-            "negative_space": negative_space.compute_detector(context, history),
-        }
+    results = {}
 
-    results: Dict[str, ShadowDetectorResult] = {}
+    # Run each detector in deterministic order (sorted by name)
     for detector_name in sorted(DETECTOR_REGISTRY.keys()):
         detector = DETECTOR_REGISTRY[detector_name]
-        results[detector_name] = detector.detect(context)
+        result = detector.detect(inputs)
+        results[detector_name] = result
+
     return results
-
-
-def serialize_detector_results(results: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Deterministic serialization for test comparisons.
-    """
-    out: Dict[str, Any] = {}
-    for k in sorted(results.keys()):
-        v = results[k]
-        if hasattr(v, "model_dump"):
-            out[k] = v.model_dump()
-        else:
-            out[k] = v
-    return out
 
 
 def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:
@@ -127,3 +128,17 @@ def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, An
         "max_signal_strength": max_signal,
         "provenance_hashes": provenance_hashes,
     }
+
+
+def serialize_detector_results(results: Dict[str, ShadowDetectorResult]) -> Dict[str, Any]:
+    """Serialize detector results to dicts."""
+    return {name: result.model_dump() for name, result in results.items()}
+
+
+__all__ = [
+    "DETECTOR_REGISTRY",
+    "get_shadow_tasks",
+    "compute_all_detectors",
+    "aggregate_evidence",
+    "serialize_detector_results",
+]

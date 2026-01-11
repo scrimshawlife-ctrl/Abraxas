@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build DAP Input",
+  "description": "Input schema for acquire.dap.build capability",
+  "type": "object",
+  "required": ["run_id", "out_dir", "playbook_path"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "out_dir": {
+      "type": "string",
+      "description": "Output directory for DAP artifacts"
+    },
+    "playbook_path": {
+      "type": "string",
+      "description": "Path to acquisition playbook YAML"
+    },
+    "forecast_scores_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to forecast scores JSON"
+    },
+    "regime_scores_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to regime scores JSON"
+    },
+    "component_scores_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to component scores JSON"
+    },
+    "drift_report_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to drift report JSON"
+    },
+    "smv_report_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to SMV report JSON"
+    },
+    "integrity_snapshot_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to integrity snapshot JSON"
+    },
+    "ts": {
+      "type": ["string", "null"],
+      "description": "Optional timestamp override (ISO8601)"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional seed for SEED compliance"
+    }
+  },
+  "additionalProperties": false
+}

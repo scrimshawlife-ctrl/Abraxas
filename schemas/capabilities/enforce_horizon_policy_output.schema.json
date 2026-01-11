@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forecast Enforce Horizon Policy Output",
+  "description": "Output schema for forecast.horizon_policy.enforce capability",
+  "type": "object",
+  "required": ["flags", "shadow_horizon", "provenance", "not_computable"],
+  "properties": {
+    "flags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Flags to apply to prediction (e.g., HORIZON_EXCEEDS_GATE)"
+    },
+    "shadow_horizon": {
+      "type": ["string", "null"],
+      "description": "Shadow horizon to emit (null if no violation or emit_shadow=false)"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "forecast.horizon_policy.enforce"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null - enforcement never fails"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build Term Index Input",
+  "description": "Input schema for memetic.term_index.build capability - builds term → metrics index from A2 phase artifact",
+  "type": "object",
+  "required": ["a2_phase"],
+  "properties": {
+    "a2_phase": {
+      "type": "object",
+      "description": "A2 phase artifact dict with profiles",
+      "additionalProperties": true
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

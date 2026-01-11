@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build RIM from OSH Ledger Output",
+  "description": "Output schema for evolve.rim.build_from_osh_ledger capability",
+  "type": "object",
+  "required": ["rim_path", "manifest", "provenance", "not_computable"],
+  "properties": {
+    "rim_path": {
+      "type": ["string", "null"],
+      "description": "Path to generated replay input manifest JSON"
+    },
+    "manifest": {
+      "type": ["object", "null"],
+      "description": "Replay input manifest with version, run_id, items, and provenance"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "const": "evolve.rim.build_from_osh_ledger"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "properties": {
+        "reason": {"type": "string"},
+        "missing_inputs": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.dev/schemas/runstability.v0.schema.json",
+  "title": "RunStability.v0",
+  "description": "Persisted record of the latest Dozen-Run Gate outcome",
+  "type": "object",
+  "required": ["schema", "run_id", "ok", "expected_trendpack_sha256", "trendpack_sha256s"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "RunStability.v0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "expected_trendpack_sha256": {
+      "type": "string"
+    },
+    "trendpack_sha256s": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "expected_runheader_sha256": {
+      "type": ["string", "null"]
+    },
+    "runheader_sha256s": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "first_mismatch_run": {
+      "type": ["integer", "null"]
+    },
+    "divergence": {
+      "type": ["object", "null"],
+      "properties": {
+        "kind": { "type": "string" },
+        "diffs": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "note": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

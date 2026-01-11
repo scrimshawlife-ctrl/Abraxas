@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Extract Claim Items Input",
+  "description": "Input schema for memetic.claim_extract.extract capability - extracts claim items from sources",
+  "type": "object",
+  "required": ["sources", "run_id"],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "List of source documents (from load_sources_from_osh)",
+      "items": {
+        "type": "object",
+        "description": "Source dict with url, domain, type, title, snippet, summary, text"
+      }
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier for provenance tracking",
+      "minLength": 1
+    },
+    "max_per_source": {
+      "type": "integer",
+      "description": "Maximum claim sentences to extract per source",
+      "default": 5,
+      "minimum": 1
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed (unused but kept for consistency)"
+    }
+  },
+  "additionalProperties": false
+}

@@ -13,7 +13,7 @@
  */
 
 import crypto from "crypto";
-import type { ALIVEFieldSignature } from "@shared/alive/schema";
+import type { AliveRunResult } from "@shared/alive/schema";
 import { ALIVE_SCHEMA_VERSION } from "@shared/alive/schema";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -22,7 +22,7 @@ import { ALIVE_SCHEMA_VERSION } from "@shared/alive/schema";
 
 export interface SignedExport {
   // Payload
-  fieldSignature: Partial<ALIVEFieldSignature>;
+  run: AliveRunResult;
 
   // Metadata
   meta: {
@@ -31,6 +31,7 @@ export interface SignedExport {
     exportedAt: string;
     expiresAt: string;
     tier: string;
+    runId: string;
   };
 
   // Decay context
@@ -63,7 +64,7 @@ export interface SignedExport {
  * @returns Signed export artifact
  */
 export function createSignedExport(
-  fieldSignature: Partial<ALIVEFieldSignature>,
+  run: AliveRunResult,
   tier: string,
   options?: {
     includeProvenance?: boolean;
@@ -77,34 +78,31 @@ export function createSignedExport(
   // Extract metric versions
   const metricVersions: Record<string, string> = {};
 
-  for (const metric of fieldSignature.influence || []) {
-    metricVersions[metric.metricId] = metric.metricVersion;
+  for (const metric of run.signature.influence || []) {
+    metricVersions[metric.metric_id] = metric.version;
   }
-  for (const metric of fieldSignature.vitality || []) {
-    metricVersions[metric.metricId] = metric.metricVersion;
+  for (const metric of run.signature.vitality || []) {
+    metricVersions[metric.metric_id] = metric.version;
   }
-  for (const metric of fieldSignature.lifeLogistics || []) {
-    metricVersions[metric.metricId] = metric.metricVersion;
+  for (const metric of run.signature.life_logistics || []) {
+    metricVersions[metric.metric_id] = metric.version;
   }
 
   // Extract decay context from provenance
   const decayContext = {
-    provenanceWeights: (fieldSignature.corpusProvenance || []).map((p) => ({
-      sourceId: p.sourceId,
-      sourceType: p.sourceType,
-      weight: p.weight,
-    })),
+    provenanceWeights: [],
   };
 
   // Build export payload
   const payload: Omit<SignedExport, "signature" | "signatureAlgorithm"> = {
-    fieldSignature,
+    run,
     meta: {
-      schemaVersion: fieldSignature.schemaVersion || ALIVE_SCHEMA_VERSION,
+      schemaVersion: run.provenance.schema_version || ALIVE_SCHEMA_VERSION,
       metricVersions,
       exportedAt: now.toISOString(),
       expiresAt: expiresAt.toISOString(),
       tier,
+      runId: run.provenance.run_id,
     },
     decayContext,
   };
