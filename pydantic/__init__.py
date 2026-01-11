@@ -147,4 +147,13 @@ class BaseModel:
                 raise ValueError(f"Field '{name}' must be <= {le}")
 
 
-__all__ = ["BaseModel", "Field", "FieldInfo"]
+class ValidationError(Exception):
+    """
+    Lightweight stand-in for pydantic.ValidationError.
+
+    This repository uses a local pydantic shim for deterministic tests and to
+    avoid a hard dependency in some environments.
+    """
+
+
+__all__ = ["BaseModel", "Field", "FieldInfo", "ValidationError"]
