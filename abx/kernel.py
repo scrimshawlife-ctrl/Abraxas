@@ -29,6 +29,8 @@ from shared.stabilization import (
     save_state,
 )
 from shared.governance import find_receipt
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 REGISTRY_PATH = os.path.join(
     os.path.dirname(__file__),
     "..",
@@ -186,9 +188,20 @@ def invoke(
 
                 result = run_doctor(payload)
             elif rune_id == "compression.detect":
-                from abraxas.compression.dispatch import detect_compression
-
-                result = detect_compression(payload)
+                ctx = RuneInvocationContext(
+                    run_id=str((context or {}).get("run_id") or rune_id),
+                    subsystem_id="abx.kernel",
+                    git_hash=_git_commit(),
+                )
+                cap_result = invoke_capability(
+                    "compression.detect",
+                    payload,
+                    ctx=ctx,
+                    strict_execution=True,
+                )
+                result = dict(cap_result)
+                if "provenance" in result:
+                    result["provenance_bundle"] = result.pop("provenance")
             elif rune_id == "infra.self_heal":
                 from infra.self_heal_advisory import generate_plan
 

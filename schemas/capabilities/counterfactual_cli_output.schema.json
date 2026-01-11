@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/counterfactual_cli_output.json",
+  "title": "Counterfactual CLI Output",
+  "description": "Output schema for replay.counterfactual.run_cli capability",
+  "type": "object",
+  "required": ["exit_code", "report", "output_lines", "provenance"],
+  "properties": {
+    "exit_code": {
+      "type": "integer",
+      "description": "Exit code for the run"
+    },
+    "report": {
+      "type": "object",
+      "description": "Counterfactual report payload",
+      "additionalProperties": true
+    },
+    "output_lines": {
+      "type": "array",
+      "description": "Formatted output lines",
+      "items": {"type": "string"}
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Canonical provenance envelope",
+      "additionalProperties": true
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "description": "Structured error if computation was not possible",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "replay.counterfactual.run_cli",
+    "version": "1.0.0",
+    "deterministic": true,
+    "evidence_mode": "observation"
+  }
+}

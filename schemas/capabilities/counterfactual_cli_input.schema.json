@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/counterfactual_cli_input.json",
+  "title": "Counterfactual CLI Input",
+  "description": "Input schema for replay.counterfactual.run_cli capability",
+  "type": "object",
+  "required": ["portfolio", "mask", "run_id", "cases_dir", "portfolios_path", "fdr_path"],
+  "properties": {
+    "portfolio": {
+      "type": "string",
+      "description": "Portfolio identifier"
+    },
+    "mask": {
+      "type": "array",
+      "description": "Mask specs",
+      "items": {"type": "string"}
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "cases_dir": {
+      "type": "string",
+      "description": "Cases directory path"
+    },
+    "portfolios_path": {
+      "type": "string",
+      "description": "Portfolios path"
+    },
+    "fdr_path": {
+      "type": "string",
+      "description": "FDR path"
+    },
+    "overrides_path": {
+      "type": ["string", "null"],
+      "description": "Optional overrides path"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "replay.counterfactual.run_cli",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

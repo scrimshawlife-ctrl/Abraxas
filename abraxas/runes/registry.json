@@ -1039,6 +1039,61 @@
       "evidence_mode": "policy_enforcement"
     },
     {
+      "capability_id": "compression.detect",
+      "rune_id": "ϟ_COMPRESSION_DETECT",
+      "operator_path": "abraxas.compression.rune_adapter:detect_compression_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/compression_detect_input.schema.json",
+      "output_schema": "schemas/capabilities/compression_detect_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "detector_only"
+    },
+    {
+      "capability_id": "alive.engine.run",
+      "rune_id": "ϟ_ALIVE_ENGINE_RUN",
+      "operator_path": "abraxas.alive.rune_adapter:run_alive_engine_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/alive_engine_run_input.schema.json",
+      "output_schema": "schemas/capabilities/alive_engine_run_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "observation"
+    },
+    {
+      "capability_id": "alive.models.serialize",
+      "rune_id": "ϟ_ALIVE_MODELS_SERIALIZE",
+      "operator_path": "abraxas.alive.rune_adapter:serialize_alive_field_signature_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/alive_serialize_input.schema.json",
+      "output_schema": "schemas/capabilities/alive_serialize_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "observation"
+    },
+    {
+      "capability_id": "replay.counterfactual.run_cli",
+      "rune_id": "ϟ_REPLAY_COUNTERFACTUAL_CLI",
+      "operator_path": "abraxas.cli.rune_adapter:run_counterfactual_cli_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/counterfactual_cli_input.schema.json",
+      "output_schema": "schemas/capabilities/counterfactual_cli_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "observation"
+    },
+    {
+      "capability_id": "value.smv.run_cli",
+      "rune_id": "ϟ_VALUE_SMV_CLI",
+      "operator_path": "abraxas.cli.rune_adapter:run_smv_cli_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/smv_cli_input.schema.json",
+      "output_schema": "schemas/capabilities/smv_cli_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "observation"
+    },
+    {
       "capability_id": "disinfo.metrics.apply",
       "rune_id": "ϟ_DISINFO_METRICS_APPLY",
       "operator_path": "abraxas.disinfo.rune_adapter:apply_disinfo_metrics_deterministic",

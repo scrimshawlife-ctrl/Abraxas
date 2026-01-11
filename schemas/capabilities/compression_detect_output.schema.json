@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/compression_detect_output.json",
+  "title": "Compression Detect Output",
+  "description": "Output schema for compression.detect capability",
+  "type": "object",
+  "required": ["compression_event", "provenance"],
+  "properties": {
+    "compression_event": {
+      "type": ["object", "null"],
+      "description": "Detected compression event payload",
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": ["object", "null"],
+      "description": "Detection metrics",
+      "additionalProperties": true
+    },
+    "labels": {
+      "type": ["array", "null"],
+      "description": "Detection labels",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": ["number", "null"],
+      "description": "Confidence score"
+    },
+    "events": {
+      "type": ["array", "null"],
+      "description": "All detected events",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Canonical provenance envelope",
+      "additionalProperties": true
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "description": "Structured error if computation was not possible",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "compression.detect",
+    "version": "1.0.0",
+    "deterministic": true,
+    "evidence_mode": "detector_only"
+  }
+}

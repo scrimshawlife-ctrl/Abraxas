@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/smv_cli_input.json",
+  "title": "SMV CLI Input",
+  "description": "Input schema for value.smv.run_cli capability",
+  "type": "object",
+  "required": ["portfolio", "vector_map", "run_id", "cases_dir", "portfolios_path", "max_units"],
+  "properties": {
+    "portfolio": {
+      "type": "string",
+      "description": "Portfolio identifier"
+    },
+    "vector_map": {
+      "type": "string",
+      "description": "Vector map path"
+    },
+    "allowlist_spec": {
+      "type": ["string", "null"],
+      "description": "Allowlist spec"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier"
+    },
+    "cases_dir": {
+      "type": "string",
+      "description": "Cases directory path"
+    },
+    "portfolios_path": {
+      "type": "string",
+      "description": "Portfolios path"
+    },
+    "max_units": {
+      "type": "integer",
+      "description": "Maximum units to evaluate"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "value.smv.run_cli",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

@@ -17,11 +17,17 @@ Usage:
 import argparse
 import json
 import logging
+import re
+import urllib.request
+import xml.etree.ElementTree as ET
 from dataclasses import asdict
 from datetime import datetime, timezone
+from html import unescape
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Iterable
 
+from abraxas.lexicon.dce import DCEPack, DCERegistry, DomainCompressionEngine
+from abraxas.lexicon.engine import InMemoryLexiconRegistry, LexiconEntry, LexiconPack
 from abraxas.oracle.v2.pipeline import OracleV2Pipeline, OracleSignal, OracleV2Output
 from abraxas.oracle.weather_bridge import oracle_to_weather_intel, write_mimetic_weather_report
 
@@ -49,6 +55,111 @@ def load_config(config_path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
+def _tokenize(text: str) -> List[str]:
+    tokens = re.findall(r"[a-z0-9']{3,}", text.lower())
+    unique = []
+    seen = set()
+    for token in tokens:
+        if token not in seen:
+            seen.add(token)
+            unique.append(token)
+    return unique
+
+
+def _fetch_rss_feed(url: str) -> List[Dict[str, str]]:
+    with urllib.request.urlopen(url, timeout=10) as response:
+        raw = response.read()
+    tree = ET.fromstring(raw)
+    items = []
+    for item in tree.findall(".//item"):
+        title = unescape((item.findtext("title") or "").strip())
+        description = unescape((item.findtext("description") or "").strip())
+        if not title and not description:
+            continue
+        items.append({"title": title, "description": description})
+    return items
+
+
+def _collect_observations_from_rss(
+    rss_sources: Iterable[Any], logger: logging.Logger
+) -> List[Dict[str, Any]]:
+    observations: List[Dict[str, Any]] = []
+    for source in rss_sources:
+        if isinstance(source, str):
+            source_config = {"url": source, "domain": "general"}
+        else:
+            source_config = dict(source)
+        url = source_config.get("url")
+        domain = source_config.get("domain", "general")
+        subdomain = source_config.get("subdomain")
+        if not url:
+            continue
+        try:
+            items = _fetch_rss_feed(url)
+        except Exception as exc:
+            logger.warning("Failed to fetch RSS feed %s: %s", url, exc)
+            continue
+        texts = []
+        tokens = []
+        for item in items[:10]:
+            text = " ".join([item.get("title", ""), item.get("description", "")]).strip()
+            if text:
+                texts.append(text)
+                tokens.extend(_tokenize(text))
+        if texts:
+            observations.append(
+                {
+                    "domain": domain,
+                    "subdomain": subdomain,
+                    "observations": texts,
+                    "tokens": tokens,
+                }
+            )
+    return observations
+
+
+def _collect_observations_from_api(
+    api_sources: Iterable[Any], logger: logging.Logger
+) -> List[Dict[str, Any]]:
+    observations: List[Dict[str, Any]] = []
+    for source in api_sources:
+        if not isinstance(source, dict):
+            continue
+        url = source.get("url")
+        domain = source.get("domain", "general")
+        subdomain = source.get("subdomain")
+        text_fields = source.get("text_fields", ["title", "summary"])
+        if not url:
+            continue
+        try:
+            with urllib.request.urlopen(url, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:
+            logger.warning("Failed to fetch API source %s: %s", url, exc)
+            continue
+        items = payload if isinstance(payload, list) else payload.get("items", [])
+        texts = []
+        tokens = []
+        for item in items[:10]:
+            if not isinstance(item, dict):
+                continue
+            parts = [str(item.get(field, "")).strip() for field in text_fields]
+            text = " ".join([p for p in parts if p])
+            if text:
+                texts.append(text)
+                tokens.extend(_tokenize(text))
+        if texts:
+            observations.append(
+                {
+                    "domain": domain,
+                    "subdomain": subdomain,
+                    "observations": texts,
+                    "tokens": tokens,
+                }
+            )
+    return observations
+
+
 def fetch_observations(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Fetch observations from configured sources.
 
@@ -60,14 +171,60 @@ def fetch_observations(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     logger = logging.getLogger(__name__)
 
-    # For now, return sample observations
-    # TODO: Integrate with actual data sources (RSS, APIs, Decodo, etc.)
     logger.info("Fetching observations from configured sources...")
 
-    observations = config.get("sample_observations", [])
+    sources = config.get("sources", {})
+    rss_sources = sources.get("rss_feeds", [])
+    api_sources = sources.get("apis", [])
+
+    observations: List[Dict[str, Any]] = []
+    if rss_sources:
+        observations.extend(_collect_observations_from_rss(rss_sources, logger))
+    if api_sources:
+        observations.extend(_collect_observations_from_api(api_sources, logger))
+
+    if not observations and config.get("allow_sample_observations"):
+        observations = config.get("sample_observations", [])
+        logger.warning("Using sample observations (allow_sample_observations=true).")
+
     logger.info(f"✓ Fetched {len(observations)} observations")
 
     return observations
+
+
+def load_dce_engine(config: Dict[str, Any]) -> DomainCompressionEngine | None:
+    dce_config = config.get("dce", {})
+    packs = dce_config.get("packs", [])
+    if not packs:
+        return None
+    base_registry = InMemoryLexiconRegistry()
+    dce_registry = DCERegistry(base_registry)
+
+    for pack in packs:
+        domain = pack.get("domain")
+        version = pack.get("version", "v0.1")
+        entries_raw = pack.get("entries", [])
+        if not domain or not entries_raw:
+            continue
+        entries = tuple(
+            LexiconEntry(
+                token=str(entry.get("token")),
+                weight=float(entry.get("weight", 0.5)),
+                meta=entry.get("meta", {}) or {},
+            )
+            for entry in entries_raw
+            if entry.get("token")
+        )
+        lex_pack = LexiconPack(
+            domain=domain,
+            version=version,
+            entries=entries,
+            created_at_utc=LexiconPack.now_iso_z(),
+        )
+        dce_pack = DCEPack.from_lexicon_pack(lex_pack)
+        dce_registry.register(dce_pack)
+
+    return DomainCompressionEngine(dce_registry)
 
 
 def create_oracle_signals(observations: List[Dict[str, Any]]) -> List[OracleSignal]:
@@ -211,9 +368,9 @@ Examples:
     signals = create_oracle_signals(observations)
 
     # Initialize Oracle pipeline
-    # TODO: Load DCE from configuration
     logger.info("Initializing Oracle v2 pipeline...")
-    pipeline = OracleV2Pipeline()
+    dce_engine = load_dce_engine(config)
+    pipeline = OracleV2Pipeline(dce_engine=dce_engine)
     logger.info("✓ Oracle v2 pipeline initialized")
 
     # Process signals

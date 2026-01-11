@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/alive_serialize_input.json",
+  "title": "ALIVE Serialize Input",
+  "description": "Input schema for alive.models.serialize capability",
+  "type": "object",
+  "required": ["field_signature"],
+  "properties": {
+    "field_signature": {
+      "type": "object",
+      "description": "Raw ALIVE field signature payload",
+      "additionalProperties": true
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "alive.models.serialize",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

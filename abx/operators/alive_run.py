@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from abraxas.alive import ALIVEEngine
-from abraxas.alive.models import ALIVERunInput
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 
 
 class ALIVERunOperator:
@@ -27,7 +27,7 @@ class ALIVERunOperator:
         Args:
             registry_path: Path to metric registry
         """
-        self.engine = ALIVEEngine(registry_path=registry_path)
+        self.registry_path = registry_path
 
     def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -39,14 +39,19 @@ class ALIVERunOperator:
         Returns:
             Field signature as dict
         """
-        # Parse input
-        run_input = ALIVERunInput(**input_data)
-
-        # Run engine
-        field_signature = self.engine.run(run_input)
-
-        # Return as dict
-        return field_signature.model_dump()
+        run_id = str(input_data.get("subjectId") or input_data.get("analysisId") or "alive_run")
+        ctx = RuneInvocationContext(
+            run_id=run_id,
+            subsystem_id="abx.operators.alive_run",
+            git_hash="unknown",
+        )
+        result = invoke_capability(
+            "alive.engine.run",
+            {**input_data, "registry_path": self.registry_path},
+            ctx=ctx,
+            strict_execution=True,
+        )
+        return result["field_signature"]
 
     def __call__(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Allow operator to be called as function."""

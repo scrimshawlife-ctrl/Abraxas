@@ -1,12 +1,13 @@
 from __future__ import annotations
+import hashlib
 from typing import Any, Dict, List
 
 from abx.bus.runtime import process
-from abraxas.core.provenance import ProvenanceBundle, ProvenanceRef, hash_string
 # render_output replaced by core.rendering.render_output capability
 # analyze_text_for_drift replaced by drift.orchestrator.analyze_text_for_drift capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
+
 
 def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None = None) -> Dict[str, Any]:
     # messages: [{"role":"user"|"assistant"|"system","content":"..."}]
@@ -45,22 +46,22 @@ def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None =
     rendered_text = render_result["rendered_text"]
 
     # Build provenance bundle
-    provenance = ProvenanceBundle(
-        inputs=[
-            ProvenanceRef(
-                scheme="bus.frame",
-                path=frame_id,
-                sha256=hash_string(draft_text),
-            )
+    provenance = {
+        "inputs": [
+            {
+                "scheme": "bus.frame",
+                "path": frame_id,
+                "sha256": hashlib.sha256(draft_text.encode("utf-8")).hexdigest(),
+            }
         ],
-        transforms=["abx.bus.process"],
-        metadata={"context": context, "selected_modules": selected_modules or []},
-    )
+        "transforms": ["abx.bus.process"],
+        "metadata": {"context": context, "selected_modules": selected_modules or []},
+    }
 
     # Analyze drift via capability contract
     drift_result = invoke_capability(
         "drift.orchestrator.analyze_text_for_drift",
-        {"text": rendered_text, "provenance": provenance.model_dump()},
+        {"text": rendered_text, "provenance": provenance},
         ctx=ctx,
         strict_execution=True
     )

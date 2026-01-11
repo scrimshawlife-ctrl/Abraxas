@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/alive_engine_run_output.json",
+  "title": "ALIVE Engine Run Output",
+  "description": "Output schema for alive.engine.run capability",
+  "type": "object",
+  "required": ["field_signature", "provenance"],
+  "properties": {
+    "field_signature": {
+      "type": "object",
+      "description": "ALIVE field signature payload",
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Canonical provenance envelope for the run",
+      "additionalProperties": true
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "description": "Structured error if computation was not possible",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "alive.engine.run",
+    "version": "1.0.0",
+    "deterministic": true,
+    "evidence_mode": "observation"
+  }
+}
