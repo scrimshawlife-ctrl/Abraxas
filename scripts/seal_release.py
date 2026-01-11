@@ -27,8 +27,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Import Abraxas runtime
-from abraxas.runtime.tick import abraxas_tick
-from abraxas.runtime.invariance_gate import dozen_run_tick_invariance_gate
 
 
 def _read_version(repo_root: Path) -> str:
@@ -74,6 +72,8 @@ def run_seal_tick(
     Run a single deterministic tick for sealing.
     Uses minimal deterministic inputs.
     """
+    from abraxas.runtime.tick import abraxas_tick
+
     # Deterministic pipeline functions for seal
     def run_signal(ctx):
         return {"signal": 1}
@@ -122,6 +122,7 @@ def run_dozen_gate(
     runs: int,
 ) -> Dict[str, Any]:
     """Run dozen-run invariance gate."""
+    from abraxas.runtime.invariance_gate import dozen_run_tick_invariance_gate
 
     def run_once(i: int, artifacts_dir: str) -> Dict[str, Any]:
         return run_seal_tick(artifacts_dir, run_id, tick)

@@ -539,13 +539,14 @@ envelope = ncp.predict(sod_input, run_id="RUN-001")
 
 #### Artifact Generators
 
-Five specialized output formats:
+Six specialized output formats:
 
 - **Cascade Sheet**: Tabular summary of cascade paths
 - **Manipulation Surface Map**: Heatmap data for D/M metrics
 - **Contamination Advisory**: High-risk artifact alerts
 - **Trust Drift Graph Data**: Time-series for τₕ and IRI/MRI
 - **Oracle Delta Ledger**: Diff between current and prior snapshots
+- **Integrity Brief**: Daily ledger health + delta summary
 
 #### v1.4 CLI
 
@@ -839,6 +840,15 @@ npm run test:coverage
 
 # Smoke test (deterministic)
 abx smoke
+
+# Acceptance suite (writes artifacts to out/acceptance/)
+python tools/acceptance/run_acceptance_suite.py
+
+# Seal release validation (writes artifacts to artifacts_seal/ and artifacts_gate/)
+python -m scripts.seal_release --run_id seal --tick 0 --runs 12
+
+# Runtime infrastructure tests (policy snapshots, retention, concurrency)
+pytest tests/test_runtime_infrastructure.py
 
 # E2E test
 curl -X POST http://localhost:5000/api/sco/analyze \

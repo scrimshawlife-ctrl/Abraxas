@@ -87,42 +87,40 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
 - ✅ P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD)
 
 ### P0 - Production Blockers (2026-01-11 Audit)
-1. **Complete Acceptance Test Suite** (`tools/acceptance/run_acceptance_suite.py`)
-   - Wire up real oracle pipeline calls (7 TODOs at lines 128, 184, 240, 297, 353, 404, 438)
-   - Implement schema validation using `schemas/*.schema.json`
-   - Add drift classification logic from `abraxas.drift.*`
-   - **Blocking**: Cannot verify production readiness without real oracle integration
+1. **Complete Acceptance Test Suite** ✅ (`tools/acceptance/run_acceptance_suite.py`)
+   - Wired real oracle pipeline calls (Oracle v2 pipeline)
+   - Validated acceptance status + narrative bundle schema
+   - Implemented evidence gating, shadow isolation, and pointer auditability checks
+   - **Unblocked**: Acceptance suite now exercises real oracle outputs
 
-2. **Fix or Remove Placeholder Tests**
-   - `tests/test_scenario_router.py` - 2 tests with `assert True`
-   - `tests/test_integrity_hash_chain.py` - 2 tests with `assert True`
-   - `tests/test_integrity_brief.py` - 2 tests with `assert True`
-   - **Blocking**: False test coverage - tests pass without verifying functionality
+2. **Fix or Remove Placeholder Tests** ✅
+   - Implemented coverage for scenario router, integrity hash chain, and integrity brief artifacts
+   - Added deterministic golden validation for integrity brief + routing decisions
+   - **Unblocked**: Placeholder coverage replaced with real assertions
 
-3. **Add Seal Release Tests**
-   - Test `scripts/seal_release.py` end-to-end
-   - Test `scripts/validate_artifacts.py` with valid/invalid inputs
-   - Verify SealReport.v0 schema compliance
-   - **Blocking**: No validation of seal infrastructure
+3. **Add Seal Release Tests** ✅
+   - Added schema validation test for `SealReport.v0`
+   - Added validator tests for good/bad artifact runs
+   - **Unblocked**: Seal infrastructure now has deterministic test coverage
 
-4. **Add Runtime Infrastructure Tests**
-   - Missing tests for 9 of 10 `abraxas/runtime/` modules:
-     - `policy_snapshot.py`, `pipeline_bindings.py`, `artifacts.py`, `retention.py`
-     - `results_pack.py`, `deterministic_executor.py`, `device_fingerprint.py`
-     - `concurrency.py`, `perf_ledger.py`
-   - **Blocking**: Cannot rely on runtime infrastructure without tests
+4. **Add Runtime Infrastructure Tests** ✅
+   - Added coverage for policy snapshots, pipeline bindings, artifacts writer, retention pruning
+   - Added coverage for results pack, deterministic executor, device fingerprint, concurrency, perf ledger
+   - **Unblocked**: Runtime infrastructure now has deterministic test coverage
 
-5. **Document Seal Validation**
-   - Create `docs/seal/SEAL_VALIDATION_GUIDE.md`
-   - Document seal release process end-to-end
-   - Explain artifact schemas and validation flow
-   - **Blocking**: No operational guide for production releases
+5. **Document Seal Validation** ✅
+   - Added end-to-end seal release + validation guide
+   - Documented artifacts, schema validation flow, and CI usage
+   - **Unblocked**: Operational seal guide is now available
 
 ### P1 - Feature Completeness (In Progress)
 1. **Migrate ABX-Runes Coupling Violations** (81 violations, ~10% migrated)
    - **Progress**: `abx/mwr.py` ✅ PARTIALLY FIXED, `abx/forecast_log.py` ✅ PARTIALLY FIXED
    - **Progress**: `abx/kernel.py` ✅ VERIFIED CORRECT
-   - **Not Fixed**: `abx/forecast_score.py`, `abx/a2_phase.py`, `abx/term_claims_run.py`
+   - **Progress**: `abx/horizon_policy_select.py` ✅, `abx/horizon_policy_select_tc.py` ✅ (policy candidates capability)
+   - **Progress**: `abx/osh.py` ✅ (osh.execute capability)
+   - **Progress**: `abx/forecast_score.py` ✅ (capability-only invocation)
+   - **Not Fixed**: `abx/a2_phase.py`, `abx/term_claims_run.py`
    - **Not Fixed**: `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
    - **Needs Audit**: `abx/server/app.py`, `abx/cli.py`, `abx/operators/alive_*`
    - **Top Offenders**:
@@ -379,21 +377,13 @@ This section catalogs known incomplete implementations, TODOs, and stubs in the 
 
 ---
 
-#### 2. Placeholder Test Files (False Coverage)
-**Files:**
-- `tests/test_scenario_router.py` - 2 tests with `assert True`
-- `tests/test_integrity_hash_chain.py` - 2 tests with `assert True`
-- `tests/test_integrity_brief.py` - 2 tests with `assert True`
+#### 2. Placeholder Test Files (False Coverage) ✅
+**Resolution:**
+- `tests/test_scenario_router.py` now validates routing decisions + priority selection
+- `tests/test_integrity_hash_chain.py` now validates hash-chain acceptance + break detection
+- `tests/test_integrity_brief.py` now validates JSON/Markdown outputs against goldens
 
-```python
-def test_routing_logic():
-    """Test scenario routing logic."""
-    # Placeholder test - implement when scenario router is complete
-    assert True, "Placeholder test for rent enforcement"
-```
-
-**Impact:** False positive test coverage - tests pass without verifying functionality.
-**Action Required:** Implement real tests or delete files.
+**Impact:** Placeholder coverage removed; tests now exercise core rent-manifest expectations.
 
 ---
 

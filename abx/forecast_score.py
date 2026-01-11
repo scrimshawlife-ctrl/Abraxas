@@ -90,6 +90,12 @@ def main() -> int:
                 if isinstance(profile, dict) and profile.get("term"):
                     phase_map[str(profile["term"]).lower()] = profile
 
+    # Create context for capability invocations
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.forecast_score",
+        git_hash="unknown"
+    )
     gate_inputs = _extract_gate_inputs(a2_phase)
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
     dmx_result = invoke_capability(
@@ -100,13 +106,6 @@ def main() -> int:
     )
     dmx_ctx = dmx_result["dmx_context"]
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
-
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.forecast_score",
-        git_hash="unknown"
-    )
 
     # Compute base gate for overall report
     base_gate_result = invoke_capability(

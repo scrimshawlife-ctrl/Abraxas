@@ -577,6 +577,28 @@
       "evidence_mode": "classification"
     },
     {
+      "capability_id": "forecast.policy_candidates.v0_1",
+      "rune_id": "ϟ_FORECAST_POLICY_CANDIDATES",
+      "operator_path": "abraxas.forecast.rune_adapter:load_policy_candidates_v0_1_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/policy_candidates_input.schema.json",
+      "output_schema": "schemas/capabilities/policy_candidates_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_loading"
+    },
+    {
+      "capability_id": "osh.execute",
+      "rune_id": "ϟ_OSH_EXECUTE",
+      "operator_path": "abraxas.osh.rune_adapter:run_osh_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/osh_execute_input.schema.json",
+      "output_schema": "schemas/capabilities/osh_execute_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "data_processing"
+    },
+    {
       "capability_id": "forecast.term.classify",
       "rune_id": "ϟ_FORECAST_TERM_CLASS",
       "operator_path": "abraxas.forecast.rune_adapter:classify_term_deterministic",
@@ -993,6 +1015,17 @@
       "provenance_required": true,
       "deterministic": true,
       "evidence_mode": "data_processing"
+    },
+    {
+      "capability_id": "core.fn_exports.load",
+      "rune_id": "ϟ_CORE_FN_EXPORTS_LOAD",
+      "operator_path": "abraxas.core.rune_adapter:load_fn_exports_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/fn_exports_input.schema.json",
+      "output_schema": "schemas/capabilities/fn_exports_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "policy_enforcement"
     },
     {
       "capability_id": "core.rendering.render_output",
