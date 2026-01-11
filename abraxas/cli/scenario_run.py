@@ -53,6 +53,25 @@ def has_changed(current: Dict[str, Any], previous: Optional[Dict[str, Any]]) -> 
     return current_hash != previous_hash
 
 
+def load_json_file(path: Path) -> Optional[Dict[str, Any]]:
+    if not path.exists():
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def load_latest_json(directory: Path, pattern: str) -> Optional[Dict[str, Any]]:
+    if not directory.exists():
+        return None
+    candidates = sorted(directory.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not candidates:
+        return None
+    return load_json_file(candidates[0])
+
+
 def main():
     """Run scenario envelope analysis."""
     parser = argparse.ArgumentParser(
@@ -103,6 +122,21 @@ def main():
         type=str,
         help="Optional cluster to focus cascade sheet on",
     )
+    parser.add_argument(
+        "--weather_snapshot",
+        type=Path,
+        help="Path to weather report JSON (defaults to latest out/reports/weather_report_*.json)",
+    )
+    parser.add_argument(
+        "--dm_snapshot",
+        type=Path,
+        help="Path to D/M metrics snapshot JSON (defaults to data/runs/dm_snapshot.json)",
+    )
+    parser.add_argument(
+        "--almanac_snapshot",
+        type=Path,
+        help="Path to almanac snapshot JSON (defaults to data/almanac/almanac_snapshot.json)",
+    )
 
     args = parser.parse_args()
 
@@ -116,15 +150,31 @@ def main():
         "tau_latency": args.tau_latency if args.tau_latency is not None else 0.3,
     }
 
+    weather_snapshot = (
+        load_json_file(args.weather_snapshot)
+        if args.weather_snapshot
+        else load_latest_json(Path("out/reports"), "weather_report_*.json")
+    )
+    dm_snapshot = (
+        load_json_file(args.dm_snapshot)
+        if args.dm_snapshot
+        else load_json_file(Path("data/runs/dm_snapshot.json"))
+    )
+    almanac_snapshot = (
+        load_json_file(args.almanac_snapshot)
+        if args.almanac_snapshot
+        else load_json_file(Path("data/almanac/almanac_snapshot.json"))
+    )
+
     # Build context
     run_id = f"scenario_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     context = {
         "run_id": run_id,
         "paper_ids": args.paper_ids.split(",") if args.paper_ids else [],
         "source_count": len(args.paper_ids.split(",")) if args.paper_ids else 0,
-        "weather": None,  # TODO: Load from weather engine if available
-        "dm_snapshot": None,  # TODO: Load from D/M metrics if available
-        "almanac_snapshot": None,  # TODO: Load from almanac if available
+        "weather": weather_snapshot,
+        "dm_snapshot": dm_snapshot,
+        "almanac_snapshot": almanac_snapshot,
     }
 
     # Run scenario envelope runner

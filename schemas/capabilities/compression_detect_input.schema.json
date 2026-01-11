@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/compression_detect_input.json",
+  "title": "Compression Detect Input",
+  "description": "Input schema for compression.detect capability",
+  "type": "object",
+  "properties": {
+    "text_event": {
+      "type": ["string", "null"],
+      "description": "Input text event to analyze"
+    },
+    "records": {
+      "type": ["array", "null"],
+      "description": "Optional list of records with id/text",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "lexicon": {
+      "type": ["array", "null"],
+      "description": "Lexicon entries",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "config": {
+      "type": ["object", "null"],
+      "description": "Optional configuration payload",
+      "additionalProperties": true
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "anyOf": [
+    {"required": ["text_event"]},
+    {"required": ["records"]}
+  ],
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "compression.detect",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

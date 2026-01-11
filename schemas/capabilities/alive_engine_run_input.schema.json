@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/alive_engine_run_input.json",
+  "title": "ALIVE Engine Run Input",
+  "description": "Input schema for alive.engine.run capability",
+  "type": "object",
+  "required": ["subjectId", "tier", "corpusConfig"],
+  "properties": {
+    "subjectId": {
+      "type": "string",
+      "description": "Subject identifier for ALIVE analysis"
+    },
+    "tier": {
+      "type": "string",
+      "description": "Tier name for ALIVE analysis"
+    },
+    "corpusConfig": {
+      "type": "object",
+      "description": "Corpus configuration payload",
+      "additionalProperties": true
+    },
+    "metricConfig": {
+      "type": ["object", "null"],
+      "description": "Optional metric configuration",
+      "additionalProperties": true
+    },
+    "registry_path": {
+      "type": ["string", "null"],
+      "description": "Optional path to ALIVE metric registry"
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Optional deterministic seed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "alive.engine.run",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true
+  }
+}

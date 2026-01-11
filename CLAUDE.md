@@ -85,6 +85,12 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
 
 ### Completed
 - ✅ P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD)
+- ✅ P1 (done): Migrate ABX-Runes coupling violations (all 81)
+- ✅ P1 (done): Implement critical rune operators (WSSS/RFA/SDS/IPL/ADD/TAM)
+- ✅ P1 (done): Complete Oracle daily run integration (data sources + DCE)
+- ✅ P1 (done): Complete scenario envelope runner context loading
+- ✅ P1 (done): Add shadow detectors integration example
+- ✅ P1 (done): Create rune operator development guide
 
 ### P0 - Production Blockers (2026-01-11 Audit)
 1. **Complete Acceptance Test Suite** ✅ (`tools/acceptance/run_acceptance_suite.py`)
@@ -114,46 +120,7 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
    - **Unblocked**: Operational seal guide is now available
 
 ### P1 - Feature Completeness (In Progress)
-1. **Migrate ABX-Runes Coupling Violations** (81 violations, ~10% migrated)
-   - **Progress**: `abx/mwr.py` ✅ PARTIALLY FIXED, `abx/forecast_log.py` ✅ PARTIALLY FIXED
-   - **Progress**: `abx/kernel.py` ✅ VERIFIED CORRECT
-   - **Progress**: `abx/horizon_policy_select.py` ✅, `abx/horizon_policy_select_tc.py` ✅ (policy candidates capability)
-   - **Progress**: `abx/osh.py` ✅ (osh.execute capability)
-   - **Progress**: `abx/forecast_score.py` ✅ (capability-only invocation)
-   - **Not Fixed**: `abx/a2_phase.py`, `abx/term_claims_run.py`
-   - **Not Fixed**: `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
-   - **Needs Audit**: `abx/server/app.py`, `abx/cli.py`, `abx/operators/alive_*`
-   - **Top Offenders**:
-     - forecast (23 violations) - brier_score, horizon_bucket, decide_gate
-     - evolve (18 violations) - append_chained_jsonl, enforce_non_truncation
-     - memetic (16 violations) - cluster_claims, compute_dmx, build_mimetic_weather
-   - **Goal**: 10-15 violations per 2-week sprint, 50%+ complete in 2-3 months
-   - See `docs/migration/coupling_violations_inventory.md` for full list
-
-2. **Implement Critical Rune Operators** (6 stubs: WSSS, RFA, SDS, IPL, ADD, TAM)
-   - **Priority**: SDS (ϟ₂), IPL (ϟ₄), ADD (ϟ₅) - needed for oracle pipeline
-   - **Issue**: All raise `NotImplementedError` in `strict_execution=True` mode
-   - **Action**: Replace stubs with real logic, add golden tests
-   - Location: `abraxas/runes/operators/*.py`
-
-3. **Complete Oracle Daily Run Integration** (`abraxas/cli/oracle_daily_run.py`)
-   - TODO line 64: Integrate with real data sources (RSS, APIs, Decodo)
-   - TODO line 214: Load DCE (Domain Compression Engine) from configuration
-   - **Blocking**: Oracle cannot run in production without data integration
-
-4. **Complete Scenario Envelope Runner** (`abraxas/cli/scenario_run.py`)
-   - TODO lines 125-127: Load weather, D/M snapshot, almanac snapshot
-   - **Missing**: Critical context for scenario testing
-
-5. **Add Shadow Detectors Integration Example**
-   - Create `examples/shadow_detectors_integration.py`
-   - Show how to invoke `compute_all_detectors()`
-   - Document integration patterns with Shadow Structural Metrics
-
-6. **Create Rune Operator Development Guide**
-   - Document how to convert auto-generated stubs to real implementations
-   - Explain provenance requirements and golden test patterns
-   - Add to `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md`
+- ✅ All P1 items completed.
 
 ### P2 - Technical Debt
 - Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence)
