@@ -1,9 +1,35 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2026-01-05
-**Guide Version:** 2.2.1
+**Last Updated:** 2026-01-11
+**Guide Version:** 2.2.2
 **Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
+
+---
+
+## Recent Updates (v2.2.2)
+
+**2026-01-11** - Comprehensive codebase audit identifying stubs and incomplete features:
+
+### Audit Summary (150+ items cataloged)
+- **P0 Critical**: 15 items blocking production readiness
+  - Acceptance test suite has 7 TODOs requiring real oracle integration
+  - Seal validation infrastructure lacks tests and documentation
+  - Runtime infrastructure modules undertested (9 of 10 modules)
+  - 3 placeholder test files with `assert True` stubs
+- **P1 High Priority**: 45 items blocking feature completeness
+  - 81 ABX-Runes coupling violations across 34 files (~10% migrated)
+  - 6 auto-generated rune operator stubs (WSSS, RFA, SDS, IPL, ADD, TAM)
+  - Oracle daily run missing data source integration
+  - Scenario envelope runner missing weather/D/M/almanac snapshots
+- **P2 Medium Priority**: 90+ technical debt items
+  - ALIVE system export/integration stubs
+  - TypeScript server TODOs (DB persistence, error handling)
+  - 50+ placeholder comments across codebase
+- **Test Coverage**: ~33% by file count (227 test files, 693 Python files in abraxas/)
+- **Documentation Gaps**: Shadow detector integration example missing, seal validation guide needed
+
+See "Known Stubs and Incomplete Features" section below for detailed inventory.
 
 ---
 
@@ -57,15 +83,93 @@
 
 ## TODO
 
-- P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD).
-- P1 (in progress): Review and reduce remaining cross-subsystem coupling violations in `abx/`.
-  Initial audit targets:
-  - `abx/mwr.py` (memetic imports), `abx/forecast_log.py`, `abx/forecast_score.py`
-  - `abx/a2_phase.py`, `abx/term_claims_run.py`
-  - `abx/kernel.py`, `abx/server/app.py`, `abx/cli.py`
-  - `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
-  - `abx/operators/alive_*`
-- **P0 (NEW - 2026-01-10)**: Resolve pending merge conflicts in 3 active development branches
+### Completed
+- ✅ P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD)
+
+### P0 - Production Blockers (2026-01-11 Audit)
+1. **Complete Acceptance Test Suite** (`tools/acceptance/run_acceptance_suite.py`)
+   - Wire up real oracle pipeline calls (7 TODOs at lines 128, 184, 240, 297, 353, 404, 438)
+   - Implement schema validation using `schemas/*.schema.json`
+   - Add drift classification logic from `abraxas.drift.*`
+   - **Blocking**: Cannot verify production readiness without real oracle integration
+
+2. **Fix or Remove Placeholder Tests**
+   - `tests/test_scenario_router.py` - 2 tests with `assert True`
+   - `tests/test_integrity_hash_chain.py` - 2 tests with `assert True`
+   - `tests/test_integrity_brief.py` - 2 tests with `assert True`
+   - **Blocking**: False test coverage - tests pass without verifying functionality
+
+3. **Add Seal Release Tests**
+   - Test `scripts/seal_release.py` end-to-end
+   - Test `scripts/validate_artifacts.py` with valid/invalid inputs
+   - Verify SealReport.v0 schema compliance
+   - **Blocking**: No validation of seal infrastructure
+
+4. **Add Runtime Infrastructure Tests**
+   - Missing tests for 9 of 10 `abraxas/runtime/` modules:
+     - `policy_snapshot.py`, `pipeline_bindings.py`, `artifacts.py`, `retention.py`
+     - `results_pack.py`, `deterministic_executor.py`, `device_fingerprint.py`
+     - `concurrency.py`, `perf_ledger.py`
+   - **Blocking**: Cannot rely on runtime infrastructure without tests
+
+5. **Document Seal Validation**
+   - Create `docs/seal/SEAL_VALIDATION_GUIDE.md`
+   - Document seal release process end-to-end
+   - Explain artifact schemas and validation flow
+   - **Blocking**: No operational guide for production releases
+
+### P1 - Feature Completeness (In Progress)
+1. **Migrate ABX-Runes Coupling Violations** (81 violations, ~10% migrated)
+   - **Progress**: `abx/mwr.py` ✅ PARTIALLY FIXED, `abx/forecast_log.py` ✅ PARTIALLY FIXED
+   - **Progress**: `abx/kernel.py` ✅ VERIFIED CORRECT
+   - **Not Fixed**: `abx/forecast_score.py`, `abx/a2_phase.py`, `abx/term_claims_run.py`
+   - **Not Fixed**: `abx/dap.py`, `abx/epp.py`, `abx/osh.py`
+   - **Needs Audit**: `abx/server/app.py`, `abx/cli.py`, `abx/operators/alive_*`
+   - **Top Offenders**:
+     - forecast (23 violations) - brier_score, horizon_bucket, decide_gate
+     - evolve (18 violations) - append_chained_jsonl, enforce_non_truncation
+     - memetic (16 violations) - cluster_claims, compute_dmx, build_mimetic_weather
+   - **Goal**: 10-15 violations per 2-week sprint, 50%+ complete in 2-3 months
+   - See `docs/migration/coupling_violations_inventory.md` for full list
+
+2. **Implement Critical Rune Operators** (6 stubs: WSSS, RFA, SDS, IPL, ADD, TAM)
+   - **Priority**: SDS (ϟ₂), IPL (ϟ₄), ADD (ϟ₅) - needed for oracle pipeline
+   - **Issue**: All raise `NotImplementedError` in `strict_execution=True` mode
+   - **Action**: Replace stubs with real logic, add golden tests
+   - Location: `abraxas/runes/operators/*.py`
+
+3. **Complete Oracle Daily Run Integration** (`abraxas/cli/oracle_daily_run.py`)
+   - TODO line 64: Integrate with real data sources (RSS, APIs, Decodo)
+   - TODO line 214: Load DCE (Domain Compression Engine) from configuration
+   - **Blocking**: Oracle cannot run in production without data integration
+
+4. **Complete Scenario Envelope Runner** (`abraxas/cli/scenario_run.py`)
+   - TODO lines 125-127: Load weather, D/M snapshot, almanac snapshot
+   - **Missing**: Critical context for scenario testing
+
+5. **Add Shadow Detectors Integration Example**
+   - Create `examples/shadow_detectors_integration.py`
+   - Show how to invoke `compute_all_detectors()`
+   - Document integration patterns with Shadow Structural Metrics
+
+6. **Create Rune Operator Development Guide**
+   - Document how to convert auto-generated stubs to real implementations
+   - Explain provenance requirements and golden test patterns
+   - Add to `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md`
+
+### P2 - Technical Debt
+- Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence)
+- Complete ABX core pipeline (remove stub oracle generation)
+- Review and fix 50+ placeholder comments
+- Add OpenAPI spec for TypeScript server endpoints
+- Enable and track TypeScript test coverage metrics
+
+### Branch Conflicts (Lower Priority - Handled in Other Branches)
+- **P0 (2026-01-10)**: Resolve pending merge conflicts in 3 active development branches
+  - Priority 1: claude/resolve-merge-conflicts-Vg6qy (acceptance tests + dashboard)
+  - Priority 2: cursor/mda-signal-layer-v2-2c0d (MDA package)
+  - Priority 3: cursor/oracle-bridge-mda-canary-87a3 (MDA engine + Oracle bridge)
+  - **Note**: Being handled in separate branches, not blocking current work
 
 ## Pending Branch Conflicts (2026-01-10)
 
@@ -242,6 +346,304 @@ These branches have NO unique commits and are significantly behind main:
 - ✅ Follow ABX-Runes coupling rules (capability contracts only)
 - ✅ Run full test suite before creating PRs
 - ✅ Use descriptive commit messages with conflict resolution context
+
+---
+
+## Known Stubs and Incomplete Features
+
+**Last Audited:** 2026-01-11
+**Total Items:** 150+ (15 P0, 45 P1, 90+ P2)
+**Test Coverage:** ~33% by file count (227 test files, 693 abraxas/ Python files)
+
+This section catalogs known incomplete implementations, TODOs, and stubs in the codebase. Items are prioritized by impact on production readiness.
+
+### P0 - Critical Production Blockers
+
+#### 1. Acceptance Test Suite Stubs
+**Location:** `tools/acceptance/run_acceptance_suite.py`
+**Issue:** 7 TODOs preventing real oracle integration
+**Lines:** 128, 184, 240, 297, 353, 404, 438
+
+```python
+# TODO: Call actual oracle pipeline here
+# TODO: Load schemas and validate artifacts
+# TODO: Run oracle with removed evidence source
+# TODO: Run oracle with shadow detectors on/off
+# TODO: Load narrative bundle and validate all pointers
+# TODO: Replace with actual oracle pipeline call
+# TODO: Implement actual drift classification logic
+```
+
+**Impact:** Cannot verify production readiness without real oracle calls.
+**Action Required:** Wire up `abraxas.oracle.v2.pipeline.run_oracle()` via capability contract.
+
+---
+
+#### 2. Placeholder Test Files (False Coverage)
+**Files:**
+- `tests/test_scenario_router.py` - 2 tests with `assert True`
+- `tests/test_integrity_hash_chain.py` - 2 tests with `assert True`
+- `tests/test_integrity_brief.py` - 2 tests with `assert True`
+
+```python
+def test_routing_logic():
+    """Test scenario routing logic."""
+    # Placeholder test - implement when scenario router is complete
+    assert True, "Placeholder test for rent enforcement"
+```
+
+**Impact:** False positive test coverage - tests pass without verifying functionality.
+**Action Required:** Implement real tests or delete files.
+
+---
+
+#### 3. Ed25519 Signing Backend (Optional P0)
+**Location:** `shared/signing.py:90-109`
+**Issue:** Digital signature backend not implemented
+
+```python
+def sign_ed25519(message: str, private_key_b64: str) -> str:
+    """Placeholder for Ed25519 backend (future)."""
+    raise NotImplementedError("Ed25519 backend not enabled. Use SHA-256 for now.")
+```
+
+**Impact:** No cryptographic signatures - system relies on SHA-256 hashes only.
+**Action Required:** Implement Ed25519 backend if digital signatures needed, otherwise downgrade to P2.
+
+---
+
+#### 4. Missing Test Coverage - Runtime Infrastructure
+**Missing Tests for 9 of 10 modules in `abraxas/runtime/`:**
+- `policy_snapshot.py` - Policy snapshot creation and hash chaining
+- `pipeline_bindings.py` - Pipeline binding resolution
+- `artifacts.py` - Artifact management
+- `retention.py` - Artifact retention and pruning
+- `results_pack.py` - Results pack utilities
+- `deterministic_executor.py` - Deterministic execution
+- `device_fingerprint.py` - Device fingerprinting
+- `concurrency.py` - Concurrency control
+- `perf_ledger.py` - Performance ledger
+
+**Existing Tests:** Only `test_runtime_dozen_run_gate.py` and `test_runtime_tick.py`
+
+**Impact:** Cannot rely on runtime infrastructure without test validation.
+**Action Required:** Add comprehensive tests for each module.
+
+---
+
+#### 5. No Seal Release Documentation
+**Missing:** `docs/seal/SEAL_VALIDATION_GUIDE.md`
+**Gap:** No operational guide for production seal process
+
+**Impact:** No documented workflow for seal validation, artifact verification, or production releases.
+**Action Required:** Document end-to-end seal process, artifact schemas, validation tooling.
+
+---
+
+### P1 - High Priority (Feature Completeness)
+
+#### 6. Auto-Generated Rune Operator Stubs
+**Count:** 6 operators
+**Location:** `abraxas/runes/operators/`
+
+**Stub Operators:**
+- `wsss.py` - ϟ₃ WSSS (Weak Signal · Strong Structure)
+- `rfa.py` - ϟ₁ RFA
+- `sds.py` - ϟ₂ SDS ⚠️ **CRITICAL for oracle pipeline**
+- `ipl.py` - ϟ₄ IPL ⚠️ **CRITICAL for oracle pipeline**
+- `add.py` - ϟ₅ ADD ⚠️ **CRITICAL for oracle pipeline**
+- `tam.py` - TAM
+
+**Pattern:**
+```python
+def apply_wsss(signal_amplitude, structural_coherence, pattern_matrix, *, strict_execution=False):
+    if strict_execution:
+        raise NotImplementedError(f"Operator WSSS not implemented yet.")
+
+    # Stub implementation - returns empty outputs
+    return {"structure_score": None, "signal_quality": None, "validation_result": None}
+```
+
+**Impact:** Runes fail in `strict_execution=True` mode. Placeholder outputs (all None) may cause downstream issues.
+**Action Required:** Implement SDS, IPL, ADD first (needed for oracle), then WSSS, RFA, TAM.
+
+---
+
+#### 7. ABX-Runes Coupling Violations
+**Count:** 81 violations across 34 files
+**Progress:** ~10% migrated (8 files partially/fully fixed)
+**Documentation:** `docs/migration/coupling_violations_inventory.md`
+
+**Top Offenders:**
+- **forecast** (23 violations) - `brier_score`, `horizon_bucket`, `decide_gate`
+- **evolve** (18 violations) - `append_chained_jsonl`, `enforce_non_truncation`
+- **memetic** (16 violations) - `cluster_claims`, `compute_dmx`, `build_mimetic_weather`
+- **conspiracy** (4 violations) - `compute_claim_csp`
+
+**Files Needing Immediate Attention:**
+```
+✅ PARTIALLY FIXED: abx/mwr.py, abx/forecast_log.py
+✅ VERIFIED CORRECT: abx/kernel.py
+❌ NOT FIXED: abx/forecast_score.py, abx/a2_phase.py, abx/term_claims_run.py
+❌ NOT FIXED: abx/dap.py, abx/epp.py, abx/osh.py
+⚠️ NEEDS AUDIT: abx/server/app.py, abx/cli.py, abx/operators/alive_*
+```
+
+**Impact:** Violates ABX-Runes coupling architecture. Direct imports bypass capability contracts.
+**Action Required:** Migrate 10-15 violations per sprint. Create capability contracts for top offenders.
+
+---
+
+#### 8. Oracle Daily Run TODOs
+**Location:** `abraxas/cli/oracle_daily_run.py`
+**Lines:** 64, 214
+
+```python
+# TODO: Integrate with actual data sources (RSS, APIs, Decodo, etc.)
+# TODO: Load DCE from configuration
+```
+
+**Impact:** Oracle cannot run in production without real data source integration.
+**Action Required:** Wire up Decodo API, RSS feeds, load DCE from config.
+
+---
+
+#### 9. Scenario Envelope Runner TODOs
+**Location:** `abraxas/cli/scenario_run.py`
+**Lines:** 125-127
+
+```python
+"weather": None,  # TODO: Load from weather engine if available
+"dm_snapshot": None,  # TODO: Load from D/M metrics if available
+"almanac_snapshot": None,  # TODO: Load from almanac if available
+```
+
+**Impact:** Scenario runs missing critical context (weather, D/M, almanac).
+**Action Required:** Load snapshots from respective modules.
+
+---
+
+### P2 - Medium Priority (Technical Debt)
+
+#### 10. TypeScript Server TODOs
+**Location:** `server/alive/`
+
+```typescript
+// Step 3: Persist raw results (TODO: add DB storage)
+// TODO: Consider using a persistent Python worker or HTTP bridge
+// TODO: Implement proper error handling
+// TODO: Implement actual user tier lookup from database
+```
+
+**Impact:** ALIVE system lacks DB persistence and proper error handling.
+
+---
+
+#### 11. ABX Core Pipeline Stub
+**Location:** `abx/core/pipeline.py:92-93`
+
+```python
+# Generate oracle output (stub - replace with real implementation)
+# TODO: Wire real oracle generation logic here
+```
+
+**Impact:** ABX core pipeline generates stub oracle outputs.
+
+---
+
+#### 12. ALIVE Operator Stubs
+**Location:** `abx/operators/alive_*.py`
+
+```python
+# TODO: Implement PDF export
+raise NotImplementedError("PDF export not yet implemented")
+
+# TODO: Implement CSV export with proper formatting
+# TODO: Actually send to Slack webhook
+```
+
+**Impact:** ALIVE export and Slack integration are stubs.
+
+---
+
+#### 13. Placeholder Comments (~50 occurrences)
+**Examples:**
+```python
+# Fallback: Placeholder compression when DCE not available
+# Placeholder: In production, compare cross-domain signal patterns
+# Falls back to safe placeholders when keys missing
+# Placeholder - in production, compute from ledgers
+avg_compression_ratio = 2.5  # Placeholder
+```
+
+**Impact:** Low - most are fallback behaviors or safe defaults.
+**Action Required:** Review each and decide if real implementation needed.
+
+---
+
+### Missing Documentation
+
+**P0:**
+- `docs/seal/SEAL_VALIDATION_GUIDE.md` - Seal validation end-to-end guide
+
+**P1:**
+- `examples/shadow_detectors_integration.py` - Shadow detector usage example
+- `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md` - Rune operator development guide
+
+**P2:**
+- `docs/api/openapi.yaml` - OpenAPI spec for TypeScript server
+
+---
+
+### Test Coverage Summary
+
+**Python Tests:**
+- Total test files: 227
+- Total Python files in abraxas/: 693
+- Coverage ratio: ~33% by file count
+
+**TypeScript Tests:**
+- No coverage metrics tracked
+- Action: Enable `npm run test:coverage`
+
+**Missing Critical Tests:**
+- Seal release scripts (seal_release.py, validate_artifacts.py)
+- Runtime infrastructure (9 of 10 modules)
+- ERS integration (scheduler, bindings, trace)
+- Rune operators (6 stubs need tests)
+
+---
+
+### v2.2.0 Feature Verification Status
+
+✅ **Shadow Detectors v0.1:** COMPLETE
+- All 13 detector files implemented
+- 4 comprehensive test files (determinism, bounds, missing inputs)
+- Documentation: `docs/detectors/shadow_detectors_v0_1.md`
+
+✅ **ABX-Runes Coupling Infrastructure:** PRESENT (but violations remain)
+- All capability contract files exist
+- Migration guide complete
+- 81 coupling violations documented, 10% migrated
+
+⚠️ **Seal Validation Infrastructure:** PRESENT (but undertested)
+- Scripts exist: `seal_release.py`, `validate_artifacts.py`
+- Schemas exist: 9 JSON schemas
+- Missing: Tests and documentation
+
+⚠️ **Runtime Infrastructure:** PRESENT (but undertested)
+- All 19 files in abraxas/runtime/ exist
+- Only 2 test files
+- Missing: Comprehensive test coverage
+
+⚠️ **ERS (Event Runtime System):** PRESENT (reasonably tested)
+- All 6 files in abraxas/ers/ exist
+- 4 test files exist
+- Missing: Some module tests
+
+---
+
+**For detailed audit report, see task output from 2026-01-11 audit agent (ID: a2878b2).**
 
 ---
 
