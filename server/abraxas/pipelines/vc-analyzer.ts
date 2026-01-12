@@ -105,7 +105,8 @@ export async function analyzeVCMarket(
     industry_momentum: (industryHash % 100) / 100,
     regional_sentiment: (regionHash % 100) / 100,
     horizon_factor: Math.min(1, input.horizonDays / 365),
-    market_cycle: (Date.now() % (365 * 24 * 60 * 60 * 1000)) / (365 * 24 * 60 * 60 * 1000),
+    market_cycle:
+      (context.timestamp % (365 * 24 * 60 * 60 * 1000)) / (365 * 24 * 60 * 60 * 1000),
   };
 
   const vector = createPipelineVector(
@@ -164,7 +165,7 @@ export async function analyzeVCMarket(
       resonance: metrics.ARF,
       entropy: metrics.Hσ,
     },
-    timestamp: Date.now(),
+    timestamp: context.timestamp,
     provenance: {
       seed: ritual.seed,
       runes: ritual.runes.map((r) => r.id),
