@@ -5,10 +5,9 @@
  */
 
 import type { AliveRunInput, AliveRunResult, AliveTier } from "@shared/alive/schema";
-import { ALIVE_ENGINE_VERSION, ALIVE_SCHEMA_VERSION } from "@shared/alive/schema";
 import { applyTierPolicy } from "./policy";
-import { createHash } from "crypto";
 import { promisify } from "util";
+import { persistAliveRun } from "./storage";
 
 const execFile = promisify(require("child_process").execFile);
 
@@ -33,11 +32,15 @@ export async function runALIVEPipeline(
   // Step 2: Call Python core engine
   const run = await callPythonEngine(normalizedInput);
 
-  // Step 3: Persist raw results (TODO: add DB storage)
-  // await persistRunResult(run);
-
-  // Step 4: Apply tier-based filtering
+  // Step 3: Apply tier-based filtering
   const filtered = applyTierPolicy(run, input.tier);
+
+  // Step 4: Persist raw results + filtered output
+  try {
+    await persistAliveRun(normalizedInput, run, filtered, input.tier);
+  } catch (error) {
+    console.warn("Failed to persist ALIVE run:", error);
+  }
 
   return {
     run,
@@ -55,8 +58,6 @@ function normalizeInput(input: AliveRunInput): AliveRunInput {
 
 /**
  * Call Python ALIVE engine via subprocess.
- *
- * TODO: Consider using a persistent Python worker or HTTP bridge for better performance.
  */
 async function callPythonEngine(
   input: AliveRunInput
@@ -80,49 +81,6 @@ async function callPythonEngine(
     return result as AliveRunResult;
   } catch (error) {
     console.error("Error calling Python engine:", error);
-
-    // For now, return stub data on error
-    // TODO: Implement proper error handling
-    return createStubRunResult(input);
+    throw error;
   }
-}
-
-/**
- * Create stub run result (fallback).
- */
-function createStubRunResult(input: AliveRunInput): AliveRunResult {
-  const now = new Date().toISOString();
-  const inputHash = createHash("sha256")
-    .update(JSON.stringify(input.artifact))
-    .digest("hex");
-  const profileHash = input.profile
-    ? createHash("sha256").update(JSON.stringify(input.profile)).digest("hex")
-    : undefined;
-  const signature = {
-    influence: [],
-    vitality: [],
-    life_logistics: [],
-  };
-
-  return {
-    provenance: {
-      run_id: `stub_${Date.now()}`,
-      created_at: now,
-      schema_version: ALIVE_SCHEMA_VERSION,
-      engine_version: ALIVE_ENGINE_VERSION,
-      metric_registry_hash: "unwired",
-      input_hash: inputHash,
-      profile_hash: profileHash,
-      corpus_context: {
-        corpus_version: "unwired",
-        decay_policy_hash: "unwired",
-      },
-    },
-    artifact: input.artifact,
-    signature,
-    view: {
-      tier: input.tier,
-      metrics: input.tier === "psychonaut" ? null : signature,
-    },
-  };
 }
