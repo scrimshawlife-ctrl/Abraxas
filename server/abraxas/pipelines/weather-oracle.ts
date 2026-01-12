@@ -50,7 +50,7 @@ export async function generateWeatherOracle(
     oracleOutput: oracle,
     symbolicMetrics: oracle.symbolicMetrics,
     context,
-    timestamp: Date.now(),
+    timestamp: context.timestamp,
   };
 
   // Step 3: Generate weather forecast
@@ -61,7 +61,7 @@ export async function generateWeatherOracle(
     oracle,
     weather,
     combined: {
-      timestamp: Date.now(),
+      timestamp: context.timestamp,
       seed: ritual.seed,
       version: "4.2.0",
     },
@@ -90,7 +90,7 @@ export async function generateStandaloneWeather(
       ITC: 0.5,
     },
     context,
-    timestamp: Date.now(),
+    timestamp: context.timestamp,
   };
 
   return await generateSemioticWeather(weatherInput);

@@ -75,7 +75,8 @@ export function generateDailyOracle(
     features,
     "daily-oracle",
     ritual.seed,
-    "pipelines/daily-oracle"
+    "pipelines/daily-oracle",
+    context.timestamp
   );
 
   // Compute symbolic metrics (optimized with caching)
@@ -110,7 +111,7 @@ export function generateDailyOracle(
       confidence: adjustedConfidence,
     },
     archetypes: archetypeNames,
-    timestamp: Date.now(),
+    timestamp: context.timestamp,
     provenance: {
       seed: ritual.seed,
       runes: ritual.runes.map((r) => r.id),

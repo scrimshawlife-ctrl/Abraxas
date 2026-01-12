@@ -68,7 +68,8 @@ export function forgeSigil(input: SigilInput): Sigil {
     features,
     `sigil-${subject}`,
     ritual.seed,
-    "pipelines/sigil-forge"
+    "pipelines/sigil-forge",
+    ritualContext.timestamp
   );
 
   // Compute symbolic metrics
@@ -89,7 +90,7 @@ export function forgeSigil(input: SigilInput): Sigil {
   const core = assembleSigil(glyphs, ritual.runes.map((r) => r.id), archetypeNames);
 
   // Generate cryptographic seal
-  const seal = generateSeal(core, ritual.seed, subject);
+  const seal = generateSeal(core, ritual.seed, subject, ritualContext.timestamp);
 
   // Generate verification
   const verification = generateVerification(core, seal, ritual);
@@ -107,7 +108,7 @@ export function forgeSigil(input: SigilInput): Sigil {
       seed: ritual.seed,
       runes: ritual.runes.map((r) => r.id),
       archetypes: archetypeNames,
-      timestamp: Date.now(),
+      timestamp: ritualContext.timestamp,
     },
     verification,
   };
@@ -238,8 +239,8 @@ function assembleSigil(
 /**
  * Generate cryptographic seal
  */
-function generateSeal(core: string, seed: string, subject: string): string {
-  const payload = { core, seed, subject, timestamp: Date.now() };
+function generateSeal(core: string, seed: string, subject: string, timestamp: number): string {
+  const payload = { core, seed, subject, timestamp };
   const hash = crypto
     .createHash("sha256")
     .update(JSON.stringify(payload))
@@ -282,7 +283,12 @@ function generateVerification(core: string, seal: string, ritual: RitualInput) {
  */
 export function verifySigil(sigil: Sigil, expectedSeed: string): boolean {
   // Regenerate seal
-  const regeneratedSeal = generateSeal(sigil.core, expectedSeed, sigil.subject);
+  const regeneratedSeal = generateSeal(
+    sigil.core,
+    expectedSeed,
+    sigil.subject,
+    sigil.provenance.timestamp
+  );
 
   return regeneratedSeal === sigil.seal;
 }
