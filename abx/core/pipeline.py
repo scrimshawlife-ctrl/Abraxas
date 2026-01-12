@@ -11,6 +11,8 @@ from abx.oracle.rune_gate import compute_gate, enforce_depth, schedule_insight_w
 from abx.oracle.drift import drift_check, append_drift_log
 from abx.oracle.provenance import stamp
 from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.core.oracle_runner import run_oracle as run_kernel_oracle
+from abraxas.io.config import UserConfig, OverlaysConfig
 
 
 def run_oracle(
@@ -89,13 +91,35 @@ def run_oracle(
             "outputs": [],
         }
     else:
-        # Generate oracle output (stub - replace with real implementation)
-        # TODO: Wire real oracle generation logic here
+        user_payload = input_obj.get("user") or context.get("user") or {}
+        overlays_payload = input_obj.get("overlays") or context.get("overlays") or {}
+        day = input_obj.get("day") or context.get("day") or "1970-01-01"
+        checkin = input_obj.get("checkin") or context.get("checkin")
+        timestamp_utc = input_obj.get("timestamp_utc") or context.get("timestamp_utc") or "1970-01-01T00:00:00Z"
+
+        user_config = (
+            UserConfig.from_dict(user_payload)
+            if isinstance(user_payload, dict)
+            else UserConfig.default()
+        )
+        overlays_config = (
+            OverlaysConfig.from_dict(overlays_payload)
+            if isinstance(overlays_payload, dict)
+            else OverlaysConfig.default()
+        )
+
+        oracle_outputs = run_kernel_oracle(user_config, overlays_config, day, checkin=checkin)
+        readout = dict(oracle_outputs.readout)
+        provenance = dict(readout.get("provenance", {}) or {})
+        if provenance:
+            provenance["timestamp_utc"] = timestamp_utc
+            readout["provenance"] = provenance
+
         output = {
             "oracle_vector": input_obj,
             "depth": effective_depth,
-            "semiotic_weather": {"status": "generated", "depth": effective_depth},
-            "outputs": [f"Oracle output at {effective_depth} depth"],
+            "semiotic_weather": readout.get("runic_weather", {}),
+            "outputs": [readout],
         }
 
     # E) Schedule IPL windows (ϟ₅) if gate is OPEN

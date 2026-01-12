@@ -6,7 +6,10 @@ Sends ALIVE field signature updates to Slack (enterprise tier only).
 
 from __future__ import annotations
 
+import json
 from typing import Any, Dict
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.runes.invoke import invoke_capability
@@ -32,6 +35,7 @@ class ALIVESlackIntegrationOperator:
         self,
         field_signature: Dict[str, Any],
         channel: str = "#alive-updates",
+        webhook_url: str | None = None,
     ) -> Dict[str, Any]:
         """
         Send ALIVE update to Slack.
@@ -39,6 +43,7 @@ class ALIVESlackIntegrationOperator:
         Args:
             field_signature: ALIVE field signature data
             channel: Slack channel to post to
+            webhook_url: Optional Slack webhook URL override
 
         Returns:
             Response status
@@ -48,11 +53,49 @@ class ALIVESlackIntegrationOperator:
         # Format message
         message = self._format_slack_message(signature, channel)
 
-        # TODO: Actually send to Slack webhook
-        # For now, just return the formatted message
+        target_webhook = webhook_url or self.webhook_url
+
+        if not target_webhook:
+            return {
+                "status": "error",
+                "message": "Missing Slack webhook URL",
+                "formatted_message": message,
+            }
+
+        payload = json.dumps(message).encode("utf-8")
+        request = Request(
+            target_webhook,
+            data=payload,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=10) as response:
+                response_body = response.read().decode("utf-8")
+                status_code = response.getcode()
+        except HTTPError as exc:
+            return {
+                "status": "error",
+                "message": f"Slack webhook failed: {exc.code} {exc.reason}",
+                "formatted_message": message,
+            }
+        except URLError as exc:
+            return {
+                "status": "error",
+                "message": f"Slack webhook unreachable: {exc.reason}",
+                "formatted_message": message,
+            }
+
+        if status_code != 200 or response_body.strip().lower() != "ok":
+            return {
+                "status": "error",
+                "message": f"Slack webhook returned {status_code}: {response_body}",
+                "formatted_message": message,
+            }
+
         return {
-            "status": "stub",
-            "message": "Slack integration not yet fully implemented",
+            "status": "ok",
+            "message": "Slack notification delivered",
             "formatted_message": message,
         }
 
@@ -137,6 +180,7 @@ class ALIVESlackIntegrationOperator:
         self,
         field_signature: Dict[str, Any],
         channel: str = "#alive-updates",
+        webhook_url: str | None = None,
     ) -> Dict[str, Any]:
         """Allow operator to be called as function."""
-        return self.execute(field_signature, channel)
+        return self.execute(field_signature, channel, webhook_url)

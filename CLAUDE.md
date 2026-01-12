@@ -123,11 +123,11 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
 - ✅ All P1 items completed.
 
 ### P2 - Technical Debt
-- Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence)
-- Complete ABX core pipeline (remove stub oracle generation)
-- Review and fix 50+ placeholder comments
-- Add OpenAPI spec for TypeScript server endpoints
-- Enable and track TypeScript test coverage metrics
+- ✅ Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence)
+- ✅ Complete ABX core pipeline (remove stub oracle generation)
+- ✅ Review and fix placeholder comments in ALIVE + ABX pipeline paths
+- ✅ Add OpenAPI spec for TypeScript server endpoints
+- ✅ Enable and track TypeScript test coverage metrics
 
 ### Branch Conflicts (Lower Priority - Handled in Other Branches)
 - **P0 (2026-01-10)**: Resolve pending merge conflicts in 3 active development branches

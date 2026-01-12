@@ -5,6 +5,7 @@ import { exportAsCsv } from "./export-csv";
 import { exportAsHtml } from "./export-html";
 import { exportAsJson } from "./export-json";
 import { exportAsMarkdown } from "./export-md";
+import { exportAsPdf } from "./export-pdf";
 
 export function exportAliveRun(run: AliveRunResult, format: AliveExportFormat): string | object {
   switch (format) {
@@ -16,6 +17,8 @@ export function exportAliveRun(run: AliveRunResult, format: AliveExportFormat): 
       return exportAsHtml(run);
     case "csv":
       return exportAsCsv(run);
+    case "pdf":
+      return exportAsPdf(run);
     case "bi_table":
       return exportAsBITable(run);
     default:

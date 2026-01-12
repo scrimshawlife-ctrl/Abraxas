@@ -7,6 +7,9 @@
  */
 
 import type { AliveRunResult, AliveTier } from "@shared/alive/schema";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { db } from "../db";
 
 /**
  * Apply tier-based filtering to ALIVE run result.
@@ -76,15 +79,16 @@ export function validateTier(tier: string): tier is AliveTier {
 /**
  * Get user's tier from session/database.
  *
- * TODO: Implement actual user tier lookup from database.
- * For now, returns psychonaut as default.
- *
  * SECURITY: NEVER trust tier from client request. Always look it up server-side.
  */
 export async function getUserTier(userId: string): Promise<AliveTier> {
-  // TODO: Look up from database
-  // const user = await db.users.findOne({ id: userId });
-  // return user.tier || "psychonaut";
-
+  const result = await db
+    .select({ tier: users.tier })
+    .from(users)
+    .where(eq(users.id, userId));
+  const tier = result[0]?.tier;
+  if (tier === "academic" || tier === "enterprise") {
+    return tier;
+  }
   return "psychonaut";
 }
