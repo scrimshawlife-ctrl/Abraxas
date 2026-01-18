@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from abraxas.core.provenance import Provenance
 from abraxas.core.canonical import sha256_hex, canonical_json
@@ -714,12 +714,75 @@ def _utc_now_iso() -> str:
 
 # Convenience function
 
-def create_oracle_v2_pipeline() -> OracleV2Pipeline:
+def _load_dce_engine(config: Dict[str, Any]) -> "DomainCompressionEngine | None":
+    dce_config = config.get("dce", {})
+    packs = dce_config.get("packs", [])
+    if not packs:
+        return None
+
+    from abraxas.lexicon.dce import DCEPack, DCERegistry, DomainCompressionEngine
+    from abraxas.lexicon.engine import InMemoryLexiconRegistry, LexiconEntry, LexiconPack
+
+    base_registry = InMemoryLexiconRegistry()
+    dce_registry = DCERegistry(base_registry)
+
+    for pack in packs:
+        domain = pack.get("domain")
+        version = pack.get("version", "v0.1")
+        entries_raw = pack.get("entries", [])
+        if not domain or not entries_raw:
+            continue
+        entries = tuple(
+            LexiconEntry(
+                token=str(entry.get("token")),
+                weight=float(entry.get("weight", 0.5)),
+                meta=entry.get("meta", {}) or {},
+            )
+            for entry in entries_raw
+            if entry.get("token")
+        )
+        lex_pack = LexiconPack(
+            domain=domain,
+            version=version,
+            entries=entries,
+            created_at_utc=LexiconPack.now_iso_z(),
+        )
+        dce_pack = DCEPack.from_lexicon_pack(lex_pack)
+        dce_registry.register(dce_pack)
+
+    return DomainCompressionEngine(dce_registry)
+
+
+def create_oracle_v2_pipeline(config: Optional[Dict[str, Any]] = None) -> OracleV2Pipeline:
     """
     Create Oracle v2 pipeline with default components.
 
     Returns:
         Configured pipeline ready for use
     """
-    # TODO: Wire up real DCE, lifecycle, resonance, weather engines
-    return OracleV2Pipeline()
+    from abraxas.integrity.composites import (
+        compute_network_campaign,
+        compute_narrative_manipulation,
+    )
+    from abraxas.slang.a_almanac_store import AAlmanacStore
+    from abraxas.weather.registry import WEATHER_REGISTRY, classify_weather
+
+    config = config or {}
+    dce_engine = _load_dce_engine(config)
+
+    weather_config = {
+        "registry": WEATHER_REGISTRY,
+        "classifier": classify_weather,
+        "integrity": {
+            "compute_network_campaign": compute_network_campaign,
+            "compute_narrative_manipulation": compute_narrative_manipulation,
+        },
+        "almanac_store": AAlmanacStore(),
+    }
+
+    return OracleV2Pipeline(
+        dce_engine=dce_engine,
+        lifecycle_engine=LifecycleEngine(),
+        tau_calculator=TauCalculator(),
+        weather_config=weather_config,
+    )

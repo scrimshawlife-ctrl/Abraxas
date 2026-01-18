@@ -40,6 +40,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Kernel routing and deterministic handlers for `weather.generate`, `ser.run`, `daemon.ingest`, and `edge.deploy_orin`
+- Oracle v2 factory wiring for lifecycle, tau, weather registry, integrity composites, and AAlmanac context
+- Kernel and patch registry tests covering new rune routing and proposal-only patch receipts
+
+### Changed
+- Kernel seed normalization to handle structured seed payloads deterministically
+- Scenario runner uses caller-provided timestamp when available for deterministic outputs
+- Shadow patch registry now records proposal-only receipts
+- Policy allowlist expanded to include newly routable runes
+
+### Fixed
+- Shadow detector status typing and DetectorOutput shape used by tests
+- Strict-execution operators now return structured not-computable details when inputs are missing
+
 ### Added - Shadow Detectors v0.1 (2025-12-29)
 - **Shadow Detectors**: Three new observe-only pattern detectors that feed Shadow Structural Metrics as evidence without influencing system decisions
   - **Compliance vs Remix Detector** (`abraxas/detectors/shadow/compliance_remix.py`):

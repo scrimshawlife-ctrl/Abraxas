@@ -3,9 +3,9 @@
 Performance Drop v1.0 - Deterministic acquisition with budget enforcement.
 
 Implements three acquisition runes:
-- ABX-ACQUIRE_BULK (߂�): Bulk acquisition via official APIs
-- ABX-ACQUIRE_CACHE_ONLY (߂�): Cache-only replay
-- ABX-ACQUIRE_SURGICAL (߂�): Surgical Decodo gate with caps
+- ABX-ACQUIRE_BULK (ϟ₁): Bulk acquisition via official APIs
+- ABX-ACQUIRE_CACHE_ONLY (ϟ₂): Cache-only replay
+- ABX-ACQUIRE_SURGICAL (ϟ₃): Surgical Decodo gate with caps
 
 All runes are provenance-tracked and ERS-budget aware.
 """

@@ -17,6 +17,9 @@ class TemporalNormalizeResult(BaseModel):
     normalized_timestamp_utc: str
     timezone_snapshot: Dict[str, Any]
     calendar_events: List[Dict[str, Any]]
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -28,8 +31,22 @@ def apply_temporal_normalize(
     *,
     strict_execution: bool = False,
 ) -> Dict[str, Any]:
-    if strict_execution and not timestamp:
-        raise NotImplementedError("TEMPORAL_NORMALIZE requires timestamp")
+    if not timestamp:
+        if strict_execution:
+            raise NotImplementedError("TEMPORAL_NORMALIZE requires timestamp")
+        return TemporalNormalizeResult(
+            normalized_timestamp_utc="",
+            timezone_snapshot={},
+            calendar_events=[],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["timestamp"],
+            },
+            provenance={
+                "inputs_hash": sha256_hex(canonical_json({"timestamp": None})),
+                "tzdb_version": None,
+            },
+        ).model_dump()
 
     tz_name = timezone or "UTC"
     normalized = normalize_to_utc(timestamp, tz_name)

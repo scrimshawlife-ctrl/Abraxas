@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,6 +14,9 @@ from abraxas.tvm.frame import compose_frames_by_domain
 class TVMFrameResult(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     frames: List[Dict[str, Any]] = Field(default_factory=list)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -24,8 +27,21 @@ def apply_tvm_frame(
     window_end_utc: str,
     strict_execution: bool = False,
 ) -> Dict[str, Any]:
-    if strict_execution and metrics is None:
-        raise NotImplementedError("TVM_FRAME requires metrics")
+    if metrics is None:
+        if strict_execution:
+            raise NotImplementedError("TVM_FRAME requires metrics")
+        provenance = {
+            "inputs_hash": sha256_hex(canonical_json([])),
+            "frame_hashes": [],
+        }
+        return TVMFrameResult(
+            frames=[],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["metrics"],
+            },
+            provenance=provenance,
+        ).model_dump()
 
     points = [MetricPoint(**metric) for metric in metrics]
     frames = compose_frames_by_domain(points, window_start_utc=window_start_utc, window_end_utc=window_end_utc)

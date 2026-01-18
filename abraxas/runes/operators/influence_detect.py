@@ -27,6 +27,9 @@ class InfluenceBundle(BaseModel):
 
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     ics: Dict[str, InfluenceMetric] = Field(default_factory=dict)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -155,8 +158,24 @@ def apply_influence_detect(frames: List[Dict[str, Any]], *, strict_execution: bo
         frames: TVM vector frames
         strict_execution: If True, raises NotImplementedError for unimplemented operators
     """
-    if strict_execution and frames is None:
-        raise NotImplementedError("INFLUENCE_DETECT requires frames")
+    if frames is None:
+        if strict_execution:
+            raise NotImplementedError("INFLUENCE_DETECT requires frames")
+        metric = InfluenceMetric(not_computable=["CVP", "TLL", "RD", "CDEC", "RRS"])
+        inputs_hash = sha256_hex(canonical_json({"frames": []}))
+        bundle = InfluenceBundle(
+            ics={"_global": metric},
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["frames"],
+            },
+            provenance={
+                "inputs_hash": inputs_hash,
+                "computed_at_utc": "1970-01-01T00:00:00Z",
+                "metrics": ["CVP", "TLL", "RD", "CDEC", "RRS"],
+            },
+        )
+        return bundle.model_dump()
 
     grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for frame in frames or []:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,12 +14,28 @@ from abraxas.sources.domain_map import domain_for_source_id
 class MetricExtractResult(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     metrics: List[Dict[str, Any]] = Field(default_factory=list)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
 def apply_metric_extract(packets: List[Dict[str, Any]], *, strict_execution: bool = False) -> Dict[str, Any]:
-    if strict_execution and packets is None:
-        raise NotImplementedError("METRIC_EXTRACT requires packets")
+    if packets is None:
+        if strict_execution:
+            raise NotImplementedError("METRIC_EXTRACT requires packets")
+        provenance = {
+            "inputs_hash": sha256_hex(canonical_json([])),
+            "metrics_hash": sha256_hex(canonical_json([])),
+        }
+        return MetricExtractResult(
+            metrics=[],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["packets"],
+            },
+            provenance=provenance,
+        ).model_dump()
 
     packet_domain_by_source: Dict[str, str] = {}
     packet_grade_by_source: Dict[str, str] = {}

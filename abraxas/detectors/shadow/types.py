@@ -12,15 +12,18 @@ Canonical output contract:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Literal
+from enum import Enum
+from typing import Dict, Any, List, Optional, Literal, Tuple
 from pydantic import BaseModel, Field
 from datetime import datetime
 import hashlib
 import json
 
 
-# Legacy status (for existing ShadowDetectorResult)
-DetectorStatus = Literal["computed", "not_computable", "error"]
+class DetectorStatus(str, Enum):
+    OK = "computed"
+    NOT_COMPUTABLE = "not_computable"
+    ERROR = "error"
 
 # Canonical status for normalized outputs
 ShadowStatus = Literal["ok", "not_computable", "error"]
@@ -47,6 +50,26 @@ class ShadowResult:
     missing: List[str] = field(default_factory=list)
     error: Optional[str] = None
     provenance: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class DetectorOutput:
+    """
+    Canonical output for compute_detector helpers used by tests.
+
+    Attributes:
+        status: DetectorStatus
+        value: Optional detector value in [0,1]
+        subscores: Per-signal subscores, clamped to [0,1]
+        missing_keys: Missing required inputs
+        bounds: Valid bounds for value/subscores
+    """
+
+    status: DetectorStatus
+    value: Optional[float]
+    subscores: Dict[str, float]
+    missing_keys: List[str]
+    bounds: Tuple[float, float] = (0.0, 1.0)
 
 
 def clamp01(value: float) -> float:
