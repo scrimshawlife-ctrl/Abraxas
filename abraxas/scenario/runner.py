@@ -65,7 +65,7 @@ def run_scenarios(
 
     # Generate run ID and timestamp
     run_id = context.get("run_id", f"scenario_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}")
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = context.get("timestamp") or context.get("timestamp_utc") or datetime.now(timezone.utc).isoformat()
 
     # Build scenario input
     scenario_input = ScenarioInput(

@@ -58,7 +58,7 @@ class ComplianceRemixDetector(ShadowDetectorBase):
         if not self._validate_inputs(inputs, ["text"]):
             return self._create_result(
                 inputs=inputs,
-                status="not_computable",
+                status=DetectorStatus.NOT_COMPUTABLE,
                 error_message="Missing required input: text",
             )
 
@@ -69,7 +69,7 @@ class ComplianceRemixDetector(ShadowDetectorBase):
         if not reference_texts:
             return self._create_result(
                 inputs=inputs,
-                status="not_computable",
+                status=DetectorStatus.NOT_COMPUTABLE,
                 error_message="No reference texts provided",
             )
 
@@ -99,14 +99,14 @@ class ComplianceRemixDetector(ShadowDetectorBase):
 
             return self._create_result(
                 inputs=inputs,
-                status="computed",
+                status=DetectorStatus.OK,
                 evidence=evidence,
             )
 
         except Exception as e:
             return self._create_result(
                 inputs=inputs,
-                status="error",
+                status=DetectorStatus.ERROR,
                 error_message=f"Detection failed: {str(e)}",
             )
 

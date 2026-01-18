@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List
 
-from abraxas.detectors.shadow.types import ShadowDetectorResult
+from abraxas.detectors.shadow.types import DetectorStatus, ShadowDetectorResult
 from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
 from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
 from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
@@ -105,12 +105,12 @@ def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, An
     for detector_name, result in results.items():
         provenance_hashes[detector_name] = result.compute_provenance_hash()
 
-        if result.status == "computed" and result.evidence:
+        if result.status == DetectorStatus.OK and result.evidence:
             computed.append(detector_name)
             evidence_by_detector[detector_name] = result.evidence.model_dump()
-        elif result.status == "not_computable":
+        elif result.status == DetectorStatus.NOT_COMPUTABLE:
             not_computable.append(detector_name)
-        elif result.status == "error":
+        elif result.status == DetectorStatus.ERROR:
             errors.append(detector_name)
 
     # Find max signal strength

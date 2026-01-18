@@ -64,7 +64,27 @@ def apply_tam(
     Raises:
         NotImplementedError: If strict_execution=True and operator not implemented
     """
-    _ = strict_execution
+    missing = []
+    if traversal_path is None:
+        missing.append("traversal_path")
+    if node_sequence is None:
+        missing.append("node_sequence")
+    if context_history is None:
+        missing.append("context_history")
+    if missing:
+        if strict_execution:
+            raise NotImplementedError(
+                f"TAM requires inputs: {', '.join(missing)}"
+            )
+        return {
+            "emergent_meaning": "",
+            "path_signature": "",
+            "semantic_trace": [],
+            "not_computable": {
+                "reason": "missing required inputs",
+                "missing_inputs": missing,
+            },
+        }
     path_steps = _normalize_sequence(traversal_path)
     nodes = _normalize_sequence(node_sequence)
     history = _normalize_sequence(context_history)

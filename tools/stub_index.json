@@ -185,46 +185,25 @@
       "stub_type": "operator"
     },
     {
-      "file": "abraxas/shadow_metrics/patch_registry.py",
-      "marker": "# TODO: Actually apply code changes (would need implementation)",
-      "type": "todo",
-      "priority": "P2",
-      "stub_type": "module"
-    },
-    {
       "file": "abraxas/sources/adapters/base.py",
       "marker": "raise NotImplementedError",
       "type": "not_implemented",
       "priority": "P1",
       "stub_type": "interface"
-    },
-    {
-      "file": "abx/core/pipeline.py",
-      "marker": "# TODO: Wire real oracle generation logic here",
-      "type": "todo",
-      "priority": "P2",
-      "stub_type": "core"
-    },
-    {
-      "file": "abx/kernel.py",
-      "marker": "raise NotImplementedError(",
-      "type": "not_implemented",
-      "priority": "P1",
-      "stub_type": "not_implemented"
     }
   ],
   "summary": {
-    "total_stubs": 24,
+    "total_stubs": 21,
     "by_priority": {
       "P0": 0,
-      "P1": 22,
-      "P2": 2
+      "P1": 21,
+      "P2": 0
     },
     "by_type": {
       "operator": 17,
       "interface": 2,
-      "not_implemented": 3,
-      "module": 1
+      "not_implemented": 2,
+      "module": 0
     }
   }
 }

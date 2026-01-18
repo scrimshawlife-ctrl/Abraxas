@@ -16,6 +16,7 @@ from abraxas.detectors.shadow import (
     compute_all_detectors,
     aggregate_evidence,
 )
+from abraxas.detectors.shadow.types import DetectorStatus
 
 
 class TestComplianceRemixDetector:
@@ -65,7 +66,7 @@ class TestComplianceRemixDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "not_computable"
+        assert result.status == DetectorStatus.NOT_COMPUTABLE
         assert "text" in result.error_message
 
     def test_missing_reference(self):
@@ -75,7 +76,7 @@ class TestComplianceRemixDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "not_computable"
+        assert result.status == DetectorStatus.NOT_COMPUTABLE
         assert "reference" in result.error_message.lower()
 
     def test_provenance(self):
@@ -136,7 +137,7 @@ class TestMetaAwarenessDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "not_computable"
+        assert result.status == DetectorStatus.NOT_COMPUTABLE
         assert "text" in result.error_message
 
     def test_empty_text(self):
@@ -146,7 +147,7 @@ class TestMetaAwarenessDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "not_computable"
+        assert result.status == DetectorStatus.NOT_COMPUTABLE
 
     def test_meta_detection(self):
         """Test that meta-awareness patterns are detected."""
@@ -157,7 +158,7 @@ class TestMetaAwarenessDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "computed"
+        assert result.status == DetectorStatus.OK
         assert result.evidence is not None
         assert result.evidence.signal_strength > 0.0
         assert result.evidence.metadata["marker_count"] > 0
@@ -206,7 +207,7 @@ class TestNegativeSpaceDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "not_computable"
+        assert result.status == DetectorStatus.NOT_COMPUTABLE
         assert "text" in result.error_message
 
     def test_missing_baseline(self):
@@ -216,7 +217,7 @@ class TestNegativeSpaceDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "not_computable"
+        assert result.status == DetectorStatus.NOT_COMPUTABLE
         assert "baseline" in result.error_message.lower()
 
     def test_topic_dropout_detection(self):
@@ -231,7 +232,7 @@ class TestNegativeSpaceDetector:
 
         result = detector.detect(inputs)
 
-        assert result.status == "computed"
+        assert result.status == DetectorStatus.OK
         assert result.evidence is not None
         # Should detect that climate and economy are dropped
         assert len(result.evidence.metadata["dropped_topics"]) > 0

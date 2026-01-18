@@ -103,23 +103,31 @@ def get_ledger() -> SSMPatchLedger:
     return PATCH_LEDGER
 
 
-def apply_patch(patch: SSMPatch) -> None:
-    """Apply incremental patch to Shadow Structural Metrics.
+def apply_patch(patch: SSMPatch) -> dict[str, Any]:
+    """Record an incremental patch proposal to Shadow Structural Metrics.
 
-    This is the ONLY way to modify SSM implementations.
+    Canon: proposal-only. Patch application requires explicit governance
+    and a separate actuator path; this registry records provenance only.
 
     Args:
         patch: Patch specification
 
+    Returns:
+        Patch receipt dict marking proposal-only status.
+
     Raises:
         ValueError: If patch violates constraints
-        RuntimeError: If patch application fails
     """
     # Add to ledger (validates constraints)
     PATCH_LEDGER.add_patch(patch)
 
-    # TODO: Actually apply code changes (would need implementation)
-    # For now, this just records the patch in the ledger
+    return {
+        "status": "proposal_only",
+        "patch_id": patch.patch_id,
+        "version": patch.version,
+        "base_version": patch.base_version,
+        "metrics_affected": list(patch.metrics_affected),
+    }
 
 
 def validate_patch_chain() -> bool:

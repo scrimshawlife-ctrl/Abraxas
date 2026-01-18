@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,12 +14,30 @@ class SourceResolveResult(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     sources: List[Dict[str, Any]] = Field(default_factory=list)
     missing: List[str] = Field(default_factory=list)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
 def apply_source_resolve(source_ids: List[str], *, strict_execution: bool = False) -> Dict[str, Any]:
-    if strict_execution and source_ids is None:
-        raise NotImplementedError("SOURCE_RESOLVE requires source_ids")
+    if source_ids is None:
+        if strict_execution:
+            raise NotImplementedError("SOURCE_RESOLVE requires source_ids")
+        provenance = {
+            "atlas_hash": build_source_atlas().atlas_hash(),
+            "inputs_hash": sha256_hex(canonical_json({"source_ids": []})),
+            "record_hashes": [],
+        }
+        return SourceResolveResult(
+            sources=[],
+            missing=[],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["source_ids"],
+            },
+            provenance=provenance,
+        ).model_dump()
 
     atlas = build_source_atlas()
     resolved, missing = resolve_sources(source_ids or [])

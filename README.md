@@ -866,6 +866,7 @@ Contributions welcome! This project follows deterministic, provenance-first desi
 2. Include SHA-256 provenance for new linguistic events
 3. Maintain backward compatibility for API endpoints
 4. Follow existing code style (TypeScript/Python)
+5. Network installs are forbidden; PyYAML is vendored (do not pip/apt install)
 
 ---
 

@@ -13,6 +13,9 @@ from abraxas.sources.discovery import discover_sources
 class SourceDiscoverResult(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     candidates: List[Dict[str, Any]] = Field(default_factory=list)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -24,8 +27,30 @@ def apply_source_discover(
     *,
     strict_execution: bool = False,
 ) -> Dict[str, Any]:
-    if strict_execution and residuals is None and anomalies is None and convergence is None and silence is None:
-        raise NotImplementedError("SOURCE_DISCOVER requires at least one input list")
+    if residuals is None and anomalies is None and convergence is None and silence is None:
+        if strict_execution:
+            raise NotImplementedError("SOURCE_DISCOVER requires at least one input list")
+        provenance = {
+            "inputs_hash": sha256_hex(
+                canonical_json(
+                    {
+                        "residuals": [],
+                        "anomalies": [],
+                        "convergence": [],
+                        "silence": [],
+                    }
+                )
+            ),
+            "candidate_hash": None,
+        }
+        return SourceDiscoverResult(
+            candidates=[],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["residuals", "anomalies", "convergence", "silence"],
+            },
+            provenance=provenance,
+        ).model_dump()
 
     output = discover_sources(
         residuals=residuals or [],
