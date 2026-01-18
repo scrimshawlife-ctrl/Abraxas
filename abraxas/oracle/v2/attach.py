@@ -14,6 +14,7 @@ def attach_v2_to_envelope(
     date_iso: str | None = None,
     config_payload: Dict[str, Any] | None = None,
     config_source: str | None = None,
+    slang_observation: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """
     Builds the v2 governance block and attaches it to the envelope.
@@ -34,5 +35,8 @@ def attach_v2_to_envelope(
 
     # Attach v2 block
     envelope["oracle_signal"]["v2"] = v2_block
+    # Observation-only slang payload (Dual-Lane principle: may observe, never govern)
+    if slang_observation is not None:
+        envelope["oracle_signal"]["v2"]["slang"] = slang_observation
 
     return envelope

@@ -1,0 +1,1450 @@
+{
+  "artifact": "SLANG-HIST.v1",
+  "constraint": "observation-only; may observe, never govern",
+  "evidence": "none (no frequency series yet)",
+  "method": "seed_heuristic_rules.v1",
+  "packets": [
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L1",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 80,
+        "CP": 85,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 20,
+        "SDI": 20,
+        "SSF": 5,
+        "STI": 55,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__fence",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "tool",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 80,
+        "CP": 85,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 20,
+        "SDI": 20,
+        "SSF": 5,
+        "STI": 55
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "fence",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L1",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 20,
+        "CP": 70,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 20,
+        "SDR": 25,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 35,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__rum_cove",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 20,
+        "CP": 70,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 20,
+        "SDR": 25,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 35
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "rum cove",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L1",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 45,
+        "CP": 65,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 20,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 45,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__crib",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 45,
+        "CP": 65,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 20,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 45
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "crib",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L1",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 15,
+        "CP": 60,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 30,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__lag",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 15,
+        "CP": 60,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 30
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "lag",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L1",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 50,
+        "CP": 75,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 20,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 50,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__plant",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "role",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 50,
+        "CP": 75,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 20,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 50
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "plant",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L2",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 25,
+        "CP": 55,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 35,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__on_the_make",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 25,
+        "CP": 55,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 35
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "on the make",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L2",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 30,
+        "CP": 65,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 40,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__flatfoot",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "role",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 30,
+        "CP": 65,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 40
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "flatfoot",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L2",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 95,
+        "CP": 80,
+        "IPS": 10,
+        "IV": 5,
+        "NMC": 20,
+        "SDR": 15,
+        "SDI": 20,
+        "SSF": 5,
+        "STI": 70,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__gig",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "job",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 95,
+        "CP": 80,
+        "IPS": 10,
+        "IV": 5,
+        "NMC": 20,
+        "SDR": 15,
+        "SDI": 20,
+        "SSF": 5,
+        "STI": 70
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "gig",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L2",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 70,
+        "CP": 70,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 20,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 60,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__heat",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 70,
+        "CP": 70,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 20,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 60
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "heat",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L2",
+      "medium": "print",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 20,
+        "CP": 45,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 30,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__sap",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "insult",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 20,
+        "CP": 45,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 20,
+        "SDR": 30,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 30
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "sap",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L3",
+      "medium": "broadcast",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 35,
+        "CP": 55,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 40,
+        "SDR": 35,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 45,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__square",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "insult",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 35,
+        "CP": 55,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 40,
+        "SDR": 35,
+        "SDI": 70,
+        "SSF": 5,
+        "STI": 45
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "square",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L3",
+      "medium": "broadcast",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 70,
+        "CP": 50,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 40,
+        "SDR": 40,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 55,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__dig_it",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "interjection",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 70,
+        "CP": 50,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 40,
+        "SDR": 40,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 55
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "dig it",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L3",
+      "medium": "broadcast",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 65,
+        "CP": 75,
+        "IPS": 35,
+        "IV": 25,
+        "NMC": 40,
+        "SDR": 40,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 65,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__the_man",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "role",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 65,
+        "CP": 75,
+        "IPS": 35,
+        "IV": 25,
+        "NMC": 40,
+        "SDR": 40,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 65
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "the man",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L3",
+      "medium": "broadcast",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 90,
+        "CP": 70,
+        "IPS": 25,
+        "IV": 10,
+        "NMC": 40,
+        "SDR": 25,
+        "SDI": 20,
+        "SSF": 5,
+        "STI": 75,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__burnout",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 90,
+        "CP": 70,
+        "IPS": 25,
+        "IV": 10,
+        "NMC": 40,
+        "SDR": 25,
+        "SDI": 20,
+        "SSF": 5,
+        "STI": 75
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "burnout",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L3",
+      "medium": "broadcast",
+      "metrics": {
+        "ARF": 30,
+        "CLS": 70,
+        "CP": 75,
+        "IPS": 35,
+        "IV": 20,
+        "NMC": 40,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 70,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__sellout",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 30,
+        "CLS": 70,
+        "CP": 75,
+        "IPS": 35,
+        "IV": 20,
+        "NMC": 40,
+        "SDR": 35,
+        "SDI": 55,
+        "SSF": 5,
+        "STI": 70
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "sellout",
+      "velocity": "slow"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L4",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 65,
+        "CLS": 30,
+        "CP": 50,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 80,
+        "SDR": 45,
+        "SDI": 70,
+        "SSF": 10,
+        "STI": 45,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__phat",
+      "polarity": "ironic",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "praise",
+      "seed_overrides": {
+        "ARF": 65,
+        "CLS": 30,
+        "CP": 50,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 80,
+        "SDR": 45,
+        "SDI": 70,
+        "SSF": 10,
+        "STI": 45
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "phat",
+      "velocity": "fast"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L4",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 65,
+        "CLS": 55,
+        "CP": 60,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 80,
+        "SDR": 50,
+        "SDI": 55,
+        "SSF": 10,
+        "STI": 60,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__owned",
+      "polarity": "ironic",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 65,
+        "CLS": 55,
+        "CP": 60,
+        "IPS": 30,
+        "IV": 20,
+        "NMC": 80,
+        "SDR": 50,
+        "SDI": 55,
+        "SSF": 10,
+        "STI": 60
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "owned",
+      "velocity": "fast"
+    },
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L4",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 65,
+        "CLS": 90,
+        "CP": 70,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 80,
+        "SDR": 35,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 75,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__noob",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "insult",
+      "seed_overrides": {
+        "ARF": 65,
+        "CLS": 90,
+        "CP": 70,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 80,
+        "SDR": 35,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 75
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "noob",
+      "velocity": "fast"
+    },
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L4",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 65,
+        "CLS": 95,
+        "CP": 85,
+        "IPS": 10,
+        "IV": 5,
+        "NMC": 80,
+        "SDR": 20,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 80,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__irl",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "tool",
+      "seed_overrides": {
+        "ARF": 65,
+        "CLS": 95,
+        "CP": 85,
+        "IPS": 10,
+        "IV": 5,
+        "NMC": 80,
+        "SDR": 20,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 80
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "IRL",
+      "velocity": "fast"
+    },
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L4",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 65,
+        "CLS": 95,
+        "CP": 60,
+        "IPS": 15,
+        "IV": 5,
+        "NMC": 80,
+        "SDR": 20,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 85,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__meh",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "interjection",
+      "seed_overrides": {
+        "ARF": 65,
+        "CLS": 95,
+        "CP": 60,
+        "IPS": 15,
+        "IV": 5,
+        "NMC": 80,
+        "SDR": 20,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 85
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "meh",
+      "velocity": "fast"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L5",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 65,
+        "CP": 80,
+        "IPS": 35,
+        "IV": 25,
+        "NMC": 80,
+        "SDR": 55,
+        "SDI": 55,
+        "SSF": 15,
+        "STI": 70,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__ratio",
+      "polarity": "ironic",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 65,
+        "CP": 80,
+        "IPS": 35,
+        "IV": 25,
+        "NMC": 80,
+        "SDR": 55,
+        "SDI": 55,
+        "SSF": 15,
+        "STI": 70
+      },
+      "suppression_risk": "medium",
+      "taboo_level": "medium",
+      "term": "ratio",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L5",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 80,
+        "CP": 55,
+        "IPS": 40,
+        "IV": 30,
+        "NMC": 80,
+        "SDR": 55,
+        "SDI": 55,
+        "SSF": 10,
+        "STI": 75,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__dead",
+      "polarity": "ironic",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 80,
+        "CP": 55,
+        "IPS": 40,
+        "IV": 30,
+        "NMC": 80,
+        "SDR": 55,
+        "SDI": 55,
+        "SSF": 10,
+        "STI": 75
+      },
+      "suppression_risk": "low",
+      "taboo_level": "medium",
+      "term": "dead",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "flip",
+      "level": "L5",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 70,
+        "CP": 75,
+        "IPS": 55,
+        "IV": 45,
+        "NMC": 80,
+        "SDR": 60,
+        "SDI": 75,
+        "SSF": 20,
+        "STI": 70,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__cancelled",
+      "polarity": "fluid",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 70,
+        "CP": 75,
+        "IPS": 55,
+        "IV": 45,
+        "NMC": 80,
+        "SDR": 60,
+        "SDI": 75,
+        "SSF": 20,
+        "STI": 70
+      },
+      "suppression_risk": "high",
+      "taboo_level": "high",
+      "term": "cancelled",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "institutionalize",
+      "level": "L5",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 95,
+        "CP": 65,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 80,
+        "SDR": 35,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 85,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__low_key",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 95,
+        "CP": 65,
+        "IPS": 20,
+        "IV": 10,
+        "NMC": 80,
+        "SDR": 35,
+        "SDI": 20,
+        "SSF": 10,
+        "STI": 85
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "low-key",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "fade",
+      "level": "L5",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 45,
+        "CP": 60,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 80,
+        "SDR": 45,
+        "SDI": 70,
+        "SSF": 10,
+        "STI": 55,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__high_key",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 45,
+        "CP": 60,
+        "IPS": 25,
+        "IV": 15,
+        "NMC": 80,
+        "SDR": 45,
+        "SDI": 70,
+        "SSF": 10,
+        "STI": 55
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "high-key",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "volatile",
+      "level": "L6",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 60,
+        "CP": 80,
+        "IPS": 45,
+        "IV": 35,
+        "NMC": 80,
+        "SDR": 65,
+        "SDI": 85,
+        "SSF": 15,
+        "STI": 65,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__npc",
+      "polarity": "fluid",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "insult",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 60,
+        "CP": 80,
+        "IPS": 45,
+        "IV": 35,
+        "NMC": 80,
+        "SDR": 65,
+        "SDI": 85,
+        "SSF": 15,
+        "STI": 65
+      },
+      "suppression_risk": "medium",
+      "taboo_level": "medium",
+      "term": "NPC",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "flip",
+      "level": "L6",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 70,
+        "CP": 70,
+        "IPS": 60,
+        "IV": 50,
+        "NMC": 80,
+        "SDR": 70,
+        "SDI": 75,
+        "SSF": 15,
+        "STI": 75,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__based",
+      "polarity": "fluid",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 70,
+        "CP": 70,
+        "IPS": 60,
+        "IV": 50,
+        "NMC": 80,
+        "SDR": 70,
+        "SDI": 75,
+        "SSF": 15,
+        "STI": 75
+      },
+      "suppression_risk": "medium",
+      "taboo_level": "medium",
+      "term": "based",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L6",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 75,
+        "CP": 75,
+        "IPS": 35,
+        "IV": 25,
+        "NMC": 80,
+        "SDR": 60,
+        "SDI": 55,
+        "SSF": 10,
+        "STI": 70,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__touch_grass",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "stance",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 75,
+        "CP": 75,
+        "IPS": 35,
+        "IV": 25,
+        "NMC": 80,
+        "SDR": 60,
+        "SDI": 55,
+        "SSF": 10,
+        "STI": 70
+      },
+      "suppression_risk": "low",
+      "taboo_level": "low",
+      "term": "touch grass",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "volatile",
+      "level": "L6",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 90,
+        "CLS": 70,
+        "CP": 65,
+        "IPS": 40,
+        "IV": 30,
+        "NMC": 80,
+        "SDR": 65,
+        "SDI": 85,
+        "SSF": 15,
+        "STI": 65,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": false,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__its_giving",
+      "polarity": "fluid",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "interjection",
+      "seed_overrides": {
+        "ARF": 90,
+        "CLS": 70,
+        "CP": 65,
+        "IPS": 40,
+        "IV": 30,
+        "NMC": 80,
+        "SDR": 65,
+        "SDI": 85,
+        "SSF": 15,
+        "STI": 65
+      },
+      "suppression_risk": "medium",
+      "taboo_level": "medium",
+      "term": "it’s giving",
+      "velocity": "viral"
+    },
+    {
+      "decay_pattern": "revive",
+      "level": "L6",
+      "medium": "internet",
+      "metrics": {
+        "ARF": 65,
+        "CLS": 85,
+        "CP": 85,
+        "IPS": 15,
+        "IV": 10,
+        "NMC": 80,
+        "SDR": 40,
+        "SDI": 55,
+        "SSF": 95,
+        "STI": 80,
+        "method": {
+          "evidence": "none (no frequency series yet)",
+          "method": "seed_heuristic_rules.v1"
+        },
+        "status": "ok"
+      },
+      "moderation_euphemism": true,
+      "observation_lane": "observation_only",
+      "packet_id": "slang_hist_v1__unalive",
+      "polarity": "neutral",
+      "provenance": {
+        "collector": "unknown",
+        "notes": "",
+        "source": "unknown"
+      },
+      "role_type": "descriptor",
+      "seed_overrides": {
+        "ARF": 65,
+        "CLS": 85,
+        "CP": 85,
+        "IPS": 15,
+        "IV": 10,
+        "NMC": 80,
+        "SDR": 40,
+        "SDI": 55,
+        "SSF": 95,
+        "STI": 80
+      },
+      "suppression_risk": "high",
+      "taboo_level": "high",
+      "term": "unalive",
+      "velocity": "fast"
+    }
+  ],
+  "unit": "SlangPacket.v1 + SlangMetrics.v1",
+  "version": "1"
+}
