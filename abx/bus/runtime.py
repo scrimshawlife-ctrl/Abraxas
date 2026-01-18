@@ -15,7 +15,16 @@ class Registry:
 
 def build_registry() -> Registry:
     """Build module registry - stub returns core modules."""
-    return Registry(modules=["oracle", "rack", "weather", "semiotic"])
+    return Registry(
+        modules=[
+            "oracle",
+            "rack",
+            "semiotic",
+            "slang_hist_seed_loader",
+            "slang_seed_metrics_scorer",
+            "weather",
+        ]
+    )
 
 def process(payload: Dict[str, Any]) -> Dict[str, Any]:
     """Process payload through bus - stub implementation."""
