@@ -1,9 +1,75 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2026-01-11
-**Guide Version:** 2.2.2
+**Last Updated:** 2026-01-18
+**Guide Version:** 2.2.3
 **Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
+
+---
+
+## Recent Updates (v2.2.3)
+
+**2026-01-18** - Canon routing enhancements, SLANG-HIST v1 seed corpus, and Neon-Genie adapter:
+
+### 1. **Rune Handlers & Kernel Routing** - Production-ready deterministic handlers
+   - `abraxas/runes/handlers/` - New package with 4 core handlers:
+     - `weather_generate.py` - Weather generation handler
+     - `ser_run.py` - SER (Scenario Envelope Runner) handler
+     - `daemon_ingest.py` - Daemon ingestion handler
+     - `edge_deploy_orin.py` - Edge deployment handler for Orin spine
+   - `abx/kernel.py` - Enhanced kernel with deterministic seed normalization
+   - `abraxas/scenario/runner.py` - Uses caller-provided timestamps for determinism
+   - Complete kernel routing tests (`tests/test_kernel_new_runes.py`)
+
+### 2. **SLANG-HIST v1** - Historical slang seed corpus with 1450+ entries
+   - `data/slang/slang_hist_seed_v1.json` - 1450 historical slang entries with full metrics
+   - `abraxas/slang/seed_hist_v1.py` - Seed corpus loader and scorer
+   - `abraxas/schemas/slang_hist_v1.py` - SlangPacket and SlangMetrics schemas
+   - `docs/SLANG-HIST.v1.md` - Complete specification and heuristic rules
+   - **Observation-only contract**: May attach as signal payload, never governs predictions
+   - Comprehensive test coverage (`tests/test_slang_hist_seed_v1.py`)
+
+### 3. **Neon-Genie ABX-Runes Adapter** - Symbolic generation overlay integration (stub mode)
+   - `abraxas/aal/` - New AAL (Abraxas Almanac Layer) package:
+     - `neon_genie_adapter.py` - Rune adapter with no-influence guarantee
+     - `artifact_handler.py` - Artifact storage with provenance tracking
+   - `docs/integration/neon_genie_adapter.md` - 422-line integration guide
+   - JSON schemas: `neon_genie_input.schema.json`, `neon_genie_output.schema.json`
+   - **Dual-Lane Principle**: Runs in OBSERVATION/GENERATION lane only
+   - Comprehensive test suite (`tests/test_neon_genie_adapter.py`)
+
+### 4. **Oracle v2 Factory Wiring** - Enhanced oracle pipeline with lifecycle integration
+   - `abraxas/oracle/v2/pipeline.py` - Factory wiring for:
+     - Lifecycle registry integration
+     - Tau operators
+     - Weather registry
+     - Integrity composites
+     - AAlmanac context loading
+   - Shadow detector status typing improvements
+   - Strict-execution operators return structured not-computable details
+
+### 5. **Testing Infrastructure** - Comprehensive failure tracking and vendor packages
+   - `docs/testing/FAILURE_INVENTORY.md` - 683-line pytest failure inventory with:
+     - 98+ cataloged test failures across all layers
+     - Suspected layer classification (policy, oracle, operator, detector)
+     - Proposed actions for each failure
+   - `vendor/pyyaml/` - Vendored PyYAML package for deterministic YAML handling
+   - `sitecustomize.py` - Bootstrap for vendored packages
+   - `tests/test_vendor_yaml_import.py` - Vendor package import validation
+
+### 6. **Shadow Detectors & Patch Registry** - Enhanced evidence tracking
+   - `abraxas/shadow_metrics/patch_registry.py` - Proposal-only patch receipts
+   - `abraxas/detectors/shadow/types.py` - Enhanced DetectorOutput typing
+   - `tests/test_shadow_patch_registry.py` - Patch registry test coverage
+   - `tests/test_shadow_detectors.py` - Updated for new detector status typing
+
+### 7. **Policy & Transport Enhancements**
+   - `.aal/policy.json` - Expanded policy allowlist for newly routable runes
+   - `abraxas/osh/transport.py` - Enhanced transport layer
+   - `abraxas/osh/decodo_client.py` - Decodo client improvements
+   - `abx/bootstrap.py` - ABX bootstrap enhancements
+
+**Total Changes**: 64 files changed, 7,615 additions, 128 deletions
 
 ---
 
@@ -850,16 +916,41 @@ Abraxas/
 │   │   ├── trace.py            # Trace management
 │   │   └── types.py            # Type definitions
 │   │
-│   ├── runes/                  # ABX-Runes capability contracts (NEW v2.2.0)
+│   ├── runes/                  # ABX-Runes capability contracts (v2.2.0)
 │   │   ├── capabilities.py     # Capability registry & invocation
 │   │   ├── invoke.py           # Capability invocation utilities
 │   │   ├── ctx.py              # RuneInvocationContext
-│   │   └── registry.json       # Capability registry
+│   │   ├── registry.json       # Capability registry
+│   │   ├── handlers/           # Rune handlers (NEW v2.2.3)
+│   │   │   ├── __init__.py     # Package exports
+│   │   │   ├── weather_generate.py  # Weather generation handler
+│   │   │   ├── ser_run.py           # SER (Scenario Envelope Runner) handler
+│   │   │   ├── daemon_ingest.py     # Daemon ingestion handler
+│   │   │   └── edge_deploy_orin.py  # Edge deployment handler for Orin
+│   │   └── operators/          # Rune operators
+│   │
+│   ├── aal/                    # AAL (Abraxas Almanac Layer) (NEW v2.2.3)
+│   │   ├── __init__.py         # Package exports
+│   │   ├── neon_genie_adapter.py    # Neon-Genie rune adapter (stub mode)
+│   │   └── artifact_handler.py      # Artifact storage with provenance
+│   │
+│   ├── slang/                  # Slang analysis & AAlmanac
+│   │   ├── a_almanac_store.py  # Write-once ledger
+│   │   ├── seed_hist_v1.py     # SLANG-HIST v1 seed corpus (NEW v2.2.3)
+│   │   └── operators/          # Slang-specific operators
+│   │
+│   ├── schemas/                # Pydantic schemas (NEW v2.2.3)
+│   │   └── slang_hist_v1.py    # SlangPacket and SlangMetrics schemas
 │   │
 │   ├── oracle/                 # Oracle pipeline
 │   │   ├── registry.py         # Oracle capability registry
 │   │   └── v2/
-│   │       └── rune_adapter.py # Oracle v2 rune adapter
+│   │       ├── rune_adapter.py # Oracle v2 rune adapter
+│   │       └── pipeline.py     # Enhanced with lifecycle/tau/weather wiring (v2.2.3)
+│   │
+│   ├── osh/                    # OSH (Observation Source Handler) (v2.2.3)
+│   │   ├── transport.py        # Enhanced transport layer
+│   │   └── decodo_client.py    # Decodo client improvements
 │   │
 │   └── ...                     # Additional modules
 │
@@ -958,6 +1049,8 @@ Abraxas/
 │   ├── rent_manifests/         # Rent manifests
 │   ├── run_plans/              # Run plans
 │   ├── vector_maps/            # Vector maps
+│   ├── slang/                  # Slang data (NEW v2.2.3)
+│   │   └── slang_hist_seed_v1.json  # SLANG-HIST v1 seed corpus (1450 entries)
 │   └── sim_sources/            # Simulation sources & paper data
 │       ├── papers.json         # Academic paper metadata
 │       ├── paper_mapping_table.csv # Paper → variable mappings
@@ -990,8 +1083,13 @@ Abraxas/
 │   │   ├── simulation_mapping_layer.md # Paper → variable mappings
 │   │   ├── paper_triage_rules.md # Paper triage & classification
 │   │   └── paper_mapping_table_template.csv # Mapping table template
-│   └── plan/                   # Implementation plans
-│       └── simulation_mapping_layer_plan.md # Mapping layer implementation
+│   ├── integration/            # Integration guides (NEW v2.2.3)
+│   │   └── neon_genie_adapter.md # Neon-Genie adapter guide (422 lines)
+│   ├── testing/                # Testing documentation (NEW v2.2.3)
+│   │   └── FAILURE_INVENTORY.md # Pytest failure inventory (683 lines, 98+ failures)
+│   ├── plan/                   # Implementation plans
+│   │   └── simulation_mapping_layer_plan.md # Mapping layer implementation
+│   └── SLANG-HIST.v1.md        # SLANG-HIST v1 specification (NEW v2.2.3)
 │
 ├── systemd/                    # Systemd service files
 ├── scripts/                    # Utility scripts
@@ -1003,7 +1101,16 @@ Abraxas/
 │       └── candidate_MEDIA_COMPETITION_MISINFO_PRESSURE.json
 │
 ├── schemas/                    # JSON schemas
-│   └── metric_candidate.schema.json # Metric candidate validation schema
+│   ├── metric_candidate.schema.json # Metric candidate validation schema
+│   └── capabilities/           # Capability schemas (NEW v2.2.3)
+│       ├── neon_genie_input.schema.json  # Neon-Genie input validation
+│       └── neon_genie_output.schema.json # Neon-Genie output validation
+│
+├── vendor/                     # Vendored packages (NEW v2.2.3)
+│   └── pyyaml/                 # PyYAML for deterministic YAML handling
+│       └── yaml/               # YAML implementation modules
+│
+├── sitecustomize.py            # Bootstrap for vendored packages (NEW v2.2.3)
 │
 ├── package.json                # Node.js dependencies
 ├── pyproject.toml              # Python project config
@@ -1496,7 +1603,7 @@ See `docs/detectors/shadow_detectors_v0_1.md` for full specification
 - **`trace.py`**: Execution trace management
 - **`types.py`**: Core type definitions for ERS
 
-#### `abraxas/runes/` (NEW in v2.2.0)
+#### `abraxas/runes/` (v2.2.0)
 
 **ABX-Runes Capability Contracts** - Cross-subsystem communication via capability contracts:
 
@@ -1507,20 +1614,84 @@ See `docs/detectors/shadow_detectors_v0_1.md` for full specification
 - **`invoke.py`**: Capability invocation utilities
 - **`ctx.py`**: RuneInvocationContext for provenance tracking
 - **`registry.json`**: Capability registry (oracle.v2.run, etc.)
+- **`handlers/`** (NEW in v2.2.3): Production-ready deterministic rune handlers
+  - **`weather_generate.py`**: Weather generation handler with deterministic seed normalization
+  - **`ser_run.py`**: SER (Scenario Envelope Runner) handler with caller-provided timestamps
+  - **`daemon_ingest.py`**: Daemon ingestion handler for real-time data streams
+  - **`edge_deploy_orin.py`**: Edge deployment handler for Orin spine integration
 
 **Philosophy**: All `abx/` → `abraxas/` communication MUST use capability contracts. Direct imports forbidden.
 
 See `docs/migration/abx_runes_coupling.md` for migration guide.
 
+#### `abraxas/aal/` (NEW in v2.2.3)
+
+**AAL (Abraxas Almanac Layer)** - Symbolic generation overlay integration:
+
+- **`neon_genie_adapter.py`**: Neon-Genie rune adapter (stub mode)
+  - Capability ID: `aal.neon_genie.generate.v0`
+  - **Dual-Lane Principle**: Runs in OBSERVATION/GENERATION lane only
+  - **No-Influence Guarantee**: Outputs never fed into forecast weights
+  - Validates inputs via JSON schema
+  - Returns canonical envelope with provenance
+- **`artifact_handler.py`**: Artifact storage handler
+  - Stores generation results with SHA-256 provenance
+  - Enforces `no_influence=True` flag
+  - Deterministic artifact management
+
+**Integration**: External Neon-Genie overlay invocation through ABX-Runes capability contracts.
+
+See `docs/integration/neon_genie_adapter.md` for complete guide (422 lines).
+
+#### `abraxas/slang/`
+
+**Slang Analysis & AAlmanac** - Write-once symbolic ledger with historical seed corpus:
+
+- **`a_almanac_store.py`**: Write-once, annotate-only ledger
+- **`seed_hist_v1.py`** (NEW in v2.2.3): SLANG-HIST v1 seed corpus loader and scorer
+  - Loads 1450 historical slang entries from `data/slang/slang_hist_seed_v1.json`
+  - Implements seed heuristic rules v1 (ARF, SDI, NMC, SSF, CLS mappings)
+  - **Observation-only contract**: May attach as signal payload, never governs predictions
+  - Comprehensive test coverage for determinism and schema validation
+- **`operators/`**: Slang-specific operators
+
+**Metrics**: STI, CP, IPS, SDR, NMC, ARF, SDI, IV, CLS, SSF
+
+See `docs/SLANG-HIST.v1.md` for specification and heuristic rules.
+
+#### `abraxas/schemas/` (NEW in v2.2.3)
+
+**Pydantic Schemas** - Schema definitions for validation:
+
+- **`slang_hist_v1.py`**: SlangPacket and SlangMetrics Pydantic schemas
+  - SlangPacket.v1: Core slang entry structure
+  - SlangMetrics.v1: Full metric suite (10 metrics)
+  - Validates SLANG-HIST v1 seed corpus entries
+
 #### `abraxas/oracle/`
 
-**Oracle Pipeline** - Deterministic daily oracle generation with capability contracts:
+**Oracle Pipeline** - Deterministic daily oracle generation with enhanced v2 factory wiring:
 
 - **`registry.py`** (ENHANCED in v2.2.0): Oracle capability registry with rune integration
 - **`v2/rune_adapter.py`** (NEW in v2.2.0): Oracle v2 rune adapter for capability invocation
+- **`v2/pipeline.py`** (ENHANCED in v2.2.3): Oracle v2 factory wiring with:
+  - Lifecycle registry integration
+  - Tau operators (τₕ, τᵥ, τₚ)
+  - Weather registry integration
+  - Integrity composites
+  - AAlmanac context loading
+  - Shadow detector status typing improvements
+  - Strict-execution operators return structured not-computable details
 - Deterministic daily oracle generation
 - Correlation delta processing
 - Time-weighted decay
+
+#### `abraxas/osh/` (ENHANCED in v2.2.3)
+
+**OSH (Observation Source Handler)** - Enhanced transport and data acquisition:
+
+- **`transport.py`**: Enhanced transport layer for observation source communication
+- **`decodo_client.py`**: Improved Decodo API integration with better error handling
 
 ### TypeScript Server Modules
 
@@ -1566,6 +1737,11 @@ ABX runtime and utilities with **WO-100** acquisition & analysis modules:
 - **`cli.py`**: Main CLI (`abx` command)
 - **`core/`**: Core utilities
 - **`runtime/`**: Runtime management
+- **`kernel.py`** (ENHANCED in v2.2.3): Enhanced kernel with deterministic seed normalization
+  - Handles structured seed payloads deterministically
+  - Routes to new rune handlers (weather.generate, ser.run, daemon.ingest, edge.deploy_orin)
+  - Comprehensive test coverage (`tests/test_kernel_new_runes.py`)
+- **`bootstrap.py`** (ENHANCED in v2.2.3): ABX bootstrap enhancements for initialization
 - **`server/`**: ABX server components
 - **`ingest/`**: Data ingestion
 - **`ui/`**: UI components
@@ -2162,18 +2338,41 @@ ABX_UI_PORT=8780
   - Input requirements, output schemas, determinism guarantees
   - Integration notes, governance policies
 
+**Integration Guides** (`docs/integration/`) - NEW in v2.2.3:
+- `neon_genie_adapter.md` - Neon-Genie ABX-Runes adapter integration guide (422 lines)
+  - Architecture, data flow, usage examples
+  - Dual-Lane Principle, No-Influence Guarantee
+  - JSON schema validation, artifact storage
+  - Stub mode operation and external overlay integration
+
 **Migration Guides** (`docs/migration/`) - NEW in v2.2.0:
 - `abx_runes_coupling.md` - ABX-Runes coupling migration guide
   - Step-by-step migration from direct imports to capability contracts
   - Example code, best practices, troubleshooting
 
-**Artifact Schemas** (`schemas/`) - NEW in v2.2.0:
+**Testing Documentation** (`docs/testing/`) - NEW in v2.2.3:
+- `FAILURE_INVENTORY.md` - Comprehensive pytest failure inventory (683 lines)
+  - 98+ cataloged test failures across all system layers
+  - Suspected layer classification (policy, oracle, operator, detector)
+  - Error summaries and proposed actions for each failure
+  - Systematic approach to test coverage gaps
+
+**Slang Documentation** (`docs/`) - NEW in v2.2.3:
+- `SLANG-HIST.v1.md` - SLANG-HIST v1 seed corpus specification
+  - Seed heuristic rules v1 (ARF, SDI, NMC, SSF, CLS mappings)
+  - Observation-only contract and constraints
+  - 10 metrics: STI, CP, IPS, SDR, NMC, ARF, SDI, IV, CLS, SSF
+
+**Artifact Schemas** (`schemas/`) - v2.2.0, ENHANCED in v2.2.3:
 - 9 JSON schemas for artifact validation:
   - `runindex.v0.schema.json`, `runheader.v0.schema.json`
   - `trendpack.v0.schema.json`, `resultspack.v0.schema.json`
   - `viewpack.v0.schema.json`, `policysnapshot.v0.schema.json`
   - `runstability.v0.schema.json`, `stabilityref.v0.schema.json`
   - `sealreport.v0.schema.json`
+- Capability schemas (`schemas/capabilities/`) - NEW in v2.2.3:
+  - `neon_genie_input.schema.json` - Neon-Genie input validation
+  - `neon_genie_output.schema.json` - Neon-Genie output validation
 - `docs/artifacts/SCHEMA_INDEX.md` - Schema index and validation tooling
 
 **Implementation Plans** (`docs/plan/`):
@@ -2194,7 +2393,14 @@ ABX_UI_PORT=8780
 - `tests/fixtures/` - Test fixture data
 - `tests/golden/` - Golden test reference data
 - `tests/test_metric_governance.py`, `test_sim_mappings_*.py`, `test_promotion_ledger_chain.py`
-- NEW in v2.2.0: `test_shadow_detectors_determinism.py`, `test_shadow_detectors_missing_inputs.py`, `test_shadow_detectors_bounds.py`
+- v2.2.0: `test_shadow_detectors_determinism.py`, `test_shadow_detectors_missing_inputs.py`, `test_shadow_detectors_bounds.py`
+- NEW in v2.2.3:
+  - `test_kernel_new_runes.py` - Kernel routing tests for new rune handlers
+  - `test_neon_genie_adapter.py` - Neon-Genie adapter comprehensive test suite
+  - `test_slang_hist_seed_v1.py` - SLANG-HIST v1 seed corpus tests
+  - `test_shadow_detectors.py` - Updated for enhanced detector status typing
+  - `test_shadow_patch_registry.py` - Patch registry proposal-only receipt tests
+  - `test_vendor_yaml_import.py` - Vendor package import validation
 
 ---
 
