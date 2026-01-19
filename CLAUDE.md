@@ -29,13 +29,14 @@
    - **Observation-only contract**: May attach as signal payload, never governs predictions
    - Comprehensive test coverage (`tests/test_slang_hist_seed_v1.py`)
 
-### 3. **Neon-Genie ABX-Runes Adapter** - Symbolic generation overlay integration (stub mode)
+### 3. **Neon-Genie ABX-Runes Adapter** - Symbolic generation overlay integration (runtime bridge ready)
    - `abraxas/aal/` - New AAL (Abraxas Almanac Layer) package:
      - `neon_genie_adapter.py` - Rune adapter with no-influence guarantee
      - `artifact_handler.py` - Artifact storage with provenance tracking
    - `docs/integration/neon_genie_adapter.md` - 422-line integration guide
    - JSON schemas: `neon_genie_input.schema.json`, `neon_genie_output.schema.json`
    - **Dual-Lane Principle**: Runs in OBSERVATION/GENERATION lane only
+   - Overlay initialization workflow documented (`docs/overlay_contract.md`)
    - Comprehensive test suite (`tests/test_neon_genie_adapter.py`)
 
 ### 4. **Oracle v2 Factory Wiring** - Enhanced oracle pipeline with lifecycle integration

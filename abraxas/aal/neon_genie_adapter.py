@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from abraxas.core.provenance import canonical_envelope
+from abraxas.overlay.run import check_overlay_available, invoke_overlay
 
 
 def generate_symbolic_v0(
@@ -62,7 +63,6 @@ def generate_symbolic_v0(
         }
 
     # Invoke through overlay runtime (external call, no cross-repo imports)
-    # This is a stub that will be implemented when Neon-Genie overlay is integrated
     try:
         generated_output = _invoke_neon_genie_overlay(
             prompt=prompt,
@@ -127,15 +127,6 @@ def _invoke_neon_genie_overlay(
     """
     Internal stub for Neon-Genie overlay invocation.
 
-    This function will be implemented when Neon-Genie overlay is integrated.
-    For now, it returns None to indicate overlay not available.
-
-    When implemented, this should:
-    1. Check overlay availability via overlay runtime
-    2. Prepare overlay request payload
-    3. Invoke overlay through overlay runtime interface
-    4. Return generated output or None if unavailable
-
     Args:
         prompt: Generation prompt
         context: Context dictionary
@@ -145,9 +136,29 @@ def _invoke_neon_genie_overlay(
     Returns:
         Generated output dictionary or None if overlay not available
     """
-    # STUB: Return None until Neon-Genie overlay is integrated
-    # This allows the adapter to work without the external overlay
-    return None
+    overlay_version = str(config.get("overlay_version") or "v0")
+    if not check_overlay_available("neon_genie", version=overlay_version):
+        return None
+
+    overlay_payload = {
+        "prompt": prompt,
+        "context": context,
+        "seed": seed,
+        "config": {k: v for k, v in config.items() if k != "overlay_version"},
+    }
+
+    response = invoke_overlay(
+        overlay_name="neon_genie",
+        version=overlay_version,
+        phase="ASCEND",
+        payload=overlay_payload,
+    )
+
+    if not response.get("ok"):
+        return None
+
+    output = response.get("output", {}) or {}
+    return output.get("result")
 
 
 __all__ = ["generate_symbolic_v0"]
