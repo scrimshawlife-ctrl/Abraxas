@@ -1,0 +1,119 @@
+{
+  "branches": [
+    {
+      "branch_id": "branch_conservative_483cb70c",
+      "created_at": "2025-12-26 00:00:00+00:00",
+      "description": "Current detection methods hold; deepfakes remain identifiable",
+      "falsifiers": [],
+      "horizon": "H72H",
+      "label": "conservative",
+      "last_updated_at": "2025-12-26 00:00:00+00:00",
+      "manipulation_exposure": {
+        "SSI_sensitivity": 0.5
+      },
+      "narrative": "N1_primary",
+      "p": 0.35,
+      "p_max": 0.44999999999999996,
+      "p_min": 0.24999999999999997,
+      "provenance": {
+        "ctx_snapshots_used": [],
+        "initialized_at": "2025-12-26T00:00:00+00:00",
+        "template": "deepfake_pollution"
+      },
+      "segment": "core",
+      "tau_window_hours": 72,
+      "triggers": [
+        {
+          "kind": "index_threshold",
+          "params": {
+            "index": "SSI",
+            "lte": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "branch_id": "branch_base_842ddffd",
+      "created_at": "2025-12-26 00:00:00+00:00",
+      "description": "Moderate increase in unverified content; detection strained",
+      "falsifiers": [],
+      "horizon": "H72H",
+      "label": "base",
+      "last_updated_at": "2025-12-26 00:00:00+00:00",
+      "manipulation_exposure": {
+        "SSI_sensitivity": 0.6
+      },
+      "narrative": "N1_primary",
+      "p": 0.4,
+      "p_max": 0.5,
+      "p_min": 0.30000000000000004,
+      "provenance": {
+        "ctx_snapshots_used": [],
+        "initialized_at": "2025-12-26T00:00:00+00:00",
+        "template": "deepfake_pollution"
+      },
+      "segment": "core",
+      "tau_window_hours": 72,
+      "triggers": [
+        {
+          "kind": "index_threshold",
+          "params": {
+            "gte": 0.4,
+            "index": "SSI",
+            "lte": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "branch_id": "branch_shock_22e816e9",
+      "created_at": "2025-12-26 00:00:00+00:00",
+      "description": "Detection overwhelmed; trust crisis in visual media",
+      "falsifiers": [],
+      "horizon": "H72H",
+      "label": "shock",
+      "last_updated_at": "2025-12-26 00:00:00+00:00",
+      "manipulation_exposure": {
+        "SSI_sensitivity": 0.8
+      },
+      "narrative": "N1_primary",
+      "p": 0.25,
+      "p_max": 0.35,
+      "p_min": 0.15,
+      "provenance": {
+        "ctx_snapshots_used": [],
+        "initialized_at": "2025-12-26T00:00:00+00:00",
+        "template": "deepfake_pollution"
+      },
+      "segment": "core",
+      "tau_window_hours": 72,
+      "triggers": [
+        {
+          "kind": "index_threshold",
+          "params": {
+            "gte": 0.7,
+            "index": "SSI"
+          }
+        },
+        {
+          "kind": "term_seen",
+          "params": {
+            "min_count": 10,
+            "term": "deepfake"
+          }
+        }
+      ]
+    }
+  ],
+  "ensemble_id": "ensemble_deepfake_pollution_H72H_core_N1_primary_5c114689",
+  "horizon": "H72H",
+  "last_updated_ts": "2025-12-26 00:00:00+00:00",
+  "narrative": "N1_primary",
+  "provenance": {
+    "branch_count": 3,
+    "initialized_at": "2025-12-26T00:00:00+00:00",
+    "template": "deepfake_pollution"
+  },
+  "segment": "core",
+  "topic_key": "deepfake_pollution"
+}

@@ -42,7 +42,7 @@ proof:
     - "tests/test_fbe_system.py"
 
   golden_files:
-    - "tests/golden/forecast/ensemble_deepfake_H72H.json"  # TODO: create
+    - "tests/golden/forecast/ensemble_deepfake_H72H.json"
 
   ledgers:
     - "out/forecast_ledgers/branch_updates.jsonl"

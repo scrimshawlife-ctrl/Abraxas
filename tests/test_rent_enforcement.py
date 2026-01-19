@@ -8,6 +8,8 @@ import pytest
 from abraxas.governance.rent_manifest_loader import (
     load_all_manifests,
     get_manifest_summary,
+    discover_component_registry,
+    find_unmanifested_components,
 )
 from pathlib import Path
 
@@ -34,12 +36,16 @@ def test_coverage_computation():
 
 def test_unmanifested_detection():
     """Test detection of components without manifests."""
-    # Placeholder test for detecting unmanifested components
-    # TODO: Implement component registry and diff against manifests
-
-    # For now, just verify manifest loading works
     repo_root = Path(__file__).parent.parent
     manifests = load_all_manifests(str(repo_root))
 
-    assert manifests is not None
-    assert isinstance(manifests, dict)
+    registry = discover_component_registry(str(repo_root))
+    unmanifested = find_unmanifested_components(registry, manifests)
+
+    assert registry["metrics"]
+    assert registry["operators"]
+    assert registry["artifacts"]
+
+    assert any(unmanifested.values()), "Expected at least one unmanifested component"
+    for kind, modules in unmanifested.items():
+        assert set(modules).issubset(set(registry[kind]))

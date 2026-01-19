@@ -23,6 +23,7 @@ import {
   FolderSearch,
   LayoutDashboard,
   Shield,
+  ScrollText,
 } from "lucide-react";
 
 const menuItems = [
@@ -97,6 +98,12 @@ const menuItems = [
     url: "/training-admin",
     icon: Shield,
     description: "KITE ingest + candidate queue"
+  },
+  {
+    title: "Governance Registry",
+    url: "/governance-registry",
+    icon: ScrollText,
+    description: "Approve modules + track manifest coverage"
   }
 ];
 
