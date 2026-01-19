@@ -11,6 +11,7 @@ import hmac
 import json
 import os
 from typing import Any
+import base64
 
 
 def _stable_json_bytes(obj: Any) -> bytes:
@@ -87,23 +88,54 @@ def hmac_verify(
 
 
 def ed25519_sign(payload_obj: dict[str, Any]) -> tuple[str, str, str]:
-    """Placeholder for Ed25519 backend (future).
+    """Sign a payload object using Ed25519.
 
-    Implement using cryptography or pynacl library when ready.
-    Keep same return format as hmac_sign.
-
-    Raises:
-        NotImplementedError: Ed25519 backend not yet enabled
+    Requires ABX_GOV_ED25519_PRIVATE_KEY to be set as base64-encoded raw 32-byte key.
+    Returns (sig_alg, key_id, signature_b64).
     """
-    raise NotImplementedError(
-        "Ed25519 backend not enabled. Use HMAC backend or add an ed25519 library."
+    key_b64 = os.environ.get("ABX_GOV_ED25519_PRIVATE_KEY", "")
+    if not key_b64:
+        raise EnvironmentError(
+            "Missing ABX_GOV_ED25519_PRIVATE_KEY for governance receipt signing (Ed25519 backend). "
+            "Set environment variable with base64-encoded raw private key bytes."
+        )
+
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+
+    private_key_bytes = base64.b64decode(key_b64)
+    private_key = Ed25519PrivateKey.from_private_bytes(private_key_bytes)
+    public_key_bytes = private_key.public_key().public_bytes(
+        encoding=Encoding.Raw, format=PublicFormat.Raw
     )
+    key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
+    msg = _stable_json_bytes(payload_obj)
+    signature = private_key.sign(msg)
+    signature_b64 = base64.b64encode(signature).decode("utf-8")
+
+    return ("ed25519", key_id, signature_b64)
 
 
 def ed25519_verify(payload_obj: dict[str, Any], key_id: str, signature_b64: str) -> bool:
-    """Placeholder for Ed25519 verification (future).
+    """Verify an Ed25519 signature using ABX_GOV_ED25519_PUBLIC_KEY."""
+    key_b64 = os.environ.get("ABX_GOV_ED25519_PUBLIC_KEY", "")
+    if not key_b64:
+        return False
 
-    Raises:
-        NotImplementedError: Ed25519 backend not yet enabled
-    """
-    raise NotImplementedError("Ed25519 backend not enabled.")
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+    public_key_bytes = base64.b64decode(key_b64)
+    public_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
+    expected_key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
+    if expected_key_id != (key_id or ""):
+        return False
+
+    msg = _stable_json_bytes(payload_obj)
+    signature = base64.b64decode(signature_b64 or "")
+
+    try:
+        public_key.verify(signature, msg)
+        return True
+    except InvalidSignature:
+        return False

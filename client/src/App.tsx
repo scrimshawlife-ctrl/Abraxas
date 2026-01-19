@@ -22,8 +22,8 @@ import DynamicWatchlist from "@/components/DynamicWatchlist";
 import AalDemo from "@/pages/AalDemo";
 import DashboardLens from "@/components/DashboardLens";
 import ArtifactsDashboard from "@/components/dashboard/ArtifactsDashboard";
-import DashboardLens from "@/components/DashboardLens";
 import AdminTrainingPanel from "@/components/AdminTrainingPanel";
+import GovernanceRegistry from "@/pages/GovernanceRegistry";
 
 function AuthenticatedApp() {
   const [currentPath, setCurrentPath] = useState("/ritual");
@@ -68,6 +68,8 @@ function AuthenticatedApp() {
         return <ArtifactsDashboard />;
       case "/training-admin":
         return <AdminTrainingPanel />;
+      case "/governance-registry":
+        return <GovernanceRegistry />;
       default:
         return <RitualRunner />;
     }

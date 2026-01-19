@@ -27,8 +27,8 @@ export interface AliveMetricRegistryEntry {
  *
  * Start with 2-3 metrics only:
  * - IM.NCR (Narrative Compression Ratio)
- * - VM.GI (Generativity Index) - TODO
- * - LL.LFC (Life-Logistics Friction Coefficient) - TODO
+ * - VM.GI (Generativity Index)
+ * - LL.LFC (Life-Logistics Friction Coefficient)
  */
 export const ALIVE_METRIC_REGISTRY: AliveMetricRegistryEntry[] = [
   {

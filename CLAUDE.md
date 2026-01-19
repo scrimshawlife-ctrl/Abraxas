@@ -302,7 +302,6 @@ These branches have NO unique commits and are significantly behind main:
 
 5. **Documentation Updates** - After all resolutions:
    - Update this section in CLAUDE.md with completion status
-   - Remove "P0 (NEW - 2026-01-10)" from TODO when done
    - Add any new architectural patterns to relevant sections
 
 **Critical Reminders:**
@@ -324,23 +323,16 @@ This section catalogs known incomplete implementations, TODOs, and stubs in the 
 
 ### P0 - Critical Production Blockers
 
-#### 1. Acceptance Test Suite Stubs
+#### 1. Acceptance Test Suite Stubs ✅
 **Location:** `tools/acceptance/run_acceptance_suite.py`
-**Issue:** 7 TODOs preventing real oracle integration
-**Lines:** 128, 184, 240, 297, 353, 404, 438
+**Status:** Resolved
 
-```python
-# TODO: Call actual oracle pipeline here
-# TODO: Load schemas and validate artifacts
-# TODO: Run oracle with removed evidence source
-# TODO: Run oracle with shadow detectors on/off
-# TODO: Load narrative bundle and validate all pointers
-# TODO: Replace with actual oracle pipeline call
-# TODO: Implement actual drift classification logic
-```
+**Resolution:**
+- Oracle pipeline wired through capability contracts
+- Artifact + narrative bundle validation integrated
+- Drift classification logic implemented
 
-**Impact:** Cannot verify production readiness without real oracle calls.
-**Action Required:** Wire up `abraxas.oracle.v2.pipeline.run_oracle()` via capability contract.
+**Impact:** Acceptance suite now exercises real oracle outputs.
 
 ---
 
@@ -354,46 +346,36 @@ This section catalogs known incomplete implementations, TODOs, and stubs in the 
 
 ---
 
-#### 3. Ed25519 Signing Backend (Optional P0)
-**Location:** `shared/signing.py:90-109`
-**Issue:** Digital signature backend not implemented
+#### 3. Ed25519 Signing Backend ✅
+**Location:** `shared/signing.py`
+**Status:** Resolved
 
-```python
-def sign_ed25519(message: str, private_key_b64: str) -> str:
-    """Placeholder for Ed25519 backend (future)."""
-    raise NotImplementedError("Ed25519 backend not enabled. Use SHA-256 for now.")
-```
+**Resolution:**
+- Ed25519 sign/verify implemented via `cryptography`
+- Environment-configured keys with key_id derivation
 
-**Impact:** No cryptographic signatures - system relies on SHA-256 hashes only.
-**Action Required:** Implement Ed25519 backend if digital signatures needed, otherwise downgrade to P2.
+**Impact:** Cryptographic signatures now supported when configured.
 
 ---
 
-#### 4. Missing Test Coverage - Runtime Infrastructure
-**Missing Tests for 9 of 10 modules in `abraxas/runtime/`:**
-- `policy_snapshot.py` - Policy snapshot creation and hash chaining
-- `pipeline_bindings.py` - Pipeline binding resolution
-- `artifacts.py` - Artifact management
-- `retention.py` - Artifact retention and pruning
-- `results_pack.py` - Results pack utilities
-- `deterministic_executor.py` - Deterministic execution
-- `device_fingerprint.py` - Device fingerprinting
-- `concurrency.py` - Concurrency control
-- `perf_ledger.py` - Performance ledger
+#### 4. Runtime Infrastructure Tests ✅
+**Status:** Resolved
 
-**Existing Tests:** Only `test_runtime_dozen_run_gate.py` and `test_runtime_tick.py`
+**Resolution:**
+- Added tests covering policy snapshots, pipeline bindings, artifacts, retention, results pack,
+  deterministic executor, device fingerprinting, concurrency, and perf ledger.
 
-**Impact:** Cannot rely on runtime infrastructure without test validation.
-**Action Required:** Add comprehensive tests for each module.
+**Impact:** Runtime infrastructure now has deterministic coverage.
 
 ---
 
-#### 5. No Seal Release Documentation
-**Missing:** `docs/seal/SEAL_VALIDATION_GUIDE.md`
-**Gap:** No operational guide for production seal process
+#### 5. Seal Release Documentation ✅
+**Status:** Resolved
 
-**Impact:** No documented workflow for seal validation, artifact verification, or production releases.
-**Action Required:** Document end-to-end seal process, artifact schemas, validation tooling.
+**Resolution:**
+- Seal validation guide authored at `docs/seal/SEAL_VALIDATION_GUIDE.md`
+
+**Impact:** Seal workflow now documented end-to-end.
 
 ---
 
@@ -451,32 +433,28 @@ def apply_wsss(signal_amplitude, structural_coherence, pattern_matrix, *, strict
 
 ---
 
-#### 8. Oracle Daily Run TODOs
+#### 8. Oracle Daily Run TODOs ✅
 **Location:** `abraxas/cli/oracle_daily_run.py`
-**Lines:** 64, 214
+**Status:** Resolved
 
-```python
-# TODO: Integrate with actual data sources (RSS, APIs, Decodo, etc.)
-# TODO: Load DCE from configuration
-```
+**Resolution:**
+- RSS + API sources now load via config-driven ingestion
+- DCE packs are loaded from config
 
-**Impact:** Oracle cannot run in production without real data source integration.
-**Action Required:** Wire up Decodo API, RSS feeds, load DCE from config.
+**Impact:** Oracle daily run supports real data sources and DCE config wiring.
 
 ---
 
-#### 9. Scenario Envelope Runner TODOs
+#### 9. Scenario Envelope Runner TODOs ✅
 **Location:** `abraxas/cli/scenario_run.py`
-**Lines:** 125-127
+**Status:** Resolved
 
-```python
-"weather": None,  # TODO: Load from weather engine if available
-"dm_snapshot": None,  # TODO: Load from D/M metrics if available
-"almanac_snapshot": None,  # TODO: Load from almanac if available
-```
+**Resolution:**
+- Weather snapshots load from latest `out/reports/weather_report_*.json` or CLI override
+- D/M snapshots load from `data/runs/dm_snapshot.json` or CLI override
+- Almanac snapshots load from `data/almanac/almanac_snapshot.json` or CLI override
 
-**Impact:** Scenario runs missing critical context (weather, D/M, almanac).
-**Action Required:** Load snapshots from respective modules.
+**Impact:** Scenario runs include weather, D/M, and almanac context when available.
 
 ---
 

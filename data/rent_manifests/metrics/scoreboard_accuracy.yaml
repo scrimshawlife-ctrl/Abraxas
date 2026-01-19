@@ -42,7 +42,7 @@ proof:
     - "tests/test_scoreboard_system.py"
 
   golden_files:
-    - "tests/golden/scoreboard/score_H72H_summary.json"  # TODO: create
+    - "tests/golden/scoreboard/score_H72H_summary.json"
 
   ledgers:
     - "out/score_ledgers/forecast_scores.jsonl"
