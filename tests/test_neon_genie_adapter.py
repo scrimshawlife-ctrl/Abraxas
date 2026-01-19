@@ -21,6 +21,7 @@ from abraxas.aal.artifact_handler import (
     NeonGenieArtifactHandler,
     store_neon_genie_result,
 )
+from abraxas.core.provenance import hash_canonical_json
 
 
 def test_generate_symbolic_v0_missing_prompt() -> None:
@@ -92,6 +93,33 @@ def test_generate_symbolic_v0_successful_generation() -> None:
     assert result["metadata"]["no_influence"] is True
     assert result["metadata"]["lane"] == "OBSERVATION"
     assert result["metadata"]["artifact_only"] is True
+
+
+def test_generate_symbolic_v0_golden_provenance() -> None:
+    """Test deterministic provenance hashes for a fixed generation."""
+    mock_generated_output = {
+        "text": "A luminous glyph of convergence",
+        "confidence": 0.91,
+        "tokens_used": 64
+    }
+    prompt = "Generate a symbolic representation of convergence"
+    context = {"term": "convergence", "motif": "lattice", "mode": "symbolic"}
+    config = {"max_length": 512}
+
+    with patch("abraxas.aal.neon_genie_adapter._invoke_neon_genie_overlay", return_value=mock_generated_output):
+        result = generate_symbolic_v0(
+            prompt=prompt,
+            context=context,
+            config=config,
+            seed=17
+        )
+
+    assert result["generated_output"] == mock_generated_output
+    assert result["provenance"] is not None
+    assert result["provenance"]["config_sha256"] == hash_canonical_json(config)
+    assert result["provenance"]["inputs_sha256"] == hash_canonical_json(
+        {"prompt": prompt, "context": context}
+    )
 
 
 def test_generate_symbolic_v0_deterministic_hashes() -> None:

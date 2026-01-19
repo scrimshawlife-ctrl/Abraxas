@@ -1,7 +1,7 @@
 # Neon-Genie ABX-Runes Adapter Integration Guide
 
 **Version:** 0.1.0
-**Status:** Stub Mode (awaiting external overlay integration)
+**Status:** Runtime Bridge Ready (awaiting external overlay integration)
 **Capability ID:** `aal.neon_genie.generate.v0`
 
 ---
@@ -17,6 +17,7 @@ The Neon-Genie adapter enables Abraxas to invoke Neon-Genie as an external symbo
 3. **Incremental Patch Only**: No cross-repo imports or codebase merging
 4. **Provenance Tracking**: All outputs include SHA-256 tracked provenance
 5. **Artifact Storage**: Results stored as deterministic artifacts
+6. **Module/Overlay Separation**: Core modules (e.g., AALmanac) never import overlays directly
 
 ---
 
@@ -54,7 +55,7 @@ tests/test_neon_genie_adapter.py        # Comprehensive test suite
 │  │  Neon-Genie Rune Adapter                       │    │
 │  │  (abraxas/aal/neon_genie_adapter.py)           │    │
 │  │  • Validates inputs                            │    │
-│  │  • Calls _invoke_neon_genie_overlay() stub     │    │
+│  │  • Calls _invoke_neon_genie_overlay() bridge  │    │
 │  │  • Wraps result in canonical envelope          │    │
 │  │  • Tags with no_influence=True                 │    │
 │  └──────────────────┬─────────────────────────────┘    │
@@ -80,6 +81,12 @@ tests/test_neon_genie_adapter.py        # Comprehensive test suite
 │  • Returns result through overlay interface             │
 └─────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Separation Boundaries
+
+Core modules (e.g., AALmanac) must remain isolated from overlay integrations. Overlays are invoked via the overlay runtime and never imported directly into core modules. See `docs/overlay_contract.md` for the universal separation gates and initialization workflow used across all overlays.
 
 ---
 
@@ -111,7 +118,7 @@ result = invoke_capability(
         "seed": 42  # For determinism
     },
     ctx=ctx,
-    strict_execution=False  # Allow stub mode
+    strict_execution=False  # Allow external overlay to be missing
 )
 
 # Extract results
@@ -172,7 +179,7 @@ else:
 
 ## Integration Checklist
 
-### Current Status (v0.1.0 - Stub Mode)
+### Current Status (v0.1.0 - Runtime Bridge Ready)
 
 - ✅ Rune adapter created with provenance wrapping
 - ✅ Capability registered in `abraxas/runes/registry.json`
@@ -180,31 +187,24 @@ else:
 - ✅ Artifact storage handler with no-influence validation
 - ✅ Comprehensive test suite (11 tests, all passing)
 - ✅ Determinism verification tests
-- ⚠️ **STUB MODE**: `_invoke_neon_genie_overlay()` returns `None` (overlay not integrated)
+- ✅ Overlay runtime bridge implemented (`check_overlay_available`, `invoke_overlay`)
+- ⚠️ **EXTERNAL OVERLAY MISSING**: `_invoke_neon_genie_overlay()` returns `None` until Neon-Genie is available
 
 ### Next Steps for Full Integration
 
-1. **Implement Overlay Bridge** (Priority: P1)
-   - Replace `_invoke_neon_genie_overlay()` stub with actual overlay invocation
-   - Add overlay runtime interface checks (`check_overlay_available()`)
-   - Implement payload preparation and response handling
+1. **External Overlay Setup** (Priority: P0)
+   - Follow the overlay initialization workflow in `docs/overlay_contract.md` (Section F).  
+   - Install the external Neon-Genie overlay package (extras group).  
+   - Register the overlay module path in `abraxas/overlays/dispatcher.py`.  
+   - Ensure `check_overlay_available("neon_genie")` returns `True`.  
+   - Test end-to-end invocation with a real Neon-Genie instance.
 
-2. **Overlay Runtime Integration** (Priority: P1)
-   - Add `check_overlay_available(overlay_name, version)` to `abraxas/overlay/run.py`
-   - Add `invoke_overlay(overlay_name, version, phase, payload)` to `abraxas/overlay/run.py`
-   - Document overlay registration process
-
-3. **External Overlay Setup** (Priority: P0)
-   - Set up Neon-Genie as external overlay (no code merging)
-   - Configure overlay runtime to recognize Neon-Genie
-   - Test end-to-end invocation with real Neon-Genie instance
-
-4. **Golden Tests** (Priority: P2)
+2. **Golden Tests** (Priority: P2)
    - Add golden test with known prompt → known output
    - Verify deterministic generation with fixed seed
    - Test provenance hash stability
 
-5. **Documentation** (Priority: P2)
+3. **Documentation** (Priority: P2)
    - Add Neon-Genie integration example to `examples/`
    - Update CLAUDE.md with Neon-Genie adapter section
    - Document overlay registration workflow
@@ -213,7 +213,7 @@ else:
 
 ## Implementation: Overlay Bridge
 
-To complete the integration, implement `_invoke_neon_genie_overlay()` in `abraxas/aal/neon_genie_adapter.py`:
+`_invoke_neon_genie_overlay()` now routes through the overlay runtime bridge. Complete the external overlay setup (P0) to make the invocation live:
 
 ```python
 def _invoke_neon_genie_overlay(
@@ -287,7 +287,7 @@ pytest tests/test_neon_genie_adapter.py::test_generate_symbolic_v0_successful_ge
 
 Current test suite covers:
 - ✅ Missing prompt validation
-- ✅ Overlay not available (stub mode)
+- ✅ Overlay not available (external overlay missing)
 - ✅ Overlay invocation errors
 - ✅ Successful generation with provenance
 - ✅ Deterministic hash verification
@@ -370,9 +370,9 @@ handler.store_generation_result(
 
 ### Common Issues
 
-**Issue**: `AttributeError: module 'abraxas.aal.neon_genie_adapter' has no attribute 'check_overlay_available'`
+**Issue**: `Neon-Genie overlay not yet integrated (stub mode)`
 
-**Solution**: This is expected in stub mode. The functions `check_overlay_available` and `invoke_overlay` are imported inside `_invoke_neon_genie_overlay()`, which is currently a stub. Implement the overlay bridge to resolve this.
+**Solution**: The runtime bridge is in place, but the external Neon-Genie overlay is not installed or not discoverable by the overlay runtime. Complete the external setup to resolve this.
 
 ---
 
@@ -405,7 +405,7 @@ writer = ArtifactWriter(artifacts_dir=str(path))
 
 ### v0.1.0 (2026-01-18)
 
-**Initial Release - Stub Mode**
+**Initial Release - Runtime Bridge Ready**
 
 - ✅ Created rune adapter with provenance wrapping
 - ✅ Registered `aal.neon_genie.generate.v0` capability
@@ -413,9 +413,10 @@ writer = ArtifactWriter(artifacts_dir=str(path))
 - ✅ Created artifact storage handler with no-influence enforcement
 - ✅ Added comprehensive test suite (11 tests)
 - ✅ Verified determinism and governance compliance
-- ⚠️ **STUB MODE**: `_invoke_neon_genie_overlay()` returns `None` (awaiting external overlay)
+- ✅ Overlay runtime bridge implemented (`check_overlay_available`, `invoke_overlay`)
+- ⚠️ **EXTERNAL OVERLAY MISSING**: `_invoke_neon_genie_overlay()` returns `None` (awaiting external overlay)
 
-**Next Release**: Implement overlay bridge and complete external overlay integration.
+**Next Release**: Complete external overlay setup and add golden tests.
 
 ---
 
