@@ -66,6 +66,13 @@
       "stub_type": "not_implemented"
     },
     {
+      "file": "abraxas/runes/operators/acquisition_layer.py",
+      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "operator"
+    },
+    {
       "file": "abraxas/runes/operators/cohesion_score.py",
       "marker": "raise NotImplementedError(\"COHESION_SCORE requires synchronicity_envelopes\")",
       "type": "not_implemented",
@@ -193,14 +200,14 @@
     }
   ],
   "summary": {
-    "total_stubs": 21,
+    "total_stubs": 22,
     "by_priority": {
       "P0": 0,
-      "P1": 21,
+      "P1": 22,
       "P2": 0
     },
     "by_type": {
-      "operator": 17,
+      "operator": 18,
       "interface": 2,
       "not_implemented": 2,
       "module": 0
