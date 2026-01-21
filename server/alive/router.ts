@@ -11,7 +11,6 @@ import { assertAllowed } from "./authorize";
 import { exportAliveRun } from "./exporter";
 import { computeEnterpriseAlerts } from "./alerts";
 import { isAuthenticated } from "../replitAuth";
-import { spawn } from "child_process";
 import type { AliveExportFormat, AliveIntegration } from "@shared/alive/exports";
 import { formatSlackMessage } from "../integrations/slack/format";
 import { postToSlackWebhook } from "../integrations/slack/client";
@@ -19,6 +18,7 @@ import { formatAliveEmail } from "../integrations/email/format";
 import type { EmailSender } from "../integrations/email/client";
 import { postWebhook } from "../integrations/webhook/client";
 import { setupALIVEDigestRoutes } from "./digest/route";
+import { runALIVEPipeline } from "./pipeline";
 
 export function setupALIVERoutes(app: Express) {
   /**
@@ -42,27 +42,26 @@ export function setupALIVERoutes(app: Express) {
         });
       }
 
-      // Call Python ALIVE core
-      const result = await callPythonALIVE(input.artifact, userTier, input.profile);
+      const { run, filtered } = await runALIVEPipeline({
+        ...input,
+        tier: userTier,
+      });
 
-      const enriched = {
-        ...result,
-        view: {
-          ...result.view,
-          alerts:
-            userTier === "enterprise"
-              ? computeEnterpriseAlerts(result)
-              : result.view.alerts,
-        },
-      };
-
-      // Apply tier policy (server-side filtering)
-      const filtered = applyTierPolicy(enriched, userTier);
+      const enriched =
+        userTier === "enterprise"
+          ? {
+              ...filtered,
+              view: {
+                ...filtered.view,
+                alerts: computeEnterpriseAlerts(run),
+              },
+            }
+          : filtered;
 
       // Return filtered view
       res.json({
         success: true,
-        data: filtered,
+        data: enriched,
       });
     } catch (error: any) {
       console.error("Error running ALIVE analysis:", error);
@@ -231,48 +230,4 @@ export function setupALIVERoutes(app: Express) {
   );
 
   setupALIVEDigestRoutes(app);
-}
-
-/**
- * Call Python ALIVE engine via subprocess.
- */
-async function callPythonALIVE(
-  artifact: any,
-  tier: string,
-  profile?: any
-): Promise<AliveRunResult> {
-  return new Promise((resolve, reject) => {
-    const args = ["-m", "abraxas.alive.core", JSON.stringify(artifact), tier];
-    
-    const python = spawn("python3", args);
-    
-    let stdout = "";
-    let stderr = "";
-
-    python.stdout.on("data", (data) => {
-      stdout += data.toString();
-    });
-
-    python.stderr.on("data", (data) => {
-      stderr += data.toString();
-    });
-
-    python.on("close", (code) => {
-      if (code !== 0) {
-        reject(new Error(`Python process exited with code ${code}: ${stderr}`));
-        return;
-      }
-
-      try {
-        const result = JSON.parse(stdout);
-        resolve(result as AliveRunResult);
-      } catch (err) {
-        reject(new Error(`Failed to parse Python output: ${err}`));
-      }
-    });
-
-    python.on("error", (err) => {
-      reject(new Error(`Failed to spawn Python process: ${err}`));
-    });
-  });
 }

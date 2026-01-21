@@ -190,11 +190,11 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
 - ✅ All P1 items completed.
 
 ### P2 - Technical Debt
-- ✅ Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence)
-- ✅ Complete ABX core pipeline (remove stub oracle generation)
-- ✅ Review and fix placeholder comments in ALIVE + ABX pipeline paths
-- ✅ Add OpenAPI spec for TypeScript server endpoints
-- ✅ Enable and track TypeScript test coverage metrics
+- [x] Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence) (Known Stubs #10/#12)
+- [x] Complete ABX core pipeline (remove stub oracle generation) (Known Stubs #11)
+- [x] Review and fix placeholder comments in ALIVE + ABX pipeline paths (Known Stubs #13)
+- [x] Add OpenAPI spec for TypeScript server endpoints (Missing Documentation P2)
+- [x] Enable and track TypeScript test coverage metrics (Test Coverage Summary)
 
 ### Branch Conflicts (Lower Priority - Handled in Other Branches)
 - **P0 (2026-01-10)**: Resolve pending merge conflicts in 3 active development branches
@@ -530,70 +530,65 @@ def apply_wsss(signal_amplitude, structural_coherence, pattern_matrix, *, strict
 #### 10. TypeScript Server TODOs
 **Location:** `server/alive/`
 
-```typescript
-// Step 3: Persist raw results (TODO: add DB storage)
-// TODO: Consider using a persistent Python worker or HTTP bridge
-// TODO: Implement proper error handling
-// TODO: Implement actual user tier lookup from database
-```
+**Status:** Resolved
 
-**Impact:** ALIVE system lacks DB persistence and proper error handling.
+**Resolution:**
+- Pipeline persistence stores raw + filtered runs.
+- Router uses tier lookup from database and centralized pipeline flow.
+- Error handling uses consistent HTTP responses with logging.
+
+**Impact:** ALIVE pipeline is persisted and tier enforced.
 
 ---
 
 #### 11. ABX Core Pipeline Stub
 **Location:** `abx/core/pipeline.py:92-93`
 
-```python
-# Generate oracle output (stub - replace with real implementation)
-# TODO: Wire real oracle generation logic here
-```
+**Status:** Resolved
 
-**Impact:** ABX core pipeline generates stub oracle outputs.
+**Resolution:**
+- Pipeline executes kernel oracle and stamps provenance.
+- Gate depth enforcement, drift checks, and IPL scheduling are wired.
+
+**Impact:** ABX core pipeline produces real oracle outputs.
 
 ---
 
 #### 12. ALIVE Operator Stubs
 **Location:** `abx/operators/alive_*.py`
 
-```python
-# TODO: Implement PDF export
-raise NotImplementedError("PDF export not yet implemented")
+**Status:** Resolved
 
-# TODO: Implement CSV export with proper formatting
-# TODO: Actually send to Slack webhook
-```
+**Resolution:**
+- PDF/CSV export formats implemented.
+- Slack integration posts via webhook with structured payloads.
 
-**Impact:** ALIVE export and Slack integration are stubs.
+**Impact:** ALIVE exports and Slack integration are functional.
 
 ---
 
-#### 13. Placeholder Comments (~50 occurrences)
-**Examples:**
-```python
-# Fallback: Placeholder compression when DCE not available
-# Placeholder: In production, compare cross-domain signal patterns
-# Falls back to safe placeholders when keys missing
-# Placeholder - in production, compute from ledgers
-avg_compression_ratio = 2.5  # Placeholder
-```
+#### 13. Placeholder Comments (Scoped Review)
+**Status:** Resolved for ALIVE + ABX pipeline paths
 
-**Impact:** Low - most are fallback behaviors or safe defaults.
-**Action Required:** Review each and decide if real implementation needed.
+**Resolution:**
+- Reviewed ALIVE + ABX pipeline paths; no placeholder stubs remain in those modules.
+- Remaining placeholders are in other subsystems (UI placeholders, future overlays, oracle v2 fallbacks).
+
+**Impact:** No placeholder comments remain in ALIVE + ABX pipeline execution paths.
 
 ---
 
 ### Missing Documentation
 
 **P0:**
-- `docs/seal/SEAL_VALIDATION_GUIDE.md` - Seal validation end-to-end guide
+- ✅ `docs/seal/SEAL_VALIDATION_GUIDE.md` - Seal validation end-to-end guide
 
 **P1:**
-- `examples/shadow_detectors_integration.py` - Shadow detector usage example
-- `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md` - Rune operator development guide
+- ✅ `examples/shadow_detectors_integration.py` - Shadow detector usage example
+- ✅ `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md` - Rune operator development guide
 
 **P2:**
-- `docs/api/openapi.yaml` - OpenAPI spec for TypeScript server
+- ✅ `docs/api/openapi.yaml` - OpenAPI spec for TypeScript server
 
 ---
 
@@ -605,8 +600,8 @@ avg_compression_ratio = 2.5  # Placeholder
 - Coverage ratio: ~33% by file count
 
 **TypeScript Tests:**
-- No coverage metrics tracked
-- Action: Enable `npm run test:coverage`
+- Coverage metrics tracked via `npm run test:coverage`
+- Reports written to `coverage/` (HTML + JSON summary)
 
 **Missing Critical Tests:**
 - Seal release scripts (seal_release.py, validate_artifacts.py)

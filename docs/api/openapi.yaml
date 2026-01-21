@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: Abraxas API
+  version: 1.0.0
+  description: >
+    OpenAPI specification for the TypeScript server endpoints. Focused on ALIVE
+    workflows (run, export, integrations, digest).
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+tags:
+  - name: ALIVE
+    description: ALIVE analysis endpoints
+paths:
+  /api/alive/run:
+    post:
+      tags: [ALIVE]
+      summary: Run ALIVE analysis on an artifact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AliveRunInput"
+      responses:
+        "200":
+          description: ALIVE run result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AliveRunResponse"
+        "400":
+          description: Invalid request
+        "500":
+          description: Server error
+  /api/alive/export:
+    post:
+      tags: [ALIVE]
+      summary: Export an ALIVE run into a permitted format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AliveExportRequest"
+      responses:
+        "200":
+          description: Exported payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AliveExportResponse"
+        "400":
+          description: Invalid request
+        "403":
+          description: Forbidden for tier
+        "500":
+          description: Server error
+  /api/alive/integrations/{integration}:
+    post:
+      tags: [ALIVE]
+      summary: Deliver ALIVE payloads to an integration channel
+      parameters:
+        - name: integration
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AliveIntegration"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AliveIntegrationRequest"
+      responses:
+        "200":
+          description: Integration delivery result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AliveIntegrationResponse"
+        "400":
+          description: Invalid request
+        "403":
+          description: Forbidden for tier
+        "500":
+          description: Server error
+  /api/alive/digest:
+    post:
+      tags: [ALIVE]
+      summary: Generate an ALIVE digest (enterprise tier)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AliveDigestRequest"
+      responses:
+        "200":
+          description: Digest payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AliveDigestResponse"
+        "400":
+          description: Invalid request
+        "403":
+          description: Forbidden for tier
+        "500":
+          description: Server error
+components:
+  schemas:
+    AliveTier:
+      type: string
+      enum: [psychonaut, academic, enterprise]
+    AliveIntegration:
+      type: string
+      enum: [slack, email, webhook]
+    AliveExportFormat:
+      type: string
+      enum: [json, csv, md, html, pdf, bi_table]
+    AliveArtifactRef:
+      type: object
+      required: [artifact_id, kind]
+      properties:
+        artifact_id:
+          type: string
+        kind:
+          type: string
+          enum: [text, url, pdf, image, audio, multi]
+        source:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+        language:
+          type: string
+        timestamp:
+          type: string
+        notes:
+          type: string
+    AliveMetricValue:
+      type: object
+      required: [metric_id, axis, name, value, confidence, status, version]
+      properties:
+        metric_id:
+          type: string
+        axis:
+          type: string
+          enum: [influence, vitality, life_logistics]
+        name:
+          type: string
+        value:
+          type: number
+        confidence:
+          type: number
+        status:
+          type: string
+          enum: [promoted, shadow, provisional, deprecated]
+        version:
+          type: string
+        evidence:
+          type: object
+          properties:
+            spans:
+              type: array
+              items:
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  note:
+                    type: string
+            cues:
+              type: array
+              items:
+                type: string
+            references:
+              type: array
+              items:
+                type: string
+        explanation:
+          type: object
+          properties:
+            operational_definition:
+              type: string
+            failure_modes:
+              type: array
+              items:
+                type: string
+    AliveFieldSignature:
+      type: object
+      required: [influence, vitality, life_logistics]
+      properties:
+        influence:
+          type: array
+          items:
+            $ref: "#/components/schemas/AliveMetricValue"
+        vitality:
+          type: array
+          items:
+            $ref: "#/components/schemas/AliveMetricValue"
+        life_logistics:
+          type: array
+          items:
+            $ref: "#/components/schemas/AliveMetricValue"
+        aggregates:
+          type: object
+    AliveRunResult:
+      type: object
+      required: [provenance, artifact, signature, view]
+      properties:
+        provenance:
+          type: object
+        artifact:
+          $ref: "#/components/schemas/AliveArtifactRef"
+        signature:
+          $ref: "#/components/schemas/AliveFieldSignature"
+        view:
+          type: object
+          properties:
+            tier:
+              $ref: "#/components/schemas/AliveTier"
+            translated:
+              type: object
+            metrics:
+              oneOf:
+                - $ref: "#/components/schemas/AliveFieldSignature"
+                - type: "null"
+            explanations:
+              type: array
+              items:
+                type: object
+            alerts:
+              type: array
+              items:
+                type: object
+        strain:
+          type: object
+    AliveRunInput:
+      type: object
+      required: [artifact, tier]
+      properties:
+        artifact:
+          $ref: "#/components/schemas/AliveArtifactRef"
+        tier:
+          $ref: "#/components/schemas/AliveTier"
+        profile:
+          type: object
+          additionalProperties: true
+    AliveRunResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/AliveRunResult"
+    AliveExportRequest:
+      type: object
+      required: [run, format]
+      properties:
+        run:
+          $ref: "#/components/schemas/AliveRunResult"
+        format:
+          $ref: "#/components/schemas/AliveExportFormat"
+    AliveExportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+    AliveIntegrationRequest:
+      type: object
+      required: [run]
+      properties:
+        run:
+          $ref: "#/components/schemas/AliveRunResult"
+        webhookUrl:
+          type: string
+        recipients:
+          type: array
+          items:
+            type: string
+    AliveIntegrationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+    AliveDigestRequest:
+      type: object
+      required: [window]
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AliveRunResult"
+        biRows:
+          type: array
+          items:
+            type: object
+        window:
+          type: string
+          enum: ["7d", "30d", "90d"]
+        scope:
+          type: object
+        deliver:
+          type: string
+          enum: [slack, email]
+        webhookUrl:
+          type: string
+        recipients:
+          type: array
+          items:
+            type: string
+    AliveDigestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        digest:
+          type: object
