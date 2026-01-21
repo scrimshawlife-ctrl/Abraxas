@@ -65,6 +65,17 @@ def alive_run(
 
     # Extract text content from artifact
     text = artifact.get("text", artifact.get("content", ""))
+    if not text and "payload" in artifact:
+        payload = artifact.get("payload")
+        if isinstance(payload, str):
+            text = payload
+        else:
+            try:
+                text = json.dumps(payload, sort_keys=True, ensure_ascii=False)
+            except TypeError:
+                text = str(payload)
+    if not text:
+        text = artifact.get("title") or artifact.get("notes") or artifact.get("url") or ""
 
     # Initialize signature
     signature = {
@@ -177,6 +188,8 @@ def alive_run(
             "language": artifact.get("language", "en"),
             "timestamp": artifact.get("timestamp"),
             "notes": artifact.get("notes"),
+            "content": artifact.get("content"),
+            "payload": artifact.get("payload"),
         },
         "signature": signature,
         "view": {

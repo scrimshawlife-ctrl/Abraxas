@@ -67,6 +67,8 @@ export const aliveArtifactRefSchema = z.object({
   language: z.string().optional(), // "en", etc
   timestamp: z.string().optional(), // ISO if known (publication or capture time)
   notes: z.string().optional(),
+  content: z.string().optional(), // normalized analysis-ready content (text or serialized payload)
+  payload: z.unknown().optional(), // raw artifact payload for non-text items
 });
 
 export type AliveArtifactRef = z.infer<typeof aliveArtifactRefSchema>;
