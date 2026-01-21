@@ -53,7 +53,69 @@ export async function runALIVEPipeline(
  * Normalize input data before processing.
  */
 function normalizeInput(input: AliveRunInput): AliveRunInput {
-  return { ...input };
+  const normalizedArtifact = normalizeArtifact(input.artifact);
+  return { ...input, artifact: normalizedArtifact };
+}
+
+function normalizeArtifact(artifact: AliveRunInput["artifact"]): AliveRunInput["artifact"] {
+  const hasPayload = Object.prototype.hasOwnProperty.call(artifact, "payload");
+  const safePayload = hasPayload ? ensureJsonPayload(artifact.payload) : undefined;
+  if (artifact.content && artifact.content.trim().length > 0) {
+    return hasPayload ? { ...artifact, payload: safePayload } : artifact;
+  }
+
+  const payloadText = hasPayload
+    ? typeof safePayload === "string"
+      ? safePayload
+      : stableStringify(safePayload)
+    : undefined;
+
+  const fallbackContent =
+    payloadText ||
+    artifact.title ||
+    artifact.notes ||
+    artifact.url ||
+    "";
+
+  return {
+    ...artifact,
+    ...(hasPayload ? { payload: safePayload } : {}),
+    content: fallbackContent,
+  };
+}
+
+function stableStringify(value: unknown): string {
+  if (value === undefined) return "";
+  if (value === null || typeof value !== "object") {
+    return String(value);
+  }
+
+  const seen = new WeakSet<object>();
+  const normalize = (input: unknown): unknown => {
+    if (input === null || typeof input !== "object") return input;
+    if (Array.isArray(input)) return input.map((item) => normalize(item));
+    if (seen.has(input as object)) return null;
+    seen.add(input as object);
+    const entries = Object.entries(input as Record<string, unknown>).sort(([a], [b]) =>
+      a.localeCompare(b)
+    );
+    const out: Record<string, unknown> = {};
+    for (const [key, val] of entries) {
+      out[key] = normalize(val);
+    }
+    return out;
+  };
+
+  return JSON.stringify(normalize(value));
+}
+
+function ensureJsonPayload(value: unknown): unknown {
+  try {
+    JSON.stringify(value);
+    return value;
+  } catch {
+    return String(value);
+  }
 }
 
 /**
