@@ -4,16 +4,16 @@
 
 ### Deterministic Symbolic Intelligence & Linguistic Weather System
 
-*Provenance-embedded compression detection, memetic drift analysis, and self-healing infrastructure for edge deployment*
+*Provenance-embedded compression detection, memetic drift analysis, and self-healing infrastructure for edge deployment.*
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-features) • [Documentation](#-documentation) • [AI Assistant Guide](.github/AI_ASSISTANT_GUIDE.md) • [Project Status](#-project-status)
+[Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-features) • [Documentation](#-documentation) • [Project Status](#-project-status)
 
-> **For AI Assistants (ChatGPT, Claude, etc.)**: See [`.github/AI_ASSISTANT_GUIDE.md`](.github/AI_ASSISTANT_GUIDE.md) for quick orientation and [`.github/QUICK_REFERENCE.md`](.github/QUICK_REFERENCE.md) for ultra-condensed reference.
+> **AI assistants**: start with [`.github/AI_ASSISTANT_GUIDE.md`](.github/AI_ASSISTANT_GUIDE.md) and [`.github/QUICK_REFERENCE.md`](.github/QUICK_REFERENCE.md).
 
 </div>
 
@@ -21,9 +21,7 @@
 
 ## 🎯 What is Abraxas?
 
-**Abraxas** is a production-grade symbolic intelligence system that detects linguistic compression patterns, tracks memetic drift, and operates as an always-on edge appliance with self-healing capabilities.
-
-Think of it as a **weather system for language** — detecting when symbols compress ("eggcorns" like "apex twin" → "aphex twin"), tracking affective drift, and generating deterministic provenance for every linguistic event.
+**Abraxas** is a production-grade symbolic intelligence system that detects linguistic compression patterns, tracks memetic drift, and operates as an always-on edge appliance with self-healing capabilities. Think of it as a **weather system for language**—detecting symbol compression (eggcorns like “apex twin” → “aphex twin”), mapping affective drift, and generating deterministic provenance for every linguistic event.
 
 ### At a Glance
 
@@ -32,29 +30,16 @@ Think of it as a **weather system for language** — detecting when symbols comp
 - **Edge-ready** — optimized for Jetson Orin with systemd and atomic updates
 - **Full-stack** — Python SCO/ECO core + TypeScript orchestration + UI tooling
 
-### Table of Contents
-
-- [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
-- [Dual-Lane Architecture](#-dual-lane-architecture)
-- [Features](#-features)
-- [Project Status](#-project-status)
-- [Documentation](#-documentation)
-- [Configuration](#-configuration)
-- [Testing](#-testing)
-- [Contributing](#-contributing)
-- [License](#-license)
-
 ### Core Capabilities
 
-- **🔬 Symbolic Compression Detection (SCO/ECO)** — Detect and quantify when opaque symbols are replaced with semantically transparent substitutes
-- **🌦️ Weather Engine** — Transform linguistic events into memetic weather patterns and drift signals
-- **📊 Scenario Envelope Runner (SER)** — Deterministic forecasting driven by simulation priors; generates cascade sheets and contamination advisories without requiring full simulation
-- **🧭 Governance Registry** — Discover components, track rent-manifest coverage, and record approvals for new modules via the UI
-- **🤖 Always-On Daemon** — Continuous data ingestion via Decodo API with chat-like interaction interface
-- **🛡️ Self-Healing Infrastructure** — Drift detection, watchdog monitoring, and atomic updates with rollback
-- **⚡ Orin-Ready Edge Deployment** — Optimized for NVIDIA Jetson Orin with systemd integration
-- **🔒 Provenance-First Design** — Every event includes SHA-256 hash for reproducibility and auditability
+- **Symbolic Compression Detection (SCO/ECO)** — quantify when opaque symbols are replaced with semantically transparent substitutes
+- **Weather Engine** — transform linguistic events into memetic weather patterns and drift signals
+- **Scenario Envelope Runner (SER)** — deterministic forecasting with cascade sheets and contamination advisories
+- **Governance Registry** — discover components, track rent-manifest coverage, and record approvals
+- **Always-On Daemon** — continuous ingestion via Decodo API with chat-style interaction
+- **Self-Healing Infrastructure** — drift detection, watchdog monitoring, atomic updates
+- **Orin-Ready Edge Deployment** — Jetson Orin systemd integration
+- **Provenance-First Design** — every event includes a SHA-256 hash for auditability
 
 ---
 
@@ -124,11 +109,11 @@ pytest tests/
 
 ## 🏗️ Architecture
 
-Abraxas operates as a **multi-layer stack** combining Python linguistic analysis with TypeScript orchestration:
+Abraxas is a **multi-layer stack** combining Python linguistic analysis with TypeScript orchestration and edge infrastructure.
 
 ### ABX-Runes Coupling Architecture
 
-**CRITICAL DESIGN PRINCIPLE**: All cross-subsystem communication flows through ABX-Runes capability contracts.
+**Design constraint**: all cross-subsystem communication flows through ABX-Runes capability contracts.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -155,11 +140,11 @@ Abraxas operates as a **multi-layer stack** combining Python linguistic analysis
 ```
 
 **Benefits:**
-- ✅ **Determinism**: All inputs/outputs validated against JSON schemas
-- ✅ **Provenance**: Every invocation tracked with SHA-256 hashes
-- ✅ **Testability**: Subsystems can be tested independently
-- ✅ **Deployability**: Enables multi-process architecture
-- ✅ **Governance**: Policy enforcement at capability boundary
+- **Determinism**: inputs/outputs validated against JSON schemas
+- **Provenance**: every invocation tracked with SHA-256 hashes
+- **Testability**: subsystems tested independently
+- **Deployability**: supports multi-process architectures
+- **Governance**: policy enforcement at the capability boundary
 
 ### System Architecture
 
@@ -218,7 +203,7 @@ Abraxas operates as a **multi-layer stack** combining Python linguistic analysis
 
 ## 🔀 Dual-Lane Architecture
 
-**CRITICAL DESIGN**: Abraxas implements a **dual-lane architecture** that enforces strict separation between prediction and diagnostics:
+**Critical design**: Abraxas enforces strict separation between prediction and diagnostics.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -263,25 +248,21 @@ Abraxas operates as a **multi-layer stack** combining Python linguistic analysis
 
 ### Core Principles
 
-1. **Prediction is Morally Agnostic**
-   - Forecast accuracy is the ONLY success metric
+1. **Prediction is morally agnostic**
+   - Forecast accuracy is the only success metric
    - No ethical, risk, or diagnostic constraints on predictions
    - Full spectrum forecasting across all domains
-   - **NON-NEGOTIABLE**: Diagnostics never alter prediction
+   - Diagnostics never alter prediction
 
-2. **Shadow Lane is Observe-Only**
+2. **Shadow lane is observe-only**
    - Computes diagnostic signals (manipulation markers, psychological load, etc.)
-   - Attaches evidence as **annotations only**
-   - **NEVER** influences prediction behavior
-   - Exists to inform human operators, not constrain forecasts
+   - Attaches evidence as annotations only
+   - Never influences prediction behavior
 
-3. **Lane Guard Enforces Separation** (ABX-Runes ϟ₇)
+3. **Lane Guard enforces separation** (ABX-Runes ϟ₇)
    - Prevents shadow outputs from leaking into prediction
    - Requires explicit PROMOTION via governance system
-   - Validates promotion criteria: **calibration, stability, redundancy ONLY**
-   - **REJECTS** promotion based on ethical/risk/diagnostic criteria
-
-This design ensures **high-fidelity forecasting** and **rich diagnostic capabilities** without compromise.
+   - Validates promotion criteria: calibration, stability, redundancy only
 
 ---
 
@@ -289,10 +270,10 @@ This design ensures **high-fidelity forecasting** and **rich diagnostic capabili
 
 ### Symbolic Compression Detection
 
-Detect when language users compress symbols while preserving intent:
+Detect when language users compress symbols while preserving intent.
 
-- **ECO_T1 (Eggcorn)** — High phonetic similarity (≥0.85) + semantic transparency delta (≥0.18)
-- **SCO_T2 (General Compression)** — Moderate thresholds with provenance tracking
+- **ECO_T1 (Eggcorn)** — high phonetic similarity (≥0.85) + semantic transparency delta (≥0.18)
+- **SCO_T2 (General Compression)** — moderate thresholds with provenance tracking
 - **Metrics** — STI, CP, IPS, SLC, RDV with deterministic scoring
 
 Example detected event:
@@ -315,10 +296,10 @@ Example detected event:
 
 Transform compression events into memetic weather patterns:
 
-- **Symbolic Drift** — Intensity of symbol replacement
-- **Transparency Flux** — Rate of semantic clarification/obscuration
-- **RDV Tracking** — Humor, aggression, authority, intimacy, nihilism, irony
-- **Compression Stability** — Eggcorn formation rate
+- **Symbolic Drift** — intensity of symbol replacement
+- **Transparency Flux** — rate of semantic clarification/obscuration
+- **RDV Tracking** — humor, aggression, authority, intimacy, nihilism, irony
+- **Compression Stability** — eggcorn formation rate
 
 ### Lexicon Engine v1
 
@@ -376,10 +357,10 @@ artifact = runner.run_for_date(date(2025, 12, 20), deltas, config)
 ```
 
 **Features:**
-- **Deterministic signatures** — Same inputs always produce same artifact signature
-- **Time-weighted decay** — Recent signals weighted higher with configurable half-life
-- **Provenance-embedded** — Every artifact includes inputs hash, config hash, git SHA
-- **Modular design** — Composable transforms: decay, score_deltas, render_oracle
+- **Deterministic signatures** — same inputs always produce same artifact signature
+- **Time-weighted decay** — recent signals weighted higher with configurable half-life
+- **Provenance-embedded** — every artifact includes inputs hash, config hash, git SHA
+- **Modular design** — composable transforms: decay, score_deltas, render_oracle
 - **Golden test coverage** — 26 tests including signature stability verification
 
 ### Oracle v2 Governance Layer
@@ -399,7 +380,7 @@ v2 = build_v2_block(
         "interaction_noise_rate": 0.22,
     },
     router_input={
-        "max_band_width": 15.0,
+        "max_band_width": 42.0,
         "max_MRS": 85.0,
         "negative_signal_alerts": 0,
         "thresholds": {"BW_HIGH": 20.0, "MRS_HIGH": 70.0},
@@ -410,9 +391,9 @@ v2 = build_v2_block(
 ```
 
 **Features:**
-- **Compliance reporting** — Deterministic RED/YELLOW/GREEN status based on v1 regression checks
-- **Mode routing** — Priority-based selection: user override → compliance RED → high uncertainty/risk → default
-- **Provenance lock** — Stable fingerprint for mode decision reproducibility
+- **Compliance reporting** — deterministic RED/YELLOW/GREEN status based on v1 regression checks
+- **Mode routing** — priority-based selection: user override → compliance RED → high uncertainty/risk → default
+- **Provenance lock** — stable fingerprint for mode decision reproducibility
 - **Additive-only** — v1 outputs preserved; v2 block appended to `output["v2"]`
 - **Golden tests** — 5 deterministic tests for compliance and router logic
 
@@ -420,19 +401,19 @@ v2 = build_v2_block(
 
 Run Abraxas as a persistent service:
 
-- **Continuous Ingestion** — Scheduled scraping via Decodo API
+- **Continuous Ingestion** — scheduled scraping via Decodo API
 - **Chat Interface** — LLM-like interaction with module discovery
-- **Admin Handshake** — Dynamic capability detection
-- **SQLite Storage** — Provenance-stamped document persistence
+- **Admin Handshake** — dynamic capability detection
+- **SQLite Storage** — provenance-stamped document persistence
 
 ### Self-Healing Infrastructure
 
 Production-grade reliability for edge deployment:
 
-- **Drift Detection** — Git SHA, config, assets, dependencies tracking
-- **Watchdog** — Automatic service restart on health check failures
-- **Atomic Updates** — Zero-downtime deployments with rollback
-- **Systemd Integration** — Managed lifecycle for Jetson Orin
+- **Drift Detection** — git SHA, config, assets, dependencies tracking
+- **Watchdog** — automatic service restart on health check failures
+- **Atomic Updates** — zero-downtime deployments with rollback
+- **Systemd Integration** — managed lifecycle for Jetson Orin
 
 ---
 
@@ -440,42 +421,37 @@ Production-grade reliability for edge deployment:
 
 ### ✅ Completed
 
-- [x] **SCO/ECO Core** — Full symbolic compression detection pipeline
-- [x] **Orin Boot Spine** — Edge infrastructure scaffolding
-- [x] **TypeScript Integration** — Express API bridge to Python stack
-- [x] **Weather Engine** — Signal transformation and narrative generation
-- [x] **Always-On Daemon** — Ingestion engine and chat UI
-- [x] **Self-Healing Layer** — Drift detection, watchdog, atomic updates
-- [x] **Systemd Services** — Production deployment units
-- [x] **Lexicon Engine v1** — Domain-scoped, versioned token-weight mapping
-- [x] **Oracle Pipeline v1** — Deterministic oracle generation from correlation deltas
-- [x] **Abraxas v1.4** — Temporal & Adversarial Expansion
-- [x] **ABX-Runes v1.4** — Comprehensive rune-sigil generation pipeline + operator system
-- [x] **SIG KPI Metrics** — Symbolic Intelligence Gain tracking (WO-66 through WO-81)
-- [x] **CLAUDE.md** — Comprehensive AI assistant development guide
-- [x] **Kernel Phase System** — 5-phase execution model (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
-- [x] **6-Gate Metric Governance** — Anti-hallucination promotion framework
-- [x] **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
-- [x] **WO-100 Acquisition Infrastructure** — Anchor resolution, reupload detection, forecast accuracy
-- [x] **Shadow Structural Metrics** — Cambridge Analytica-derived observe-only analytical layer (SEI, CLIP, NOR, PTS, SCG, FVC)
-- [x] **Shadow Detectors v0.1** — Pattern detectors for compliance/remix, meta-awareness, negative space
-- [x] **Dual-Lane Architecture + Lane Guard** — Strict separation between prediction (truth-pure) and shadow (observe-only) with ABX-Runes ϟ₇ enforcement
-- [x] **Abraxas v1.5** — Predictive Intelligence Layer (**Q1 2025 Critical Path Complete**)
-  - [x] **Domain Compression Engines (DCE)** — Lifecycle-aware, lineage-tracked compression
-  - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative assembly
-  - [x] **Phase Detection Engine** — Cross-domain alignment, synchronicity, early warnings
+- **SCO/ECO Core** — full symbolic compression detection pipeline
+- **Orin Boot Spine** — edge infrastructure scaffolding
+- **TypeScript Integration** — Express API bridge to Python stack
+- **Weather Engine** — signal transformation and narrative generation
+- **Always-On Daemon** — ingestion engine and chat UI
+- **Self-Healing Layer** — drift detection, watchdog, atomic updates
+- **Systemd Services** — production deployment units
+- **Lexicon Engine v1** — domain-scoped, versioned token-weight mapping
+- **Oracle Pipeline v1** — deterministic oracle generation from correlation deltas
+- **Abraxas v1.4** — temporal & adversarial expansion
+- **ABX-Runes v1.4** — rune-sigil generation pipeline + operator system
+- **SIG KPI Metrics** — Symbolic Intelligence Gain tracking (WO-66 through WO-81)
+- **Kernel Phase System** — 5-phase execution model (OPEN/ALIGN/ASCEND/CLEAR/SEAL)
+- **6-Gate Metric Governance** — anti-hallucination promotion framework
+- **Simulation Mapping Layer** — 22 academic papers → Abraxas variable translation
+- **WO-100 Acquisition Infrastructure** — anchor resolution, reupload detection, forecast accuracy
+- **Shadow Structural Metrics** — observe-only analytical layer (SEI, CLIP, NOR, PTS, SCG, FVC)
+- **Shadow Detectors v0.1** — compliance/remix, meta-awareness, negative space detectors
+- **Dual-Lane Architecture + Lane Guard** — strict separation with ABX-Runes ϟ₇ enforcement
+- **Abraxas v1.5** — Predictive Intelligence Layer (Q1 2025 critical path complete)
+  - **Domain Compression Engines (DCE)** — lifecycle-aware, lineage-tracked compression
+  - **Oracle Pipeline v2** — signal → compression → forecast → narrative assembly
+  - **Phase Detection Engine** — cross-domain alignment, synchronicity, early warnings
 
 ### Abraxas v1.4: Temporal & Adversarial Expansion
 
-**Version 1.4.0** introduces three foundational layers for temporal dynamics, adversarial resilience, and second-order narrative modeling:
-
 #### τ (Tau) Operator: Temporal Metrics
 
-Three complementary temporal metrics for symbolic lifecycle tracking:
-
-- **τₕ (Tau Half-Life)**: Symbolic persistence under declining reinforcement (hours)
-- **τᵥ (Tau Velocity)**: Emergence/decay slope from time-series (events/day)
-- **τₚ (Tau Phase Proximity)**: Distance to next lifecycle boundary [0,1]
+- **τₕ (Tau Half-Life)**: symbolic persistence under declining reinforcement (hours)
+- **τᵥ (Tau Velocity)**: emergence/decay slope from time-series (events/day)
+- **τₚ (Tau Phase Proximity)**: distance to next lifecycle boundary [0,1]
 
 ```python
 from abraxas.core.temporal_tau import TauCalculator, Observation
@@ -490,7 +466,7 @@ print(f"Confidence: {snapshot.confidence.value}")
 
 #### D/M Layer: Information Integrity Metrics
 
-Risk/likelihood estimators for information integrity assessment (NOT truth adjudication):
+Risk/likelihood estimators for information integrity assessment (not truth adjudication):
 
 **Artifact Integrity**: PPS, PCS, MMS, SLS, EIS
 **Narrative Manipulation**: FLS, EIL, OCS, RRS, MPS, CIS
@@ -525,11 +501,11 @@ state, tau = store.compute_current_state(term_id)
 
 Deterministic scaffolds for narrative cascade modeling:
 
-- **NCP** (Narrative Cascade Predictor): Predicts cascade scenarios
-- **CNF** (Counter-Narrative Forecaster): Generates counter-strategies
-- **EFTE** (Epistemic Fatigue Threshold Engine): Models declining engagement
-- **SPM** (Susceptibility Profile Mapper): Maps susceptibility profiles
-- **RRM** (Recovery & Re-Stabilization Model): Models recovery trajectories
+- **NCP** (Narrative Cascade Predictor)
+- **CNF** (Counter-Narrative Forecaster)
+- **EFTE** (Epistemic Fatigue Threshold Engine)
+- **SPM** (Susceptibility Profile Mapper)
+- **RRM** (Recovery & Re-Stabilization Model)
 
 ```python
 from abraxas.sod import NarrativeCascadePredictor, SODInput
@@ -540,14 +516,12 @@ envelope = ncp.predict(sod_input, run_id="RUN-001")
 
 #### Artifact Generators
 
-Six specialized output formats:
-
-- **Cascade Sheet**: Tabular summary of cascade paths
-- **Manipulation Surface Map**: Heatmap data for D/M metrics
-- **Contamination Advisory**: High-risk artifact alerts
-- **Trust Drift Graph Data**: Time-series for τₕ and IRI/MRI
-- **Oracle Delta Ledger**: Diff between current and prior snapshots
-- **Integrity Brief**: Daily ledger health + delta summary
+- **Cascade Sheet** — tabular summary of cascade paths
+- **Manipulation Surface Map** — heatmap data for D/M metrics
+- **Contamination Advisory** — high-risk artifact alerts
+- **Trust Drift Graph Data** — time-series for τₕ and IRI/MRI
+- **Oracle Delta Ledger** — diff between current and prior snapshots
+- **Integrity Brief** — daily ledger health + delta summary
 
 #### v1.4 CLI
 
@@ -560,7 +534,7 @@ python -m abraxas.cli.abx_run_v1_4 \
 ```
 
 **Features**:
-- Delta-only mode (default): Emits only changed fields
+- Delta-only mode (default): emits only changed fields
 - JSON/Markdown dual output
 - Deterministic provenance embedding
 - Confidence bands (LOW/MED/HIGH)
@@ -570,9 +544,9 @@ python -m abraxas.cli.abx_run_v1_4 \
 - [SOD Specification](docs/specs/sod_second_order_dynamics.md)
 - [Canonical Ledger](docs/canon/ABRAXAS_CANON_LEDGER.txt)
 
-### 📊 Recent Updates (v1.5.0 — December 2025)
+### Recent Updates (v1.5.0 — December 2025)
 
-**Abraxas v1.5: Predictive Intelligence Layer** — Critical path completion transforms Abraxas from descriptive → **predictive**
+**Abraxas v1.5: Predictive Intelligence Layer** — transforms Abraxas from descriptive → **predictive**
 
 #### Phase 1: Domain Compression Engines (DCE)
 - Versioned lexicon framework with SHA-256 lineage tracking
@@ -596,37 +570,37 @@ python -m abraxas.cli.abx_run_v1_4 \
 - Drift-resonance coupling detection (cascade risk assessment)
 - **Files:** 4 modules, 991 lines
 
-**Total Impact:** 12 files, 3,392 lines, **Abraxas is now predictive**
+**Total Impact:** 12 files, 3,392 lines — Abraxas is now predictive.
 
 #### Dual-Lane Architecture: Shadow Diagnostics + Truth-Pure Prediction
 
-Abraxas implements a **dual-lane architecture** (see [Dual-Lane Architecture](#-dual-lane-architecture) section) with strict lane separation:
+Abraxas implements a **dual-lane architecture** (see [Dual-Lane Architecture](#-dual-lane-architecture)):
 
-1. **Shadow Lane (Observe-Only Diagnostics)**:
-   - Observe-only Cambridge Analytica-derived metrics (SEI, CLIP, NOR, PTS, SCG, FVC)
+1. **Shadow Lane (Observe-Only Diagnostics)**
+   - Cambridge Analytica-derived metrics (SEI, CLIP, NOR, PTS, SCG, FVC)
    - Pattern detectors (compliance/remix, meta-awareness, negative space)
    - **Lane Guard enforcement** — prevents shadow signals from influencing prediction
    - **No system influence** — pure observation and measurement
    - ABX-Runes ϟ₇ access control (SSO - Shadow Structural Observer)
    - SEED compliant with SHA-256 provenance
 
-2. **Prediction Lane (Truth-Pure Forecasting)**:
+2. **Prediction Lane (Truth-Pure Forecasting)**
    - Domain Compression Engines (DCE)
    - Oracle Pipeline v2 with 6-gate governance
    - Phase Detection Engine
-   - **Morally agnostic** — forecast accuracy is the ONLY success metric
+   - **Morally agnostic** — forecast accuracy is the only success metric
    - **Active forecasting** — generates predictions and narratives
 
-**Philosophy**: Shadow lane describes *what is happening psychologically*, prediction lane forecasts *what comes next symbolically*. Lane Guard ensures these never interfere. See `docs/specs/dual_lane_architecture.md` for full specification.
+**Philosophy**: Shadow lane describes what is happening psychologically; prediction lane forecasts what comes next symbolically. Lane Guard ensures they never interfere. See `docs/specs/dual_lane_architecture.md` for full specification.
 
 ---
 
-### 🧭 TVM Oracle Skeleton + Influence/Synchronicity (Canonical)
+## 🧭 TVM Oracle Skeleton + Influence/Synchronicity (Canonical)
 
 **Canonical flow (shadow-only by default):**
 Sources → Metrics (Shadow) → **TVM Vector Framing (V1–V15)** → **ABX-INFLUENCE_DETECT (ICS)** → **ABX-INFLUENCE_WEIGHT** → **ABX-SYNCHRONICITY_MAP (SE)** → MDA Domain Graph → Oracle Output
 
-**Non-exclusionary intake**: symbolic domains (astrology, numerology, geomagnetic, Schumann, etc.) are accepted equally when structured inputs exist; no domain legitimacy priors are allowed.
+**Non-exclusionary intake**: symbolic domains (astrology, numerology, geomagnetic, Schumann, etc.) are accepted when structured inputs exist; no domain legitimacy priors are allowed.
 
 **Seed baseline**: deterministic 2025 year-in-review seed packs provide historical substrate for influence/synchronicity calibration.
 
@@ -636,41 +610,39 @@ abraxas seed --year 2025 --out data/year_seed/2025/seedpack.v0.1.json
 
 ---
 
-### 📊 Latest Updates (December 2025)
+## 📊 Latest Updates (December 2025)
 
-#### PR #51 — Dual-Lane Architecture with Shadow Detectors + Lane Guard (2025-12-30)
+### PR #51 — Dual-Lane Architecture with Shadow Detectors + Lane Guard (2025-12-30)
 
-**CRITICAL IMPLEMENTATION**: Separates prediction (truth-pure) from diagnostics (observe-only)
+**Critical implementation**: separates prediction (truth-pure) from diagnostics (observe-only).
 
-- **Shadow Detectors v0.1** (`abraxas/detectors/shadow/`):
+- **Shadow Detectors v0.1** (`abraxas/detectors/shadow/`)
   - Compliance vs Remix detector — lexical overlap vs novel recombination
   - Meta-Awareness detector — algorithmic/manipulation discourse patterns
   - Negative Space detector — topic dropout and visibility asymmetry
   - Deterministic registry with SHA-256 provenance
 
-- **Lane Guard** (`abraxas/detectors/shadow/lane_guard.py`):
+- **Lane Guard** (`abraxas/detectors/shadow/lane_guard.py`)
   - Enforces prediction/shadow separation (ABX-Runes ϟ₇)
-  - REJECTS promotions based on ethical/risk/diagnostic criteria
-  - ONLY allows calibration/stability/redundancy criteria
+  - Rejects promotions based on ethical/risk/diagnostic criteria
+  - Allows calibration/stability/redundancy criteria only
   - Promotion ledger with hash-chain verification
 
 - **Tests**: 28 tests passing (18 detector tests + 10 lane guard tests)
 - **Documentation**: `docs/specs/dual_lane_architecture.md`
 
-**Design Guarantees**:
-- Prediction is morally agnostic (NEVER blocked by ethical signals)
+**Design guarantees**:
+- Prediction is morally agnostic (never blocked by ethical signals)
 - Shadow outputs are observe-only annotations
 - Lane Guard prevents shadow leakage into forecast
 - Promotion requires evidence: calibration + stability + redundancy
 - Full SHA-256 provenance tracking
 
-**NON-NEGOTIABLE**: Diagnostics never alter prediction.
+**Non-negotiable**: diagnostics never alter prediction.
 
----
+### v1.4.1 Updates (Merged December 2025)
 
-### 📊 v1.4.1 Updates (Merged December 2025)
-
-**4 Major PRs** — Governance, acquisition, and infrastructure consolidation:
+**4 major PRs** — governance, acquisition, and infrastructure consolidation:
 
 1. **PR #22** — 6-Gate Metric Governance System
 2. **PR #28** — WO-100: Acquisition & Analysis Infrastructure
@@ -691,7 +663,7 @@ abraxas seed --year 2025 --out data/year_seed/2025/seedpack.v0.1.json
 - **#18** — Abraxas v1.4 Implementation
 
 **Recent work orders (WO-66 through WO-100):**
-- **WO-100**: Acquisition & Analysis Infrastructure (Anchor resolution, reupload detection, forecast accuracy)
+- **WO-100**: Acquisition & Analysis Infrastructure (anchor resolution, reupload detection, forecast accuracy)
 - **WO-81**: Attribution Hardening
 - **WO-80**: Delta Scoring + Self-Calibration
 - **WO-79**: Anchor→Claim Relation Classifier
@@ -709,40 +681,38 @@ abraxas seed --year 2025 --out data/year_seed/2025/seedpack.v0.1.json
 - **WO-67**: Signal ROI Scheduler for economic task selection
 - **WO-66**: SIG KPI (Symbolic Intelligence Gain) metrics system
 
-### ✅ Q1 2025 Critical Path — COMPLETE
+### ✅ Q1 2025 Critical Path — Complete
 
-> **See [ROADMAP.md](ROADMAP.md) for full canon-aligned priority stack**
+> See [ROADMAP.md](ROADMAP.md) for the canon-aligned priority stack.
 
-**All critical path items completed** — Abraxas has transitioned from **descriptive → predictive**
+1. **Domain Compression Engines (DCEs)** — versioned, lifecycle-tracked lexicons
+   - Status: **Core Spine** ✓
+   - Provides: foundation for Oracle v2, Phase Detection, Multi-Domain Analysis
 
-1. ✅ **Domain Compression Engines (DCEs)** — Versioned, lifecycle-tracked lexicons
-   - Status: **CORE SPINE** ✓
-   - Provides: Foundation for Oracle v2, Phase Detection, Multi-Domain Analysis
-
-2. ✅ **Oracle Pipeline v2** — Unified Signal → Compression → Forecast → Narrative
-   - Status: **OPERATIONAL** ✓
+2. **Oracle Pipeline v2** — unified Signal → Compression → Forecast → Narrative
+   - Status: **Operational** ✓
    - Integrates: LifecycleEngine, TauCalculator, weather, resonance, 6-gate governance
 
-3. ✅ **Phase Detection Engine** — Cross-domain phase alignment + synchronicity
-   - Status: **OPERATIONAL** ✓
-   - Capabilities: Alignment detection, synchronicity mapping, early warnings, cascade risk
-   - **Abraxas is now predictive, not descriptive** ✓
+3. **Phase Detection Engine** — cross-domain phase alignment + synchronicity
+   - Status: **Operational** ✓
+   - Capabilities: alignment detection, synchronicity mapping, early warnings, cascade risk
+   - **Abraxas is now predictive** ✓
 
-### 🚀 NEXT — High-Value Extensions (Q2 2025)
+### 🚀 Next — High-Value Extensions (Q2 2025)
 
-4. **Resonance Narratives** — Human-readable output layer
-5. **UI Dashboard** (delayed until Oracle v2 artifacts stabilize)
+4. **Resonance Narratives** — human-readable output layer
+5. **UI Dashboard** — delayed until Oracle v2 artifacts stabilize
 
-### ⏳ LATER — Infrastructure & Scale (Q3-Q4 2025)
+### ⏳ Later — Infrastructure & Scale (Q3–Q4 2025)
 
-- PostgreSQL Migration (when artifact volume demands it)
-- WebSocket Integration (when phase-based system needs real-time)
-- Mobile UI (pure surface area, minimal epistemic value)
-- Ritual System (symbolic modulation—locked behind Oracle v2)
-- Multi-Domain Analysis — Crypto, idiom, slang, technical jargon
-- Event Correlation — Cross-domain drift pattern detection
+- PostgreSQL migration (when artifact volume demands it)
+- WebSocket integration (for real-time phase-based systems)
+- Mobile UI (surface area only, minimal epistemic value)
+- Ritual System (symbolic modulation, locked behind Oracle v2)
+- Multi-Domain Analysis — crypto, idiom, slang, technical jargon
+- Event Correlation — cross-domain drift pattern detection
 
-**Prioritization Philosophy:** Epistemic leverage over engineering familiarity
+**Prioritization philosophy:** epistemic leverage over engineering familiarity.
 
 ---
 
@@ -750,13 +720,13 @@ abraxas seed --year 2025 --out data/year_seed/2025/seedpack.v0.1.json
 
 ### Core Modules
 
-- **[CLAUDE.md](CLAUDE.md)** — AI Assistant Development Guide (comprehensive codebase documentation)
-- **[Dual-Lane Architecture](docs/specs/dual_lane_architecture.md)** — Prediction vs Shadow lane separation specification
+- **[CLAUDE.md](CLAUDE.md)** — AI assistant development guide
+- **[Dual-Lane Architecture](docs/specs/dual_lane_architecture.md)** — prediction vs shadow lane separation
 - **[SCO Stack](README_SCO.md)** — Symbolic Compression Operator documentation
-- **[Orin Spine](README_ORIN.md)** — Edge deployment and infrastructure
+- **[Orin Spine](README_ORIN.md)** — edge deployment and infrastructure
 - **[Integration Guide](INTEGRATION_SCO.md)** — TypeScript/Python integration
-- **[Deployment Guide](DEPLOYMENT_SCO.md)** — Production deployment
-- **[Conflict Resolution Guide](CONFLICT_RESOLUTION_GUIDE.md)** — Merge conflict resolution strategies
+- **[Deployment Guide](DEPLOYMENT_SCO.md)** — production deployment
+- **[Conflict Resolution Guide](CONFLICT_RESOLUTION_GUIDE.md)** — merge conflict strategies
 
 ### CLI Reference
 
@@ -861,7 +831,7 @@ curl -X POST http://localhost:5000/api/sco/analyze \
 
 ## 🤝 Contributing
 
-Contributions welcome! This project follows deterministic, provenance-first design principles:
+Contributions welcome. Abraxas is deterministic and provenance-first:
 
 1. All changes must pass `abx smoke` deterministic tests
 2. Include SHA-256 provenance for new linguistic events
@@ -873,7 +843,7 @@ Contributions welcome! This project follows deterministic, provenance-first desi
 
 ## 📄 License
 
-MIT License — See [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE).
 
 ---
 
