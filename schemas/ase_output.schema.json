@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ASE Daily Output",
+  "type": "object",
+  "required": ["date","version","run_id","items_hash","exact_collisions","high_tap_tokens","verified_sub_anagrams","pfdi_alerts","stats"],
+  "properties": {
+    "date": { "type": "string" },
+    "version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "items_hash": { "type": "string" },
+    "exact_collisions": { "type": "array" },
+    "high_tap_tokens": { "type": "array" },
+    "verified_sub_anagrams": { "type": "array" },
+    "pfdi_alerts": { "type": "array" },
+    "stats": { "type": "object" }
+  },
+  "additionalProperties": true
+}
