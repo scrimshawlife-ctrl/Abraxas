@@ -1,0 +1,5 @@
+ally
+border
+land
+leader
+range

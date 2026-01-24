@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ASE Input Item",
+  "type": "object",
+  "required": ["id", "source", "url", "published_at", "title", "text"],
+  "properties": {
+    "id": { "type": "string" },
+    "source": { "type": "string" },
+    "url": { "type": "string" },
+    "published_at": { "type": "string" },
+    "title": { "type": "string" },
+    "text": { "type": "string" }
+  },
+  "additionalProperties": true
+}

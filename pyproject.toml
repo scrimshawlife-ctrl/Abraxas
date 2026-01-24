@@ -69,6 +69,7 @@ full = [
 # CLI entry point
 abx = "abraxas.cli.app:app"
 abraxas = "abraxas.cli.main:main"
+abraxas-ase = "abraxas_ase.cli:main"
 
 [project.entry-points."abx.plugins"]
 abraxas = "abraxas.plugin:register"
@@ -88,7 +89,8 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abx", "abx.util", "abx.runtime", "abx.assets",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest",
             "abraxas.io", "abraxas.web", "abraxas.render",
-            "abraxas.kernel.v2", "abraxas.overlays"]
+            "abraxas.kernel.v2", "abraxas.overlays",
+            "abraxas_ase", "abraxas_ase.tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
