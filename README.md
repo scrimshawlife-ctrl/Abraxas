@@ -746,6 +746,9 @@ abx admin           # Print admin handshake JSON
 
 # SCO analysis
 python -m abraxas.cli.sco_run --records <file> --lexicon <file> --out <file>
+
+# Resonance Narratives
+abx resonance-narrative --envelope <file> --out <file> --previous <file>
 ```
 
 ### API Endpoints
