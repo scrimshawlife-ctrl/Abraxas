@@ -51,4 +51,6 @@ artifacts_seal/
 artifacts_gate/
 .aal/
 .aal/kite/
+!.aal/cap/
+!.aal/cap/GOLDEN_STATE.json
 tools/aatf/.aatf/

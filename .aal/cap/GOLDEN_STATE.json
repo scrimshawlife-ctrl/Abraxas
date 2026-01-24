@@ -1,0 +1,16 @@
+{
+  "cap_version": "cap.v1",
+  "created_at": "2026-01-24T09:04:04+00:00",
+  "git_commit": "5ed0705d8a11e0a1a46f5245d5513b109d08cdd3",
+  "repo_fingerprint": {
+    "hash": "3ab6567cab7e5f1cab4cb432030520d86f90b4050a1bc7ef99101d2cee339164",
+    "inputs": {
+      "README.md": "8890d7e08c8f44a2b4a3d81b7da12bdc49e9bda6682c05821e7f1626e67ab7c2",
+      "VERSION": "c4a2383a03bdb6739d16a0e24058e4b9c7da4e63d203e0be2f448868cc03c530",
+      "package.json": "83a8bd033b7c78c8210036dfd3a7ae9bb2aa930de1454ed7bc7cd02a4810f27e",
+      "pyproject.toml": "3da07731a01e8b698de56782fb9cc41b7f1584be727bcdfaa49904075f1f4679"
+    }
+  },
+  "upgrade_spine_version": "upgrade_spine.v1",
+  "notes": "Cap established; Canon mutations require Upgrade Spine promotion."
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UpgradeProvenanceBundle v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "run_id",
+    "created_at",
+    "input_hash",
+    "candidate_id",
+    "decision_id",
+    "environment",
+    "artifact_paths",
+    "artifact_dir",
+    "artifact_hashes",
+    "inputs_manifest"
+  ],
+  "properties": {
+    "version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "input_hash": { "type": "string" },
+    "candidate_id": { "type": "string" },
+    "decision_id": { "type": "string" },
+    "environment": { "type": "object" },
+    "artifact_paths": { "type": "object" },
+    "artifact_dir": { "type": ["string", "null"] },
+    "artifact_hashes": { "type": ["object", "null"] },
+    "inputs_manifest": { "type": "object" },
+    "gate_report": { "type": ["object", "null"] }
+  }
+}
