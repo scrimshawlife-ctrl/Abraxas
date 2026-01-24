@@ -168,6 +168,27 @@ abraxas-ase run --in items.jsonl --out out/ase --date 2026-01-24 \
   --pfdi-state out_prev/ase/pfdi_state.json
 ```
 
+### SDCT (Symbolic Domain Cartridge Template)
+
+**ABX-Runes Enforced**: SDCT domains are invoked via rune contracts only. Engine does not call cartridges directly.
+
+| Rune ID | Domain | Description |
+|---------|--------|-------------|
+| `sdct.text_subword.v1` | text.subword.v1 | Text subword motif extraction |
+| `sdct.digit.v1` | digit.v1 | Digit n-gram motif extraction |
+
+```python
+from abraxas_ase.runes import invoke_rune
+
+# Engine invokes via rune_id
+result = invoke_rune("sdct.text_subword.v1", {"items": items}, ctx)
+
+# Direct cartridge imports in engine are FORBIDDEN
+# from abraxas_ase.domains.text_subword import TextSubwordCartridge  # Never!
+```
+
+See `abraxas_ase/runes/catalog.v0.yaml` for full rune catalog.
+
 ### Shadow Detectors & Metrics
 
 Observe-only analytical layer (never influences predictions):

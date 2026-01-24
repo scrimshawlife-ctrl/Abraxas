@@ -1,0 +1,68 @@
+# ABX-Runes Coupling Map v0
+# Declares allowed dependencies for ABX-Runes enforcement.
+# Engine must invoke cartridges via runes only; direct imports forbidden.
+
+version: "0.1.0"
+schema: coupling_map.v0
+
+# Allowed dependency paths
+allowed:
+  # Engine can import runes invocation layer
+  - from: abraxas_ase.engine
+    to: abraxas_ase.runes.invoke
+    reason: Engine invokes cartridges via runes only
+
+  # Engine can import types for data structures
+  - from: abraxas_ase.engine
+    to: abraxas_ase.domains.types
+    reason: Shared type definitions for evidence/motif structures
+
+  # Runes can import their cartridge implementations
+  - from: abraxas_ase.runes.*
+    to: abraxas_ase.domains.*
+    reason: Rune adapters wrap cartridge implementations
+
+  # Runes can import shared utilities
+  - from: abraxas_ase.runes.*
+    to: abraxas_ase.provenance
+    reason: Provenance tracking utilities
+
+  - from: abraxas_ase.runes.*
+    to: abraxas_ase.keyed
+    reason: HMAC keying utilities
+
+  - from: abraxas_ase.runes.*
+    to: abraxas_ase.lexicon
+    reason: Lexicon access
+
+  - from: abraxas_ase.runes.*
+    to: abraxas_ase.scoring
+    reason: Scoring utilities
+
+  - from: abraxas_ase.runes.*
+    to: abraxas_ase.sas
+    reason: SAS computation
+
+# Forbidden dependency paths (enforced by tests)
+forbidden:
+  - from: abraxas_ase.engine
+    to: abraxas_ase.domains.text_subword
+    reason: Engine must not import cartridge implementations directly
+
+  - from: abraxas_ase.engine
+    to: abraxas_ase.domains.digit_motif
+    reason: Engine must not import cartridge implementations directly
+
+  - from: abraxas_ase.engine
+    to: abraxas_ase.domains.cartridge
+    reason: Engine must not import cartridge protocol directly
+
+  - from: abraxas_ase.engine
+    to: abraxas_ase.domains.registry
+    reason: Engine must not import domain registry directly
+
+# Enforcement policy
+policy:
+  mode: strict
+  fail_on_violation: true
+  test_file: tests/test_engine_does_not_call_cartridges_directly.py

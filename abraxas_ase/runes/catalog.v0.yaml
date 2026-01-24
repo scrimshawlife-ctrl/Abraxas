@@ -1,0 +1,45 @@
+# ABX-Runes Catalog v0 for ASE
+# Deterministic ordered list of rune entries.
+# All SDCT cartridge invocations must go through registered runes.
+
+catalog_version: "0.1.0"
+schema_version: "catalog.v0"
+
+runes:
+  - rune_id: sdct.text_subword.v1
+    module: abraxas_ase.runes.sdct_text_subword_v1
+    handler: invoke
+    version: "1.0.0"
+    domain_id: text.subword.v1
+    input_schema: sdct/contracts/sdct_domain_params.v0.schema.json
+    output_schema: sdct/contracts/sdct_evidence_row.v0.schema.json
+    tier_allowed:
+      - psychonaut
+      - academic
+      - enterprise
+    description: >
+      Text subword motif extraction via letter-pool containment.
+      Wraps TextSubwordCartridge with deterministic provenance.
+    constraints:
+      - alpha_only
+      - deterministic
+      - provenance_required
+
+  - rune_id: sdct.digit.v1
+    module: abraxas_ase.runes.sdct_digit_v1
+    handler: invoke
+    version: "1.0.0"
+    domain_id: digit.v1
+    input_schema: sdct/contracts/sdct_domain_params.v0.schema.json
+    output_schema: sdct/contracts/sdct_evidence_row.v0.schema.json
+    tier_allowed:
+      - psychonaut
+      - academic
+      - enterprise
+    description: >
+      Digit n-gram motif extraction from text.
+      Proof cartridge for SDCT template validation.
+    constraints:
+      - digits_only
+      - deterministic
+      - provenance_required

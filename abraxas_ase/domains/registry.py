@@ -22,6 +22,7 @@ class CartridgeEntry:
     cartridge_class: Type[BaseCartridge[Any]]
     enabled: bool = True
     priority: int = 0  # Lower = earlier in pipeline
+    rune_id: Optional[str] = None  # ABX-Runes identifier for invocation
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -29,6 +30,7 @@ class CartridgeEntry:
             "cartridge_class": self.cartridge_class.__name__,
             "enabled": self.enabled,
             "priority": self.priority,
+            "rune_id": self.rune_id,
         }
 
 
@@ -59,6 +61,7 @@ class DomainRegistry:
         *,
         enabled: bool = True,
         priority: int = 0,
+        rune_id: Optional[str] = None,
     ) -> None:
         """
         Register a cartridge class.
@@ -67,6 +70,7 @@ class DomainRegistry:
             cartridge_class: The cartridge class to register
             enabled: Whether the cartridge is enabled by default
             priority: Processing priority (lower = earlier)
+            rune_id: ABX-Runes identifier for invocation (e.g., "sdct.text_subword.v1")
         """
         # Instantiate to get descriptor
         instance = cartridge_class()
@@ -81,6 +85,7 @@ class DomainRegistry:
             cartridge_class=cartridge_class,
             enabled=enabled,
             priority=priority,
+            rune_id=rune_id,
         )
         self._instances[domain_id] = instance
 
@@ -153,6 +158,23 @@ class DomainRegistry:
         """Get descriptors for all enabled domains in priority order."""
         return [self._instances[d].descriptor() for d in self.list_enabled()]
 
+    def get_rune_id(self, domain_id: str) -> Optional[str]:
+        """Get the rune_id for a domain."""
+        entry = self._entries.get(domain_id)
+        return entry.rune_id if entry else None
+
+    def list_rune_ids(self) -> List[str]:
+        """
+        List rune_ids for all enabled domains in priority order.
+
+        Returns only domains that have a rune_id assigned.
+        """
+        return [
+            self._entries[d].rune_id
+            for d in self.list_enabled()
+            if self._entries[d].rune_id is not None
+        ]
+
     def registry_hash(self) -> str:
         """
         Compute deterministic hash of registry state.
@@ -212,8 +234,10 @@ def _build_default_registry() -> DomainRegistry:
     Build the default registry with built-in cartridges.
 
     Currently includes:
-    - text.subword.v1 (Cartridge #0)
-    - digit.v1 (proof cartridge)
+    - text.subword.v1 (Cartridge #0) -> rune: sdct.text_subword.v1
+    - digit.v1 (proof cartridge) -> rune: sdct.digit.v1
+
+    ABX-Runes Enforcement: Engine must invoke cartridges via rune_id only.
     """
     registry = DomainRegistry()
 
@@ -221,14 +245,22 @@ def _build_default_registry() -> DomainRegistry:
     try:
         from .text_subword import TextSubwordCartridge
 
-        registry.register(TextSubwordCartridge, priority=0)
+        registry.register(
+            TextSubwordCartridge,
+            priority=0,
+            rune_id="sdct.text_subword.v1",
+        )
     except ImportError:
         pass  # Cartridge not yet available
 
     try:
         from .digit_motif import DigitMotifCartridge
 
-        registry.register(DigitMotifCartridge, priority=10)
+        registry.register(
+            DigitMotifCartridge,
+            priority=10,
+            rune_id="sdct.digit.v1",
+        )
     except ImportError:
         pass  # Cartridge not yet available
 
