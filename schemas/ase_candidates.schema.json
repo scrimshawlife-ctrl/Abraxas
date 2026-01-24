@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ASE Candidates Snapshot Entry",
+  "type": "object",
+  "required": [
+    "candidate",
+    "kind",
+    "date_first_seen",
+    "date_last_seen",
+    "days_seen",
+    "sources",
+    "events",
+    "tap_max",
+    "sas_sum",
+    "pfdi_max",
+    "mentions_total",
+    "lane"
+  ],
+  "properties": {
+    "candidate": { "type": "string" },
+    "kind": { "type": "string", "enum": ["token", "subword"] },
+    "date_first_seen": { "type": "string" },
+    "date_last_seen": { "type": "string" },
+    "days_seen": { "type": "integer" },
+    "sources": { "type": "array", "items": { "type": "string" } },
+    "events": { "type": "array", "items": { "type": "string" } },
+    "tap_max": { "type": "number" },
+    "sas_sum": { "type": "number" },
+    "pfdi_max": { "type": "number" },
+    "mentions_total": { "type": "integer" },
+    "lane": { "type": "string", "enum": ["candidate", "shadow", "canary", "core"] }
+  },
+  "additionalProperties": false
+}

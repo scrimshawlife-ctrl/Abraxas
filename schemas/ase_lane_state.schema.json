@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ASE Lane State",
+  "type": "object",
+  "required": ["shadow", "canary", "core", "lanes_sha256"],
+  "properties": {
+    "shadow": { "type": "array", "items": { "type": "string" } },
+    "canary": { "type": "array", "items": { "type": "string" } },
+    "core": { "type": "array", "items": { "type": "string" } },
+    "lanes_sha256": { "type": "string" }
+  },
+  "additionalProperties": false
+}

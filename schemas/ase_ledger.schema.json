@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ASE Ledger Row",
+  "type": "object",
+  "required": ["date","run_id","items_hash","key","sub","mentions_today","baseline_mean","baseline_std","pfdi"],
+  "properties": {
+    "date": { "type": "string" },
+    "run_id": { "type": "string" },
+    "items_hash": { "type": "string" },
+    "key": { "type": "string" },
+    "sub": { "type": "string" },
+    "mentions_today": { "type": "integer" },
+    "baseline_mean": { "type": "number" },
+    "baseline_std": { "type": "number" },
+    "pfdi": { "type": "number" }
+  },
+  "additionalProperties": false
+}

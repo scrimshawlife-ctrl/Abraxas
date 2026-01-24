@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Kernel routing and deterministic handlers for `weather.generate`, `ser.run`, `daemon.ingest`, and `edge.deploy_orin`
 - Oracle v2 factory wiring for lifecycle, tau, weather registry, integrity composites, and AAlmanac context
 - Kernel and patch registry tests covering new rune routing and proposal-only patch receipts
+- ASE (Anagram Sweep Engine) shadow-lane module with deterministic Tier-1/2 anagram mining, PFDI drift baseline, JSON schemas, CLI, and tests
+- ASE hardening with strict JSONL validation, invariance gate test, CLI state carry-forward, and a shadow-lane adapter hook
+- ASE lexicon automation with deterministic generator, provenance manifest, and CI check gate
+- ASE candidate expansion loop with LPS scoring, lane promotion tooling, and lane-aware Tier-2 hits
 
 ### Changed
 - Kernel seed normalization to handle structured seed payloads deterministically

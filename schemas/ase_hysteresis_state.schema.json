@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ASE Hysteresis State",
+  "type": "object",
+  "required": ["above_counts", "below_counts", "last_lane"],
+  "properties": {
+    "above_counts": { "type": "object" },
+    "below_counts": { "type": "object" },
+    "last_lane": { "type": "string" }
+  },
+  "additionalProperties": true
+}
