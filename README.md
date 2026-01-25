@@ -98,6 +98,67 @@ abx ui
 abx ingest
 ```
 
+### Run ASE (Anagram Sweep Engine)
+
+```bash
+# Analyze a JSONL current-events feed for deterministic anagram signals
+abraxas-ase run --in items.jsonl --out out/ase --date 2026-01-24 \
+  --pfdi-state out_prev/ase/pfdi_state.json
+```
+
+Outputs:
+- `out/ase/daily_report.json`
+- `out/ase/ledger_append.jsonl`
+- `out/ase/pfdi_state.json`
+
+### ASE Lexicon Automation
+
+```bash
+# Regenerate lexicon artifacts from sources
+python -m abraxas_ase.tools.lexicon_update --in lexicon_sources --out abraxas_ase
+
+# CI check to ensure generated lexicon is up to date
+python -m abraxas_ase.tools.lexicon_update --check --in lexicon_sources --out abraxas_ase
+```
+
+### Lexicon expansion loop
+
+```bash
+# Update candidate snapshot from daily report
+python -m abraxas_ase.tools.candidate_update \
+  --report out/ase/daily_report.json \
+  --date 2026-01-24 \
+  --candidates out/ase/candidates.jsonl \
+  --out-metrics out/ase/candidate_decisions.json
+
+# Promote lanes and update core list (dry run unless --apply)
+python -m abraxas_ase.tools.promote_lanes \
+  --candidates out/ase/candidates.jsonl \
+  --lanes-dir lexicon_sources/lanes \
+  --core-file lexicon_sources/subwords_core.txt \
+  --apply
+```
+
+### Export packs
+
+```bash
+python -m abraxas_ase.tools.export_pack \
+  --report out/ase/daily_report.json \
+  --outdir out/ase/exports \
+  --tier academic
+```
+
+### Chronoscope
+
+```bash
+python -m abraxas_ase.tools.chronoscope_update \
+  --state out/ase/chronoscope_state.json \
+  --input out/ase/exports/pack_enterprise \
+  --tier enterprise \
+  --rules default_rules/watchlist_rules.enterprise.json \
+  --outdir out/ase/chronoscope
+```
+
 ### Development Server
 
 ```bash

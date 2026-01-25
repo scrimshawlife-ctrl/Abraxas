@@ -1,0 +1,37 @@
+{
+  "rules": [
+    {
+      "id": "pfdi-spike",
+      "label": "PFDI alert spike",
+      "kind": "subword",
+      "target": "*",
+      "metric": "pfdi",
+      "trigger_delta": 2.0,
+      "trigger_score": 1.0,
+      "decay_halflife_days": 3,
+      "min_days_seen": 2
+    },
+    {
+      "id": "sas-war",
+      "label": "SAS surge: war",
+      "kind": "subword",
+      "target": "war",
+      "metric": "sas",
+      "trigger_delta": 0.8,
+      "trigger_score": 1.0,
+      "decay_halflife_days": 4,
+      "min_days_seen": 3
+    },
+    {
+      "id": "tap-trade",
+      "label": "TAP surge: trade",
+      "kind": "token",
+      "target": "trade",
+      "metric": "tap",
+      "trigger_delta": 0.5,
+      "trigger_score": 1.0,
+      "decay_halflife_days": 4,
+      "min_days_seen": 3
+    }
+  ]
+}
