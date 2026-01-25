@@ -20,6 +20,7 @@ from ..io.config import (
 )
 from ..io.storage import DEFAULT_ROOT, StoragePaths, today_iso, write_json, write_text
 from ..render.oracle_markdown import render_oracle_markdown
+from ..renderers.resonance_narratives import NarrativeError, render as render_resonance_narrative
 
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -29,6 +30,28 @@ console = Console()
 def _paths(root: Optional[str]) -> StoragePaths:
     return StoragePaths(root=Path(root).expanduser() if root else DEFAULT_ROOT)
 
+
+def _schema_registry_for(path_fragment: str) -> SchemaRegistry:
+    here = Path(__file__).resolve()
+    repo_root = None
+    for parent in here.parents:
+        if (parent / "pyproject.toml").exists():
+            repo_root = parent
+            break
+    if repo_root:
+        repo_schema_root = repo_root / "schemas"
+        if (repo_schema_root / path_fragment).exists():
+            return SchemaRegistry(repo_schema_root)
+
+    for parent in here.parents:
+        schema_root = parent / "schemas"
+        if (schema_root / path_fragment).exists():
+            return SchemaRegistry(schema_root)
+
+    raise FileNotFoundError(
+        "Schema not found for "
+        f"{path_fragment}. Checked repo root and ancestor schemas directories."
+    )
 
 @app.command("init")
 def init_cmd(root: Optional[str] = typer.Option(None, help="Storage root (default ~/.abraxas)")):
@@ -103,7 +126,11 @@ def oracle_run_cmd(
     readout = out.readout
     provenance = out.provenance
 
-    schemas = SchemaRegistry(Path(__file__).resolve().parents[1] / "schemas")
+    try:
+        schemas = _schema_registry_for("oracle_readout.v0.json")
+    except FileNotFoundError as exc:
+        console.print(Panel.fit(str(exc), title="schema missing", subtitle="oracle-readout.v0"))
+        raise typer.Exit(code=2) from exc
     vr = validate_payload(schemas, "oracle_readout.v0.json", readout)
     if not vr.ok:
         console.print(Panel.fit(str(vr.errors), title="schema invalid", subtitle="oracle_readout.v0.json"))
@@ -145,6 +172,60 @@ def admin_menu_cmd(root: Optional[str] = typer.Option(None, help="Storage root")
 
     console.print(Panel.fit("Admin Menu:\n- substack-export\n- catalog-review\n- training-ingest", title="ADMIN"))
     console.print("Stub: commands will be added in the next drop (KITE + Training Mode wiring).")
+
+
+@app.command("resonance-narrative")
+def resonance_narrative_cmd(
+    envelope: str = typer.Option(..., help="Path to envelope_v2 JSON"),
+    out: Optional[str] = typer.Option(None, help="Output path for narrative bundle JSON"),
+    previous: Optional[str] = typer.Option(None, help="Optional previous envelope_v2 JSON for diffing"),
+    validate_schema: bool = typer.Option(True, help="Validate output against schema"),
+):
+    """Render a Resonance Narrative bundle from a v2 envelope."""
+    envelope_path = Path(envelope)
+    if not envelope_path.exists():
+        console.print(f"Envelope not found: {envelope_path}")
+        raise typer.Exit(code=1)
+
+    envelope_payload = json.loads(envelope_path.read_text(encoding="utf-8"))
+    previous_payload = None
+    if previous:
+        previous_path = Path(previous)
+        if not previous_path.exists():
+            console.print(f"Previous envelope not found: {previous_path}")
+            raise typer.Exit(code=1)
+        previous_payload = json.loads(previous_path.read_text(encoding="utf-8"))
+
+    try:
+        narrative_bundle = render_resonance_narrative(
+            envelope_payload,
+            previous_envelope_v2=previous_payload,
+        )
+    except NarrativeError as exc:
+        console.print(f"Narrative render failed: {exc}")
+        raise typer.Exit(code=2) from exc
+
+    if validate_schema:
+        try:
+            schemas = _schema_registry_for("renderers/resonance_narratives/v1/narrative_bundle.schema.json")
+        except FileNotFoundError as exc:
+            console.print(Panel.fit(str(exc), title="schema missing", subtitle="resonance-narrative"))
+            raise typer.Exit(code=2) from exc
+        vr = validate_payload(
+            schemas,
+            "renderers/resonance_narratives/v1/narrative_bundle.schema.json",
+            narrative_bundle,
+        )
+        if not vr.ok:
+            console.print(Panel.fit(str(vr.errors), title="schema invalid", subtitle="narrative_bundle.v1"))
+            raise typer.Exit(code=2)
+
+    if out:
+        write_json(Path(out), narrative_bundle)
+        console.print(Panel.fit(f"Wrote narrative bundle: {out}", title="resonance-narrative"))
+        return
+
+    console.print(Panel.fit(json.dumps(narrative_bundle, indent=2), title="resonance-narrative"))
 
 
 @app.command("kite-ingest")

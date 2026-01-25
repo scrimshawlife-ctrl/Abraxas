@@ -61,6 +61,14 @@ def __getattr__(name: str):
 
     # Block internal modules (but allow them to be imported internally)
     if name in ["core", "sei", "clip", "nor", "pts", "scg", "fvc", "isolation", "provenance"]:
+        import inspect
+        import importlib
+
+        for frame_info in inspect.stack():
+            filename = frame_info.filename.replace("\\", "/")
+            if "/shadow_metrics/" in filename:
+                return importlib.import_module(f"{__name__}.{name}")
+
         raise AccessDeniedError(
             f"Direct access to '{name}' module is forbidden. "
             "Shadow Structural Metrics can only be accessed via ABX-Runes interface (ϟ₇). "

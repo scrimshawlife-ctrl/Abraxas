@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 
 from abraxas.core.provenance import canonical_envelope
 from abraxas.core.rendering import render_output as render_output_core
+from abraxas.fn_exports import EXPORTS, NOW
 
 
 def render_output_deterministic(
@@ -47,14 +48,43 @@ def render_output_deterministic(
     }
 
     envelope = canonical_envelope(
-        inputs=inputs_dict,
-        outputs={"rendered_text": rendered_text},
+        result={"rendered_text": rendered_text},
         config=config_dict,
-        errors=None
+        inputs=inputs_dict,
+        operation_id="core.rendering.render_output",
+        seed=seed
     )
 
     return {
         "rendered_text": rendered_text,
+        "provenance": envelope["provenance"],
+        "not_computable": None
+    }
+
+
+def load_fn_exports_deterministic(
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """Deterministic wrapper for core.fn_exports.load capability."""
+    payload = {
+        "owner": "Abraxas",
+        "generated_at_unix": NOW,
+        "functions": EXPORTS,
+    }
+    config = {
+        "seed": seed,
+        **kwargs
+    }
+    envelope = canonical_envelope(
+        result=payload,
+        config=config,
+        inputs={},
+        operation_id="core.fn_exports.load",
+        seed=seed
+    )
+    return {
+        "payload": payload,
         "provenance": envelope["provenance"],
         "not_computable": None
     }

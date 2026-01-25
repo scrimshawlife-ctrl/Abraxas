@@ -49,8 +49,12 @@
   "allow_runes": [
     "abx.doctor",
     "compression.detect",
+    "weather.generate",
+    "ser.run",
+    "daemon.ingest",
     "infra.self_heal",
-    "actuator.apply"
+    "actuator.apply",
+    "edge.deploy_orin"
   ],
   "deny_runes": [],
   "stabilization": {

@@ -39,8 +39,7 @@ Abraxas Acceptance Suite v1.0
      Hash: a3f5e9c8... (identical across 12 runs)
 
 [B1_SCHEMA_VALIDATION] Schema validation.................... PASS
-     oracle_envelope_v2: VALID
-     narrative_bundle_v1: VALID
+     acceptance_status_v1: VALID
 
 [C2_EVIDENCE_GATING] Evidence gating........................ PASS
      Removed source: "twitter_trends"
@@ -87,8 +86,9 @@ The acceptance suite can generate a status artifact for the dashboard:
 python tools/acceptance/run_acceptance_suite.py \
   --output out/acceptance/
 
-# Read result
+# Read results
 cat out/acceptance/acceptance_result.json
+cat out/acceptance/acceptance_status_v1.json
 ```
 
 ## Failure Handling
@@ -97,9 +97,10 @@ When a hard gate fails:
 
 1. **Block release**: Do not deploy
 2. **Check drift report**: `out/acceptance/acceptance_failures.jsonl`
-3. **Classify cause**: See F1 taxonomy in spec
-4. **Fix root cause**: Address determinism/schema/evidence issue
-5. **Re-run suite**: Verify fix
+3. **Check drift artifact**: `out/acceptance/drift_on_failure_v1.json`
+4. **Classify cause**: See F1 taxonomy in spec
+5. **Fix root cause**: Address determinism/schema/evidence issue
+6. **Re-run suite**: Verify fix
 
 ## Development
 

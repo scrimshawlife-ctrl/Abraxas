@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/neon_genie_output.json",
+  "title": "Neon-Genie Symbolic Generation Output",
+  "description": "Output schema for aal.neon_genie.generate.v0 capability",
+  "type": "object",
+  "properties": {
+    "generated_output": {
+      "type": ["object", "string", "null"],
+      "description": "Generated symbolic output (null if not_computable)"
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "required": ["timestamp_utc", "config_sha256", "inputs_sha256"],
+      "properties": {
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp with Z timezone"
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of configuration"
+        },
+        "inputs_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of inputs"
+        },
+        "repo_commit": {
+          "type": "string",
+          "description": "Git commit SHA"
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Deterministic seed used"
+        },
+        "operation_id": {
+          "type": "string",
+          "const": "aal.neon_genie.generate.v0",
+          "description": "Operation identifier"
+        }
+      }
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "description": "Present if generation failed or overlay unavailable",
+      "required": ["reason"],
+      "properties": {
+        "reason": {
+          "type": "string",
+          "description": "Explanation of why generation could not complete"
+        },
+        "missing_inputs": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of missing required inputs"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["no_influence", "lane"],
+      "properties": {
+        "no_influence": {
+          "type": "boolean",
+          "const": true,
+          "description": "MANDATORY: Must be true - output never influences forecasts"
+        },
+        "lane": {
+          "type": "string",
+          "enum": ["OBSERVATION", "GENERATION"],
+          "description": "Processing lane (OBSERVATION or GENERATION only)"
+        },
+        "artifact_only": {
+          "type": "boolean",
+          "description": "If true, result stored as artifact only (not belief)"
+        },
+        "generation_mode": {
+          "type": "string",
+          "description": "Generation mode used"
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["generated_output", "provenance", "metadata"],
+      "properties": {
+        "not_computable": {"type": "null"}
+      }
+    },
+    {
+      "required": ["not_computable", "metadata"],
+      "properties": {
+        "generated_output": {"type": "null"},
+        "provenance": {"type": "null"}
+      }
+    }
+  ]
+}

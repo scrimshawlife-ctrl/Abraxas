@@ -108,3 +108,21 @@ python -m abraxas.cli.metrics_governance promote metric_res_abc123 bundle_id_xyz
 ```
 
 See `docs/EMERGENT_METRICS.md` for full documentation.
+
+---
+
+## Neon-Genie Integration Example
+
+`neon_genie_integration.py` shows how to invoke the Neon-Genie adapter and handle the external overlay being unavailable.
+
+### Run the example
+
+```bash
+python examples/neon_genie_integration.py
+```
+
+### Expected output (when overlay is missing)
+
+```
+Neon-Genie unavailable: Neon-Genie overlay not yet integrated (stub mode)
+```

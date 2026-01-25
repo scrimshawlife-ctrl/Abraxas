@@ -15,6 +15,9 @@ class InfluenceWeightBundle(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     weights: Dict[str, Optional[float]] = Field(default_factory=dict)
     not_computable: List[str] = Field(default_factory=list)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -37,8 +40,23 @@ def apply_influence_weight(ics_bundle: Dict[str, Any], *, strict_execution: bool
         ics_bundle: Output from influence detect
         strict_execution: If True, raises NotImplementedError for unimplemented operators
     """
-    if strict_execution and ics_bundle is None:
-        raise NotImplementedError("INFLUENCE_WEIGHT requires ics_bundle")
+    if ics_bundle is None:
+        if strict_execution:
+            raise NotImplementedError("INFLUENCE_WEIGHT requires ics_bundle")
+        provenance = {
+            "inputs_hash": sha256_hex(canonical_json({"ics_bundle": {}})),
+            "metrics": ["CVP", "TLL", "RD", "CDEC", "RRS"],
+        }
+        bundle = InfluenceWeightBundle(
+            weights={},
+            not_computable=["ics_bundle"],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["ics_bundle"],
+            },
+            provenance=provenance,
+        )
+        return bundle.model_dump()
 
     ics = (ics_bundle or {}).get("ics") or {}
     weights: Dict[str, Optional[float]] = {}

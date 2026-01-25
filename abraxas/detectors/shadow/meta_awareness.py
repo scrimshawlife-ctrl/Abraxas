@@ -23,6 +23,9 @@ from abraxas.detectors.shadow.types import (
     ShadowDetectorBase,
     ShadowDetectorResult,
     ShadowEvidence,
+    DetectorOutput,
+    DetectorStatus,
+    clamp01,
 )
 
 
@@ -87,7 +90,7 @@ class MetaAwarenessDetector(ShadowDetectorBase):
         if not self._validate_inputs(inputs, ["text"]):
             return self._create_result(
                 inputs=inputs,
-                status="not_computable",
+                status=DetectorStatus.NOT_COMPUTABLE,
                 error_message="Missing required input: text",
             )
 
@@ -132,14 +135,14 @@ class MetaAwarenessDetector(ShadowDetectorBase):
 
             return self._create_result(
                 inputs=inputs,
-                status="computed",
+                status=DetectorStatus.OK,
                 evidence=evidence,
             )
 
         except Exception as e:
             return self._create_result(
                 inputs=inputs,
-                status="error",
+                status=DetectorStatus.ERROR,
                 error_message=f"Detection failed: {str(e)}",
             )
 
@@ -177,3 +180,43 @@ class MetaAwarenessDetector(ShadowDetectorBase):
         """
         word_count = len(re.findall(r'\b\w+\b', text))
         return min(1.0, word_count / 200.0)
+
+
+def compute_detector(context: Dict[str, Any]) -> DetectorOutput:
+    """
+    Deterministic meta-awareness proxy used by tests.
+
+    Uses keyword density in `context["text"]` plus optional manipulation-risk hints.
+    """
+    text = str(context.get("text", "") or "")
+    if not text.strip():
+        return DetectorOutput(
+            status=DetectorStatus.NOT_COMPUTABLE,
+            value=None,
+            subscores={},
+            missing_keys=["text"],
+        )
+
+    t = text.lower()
+    keywords = ["algorithm", "manufactured", "psyop", "ragebait", "bot", "clickbait", "engagement"]
+    counts = {k: len(re.findall(r"\b" + re.escape(k) + r"\b", t)) for k in keywords}
+    word_count = max(1, len(re.findall(r"\b\w+\b", t)))
+    density = sum(counts.values()) / float(word_count)  # markers per word
+
+    dmx = context.get("dmx") or {}
+    risk = float(dmx.get("overall_manipulation_risk", 0.0) or 0.0)
+
+    subscores = {
+        "keyword_density": clamp01(density * 20.0),  # saturate ~0.05 markers/word
+        "dmx_risk": clamp01(risk),
+        "marker_count": clamp01(sum(counts.values()) / 20.0),
+    }
+    subscores = {k: subscores[k] for k in sorted(subscores.keys())}
+
+    value = clamp01(0.7 * subscores["keyword_density"] + 0.3 * subscores["dmx_risk"])
+    return DetectorOutput(
+        status=DetectorStatus.OK,
+        value=value,
+        subscores=subscores,
+        missing_keys=[],
+    )

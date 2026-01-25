@@ -138,7 +138,8 @@ class ALIVEArtifact(BaseModel):
 
     artifactId: str
     artifactType: str  # "text" | "media" | "composite"
-    content: str  # Normalized text content
+    content: Optional[str] = None  # Normalized text content
+    payload: Optional[object] = None  # Raw artifact payload for non-text items
     metadata: Optional[dict] = None
 
 

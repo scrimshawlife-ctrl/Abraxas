@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from itertools import combinations
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -13,6 +13,9 @@ from abraxas.core.canonical import canonical_json, sha256_hex
 class RedundancyResult(BaseModel):
     shadow_only: bool = Field(True, description="Shadow-only enforcement")
     overlaps: List[Dict[str, Any]] = Field(default_factory=list)
+    not_computable_detail: Optional[Dict[str, Any]] = Field(
+        None, description="Structured not_computable detail"
+    )
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -25,8 +28,21 @@ def _coverage_vectors(source: Dict[str, Any]) -> List[str]:
 
 
 def apply_source_redundancy_check(sources: List[Dict[str, Any]], *, strict_execution: bool = False) -> Dict[str, Any]:
-    if strict_execution and sources is None:
-        raise NotImplementedError("SOURCE_REDUNDANCY_CHECK requires sources")
+    if sources is None:
+        if strict_execution:
+            raise NotImplementedError("SOURCE_REDUNDANCY_CHECK requires sources")
+        provenance = {
+            "inputs_hash": sha256_hex(canonical_json({"sources": []})),
+            "pairs": 0,
+        }
+        return RedundancyResult(
+            overlaps=[],
+            not_computable_detail={
+                "reason": "missing required inputs",
+                "missing_inputs": ["sources"],
+            },
+            provenance=provenance,
+        ).model_dump()
 
     overlaps: List[Dict[str, Any]] = []
     for a, b in combinations(sources or [], 2):

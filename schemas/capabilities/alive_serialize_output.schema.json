@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/alive_serialize_output.json",
+  "title": "ALIVE Serialize Output",
+  "description": "Output schema for alive.models.serialize capability",
+  "type": "object",
+  "required": ["field_signature", "provenance"],
+  "properties": {
+    "field_signature": {
+      "type": "object",
+      "description": "Normalized ALIVE field signature payload",
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Canonical provenance envelope for serialization",
+      "additionalProperties": true
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "description": "Structured error if serialization was not possible",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "alive.models.serialize",
+    "version": "1.0.0",
+    "deterministic": true,
+    "evidence_mode": "observation"
+  }
+}

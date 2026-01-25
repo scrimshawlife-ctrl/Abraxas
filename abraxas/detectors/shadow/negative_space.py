@@ -26,6 +26,9 @@ from abraxas.detectors.shadow.types import (
     ShadowDetectorBase,
     ShadowDetectorResult,
     ShadowEvidence,
+    DetectorOutput,
+    DetectorStatus,
+    clamp01,
 )
 
 
@@ -56,7 +59,7 @@ class NegativeSpaceDetector(ShadowDetectorBase):
         if not self._validate_inputs(inputs, ["text"]):
             return self._create_result(
                 inputs=inputs,
-                status="not_computable",
+                status=DetectorStatus.NOT_COMPUTABLE,
                 error_message="Missing required input: text",
             )
 
@@ -109,14 +112,14 @@ class NegativeSpaceDetector(ShadowDetectorBase):
 
             return self._create_result(
                 inputs=inputs,
-                status="computed",
+                status=DetectorStatus.OK,
                 evidence=evidence,
             )
 
         except Exception as e:
             return self._create_result(
                 inputs=inputs,
-                status="error",
+                status=DetectorStatus.ERROR,
                 error_message=f"Detection failed: {str(e)}",
             )
 
@@ -279,3 +282,64 @@ class NegativeSpaceDetector(ShadowDetectorBase):
         confidence = (len_factor * baseline_factor) ** 0.5
 
         return confidence
+
+
+def compute_detector(context: Dict[str, Any], history: List[Dict[str, Any]] | None = None) -> DetectorOutput:
+    """
+    Deterministic negative-space proxy used by tests.
+
+    Interprets `symbol_pool` entries as narratives with a `narrative_id` key and
+    measures topic dropout relative to a historical baseline.
+    """
+    if history is None:
+        history = []
+
+    if "symbol_pool" not in context:
+        return DetectorOutput(
+            status=DetectorStatus.NOT_COMPUTABLE,
+            value=None,
+            subscores={},
+            missing_keys=["symbol_pool"],
+        )
+
+    # Baseline topics from history
+    baseline_topics: Set[str] = set()
+    for h in history:
+        pool = h.get("symbol_pool") if isinstance(h, dict) else None
+        if not isinstance(pool, list):
+            continue
+        for item in pool:
+            if isinstance(item, dict) and str(item.get("narrative_id", "")).strip():
+                baseline_topics.add(str(item["narrative_id"]))
+
+    if not baseline_topics:
+        return DetectorOutput(
+            status=DetectorStatus.NOT_COMPUTABLE,
+            value=None,
+            subscores={},
+            missing_keys=["history.symbol_pool"],
+        )
+
+    current_topics: Set[str] = set()
+    cur_pool = context.get("symbol_pool") or []
+    if isinstance(cur_pool, list):
+        for item in cur_pool:
+            if isinstance(item, dict) and str(item.get("narrative_id", "")).strip():
+                current_topics.add(str(item["narrative_id"]))
+
+    overlap = len(baseline_topics & current_topics)
+    dropout = 1.0 - (overlap / float(len(baseline_topics)))
+
+    subscores = {
+        "baseline_topics": clamp01(len(baseline_topics) / 100.0),
+        "current_topics": clamp01(len(current_topics) / 100.0),
+        "dropout_ratio": clamp01(dropout),
+    }
+    subscores = {k: subscores[k] for k in sorted(subscores.keys())}
+
+    return DetectorOutput(
+        status=DetectorStatus.OK,
+        value=subscores["dropout_ratio"],
+        subscores=subscores,
+        missing_keys=[],
+    )

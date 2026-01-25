@@ -24,9 +24,32 @@ Provenance:
 """
 
 from __future__ import annotations
-from typing import Any, Dict
 
-def apply_tam(traversal_path: Any, node_sequence: Any, context_history: Any, *, strict_execution: bool = False) -> Dict[str, Any]:
+import hashlib
+from typing import Any, Dict, Iterable, Sequence
+
+def _normalize_sequence(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [str(v) for v in value]
+    if isinstance(value, dict):
+        return [str(v) for v in value.keys()]
+    return [str(value)]
+
+
+def _hash_sequence(values: Sequence[str]) -> str:
+    payload = "|".join(values)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def apply_tam(
+    traversal_path: Any,
+    node_sequence: Any,
+    context_history: Any,
+    *,
+    strict_execution: bool = False,
+) -> Dict[str, Any]:
     """Apply TAM rune operator.
 
     Args:
@@ -41,15 +64,47 @@ def apply_tam(traversal_path: Any, node_sequence: Any, context_history: Any, *, 
     Raises:
         NotImplementedError: If strict_execution=True and operator not implemented
     """
-    if strict_execution:
-        raise NotImplementedError(
-            f"Operator TAM not implemented yet. "
-            f"Provide a real implementation for rune ϟ₂."
-        )
+    missing = []
+    if traversal_path is None:
+        missing.append("traversal_path")
+    if node_sequence is None:
+        missing.append("node_sequence")
+    if context_history is None:
+        missing.append("context_history")
+    if missing:
+        if strict_execution:
+            raise NotImplementedError(
+                f"TAM requires inputs: {', '.join(missing)}"
+            )
+        return {
+            "emergent_meaning": "",
+            "path_signature": "",
+            "semantic_trace": [],
+            "not_computable": {
+                "reason": "missing required inputs",
+                "missing_inputs": missing,
+            },
+        }
+    path_steps = _normalize_sequence(traversal_path)
+    nodes = _normalize_sequence(node_sequence)
+    history = _normalize_sequence(context_history)
 
-    # Stub implementation - returns empty outputs
+    path_signature = _hash_sequence(path_steps or nodes)
+    current_node = nodes[-1] if nodes else (path_steps[-1] if path_steps else "origin")
+    history_hint = ", ".join(history[-3:]) if history else "no_context"
+    emergent_meaning = f"{current_node} ⟶ {history_hint}"
+
+    semantic_trace = [
+        {
+            "step": idx,
+            "node": node,
+            "context_hint": history[idx] if idx < len(history) else None,
+        }
+        for idx, node in enumerate(nodes or path_steps)
+    ]
+
     return {
-        "emergent_meaning": None,
-        "path_signature": None,
-        "semantic_trace": None,
+        "emergent_meaning": emergent_meaning,
+        "path_signature": path_signature,
+        "semantic_trace": semantic_trace,
     }

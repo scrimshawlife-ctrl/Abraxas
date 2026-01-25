@@ -10,13 +10,17 @@ Supports two modes:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
+from importlib.util import find_spec
 from typing import Any, Dict, Optional
+
+from abraxas.overlays.dispatcher import OVERLAY_REGISTRY
 
 from .adapter import OverlayAdapter, parse_request, handle
 from .phases import LegacyPhase, PhaseManager
-from .schema import OverlaySchema
+from .schema import OverlaySchema, OverlayRequest, Phase
 
 
 class OverlayRunner:
@@ -101,6 +105,85 @@ class OverlayRunner:
         result = self.phase_manager.execute(LegacyPhase.TRANSFORM, result)
         result = self.phase_manager.execute(LegacyPhase.FINALIZE, result)
         return result
+
+
+def check_overlay_available(overlay_name: str, version: Optional[str] = None) -> bool:
+    """Check whether an overlay is available in the runtime environment.
+
+    Args:
+        overlay_name: Overlay identifier
+        version: Optional overlay version hint
+
+    Returns:
+        True if the overlay module is registered and importable.
+    """
+    _ = version
+    module_path = OVERLAY_REGISTRY.get(overlay_name)
+    if not module_path:
+        return False
+    return find_spec(module_path) is not None
+
+
+def invoke_overlay(
+    overlay_name: str,
+    version: str,
+    phase: Phase,
+    payload: Dict[str, Any],
+    *,
+    request_id: Optional[str] = None,
+    timestamp_ms: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Invoke an overlay through the runtime interface.
+
+    Args:
+        overlay_name: Overlay identifier
+        version: Overlay version
+        phase: Runtime phase
+        payload: Payload for the phase execution
+
+    Returns:
+        Response dict matching the overlay runtime protocol.
+    """
+    if not check_overlay_available(overlay_name, version=version):
+        return {
+            "ok": False,
+            "overlay": overlay_name,
+            "phase": phase,
+            "request_id": None,
+            "output": None,
+            "error": "Overlay not available",
+        }
+
+    canonical = json.dumps(
+        {
+            "overlay": overlay_name,
+            "version": version,
+            "phase": phase,
+            "payload": payload,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    )
+    fingerprint = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    request_id = request_id or f"{overlay_name}-{fingerprint[:12]}"
+    req = OverlayRequest(
+        overlay=overlay_name,
+        version=version,
+        phase=phase,
+        request_id=request_id,
+        timestamp_ms=timestamp_ms if timestamp_ms is not None else 0,
+        payload=payload,
+    )
+    resp = handle(req)
+    return {
+        "ok": resp.ok,
+        "overlay": resp.overlay,
+        "phase": resp.phase,
+        "request_id": resp.request_id,
+        "output": resp.output,
+        "error": resp.error,
+    }
 
 
 def main() -> int:

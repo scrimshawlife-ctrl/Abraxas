@@ -26,6 +26,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   // User preferences
+  tier: varchar("tier").default("psychonaut").notNull(),
   themePreference: varchar("theme_preference").default("dark"), // "dark" or "light"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -93,6 +94,21 @@ export const userSessions = pgTable("user_sessions", {
   actions: json("actions"), // Array of actions taken during session
   outcome: text("outcome"), // "successful", "terminated", "error"
 });
+
+// ALIVE run persistence
+export const aliveRuns = pgTable(
+  "alive_runs",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    runId: text("run_id").notNull(),
+    tier: text("tier").notNull(),
+    input: json("input").notNull(),
+    run: json("run").notNull(),
+    filtered: json("filtered").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("IDX_alive_runs_run_id").on(table.runId)],
+);
 
 // Mystical indicators registry
 export const indicators = pgTable("indicators", {
@@ -194,6 +210,11 @@ export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
   startTime: true,
 });
 
+export const insertAliveRunSchema = createInsertSchema(aliveRuns).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertIndicatorSchema = createInsertSchema(indicators).omit({
   id: true,
   createdAt: true,
@@ -251,6 +272,8 @@ export type InsertMysticalMetrics = z.infer<typeof insertMysticalMetricsSchema>;
 export type MysticalMetrics = typeof mysticalMetrics.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
+export type InsertAliveRun = z.infer<typeof insertAliveRunSchema>;
+export type AliveRun = typeof aliveRuns.$inferSelect;
 export type InsertIndicator = z.infer<typeof insertIndicatorSchema>;
 export type Indicator = typeof indicators.$inferSelect;
 export type InsertIndicatorCache = z.infer<typeof insertIndicatorCacheSchema>;

@@ -19,6 +19,7 @@ from abraxas.forecast.horizon_policy import compare_horizon as compare_horizon_c
 from abraxas.forecast.horizon_policy import enforce_horizon_policy as enforce_horizon_policy_core
 from abraxas.forecast.ledger import issue_prediction as issue_prediction_core
 from abraxas.forecast.ledger import record_outcome as record_outcome_core
+from abraxas.forecast.policy_candidates import candidates_v0_1 as policy_candidates_v0_1_core
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier as horizon_uncertainty_multiplier_core
 
 
@@ -211,6 +212,32 @@ def classify_horizon_deterministic(
         "horizon_bucket": bucket,
         "provenance": envelope["provenance"],
         "not_computable": None  # horizon classification never fails
+    }
+
+
+def load_policy_candidates_v0_1_deterministic(
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible horizon policy candidates loader.
+
+    Returns policy threshold candidates with provenance envelope.
+    """
+    candidates = policy_candidates_v0_1_core()
+
+    envelope = canonical_envelope(
+        result={"candidates": candidates},
+        config={},
+        inputs={},
+        operation_id="forecast.policy_candidates.v0_1",
+        seed=seed,
+    )
+
+    return {
+        "candidates": candidates,
+        "provenance": envelope["provenance"],
+        "not_computable": envelope["not_computable"],
     }
 
 
@@ -625,6 +652,7 @@ __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
     "classify_horizon_deterministic",
+    "load_policy_candidates_v0_1_deterministic",
     "classify_term_deterministic",
     "load_term_class_map_deterministic",
     "decide_gate_deterministic",

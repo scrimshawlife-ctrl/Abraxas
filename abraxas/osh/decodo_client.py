@@ -5,7 +5,10 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-import requests
+try:
+    import requests
+except ImportError:  # pragma: no cover - optional dependency
+    requests = None
 
 from .types import OSHFetchJob, RawFetchArtifact
 
@@ -46,19 +49,40 @@ def decodo_fetch(job: OSHFetchJob, out_raw_dir: str) -> RawFetchArtifact:
     }
 
     last_exc: Exception | None = None
-    resp = None
+    status_code: int | None = None
+    response_headers: dict[str, str] = {}
+    body = b""
     for _ in range(max_retries + 1):
         try:
-            resp = requests.post(endpoint, json=payload, headers=headers, timeout=timeout_s)
+            if requests is not None:
+                resp = requests.post(endpoint, json=payload, headers=headers, timeout=timeout_s)
+                status_code = int(resp.status_code)
+                response_headers = dict(resp.headers)
+                body = resp.content or b""
+            else:
+                import json
+                from urllib.request import Request, urlopen
+
+                req = Request(
+                    endpoint,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers=headers,
+                    method="POST",
+                )
+                with urlopen(req, timeout=timeout_s) as resp:
+                    status_code = int(getattr(resp, "status", 200))
+                    response_headers = dict(resp.headers)
+                    body = resp.read() or b""
             break
         except Exception as exc:
             last_exc = exc
-            resp = None
+            status_code = None
+            response_headers = {}
+            body = b""
 
-    if resp is None:
+    if status_code is None:
         raise RuntimeError(f"Decodo request failed after retries: {last_exc}")
 
-    body = resp.content or b""
     body_sha = _sha_bytes(body)
     artifact_id = _sha(f"{job.job_id}:{body_sha}")[:16]
 
@@ -67,7 +91,7 @@ def decodo_fetch(job: OSHFetchJob, out_raw_dir: str) -> RawFetchArtifact:
     with open(body_path, "wb") as f:
         f.write(body)
 
-    content_type = resp.headers.get("Content-Type", "application/octet-stream")
+    content_type = response_headers.get("Content-Type", "application/octet-stream")
 
     return RawFetchArtifact(
         artifact_id=artifact_id,
@@ -75,7 +99,7 @@ def decodo_fetch(job: OSHFetchJob, out_raw_dir: str) -> RawFetchArtifact:
         job_id=job.job_id,
         fetched_ts=_utc_now_iso(),
         url=job.url,
-        status_code=int(resp.status_code),
+        status_code=status_code,
         content_type=content_type,
         body_path=body_path,
         body_sha256=body_sha,

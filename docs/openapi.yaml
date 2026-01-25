@@ -1,0 +1,1004 @@
+openapi: 3.0.3
+info:
+  title: Abraxas API
+  version: "1.0.0"
+  description: OpenAPI specification for the Abraxas TypeScript server endpoints.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: auth
+  - name: health
+  - name: config
+  - name: users
+  - name: trading-configs
+  - name: rituals
+  - name: predictions
+  - name: metrics
+  - name: sessions
+  - name: indicators
+  - name: watchlists
+  - name: alive
+  - name: system
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profileImageUrl:
+          type: string
+        tier:
+          type: string
+        themePreference:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TradingConfig:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        weights:
+          type: object
+          additionalProperties: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RitualHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        configId:
+          type: string
+        ritualType:
+          type: string
+        inputData:
+          type: object
+          additionalProperties: true
+        results:
+          type: object
+          additionalProperties: true
+        confidence:
+          type: number
+        duration:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Prediction:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        symbol:
+          type: string
+        predictionType:
+          type: string
+        predictedValue:
+          type: number
+        actualValue:
+          type: number
+        confidence:
+          type: number
+        timeHorizon:
+          type: integer
+        isResolved:
+          type: boolean
+        accuracy:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+    MysticalMetrics:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        metricType:
+          type: string
+        value:
+          type: number
+        period:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+    UserSession:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        sessionType:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        actions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        outcome:
+          type: string
+    Indicator:
+      type: object
+      properties:
+        id:
+          type: string
+        ikey:
+          type: string
+        name:
+          type: string
+        svgPath:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Watchlist:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+        lastAnalyzed:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    WatchlistItem:
+      type: object
+      properties:
+        id:
+          type: string
+        watchlistId:
+          type: string
+        symbol:
+          type: string
+        symbolType:
+          type: string
+        analysisScore:
+          type: number
+        confidence:
+          type: number
+        growthPotential:
+          type: number
+        shortPotential:
+          type: number
+        riskLevel:
+          type: string
+        sector:
+          type: string
+        rationale:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        addedAt:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+    AliveRunInput:
+      type: object
+      properties:
+        artifact:
+          type: object
+          additionalProperties: true
+        tier:
+          type: string
+        profile:
+          type: object
+          additionalProperties: true
+    AliveRunResult:
+      type: object
+      properties:
+        provenance:
+          type: object
+          additionalProperties: true
+        artifact:
+          type: object
+          additionalProperties: true
+        signature:
+          type: object
+          additionalProperties: true
+        view:
+          type: object
+          additionalProperties: true
+        strain:
+          type: object
+          additionalProperties: true
+paths:
+  /api/auth/user:
+    get:
+      tags: [auth]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /api/health:
+    get:
+      tags: [health]
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: integer
+                  service:
+                    type: string
+  /api/acceptance/status:
+    get:
+      tags: [system]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Acceptance status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/acceptance/drift:
+    get:
+      tags: [system]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Acceptance drift data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/config:
+    get:
+      tags: [config]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Current weights and defaults
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  weights:
+                    type: object
+                    additionalProperties: true
+                  defaults:
+                    type: object
+                    additionalProperties: true
+    post:
+      tags: [config]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weights:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Updated weights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  weights:
+                    type: object
+                    additionalProperties: true
+  /api/config/preview:
+    post:
+      tags: [config]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weights:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Preview results
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/users:
+    post:
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /api/users/{username}:
+    get:
+      tags: [users]
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /api/trading-configs:
+    get:
+      tags: [trading-configs]
+      responses:
+        "200":
+          description: Trading configurations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingConfig"
+    post:
+      tags: [trading-configs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingConfig"
+      responses:
+        "200":
+          description: Trading config created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingConfig"
+  /api/trading-configs/{id}:
+    get:
+      tags: [trading-configs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Trading config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingConfig"
+    delete:
+      tags: [trading-configs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Delete confirmation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/ritual-history:
+    get:
+      tags: [rituals]
+      responses:
+        "200":
+          description: Ritual history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RitualHistory"
+    post:
+      tags: [rituals]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RitualHistory"
+      responses:
+        "200":
+          description: Ritual history created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RitualHistory"
+  /api/predictions:
+    get:
+      tags: [predictions]
+      responses:
+        "200":
+          description: Predictions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prediction"
+    post:
+      tags: [predictions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Prediction"
+      responses:
+        "200":
+          description: Prediction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prediction"
+  /api/mystical-metrics:
+    get:
+      tags: [metrics]
+      responses:
+        "200":
+          description: Mystical metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MysticalMetrics"
+    post:
+      tags: [metrics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MysticalMetrics"
+      responses:
+        "200":
+          description: Metrics created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MysticalMetrics"
+  /api/user-sessions/{userId}:
+    get:
+      tags: [sessions]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserSession"
+  /api/user-sessions:
+    post:
+      tags: [sessions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSession"
+      responses:
+        "200":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSession"
+  /api/abraxas/status:
+    get:
+      tags: [system]
+      responses:
+        "200":
+          description: Abraxas status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/debug/db-info:
+    get:
+      tags: [system]
+      responses:
+        "200":
+          description: Database info
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/indicators:
+    get:
+      tags: [indicators]
+      responses:
+        "200":
+          description: Indicators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Indicator"
+  /api/indicators/_register:
+    post:
+      tags: [indicators]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Indicator"
+      responses:
+        "200":
+          description: Indicator created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Indicator"
+  /api/indicators/discover:
+    post:
+      tags: [indicators]
+      responses:
+        "200":
+          description: Indicator discovery results
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/watchlists:
+    get:
+      tags: [watchlists]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Watchlists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Watchlist"
+    post:
+      tags: [watchlists]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Watchlist"
+      responses:
+        "200":
+          description: Watchlist created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Watchlist"
+  /api/watchlists/{id}:
+    get:
+      tags: [watchlists]
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Watchlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Watchlist"
+    put:
+      tags: [watchlists]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Watchlist"
+      responses:
+        "200":
+          description: Watchlist updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Watchlist"
+    delete:
+      tags: [watchlists]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Watchlist deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/watchlists/{id}/items:
+    get:
+      tags: [watchlists]
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Watchlist items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistItem"
+    post:
+      tags: [watchlists]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistItem"
+      responses:
+        "200":
+          description: Watchlist item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+  /api/watchlists/{watchlistId}/items/{itemId}:
+    put:
+      tags: [watchlists]
+      parameters:
+        - in: path
+          name: watchlistId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistItem"
+      responses:
+        "200":
+          description: Watchlist item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+    delete:
+      tags: [watchlists]
+      parameters:
+        - in: path
+          name: watchlistId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Watchlist item deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/watchlists/analyze:
+    post:
+      tags: [watchlists]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/watchlists/{id}/refresh:
+    post:
+      tags: [watchlists]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Refresh results
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/watchlists/auto-generate:
+    post:
+      tags: [watchlists]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Auto-generated watchlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Watchlist"
+  /api/alive/run:
+    post:
+      tags: [alive]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AliveRunInput"
+      responses:
+        "200":
+          description: ALIVE run result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AliveRunResult"
+  /api/alive/export:
+    post:
+      tags: [alive]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                run:
+                  $ref: "#/components/schemas/AliveRunResult"
+                format:
+                  type: string
+      responses:
+        "200":
+          description: Exported ALIVE payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/alive/integrations/{integration}:
+    post:
+      tags: [alive]
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: integration
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                run:
+                  $ref: "#/components/schemas/AliveRunResult"
+                webhookUrl:
+                  type: string
+                recipients:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Integration delivery response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/alive/digest:
+    post:
+      tags: [alive]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Digest response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true

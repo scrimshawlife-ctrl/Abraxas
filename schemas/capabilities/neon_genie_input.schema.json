@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/neon_genie_input.json",
+  "title": "Neon-Genie Symbolic Generation Input",
+  "description": "Input schema for aal.neon_genie.generate.v0 capability",
+  "type": "object",
+  "required": ["prompt"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Generation prompt text for symbolic creation"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "term": {
+          "type": "string",
+          "description": "Reference term or motif"
+        },
+        "motif": {
+          "type": "string",
+          "description": "Associated motif or pattern"
+        },
+        "constraints": {
+          "type": "object",
+          "description": "Generation constraints (style, format, etc.)",
+          "additionalProperties": true
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["symbolic", "narrative", "analytical"],
+          "default": "symbolic",
+          "description": "Generation mode"
+        }
+      },
+      "additionalProperties": true
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "max_length": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum generation length"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 2.0,
+          "description": "Generation temperature (if applicable)"
+        },
+        "overlay_version": {
+          "type": "string",
+          "description": "Neon-Genie overlay version"
+        }
+      },
+      "additionalProperties": true
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Deterministic seed (required for reproducibility)"
+    }
+  },
+  "additionalProperties": false
+}

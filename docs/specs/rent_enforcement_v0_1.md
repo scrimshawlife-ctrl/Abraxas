@@ -153,6 +153,21 @@ python -m abraxas.cli.rent_check \
 - JSON report: `out/reports/rent_check_<timestamp>.json`
 - Markdown report: `out/reports/rent_check_<timestamp>.md`
 
+### 4.1 Governance Registry (UI + API)
+
+**Purpose**: Surface discovered components, track manifest coverage, and record approval decisions for new modules.
+
+**Endpoints**:
+- `GET /api/governance/component-registry` — returns registry inventory, manifests, unmanifested components, and rune-adaptation drafts
+- `POST /api/governance/component-approvals` — records approval decisions with reviewer attribution
+
+**Approval Ledger**:
+- Stored in `out/governance/component_registry_approvals.json`
+
+**Rune Adaptation Drafts**:
+- Draft capability IDs are derived as `component.<module_path>`
+- Draft rune IDs follow `ϟ_COMPONENT_<MODULE_SLUG>`
+
 ### 5. Run Receipt Integration (`abraxas.artifacts.daily_run_receipt`)
 
 **Purpose**: Tie rent claims to observed runtime behavior.

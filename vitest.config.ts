@@ -16,7 +16,8 @@ export default defineConfig({
     setupFiles: ['server/abraxas/tests/setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      reportsDirectory: 'coverage',
       include: [
         'server/abraxas/core/**/*.ts',
         'server/abraxas/pipelines/**/*.ts',

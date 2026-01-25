@@ -21,7 +21,6 @@ export default function PsychonautView({ userId }: PsychonautViewProps) {
   const runAnalysis = async () => {
     setLoading(true);
     try {
-      // TODO: Call ALIVE API
       const response = await fetch("/api/alive/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

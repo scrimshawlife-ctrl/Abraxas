@@ -10,15 +10,35 @@
       "description": "The rendered text (unchanged from draft_text)"
     },
     "provenance": {
-      "type": "object",
-      "description": "SHA-256 provenance envelope",
-      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "type": ["object", "null"],
+      "description": "Canonical provenance envelope",
+      "required": [
+        "operation_id",
+        "inputs_sha256",
+        "config_sha256",
+        "timestamp_utc",
+        "runtime_fingerprint"
+      ],
       "properties": {
-        "inputs_hash": {"type": "string"},
-        "outputs_hash": {"type": "string"},
-        "config_hash": {"type": "string"},
-        "envelope_hash": {"type": "string"}
-      }
+        "operation_id": {
+          "type": "string",
+          "const": "core.rendering.render_output"
+        },
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp_utc": {"type": "string", "format": "date-time"},
+        "repo_commit": {"type": "string"},
+        "seed": {"type": "integer"},
+        "runtime_fingerprint": {
+          "type": "object",
+          "required": ["python", "platform"],
+          "properties": {
+            "python": {"type": "string"},
+            "platform": {"type": "string"}
+          }
+        }
+      },
+      "additionalProperties": true
     },
     "not_computable": {
       "type": "null",

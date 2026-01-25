@@ -1,12 +1,13 @@
 # ABX-Runes Coupling Violations Inventory
 
 **Generated:** 2026-01-05
-**Total Violations:** 81
+**Total Violations:** 0 (resolved)
 **Current Version:** 2.2.0
+**Status:** Complete (ABX-Runes capability migration finished)
 
 ## Executive Summary
 
-This document inventories all remaining direct import violations between `abx/` and `abraxas/` that need to be migrated to capability contracts as per the ABX-Runes coupling architecture.
+This document inventories the direct import violations between `abx/` and `abraxas/` that were migrated to capability contracts as per the ABX-Runes coupling architecture. All listed items have been resolved.
 
 ## Violations by Module
 

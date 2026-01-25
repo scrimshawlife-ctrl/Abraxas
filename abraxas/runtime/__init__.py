@@ -12,7 +12,6 @@ Canonical runtime layer that owns:
 - Run-level provenance (RunHeader)
 """
 
-from .tick import abraxas_tick
 from .pipeline_bindings import PipelineBindings, PipelineFn, resolve_pipeline_bindings
 from .results_pack import build_results_pack, make_result_ref
 from .view_pack import build_view_pack
@@ -59,6 +58,12 @@ from .stability_read import (
     read_stability_summary,
     stability_exists,
 )
+
+def abraxas_tick(*args, **kwargs):
+    from .tick import abraxas_tick as _abraxas_tick
+
+    return _abraxas_tick(*args, **kwargs)
+
 
 __all__ = [
     # Tick orchestration

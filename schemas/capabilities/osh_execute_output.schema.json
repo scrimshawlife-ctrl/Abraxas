@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/osh_execute_output.json",
+  "title": "OSH Execute Output",
+  "description": "Output schema for osh.execute capability",
+  "type": "object",
+  "required": ["jobs_count", "artifacts", "packets", "provenance"],
+  "properties": {
+    "jobs_count": {"type": "integer", "minimum": 0},
+    "artifacts": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "packets": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["operation_id", "inputs_hash", "timestamp"],
+      "properties": {
+        "operation_id": {"type": "string", "const": "osh.execute"},
+        "inputs_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "seed": {"type": "integer"}
+      },
+      "additionalProperties": true
+    },
+    "not_computable": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "osh.execute",
+    "version": "1.0.0",
+    "deterministic": true,
+    "evidence_mode": "data_processing"
+  }
+}

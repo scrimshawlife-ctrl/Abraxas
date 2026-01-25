@@ -77,6 +77,44 @@ def load_all_manifests(root_dir: str) -> Dict[str, List[Dict[str, Any]]]:
     return manifests
 
 
+def discover_component_registry(root_dir: str) -> Dict[str, List[str]]:
+    """
+    Discover component modules that should be covered by rent manifests.
+
+    This registry is derived from known component namespaces in the codebase.
+    """
+    repo_root = Path(root_dir)
+    registry_paths = {
+        "metrics": ("abraxas.metrics", repo_root / "abraxas" / "metrics"),
+        "operators": ("abraxas.operators", repo_root / "abraxas" / "operators"),
+        "artifacts": ("abraxas.artifacts", repo_root / "abraxas" / "artifacts"),
+    }
+
+    registry: Dict[str, List[str]] = {}
+    for kind, (module_prefix, directory) in registry_paths.items():
+        registry[kind] = _discover_modules_in_dir(repo_root, directory, module_prefix)
+
+    return registry
+
+
+def find_unmanifested_components(
+    registry: Dict[str, List[str]],
+    manifests: Dict[str, List[Dict[str, Any]]],
+) -> Dict[str, List[str]]:
+    """Return registry modules that lack a matching rent manifest."""
+    unmanifested: Dict[str, List[str]] = {}
+
+    for kind, modules in registry.items():
+        manifest_modules = {
+            manifest.get("owner_module")
+            for manifest in manifests.get(kind, [])
+            if manifest.get("owner_module")
+        }
+        unmanifested[kind] = sorted(set(modules) - manifest_modules)
+
+    return unmanifested
+
+
 def _load_manifests_from_dir(directory: Path) -> List[Dict[str, Any]]:
     """Load all YAML manifests from a directory."""
     manifests = []
@@ -90,6 +128,25 @@ def _load_manifests_from_dir(directory: Path) -> List[Dict[str, Any]]:
         except Exception as e:
             print(f"Warning: Failed to load {yaml_file}: {e}")
     return manifests
+
+
+def _discover_modules_in_dir(
+    repo_root: Path, directory: Path, module_prefix: str
+) -> List[str]:
+    if not directory.exists():
+        return []
+
+    modules = set()
+    for path in directory.rglob("*.py"):
+        if path.name == "__init__.py":
+            continue
+        if "__pycache__" in path.parts:
+            continue
+        module_path = ".".join(path.relative_to(repo_root).with_suffix("").parts)
+        if module_path.startswith(module_prefix):
+            modules.add(module_path)
+
+    return sorted(modules)
 
 
 def validate_manifest(manifest: Dict[str, Any]) -> None:

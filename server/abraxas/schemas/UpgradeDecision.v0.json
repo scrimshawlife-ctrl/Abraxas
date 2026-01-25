@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UpgradeDecision v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "run_id",
+    "created_at",
+    "input_hash",
+    "candidate_id",
+    "decision_id",
+    "status",
+    "reasons"
+  ],
+  "properties": {
+    "version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "input_hash": { "type": "string" },
+    "candidate_id": { "type": "string" },
+    "decision_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["ready", "promote", "archive"] },
+    "reasons": { "type": "array", "items": { "type": "string" } },
+    "gate_report": { "type": ["object", "null"] },
+    "not_computable": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["status", "reason", "missing_inputs", "provenance"],
+          "properties": {
+            "status": { "type": "string" },
+            "reason": { "type": "string" },
+            "missing_inputs": { "type": "array", "items": { "type": "string" } },
+            "provenance": { "type": "object" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

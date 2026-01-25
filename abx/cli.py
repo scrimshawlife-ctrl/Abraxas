@@ -37,10 +37,10 @@ from abx.util.jsonutil import dumps_stable, dump_file
 from abx.overlays.manager import OverlayManager
 from abx.runtime.drift import take_snapshot, save_snapshot, check_drift
 from abx.runtime.watchdog import watchdog_loop
-from abraxas.cli.counterfactual import run_counterfactual_cli
-from abraxas.cli.smv import run_smv_cli
 from abraxas.cli.aalmanac_cmd import app as aalmanac_app
 from abraxas.cli.aalmanac_review_cmd import app as aalmanac_review_app
+from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
 from abx.runtime.updater import update_atomic
 from abx.ingest.scheduler import run_ingest_forever
 from abx.ui.server import build_ui_app
@@ -291,12 +291,54 @@ def admin_cmd(args: argparse.Namespace) -> int:
 
 def counterfactual_cmd(args: argparse.Namespace) -> int:
     """Run counterfactual replay engine."""
-    return run_counterfactual_cli(args)
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.cli.counterfactual",
+        git_hash="unknown",
+    )
+    result = invoke_capability(
+        "replay.counterfactual.run_cli",
+        {
+            "portfolio": args.portfolio,
+            "mask": args.mask,
+            "run_id": args.run_id,
+            "cases_dir": args.cases_dir,
+            "portfolios_path": args.portfolios_path,
+            "fdr_path": args.fdr_path,
+            "overrides_path": args.overrides_path,
+        },
+        ctx=ctx,
+        strict_execution=True,
+    )
+    for line in result.get("output_lines", []):
+        print(line)
+    return int(result.get("exit_code", 0))
 
 
 def smv_cmd(args: argparse.Namespace) -> int:
     """Run signal marginal value analysis."""
-    return run_smv_cli(args)
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.cli.smv",
+        git_hash="unknown",
+    )
+    result = invoke_capability(
+        "value.smv.run_cli",
+        {
+            "portfolio": args.portfolio,
+            "vector_map": args.vector_map,
+            "allowlist_spec": args.allowlist_spec,
+            "run_id": args.run_id,
+            "cases_dir": args.cases_dir,
+            "portfolios_path": args.portfolios_path,
+            "max_units": args.max_units,
+        },
+        ctx=ctx,
+        strict_execution=True,
+    )
+    for line in result.get("output_lines", []):
+        print(line)
+    return int(result.get("exit_code", 0))
 
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""

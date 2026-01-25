@@ -1,0 +1,31 @@
+{
+  "abstain_rate": 0.0,
+  "brier_avg": 0.15,
+  "calibration_bins": [
+    {
+      "bin_label": "60-70%",
+      "n": 10,
+      "observed_frequency": 0.68,
+      "predicted_p_avg": 0.65
+    }
+  ],
+  "cases_scored": 10,
+  "coverage": {
+    "abstain": 0,
+    "hit": 8,
+    "miss": 2
+  },
+  "horizon": "H72H",
+  "log_avg": 0.42,
+  "narrative": "N1_primary",
+  "notes": [
+    "scoreboard_v0_1_smoke"
+  ],
+  "provenance": {
+    "source": "tests/test_scoreboard_system.py::test_score_ledger_append_and_read",
+    "template": "scoreboard_accuracy_v0_1"
+  },
+  "score_id": "score_H72H_001",
+  "segment": "core",
+  "ts": "2025-12-26T00:00:00+00:00"
+}

@@ -24,6 +24,10 @@ import { registerIndicator, discoverIndicators } from "./indicators";
 import { analyzeSymbolPool, updateWatchlistAnalysis } from "./market-analysis";
 import rateLimit from "express-rate-limit";
 import { setupArtifactLensRoutes } from "./artifacts/routes";
+import {
+  getComponentRegistry,
+  recordComponentApproval,
+} from "./governance/component-registry";
 
 // Extend global type for rate limiting
 declare global {
@@ -101,6 +105,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error reading acceptance drift:", error);
       res.status(500).json({ error: "read_failed" });
+    }
+  });
+
+  // Governance registry
+  app.get("/api/governance/component-registry", isAuthenticated, async (_req, res) => {
+    try {
+      const registry = await getComponentRegistry();
+      res.json(registry);
+    } catch (error) {
+      console.error("Error building component registry:", error);
+      res.status(500).json({ error: "registry_failed" });
+    }
+  });
+
+  app.post("/api/governance/component-approvals", isAuthenticated, async (req: any, res) => {
+    const { module, decision, reason } = req.body ?? {};
+    if (!module || typeof module !== "string") {
+      return res.status(400).json({ error: "invalid_module" });
+    }
+    if (!decision || typeof decision !== "string") {
+      return res.status(400).json({ error: "invalid_decision" });
+    }
+    const allowedDecisions = ["approved", "needs-review", "rejected"];
+    if (!allowedDecisions.includes(decision)) {
+      return res.status(400).json({ error: "invalid_decision" });
+    }
+    const reviewer =
+      req.user?.claims?.email ??
+      req.user?.claims?.sub ??
+      req.user?.email ??
+      "unknown";
+    try {
+      const approvals = await recordComponentApproval({
+        module,
+        decision,
+        reviewer,
+        reason: typeof reason === "string" ? reason : "",
+      });
+      res.json({ ok: true, approvals: approvals.approvals });
+    } catch (error) {
+      console.error("Error recording component approval:", error);
+      res.status(500).json({ error: "approval_failed" });
     }
   });
 

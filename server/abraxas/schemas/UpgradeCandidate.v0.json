@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UpgradeCandidate v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "run_id",
+    "created_at",
+    "input_hash",
+    "candidate_id",
+    "source_loop",
+    "change_type",
+    "target_paths",
+    "patch_plan",
+    "evidence_refs",
+    "constraints"
+  ],
+  "properties": {
+    "version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "input_hash": { "type": "string" },
+    "candidate_id": { "type": "string" },
+    "source_loop": {
+      "type": "string",
+      "enum": ["evogate", "shadow", "rent", "drift", "manual"]
+    },
+    "change_type": {
+      "type": "string",
+      "enum": [
+        "rules",
+        "templates",
+        "thresholds",
+        "index_snapshot",
+        "module_additive",
+        "docs_only"
+      ]
+    },
+    "target_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "patch_plan": {
+      "type": "object",
+      "required": ["format_version", "operations"],
+      "properties": {
+        "format_version": { "type": "string" },
+        "operations": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "constraints": { "type": "object" },
+    "not_computable": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["status", "reason", "missing_inputs", "provenance"],
+          "properties": {
+            "status": { "type": "string" },
+            "reason": { "type": "string" },
+            "missing_inputs": { "type": "array", "items": { "type": "string" } },
+            "provenance": { "type": "object" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

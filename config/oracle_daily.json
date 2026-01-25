@@ -9,8 +9,9 @@
   ],
   "sources": {
     "rss_feeds": [
-      "https://news.example.com/politics/rss",
-      "https://news.example.com/tech/rss"
+      {"url": "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml", "domain": "politics"},
+      {"url": "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", "domain": "technology"},
+      {"url": "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml", "domain": "health"}
     ],
     "apis": [],
     "decodo": {
@@ -18,35 +19,11 @@
       "query_templates": []
     }
   },
-  "sample_observations": [
-    {
-      "domain": "politics",
-      "subdomain": "rhetoric",
-      "observations": [
-        "Political discourse shifting toward equality and justice",
-        "Establishment figures facing increased scrutiny"
-      ],
-      "tokens": ["equality", "justice", "establishment", "scrutiny"]
-    },
-    {
-      "domain": "technology",
-      "subdomain": "ai",
-      "observations": [
-        "AI safety concerns dominating tech discussions",
-        "Innovation accelerating in machine learning"
-      ],
-      "tokens": ["ai", "safety", "innovation", "machine learning", "breakthrough"]
-    },
-    {
-      "domain": "health",
-      "subdomain": "public_health",
-      "observations": [
-        "Public health initiatives expanding nationwide",
-        "Wellness programs gaining traction"
-      ],
-      "tokens": ["public health", "wellness", "prevention", "initiative"]
-    }
-  ],
+  "allow_sample_observations": false,
+  "sample_observations": [],
+  "dce": {
+    "packs": []
+  },
   "pipeline_config": {
     "enable_lifecycle_forecasting": true,
     "enable_resonance_detection": true,

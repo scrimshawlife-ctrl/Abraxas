@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 # horizon_bucket replaced by forecast.horizon.classify capability
-from abraxas.forecast.policy_candidates import candidates_v0_1
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -110,6 +109,7 @@ def main() -> int:
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
 
     resolved_rows: List[Dict[str, Any]] = []
     pair: Dict[str, Dict[str, Dict[str, Any]]] = {}
@@ -157,7 +157,12 @@ def main() -> int:
     for bucket, (n, sb) in shadow_counts.items():
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
-    cand = candidates_v0_1()
+    cand = invoke_capability(
+        "forecast.policy_candidates.v0_1",
+        {},
+        ctx=ctx,
+        strict_execution=True
+    )["candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 
     def eval_candidate(bucket: str, thr: Dict[str, float]) -> Dict[str, Any]:
