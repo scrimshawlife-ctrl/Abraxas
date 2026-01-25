@@ -1,7 +1,7 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2026-01-18
-**Guide Version:** 2.2.3
+**Last Updated:** 2026-01-24
+**Guide Version:** 2.2.4
 **Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
 
@@ -150,447 +150,105 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
 
 ## TODO
 
-### Completed
-- ✅ P0 (done): Add determinism + strict-execution tests for oracle runes (SDS/IPL/ADD)
-- ✅ P1 (done): Migrate ABX-Runes coupling violations (all 81)
-- ✅ P1 (done): Implement critical rune operators (WSSS/RFA/SDS/IPL/ADD/TAM)
-- ✅ P1 (done): Complete Oracle daily run integration (data sources + DCE)
-- ✅ P1 (done): Complete scenario envelope runner context loading
-- ✅ P1 (done): Add shadow detectors integration example
-- ✅ P1 (done): Create rune operator development guide
+**Last Updated:** 2026-01-24
 
-### P0 - Production Blockers (2026-01-11 Audit)
-1. **Complete Acceptance Test Suite** ✅ (`tools/acceptance/run_acceptance_suite.py`)
-   - Wired real oracle pipeline calls (Oracle v2 pipeline)
-   - Validated acceptance status + narrative bundle schema
-   - Implemented evidence gating, shadow isolation, and pointer auditability checks
-   - **Unblocked**: Acceptance suite now exercises real oracle outputs
+### Summary
 
-2. **Fix or Remove Placeholder Tests** ✅
-   - Implemented coverage for scenario router, integrity hash chain, and integrity brief artifacts
-   - Added deterministic golden validation for integrity brief + routing decisions
-   - **Unblocked**: Placeholder coverage replaced with real assertions
+Most critical blockers (P0) and high-priority items (P1) have been resolved. Active work focuses on remaining technical debt and roadmap features.
 
-3. **Add Seal Release Tests** ✅
-   - Added schema validation test for `SealReport.v0`
-   - Added validator tests for good/bad artifact runs
-   - **Unblocked**: Seal infrastructure now has deterministic test coverage
+### Completed (Archive)
 
-4. **Add Runtime Infrastructure Tests** ✅
-   - Added coverage for policy snapshots, pipeline bindings, artifacts writer, retention pruning
-   - Added coverage for results pack, deterministic executor, device fingerprint, concurrency, perf ledger
-   - **Unblocked**: Runtime infrastructure now has deterministic test coverage
+<details>
+<summary>Click to expand completed items</summary>
 
-5. **Document Seal Validation** ✅
-   - Added end-to-end seal release + validation guide
-   - Documented artifacts, schema validation flow, and CI usage
-   - **Unblocked**: Operational seal guide is now available
+**P0 - Production Blockers (All Resolved)**
+- ✅ Acceptance test suite with real oracle pipeline integration
+- ✅ Placeholder test files replaced with real assertions
+- ✅ Ed25519 signing backend implemented
+- ✅ Runtime infrastructure tests (policy snapshots, bindings, artifacts, etc.)
+- ✅ Seal validation documentation
 
-### P1 - Feature Completeness (In Progress)
-- ✅ All P1 items completed.
+**P1 - Feature Completeness (All Resolved)**
+- ✅ Oracle rune determinism + strict-execution tests (SDS/IPL/ADD)
+- ✅ ABX-Runes coupling violations migrated (81 total)
+- ✅ Critical rune operators implemented (WSSS/RFA/SDS/IPL/ADD/TAM)
+- ✅ Oracle daily run integration (data sources + DCE)
+- ✅ Scenario envelope runner context loading
+- ✅ Shadow detectors integration example
+- ✅ Rune operator development guide
 
-### P2 - Technical Debt
-- [x] Complete ALIVE system (PDF/CSV export, Slack integration, DB persistence) (Known Stubs #10/#12)
-- [x] Complete ABX core pipeline (remove stub oracle generation) (Known Stubs #11)
-- [x] Review and fix placeholder comments in ALIVE + ABX pipeline paths (Known Stubs #13)
-- [x] Add OpenAPI spec for TypeScript server endpoints (Missing Documentation P2)
-- [x] Enable and track TypeScript test coverage metrics (Test Coverage Summary)
+**P2 - Technical Debt (Resolved)**
+- ✅ ALIVE system (PDF/CSV export, Slack integration, DB persistence)
+- ✅ ABX core pipeline (real oracle generation)
+- ✅ Placeholder comments reviewed in ALIVE + ABX pipeline paths
+- ✅ OpenAPI spec for TypeScript server
+- ✅ TypeScript test coverage tracking
 
-### Branch Conflicts (Lower Priority - Handled in Other Branches)
-- **P0 (2026-01-10)**: Resolve pending merge conflicts in 3 active development branches
-  - Priority 1: claude/resolve-merge-conflicts-Vg6qy (acceptance tests + dashboard)
-  - Priority 2: cursor/mda-signal-layer-v2-2c0d (MDA package)
-  - Priority 3: cursor/oracle-bridge-mda-canary-87a3 (MDA engine + Oracle bridge)
-  - **Note**: Being handled in separate branches, not blocking current work
+**Documentation (Resolved)**
+- ✅ `docs/seal/SEAL_VALIDATION_GUIDE.md`
+- ✅ `examples/shadow_detectors_integration.py`
+- ✅ `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md`
+- ✅ `docs/api/openapi.yaml`
 
-## Pending Branch Conflicts (2026-01-10)
+</details>
 
-**Analysis Date:** 2026-01-10
-**Main Branch:** 8672ab0 (AALmanac integration PR #95)
+### Active Work
 
-### Quick Reference - Branch URLs & Checkout Commands
+#### Roadmap Features
+- [ ] Resonance Narratives (human-readable output layer)
+- [ ] UI Dashboard (after Oracle v2 artifacts stabilize)
+- [ ] Multi-Domain Analysis expansion
 
-```bash
-# Priority 1: Acceptance Test Suite + Dashboard (8 conflicts)
-git fetch origin claude/resolve-merge-conflicts-Vg6qy
-git checkout -b codex/resolve-vg6qy-<session-id> origin/claude/resolve-merge-conflicts-Vg6qy
-# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/claude/resolve-merge-conflicts-Vg6qy
+#### Technical Improvements
+- [ ] Continue ABX-Runes coupling migration for remaining files
+- [ ] Address remaining placeholder comments in non-critical paths
+- [ ] Expand test coverage beyond 33%
 
-# Priority 2: MDA Signal Layer (3 conflicts)
-git fetch origin cursor/mda-signal-layer-v2-2c0d
-git checkout -b codex/resolve-mda-signal-<session-id> origin/cursor/mda-signal-layer-v2-2c0d
-# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/mda-signal-layer-v2-2c0d
+### Branch Conflicts
 
-# Priority 3: Oracle Bridge + MDA Engine (9+ conflicts)
-git fetch origin cursor/oracle-bridge-mda-canary-87a3
-git checkout -b codex/resolve-oracle-mda-<session-id> origin/cursor/oracle-bridge-mda-canary-87a3
-# URL: https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/oracle-bridge-mda-canary-87a3
-```
+**Note:** Branch conflict resolution is tracked in separate branches. See `CONFLICT_RESOLUTION_GUIDE.md` for resolution strategies.
 
----
-
-### Priority 1: claude/resolve-merge-conflicts-Vg6qy
-**Status:** 7 commits ahead, 122 commits behind main
-**Severity:** HIGH - 8 file conflicts
-**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/claude/resolve-merge-conflicts-Vg6qy
-
-**Key Features:**
-- Abraxas Acceptance Test Suite v1.0
-- Dashboard Lens artifact viewer (merged PRs #58, #57, #55, #54)
-- Resonance narratives renderer
-
-**Conflicting Files:**
-1. `.gitignore`
-2. `abraxas/overlay/__init__.py`
-3. `abraxas/overlay/phases.py`
-4. `abraxas/overlay/run.py`
-5. `abraxas/overlay/schema.py`
-6. `client/src/components/DashboardLens.tsx` (add/add conflict)
-7. `client/src/components/app-sidebar.tsx`
-8. `tools/acceptance/run_acceptance_suite.py` (add/add conflict)
-
-**Recommendation:** Resolve first - contains valuable acceptance testing infrastructure and dashboard features.
-
----
-
-### Priority 2: cursor/mda-signal-layer-v2-2c0d
-**Status:** 1 commit ahead, 108 commits behind main
-**Severity:** MEDIUM - 3 file conflicts (all add/add)
-**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/mda-signal-layer-v2-2c0d
-
-**Key Features:**
-- New `abraxas.mda` package for MDA (Multi-Dimensional Analysis)
-
-**Conflicting Files:**
-1. `abraxas/mda/__init__.py` (add/add)
-2. `abraxas/mda/cli.py` (add/add)
-3. `abraxas/mda/signal_layer_v2.py` (add/add)
-
-**Recommendation:** Coordinate with Priority 3 - both branches add MDA infrastructure.
-
----
-
-### Priority 3: cursor/oracle-bridge-mda-canary-87a3
-**Status:** 1 commit ahead, 108 commits behind main
-**Severity:** HIGH - 9+ file conflicts
-**Branch URL:** https://github.com/scrimshawlife-ctrl/Abraxas/tree/cursor/oracle-bridge-mda-canary-87a3
-
-**Key Features:**
-- MDA engine and Oracle bridge implementation
-- Extends shadow detectors and symbolic compression
-
-**Conflicting Files:**
-1. `abraxas/detectors/shadow/registry.py`
-2. `abraxas/detectors/shadow/types.py`
-3. `abraxas/mda/__init__.py` (add/add - conflicts with Priority 2)
-4. `abraxas/mda/cli.py` (add/add - conflicts with Priority 2)
-5. `abraxas/mda/run.py` (add/add)
-6. `abraxas/mda/signal_layer_v2.py` (add/add - conflicts with Priority 2)
-7. `abraxas/operators/symbolic_compression.py`
-8. `abraxas/oracle/mda_bridge.py` (add/add)
-9. `pydantic/__init__.py`
-
-**Recommendation:** Merge after Priority 2, or merge both MDA branches together to avoid duplicate work.
-
----
-
-### Stale Branches (Recommend Cleanup)
-
-These branches have NO unique commits and are significantly behind main:
-- `claude/merge-pull-requests-xCwWp` (0 ahead, 327 behind)
-- `claude/resolve-merge-conflicts-a9OJO` (0 ahead, 157 behind)
-- `claude/resolve-merge-conflicts-au7CD` (0 ahead, 0 behind - current, can be deleted)
-- `codex/refactor-code-for-improvements` (0 ahead, 306 behind)
-- `codex/add-bell-constraint-canon-entry-and-abx-rune` (0 ahead, 290 behind)
-- `cursor/pull-request-conflict-resolution-5149` (0 ahead, 120 behind)
-
-**Action:** Delete these branches after verifying no valuable work was lost.
-
----
-
-### Resolution Strategy
-
-**Option A: Sequential (Safest)**
-1. Resolve `claude/resolve-merge-conflicts-Vg6qy` first (acceptance tests + dashboard)
-2. Merge both MDA branches (`cursor/mda-signal-layer-v2-2c0d` + `cursor/oracle-bridge-mda-canary-87a3`) together
-3. Clean up stale branches
-
-**Option B: Parallel (Faster)**
-1. Assign Vg6qy to one agent/session
-2. Assign combined MDA work to another agent/session
-3. Merge both PRs when complete
-
-**Option C: Audit First**
-1. Review all conflicting changes in detail
-2. Determine if features duplicate existing main branch work
-3. Cherry-pick valuable commits instead of full merge
-
----
-
-### Next Steps for Codex
-
-**Immediate Actions Required:**
-
-1. **Choose Resolution Strategy** - Select Option A, B, or C based on:
-   - Available time/resources (parallel vs sequential)
-   - Risk tolerance (audit first vs merge and test)
-   - Feature priority (acceptance tests vs MDA infrastructure)
-
-2. **Create Working Branch** - For each conflict resolution:
-   ```bash
-   # Create new branch with proper session ID format
-   git checkout -b codex/<descriptive-name>-<session-id>
-   git fetch origin
-   git merge origin/<source-branch> origin/main
-   # Resolve conflicts...
-   ```
-
-3. **Conflict Resolution Checklist** - For each branch:
-   - [ ] Checkout target branch and merge main
-   - [ ] Resolve conflicts following `CONFLICT_RESOLUTION_GUIDE.md`
-   - [ ] Verify determinism (same inputs → same outputs)
-   - [ ] Run all tests: `pytest tests/` and `npm test`
-   - [ ] Check provenance integrity (SHA-256 hashes preserved)
-   - [ ] Verify ABX-Runes coupling rules (no direct imports)
-   - [ ] Update CLAUDE.md TODO section when complete
-   - [ ] Create PR with conflict resolution summary
-   - [ ] Push and verify CI passes
-
-4. **Stale Branch Cleanup** - After verifying no valuable work lost:
-   ```bash
-   # Delete stale branches (backup first if uncertain)
-   git push origin --delete claude/merge-pull-requests-xCwWp
-   git push origin --delete claude/resolve-merge-conflicts-a9OJO
-   git push origin --delete claude/resolve-merge-conflicts-au7CD
-   git push origin --delete codex/refactor-code-for-improvements
-   git push origin --delete codex/add-bell-constraint-canon-entry-and-abx-rune
-   git push origin --delete cursor/pull-request-conflict-resolution-5149
-   ```
-
-5. **Documentation Updates** - After all resolutions:
-   - Update this section in CLAUDE.md with completion status
-   - Add any new architectural patterns to relevant sections
-
-**Critical Reminders:**
-- ✅ Preserve determinism in all conflict resolutions
-- ✅ Include provenance metadata (SHA-256 hashes)
-- ✅ Follow ABX-Runes coupling rules (capability contracts only)
-- ✅ Run full test suite before creating PRs
-- ✅ Use descriptive commit messages with conflict resolution context
+Active conflict branches:
+- `claude/resolve-merge-conflicts-Vg6qy` - Acceptance tests + Dashboard
+- `cursor/mda-signal-layer-v2-2c0d` - MDA package
+- `cursor/oracle-bridge-mda-canary-87a3` - MDA engine + Oracle bridge
 
 ---
 
 ## Known Stubs and Incomplete Features
 
-**Last Audited:** 2026-01-11
-**Total Items:** 150+ (15 P0, 45 P1, 90+ P2)
-**Test Coverage:** ~33% by file count (227 test files, 693 abraxas/ Python files)
-
-This section catalogs known incomplete implementations, TODOs, and stubs in the codebase. Items are prioritized by impact on production readiness.
-
-### P0 - Critical Production Blockers
-
-#### 1. Acceptance Test Suite Stubs ✅
-**Location:** `tools/acceptance/run_acceptance_suite.py`
-**Status:** Resolved
-
-**Resolution:**
-- Oracle pipeline wired through capability contracts
-- Artifact + narrative bundle validation integrated
-- Drift classification logic implemented
-
-**Impact:** Acceptance suite now exercises real oracle outputs.
-
----
-
-#### 2. Placeholder Test Files (False Coverage) ✅
-**Resolution:**
-- `tests/test_scenario_router.py` now validates routing decisions + priority selection
-- `tests/test_integrity_hash_chain.py` now validates hash-chain acceptance + break detection
-- `tests/test_integrity_brief.py` now validates JSON/Markdown outputs against goldens
-
-**Impact:** Placeholder coverage removed; tests now exercise core rent-manifest expectations.
-
----
-
-#### 3. Ed25519 Signing Backend ✅
-**Location:** `shared/signing.py`
-**Status:** Resolved
-
-**Resolution:**
-- Ed25519 sign/verify implemented via `cryptography`
-- Environment-configured keys with key_id derivation
-
-**Impact:** Cryptographic signatures now supported when configured.
-
----
-
-#### 4. Runtime Infrastructure Tests ✅
-**Status:** Resolved
-
-**Resolution:**
-- Added tests covering policy snapshots, pipeline bindings, artifacts, retention, results pack,
-  deterministic executor, device fingerprinting, concurrency, and perf ledger.
-
-**Impact:** Runtime infrastructure now has deterministic coverage.
-
----
-
-#### 5. Seal Release Documentation ✅
-**Status:** Resolved
-
-**Resolution:**
-- Seal validation guide authored at `docs/seal/SEAL_VALIDATION_GUIDE.md`
-
-**Impact:** Seal workflow now documented end-to-end.
-
----
-
-### P1 - High Priority (Feature Completeness)
-
-#### 6. Auto-Generated Rune Operator Stubs
-**Count:** 6 operators
-**Location:** `abraxas/runes/operators/`
-
-**Stub Operators:**
-- `wsss.py` - ϟ₃ WSSS (Weak Signal · Strong Structure)
-- `rfa.py` - ϟ₁ RFA
-- `sds.py` - ϟ₂ SDS ⚠️ **CRITICAL for oracle pipeline**
-- `ipl.py` - ϟ₄ IPL ⚠️ **CRITICAL for oracle pipeline**
-- `add.py` - ϟ₅ ADD ⚠️ **CRITICAL for oracle pipeline**
-- `tam.py` - TAM
-
-**Pattern:**
-```python
-def apply_wsss(signal_amplitude, structural_coherence, pattern_matrix, *, strict_execution=False):
-    if strict_execution:
-        raise NotImplementedError(f"Operator WSSS not implemented yet.")
-
-    # Stub implementation - returns empty outputs
-    return {"structure_score": None, "signal_quality": None, "validation_result": None}
-```
-
-**Impact:** Runes fail in `strict_execution=True` mode. Placeholder outputs (all None) may cause downstream issues.
-**Action Required:** Implement SDS, IPL, ADD first (needed for oracle), then WSSS, RFA, TAM.
-
----
-
-#### 7. ABX-Runes Coupling Violations
-**Count:** 81 violations across 34 files
-**Progress:** ~10% migrated (8 files partially/fully fixed)
-**Documentation:** `docs/migration/coupling_violations_inventory.md`
-
-**Top Offenders:**
-- **forecast** (23 violations) - `brier_score`, `horizon_bucket`, `decide_gate`
-- **evolve** (18 violations) - `append_chained_jsonl`, `enforce_non_truncation`
-- **memetic** (16 violations) - `cluster_claims`, `compute_dmx`, `build_mimetic_weather`
-- **conspiracy** (4 violations) - `compute_claim_csp`
-
-**Files Needing Immediate Attention:**
-```
-✅ PARTIALLY FIXED: abx/mwr.py, abx/forecast_log.py
-✅ VERIFIED CORRECT: abx/kernel.py
-❌ NOT FIXED: abx/forecast_score.py, abx/a2_phase.py, abx/term_claims_run.py
-❌ NOT FIXED: abx/dap.py, abx/epp.py, abx/osh.py
-⚠️ NEEDS AUDIT: abx/server/app.py, abx/cli.py, abx/operators/alive_*
-```
-
-**Impact:** Violates ABX-Runes coupling architecture. Direct imports bypass capability contracts.
-**Action Required:** Migrate 10-15 violations per sprint. Create capability contracts for top offenders.
-
----
-
-#### 8. Oracle Daily Run TODOs ✅
-**Location:** `abraxas/cli/oracle_daily_run.py`
-**Status:** Resolved
-
-**Resolution:**
-- RSS + API sources now load via config-driven ingestion
-- DCE packs are loaded from config
-
-**Impact:** Oracle daily run supports real data sources and DCE config wiring.
-
----
-
-#### 9. Scenario Envelope Runner TODOs ✅
-**Location:** `abraxas/cli/scenario_run.py`
-**Status:** Resolved
-
-**Resolution:**
-- Weather snapshots load from latest `out/reports/weather_report_*.json` or CLI override
-- D/M snapshots load from `data/runs/dm_snapshot.json` or CLI override
-- Almanac snapshots load from `data/almanac/almanac_snapshot.json` or CLI override
-
-**Impact:** Scenario runs include weather, D/M, and almanac context when available.
-
----
-
-### P2 - Medium Priority (Technical Debt)
-
-#### 10. TypeScript Server TODOs
-**Location:** `server/alive/`
-
-**Status:** Resolved
-
-**Resolution:**
-- Pipeline persistence stores raw + filtered runs.
-- Router uses tier lookup from database and centralized pipeline flow.
-- Error handling uses consistent HTTP responses with logging.
-
-**Impact:** ALIVE pipeline is persisted and tier enforced.
-
----
-
-#### 11. ABX Core Pipeline Stub
-**Location:** `abx/core/pipeline.py:92-93`
-
-**Status:** Resolved
-
-**Resolution:**
-- Pipeline executes kernel oracle and stamps provenance.
-- Gate depth enforcement, drift checks, and IPL scheduling are wired.
-
-**Impact:** ABX core pipeline produces real oracle outputs.
-
----
-
-#### 12. ALIVE Operator Stubs
-**Location:** `abx/operators/alive_*.py`
-
-**Status:** Resolved
-
-**Resolution:**
-- PDF/CSV export formats implemented.
-- Slack integration posts via webhook with structured payloads.
-
-**Impact:** ALIVE exports and Slack integration are functional.
-
----
-
-#### 13. Placeholder Comments (Scoped Review)
-**Status:** Resolved for ALIVE + ABX pipeline paths
-
-**Resolution:**
-- Reviewed ALIVE + ABX pipeline paths; no placeholder stubs remain in those modules.
-- Remaining placeholders are in other subsystems (UI placeholders, future overlays, oracle v2 fallbacks).
-
-**Impact:** No placeholder comments remain in ALIVE + ABX pipeline execution paths.
-
----
-
-### Missing Documentation
-
-**P0:**
-- ✅ `docs/seal/SEAL_VALIDATION_GUIDE.md` - Seal validation end-to-end guide
-
-**P1:**
-- ✅ `examples/shadow_detectors_integration.py` - Shadow detector usage example
-- ✅ `docs/runes/OPERATOR_DEVELOPMENT_GUIDE.md` - Rune operator development guide
-
-**P2:**
-- ✅ `docs/api/openapi.yaml` - OpenAPI spec for TypeScript server
-
----
+**Last Audited:** 2026-01-24
+**Status:** Most P0/P1 items resolved. Remaining items are technical debt.
+
+### Active Stubs
+
+#### ABX-Runes Coupling Violations (In Progress)
+- **Count:** ~70 remaining violations across ~30 files
+- **Documentation:** `docs/migration/coupling_violations_inventory.md`
+- **Top areas:** forecast, evolve, memetic, conspiracy modules
+- **Action:** Migrate 10-15 violations per sprint
+
+### Resolved Items
+
+<details>
+<summary>Click to expand resolved stubs</summary>
+
+| Item | Status | Location |
+|------|--------|----------|
+| Acceptance Test Suite | ✅ Resolved | `tools/acceptance/run_acceptance_suite.py` |
+| Placeholder Test Files | ✅ Resolved | `tests/test_scenario_router.py`, etc. |
+| Ed25519 Signing | ✅ Resolved | `shared/signing.py` |
+| Runtime Infrastructure Tests | ✅ Resolved | `tests/test_runtime_infrastructure.py` |
+| Seal Release Docs | ✅ Resolved | `docs/seal/SEAL_VALIDATION_GUIDE.md` |
+| Rune Operator Stubs | ✅ Resolved | `abraxas/runes/operators/` |
+| Oracle Daily Run | ✅ Resolved | `abraxas/cli/oracle_daily_run.py` |
+| Scenario Envelope Runner | ✅ Resolved | `abraxas/cli/scenario_run.py` |
+| TypeScript Server TODOs | ✅ Resolved | `server/alive/` |
+| ABX Core Pipeline | ✅ Resolved | `abx/core/pipeline.py` |
+| ALIVE Operators | ✅ Resolved | `abx/operators/alive_*.py` |
+| Placeholder Comments | ✅ Resolved | ALIVE + ABX pipeline paths |
+
+</details>
 
 ### Test Coverage Summary
 
