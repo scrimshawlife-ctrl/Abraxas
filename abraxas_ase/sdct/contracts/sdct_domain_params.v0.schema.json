@@ -1,0 +1,33 @@
+{
+  "$id": "sdct.domain_params.v0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "domain_id",
+    "domain_version",
+    "motif_kind",
+    "constraints"
+  ],
+  "properties": {
+    "domain_id": {
+      "type": "string"
+    },
+    "domain_version": {
+      "type": "string"
+    },
+    "motif_kind": {
+      "type": "string"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

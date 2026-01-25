@@ -1,0 +1,99 @@
+{
+  "$id": "sdct.evidence_row.v0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "domain_id",
+    "motif_id",
+    "item_id",
+    "source",
+    "event_key",
+    "mentions",
+    "signals",
+    "tags",
+    "provenance"
+  ],
+  "properties": {
+    "domain_id": {
+      "type": "string"
+    },
+    "motif_id": {
+      "type": "string"
+    },
+    "item_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "event_key": {
+      "type": "string"
+    },
+    "mentions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tap": {
+          "type": "number"
+        },
+        "sas": {
+          "type": "number"
+        },
+        "pfdi": {
+          "type": "number"
+        }
+      }
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lane": {
+          "type": "string"
+        },
+        "tier": {
+          "type": "integer"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "date",
+        "schema_versions",
+        "runtime_lexicon_hash",
+        "input_hash"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "schema_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "runtime_lexicon_hash": {
+          "type": "string"
+        },
+        "input_hash": {
+          "type": "string"
+        },
+        "key_fingerprint": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
