@@ -26,12 +26,14 @@ This report analyzes all remote branches in the Abraxas repository for merge con
 
 ## Resolution Status
 
-### ✅ Resolved (Local Branches Created)
+### ✅ Resolved and Pushed
 
-| Branch | Conflicts | Resolution |
-|--------|-----------|------------|
-| `codex/integrate-ase-into-existing-anagram-subsystem-axpecm` | README.md | Kept Table of Contents from main |
-| `codex/continue-implementation-according-to-claude.md` | horizon_policy_select.py | Kept `stats_ctx` parameter naming |
+| Original Branch | Resolution Branch | Conflicts | Resolution |
+|-----------------|-------------------|-----------|------------|
+| `codex/integrate-ase-into-existing-anagram-subsystem-axpecm` | `claude/resolve-ase-integration-Lx7pV` | README.md | Kept Table of Contents from main |
+| `codex/continue-implementation-according-to-claude.md` | `claude/resolve-codex-impl-Lx7pV` | horizon_policy_select.py (3) | Kept `stats_ctx` parameter naming |
+
+**Ready for PR:** Both resolution branches are pushed and ready to create PRs to main.
 
 ### ⚠️ Complex - Needs Author Rebase
 
