@@ -15,6 +15,9 @@ Exports:
     InvocationPlan: Plan describing rune invocations and dependencies
     DETERMINISM_CLASSES: Valid determinism classifications
     SIDE_EFFECTS: Valid side effect classifications
+    WardFlag: Single governance signal
+    WardReport: Governance findings report
+    DRIFT_CLASSES: Valid drift classifications
 """
 
 from abx_familiar.ir.task_graph_ir_v0 import (
@@ -39,6 +42,12 @@ from abx_familiar.ir.invocation_plan_v0 import (
     SIDE_EFFECTS,
 )
 
+from abx_familiar.ir.ward_report_v0 import (
+    WardFlag,
+    WardReport,
+    DRIFT_CLASSES,
+)
+
 __all__ = [
     # Task Graph IR
     "TaskGraphIR",
@@ -56,4 +65,8 @@ __all__ = [
     "InvocationPlan",
     "DETERMINISM_CLASSES",
     "SIDE_EFFECTS",
+    # Ward Report IR
+    "WardFlag",
+    "WardReport",
+    "DRIFT_CLASSES",
 ]
