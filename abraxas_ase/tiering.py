@@ -64,12 +64,16 @@ def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_
         "date": report.get("date"),
         "version": report.get("version"),
         "schema_versions": schema_versions,
+        "domains": report.get("domains", []),
+        "evidence_counts_by_domain": report.get("evidence_counts_by_domain", {}),
         "stats": report.get("stats", {}),
     }
     if key_fp:
         base["key_fingerprint"] = key_fp
 
     if tier_norm == "psychonaut":
+        if "sdct" in base:
+            base.pop("sdct", None)
         base["summary"] = {
             "high_tap_tokens": len(report.get("high_tap_tokens", [])),
             "tier2_hits": report.get("stats", {}).get("tier2_hits", 0),
@@ -91,6 +95,7 @@ def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_
             total=200,
         )
         base["run_id"] = report.get("run_id")
+        base["sdct"] = report.get("sdct", {})
         base["verified_sub_anagrams"] = capped_hits
         base["sas"] = report.get("sas", {})
         base["clusters"] = clusters
@@ -100,4 +105,6 @@ def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_
         return _scrub_fields(base, include_urls=(include_urls or not safe_export))
 
     enterprise = _scrub_fields(report, include_urls=include_urls)
+    if "sdct" not in enterprise:
+        enterprise["sdct"] = report.get("sdct", {})
     return enterprise
