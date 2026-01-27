@@ -18,6 +18,7 @@ Exports:
     WardFlag: Single governance signal
     WardReport: Governance findings report
     DRIFT_CLASSES: Valid drift classifications
+    ContinuityLedgerEntry: Append-only run continuity record
 """
 
 from abx_familiar.ir.task_graph_ir_v0 import (
@@ -48,6 +49,10 @@ from abx_familiar.ir.ward_report_v0 import (
     DRIFT_CLASSES,
 )
 
+from abx_familiar.ir.continuity_ledger_v0 import (
+    ContinuityLedgerEntry,
+)
+
 __all__ = [
     # Task Graph IR
     "TaskGraphIR",
@@ -69,4 +74,6 @@ __all__ = [
     "WardFlag",
     "WardReport",
     "DRIFT_CLASSES",
+    # Continuity Ledger IR
+    "ContinuityLedgerEntry",
 ]
