@@ -90,7 +90,8 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest",
             "abraxas.io", "abraxas.web", "abraxas.render",
             "abraxas.kernel.v2", "abraxas.overlays",
-            "abraxas_ase", "abraxas_ase.tools"]
+            "abraxas_ase", "abraxas_ase.tools",
+            "abx_familiar", "abx_familiar.ir"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -100,7 +101,7 @@ python_functions = ["test_*"]
 addopts = "-v --strict-markers"
 
 [tool.coverage.run]
-source = ["abraxas", "abx"]
+source = ["abraxas", "abx", "abx_familiar"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]
