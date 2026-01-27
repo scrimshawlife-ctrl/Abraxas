@@ -229,6 +229,15 @@ abraxas-ase run --in items.jsonl --out out/ase --date 2026-01-24 \
   --pfdi-state out_prev/ase/pfdi_state.json
 ```
 
+#### SDCT v0.1 (ABX-Runes)
+
+SDCT domains are ABX-Runes enforced: the ASE engine only invokes rune IDs.
+
+To add a new cartridge:
+- Create a domain module in `abraxas_ase/sdct/domains/`.
+- Add a rune wrapper in `abraxas_ase/runes/` and register it in `abraxas_ase/runes/catalog.v0.yaml`.
+- Register the domain in `abraxas_ase/sdct/registry.py`.
+
 ### Shadow Detectors & Metrics
 
 Observe-only analytical layer (never influences predictions):

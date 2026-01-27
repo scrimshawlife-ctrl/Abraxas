@@ -12,150 +12,19 @@ from .lexicon import Lexicon, build_default_lexicon
 from .lexicon_runtime import build_runtime_lexicon, load_canary_words
 from .io import read_jsonl, sort_items, validate_items
 from .keyed import key_fingerprint, keyed_id, read_key_or_none, require_key
-from .normalize import extract_tokens, filter_token, is_stopish, normalize_token, split_hyphenated
-from .provenance import hash_items_for_run, make_run_id, sha256_hex, stable_json_dumps
+from .provenance import hash_items_for_run, sha256_hex, stable_json_dumps
+from .runes.invoke import invoke_rune
 from .sas import SASParams, compute_sas_for_sub
-from .scoring import letter_entropy, stable_round, token_anagram_potential
 from .schema import ledger_entry, output_skeleton
+from .sdct.registry import get_enabled_domains
 from .tiering import apply_tier
-from .types import ExactCollision, PFDIAlert, SubAnagramHit, TokenRec
-
-
-def _letters_sorted(tok: str) -> str:
-    # tok already normalized; strip hyphen/apostrophe for letter pool
-    bare = tok.replace("-", "").replace("'", "")
-    return "".join(sorted(bare))
-
-
-def _can_spell(parent_letters: Counter, sub: str) -> bool:
-    need = Counter(sub)
-    for ch, n in need.items():
-        if parent_letters.get(ch, 0) < n:
-            return False
-    return True
+from .types import PFDIAlert, SubAnagramHit
 
 
 def load_items_jsonl(path: Path) -> List[dict]:
     items = read_jsonl(path)
     validate_items(items)
     return sort_items(items)
-
-
-def build_token_records(items: List[dict], lex: Lexicon, min_len: int = 4) -> List[TokenRec]:
-    out: List[TokenRec] = []
-    for it in items:
-        item_id = str(it.get("id", ""))
-        source = str(it.get("source", ""))
-        # deterministic text concatenation order
-        blob = f"{it.get('title', '')}\n{it.get('text', '')}"
-        raw_tokens = extract_tokens(blob)
-        for raw in raw_tokens:
-            nt = normalize_token(raw)
-            if not nt:
-                continue
-            if is_stopish(nt, set(lex.stopwords)):
-                continue
-            # keep joined hyphenated token
-            cand = [nt]
-            # and also split parts (adds recall; deterministic)
-            if "-" in nt:
-                cand.extend(split_hyphenated(nt))
-            for t in cand:
-                if not filter_token(t, min_len=min_len):
-                    continue
-                ls = _letters_sorted(t)
-                if not ls:
-                    continue
-                ent = letter_entropy(ls)
-                ul = len(set(ls))
-                tap = token_anagram_potential(len(ls), ul)
-                out.append(TokenRec(
-                    token=t,
-                    norm=t,
-                    letters_sorted=ls,
-                    length=len(ls),
-                    unique_letters=ul,
-                    letter_entropy=float(ent),
-                    tap=float(tap),
-                    item_id=item_id,
-                    source=source,
-                ))
-    # deterministic ordering (by letters then token then item)
-    return sorted(out, key=lambda r: (r.letters_sorted, r.norm, r.source, r.item_id))
-
-
-def tier1_exact_collisions(recs: List[TokenRec], min_sources: int = 2) -> List[ExactCollision]:
-    bucket: Dict[str, List[TokenRec]] = defaultdict(list)
-    for r in recs:
-        bucket[r.letters_sorted].append(r)
-
-    collisions: List[ExactCollision] = []
-    for k, rs in bucket.items():
-        toks = sorted({x.norm for x in rs})
-        if len(toks) < 2:
-            continue
-        sources = sorted({x.source for x in rs})
-        if len(sources) < min_sources:
-            continue
-        ids = sorted({x.item_id for x in rs})
-        collisions.append(ExactCollision(letters_sorted=k, tokens=toks, sources=sources, item_ids=ids))
-
-    # deterministic
-    return sorted(collisions, key=lambda c: (c.letters_sorted, c.tokens))
-
-
-def tier2_subanagrams(
-    recs: List[TokenRec],
-    lex: Lexicon,
-    min_sub_len: int = 3,
-    canary_subwords: Optional[set[str]] = None,
-) -> List[SubAnagramHit]:
-    core = sorted([w for w in lex.subwords if len(w) >= min_sub_len])
-    canary = sorted([w for w in (canary_subwords or set()) if len(w) >= min_sub_len and w not in lex.subwords])
-    subs_all = core + canary
-    hits: List[SubAnagramHit] = []
-    for r in recs:
-        parent = Counter(r.letters_sorted)
-        for sub in subs_all:
-            if _can_spell(parent, sub):
-                lane = "core" if sub in lex.subwords else "canary"
-                hits.append(SubAnagramHit(
-                    token=r.norm,
-                    sub=sub,
-                    tier=2,
-                    verified=True,
-                    lane=lane,
-                    item_id=r.item_id,
-                    source=r.source,
-                ))
-    # deterministically unique by (token, sub, item_id)
-    uniq = {}
-    for h in hits:
-        key = (h.token, h.sub, h.lane, h.item_id, h.source)
-        uniq[key] = h
-    out = list(uniq.values())
-    return sorted(out, key=lambda h: (h.sub, h.token, h.source, h.item_id))
-
-
-def high_tap_tokens(recs: List[TokenRec], top_k: int = 25, per_token_max: int = 1) -> List[dict]:
-    # aggregate by token, take max tap
-    best: Dict[str, TokenRec] = {}
-    for r in recs:
-        prev = best.get(r.norm)
-        if prev is None or r.tap > prev.tap:
-            best[r.norm] = r
-    ranked = sorted(best.values(), key=lambda r: (-r.tap, -r.letter_entropy, r.norm))
-    ranked = ranked[:top_k]
-    out: List[dict] = []
-    for r in ranked:
-        out.append({
-            "token": r.norm,
-            "tap": stable_round(r.tap),
-            "letter_entropy": stable_round(r.letter_entropy),
-            "length": r.length,
-            "unique_letters": r.unique_letters,
-        })
-    return out
 
 
 def _cluster_key(it: dict, key: bytes | None) -> str:
@@ -257,6 +126,64 @@ def compute_pfdi(
     return alerts, state, ledger_rows
 
 
+def _motif_text_from_id(motif_id: str) -> str:
+    parts = motif_id.split(":", 2)
+    if len(parts) == 3:
+        return parts[2]
+    return ""
+
+
+def _aggregate_evidence(
+    evidence: List[dict],
+    sas_params: SASParams,
+) -> List[dict]:
+    stats: Dict[tuple[str, str], dict] = {}
+    for ev in evidence:
+        key = (ev.get("domain_id", ""), ev.get("motif_id", ""))
+        rec = stats.setdefault(key, {
+            "mentions_total": 0,
+            "sources": set(),
+            "events": set(),
+            "tap_max": 0.0,
+            "pfdi_max": 0.0,
+        })
+        rec["mentions_total"] += int(ev.get("mentions", 0))
+        rec["sources"].add(ev.get("source", ""))
+        rec["events"].add(ev.get("event_key", ""))
+        signals = ev.get("signals", {})
+        rec["tap_max"] = max(rec["tap_max"], float(signals.get("tap", 0.0)))
+        rec["pfdi_max"] = max(rec["pfdi_max"], float(signals.get("pfdi", 0.0)))
+
+    rows: List[dict] = []
+    for (domain_id, motif_id), rec in sorted(stats.items(), key=lambda x: (x[0][0], x[0][1])):
+        motif_text = _motif_text_from_id(motif_id)
+        motif_len = len(motif_text) if motif_text else 0
+        sas = compute_sas_for_sub(
+            mentions=rec["mentions_total"],
+            sources_count=len(rec["sources"]),
+            events_count=len(rec["events"]),
+            sub_len=motif_len,
+            params=sas_params,
+        )
+        row = {
+            "domain_id": domain_id,
+            "motif_id": motif_id,
+            "motif_text": motif_text,
+            "motif_len": motif_len,
+            "sas": sas,
+            "mentions": rec["mentions_total"],
+            "sources_count": len(rec["sources"]),
+            "events_count": len(rec["events"]),
+            "lane": "",
+            "tap_max": rec["tap_max"],
+            "pfdi_max": rec["pfdi_max"],
+        }
+        if domain_id == "sdct.text_subword.v1":
+            row["sub"] = motif_text
+        rows.append(row)
+    return rows
+
+
 def run_ase(
     items: List[dict],
     date: str,
@@ -282,15 +209,19 @@ def run_ase(
     items_hash = hash_items_for_run(items_sorted)
     run_id = keyed_id(key, f"run|{date}|{items_hash}", n=16) if key else None
 
-    recs = build_token_records(items_sorted, lex=lex, min_len=4)
-    collisions = tier1_exact_collisions(recs)
     canary_words = set()
     if lanes_dir is not None:
         canary_words = set(load_canary_words(lanes_dir))
 
+    registry = get_enabled_domains()
+    registry = sorted(registry, key=lambda r: (r.rune_id, r.domain_id))
+    domain_ids = [entry.domain_id for entry in registry]
+
+    collisions: List[dict] = []
     rt = build_runtime_lexicon(core_subwords=lex.subwords, canary_subwords=frozenset(canary_words))
-    subs = tier2_subanagrams(recs, lex=lex, min_sub_len=3, canary_subwords=canary_words)
-    hightap = high_tap_tokens(recs, top_k=30)
+    subs: List[SubAnagramHit] = []
+    hightap: List[dict] = []
+    token_records_count = 0
 
     # deterministic cluster key per item_id for downstream diversity accounting
     id_to_cluster = {str(it.get("id", "")): _cluster_key(it, key) for it in items_sorted}
@@ -298,6 +229,66 @@ def run_ase(
         str(it.get("id", "")): keyed_id(key, f"item|{it.get('id', '')}", n=16)
         for it in items_sorted
     } if key else {}
+
+    evidence: List[dict] = []
+    evidence_counts_by_domain: Dict[str, int] = defaultdict(int)
+
+    event_keys = {str(k): v for k, v in id_to_cluster.items()}
+    ctx = {
+        "run_id": run_id,
+        "date": date,
+        "key_fingerprint": key_fp,
+        "schema_versions": {"sdct": "v0.1"},
+    }
+
+    sdct_domains: List[dict] = []
+    sdct_evidence_rows: List[dict] = []
+    sdct_motif_stats_by_domain: Dict[str, List[dict]] = {}
+    digit_motifs_by_item_id: Dict[str, List[str]] = {}
+
+    for entry in registry:
+        domain_id = entry.domain_id
+        rune_id = entry.rune_id
+        payload = {
+            "items": items_sorted,
+            "date": date,
+            "event_keys_by_item_id": event_keys,
+        }
+        if digit_motifs_by_item_id:
+            payload["digit_motifs_by_item_id"] = digit_motifs_by_item_id
+        result = invoke_rune(rune_id, payload, ctx)
+        if result.get("status") != "ok":
+            raise RuntimeError(f"Rune invocation failed: {rune_id} ({result.get('errors')})")
+
+        sdct_domains.append({
+            "descriptor": result.get("descriptor", {}),
+            "provenance": result.get("provenance", {}),
+        })
+
+        evidence_rows = result.get("evidence_rows", [])
+        evidence.extend(evidence_rows)
+        evidence_counts_by_domain[domain_id] += len(evidence_rows)
+        sdct_evidence_rows.extend(evidence_rows)
+        sdct_motif_stats_by_domain[domain_id] = result.get("motif_stats", [])
+
+        if domain_id == "sdct.digit_motif.v1":
+            digit_motifs_by_item_id = {}
+            for row in evidence_rows:
+                if row.get("domain_id") != "sdct.digit_motif.v1":
+                    continue
+                motif_id = str(row.get("motif_id", ""))
+                digits = motif_id.split(":", 1)[1] if ":" in motif_id else motif_id
+                item_id = str(row.get("item_id", ""))
+                digit_motifs_by_item_id.setdefault(item_id, []).append(digits)
+            for item_id in digit_motifs_by_item_id:
+                digit_motifs_by_item_id[item_id] = sorted(set(digit_motifs_by_item_id[item_id]))
+
+        if domain_id == "sdct.text_subword.v1":
+            legacy = result.get("legacy", {})
+            collisions = legacy.get("exact_collisions", [])
+            hightap = legacy.get("high_tap_tokens", [])
+            token_records_count = int(legacy.get("token_records", 0))
+            subs = [SubAnagramHit(**h) for h in legacy.get("verified_sub_anagrams", [])]
 
     # load pfdi state
     if pfdi_state_path and pfdi_state_path.exists():
@@ -308,7 +299,17 @@ def run_ase(
     alerts, new_state, ledger_rows = compute_pfdi(items_sorted, subs, pfdi_state, key)
 
     report = output_skeleton(date=date, run_id=run_id, items_hash=items_hash, version=__version__)
-    report["exact_collisions"] = [asdict(c) for c in collisions]
+    report["sdct"] = {
+        "domains": sdct_domains,
+        "evidence_rows": sdct_evidence_rows,
+        "motif_stats_by_domain": sdct_motif_stats_by_domain,
+    }
+    report["domains"] = sdct_domains
+    report["evidence_counts_by_domain"] = {
+        domain_id: int(evidence_counts_by_domain.get(domain_id, 0))
+        for domain_id in sorted(domain_ids)
+    }
+    report["exact_collisions"] = collisions
     report["high_tap_tokens"] = hightap
     report["verified_sub_anagrams"] = [
         {
@@ -323,40 +324,14 @@ def run_ase(
         "cluster_key_version": 1,
     }
     report["runtime_lexicon"] = {"runtime_hash": rt.runtime_hash, "canary_count": len(canary_words)}
-    report["schema_versions"] = {"ase_output": "v0.1"}
+    report["schema_versions"] = {"ase_output": "v0.1", "sdct": "v0.1"}
     if key_fp:
         report["key_fingerprint"] = key_fp
     if enterprise_diagnostics:
         report["enterprise_diagnostics"] = enterprise_diagnostics
 
-    # SAS per subword (core+canary) based on today's evidence
     sas_params = SASParams()
-    sub_mentions = Counter()
-    sub_sources = defaultdict(set)
-    sub_events = defaultdict(set)
-
-    for h in subs:
-        sub_mentions[h.sub] += 1
-        sub_sources[h.sub].add(h.source)
-        sub_events[h.sub].add(id_to_cluster.get(h.item_id, f"item:{h.item_id}"))
-
-    sas_rows = []
-    for sub, m in sorted(sub_mentions.items(), key=lambda x: x[0]):
-        sc = compute_sas_for_sub(
-            mentions=m,
-            sources_count=len(sub_sources[sub]),
-            events_count=len(sub_events[sub]),
-            sub_len=len(sub),
-            params=sas_params,
-        )
-        sas_rows.append({
-            "sub": sub,
-            "sas": sc,
-            "mentions": m,
-            "sources_count": len(sub_sources[sub]),
-            "events_count": len(sub_events[sub]),
-            "lane": "core" if sub in lex.subwords else "canary",
-        })
+    sas_rows = _aggregate_evidence(evidence, sas_params)
 
     report["sas"] = {
         "params": {
@@ -370,7 +345,7 @@ def run_ase(
     }
     report["stats"] = {
         "items": len(items_sorted),
-        "token_records": len(recs),
+        "token_records": token_records_count,
         "tier1_collisions": len(collisions),
         "tier2_hits": len(subs),
         "pfdi_alerts": len(alerts),

@@ -1,0 +1,34 @@
+{
+  "$id": "sdct.motif.v0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "domain_id",
+    "motif_id",
+    "motif_len",
+    "motif_complexity",
+    "lane_hint"
+  ],
+  "properties": {
+    "domain_id": {
+      "type": "string"
+    },
+    "motif_id": {
+      "type": "string"
+    },
+    "motif_text": {
+      "type": "string"
+    },
+    "motif_len": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "motif_complexity": {
+      "type": "number"
+    },
+    "lane_hint": {
+      "type": "string"
+    }
+  }
+}

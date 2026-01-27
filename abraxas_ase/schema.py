@@ -9,6 +9,8 @@ def output_skeleton(date: str, run_id: str, items_hash: str, version: str) -> Js
         "version": version,
         "run_id": run_id,
         "items_hash": items_hash,
+        "domains": [],
+        "evidence_counts_by_domain": {},
         "exact_collisions": [],
         "high_tap_tokens": [],
         "verified_sub_anagrams": [],

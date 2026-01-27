@@ -1,0 +1,18 @@
+version: v0
+runes:
+  - rune_id: sdct.digit_motif.v1
+    module: abraxas_ase.runes.sdct_digit_motif_v1:run
+    domain_id: sdct.digit_motif.v1
+    version: 1.0.0
+  - rune_id: sdct.numogram_motif.v1
+    module: abraxas_ase.runes.sdct_numogram_motif_v1:run
+    domain_id: sdct.numogram_motif.v1
+    version: 1.0.0
+  - rune_id: sdct.square_constraints.v1
+    module: abraxas_ase.runes.sdct_square_constraints_v1:run
+    domain_id: sdct.square_constraints.v1
+    version: 1.0.0
+  - rune_id: sdct.text_subword.v1
+    module: abraxas_ase.runes.sdct_text_subword_v1:run
+    domain_id: sdct.text_subword.v1
+    version: 1.0.0
