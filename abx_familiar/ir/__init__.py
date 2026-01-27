@@ -19,6 +19,8 @@ Exports:
     WardReport: Governance findings report
     DRIFT_CLASSES: Valid drift classifications
     ContinuityLedgerEntry: Append-only run continuity record
+    AttachmentRef: Reference to supporting artifact
+    DeliveryPack: Final output container with rendered output
 """
 
 from abx_familiar.ir.task_graph_ir_v0 import (
@@ -53,6 +55,11 @@ from abx_familiar.ir.continuity_ledger_v0 import (
     ContinuityLedgerEntry,
 )
 
+from abx_familiar.ir.delivery_pack_v0 import (
+    AttachmentRef,
+    DeliveryPack,
+)
+
 __all__ = [
     # Task Graph IR
     "TaskGraphIR",
@@ -76,4 +83,7 @@ __all__ = [
     "DRIFT_CLASSES",
     # Continuity Ledger IR
     "ContinuityLedgerEntry",
+    # Delivery Pack IR
+    "AttachmentRef",
+    "DeliveryPack",
 ]
