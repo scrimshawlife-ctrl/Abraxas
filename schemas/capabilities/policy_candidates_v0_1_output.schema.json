@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Policy Candidates v0.1 Output",
+  "description": "Output schema for forecast.policy.candidates_v0_1 capability",
+  "type": "object",
+  "required": ["candidates", "provenance", "not_computable"],
+  "properties": {
+    "candidates": {
+      "type": "object",
+      "description": "Policy candidate thresholds (Brier score caps)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "days": {"type": "number"},
+          "weeks": {"type": "number"},
+          "months": {"type": "number"},
+          "years": {"type": "number"}
+        },
+        "required": ["days", "weeks", "months", "years"]
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

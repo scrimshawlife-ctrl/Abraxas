@@ -15,8 +15,8 @@ except ImportError:
 from abx.runtime.config import load_config
 from abx.assets.manifest import read_manifest
 from abx.runtime.provenance import make_provenance, compute_config_hash
-from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.runes.invoke import invoke_capability
+# fn_exports moved from abraxas/ to abx/ (server infrastructure, not core logic)
+from abx.fn_exports import router as fn_router
 
 def build_app() -> Any:
     """Build FastAPI application with health endpoints."""
@@ -25,6 +25,10 @@ def build_app() -> Any:
         raise RuntimeError("FastAPI not installed. Install fastapi+uvicorn or use minhttp server.")
 
     app = FastAPI(title="Abraxas Core", version="0.1.0-orin-spine")
+
+    # Include function exports router
+    if fn_router is not None:
+        app.include_router(fn_router)
 
     @app.get("/healthz")
     def healthz() -> Dict[str, Any]:
@@ -66,21 +70,5 @@ def build_app() -> Any:
             "provenance": prov.to_dict(),
             "assets_manifest_present": manifest is not None,
         }
-
-    @app.get("/abx/functions")
-    def abx_functions() -> Dict[str, Any]:
-        """Capability-based function exports handshake endpoint."""
-        ctx = RuneInvocationContext(
-            run_id="abx.server.functions",
-            subsystem_id="abx.server.app",
-            git_hash="unknown"
-        )
-        result = invoke_capability(
-            "core.fn_exports.load",
-            {},
-            ctx=ctx,
-            strict_execution=True
-        )
-        return result["payload"]
 
     return app

@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ALIVE Run Output",
+  "description": "Output schema for alive.run capability",
+  "type": "object",
+  "required": ["result", "provenance", "not_computable"],
+  "properties": {
+    "result": {
+      "type": "object",
+      "description": "ALIVE analysis result",
+      "required": ["provenance", "artifact", "signature", "view", "strain"],
+      "properties": {
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "run_id": {"type": "string"},
+            "created_at": {"type": "string"},
+            "schema_version": {"type": "string"},
+            "engine_version": {"type": "string"},
+            "input_hash": {"type": "string"},
+            "profile_hash": {"type": ["string", "null"]}
+          }
+        },
+        "artifact": {
+          "type": "object",
+          "properties": {
+            "artifact_id": {"type": "string"},
+            "kind": {"type": "string"}
+          }
+        },
+        "signature": {
+          "type": "object",
+          "properties": {
+            "influence": {"type": "array"},
+            "vitality": {"type": "array"},
+            "life_logistics": {"type": "array"}
+          }
+        },
+        "view": {"type": "object"},
+        "strain": {"type": "object"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

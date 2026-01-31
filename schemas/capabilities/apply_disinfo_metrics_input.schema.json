@@ -1,26 +1,25 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://abraxas.dev/schemas/capabilities/apply_disinfo_metrics_input.json",
   "title": "Apply Disinfo Metrics Input",
-  "description": "Input schema for disinfo.metrics.apply capability",
+  "description": "Input schema for disinfo.apply.metrics capability",
   "type": "object",
   "required": ["item"],
   "properties": {
     "item": {
       "type": "object",
-      "description": "Evidence item dict to enrich with disinfo metrics",
-      "additionalProperties": true
+      "description": "Item to apply disinfo metrics to (source, context, etc.)",
+      "properties": {
+        "source_type": {"type": "string"},
+        "source_ref": {"type": "string"},
+        "source": {"type": "object"},
+        "media_kind": {"type": "string"},
+        "context": {"type": "object"}
+      }
     },
     "seed": {
       "type": ["integer", "null"],
       "description": "Optional seed for SEED compliance"
     }
   },
-  "additionalProperties": false,
-  "x-abraxas": {
-    "capability_id": "disinfo.metrics.apply",
-    "version": "1.0.0",
-    "deterministic": true,
-    "provenance_required": true
-  }
+  "additionalProperties": false
 }

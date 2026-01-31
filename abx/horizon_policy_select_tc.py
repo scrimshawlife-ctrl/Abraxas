@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 
 # horizon_bucket replaced by forecast.horizon.classify capability
 # load_term_class_map replaced by forecast.term_class_map.load capability
+# candidates_v0_1 replaced by forecast.policy.candidates_v0_1 capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -53,10 +54,7 @@ def _term_key(pr: Dict[str, Any]) -> str:
     return ""
 
 
-def _rolling_stats(
-    rows: List[Dict[str, Any]],
-    ctx: RuneInvocationContext,
-) -> Dict[str, Dict[str, Dict[str, Dict[str, Any]]]]:
+def _rolling_stats(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, Dict[str, Any]]]]:
     """
     bucket -> class -> horizon -> {n,brier}
     """
@@ -75,6 +73,7 @@ def _rolling_stats(
         for c, hmap in cmap.items():
             out[b][c] = {}
             for h, d in hmap.items():
+                ctx = RuneInvocationContext(run_id="ROLLING_STATS_TC", subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
                 result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
                 out[b][c][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return out
@@ -142,14 +141,17 @@ def main() -> int:
         )
 
     window = resolved[-int(args.window_resolved) :] if resolved else []
-    roll = _rolling_stats(window, ctx)
+    roll = _rolling_stats(window)
 
-    cand = invoke_capability(
-        "forecast.policy_candidates.v0_1",
+    # Load policy candidates via capability contract
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
+    cand_result = invoke_capability(
+        "forecast.policy.candidates_v0_1",
         {},
         ctx=ctx,
         strict_execution=True
-    )["candidates"]
+    )
+    cand = cand_result["candidates"]
     buckets = ("LOW", "MED", "HIGH", "UNKNOWN")
     classes = ("stable", "emerging", "volatile", "contested", "unknown")
 

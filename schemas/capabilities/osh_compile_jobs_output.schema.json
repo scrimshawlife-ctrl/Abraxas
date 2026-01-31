@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OSH Compile Jobs Output",
+  "description": "Output schema for osh.compile_jobs_from_dap capability",
+  "type": "object",
+  "required": ["jobs", "job_count", "provenance", "not_computable"],
+  "properties": {
+    "jobs": {
+      "type": "array",
+      "description": "Compiled OSHFetchJob objects"
+    },
+    "job_count": {
+      "type": "integer",
+      "description": "Number of jobs compiled"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

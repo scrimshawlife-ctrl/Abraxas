@@ -135,9 +135,9 @@ else:
 # --------------------------------------------------
 # Integration Note
 # --------------------------------------------------
-# In your main Abraxas FastAPI app:
+# In your main ABX FastAPI app:
 #
-#   from abraxas.fn_exports import router as fn_router
+#   from abx.fn_exports import router as fn_router
 #   app.include_router(fn_router)
 #
 # And in AAL-core overlay manifest:
@@ -145,7 +145,7 @@ else:
 #   {
 #     "name": "abraxas",
 #     "service_url": "http://127.0.0.1:8088",
-#     "py_exports": ["abraxas.fn_exports"]
+#     "py_exports": ["abx.fn_exports"]
 #   }
 #
 # ============================
