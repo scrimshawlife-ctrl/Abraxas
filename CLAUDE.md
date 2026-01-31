@@ -198,10 +198,14 @@ Most critical blockers (P0) and high-priority items (P1) have been resolved. Act
 **Branch:** `claude/review-todo-list-QG5be`
 **Commits this session:**
 1. `ec504d0` - Migrate `abx/core/pipeline.py` to ABX-Runes capability contracts
-2. `35e66ae` - Add tests for `oracle.kernel.run` capability (3 tests, all passing)
+2. `35e66ae` - Add tests for `oracle.kernel.run` capability (3 tests)
 3. `c22b222` - Update CLAUDE.md marking coupling migration complete
+4. `07441fe` - Add session handoff notes
+5. `65f7246` - Add tests for runtime/device_fingerprint (5 tests)
+6. `3c5bb8b` - Add tests for runtime/concurrency (6 tests)
 
 **New capability added:** `oracle.kernel.run` in `abraxas/core/rune_adapter.py`
+**Tests added:** 14 new tests across 3 files, all passing
 
 #### Roadmap Features
 - [ ] Resonance Narratives (human-readable output layer)
