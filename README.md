@@ -43,6 +43,25 @@
 
 Think of it as a **weather system for language** — detecting symbol compression, mapping affective drift, and forecasting symbolic evolution.
 
+### At a Glance
+
+- **Deterministic by design** — every output is reproducible with SHA-256 provenance
+- **Dual-lane architecture** — prediction and diagnostics stay strictly separated
+- **Edge-ready** — optimized for Jetson Orin with systemd and atomic updates
+- **Full-stack** — Python SCO/ECO core + TypeScript orchestration + UI tooling
+
+### Core Capabilities
+
+- **Symbolic Compression Detection (SCO/ECO)** — quantify when opaque symbols are replaced with semantically transparent substitutes
+- **Weather Engine** — transform linguistic events into memetic weather patterns and drift signals
+- **Scenario Envelope Runner (SER)** — deterministic forecasting with cascade sheets and contamination advisories
+- **Governance Registry** — discover components, track rent-manifest coverage, and record approvals
+- **Always-On Daemon** — continuous ingestion via Decodo API with chat-style interaction
+- **Self-Healing Infrastructure** — drift detection, watchdog monitoring, atomic updates
+- **Orin-Ready Edge Deployment** — Jetson Orin systemd integration
+- **Provenance-First Design** — every event includes a SHA-256 hash for auditability
+- **Anagram Sweep Engine (ASE)** — deterministic anagram mining for current-events feeds (Tier-1/2 + PFDI drift baseline)
+
 ### Design Principles
 
 | Principle | Description |

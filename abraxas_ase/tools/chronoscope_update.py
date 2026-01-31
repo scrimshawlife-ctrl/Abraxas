@@ -11,7 +11,7 @@ from abraxas_ase.anomaly import build_anomalies
 from abraxas_ase.chronoscope import ChronoscopeState, DayPoint, load_state, update_state, write_state
 from abraxas_ase.leakage_linter import lint_report_for_tier
 from abraxas_ase.provenance import stable_json_dumps
-from abraxas_ase.watchlist import WatchlistRule, default_state, evaluate_watchlist
+from abraxas_ase.watchlist import WatchlistRule, WatchlistState, default_state, evaluate_watchlist
 
 
 def _read_csv(path: Path) -> List[Dict[str, Any]]:
