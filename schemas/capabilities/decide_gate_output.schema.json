@@ -1,41 +1,61 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://abraxas.dev/schemas/capabilities/load_dmx_context_output.json",
-  "title": "Load DMX Context Output",
-  "description": "Output schema for memetic.dmx_context.load capability",
+  "$id": "https://abraxas.dev/schemas/capabilities/decide_gate_output.json",
+  "title": "Decide Gate Output",
+  "description": "Output schema for forecast.gating.decide_gate capability",
   "type": "object",
-  "required": ["success", "dmx_context", "provenance", "not_computable"],
+  "required": ["success", "gate_decision", "provenance", "not_computable"],
   "properties": {
     "success": {
       "type": "boolean",
-      "description": "Whether the DMX context loading succeeded"
+      "description": "Whether the gate decision succeeded"
     },
-    "dmx_context": {
+    "gate_decision": {
       "oneOf": [
         {
           "type": "object",
-          "required": ["version", "overall_manipulation_risk", "bucket"],
+          "required": [
+            "version",
+            "eeb_multiplier",
+            "horizon_max",
+            "evidence_escalation",
+            "flags",
+            "provenance"
+          ],
           "properties": {
             "version": {
               "type": "string",
-              "description": "DMX version identifier"
+              "description": "Gate policy version"
             },
-            "overall_manipulation_risk": {
+            "eeb_multiplier": {
               "type": "number",
               "minimum": 0.0,
-              "maximum": 1.0,
-              "description": "Overall manipulation risk score [0,1]"
+              "description": "Expected Error Band multiplier"
             },
-            "bucket": {
+            "horizon_max": {
               "type": "string",
-              "enum": ["LOW", "MED", "HIGH"],
-              "description": "Risk bucket classification"
+              "enum": ["days", "weeks", "months", "years"],
+              "description": "Maximum allowed horizon"
+            },
+            "evidence_escalation": {
+              "type": "string",
+              "enum": ["none", "online_escalation", "offline_escalation"],
+              "description": "Evidence escalation requirement"
+            },
+            "flags": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Policy flags (FOG_HIGH, PROVENANCE_WEAK, etc.)"
+            },
+            "provenance": {
+              "type": "object",
+              "description": "Gate decision provenance"
             }
           }
         },
         {"type": "null"}
       ],
-      "description": "DMX context result (null if failed)"
+      "description": "Gate decision result (null if failed)"
     },
     "provenance": {
       "oneOf": [
@@ -73,7 +93,7 @@
   },
   "additionalProperties": false,
   "x-abraxas": {
-    "capability_id": "memetic.dmx_context.load",
+    "capability_id": "forecast.gating.decide_gate",
     "version": "1.0.0"
   }
 }

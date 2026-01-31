@@ -1,32 +1,34 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://abraxas.dev/schemas/capabilities/non_truncation_output.json",
-  "title": "Non-Truncation Policy Output",
-  "description": "Output schema for evolve.policy.enforce_non_truncation capability",
+  "$id": "https://abraxas.dev/schemas/capabilities/horizon_bucket_output.json",
+  "title": "Horizon Bucket Output",
+  "description": "Output schema for forecast.horizon.bucket capability",
   "type": "object",
-  "required": ["success", "artifact", "provenance", "not_computable"],
+  "required": ["success", "bucket", "provenance", "not_computable"],
   "properties": {
     "success": {
       "type": "boolean",
-      "description": "Whether the policy enforcement succeeded"
+      "description": "Whether the bucket normalization succeeded"
     },
-    "artifact": {
+    "bucket": {
       "oneOf": [
-        {"type": "object"},
+        {
+          "type": "string",
+          "enum": ["days", "weeks", "months", "years", "unknown"]
+        },
         {"type": "null"}
       ],
-      "description": "Enhanced artifact with non-truncation policy applied (null if failed)"
+      "description": "Normalized horizon bucket (null if failed)"
     },
     "provenance": {
       "oneOf": [
         {
           "type": "object",
-          "required": ["operation_id", "result_hash", "config_hash", "inputs_hash"],
+          "required": ["operation_id", "config_sha256", "inputs_sha256"],
           "properties": {
             "operation_id": {"type": "string"},
-            "result_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-            "config_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-            "inputs_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
             "seed": {"type": ["integer", "null"]}
           }
         },
@@ -54,7 +56,7 @@
   },
   "additionalProperties": false,
   "x-abraxas": {
-    "capability_id": "evolve.policy.enforce_non_truncation",
+    "capability_id": "forecast.horizon.bucket",
     "version": "1.0.0"
   }
 }

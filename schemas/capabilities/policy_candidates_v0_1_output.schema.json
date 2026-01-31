@@ -1,38 +1,84 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/policy_candidates_v0_1_output.json",
   "title": "Policy Candidates v0.1 Output",
   "description": "Output schema for forecast.policy.candidates_v0_1 capability",
   "type": "object",
-  "required": ["candidates", "provenance", "not_computable"],
+  "required": ["success", "policy_candidates", "provenance", "not_computable"],
   "properties": {
-    "candidates": {
-      "type": "object",
-      "description": "Policy candidate thresholds (Brier score caps)",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "days": {"type": "number"},
-          "weeks": {"type": "number"},
-          "months": {"type": "number"},
-          "years": {"type": "number"}
+    "success": {
+      "type": "boolean",
+      "description": "Whether the operation succeeded"
+    },
+    "policy_candidates": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["conservative", "balanced", "aggressive"],
+          "properties": {
+            "conservative": {
+              "type": "object",
+              "required": ["days", "weeks", "months", "years"],
+              "properties": {
+                "days": {"type": "number"},
+                "weeks": {"type": "number"},
+                "months": {"type": "number"},
+                "years": {"type": "number"}
+              }
+            },
+            "balanced": {
+              "type": "object",
+              "required": ["days", "weeks", "months", "years"],
+              "properties": {
+                "days": {"type": "number"},
+                "weeks": {"type": "number"},
+                "months": {"type": "number"},
+                "years": {"type": "number"}
+              }
+            },
+            "aggressive": {
+              "type": "object",
+              "required": ["days", "weeks", "months", "years"],
+              "properties": {
+                "days": {"type": "number"},
+                "weeks": {"type": "number"},
+                "months": {"type": "number"},
+                "years": {"type": "number"}
+              }
+            }
+          }
         },
-        "required": ["days", "weeks", "months", "years"]
-      }
+        {"type": "null"}
+      ],
+      "description": "Policy candidates (conservative/balanced/aggressive) with Brier score thresholds"
     },
     "provenance": {
-      "type": "object",
-      "description": "SHA-256 provenance envelope",
-      "required": ["inputs_hash", "outputs_hash", "config_hash"],
-      "properties": {
-        "inputs_hash": {"type": "string"},
-        "outputs_hash": {"type": "string"},
-        "config_hash": {"type": "string"},
-        "envelope_hash": {"type": "string"}
-      }
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "config_sha256", "inputs_sha256"],
+          "properties": {
+            "operation_id": {"type": "string"},
+            "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "seed": {"type": ["integer", "null"]}
+          }
+        },
+        {"type": "null"}
+      ]
     },
     "not_computable": {
-      "type": "null",
-      "description": "Always null for this capability"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason", "missing_inputs"],
+          "properties": {
+            "reason": {"type": "string"},
+            "missing_inputs": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        {"type": "null"}
+      ]
     }
   },
   "additionalProperties": false

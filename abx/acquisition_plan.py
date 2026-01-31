@@ -7,13 +7,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-# build_decodo_query, decodo_status replaced by acquire.decodo.* capabilities
-# default_vector_map_v0_1 replaced by acquire.vector_map.default capability
-# compute_term_csp replaced by conspiracy.csp.compute_term capability
-# classify_term replaced by forecast.term.classify capability
+from abraxas.acquire.decodo_client import build_decodo_query, decodo_status
+from abraxas.acquire.vector_map_schema import default_vector_map_v0_1
+from abx.ml_index import load_ml_map
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-from abx.ml_index import load_ml_map
 
 
 def _utc_now_iso() -> str:
@@ -85,12 +83,8 @@ def main() -> int:
     p.add_argument("--max-terms", type=int, default=20)
     args = p.parse_args()
 
-    # Create rune invocation context for capability calls
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.acquisition_plan",
-        git_hash="unknown"
-    )
+    # Create rune context for capability invocations
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.acquisition_plan", git_hash="unknown")
 
     ts = _utc_now_iso()
     a2_path = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
@@ -102,24 +96,8 @@ def main() -> int:
     dmx_overall = float(dmx.get("overall_manipulation_risk") or 0.0)
     dmx_bucket = str(dmx.get("bucket") or "UNKNOWN").upper()
 
-    if args.vector_map:
-        vm = _read_json(args.vector_map)
-    else:
-        vm_result = invoke_capability(
-            "acquire.vector_map.default",
-            {},
-            ctx=ctx,
-            strict_execution=True
-        )
-        vm = vm_result["vector_map"]
-
-    ds_result = invoke_capability(
-        "acquire.decodo.status",
-        {},
-        ctx=ctx,
-        strict_execution=True
-    )
-    ds = ds_result["status"]
+    vm = _read_json(args.vector_map) if args.vector_map else default_vector_map_v0_1()
+    ds = decodo_status().to_dict()
     ml_map, ml_meta = load_ml_map(args.out_reports)
     cal_tasks = []
     try:
@@ -149,23 +127,17 @@ def main() -> int:
     channels = vm.get("channels") if isinstance(vm, dict) else []
     channels = [c for c in channels if isinstance(c, dict) and c.get("enabled")]
 
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.acquisition_plan",
-        git_hash="unknown"
-    )
-
     for p0 in profs_sorted:
         term = str(p0.get("term") or "").strip()
         if not term:
             continue
-        tcls = invoke_capability(
+        classify_result = invoke_capability(
             "forecast.term.classify",
             {"profile": p0},
             ctx=ctx,
             strict_execution=True
-        )["term_class"]
+        )
+        tcls = classify_result["classification"]
         miss = _missing_signals(p0, dmx_overall)
         csp_result = invoke_capability(
             "conspiracy.csp.compute_term",
@@ -174,12 +146,12 @@ def main() -> int:
                 "profile": p0,
                 "dmx_bucket": dmx_bucket,
                 "dmx_overall": dmx_overall,
-                "term_class": tcls
+                "term_class": tcls,
             },
             ctx=ctx,
             strict_execution=True
         )
-        csp = csp_result["term_csp"]
+        csp = csp_result["csp_result"]
         if float(csp.get("EA") or 0.0) < 0.50:
             miss.append("CSP_NEED_EVIDENCE_ADEQUACY")
         if float(csp.get("FF") or 0.0) < 0.50:
@@ -296,13 +268,7 @@ def main() -> int:
                 if tcls in ("contested", "volatile") and kind in ("forums", "video"):
                     continue
 
-                q_result = invoke_capability(
-                    "acquire.decodo.build_query",
-                    {"term": term, "domains": domains},
-                    ctx=ctx,
-                    strict_execution=True
-                )
-                q = q_result["query"]
+                q = build_decodo_query(term, domains=domains)
                 actions.append(
                     {
                         "term": term,

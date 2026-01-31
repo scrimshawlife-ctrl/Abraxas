@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/classify_term_input.json",
+  "title": "Classify Term Input",
+  "description": "Input schema for forecast.term.classify capability",
+  "type": "object",
+  "required": ["profile"],
+  "properties": {
+    "profile": {
+      "type": "object",
+      "description": "A2 profile dict with classification fields",
+      "properties": {
+        "consensus_gap_term": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Consensus gap for the term [0,1]"
+        },
+        "half_life_days": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Half-life in days (>=0)"
+        },
+        "manipulation_risk": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Manipulation risk score [0,1]"
+        },
+        "momentum": {
+          "type": "string",
+          "description": "Momentum indicator (rising, surging, spiking, etc.)"
+        },
+        "flags": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Classification flags (CONSENSUS_MISSING, etc.)"
+        }
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for classify_term, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.term.classify",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": false
+  }
+}

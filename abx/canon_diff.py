@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-# build_canon_diff replaced by evolve.canon_diff.build capability
+from abraxas.evolve.canon_diff import build_canon_diff
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -25,39 +25,20 @@ def main() -> int:
     p.add_argument("--value-ledger", default="out/value_ledgers/canon_diff_runs.jsonl")
     args = p.parse_args()
 
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
+    json_path, md_path, meta = build_canon_diff(
         run_id=args.run_id,
-        subsystem_id="abx.canon_diff",
-        git_hash="unknown"
+        out_reports_dir=args.out_reports,
+        candidate_policy_path=args.candidate_policy,
+        epp_path=args.epp,
+        evogate_path=args.evogate,
+        rim_manifest_path=args.rim,
+        canon_snapshot_path=args.canon_snapshot,
     )
-
-    # Build canon diff via capability contract
-    canon_diff_result = invoke_capability(
-        "evolve.canon_diff.build",
-        {
-            "run_id": args.run_id,
-            "out_reports_dir": args.out_reports,
-            "candidate_policy_path": args.candidate_policy,
-            "epp_path": args.epp,
-            "evogate_path": args.evogate,
-            "rim_manifest_path": args.rim,
-            "canon_snapshot_path": args.canon_snapshot
-        },
-        ctx=ctx,
-        strict_execution=True
-    )
-    json_path = canon_diff_result["json_path"]
-    md_path = canon_diff_result["md_path"]
-    meta = canon_diff_result["meta"]
-
-    # Append to value ledger via capability contract
+    # Use capability contract for ledger append
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.canon_diff", git_hash="unknown")
     invoke_capability(
-        capability="evolve.ledger.append",
-        inputs={
-            "ledger_path": args.value_ledger,
-            "record": {"run_id": args.run_id, "canon_diff_json": json_path, "meta": meta}
-        },
+        "evolve.ledger.append",
+        {"path": args.value_ledger, "record": {"run_id": args.run_id, "canon_diff_json": json_path, "meta": meta}},
         ctx=ctx,
         strict_execution=True
     )

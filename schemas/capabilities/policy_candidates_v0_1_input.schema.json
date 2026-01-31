@@ -1,13 +1,21 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/policy_candidates_v0_1_input.json",
   "title": "Policy Candidates v0.1 Input",
   "description": "Input schema for forecast.policy.candidates_v0_1 capability",
   "type": "object",
   "properties": {
     "seed": {
-      "type": ["integer", "null"],
-      "description": "Optional seed for SEED compliance"
+      "type": "integer",
+      "description": "Optional deterministic seed (unused, kept for consistency)"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.policy.candidates_v0_1",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": false
+  }
 }

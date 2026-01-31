@@ -6,8 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-# horizon_bucket replaced by forecast.horizon.classify capability
-# candidates_v0_1 replaced by forecast.policy.candidates_v0_1 capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -106,16 +104,13 @@ def main() -> int:
             continue
         res = str(oc.get("result") or "")
         y = 1 if res == "hit" else 0
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
+        h_result = invoke_capability("forecast.horizon.bucket", {"horizon": pr.get("horizon")}, ctx=ctx, strict_execution=True)
         row = {
             "pred_id": pid,
             "p": float(pr.get("p") or 0.5),
             "y": y,
-            "h": invoke_capability(
-                "forecast.horizon.classify",
-                {"horizon": pr.get("horizon")},
-                ctx=ctx,
-                strict_execution=True
-            )["horizon_bucket"],
+            "h": h_result["bucket"],
             "dmx": _dmx_bucket(pr),
         }
         resolved_rows.append(row)
@@ -140,15 +135,9 @@ def main() -> int:
     for bucket, (n, sb) in shadow_counts.items():
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
-    # Load policy candidates via capability contract
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
-    cand_result = invoke_capability(
-        "forecast.policy.candidates_v0_1",
-        {},
-        ctx=ctx,
-        strict_execution=True
-    )
-    cand = cand_result["candidates"]
+    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand = cand_result["policy_candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 
     def eval_candidate(bucket: str, thr: Dict[str, float]) -> Dict[str, Any]:

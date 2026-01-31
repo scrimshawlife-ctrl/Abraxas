@@ -6,9 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-# horizon_bucket replaced by forecast.horizon.classify capability
-# load_term_class_map replaced by forecast.term_class_map.load capability
-# candidates_v0_1 replaced by forecast.policy.candidates_v0_1 capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -98,18 +95,14 @@ def main() -> int:
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
 
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.horizon_policy_select_tc",
-        git_hash="unknown"
-    )
-    term_class = invoke_capability(
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
+    term_class_result = invoke_capability(
         "forecast.term_class_map.load",
         {"a2_phase_path": a2_path},
         ctx=ctx,
         strict_execution=True
-    )["term_class_map"]
+    )
+    term_class = term_class_result["term_class_map"]
 
     resolved: List[Dict[str, Any]] = []
     for pr in preds:
@@ -124,17 +117,14 @@ def main() -> int:
         y = 1 if res == "hit" else 0
         tk = _term_key(pr)
         cls = term_class.get(tk, "unknown") if tk else "unknown"
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
+        h_result = invoke_capability("forecast.horizon.bucket", {"horizon": pr.get("horizon")}, ctx=ctx, strict_execution=True)
         resolved.append(
             {
                 "pred_id": pid,
                 "p": float(pr.get("p") or 0.5),
                 "y": y,
-                "h": invoke_capability(
-                    "forecast.horizon.classify",
-                    {"horizon": pr.get("horizon")},
-                    ctx=ctx,
-                    strict_execution=True
-                )["horizon_bucket"],
+                "h": h_result["bucket"],
                 "dmx": _dmx_bucket(pr),
                 "class": cls,
             }
@@ -143,15 +133,8 @@ def main() -> int:
     window = resolved[-int(args.window_resolved) :] if resolved else []
     roll = _rolling_stats(window)
 
-    # Load policy candidates via capability contract
-    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
-    cand_result = invoke_capability(
-        "forecast.policy.candidates_v0_1",
-        {},
-        ctx=ctx,
-        strict_execution=True
-    )
-    cand = cand_result["candidates"]
+    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand = cand_result["policy_candidates"]
     buckets = ("LOW", "MED", "HIGH", "UNKNOWN")
     classes = ("stable", "emerging", "volatile", "contested", "unknown")
 
