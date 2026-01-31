@@ -45,6 +45,9 @@ def run(payload: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
         "rune_id": "sdct.digit_motif.v1",
         "input_hash": input_hash,
         "schema_versions": {"sdct": "v0.1"},
+        "run_id": ctx.get("run_id"),
+        "date": date,
+        "runtime_lexicon_hash": ctx.get("runtime_lexicon_hash"),
     }
 
     evidence_rows: List[Dict[str, Any]] = []

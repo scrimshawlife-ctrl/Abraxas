@@ -29,7 +29,11 @@ def test_sdct_rune_determinism() -> None:
             "2": "evt-beta",
         },
     }
-    ctx = {"run_id": "run-0001"}
+    ctx = {
+        "run_id": "run-0001",
+        "date": "2026-01-24",
+        "runtime_lexicon_hash": "test-hash-123",
+    }
 
     first = invoke_rune("sdct.text_subword.v1", payload, ctx)
     second = invoke_rune("sdct.text_subword.v1", payload, ctx)
