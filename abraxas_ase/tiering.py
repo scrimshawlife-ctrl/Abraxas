@@ -103,8 +103,6 @@ def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_
         base["key_fingerprint"] = key_fp
 
     if tier_norm == "psychonaut":
-        if "sdct" in base:
-            base.pop("sdct", None)
         base["summary"] = {
             "high_tap_tokens": len(report.get("high_tap_tokens", [])),
             "tier2_hits": report.get("stats", {}).get("tier2_hits", 0),

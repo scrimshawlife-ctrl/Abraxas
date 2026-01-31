@@ -53,6 +53,9 @@ def run(payload: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
         "schema_versions": {"sdct": "v0.1"},
         "grid_params": grid_params,
         "spec_id": "square_constraints.v1",
+        "run_id": ctx.get("run_id"),
+        "date": date,
+        "runtime_lexicon_hash": ctx.get("runtime_lexicon_hash"),
     }
 
     evidence_rows: List[Dict[str, Any]] = []
