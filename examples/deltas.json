@@ -1,0 +1,39 @@
+{
+  "deltas": [
+    {
+      "domain_a": "crypto",
+      "domain_b": "social",
+      "key": "bitcoin",
+      "delta": 0.85,
+      "observed_at_utc": "2025-12-20T10:30:00Z"
+    },
+    {
+      "domain_a": "crypto",
+      "domain_b": "news",
+      "key": "regulation",
+      "delta": 0.72,
+      "observed_at_utc": "2025-12-20T11:15:00Z"
+    },
+    {
+      "domain_a": "tech",
+      "domain_b": "finance",
+      "key": "ai",
+      "delta": 0.91,
+      "observed_at_utc": "2025-12-20T09:45:00Z"
+    },
+    {
+      "domain_a": "social",
+      "domain_b": "news",
+      "key": "sentiment",
+      "delta": 0.68,
+      "observed_at_utc": "2025-12-20T12:00:00Z"
+    },
+    {
+      "domain_a": "crypto",
+      "domain_b": "tech",
+      "key": "blockchain",
+      "delta": 0.79,
+      "observed_at_utc": "2025-12-20T08:30:00Z"
+    }
+  ]
+}

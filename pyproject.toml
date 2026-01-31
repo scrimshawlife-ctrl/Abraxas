@@ -44,6 +44,7 @@ server = [
     "pdfplumber>=0.11.0",
     "python-docx>=1.1.0",
     "sentence-transformers>=2.2.0",
+    "websockets>=12.0",
 ]
 
 lens = [
@@ -51,6 +52,11 @@ lens = [
     "uvicorn[standard]>=0.27.0",
     "jinja2>=3.1.0",
     "python-multipart>=0.0.9",
+]
+
+# PostgreSQL support
+postgres = [
+    "psycopg2-binary>=2.9.0",
 ]
 
 # Development dependencies
@@ -66,10 +72,11 @@ full = [
 ]
 
 [project.scripts]
-# CLI entry point
-abx = "abraxas.cli.app:app"
+# CLI entry points
+abx = "abx.cli:main"
 abraxas = "abraxas.cli.main:main"
 abraxas-ase = "abraxas_ase.cli:main"
+abraxas-oracle = "abraxas.oracle.cli:main"
 
 [project.entry-points."abx.plugins"]
 abraxas = "abraxas.plugin:register"
@@ -86,6 +93,7 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
             "abraxas.economics", "abraxas.governance", "abraxas.lens",
             "abraxas.modules", "abraxas.modules.gtx", "abraxas.modules.gtx.sim",
+            "abraxas.oracle", "abraxas.lexicon", "abraxas.events", "abraxas.api",
             "abx", "abx.util", "abx.runtime", "abx.assets",
             "abx.overlays", "abx.core", "abx.server", "abx.ingest",
             "abraxas.io", "abraxas.web", "abraxas.render",
