@@ -200,7 +200,7 @@ Most critical blockers (P0) and high-priority items (P1) have been resolved. Act
 - [ ] Multi-Domain Analysis expansion
 
 #### Technical Improvements
-- [ ] Continue ABX-Runes coupling migration for remaining files
+- [x] ABX-Runes coupling migration (data flow violations resolved, 4 CLI exceptions documented)
 - [ ] Address remaining placeholder comments in non-critical paths
 - [ ] Expand test coverage beyond 33%
 
@@ -222,11 +222,11 @@ Active conflict branches:
 
 ### Active Stubs
 
-#### ABX-Runes Coupling Violations (In Progress)
-- **Count:** ~70 remaining violations across ~30 files
+#### ABX-Runes Coupling Violations (Nearly Complete)
+- **Count:** 4 remaining violations in `abx/cli.py` (CLI sub-app mounts)
+- **Status:** Data flow violations resolved; remaining are UI composition (Typer sub-app mounting)
+- **Acceptable exceptions:** CLI sub-app imports (`aalmanac_app`, `aalmanac_review_app`, `lens_app`, `register_kite`)
 - **Documentation:** `docs/migration/coupling_violations_inventory.md`
-- **Top areas:** forecast, evolve, memetic, conspiracy modules
-- **Action:** Migrate 10-15 violations per sprint
 
 ### Resolved Items
 
