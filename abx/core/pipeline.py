@@ -11,8 +11,7 @@ from abx.oracle.rune_gate import compute_gate, enforce_depth, schedule_insight_w
 from abx.oracle.drift import drift_check, append_drift_log
 from abx.oracle.provenance import stamp
 from abraxas.runes.ctx import RuneInvocationContext
-from abraxas.core.oracle_runner import run_oracle as run_kernel_oracle
-from abraxas.io.config import UserConfig, OverlaysConfig
+from abraxas.runes.invoke import invoke_capability
 
 
 def run_oracle(
@@ -97,19 +96,20 @@ def run_oracle(
         checkin = input_obj.get("checkin") or context.get("checkin")
         timestamp_utc = input_obj.get("timestamp_utc") or context.get("timestamp_utc") or "1970-01-01T00:00:00Z"
 
-        user_config = (
-            UserConfig.from_dict(user_payload)
-            if isinstance(user_payload, dict)
-            else UserConfig.default()
-        )
-        overlays_config = (
-            OverlaysConfig.from_dict(overlays_payload)
-            if isinstance(overlays_payload, dict)
-            else OverlaysConfig.default()
+        # Invoke oracle kernel via capability contract (ABX-Runes compliant)
+        oracle_result = invoke_capability(
+            "oracle.kernel.run",
+            {
+                "user": user_payload if isinstance(user_payload, dict) else {},
+                "overlays": overlays_payload if isinstance(overlays_payload, dict) else {},
+                "day": day,
+                "checkin": checkin,
+            },
+            ctx=rune_ctx,
+            strict_execution=strict_execution,
         )
 
-        oracle_outputs = run_kernel_oracle(user_config, overlays_config, day, checkin=checkin)
-        readout = dict(oracle_outputs.readout)
+        readout = dict(oracle_result.get("readout") or {})
         provenance = dict(readout.get("provenance", {}) or {})
         if provenance:
             provenance["timestamp_utc"] = timestamp_utc

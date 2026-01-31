@@ -194,15 +194,33 @@ Most critical blockers (P0) and high-priority items (P1) have been resolved. Act
 
 ### Active Work
 
+#### Session Handoff (2026-01-31)
+**Branch:** `claude/review-todo-list-QG5be`
+**Commits this session:**
+1. `ec504d0` - Migrate `abx/core/pipeline.py` to ABX-Runes capability contracts
+2. `35e66ae` - Add tests for `oracle.kernel.run` capability (3 tests)
+3. `c22b222` - Update CLAUDE.md marking coupling migration complete
+4. `07441fe` - Add session handoff notes
+5. `65f7246` - Add tests for runtime/device_fingerprint (5 tests)
+6. `3c5bb8b` - Add tests for runtime/concurrency (6 tests)
+
+**New capability added:** `oracle.kernel.run` in `abraxas/core/rune_adapter.py`
+**Tests added:** 14 new tests across 3 files, all passing
+
 #### Roadmap Features
 - [ ] Resonance Narratives (human-readable output layer)
 - [ ] UI Dashboard (after Oracle v2 artifacts stabilize)
 - [ ] Multi-Domain Analysis expansion
 
 #### Technical Improvements
-- [ ] Continue ABX-Runes coupling migration for remaining files
+- [x] ABX-Runes coupling migration (data flow violations resolved, 4 CLI exceptions documented)
 - [ ] Address remaining placeholder comments in non-critical paths
 - [ ] Expand test coverage beyond 33%
+
+#### Suggested Next Steps
+1. **Placeholder cleanup** - Run `grep -r "TODO\|FIXME\|XXX" abraxas/ --include="*.py" | wc -l` to scope
+2. **Test coverage** - Priority modules: `abraxas/runtime/`, `abraxas/ers/`
+3. **Resonance Narratives** - Large feature, needs design doc first
 
 ### Branch Conflicts
 
@@ -222,11 +240,11 @@ Active conflict branches:
 
 ### Active Stubs
 
-#### ABX-Runes Coupling Violations (In Progress)
-- **Count:** ~70 remaining violations across ~30 files
+#### ABX-Runes Coupling Violations (Nearly Complete)
+- **Count:** 4 remaining violations in `abx/cli.py` (CLI sub-app mounts)
+- **Status:** Data flow violations resolved; remaining are UI composition (Typer sub-app mounting)
+- **Acceptable exceptions:** CLI sub-app imports (`aalmanac_app`, `aalmanac_review_app`, `lens_app`, `register_kite`)
 - **Documentation:** `docs/migration/coupling_violations_inventory.md`
-- **Top areas:** forecast, evolve, memetic, conspiracy modules
-- **Action:** Migrate 10-15 violations per sprint
 
 ### Resolved Items
 
