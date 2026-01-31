@@ -1,34 +1,46 @@
 {
-  "$id": "sdct.motif.v0",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sdct.motif.v0",
+  "title": "SDCT Motif Schema v0",
+  "description": "Schema for Motif objects extracted by SDCT cartridges.",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "domain_id",
-    "motif_id",
-    "motif_len",
-    "motif_complexity",
-    "lane_hint"
-  ],
   "properties": {
     "domain_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.v[0-9]+$",
+      "description": "Domain that extracted this motif"
     },
     "motif_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.v[0-9]+:.+$",
+      "description": "Namespaced motif identifier"
     },
     "motif_text": {
-      "type": "string"
+      "type": ["string", "null"],
+      "description": "Human-readable motif text (optional for non-text domains)"
     },
     "motif_len": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 1,
+      "description": "Length of the motif"
     },
     "motif_complexity": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Normalized complexity score [0,1]"
     },
     "lane_hint": {
-      "type": "string"
+      "type": "string",
+      "enum": ["candidate", "shadow", "canary", "core"],
+      "description": "Suggested lane classification"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Domain-specific metadata",
+      "additionalProperties": true
     }
-  }
+  },
+  "required": ["domain_id", "motif_id", "motif_len", "motif_complexity", "lane_hint"],
+  "additionalProperties": false
 }

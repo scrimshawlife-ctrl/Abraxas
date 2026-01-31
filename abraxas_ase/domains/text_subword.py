@@ -1,218 +1,329 @@
+"""
+SDCT v0.1 - TextSubwordCartridge (Cartridge #0)
+
+Wraps the existing ASE text/anagram logic as a domain cartridge.
+Extracts subword motifs from text tokens using letter-pool containment.
+
+This is the reference implementation for SDCT cartridges.
+"""
 from __future__ import annotations
 
-from collections import Counter, defaultdict
-from typing import Iterable, List, Optional, Sequence
+from collections import Counter
+from dataclasses import dataclass, field
+from typing import Dict, FrozenSet, List, Optional, Set
 
-from ..lexicon import Lexicon
-from ..normalize import extract_tokens, filter_token, is_stopish, normalize_token, split_hyphenated
-from ..scoring import letter_entropy, stable_round, token_anagram_potential
-from ..types import ExactCollision, SubAnagramHit, TokenRec
-from .types import DomainDescriptor, Motif, NormalizedEvidence
+from ..lexicon import Lexicon, build_default_lexicon
+from ..lexicon_runtime import load_canary_words
+from ..normalize import (
+    extract_tokens,
+    filter_token,
+    is_stopish,
+    normalize_token,
+    split_hyphenated,
+)
+from ..scoring import letter_entropy, token_anagram_potential
 
-
-def _letters_sorted(tok: str) -> str:
-    # tok already normalized; strip hyphen/apostrophe for letter pool
-    bare = tok.replace("-", "").replace("'", "")
-    return "".join(sorted(bare))
-
-
-def _can_spell(parent_letters: Counter, sub: str) -> bool:
-    need = Counter(sub)
-    for ch, n in need.items():
-        if parent_letters.get(ch, 0) < n:
-            return False
-    return True
+from .cartridge import BaseCartridge
+from .types import DomainDescriptor, Motif, NormalizedEvidence, RawItem
 
 
-def _token_records_for_item(item: dict, lex: Lexicon, min_len: int = 4) -> List[TokenRec]:
-    out: List[TokenRec] = []
-    item_id = str(item.get("id", ""))
-    source = str(item.get("source", ""))
-    blob = f"{item.get('title', '')}\n{item.get('text', '')}"
-    raw_tokens = extract_tokens(blob)
-    for raw in raw_tokens:
-        nt = normalize_token(raw)
-        if not nt:
-            continue
-        if is_stopish(nt, set(lex.stopwords)):
-            continue
-        cand = [nt]
-        if "-" in nt:
-            cand.extend(split_hyphenated(nt))
-        for t in cand:
-            if not filter_token(t, min_len=min_len):
-                continue
-            ls = _letters_sorted(t)
-            if not ls:
-                continue
-            ent = letter_entropy(ls)
-            ul = len(set(ls))
-            tap = token_anagram_potential(len(ls), ul)
-            out.append(TokenRec(
-                token=t,
-                norm=t,
-                letters_sorted=ls,
-                length=len(ls),
-                unique_letters=ul,
-                letter_entropy=float(ent),
-                tap=float(tap),
-                item_id=item_id,
-                source=source,
-            ))
-    return sorted(out, key=lambda r: (r.letters_sorted, r.norm, r.source, r.item_id))
+# -----------------------------------------------------------------------------
+# SymbolObject: domain-specific internal representation
+# -----------------------------------------------------------------------------
 
 
-def build_token_records(items: List[dict], lex: Lexicon, min_len: int = 4) -> List[TokenRec]:
-    out: List[TokenRec] = []
-    for it in items:
-        out.extend(_token_records_for_item(it, lex=lex, min_len=min_len))
-    return sorted(out, key=lambda r: (r.letters_sorted, r.norm, r.source, r.item_id))
+@dataclass(frozen=True)
+class TokenInfo:
+    """Information about a single token."""
+
+    token: str  # Normalized token text
+    letters_sorted: str  # Sorted letter pool
+    length: int
+    unique_letters: int
+    letter_entropy: float
+    tap: float  # Token Anagram Potential
 
 
-def tier1_exact_collisions(recs: List[TokenRec], min_sources: int = 2) -> List[ExactCollision]:
-    bucket: dict[str, List[TokenRec]] = defaultdict(list)
-    for r in recs:
-        bucket[r.letters_sorted].append(r)
+@dataclass(frozen=True)
+class TextSymbol:
+    """
+    Domain-specific symbol object for text.subword domain.
 
-    collisions: List[ExactCollision] = []
-    for k, rs in bucket.items():
-        toks = sorted({x.norm for x in rs})
-        if len(toks) < 2:
-            continue
-        sources = sorted({x.source for x in rs})
-        if len(sources) < min_sources:
-            continue
-        ids = sorted({x.item_id for x in rs})
-        collisions.append(ExactCollision(letters_sorted=k, tokens=toks, sources=sources, item_ids=ids))
+    Contains all tokens extracted from an item, with their letter pools.
+    """
 
-    return sorted(collisions, key=lambda c: (c.letters_sorted, c.tokens))
+    item_id: str
+    source: str
+    tokens: tuple[TokenInfo, ...]  # Immutable, deterministically ordered
+
+    def get_letter_pools(self) -> Dict[str, Counter]:
+        """Get letter pool Counter for each token."""
+        return {t.token: Counter(t.letters_sorted) for t in self.tokens}
 
 
-def tier2_subanagrams(
-    recs: List[TokenRec],
-    lex: Lexicon,
-    min_sub_len: int = 3,
-    canary_subwords: Optional[set[str]] = None,
-) -> List[SubAnagramHit]:
-    core = sorted([w for w in lex.subwords if len(w) >= min_sub_len])
-    canary = sorted([w for w in (canary_subwords or set()) if len(w) >= min_sub_len and w not in lex.subwords])
-    subs_all = core + canary
-    hits: List[SubAnagramHit] = []
-    for r in recs:
-        parent = Counter(r.letters_sorted)
-        for sub in subs_all:
-            if _can_spell(parent, sub):
-                lane = "core" if sub in lex.subwords else "canary"
-                hits.append(SubAnagramHit(
-                    token=r.norm,
-                    sub=sub,
-                    tier=2,
-                    verified=True,
-                    lane=lane,
-                    item_id=r.item_id,
-                    source=r.source,
-                ))
-    uniq = {}
-    for h in hits:
-        key = (h.token, h.sub, h.lane, h.item_id, h.source)
-        uniq[key] = h
-    out = list(uniq.values())
-    return sorted(out, key=lambda h: (h.sub, h.token, h.source, h.item_id))
+# -----------------------------------------------------------------------------
+# TextSubwordCartridge
+# -----------------------------------------------------------------------------
 
 
-def high_tap_tokens(recs: List[TokenRec], top_k: int = 25) -> List[dict]:
-    best: dict[str, TokenRec] = {}
-    for r in recs:
-        prev = best.get(r.norm)
-        if prev is None or r.tap > prev.tap:
-            best[r.norm] = r
-    ranked = sorted(best.values(), key=lambda r: (-r.tap, -r.letter_entropy, r.norm))
-    ranked = ranked[:top_k]
-    out: List[dict] = []
-    for r in ranked:
-        out.append({
-            "token": r.norm,
-            "tap": stable_round(r.tap),
-            "letter_entropy": stable_round(r.letter_entropy),
-            "length": r.length,
-            "unique_letters": r.unique_letters,
-        })
-    return out
+class TextSubwordCartridge(BaseCartridge[TextSymbol]):
+    """
+    Text Subword Motif Cartridge (Cartridge #0).
 
+    Extracts subword motifs from text tokens via letter-pool containment.
+    This is the ASE Tier-2 matching logic wrapped as a cartridge.
 
-class TextSubwordCartridge:
-    domain_id = "text.subword.v1"
+    Configuration:
+        - min_token_len: Minimum token length (default: 4)
+        - min_sub_len: Minimum subword length (default: 3)
+        - lexicon: Lexicon with stopwords and core subwords
+        - canary_subwords: Additional canary-lane subwords
+    """
+
+    DOMAIN_ID = "text.subword.v1"
+    DOMAIN_VERSION = "1.0.0"
 
     def __init__(
         self,
         *,
-        lexicon: Lexicon,
-        canary_subwords: Optional[Iterable[str]] = None,
+        lexicon: Optional[Lexicon] = None,
+        canary_subwords: Optional[FrozenSet[str]] = None,
         min_token_len: int = 4,
         min_sub_len: int = 3,
     ) -> None:
-        self._lexicon = lexicon
-        self._canary_subwords = sorted(set(canary_subwords or []))
+        self._lexicon = lexicon or build_default_lexicon()
+        self._canary_subwords = canary_subwords or frozenset()
         self._min_token_len = min_token_len
         self._min_sub_len = min_sub_len
 
-        core = sorted([w for w in lexicon.subwords if len(w) >= min_sub_len])
-        canary = sorted([
-            w for w in self._canary_subwords
-            if len(w) >= min_sub_len and w not in lexicon.subwords
-        ])
-        self._subs_all: Sequence[str] = core + canary
+        # Pre-compute sorted subword lists for determinism
+        self._core_subs = tuple(
+            sorted(w for w in self._lexicon.subwords if len(w) >= self._min_sub_len)
+        )
+        self._canary_subs = tuple(
+            sorted(
+                w
+                for w in self._canary_subwords
+                if len(w) >= self._min_sub_len and w not in self._lexicon.subwords
+            )
+        )
+        self._all_subs = self._core_subs + self._canary_subs
 
     def descriptor(self) -> DomainDescriptor:
         return DomainDescriptor(
-            domain_id=self.domain_id,
+            domain_id=self.DOMAIN_ID,
             domain_name="Text Subword Motifs",
-            domain_version="1.0.0",
+            domain_version=self.DOMAIN_VERSION,
             motif_kind="subword",
             alphabet="a-z",
-            constraints=["alpha_only", "min_len>=3"],
-            params_schema_id="sdct.domain_params.v0",
+            constraints=frozenset(
+                [
+                    "alpha_only",
+                    f"min_token_len>={self._min_token_len}",
+                    f"min_sub_len>={self._min_sub_len}",
+                ]
+            ),
+            params_schema_id="sdct.text_subword.params.v0",
         )
 
-    def encode(self, item: dict) -> List[TokenRec]:
-        return _token_records_for_item(item, lex=self._lexicon, min_len=self._min_token_len)
+    def encode(self, item: RawItem) -> TextSymbol:
+        """
+        Encode a raw item into a TextSymbol.
 
-    def extract_motifs(self, sym: List[TokenRec]) -> List[Motif]:
+        Extracts all valid tokens with their letter pools.
+        """
+        blob = f"{item.title}\n{item.text}"
+        raw_tokens = extract_tokens(blob)
+
+        tokens: List[TokenInfo] = []
+        seen: Set[str] = set()  # Dedupe by (token, letters)
+
+        for raw in raw_tokens:
+            nt = normalize_token(raw)
+            if not nt:
+                continue
+            if is_stopish(nt, set(self._lexicon.stopwords)):
+                continue
+
+            # Include joined hyphenated token + split parts
+            candidates = [nt]
+            if "-" in nt:
+                candidates.extend(split_hyphenated(nt))
+
+            for t in candidates:
+                if not filter_token(t, min_len=self._min_token_len):
+                    continue
+
+                ls = self._letters_sorted(t)
+                if not ls:
+                    continue
+
+                key = (t, ls)
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                ent = letter_entropy(ls)
+                ul = len(set(ls))
+                tap = token_anagram_potential(len(ls), ul)
+
+                tokens.append(
+                    TokenInfo(
+                        token=t,
+                        letters_sorted=ls,
+                        length=len(ls),
+                        unique_letters=ul,
+                        letter_entropy=float(ent),
+                        tap=float(tap),
+                    )
+                )
+
+        # Deterministic ordering
+        tokens_sorted = sorted(tokens, key=lambda x: (x.letters_sorted, x.token))
+
+        return TextSymbol(
+            item_id=item.id,
+            source=item.source,
+            tokens=tuple(tokens_sorted),
+        )
+
+    def extract_motifs(self, symbol: TextSymbol) -> List[Motif]:
+        """
+        Extract subword motifs from tokens via letter-pool containment.
+
+        For each token, find all subwords that can be spelled from its letters.
+        """
         motifs: List[Motif] = []
-        for rec in sym:
-            parent = Counter(rec.letters_sorted)
-            for sub in self._subs_all:
-                if _can_spell(parent, sub):
-                    lane = "core" if sub in self._lexicon.subwords else "canary"
-                    motifs.append(Motif(
-                        domain_id=self.domain_id,
-                        motif_id=f"subword:{sub}",
+        seen: Set[str] = set()  # Dedupe by motif_id
+
+        for token_info in symbol.tokens:
+            parent_letters = Counter(token_info.letters_sorted)
+
+            for sub in self._all_subs:
+                if not self._can_spell(parent_letters, sub):
+                    continue
+
+                lane = "core" if sub in self._lexicon.subwords else "canary"
+                motif_id = self.make_motif_id(sub)
+
+                if motif_id in seen:
+                    continue
+                seen.add(motif_id)
+
+                # Complexity: ratio of subword length to token length (normalized)
+                complexity = len(sub) / max(token_info.length, 1)
+
+                motifs.append(
+                    Motif(
+                        domain_id=self.DOMAIN_ID,
+                        motif_id=motif_id,
                         motif_text=sub,
                         motif_len=len(sub),
-                        motif_complexity=1.0,
+                        motif_complexity=complexity,
                         lane_hint=lane,
-                    ))
-        return motifs
+                        metadata={
+                            "source_token": token_info.token,
+                            "tap": token_info.tap,
+                        },
+                    )
+                )
+
+        # Deterministic ordering by (lane, motif_text)
+        return sorted(motifs, key=lambda m: (m.lane_hint, m.motif_text))
 
     def emit_evidence(
         self,
-        item: dict,
+        item: RawItem,
         motifs: List[Motif],
         event_key: str,
     ) -> List[NormalizedEvidence]:
-        item_id = str(item.get("id", ""))
-        source = str(item.get("source", ""))
+        """
+        Emit normalized evidence for each motif.
+
+        Each motif-item pair produces one NormalizedEvidence row.
+        """
         evidence: List[NormalizedEvidence] = []
+
         for motif in motifs:
-            evidence.append(NormalizedEvidence(
-                domain_id=motif.domain_id,
-                motif_id=motif.motif_id,
-                item_id=item_id,
-                source=source,
-                event_key=event_key,
-                mentions=1,
-                signals={"tap": 0.0, "sas": 0.0, "pfdi": 0.0},
-                tags={"lane": motif.lane_hint, "tier": 2},
-                provenance={},
-            ))
-        return evidence
+            # Extract TAP from metadata if present
+            tap = motif.metadata.get("tap", 0.0) if motif.metadata else 0.0
+
+            evidence.append(
+                NormalizedEvidence(
+                    domain_id=self.DOMAIN_ID,
+                    motif_id=motif.motif_id,
+                    item_id=item.id,
+                    source=item.source,
+                    event_key=event_key,
+                    mentions=1,
+                    signals={"tap": float(tap)},
+                    tags={
+                        "lane": motif.lane_hint,
+                        "tier": 2,
+                    },
+                )
+            )
+
+        # Deterministic ordering
+        return sorted(
+            evidence, key=lambda e: (e.motif_id, e.source, e.item_id)
+        )
+
+    # -------------------------------------------------------------------------
+    # Helpers (same logic as engine.py)
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def _letters_sorted(tok: str) -> str:
+        """Get sorted letter pool for a token."""
+        bare = tok.replace("-", "").replace("'", "")
+        return "".join(sorted(bare))
+
+    @staticmethod
+    def _can_spell(parent_letters: Counter, sub: str) -> bool:
+        """Check if subword can be spelled from parent letter pool."""
+        need = Counter(sub)
+        for ch, n in need.items():
+            if parent_letters.get(ch, 0) < n:
+                return False
+        return True
+
+
+# -----------------------------------------------------------------------------
+# Factory function for common configurations
+# -----------------------------------------------------------------------------
+
+
+def create_text_subword_cartridge(
+    *,
+    lexicon: Optional[Lexicon] = None,
+    lanes_dir: Optional[str] = None,
+    min_token_len: int = 4,
+    min_sub_len: int = 3,
+) -> TextSubwordCartridge:
+    """
+    Create a TextSubwordCartridge with common configuration.
+
+    Args:
+        lexicon: Custom lexicon (uses default if None)
+        lanes_dir: Path to lanes directory for canary words
+        min_token_len: Minimum token length
+        min_sub_len: Minimum subword length
+
+    Returns:
+        Configured TextSubwordCartridge instance
+    """
+    lex = lexicon or build_default_lexicon()
+    canary_words: FrozenSet[str] = frozenset()
+
+    if lanes_dir:
+        from pathlib import Path
+
+        canary_words = frozenset(load_canary_words(Path(lanes_dir)))
+
+    return TextSubwordCartridge(
+        lexicon=lex,
+        canary_subwords=canary_words,
+        min_token_len=min_token_len,
+        min_sub_len=min_sub_len,
+    )
