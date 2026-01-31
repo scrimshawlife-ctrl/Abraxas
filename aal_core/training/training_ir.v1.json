@@ -1,0 +1,33 @@
+{
+  "schema_version": "aal.training.ir.v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "session_id",
+    "pack_id",
+    "mode",
+    "vectors",
+    "options",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "session_id": {"type": "string"},
+    "pack_id": {"type": "string"},
+    "mode": {
+      "type": "string",
+      "enum": ["drill", "quiz", "diagnostic", "shadow_evaluate"]
+    },
+    "vectors": {"type": "array", "items": {"type": "string"}},
+    "options": {
+      "type": "object",
+      "properties": {
+        "max_items": {"type": "integer"},
+        "seed": {"type": "integer"},
+        "timebox_sec": {"type": "integer"},
+        "strict_mode": {"type": "boolean"}
+      }
+    },
+    "provenance": {"type": "object"}
+  }
+}

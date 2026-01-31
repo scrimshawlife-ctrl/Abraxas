@@ -1,0 +1,10 @@
+{
+  "schema_version": "aal.aalmanac.index.v1",
+  "type": "object",
+  "required": ["by_term", "by_domain", "latest"],
+  "properties": {
+    "by_term": {"type": "object"},
+    "by_domain": {"type": "object"},
+    "latest": {"type": "array", "items": {"type": "string"}}
+  }
+}

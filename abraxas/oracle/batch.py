@@ -9,8 +9,10 @@ from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.oracle.mda_bridge import run_mda_for_oracle
 from abraxas.mda.signal_layer_v2 import mda_to_oracle_signal_v2, shallow_schema_check
 from abraxas.oracle.renderers import render_from_signal_v2
-from abraxas.oracle.packet import OraclePacket, OraclePacketRun, write_packet
+from abraxas.oracle.packet import OraclePacket, OraclePacketRun
 from abraxas.overlays.abx_gt_shadow import try_run_abx_gt_shadow
+from abraxas.training.integrate_v1 import oracle_attach_training_shadow
+from abraxas.oracle.attach_aalmanac_shadow import attach_aalmanac_shadow
 
 
 def _write_text(path: str, text: str) -> None:
@@ -202,7 +204,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         runs=tuple(packet_runs),
         shadow={"abx_gt": try_run_abx_gt_shadow(seed=_shadow_seed(args.seed), context=shadow_context or {})},
     )
-    write_packet(packet, os.path.join(args.out, "oracle_packet.json"))
+    packet_obj = packet.to_json()
+    packet_obj.pop("oracle_packet_hash", None)
+    packet_obj = oracle_attach_training_shadow(packet_obj)
+    packet_obj = attach_aalmanac_shadow(packet_obj)
+    packet_obj["oracle_packet_hash"] = sha256_hex(canonical_json(packet_obj))
+    with open(os.path.join(args.out, "oracle_packet.json"), "w", encoding="utf-8") as f:
+        json.dump(packet_obj, f, ensure_ascii=False, indent=2, sort_keys=True)
     _write_text(os.path.join(args.out, "index.md"), _make_index_md(packet_runs, out_dir=args.out))
     return 0
 
