@@ -96,6 +96,10 @@ export async function analyzeVCMarket(
   ritual: RitualInput
 ): Promise<VCAnalysisResult> {
   const context = ritualToContext(ritual);
+  const ritualTimestamp = Number.isNaN(Date.parse(ritual.date))
+    ? 0
+    : Date.parse(ritual.date);
+  const yearMs = 365 * 24 * 60 * 60 * 1000;
 
   // Create feature vector for industry/region
   const industryHash = hashString(input.industry, ritual.seed);
@@ -105,15 +109,15 @@ export async function analyzeVCMarket(
     industry_momentum: (industryHash % 100) / 100,
     regional_sentiment: (regionHash % 100) / 100,
     horizon_factor: Math.min(1, input.horizonDays / 365),
-    market_cycle:
-      (context.timestamp % (365 * 24 * 60 * 60 * 1000)) / (365 * 24 * 60 * 60 * 1000),
+    market_cycle: (ritualTimestamp % yearMs) / yearMs,
   };
 
   const vector = createPipelineVector(
     features,
     `vc-${input.industry}-${input.region}`,
     ritual.seed,
-    "pipelines/vc-analyzer"
+    "pipelines/vc-analyzer",
+    context.timestamp
   );
 
   // Compute symbolic metrics (optimized with caching)
@@ -194,7 +198,8 @@ async function analyzeSectors(
       features,
       `sector-${sector}`,
       ritual.seed,
-      "vc-analyzer/sector"
+      "vc-analyzer/sector",
+      context.timestamp
     );
 
     const metrics = computeSymbolicMetricsOptimized(vector, context);

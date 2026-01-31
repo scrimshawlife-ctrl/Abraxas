@@ -28,7 +28,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -71,8 +72,7 @@ describe("Symbolic Kernel", () => {
       expect(metrics.NMC).toMatchInlineSnapshot(`-0.11664`);
       expect(metrics.RFR).toMatchInlineSnapshot(`1`);
       expect(metrics.Hσ).toMatchInlineSnapshot(`0.9860472875963129`);
-      // λN has extremely small values with precision variations
-      expect(metrics.λN).toBeCloseTo(2.04e-135, 130);
+      expect(metrics.λN).toMatchInlineSnapshot(`1`);
       expect(metrics.ITC).toMatchInlineSnapshot(`0.95`);
     });
 
@@ -82,7 +82,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -105,14 +106,16 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context1.timestamp
       );
 
       const vector2 = createPipelineVector(
         FIXED_FEATURE_VECTOR,
         "test-subject",
         ALT_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context2.timestamp
       );
 
       const symbolic1: SymbolicVector = { ...vector1, features: vector1.features };
@@ -131,7 +134,8 @@ describe("Symbolic Kernel", () => {
         ZERO_FEATURE_VECTOR,
         "zero-test",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -156,7 +160,8 @@ describe("Symbolic Kernel", () => {
         MAX_FEATURE_VECTOR,
         "max-test",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -179,7 +184,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -200,7 +206,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -213,7 +220,7 @@ describe("Symbolic Kernel", () => {
       const quality2 = aggregateQualityScore(metrics);
 
       expect(quality1).toBe(quality2);
-      expect(quality1).toMatchInlineSnapshot(`0.3262673369430733`);
+      expect(quality1).toMatchInlineSnapshot(`0.4262673369430733`);
     });
 
     it("produces higher quality for low drift and entropy", () => {
@@ -224,7 +231,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -247,7 +255,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -268,14 +277,16 @@ describe("Symbolic Kernel", () => {
         MAX_FEATURE_VECTOR,
         "dense",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const sparseVector = createPipelineVector(
         ZERO_FEATURE_VECTOR,
         "sparse",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const denseMetrics = computeSymbolicMetrics(
@@ -299,7 +310,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {
@@ -319,7 +331,8 @@ describe("Symbolic Kernel", () => {
         FIXED_FEATURE_VECTOR,
         "test-subject",
         FIXED_RITUAL.seed,
-        "test-module"
+        "test-module",
+        context.timestamp
       );
 
       const symbolicVector: SymbolicVector = {

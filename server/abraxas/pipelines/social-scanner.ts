@@ -103,7 +103,8 @@ export function scanSocialTrends(ritual: RitualInput): SocialScanResult {
     aggregateFeatures,
     "social-aggregate",
     ritual.seed,
-    "pipelines/social-scanner"
+    "pipelines/social-scanner",
+    context.timestamp
   );
 
   const aggregateMetrics = computeSymbolicMetricsOptimized(aggregateVector, context);
@@ -116,7 +117,7 @@ export function scanSocialTrends(ritual: RitualInput): SocialScanResult {
       drift: aggregateMetrics.SDR,
       entropy: aggregateMetrics.Hσ,
     },
-    timestamp: Date.now(),
+    timestamp: context.timestamp,
     provenance: {
       seed: ritual.seed,
       runes: ritual.runes.map((r) => r.id),
@@ -158,7 +159,7 @@ function analyzePlatformTrends(
   return {
     platform,
     trends,
-    timestamp: Date.now(),
+    timestamp: context.timestamp,
   };
 }
 
@@ -185,7 +186,8 @@ function analyzeKeywordTrend(
     features,
     `trend-${keyword}`,
     ritual.seed,
-    `social-scanner/${platform}`
+    `social-scanner/${platform}`,
+    context.timestamp
   );
 
   // Compute symbolic metrics

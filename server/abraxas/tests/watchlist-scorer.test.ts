@@ -23,7 +23,7 @@ describe("Watchlist Scorer Pipeline", () => {
       const results = await scoreWatchlists(FIXED_WATCHLISTS, FIXED_RITUAL);
 
       expect(results.metadata.totalProcessed).toMatchInlineSnapshot(`5`);
-      expect(results.metadata.avgQualityScore).toMatchInlineSnapshot(`0.37`);
+      expect(results.metadata.avgQualityScore).toMatchInlineSnapshot(`0.464`);
     });
 
     it("produces different scores for different rituals", async () => {

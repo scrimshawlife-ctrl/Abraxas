@@ -128,6 +128,11 @@ function esotericFeatures({
   };
 }
 
+function parseRitualDate(date: string): Date {
+  const parsed = Date.parse(date);
+  return Number.isNaN(parsed) ? new Date(0) : new Date(parsed);
+}
+
 function sectorGuess(t: string): string {
   if (/(LMT|NOC|RTX|GD|BA)/.test(t)) return "Aerospace & Defense";
   if (/(CVX|XOM|VLO|MPC)/.test(t)) return "Energy";
@@ -170,7 +175,8 @@ async function scoreEquity(
   // Extract features
   const baseFeats = demoFeaturesForTicker(ticker, context.seed);
   const sector = sectorGuess(ticker);
-  const esoteric = esotericFeatures({ name: ticker, sector, now: new Date() });
+  const ritualDate = parseRitualDate(context.date);
+  const esoteric = esotericFeatures({ name: ticker, sector, now: ritualDate });
   const dyn = await evalDynamicIndicators(ticker, { date: context.date, seed: context.seed });
 
   const merged = { ...baseFeats, ...esoteric, ...dyn };
@@ -241,8 +247,9 @@ async function scoreFX(
   const baseFeats = demoFeaturesForPair(pair, context.seed);
   const base = pair.slice(0, 3);
   const quote = pair.slice(3);
-  const eBase = esotericFeatures({ name: base, sector: "Financials", now: new Date() });
-  const eQuote = esotericFeatures({ name: quote, sector: "Financials", now: new Date() });
+  const ritualDate = parseRitualDate(context.date);
+  const eBase = esotericFeatures({ name: base, sector: "Financials", now: ritualDate });
+  const eQuote = esotericFeatures({ name: quote, sector: "Financials", now: ritualDate });
   const eTilt =
     eBase.astro_rul_align - eQuote.astro_rul_align + 0.05 * (eBase.numerology_master - eQuote.numerology_master);
 
@@ -342,7 +349,7 @@ export async function scoreWatchlists(
     metadata: {
       totalProcessed: equities.length + fx.length,
       avgQualityScore: +avgQualityScore.toFixed(3),
-      timestamp: Date.now(),
+      timestamp: context.timestamp,
     },
   };
 }

@@ -27,10 +27,10 @@ describe("VC Analyzer Pipeline", () => {
     it("golden snapshot for fixed ritual", async () => {
       const analysis = await analyzeVCMarket(FIXED_VC_INPUT, FIXED_RITUAL);
 
-      expect(analysis.forecast.dealVolume.prediction).toMatchInlineSnapshot(`969`);
+      expect(analysis.forecast.dealVolume.prediction).toMatchInlineSnapshot(`965`);
       expect(analysis.forecast.dealVolume.confidence).toMatchInlineSnapshot(`0.6`);
       expect(analysis.forecast.hotSectors.length).toMatchInlineSnapshot(`4`);
-      expect(analysis.forecast.qualityScore).toBeCloseTo(0.3525, 3);
+      expect(analysis.forecast.qualityScore).toBeCloseTo(0.504, 3);
     });
 
     it("produces different analysis for different inputs", async () => {

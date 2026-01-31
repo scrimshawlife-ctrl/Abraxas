@@ -33,14 +33,14 @@ describe("Daily Oracle Pipeline", () => {
       const oracle = generateDailyOracle(FIXED_RITUAL, FIXED_METRICS_SNAPSHOT);
 
       // Golden snapshot - should never change
-      expect(oracle.ciphergram).toMatchInlineSnapshot(`"⟟Σ eyJkYXki·OiIyMDI1·LTAxLTE1·IiwidG9u·ZSI6InBy·b2Jpbmci·LCJydW5l·cyI6ImFl·dGhlci1m·bHV4LW5l·eHVzIiwi·cXVhbGl0·eSI6MC4z·NTh9 Σ⟟"`);
+      expect(oracle.ciphergram).toMatchInlineSnapshot(`"⟟Σ eyJkYXki·OiIyMDI1·LTAxLTE1·IiwidG9u·ZSI6InBy·b2Jpbmci·LCJydW5l·cyI6ImFl·dGhlci1m·bHV4LW5l·eHVzIiwi·cXVhbGl0·eSI6MC40·NTh9 Σ⟟"`);
       expect(oracle.tone).toMatchInlineSnapshot(`"probing"`);
       expect(oracle.litany).toMatchInlineSnapshot(`"Patterns shift; truth obscured. The Warrior presides."`);
-      expect(oracle.analysis.quality).toMatchInlineSnapshot(`0.3584012633841397`);
+      expect(oracle.analysis.quality).toMatchInlineSnapshot(`0.45840126338413967`);
       expect(oracle.analysis.drift).toMatchInlineSnapshot(`0.5357708838673487`);
       expect(oracle.analysis.entropy).toMatchInlineSnapshot(`0.9050214153687253`);
       expect(oracle.analysis.resonance).toMatchInlineSnapshot(`0.5245277559264258`);
-      expect(oracle.analysis.confidence).toMatchInlineSnapshot(`0.6325203790152418`);
+      expect(oracle.analysis.confidence).toMatchInlineSnapshot(`0.6625203790152419`);
     });
 
     it("generates different ciphergrams for different rituals", () => {
