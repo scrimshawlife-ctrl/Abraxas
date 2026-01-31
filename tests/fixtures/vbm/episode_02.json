@@ -1,0 +1,5 @@
+{
+  "episode_id": "vbm_02",
+  "title": "Digital Roots and Repeating Decimals",
+  "summary_text": "All numbers reduce to single digits through digital root operations. Repeating decimals exhibit the same pattern, with fractions like 1/7 cycling through specific sequences. The doubling sequence 1, 2, 4, 8, 16, 32 reduces to 1, 2, 4, 8, 7, 5 and repeats. This reduction demonstrates symmetry in number systems. The vortex emerges from visualizing these modular relationships."
+}
