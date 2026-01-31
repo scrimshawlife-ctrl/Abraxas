@@ -1116,6 +1116,18 @@
       "evidence_mode": "observation"
     },
     {
+      "capability_id": "oracle.kernel.run",
+      "rune_id": "\u03df_ORACLE_KERNEL_RUN",
+      "operator_path": "abraxas.core.rune_adapter:run_oracle_kernel_deterministic",
+      "version": "1.0.0",
+      "input_schema": "schemas/capabilities/oracle_kernel_run_input.schema.json",
+      "output_schema": "schemas/capabilities/oracle_kernel_run_output.schema.json",
+      "provenance_required": true,
+      "deterministic": true,
+      "evidence_mode": "prediction_lane",
+      "description": "Kernel-level oracle execution with UserConfig/OverlaysConfig"
+    },
+    {
       "capability_id": "aal.neon_genie.generate.v0",
       "rune_id": "\u03df_NEON_GENIE",
       "operator_path": "abraxas.aal.neon_genie_adapter:generate_symbolic_v0",
