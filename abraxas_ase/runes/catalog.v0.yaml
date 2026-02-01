@@ -43,3 +43,57 @@ runes:
       - digits_only
       - deterministic
       - provenance_required
+
+  - rune_id: sdct.digit_motif.v1
+    module: abraxas_ase.runes.sdct_digit_motif_v1
+    handler: run
+    version: "1.0.0"
+    domain_id: sdct.digit_motif.v1
+    input_schema: sdct/contracts/sdct_domain_params.v0.schema.json
+    output_schema: sdct/contracts/sdct_evidence_row.v0.schema.json
+    tier_allowed:
+      - psychonaut
+      - academic
+      - enterprise
+    description: >
+      Digit motif extraction from text with deterministic evidence rows.
+      Emits motif statistics for SDCT digit motifs.
+    constraints:
+      - deterministic
+      - provenance_required
+
+  - rune_id: sdct.numogram_motif.v1
+    module: abraxas_ase.runes.sdct_numogram_motif_v1
+    handler: run
+    version: "1.0.0"
+    domain_id: sdct.numogram_motif.v1
+    input_schema: sdct/contracts/sdct_domain_params.v0.schema.json
+    output_schema: sdct/contracts/sdct_evidence_row.v0.schema.json
+    tier_allowed:
+      - psychonaut
+      - academic
+      - enterprise
+    description: >
+      Numogram motif extraction via deterministic graph walk.
+      Emits node and edge motif evidence for SDCT analysis.
+    constraints:
+      - deterministic
+      - provenance_required
+
+  - rune_id: sdct.square_constraints.v1
+    module: abraxas_ase.runes.sdct_square_constraints_v1
+    handler: run
+    version: "1.0.0"
+    domain_id: sdct.square_constraints.v1
+    input_schema: sdct/contracts/sdct_domain_params.v0.schema.json
+    output_schema: sdct/contracts/sdct_evidence_row.v0.schema.json
+    tier_allowed:
+      - psychonaut
+      - academic
+      - enterprise
+    description: >
+      Square constraint motifs from letter/digit grids.
+      Emits deterministic evidence for square invariants.
+    constraints:
+      - deterministic
+      - provenance_required

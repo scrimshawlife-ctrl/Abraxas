@@ -1,0 +1,57 @@
+canon_state_version: v0
+system_name: Abraxas
+repo_version: "2.2.0"
+governance_flags:
+  incremental_patch_only: true
+  dual_lane_principle: true
+  deterministic_provenance: true
+  no_invented_scope: true
+subsystems:
+  - key: core
+    path: abraxas/core
+    lane: canon-active
+    implementation_state: implemented
+  - key: oracle_v2
+    path: abraxas/oracle/v2
+    lane: canon-active
+    implementation_state: implemented
+  - key: runes
+    path: abraxas/runes
+    lane: canon-active
+    implementation_state: implemented
+    registries:
+      - abraxas/runes/registry.json
+  - key: overlays
+    path: abraxas/overlays
+    lane: canon-shadow
+    implementation_state: implemented
+    registries:
+      - abraxas/overlays/registry.py
+  - key: runtime
+    path: abraxas/runtime
+    lane: canon-active
+    implementation_state: implemented
+  - key: ers
+    path: abraxas/ers
+    lane: canon-active
+    implementation_state: implemented
+  - key: shadow_metrics
+    path: abraxas/shadow_metrics
+    lane: canon-shadow
+    implementation_state: implemented
+  - key: shadow_detectors
+    path: abraxas/detectors/shadow
+    lane: canon-shadow
+    implementation_state: implemented
+  - key: abx_runtime
+    path: abx
+    lane: canon-active
+    implementation_state: implemented
+  - key: server
+    path: server
+    lane: canon-active
+    implementation_state: implemented
+  - key: client
+    path: client
+    lane: canon-active
+    implementation_state: implemented
