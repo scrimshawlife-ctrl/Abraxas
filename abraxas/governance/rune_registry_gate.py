@@ -11,13 +11,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-try:
-    import yaml  # type: ignore
-except ImportError as exc:  # pragma: no cover - environment-specific dependency
-    raise ImportError(
-        "PyYAML required for rune registry gate. Install via: pip install pyyaml"
-    ) from exc
-
 
 CATALOG_PATH = Path("abraxas_ase") / "runes" / "catalog.v0.yaml"
 DISCOVERY_ROOT = Path("abraxas_ase") / "runes"
@@ -92,25 +85,21 @@ def _load_catalog_ids(
         return rune_ids, catalog_index, notes, defaults, module_targets
 
     try:
-        data = yaml.safe_load(catalog_path.read_text(encoding="utf-8")) or {}
+        entries = parse_catalog_runes(catalog_path)
     except Exception as exc:
         notes.append(
             f"catalog_unreadable: {_relative_path(catalog_path, repo_root)} ({exc})"
         )
         return rune_ids, catalog_index, notes, defaults, module_targets
 
-    runes = data.get("runes", [])
-    if not isinstance(runes, list):
+    if not entries:
         notes.append(
             f"catalog_runes_list_missing: {_relative_path(catalog_path, repo_root)}"
         )
         return rune_ids, catalog_index, notes, defaults, module_targets
 
-    for entry in runes:
-        if not isinstance(entry, dict):
-            continue
-        rune_id = entry.get("rune_id")
-        if isinstance(rune_id, str) and rune_id.strip():
+    for rune_id, entry in entries.items():
+        if rune_id:
             rune_ids.add(rune_id)
             catalog_index.setdefault(rune_id, []).append(
                 _relative_path(catalog_path, repo_root)
@@ -119,7 +108,7 @@ def _load_catalog_ids(
             if isinstance(module_path, str) and module_path.strip():
                 module_targets[rune_id] = module_path
 
-    defaults = _extract_catalog_defaults(runes)
+    defaults = _extract_catalog_defaults(list(entries.values()))
     notes = sorted(set(notes))
     return rune_ids, catalog_index, notes, defaults, module_targets
 
@@ -377,6 +366,68 @@ def _extract_catalog_defaults(runes: Sequence[object]) -> Dict[str, object]:
                 "tier_allowed": list(tier_allowed),
             }
     return {}
+
+
+def parse_catalog_runes(path: Path) -> Dict[str, Dict[str, str]]:
+    """
+    Minimal deterministic parser for catalog.v0.yaml.
+
+    Assumptions:
+    - Top-level `runes:` list
+    - Entries are flat key/value mappings
+    - Only `rune_id` and `module` are required
+    - Comments and blank lines are ignored
+    """
+    entries: Dict[str, Dict[str, str]] = {}
+    current: Dict[str, str] = {}
+    in_runes = False
+
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for raw in lines:
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        if raw.strip() == "runes:":
+            in_runes = True
+            continue
+        if not in_runes:
+            continue
+
+        if raw.startswith("  - "):
+            _finalize_entry(entries, current)
+            current = {}
+            remainder = raw[len("  - "):].strip()
+            _parse_key_value(remainder, current)
+            continue
+
+        if not current:
+            continue
+
+        indent = len(raw) - len(raw.lstrip(" "))
+        if indent < 4:
+            continue
+        if raw.lstrip().startswith("- "):
+            continue
+        _parse_key_value(raw.strip(), current)
+
+    _finalize_entry(entries, current)
+    return entries
+
+
+def _parse_key_value(fragment: str, current: Dict[str, str]) -> None:
+    if ":" not in fragment:
+        return
+    key, value = fragment.split(":", 1)
+    key = key.strip()
+    value = value.strip().strip('"').strip("'")
+    if not key:
+        return
+    current[key] = value
+
+
+def _finalize_entry(entries: Dict[str, Dict[str, str]], current: Dict[str, str]) -> None:
+    rune_id = current.get("rune_id")
+    if rune_id:
+        entries[rune_id] = dict(current)
 
 
 def _infer_handler(text: str) -> str:
