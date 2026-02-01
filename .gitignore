@@ -54,3 +54,13 @@ artifacts_gate/
 !.aal/cap/
 !.aal/cap/GOLDEN_STATE.json
 tools/aatf/.aatf/
+
+# Abraxas sandbox outputs (never commit)
+.sandbox/out/
+.sandbox/ledger/
+.sandbox/tmp/
+
+# MDA run outputs (if placed under sandbox)
+*.invariance_report.json
+*.fusion_graph.json
+*.dsp.json

@@ -1,12 +1,30 @@
 """
-MDA (Multi-Domain Analysis) practice-run engine.
+Abraxas Multi-Domain Analysis (MDA)
 
-This package is intentionally self-contained so it can be exercised in isolation
-from the rest of Abraxas while still emitting canonical output modes:
-- Oracle Log
-- Ritual Map
-- Analyst Console
+Canon: MDA v1.1 (Hierarchical Subdomains)
+- Domain -> Subdomain -> Signal Units
+- Uniform DSP contract
+- Evidence-gated; missing inputs => not_computable
+- Deterministic provenance + invariance support
 """
 
-__all__ = []
+from .registry import DomainRegistryV1
+from .types import (
+    Domain,
+    DomainSignalPack,
+    DSPStatus,
+    EdgeType,
+    FusionGraph,
+    MDARunEnvelope,
+)
+
+__all__ = [
+    "Domain",
+    "DomainSignalPack",
+    "DSPStatus",
+    "EdgeType",
+    "FusionGraph",
+    "MDARunEnvelope",
+    "DomainRegistryV1",
+]
 
