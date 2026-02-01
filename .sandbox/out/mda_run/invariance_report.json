@@ -1,0 +1,16 @@
+{
+  "canon_invariant": true,
+  "drift_class": "none",
+  "dsp_hashes": [
+    "907417e24817c79e04c1624b31382aa8f606e7521e1f42252f027a6ac9a94e5b",
+    "907417e24817c79e04c1624b31382aa8f606e7521e1f42252f027a6ac9a94e5b",
+    "907417e24817c79e04c1624b31382aa8f606e7521e1f42252f027a6ac9a94e5b"
+  ],
+  "fusion_hashes": [
+    "7cfdd4bdd24f53752a1b75c4a883bd0e63deedd4d639c8f48932de1c549e3a83",
+    "7cfdd4bdd24f53752a1b75c4a883bd0e63deedd4d639c8f48932de1c549e3a83",
+    "7cfdd4bdd24f53752a1b75c4a883bd0e63deedd4d639c8f48932de1c549e3a83"
+  ],
+  "input_hash": "e267142988f5310b4cb48071e3b23a0b87ae6dd9815b2e51699cf608ab1b2785",
+  "repeat": 3
+}

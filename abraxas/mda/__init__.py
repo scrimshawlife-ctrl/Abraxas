@@ -1,7 +1,12 @@
 """
-MDA (Practice Sandbox) - deterministic practice runner.
+MDA (Multi-Domain Analysis) practice-run engine.
 
-This module is intentionally lightweight: it exists to provide a stable, repeatable
-"practice run" surface for refactors elsewhere in the codebase.
+This package is intentionally self-contained so it can be exercised in isolation
+from the rest of Abraxas while still emitting canonical output modes:
+- Oracle Log
+- Ritual Map
+- Analyst Console
 """
+
+__all__ = []
 

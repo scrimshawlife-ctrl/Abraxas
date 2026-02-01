@@ -1,92 +1,125 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
+
 import json
 import os
 
 from .registry import DomainRegistryV1
-from .types import FusionGraph, MDARunEnvelope, sha256_hex, stable_json_dumps
+from .types import DomainSignalPack, FusionEdge, FusionGraph, MDARunEnvelope, ScoreVector, sorted_unique_strs
+
+
+def _load_fixture(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _default_scores(events: List[Dict[str, Any]]) -> ScoreVector:
+    # Practice-run heuristic: deterministic, bounded, cheap.
+    n = len(events)
+    impact = 0.0 if n == 0 else min(1.0, n / 10.0)
+    velocity = 0.0 if n < 2 else min(1.0, (n - 1) / 10.0)
+    uncertainty = 1.0 if n == 0 else max(0.0, 1.0 - (n / 20.0))
+    polarity = 0.0
+    return ScoreVector(impact=impact, velocity=velocity, uncertainty=uncertainty, polarity=polarity)
 
 
 def run_mda(
-    envelope: MDARunEnvelope, *, abraxas_version: str, registry: DomainRegistryV1
-) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
-    """
-    Minimal deterministic MDA execution.
+    envelope: MDARunEnvelope,
+    abraxas_version: str,
+    registry: DomainRegistryV1,
+    *,
+    domains: str = "*",
+    subdomains: str = "*",
+) -> Tuple[Tuple[DomainSignalPack, ...], Dict[str, Any]]:
+    fixture = _load_fixture(envelope.fixture_path)
+    vectors = fixture.get("vectors", {}) or {}
 
-    Returns:
-      - dsps: list of per-(domain,subdomain) deterministic projections
-      - out: full payload dict suitable for artifact writing / replay / oracle bridge
-    """
-    vectors = (envelope.inputs or {}).get("vectors") or {}
+    pairs = registry.filter_pairs(domains=domains, subdomains=subdomains)
 
-    enabled_domains = set(envelope.enabled_domains)
-    enabled_sub_keys = set(envelope.enabled_subdomains)
+    dsps: List[DomainSignalPack] = []
+    domain_aggs: Dict[str, Any] = {}
 
-    dsps: List[Dict[str, Any]] = []
-    for domain in registry.domains():
-        if domain not in enabled_domains:
-            continue
-        for sub in registry.subdomains(domain):
-            key = f"{domain}:{sub}"
-            if key not in enabled_sub_keys:
-                continue
+    # Build DSPs.
+    for dom, sub in pairs:
+        events = (vectors.get(dom, {}) or {}).get(sub, []) or []
+        events_list = list(events)
+        scores = _default_scores(events_list)
+        status = "ok" if events_list else "not_computable"
+        evidence_refs = sorted_unique_strs(
+            [e.get("evidence_ref") for e in events_list if isinstance(e, dict)]
+        )
+        dsps.append(
+            DomainSignalPack(
+                domain=dom,
+                subdomain=sub,
+                status=status,
+                scores=scores,
+                events=tuple(events_list),
+                evidence_refs=evidence_refs,
+            )
+        )
 
-            vec = None
-            dom_vec = vectors.get(domain)
-            if isinstance(dom_vec, dict):
-                vec = dom_vec.get(sub)
-
-            status = "ok" if vec is not None else "not_computable"
-            scores = {"impact": 0, "velocity": 0, "uncertainty": 1, "polarity": 0}
-            if isinstance(vec, dict) and isinstance(vec.get("scores"), dict):
-                # keep only known score keys, deterministic defaults
-                for k in list(scores.keys()):
-                    if k in vec["scores"]:
-                        scores[k] = vec["scores"][k]
-
-            dsp = {
-                "domain": domain,
-                "subdomain": sub,
+        # Domain aggregate (simple rollup).
+        # If multiple subdomains exist, keep the max impact / velocity and min uncertainty.
+        agg = domain_aggs.get(dom)
+        if agg is None:
+            domain_aggs[dom] = {
                 "status": status,
-                "window": {"from": envelope.run_at_iso, "to": envelope.run_at_iso},
-                "scores": scores,
-                "events": [] if not (isinstance(vec, dict) and isinstance(vec.get("events"), list)) else vec["events"],
-                "evidence_refs": []
-                if not (isinstance(vec, dict) and isinstance(vec.get("evidence_refs"), list))
-                else vec["evidence_refs"],
-                "provenance": {
-                    "module": "abraxas.mda.run",
-                    "version": str(abraxas_version),
-                    "input_hash": envelope.input_hash(),
-                    "run_seed": envelope.seed,
+                "scores": scores.to_dict(),
+            }
+        else:
+            cur = agg.get("scores", {}) or {}
+            domain_aggs[dom] = {
+                "status": "ok" if (agg.get("status") == "ok" or status == "ok") else "not_computable",
+                "scores": {
+                    "impact": max(float(cur.get("impact", 0.0)), scores.impact),
+                    "velocity": max(float(cur.get("velocity", 0.0)), scores.velocity),
+                    "uncertainty": min(float(cur.get("uncertainty", 1.0)), scores.uncertainty),
+                    "polarity": float(cur.get("polarity", 0.0)),
                 },
             }
-            dsps.append(dsp)
 
-    # Stable ordering for hashing + reproducibility
-    dsps = sorted(dsps, key=lambda d: (d.get("domain", ""), d.get("subdomain", "")))
+    dsps_sorted = tuple(sorted(dsps, key=lambda d: (d.domain, d.subdomain)))
 
-    # Minimal fusion graph: deterministic nodes, no edges (add-only later).
-    nodes = {f"{d['domain']}:{d['subdomain']}": {"status": d["status"]} for d in dsps}
-    fusion_graph: FusionGraph = {"nodes": nodes, "edges": []}
+    # Build a deterministic fusion graph over DSP nodes.
+    nodes: Dict[str, Dict[str, Any]] = {}
+    for d in dsps_sorted:
+        nid = f"dsp:{d.domain}:{d.subdomain}"
+        nodes[nid] = {
+            "kind": "dsp",
+            "domain": d.domain,
+            "subdomain": d.subdomain,
+            "status": d.status,
+        }
+
+    edges: List[FusionEdge] = []
+    node_ids = sorted(nodes.keys())
+    for i in range(len(node_ids) - 1):
+        src = node_ids[i]
+        dst = node_ids[i + 1]
+        edges.append(FusionEdge(src_id=src, dst_id=dst, edge_type="adjacent_dsp", weight=1.0))
+
+    fusion = FusionGraph(nodes=nodes, edges=tuple(edges))
 
     out: Dict[str, Any] = {
-        "envelope": envelope.to_json(),
-        "dsp": dsps,
-        "fusion_graph": fusion_graph,
-        "aggregates": {
-            "dsp_count": len(dsps),
-            "fusion_nodes": len(nodes),
-            "fusion_edges": 0,
+        "envelope": {
+            "env": envelope.env,
+            "seed": envelope.seed,
+            "run_at": envelope.run_at,
+            "input_hash": envelope.input_hash(),
+            "abraxas_version": abraxas_version,
         },
-        "out_hash": sha256_hex(stable_json_dumps({"dsp": dsps, "fusion_graph": fusion_graph})),
+        "domain_aggregates": domain_aggs,
+        "dsp": [d.to_dict() for d in dsps_sorted],
+        "fusion_graph": fusion.to_dict(),
     }
-    return dsps, out
+    return dsps_sorted, out
 
 
-def write_run_artifacts(out: Dict[str, Any], run_dir: str) -> None:
+def write_run_artifacts(payload: Dict[str, Any], run_dir: str) -> None:
     os.makedirs(run_dir, exist_ok=True)
-    with open(os.path.join(run_dir, "out.json"), "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, indent=2, sort_keys=True)
+    with open(os.path.join(run_dir, "payload.json"), "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, sort_keys=True)
+        f.write("\n")
 
