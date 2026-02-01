@@ -90,10 +90,9 @@ def _format_markdown(
     lines.extend(
         [
             "",
-            "## Rune Inventory (sorted)",
+            "## Implemented Runes (code)",
         ]
     )
-    lines.append("### Code (discovered)")
     if not code_ids:
         lines.append("- none")
     else:
@@ -109,7 +108,7 @@ def _format_markdown(
     lines.extend(
         [
             "",
-            "### Catalog",
+            "## Registered Runes (catalog)",
         ]
     )
     if not catalog_ids:
@@ -122,22 +121,26 @@ def _format_markdown(
     lines.extend(
         [
             "",
-            "## Registry coverage",
+            "## Design-Ahead (registered without code)",
         ]
     )
-    lines.append("- missing_registry:")
-    if not missing_registry:
-        lines.append("  - none")
-    else:
-        for rune_id in missing_registry:
-            lines.append(f"  - {rune_id}")
-
-    lines.append("- design_ahead:")
     if not design_ahead:
-        lines.append("  - none")
+        lines.append("- none")
     else:
         for rune_id in design_ahead:
-            lines.append(f"  - {rune_id}")
+            lines.append(f"- {rune_id}")
+
+    lines.extend(
+        [
+            "",
+            "## Registry Drift (should be impossible)",
+        ]
+    )
+    if not missing_registry:
+        lines.append("- none")
+    else:
+        for rune_id in missing_registry:
+            lines.append(f"- ERROR: code rune missing from catalog: {rune_id}")
 
     lines.extend(
         [
@@ -158,6 +161,16 @@ def _format_markdown(
         lines.extend(checklist)
     else:
         lines.append("- none")
+
+    lines.extend(
+        [
+            "",
+            "## Assumptions / Limits",
+            "- Uses filename-based discovery from rune_registry_gate.",
+            "- Uses minimal catalog parser (no external dependencies).",
+            "- Design-ahead entries are reported, not treated as errors.",
+        ]
+    )
 
     return "\n".join(lines) + "\n"
 

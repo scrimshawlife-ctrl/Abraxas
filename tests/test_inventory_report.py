@@ -55,8 +55,8 @@ def test_inventory_report_empty_repo(tmp_path):
     output = build_inventory_report(repo_root=tmp_path)
 
     assert "catalog_status: missing" in output
-    assert "## Rune Inventory (sorted)" in output
-    assert "## Registry coverage" in output
+    assert "## Implemented Runes (code)" in output
+    assert "## Design-Ahead (registered without code)" in output
 
 
 def test_inventory_report_stable_ordering(tmp_path):
@@ -66,8 +66,8 @@ def test_inventory_report_stable_ordering(tmp_path):
 
     output = build_inventory_report(repo_root=tmp_path)
     lines = output.splitlines()
-    start = lines.index("### Code (discovered)") + 1
-    end = lines.index("### Catalog")
+    start = lines.index("## Implemented Runes (code)") + 1
+    end = lines.index("## Registered Runes (catalog)")
     rune_lines = [line for line in lines[start:end] if line.startswith("- ")]
 
     assert "sdct.digit_motif.v1" in rune_lines[0]
