@@ -1,6 +1,6 @@
 # CLAUDE.md - AI Assistant Development Guide for Abraxas
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-02-01
 **Guide Version:** 2.2.4
 **Ecosystem Baseline:** v4.2.0
 **Purpose:** Comprehensive guide for AI assistants working with the Abraxas codebase
@@ -194,19 +194,6 @@ Most critical blockers (P0) and high-priority items (P1) have been resolved. Act
 
 ### Active Work
 
-#### Session Handoff (2026-01-31)
-**Branch:** `claude/review-todo-list-QG5be`
-**Commits this session:**
-1. `ec504d0` - Migrate `abx/core/pipeline.py` to ABX-Runes capability contracts
-2. `35e66ae` - Add tests for `oracle.kernel.run` capability (3 tests)
-3. `c22b222` - Update CLAUDE.md marking coupling migration complete
-4. `07441fe` - Add session handoff notes
-5. `65f7246` - Add tests for runtime/device_fingerprint (5 tests)
-6. `3c5bb8b` - Add tests for runtime/concurrency (6 tests)
-
-**New capability added:** `oracle.kernel.run` in `abraxas/core/rune_adapter.py`
-**Tests added:** 14 new tests across 3 files, all passing
-
 #### Roadmap Features
 - [ ] Resonance Narratives (human-readable output layer)
 - [ ] UI Dashboard (after Oracle v2 artifacts stabilize)
@@ -218,18 +205,9 @@ Most critical blockers (P0) and high-priority items (P1) have been resolved. Act
 - [ ] Expand test coverage beyond 33%
 
 #### Suggested Next Steps
-1. **Placeholder cleanup** - Run `grep -r "TODO\|FIXME\|XXX" abraxas/ --include="*.py" | wc -l` to scope
+1. **Placeholder cleanup** - Run `rg "TODO|FIXME|XXX" abraxas -g "*.py" | wc -l` to scope
 2. **Test coverage** - Priority modules: `abraxas/runtime/`, `abraxas/ers/`
 3. **Resonance Narratives** - Large feature, needs design doc first
-
-### Branch Conflicts
-
-**Note:** Branch conflict resolution is tracked in separate branches. See `CONFLICT_RESOLUTION_GUIDE.md` for resolution strategies.
-
-Active conflict branches:
-- `claude/resolve-merge-conflicts-Vg6qy` - Acceptance tests + Dashboard
-- `cursor/mda-signal-layer-v2-2c0d` - MDA package
-- `cursor/oracle-bridge-mda-canary-87a3` - MDA engine + Oracle bridge
 
 ---
 
@@ -2159,7 +2137,7 @@ See `docs/migration/abx_runes_coupling.md` for detailed migration guide.
 **When changing `abx/` and any cross-subsystem boundary**
 
 - Run coupling lint:
-  - `grep -r "from abraxas\." abx/ --include="*.py" | grep -v "abraxas.runes" | grep -v "abraxas.core.provenance"`
+  - `rg "from abraxas\." abx -g "*.py" | rg -v "abraxas.runes" | rg -v "abraxas.core.provenance"`
 - If you add a new capability:
   - Add JSON schemas under `schemas/capabilities/`
   - Register it in `abraxas/runes/registry.json`

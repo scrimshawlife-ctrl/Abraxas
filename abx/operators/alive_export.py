@@ -6,6 +6,8 @@ Exports ALIVE field signature to various formats (JSON, CSV, PDF).
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 from typing import Any, Dict, Literal
 
@@ -59,8 +61,9 @@ class ALIVEExportOperator:
         elif format == "csv":
             return self._export_csv(parsed_signature)
         elif format == "pdf":
-            # TODO: Implement PDF export
-            raise NotImplementedError("PDF export not yet implemented")
+            raise NotImplementedError(
+                "PDF export requires an external renderer and is not implemented"
+            )
         else:
             raise ValueError(f"Unknown export format: {format}")
 
@@ -70,31 +73,37 @@ class ALIVEExportOperator:
 
     def _export_csv(self, signature: Dict[str, Any]) -> str:
         """Export as CSV."""
-        # TODO: Implement CSV export with proper formatting
-        # For now, return a simple CSV representation
-        lines = [
-            "metric_id,metric_version,axis,value,confidence,timestamp",
-        ]
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(
+            [
+                "metric_id",
+                "metric_version",
+                "axis",
+                "value",
+                "confidence",
+                "timestamp",
+            ]
+        )
 
-        for metric in signature.get("influence", []):
-            lines.append(
-                f"{metric['metricId']},{metric['metricVersion']},influence,"
-                f"{metric['value']},{metric['confidence']},{metric['timestamp']}"
-            )
+        for axis, metrics in (
+            ("influence", signature.get("influence", [])),
+            ("vitality", signature.get("vitality", [])),
+            ("life_logistics", signature.get("lifeLogistics", [])),
+        ):
+            for metric in metrics:
+                writer.writerow(
+                    [
+                        metric.get("metricId", ""),
+                        metric.get("metricVersion", ""),
+                        axis,
+                        metric.get("value", ""),
+                        metric.get("confidence", ""),
+                        metric.get("timestamp", ""),
+                    ]
+                )
 
-        for metric in signature.get("vitality", []):
-            lines.append(
-                f"{metric['metricId']},{metric['metricVersion']},vitality,"
-                f"{metric['value']},{metric['confidence']},{metric['timestamp']}"
-            )
-
-        for metric in signature.get("lifeLogistics", []):
-            lines.append(
-                f"{metric['metricId']},{metric['metricVersion']},life_logistics,"
-                f"{metric['value']},{metric['confidence']},{metric['timestamp']}"
-            )
-
-        return "\n".join(lines)
+        return output.getvalue().rstrip("\r\n")
 
     def __call__(
         self,
