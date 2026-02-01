@@ -141,6 +141,11 @@ def high_tap_tokens(recs: List[TokenRec], top_k: int = 25) -> List[dict]:
 
 
 class TextSubwordCartridge:
+    """
+    LEGACY CARTRIDGE: This class uses domain_id "text.subword.v1" for backward compatibility.
+    The SDCT rune-based system uses "sdct.text_subword.v1" instead (see abraxas_ase/sdct/domains/text_subword.py).
+    This legacy implementation is not used in the current rune-based engine (see abraxas_ase/engine.py).
+    """
     domain_id = "text.subword.v1"
 
     def __init__(
