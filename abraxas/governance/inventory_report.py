@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .rune_registry_gate import CATALOG_PATH, _discover_rune_ids, parse_catalog_runes
+from . import rune_registry_gate
 
 
 @dataclass(frozen=True)
@@ -36,17 +36,25 @@ def build_inventory_report(repo_root: Optional[Path] = None) -> str:
     )
 
 
+def run_inventory_report(repo_root: Optional[Path] = None) -> Tuple[int, str]:
+    repo_root = Path(repo_root) if repo_root else _default_repo_root()
+    output = build_inventory_report(repo_root=repo_root)
+    catalog_entries, catalog_status = _load_catalog_entries(repo_root)
+    exit_code = 1 if catalog_status.status != "ok" else 0
+    return exit_code, output
+
+
 def _discover_code_runes(repo_root: Path) -> Tuple[Dict[str, Any], List[str]]:
-    discovered, _, notes = _discover_rune_ids(repo_root)
+    discovered, _, notes = rune_registry_gate._discover_rune_ids(repo_root)
     return discovered, notes
 
 
 def _load_catalog_entries(repo_root: Path) -> Tuple[Dict[str, Dict[str, str]], CatalogStatus]:
-    catalog_path = repo_root / CATALOG_PATH
+    catalog_path = repo_root / rune_registry_gate.CATALOG_PATH
     if not catalog_path.exists():
         return {}, CatalogStatus(status="missing", notes=["catalog_missing"])
     try:
-        entries = parse_catalog_runes(catalog_path)
+        entries = rune_registry_gate.parse_catalog_runes(catalog_path)
     except Exception as exc:
         return {}, CatalogStatus(
             status="unreadable",
@@ -84,6 +92,19 @@ def _format_markdown(
         lines.append("- notes:")
         for note in discovery_notes:
             lines.append(f"  - {note}")
+        for note in catalog_status.notes:
+            lines.append(f"  - {note}")
+
+    lines.extend(
+        [
+            "",
+            "## Catalog Status",
+        ]
+    )
+    if catalog_status.status == "ok":
+        lines.append("- ok")
+    else:
+        lines.append(f"- not_computable: {catalog_status.status}")
         for note in catalog_status.notes:
             lines.append(f"  - {note}")
 
@@ -151,9 +172,18 @@ def _format_markdown(
 
     checklist = []
     for rune_id in missing_registry:
-        checklist.append(f"- [ ] Add registry + Notion entry: {rune_id}")
+        checklist.append(f"- [ ] Fix registry drift for rune_id: {rune_id}")
+    for rune_id in code_ids:
+        checklist.append(
+            f"- [ ] Create/Update Notion registry page for rune_id: {rune_id}"
+        )
+        checklist.append(
+            f"- [ ] Confirm lane + tier_allowed + schema paths for rune_id: {rune_id}"
+        )
     for rune_id in design_ahead:
-        checklist.append(f"- [ ] Review design-ahead rune: {rune_id}")
+        checklist.append(
+            f"- [ ] If design-ahead, mark Implementation State: DESIGN-LOCKED for rune_id: {rune_id}"
+        )
     if catalog_status.status != "ok":
         checklist.append("- [ ] Catalog unavailable; restore catalog.v0.yaml")
 
@@ -188,8 +218,9 @@ def _default_repo_root() -> Path:
 
 
 def main() -> None:
-    report = build_inventory_report()
+    exit_code, report = run_inventory_report()
     print(report, end="")
+    raise SystemExit(exit_code)
 
 
 if __name__ == "__main__":
