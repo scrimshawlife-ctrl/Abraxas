@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- governance: add canon_state + drift_check v0.1
 - Kernel routing and deterministic handlers for `weather.generate`, `ser.run`, `daemon.ingest`, and `edge.deploy_orin`
 - Oracle v2 factory wiring for lifecycle, tau, weather registry, integrity composites, and AAlmanac context
 - Kernel and patch registry tests covering new rune routing and proposal-only patch receipts
