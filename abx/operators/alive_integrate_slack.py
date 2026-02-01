@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from typing import Any, Dict
+from urllib import error, request
 
 # ALIVEFieldSignature replaced by alive.parse_field_signature capability
 from abraxas.runes.invoke import invoke_capability
@@ -66,11 +67,19 @@ class ALIVESlackIntegrationOperator:
         # Format message
         message = self._format_slack_message(parsed_signature, channel)
 
-        # TODO: Actually send to Slack webhook
-        # For now, just return the formatted message
+        if not self.webhook_url:
+            return {
+                "status": "stub",
+                "message": "Slack webhook URL not configured",
+                "formatted_message": message,
+            }
+
+        send_result = self._post_webhook(message)
         return {
-            "status": "stub",
-            "message": "Slack integration not yet fully implemented",
+            "status": send_result["status"],
+            "message": send_result["message"],
+            "http_status": send_result["http_status"],
+            "response": send_result["response"],
             "formatted_message": message,
         }
 
@@ -135,6 +144,43 @@ class ALIVESlackIntegrationOperator:
                 },
             ],
         }
+
+    def _post_webhook(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        payload = json.dumps(message).encode("utf-8")
+        req = request.Request(
+            self.webhook_url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
+        try:
+            with request.urlopen(req, timeout=10) as resp:
+                status_code = resp.status
+                response_body = resp.read().decode("utf-8").strip()
+            return {
+                "status": "sent",
+                "message": "Slack webhook delivered",
+                "http_status": status_code,
+                "response": response_body,
+            }
+        except error.HTTPError as exc:
+            response_body = ""
+            if exc.fp is not None:
+                response_body = exc.fp.read().decode("utf-8").strip()
+            return {
+                "status": "error",
+                "message": "Slack webhook failed",
+                "http_status": exc.code,
+                "response": response_body or str(exc),
+            }
+        except error.URLError as exc:
+            return {
+                "status": "error",
+                "message": "Slack webhook failed",
+                "http_status": None,
+                "response": str(exc),
+            }
 
     def __call__(
         self,
