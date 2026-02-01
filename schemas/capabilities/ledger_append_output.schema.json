@@ -4,30 +4,22 @@
   "title": "Ledger Append Output",
   "description": "Output schema for evolve.ledger.append capability",
   "type": "object",
-  "required": ["step_hash", "prev_hash", "provenance"],
+  "required": ["success", "step_hash", "provenance"],
   "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "True if the append operation succeeded, false otherwise"
+    },
     "step_hash": {
       "oneOf": [
         {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$",
-          "description": "SHA-256 hash of the appended entry (forms the hash chain)"
+          "description": "SHA-256 hash of the appended entry (step_hash)"
         },
         {
           "type": "null",
-          "description": "Null if not computable"
-        }
-      ]
-    },
-    "prev_hash": {
-      "oneOf": [
-        {
-          "type": "string",
-          "description": "Previous hash in chain ('genesis' if first entry, or SHA-256 hash)"
-        },
-        {
-          "type": "null",
-          "description": "Null if not computable"
+          "description": "Null if append failed"
         }
       ]
     },
@@ -60,7 +52,7 @@
         },
         {
           "type": "null",
-          "description": "Null if not computable"
+          "description": "Null if operation failed"
         }
       ]
     },
@@ -72,7 +64,7 @@
           "properties": {
             "reason": {
               "type": "string",
-              "description": "Explanation of why result is not computable"
+              "description": "Explanation of why operation failed"
             },
             "missing_inputs": {
               "type": "array",
@@ -83,7 +75,7 @@
         },
         {
           "type": "null",
-          "description": "Null if result was computed successfully"
+          "description": "Null if operation succeeded"
         }
       ]
     }
@@ -94,6 +86,7 @@
     "version": "1.0.0",
     "deterministic": true,
     "no_influence_guarantee": false,
-    "evidence_mode": "ledger_integrity"
+    "evidence_mode": "mutation",
+    "side_effects": true
   }
 }

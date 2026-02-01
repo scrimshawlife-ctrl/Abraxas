@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/horizon_bucket_input.json",
+  "title": "Horizon Bucket Input",
+  "description": "Input schema for forecast.horizon.bucket capability",
+  "type": "object",
+  "required": ["horizon"],
+  "properties": {
+    "horizon": {
+      "description": "Horizon value to normalize (string, number, or null)"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for horizon bucket, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.horizon.bucket",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": false
+  }
+}

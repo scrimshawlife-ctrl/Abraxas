@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-# horizon_bucket replaced by forecast.horizon.classify capability
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -57,10 +56,7 @@ def _choose_max_horizon(allowed: Dict[str, bool]) -> str:
     return best
 
 
-def _rolling_stats(
-    window: List[Dict[str, Any]],
-    stats_ctx: RuneInvocationContext,
-) -> Dict[str, Dict[str, Dict[str, Any]]]:
+def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
     bucket -> horizon -> {n,brier}
     """
@@ -75,12 +71,8 @@ def _rolling_stats(
     for b, hmap in tmp.items():
         by[b] = {}
         for h, d in hmap.items():
-            result = invoke_capability(
-                "forecast.scoring.brier",
-                {"probs": d["p"], "outcomes": d["y"]},
-                ctx=stats_ctx,
-                strict_execution=True,
-            )
+            ctx = RuneInvocationContext(run_id="ROLLING_STATS", subsystem_id="abx.horizon_policy_select", git_hash="unknown")
+            result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
             by[b][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return by
 
@@ -96,20 +88,9 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.horizon_policy_select",
-        git_hash="unknown",
-    )
-    stats_ctx = RuneInvocationContext(
-        run_id=f"{args.run_id}_ROLLING_STATS",
-        subsystem_id=ctx.subsystem_id,
-        git_hash=ctx.git_hash,
-    )
     preds = _read_jsonl(args.pred_ledger)
     outs = _read_jsonl(args.out_ledger)
     outs_by = {str(o.get("pred_id")): o for o in outs if o.get("pred_id")}
-    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
 
     resolved_rows: List[Dict[str, Any]] = []
     pair: Dict[str, Dict[str, Dict[str, Any]]] = {}
@@ -123,16 +104,13 @@ def main() -> int:
             continue
         res = str(oc.get("result") or "")
         y = 1 if res == "hit" else 0
+        ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
+        h_result = invoke_capability("forecast.horizon.bucket", {"horizon": pr.get("horizon")}, ctx=ctx, strict_execution=True)
         row = {
             "pred_id": pid,
             "p": float(pr.get("p") or 0.5),
             "y": y,
-            "h": invoke_capability(
-                "forecast.horizon.classify",
-                {"horizon": pr.get("horizon")},
-                ctx=ctx,
-                strict_execution=True,
-            )["horizon_bucket"],
+            "h": h_result["bucket"],
             "dmx": _dmx_bucket(pr),
         }
         resolved_rows.append(row)
@@ -141,7 +119,7 @@ def main() -> int:
         pair.setdefault(base, {})[role] = row
 
     window = resolved_rows[-int(args.window_resolved) :] if resolved_rows else []
-    roll = _rolling_stats(window, stats_ctx)
+    roll = _rolling_stats(window)
 
     shadow_rate: Dict[str, float] = {}
     shadow_counts: Dict[str, List[int]] = {}
@@ -157,12 +135,9 @@ def main() -> int:
     for bucket, (n, sb) in shadow_counts.items():
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
-    cand = invoke_capability(
-        "forecast.policy_candidates.v0_1",
-        {},
-        ctx=ctx,
-        strict_execution=True
-    )["candidates"]
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
+    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand = cand_result["policy_candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 
     def eval_candidate(bucket: str, thr: Dict[str, float]) -> Dict[str, Any]:

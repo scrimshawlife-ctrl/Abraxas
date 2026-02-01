@@ -1,11 +1,9 @@
 """
-MDA (Multi-Domain Analysis) practice-run engine.
+MDA (Memetic Drift Analysis) - sandbox practice rig.
 
-This package is intentionally self-contained so it can be exercised in isolation
-from the rest of Abraxas while still emitting canonical output modes:
-- Oracle Log
-- Ritual Map
-- Analyst Console
+This package is intentionally small and deterministic. It exists primarily to
+support test-driven governance patterns (golden pinning + drift classification)
+without coupling to runtime decision systems.
 """
 
 __all__ = []

@@ -34,7 +34,7 @@ def main() -> int:
     p.add_argument("--out", default=".sandbox/out/mda_run", help="Output directory")
     p.add_argument("--env", default="sandbox", choices=["sandbox", "dev", "prod"])
     p.add_argument("--seed", type=int, default=1337)
-    p.add_argument("--run-at", dest="run_at_iso", default="2026-01-01T00:00:00Z")
+    p.add_argument("--run-at", default="2026-01-01T00:00:00Z")
     p.add_argument("--mode", default="analyst", choices=["oracle", "ritual", "analyst"])
     p.add_argument("--emit-md", action="store_true", help="Write mode markdown outputs per run")
     p.add_argument("--repeat", type=int, default=12)
@@ -50,10 +50,7 @@ def main() -> int:
     registry = DomainRegistryV1.from_vectors(vectors)
 
     envelope = MDARunEnvelope(
-        env=str(args.env),
-        run_at_iso=str(args.run_at_iso),
-        seed=int(args.seed),
-        fixture_path=str(args.fixture),
+        env=args.env, seed=int(args.seed), run_at=str(args.run_at), fixture_path=str(args.fixture)
     )
 
     dsp_runs: List[Tuple[Any, ...]] = []

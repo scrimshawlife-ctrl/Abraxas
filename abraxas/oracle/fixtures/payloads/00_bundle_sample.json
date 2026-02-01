@@ -1,0 +1,13 @@
+{
+  "bundle_id": "sample_001",
+  "vectors": {
+    "tech_ai": {
+      "foundation_models": {
+        "scores": { "impact": 0.3, "velocity": 0.4, "uncertainty": 0.6, "polarity": 0.0 },
+        "events": [],
+        "evidence_refs": ["ref:bundle:sample_001"]
+      }
+    }
+  }
+}
+

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/load_term_class_map_input.json",
+  "title": "Load Term Class Map Input",
+  "description": "Input schema for forecast.term_class_map.load capability",
+  "type": "object",
+  "required": ["a2_phase_path"],
+  "properties": {
+    "a2_phase_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Path to A2 phase artifact JSON file"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for load_term_class_map, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.term_class_map.load",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": false
+  }
+}

@@ -1,99 +1,101 @@
 {
-  "$id": "sdct.evidence_row.v0",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sdct.evidence_row.v0",
+  "title": "SDCT Normalized Evidence Row Schema v0",
+  "description": "Schema for NormalizedEvidence emitted by SDCT cartridges via ABX-Runes.",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "domain_id",
-    "motif_id",
-    "item_id",
-    "source",
-    "event_key",
-    "mentions",
-    "signals",
-    "tags",
-    "provenance"
-  ],
   "properties": {
     "domain_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.v[0-9]+$",
+      "description": "Domain identifier that produced this evidence"
     },
     "motif_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.v[0-9]+:.+$",
+      "description": "Namespaced motif identifier ({domain_id}:{motif_text})"
     },
     "item_id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "description": "Source item identifier (may be keyed in academic/enterprise tiers)"
     },
     "source": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "description": "Source identifier (e.g., 'reuters', 'ap')"
     },
     "event_key": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "description": "Cluster/event key for grouping (keyed in academic/enterprise tiers)"
     },
     "mentions": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Number of mentions in this item"
     },
     "signals": {
       "type": "object",
-      "additionalProperties": false,
+      "description": "Domain-specific signal values",
       "properties": {
         "tap": {
-          "type": "number"
+          "type": "number",
+          "description": "Token Anagram Potential"
         },
         "sas": {
-          "type": "number"
+          "type": "number",
+          "description": "Subword Aggregation Score"
         },
         "pfdi": {
-          "type": "number"
+          "type": "number",
+          "description": "Phrase-Field Drift Index"
+        },
+        "complexity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Normalized complexity score"
         }
-      }
+      },
+      "additionalProperties": true
     },
     "tags": {
       "type": "object",
-      "additionalProperties": false,
+      "description": "Classification tags",
       "properties": {
         "lane": {
-          "type": "string"
+          "type": "string",
+          "enum": ["candidate", "shadow", "canary", "core"],
+          "description": "Lane classification"
         },
         "tier": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Match tier (1=exact, 2=subword, 3=derived)"
         }
-      }
+      },
+      "additionalProperties": true
     },
     "provenance": {
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "run_id",
-        "date",
-        "schema_versions",
-        "runtime_lexicon_hash",
-        "input_hash"
-      ],
+      "description": "Provenance metadata (attached by rune adapter)",
       "properties": {
-        "run_id": {
-          "type": "string"
-        },
-        "date": {
-          "type": "string"
-        },
-        "schema_versions": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "runtime_lexicon_hash": {
+        "rune_id": {
           "type": "string"
         },
         "input_hash": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         },
-        "key_fingerprint": {
-          "type": "string"
+        "run_id": {
+          "type": ["string", "null"]
         }
-      }
+      },
+      "additionalProperties": true
     }
-  }
+  },
+  "required": ["domain_id", "motif_id", "item_id", "source", "event_key", "mentions"],
+  "additionalProperties": false
 }

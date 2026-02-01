@@ -6,8 +6,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from abraxas.runes.ctx import RuneInvocationContext
+# apply_disinfo_metrics replaced by disinfo.apply.metrics capability
 from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -56,19 +57,21 @@ def main() -> int:
         ),
         "context": {"dmx": {"overall_manipulation_risk": 0.0, "bucket": "UNKNOWN"}},
     }
+
+    # Apply disinfo metrics via capability contract
     ctx = RuneInvocationContext(
-        run_id=bundle["bundle_id"],
+        run_id=bundle.get("bundle_id", "UNKNOWN"),
         subsystem_id="abx.evidence_ingest",
         git_hash="unknown"
     )
     disinfo_result = invoke_capability(
-        "disinfo.metrics.apply",
+        "disinfo.apply.metrics",
         {"item": b_item},
         ctx=ctx,
         strict_execution=True
     )
-    enriched_item = disinfo_result.get("item", {})
-    bundle["disinfo_labels"] = enriched_item.get("disinfo")
+    b_item = disinfo_result["enriched_item"]
+    bundle["disinfo_labels"] = b_item.get("disinfo")
 
     out_path = os.path.join(args.out_dir, f"{bundle['bundle_id']}.json")
     _write_json(out_path, bundle)

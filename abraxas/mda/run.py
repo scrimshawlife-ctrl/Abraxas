@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 
 import json
+import os
 
 from .registry import DomainRegistryV1
 from .types import DomainSignalPack, FusionEdge, FusionGraph, MDARunEnvelope, ScoreVector, sorted_unique_strs
@@ -23,86 +24,31 @@ def _default_scores(events: List[Dict[str, Any]]) -> ScoreVector:
     return ScoreVector(impact=impact, velocity=velocity, uncertainty=uncertainty, polarity=polarity)
 
 
-def _coerce_events(node: Any) -> List[Dict[str, Any]]:
-    if node is None:
-        return []
-    if isinstance(node, list):
-        return [e for e in node if isinstance(e, dict)]
-    if isinstance(node, dict):
-        events = node.get("events", []) or []
-        if isinstance(events, list):
-            return [e for e in events if isinstance(e, dict)]
-    return []
-
-
-def _extract_scores(node: Any, events: List[Dict[str, Any]]) -> ScoreVector:
-    if isinstance(node, dict):
-        scores = node.get("scores")
-        if isinstance(scores, dict):
-            return ScoreVector(
-                impact=float(scores.get("impact", 0.0)),
-                velocity=float(scores.get("velocity", 0.0)),
-                uncertainty=float(scores.get("uncertainty", 1.0)),
-                polarity=float(scores.get("polarity", 0.0)),
-            )
-    return _default_scores(events)
-
-
-def _extract_evidence_refs(node: Any, events: List[Dict[str, Any]]) -> Tuple[str, ...]:
-    refs: List[str] = []
-    if isinstance(node, dict):
-        refs.extend([str(x) for x in (node.get("evidence_refs") or []) if str(x).strip()])
-
-    # Also harvest evidence refs from nested claims if present.
-    for ev in events:
-        claims = ev.get("claims") or []
-        if not isinstance(claims, list):
-            continue
-        for c in claims:
-            if not isinstance(c, dict):
-                continue
-            refs.extend([str(x) for x in (c.get("evidence_refs") or []) if str(x).strip()])
-
-    return sorted_unique_strs(refs)
-
-
 def run_mda(
     envelope: MDARunEnvelope,
     abraxas_version: str,
     registry: DomainRegistryV1,
     *,
-    domains: str | Tuple[str, ...] = "*",
-    subdomains: str | Tuple[str, ...] = "*",
+    domains: str = "*",
+    subdomains: str = "*",
 ) -> Tuple[Tuple[DomainSignalPack, ...], Dict[str, Any]]:
-    # Prefer in-memory inputs (v1.1 canary path). Fall back to fixture file if provided.
-    if envelope.inputs and isinstance(envelope.inputs.get("vectors"), dict):
-        vectors = envelope.inputs.get("vectors", {}) or {}
-    elif envelope.fixture_path:
-        fixture = _load_fixture(envelope.fixture_path)
-        vectors = fixture.get("vectors", {}) or {}
-    else:
-        vectors = {}
+    fixture = _load_fixture(envelope.fixture_path)
+    vectors = fixture.get("vectors", {}) or {}
 
-    # Determine filtering contract:
-    # - if the envelope declares enabled_* sets, use those
-    # - else fall back to call-time params (legacy CLI)
-    eff_domains: str | Tuple[str, ...] = envelope.enabled_domains if envelope.enabled_domains else domains
-    eff_subdomains: str | Tuple[str, ...] = (
-        envelope.enabled_subdomains if envelope.enabled_subdomains else subdomains
-    )
-
-    pairs = registry.filter_pairs(domains=eff_domains, subdomains=eff_subdomains)
+    pairs = registry.filter_pairs(domains=domains, subdomains=subdomains)
 
     dsps: List[DomainSignalPack] = []
     domain_aggs: Dict[str, Any] = {}
 
     # Build DSPs.
     for dom, sub in pairs:
-        node = (vectors.get(dom, {}) or {}).get(sub)
-        events_list = _coerce_events(node)
-        scores = _extract_scores(node, events_list)
+        events = (vectors.get(dom, {}) or {}).get(sub, []) or []
+        events_list = list(events)
+        scores = _default_scores(events_list)
         status = "ok" if events_list else "not_computable"
-        evidence_refs = _extract_evidence_refs(node, events_list)
+        evidence_refs = sorted_unique_strs(
+            [e.get("evidence_ref") for e in events_list if isinstance(e, dict)]
+        )
         dsps.append(
             DomainSignalPack(
                 domain=dom,
@@ -160,7 +106,7 @@ def run_mda(
         "envelope": {
             "env": envelope.env,
             "seed": envelope.seed,
-            "run_at_iso": envelope.run_at_iso,
+            "run_at": envelope.run_at,
             "input_hash": envelope.input_hash(),
             "abraxas_version": abraxas_version,
         },
@@ -172,9 +118,6 @@ def run_mda(
 
 
 def write_run_artifacts(payload: Dict[str, Any], run_dir: str) -> None:
-    # Legacy helper kept for CLI usage (filesystem-writing practice runner).
-    import os
-
     os.makedirs(run_dir, exist_ok=True)
     with open(os.path.join(run_dir, "payload.json"), "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, sort_keys=True)

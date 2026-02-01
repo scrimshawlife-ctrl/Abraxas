@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compression Detection Input",
+  "description": "Input schema for compression.detect capability",
+  "type": "object",
+  "properties": {
+    "text_event": {
+      "type": ["string", "null"],
+      "description": "Single text event (optional if records provided)"
+    },
+    "records": {
+      "type": ["array", "null"],
+      "description": "List of record dicts with 'text' field",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "text": {"type": "string"}
+        },
+        "required": ["text"]
+      }
+    },
+    "lexicon": {
+      "type": "array",
+      "description": "List of canonical/variant token pairs",
+      "items": {
+        "type": "object",
+        "properties": {
+          "canonical": {"type": "string"},
+          "variants": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "required": ["canonical"]
+      },
+      "default": []
+    },
+    "config": {
+      "type": "object",
+      "description": "Optional configuration (supports 'domain' field)",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "description": "Domain label for analysis context",
+          "default": "general"
+        }
+      },
+      "default": {}
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Deterministic seed for provenance"
+    }
+  },
+  "additionalProperties": false
+}

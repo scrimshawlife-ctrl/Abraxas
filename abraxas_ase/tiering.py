@@ -56,6 +56,37 @@ def _scrub_fields(obj: Any, *, include_urls: bool) -> Any:
     return obj
 
 
+def _scrub_rune_evidence_rows(domains: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Remove per-item evidence_rows from domain rune data (for psychonaut tier).
+
+    Preserves: motif_stats, provenance (without input_hash details)
+    Removes: evidence_rows, cluster_maps
+    """
+    scrubbed = {}
+    for domain_id, data in domains.items():
+        if not isinstance(data, dict):
+            scrubbed[domain_id] = data
+            continue
+
+        cleaned = {}
+        for k, v in data.items():
+            # Remove per-item evidence rows for lower tiers
+            if k in {"evidence_rows", "cluster_map", "item_to_cluster"}:
+                continue
+            # Summarize provenance
+            if k == "provenance" and isinstance(v, dict):
+                cleaned[k] = {
+                    "rune_id": v.get("rune_id"),
+                    "rune_version": v.get("rune_version"),
+                    "schema_versions": v.get("schema_versions"),
+                }
+            else:
+                cleaned[k] = v
+        scrubbed[domain_id] = cleaned
+    return scrubbed
+
+
 def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_urls: bool) -> Dict[str, Any]:
     tier_norm = (tier or "psychonaut").lower()
     key_fp = report.get("key_fingerprint")
@@ -72,8 +103,6 @@ def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_
         base["key_fingerprint"] = key_fp
 
     if tier_norm == "psychonaut":
-        if "sdct" in base:
-            base.pop("sdct", None)
         base["summary"] = {
             "high_tap_tokens": len(report.get("high_tap_tokens", [])),
             "tier2_hits": report.get("stats", {}).get("tier2_hits", 0),
@@ -82,6 +111,9 @@ def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_
         base["high_tap_tokens"] = report.get("high_tap_tokens", [])[:10]
         sas_rows = report.get("sas", {}).get("rows", [])[:20]
         base["sas"] = {"rows": sas_rows}
+        # For psychonaut: scrub rune evidence rows if present
+        if "domains" in report:
+            base["domains"] = _scrub_rune_evidence_rows(report.get("domains", {}))
         return base
 
     if tier_norm == "academic":

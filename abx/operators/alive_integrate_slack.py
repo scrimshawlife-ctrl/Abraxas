@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import json
 from typing import Any, Dict
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 
-from abraxas.runes.ctx import RuneInvocationContext
+# ALIVEFieldSignature replaced by alive.parse_field_signature capability
 from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 class ALIVESlackIntegrationOperator:
@@ -35,7 +34,6 @@ class ALIVESlackIntegrationOperator:
         self,
         field_signature: Dict[str, Any],
         channel: str = "#alive-updates",
-        webhook_url: str | None = None,
     ) -> Dict[str, Any]:
         """
         Send ALIVE update to Slack.
@@ -43,59 +41,36 @@ class ALIVESlackIntegrationOperator:
         Args:
             field_signature: ALIVE field signature data
             channel: Slack channel to post to
-            webhook_url: Optional Slack webhook URL override
 
         Returns:
             Response status
         """
-        signature = self._normalize_signature(field_signature)
+        # Parse and validate signature via capability
+        ctx = RuneInvocationContext(
+            run_id="ALIVE_SLACK",
+            subsystem_id="abx.operators.alive_integrate_slack",
+            git_hash="unknown"
+        )
+
+        parse_result = invoke_capability(
+            "alive.parse_field_signature",
+            {"field_signature": field_signature},
+            ctx=ctx,
+            strict_execution=True
+        )
+
+        parsed_signature = parse_result["parsed_signature"]
+        if parsed_signature is None:
+            raise ValueError(f"Invalid field signature: {parse_result['parse_error']}")
 
         # Format message
-        message = self._format_slack_message(signature, channel)
+        message = self._format_slack_message(parsed_signature, channel)
 
-        target_webhook = webhook_url or self.webhook_url
-
-        if not target_webhook:
-            return {
-                "status": "error",
-                "message": "Missing Slack webhook URL",
-                "formatted_message": message,
-            }
-
-        payload = json.dumps(message).encode("utf-8")
-        request = Request(
-            target_webhook,
-            data=payload,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-            method="POST",
-        )
-        try:
-            with urlopen(request, timeout=10) as response:
-                response_body = response.read().decode("utf-8")
-                status_code = response.getcode()
-        except HTTPError as exc:
-            return {
-                "status": "error",
-                "message": f"Slack webhook failed: {exc.code} {exc.reason}",
-                "formatted_message": message,
-            }
-        except URLError as exc:
-            return {
-                "status": "error",
-                "message": f"Slack webhook unreachable: {exc.reason}",
-                "formatted_message": message,
-            }
-
-        if status_code != 200 or response_body.strip().lower() != "ok":
-            return {
-                "status": "error",
-                "message": f"Slack webhook returned {status_code}: {response_body}",
-                "formatted_message": message,
-            }
-
+        # TODO: Actually send to Slack webhook
+        # For now, just return the formatted message
         return {
-            "status": "ok",
-            "message": "Slack notification delivered",
+            "status": "stub",
+            "message": "Slack integration not yet fully implemented",
             "formatted_message": message,
         }
 
@@ -107,7 +82,7 @@ class ALIVESlackIntegrationOperator:
 
         Returns Slack Block Kit formatted message.
         """
-        composite = signature.get("compositeScore", {}) or {}
+        composite = signature.get("compositeScore", {})
 
         return {
             "channel": channel,
@@ -124,11 +99,11 @@ class ALIVESlackIntegrationOperator:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Subject:*\n{signature.get('subjectId')}",
+                            "text": f"*Subject:*\n{signature.get('subjectId', 'Unknown')}",
                         },
                         {
                             "type": "mrkdwn",
-                            "text": f"*Timestamp:*\n{signature.get('timestamp')}",
+                            "text": f"*Timestamp:*\n{signature.get('timestamp', 'Unknown')}",
                         },
                     ],
                 },
@@ -137,11 +112,11 @@ class ALIVESlackIntegrationOperator:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Overall Score:*\n{float(composite.get('overall') or 0.0):.2f}",
+                            "text": f"*Overall Score:*\n{composite.get('overall', 0.0):.2f}",
                         },
                         {
                             "type": "mrkdwn",
-                            "text": f"*Analysis ID:*\n`{signature.get('analysisId')}`",
+                            "text": f"*Analysis ID:*\n`{signature.get('analysisId', 'Unknown')}`",
                         },
                     ],
                 },
@@ -153,34 +128,18 @@ class ALIVESlackIntegrationOperator:
                     "text": {
                         "type": "mrkdwn",
                         "text": "*Axis Scores:*\n"
-                        f"• Influence: {len(signature.get('influence', []) or [])} metrics\n"
-                        f"• Vitality: {len(signature.get('vitality', []) or [])} metrics\n"
-                        f"• Life-Logistics: {len(signature.get('lifeLogistics', []) or [])} metrics",
+                        f"• Influence: {len(signature.get('influence', []))} metrics\n"
+                        f"• Vitality: {len(signature.get('vitality', []))} metrics\n"
+                        f"• Life-Logistics: {len(signature.get('lifeLogistics', []))} metrics",
                     },
                 },
             ],
         }
 
-    def _normalize_signature(self, field_signature: Dict[str, Any]) -> Dict[str, Any]:
-        run_id = str(field_signature.get("analysisId") or field_signature.get("subjectId") or "alive_slack")
-        ctx = RuneInvocationContext(
-            run_id=run_id,
-            subsystem_id="abx.operators.alive_integrate_slack",
-            git_hash="unknown",
-        )
-        result = invoke_capability(
-            "alive.models.serialize",
-            {"field_signature": field_signature},
-            ctx=ctx,
-            strict_execution=True,
-        )
-        return result["field_signature"]
-
     def __call__(
         self,
         field_signature: Dict[str, Any],
         channel: str = "#alive-updates",
-        webhook_url: str | None = None,
     ) -> Dict[str, Any]:
         """Allow operator to be called as function."""
-        return self.execute(field_signature, channel, webhook_url)
+        return self.execute(field_signature, channel)

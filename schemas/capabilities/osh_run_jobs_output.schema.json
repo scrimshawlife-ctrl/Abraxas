@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OSH Run Jobs Output",
+  "description": "Output schema for osh.run_jobs capability",
+  "type": "object",
+  "required": ["artifacts", "packets", "artifact_count", "packet_count", "provenance", "not_computable"],
+  "properties": {
+    "artifacts": {
+      "type": "array",
+      "description": "Fetched artifacts"
+    },
+    "packets": {
+      "type": "array",
+      "description": "Normalized ingest packets"
+    },
+    "artifact_count": {
+      "type": "integer",
+      "description": "Number of artifacts fetched"
+    },
+    "packet_count": {
+      "type": "integer",
+      "description": "Number of packets generated"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

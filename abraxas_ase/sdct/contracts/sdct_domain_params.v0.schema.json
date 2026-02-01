@@ -1,33 +1,61 @@
 {
-  "$id": "sdct.domain_params.v0",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sdct.domain_params.v0",
+  "title": "SDCT Domain Parameters Schema v0",
+  "description": "Schema for SDCT domain descriptor and parameters passed to rune invocations.",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "domain_id",
-    "domain_version",
-    "motif_kind",
-    "constraints"
-  ],
   "properties": {
     "domain_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.v[0-9]+$",
+      "description": "Unique domain identifier (e.g., 'text.subword.v1')"
     },
     "domain_version": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "SemVer version string"
     },
     "motif_kind": {
-      "type": "string"
+      "type": "string",
+      "enum": ["subword", "digit", "numogram", "graph", "sequence"],
+      "description": "Type of motif this domain extracts"
+    },
+    "alphabet": {
+      "type": "string",
+      "description": "Character set constraint (e.g., 'a-z', '0-9')"
     },
     "constraints": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true,
+      "description": "List of constraint tags (deterministically sorted)"
     },
     "params": {
       "type": "object",
+      "description": "Optional domain-specific parameters",
+      "properties": {
+        "min_token_len": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_sub_len": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_len": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_len": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "additionalProperties": true
     }
-  }
+  },
+  "required": ["domain_id", "domain_version", "motif_kind"],
+  "additionalProperties": false
 }

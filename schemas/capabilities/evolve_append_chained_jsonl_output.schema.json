@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/evolve_append_chained_jsonl_output.json",
+  "title": "Evolve Ledger Append Chained JSONL Output",
+  "description": "Output schema for evolve.ledger.append_chained_jsonl capability",
+  "type": "object",
+  "required": ["prev_hash", "step_hash"],
+  "properties": {
+    "prev_hash": { "type": "string" },
+    "step_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}
+

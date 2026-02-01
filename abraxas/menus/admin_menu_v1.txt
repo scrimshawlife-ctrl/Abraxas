@@ -1,0 +1,20 @@
+# Condition: user_role == "admin"
+# Show in menu:
+#   - Training: Run pack diagnostics
+#   - Training: Generate new vectors (governed; admin-only; canary required)
+#   - Ledger: Export local ledger snapshot (redacted)
+#   - AALMANAC_REVIEW_QUEUE
+#   - REPLAY_RUN(run_id)
+#   - FORCE_MINT(term)
+#   - FORCE_REJECT(term)
+#   - PROMOTE_TO_CANON(term)
+#   - EXPORT_AALMANAC_JSON
+#   - DIFF_AALMANAC(date_a, date_b)
+#   - PROMOTE_TO_APP
+#   - DOWNGRADE_TO_SUBMODULE
+#   - ARCHIVE_SIGNAL
+#   - REPLAY_NEON_GENIE(run_id)
+#
+# Non-admin:
+#   - Training: Run guided drills (no vector generation)
+#   - Ledger: View last session summary (local only)

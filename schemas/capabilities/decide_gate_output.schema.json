@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/decide_gate_output.json",
+  "title": "Decide Gate Output",
+  "description": "Output schema for forecast.gating.decide_gate capability",
+  "type": "object",
+  "required": ["success", "gate_decision", "provenance", "not_computable"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the gate decision succeeded"
+    },
+    "gate_decision": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "version",
+            "eeb_multiplier",
+            "horizon_max",
+            "evidence_escalation",
+            "flags",
+            "provenance"
+          ],
+          "properties": {
+            "version": {
+              "type": "string",
+              "description": "Gate policy version"
+            },
+            "eeb_multiplier": {
+              "type": "number",
+              "minimum": 0.0,
+              "description": "Expected Error Band multiplier"
+            },
+            "horizon_max": {
+              "type": "string",
+              "enum": ["days", "weeks", "months", "years"],
+              "description": "Maximum allowed horizon"
+            },
+            "evidence_escalation": {
+              "type": "string",
+              "enum": ["none", "online_escalation", "offline_escalation"],
+              "description": "Evidence escalation requirement"
+            },
+            "flags": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Policy flags (FOG_HIGH, PROVENANCE_WEAK, etc.)"
+            },
+            "provenance": {
+              "type": "object",
+              "description": "Gate decision provenance"
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Gate decision result (null if failed)"
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "config_sha256", "inputs_sha256"],
+          "properties": {
+            "operation_id": {"type": "string"},
+            "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "seed": {"type": ["integer", "null"]}
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Provenance envelope with SHA-256 hashes"
+    },
+    "not_computable": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason", "missing_inputs"],
+          "properties": {
+            "reason": {"type": "string"},
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Error details if operation failed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.gating.decide_gate",
+    "version": "1.0.0"
+  }
+}

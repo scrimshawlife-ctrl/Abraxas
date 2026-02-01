@@ -1,11 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Sequence, Tuple
+"""
+Oracle → MDA bridge (stub)
 
-from abraxas.mda.adapters.router import AdapterRouter
+Purpose: allow Oracle to invoke MDA without coupling to CLI, fixtures, or sandbox paths.
+This file is intentionally tiny and stable.
+
+Contract:
+  - caller provides envelope fields and canonical inputs (or vectors via adapter router)
+  - returns the MDA payload dict (envelope + dsp + fusion_graph + aggregates)
+"""
+
+from typing import Any, Dict, Optional, Tuple
+
 from abraxas.mda.registry import DomainRegistryV1
-from abraxas.mda.run import run_mda
 from abraxas.mda.types import MDARunEnvelope
+from abraxas.mda.run import run_mda
+from abraxas.mda.adapters.router import AdapterRouter
 
 
 def run_mda_for_oracle(
@@ -14,30 +25,32 @@ def run_mda_for_oracle(
     run_at_iso: str,
     seed: int,
     abraxas_version: str,
-    domains: Sequence[str],
-    subdomains: Sequence[str],
-    payload: Dict[str, Any],
+    domains: Optional[Tuple[str, ...]] = None,
+    subdomains: Optional[Tuple[str, ...]] = None,
+    payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """
-    Oracle bridge for MDA: deterministic, pure call path.
+    reg = DomainRegistryV1()
+    enabled_domains = domains if domains is not None else tuple(reg.domains())
+    enabled_subdomains = subdomains if subdomains is not None else tuple(reg.all_subdomain_keys())
 
-    This is intentionally thin: it uses the same adapter router and `run_mda`
-    entrypoint as the CLI-equivalent direct path.
-    """
-    registry = DomainRegistryV1()
-    router = AdapterRouter()
-    adapted = router.adapt(payload, registry=registry)
+    inputs: Dict[str, Any] = {}
+    if payload:
+        # Adapt payload into vectors if it contains vectors/bundle
+        router = AdapterRouter()
+        adapted = router.adapt(payload, registry=reg)
+        inputs["vectors"] = adapted.vectors
+        inputs["adapter_notes"] = adapted.notes
 
-    inputs = {"vectors": adapted.vectors, "adapter_notes": adapted.notes}
     envelope = MDARunEnvelope(
-        env=str(env),
-        run_at_iso=str(run_at_iso),
-        seed=int(seed),
+        env=env,
+        run_at_iso=run_at_iso,
+        seed=seed,
         promotion_enabled=False,
-        enabled_domains=tuple(str(d) for d in domains),
-        enabled_subdomains=tuple(str(s) for s in subdomains),
+        enabled_domains=enabled_domains,
+        enabled_subdomains=enabled_subdomains,
         inputs=inputs,
     )
-    _, out = run_mda(envelope, abraxas_version=str(abraxas_version), registry=registry)
+
+    _, out = run_mda(envelope, abraxas_version=abraxas_version, registry=reg)
     return out
 

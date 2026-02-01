@@ -4,8 +4,7 @@ import argparse
 import json
 import os
 
-# build_evogate replaced by evolve.evogate.build capability
-# build_rim_from_osh_ledger replaced by evolve.rim.build_from_osh_ledger capability
+from abraxas.evolve.evogate_builder import build_evogate
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
 
@@ -47,55 +46,33 @@ def main() -> int:
             with open(args.thresholds, "r", encoding="utf-8") as f:
                 thresholds = json.load(f)
 
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.evogate",
-        git_hash="unknown"
-    )
-
     replay_inputs_dir = args.replay_inputs_dir
     if args.build_rim_from_osh_ledger:
-        rim_result = invoke_capability(
-            "evolve.rim.build_from_osh_ledger",
-            {
-                "run_id": args.run_id,
-                "out_root": "out/replay_inputs",
-                "osh_ledger_path": args.build_rim_from_osh_ledger
-            },
-            ctx=ctx,
-            strict_execution=True
+        from abraxas.evolve.rim_builder import build_rim_from_osh_ledger
+
+        rim_path, _ = build_rim_from_osh_ledger(
+            run_id=args.run_id,
+            out_root="out/replay_inputs",
+            osh_ledger_path=args.build_rim_from_osh_ledger,
         )
-        rim_path = rim_result["rim_path"]
         replay_inputs_dir = os.path.dirname(rim_path)
 
-    evogate_result = invoke_capability(
-        "evolve.evogate.build",
-        {
-            "run_id": args.run_id,
-            "out_reports_dir": args.out_reports,
-            "staging_root_dir": args.staging_root,
-            "epp_path": args.epp,
-            "base_policy_path": args.base_policy,
-            "baseline_metrics_path": args.baseline_metrics,
-            "replay_inputs_dir": replay_inputs_dir,
-            "replay_cmd": args.replay_cmd,
-            "thresholds": thresholds
-        },
-        ctx=ctx,
-        strict_execution=True
+    json_path, md_path, meta = build_evogate(
+        run_id=args.run_id,
+        out_reports_dir=args.out_reports,
+        staging_root_dir=args.staging_root,
+        epp_path=args.epp,
+        base_policy_path=args.base_policy,
+        baseline_metrics_path=args.baseline_metrics,
+        replay_inputs_dir=replay_inputs_dir,
+        replay_cmd=args.replay_cmd,
+        thresholds=thresholds,
     )
-    json_path = evogate_result["json_path"]
-    md_path = evogate_result["md_path"]
-    meta = evogate_result["meta"]
-
-    # Append to value ledger via capability contract
+    # Use capability contract for ledger append
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.evogate", git_hash="unknown")
     invoke_capability(
-        capability="evolve.ledger.append",
-        inputs={
-            "ledger_path": args.value_ledger,
-            "record": {"run_id": args.run_id, "evogate_json": json_path, "meta": meta}
-        },
+        "evolve.ledger.append",
+        {"path": args.value_ledger, "record": {"run_id": args.run_id, "evogate_json": json_path, "meta": meta}},
         ctx=ctx,
         strict_execution=True
     )

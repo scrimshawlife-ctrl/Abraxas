@@ -45,6 +45,20 @@ class SlangCluster(BaseModel):
     operator_readouts: list[OperatorReadout] = Field(
         default_factory=list, description="Readouts from applied operators"
     )
+    drift_tags: list[str] = Field(
+        default_factory=list, description="Drift classification tags (e.g., 'VBM_CLASS', 'TEMPORAL_DRIFT')"
+    )
+    vbm_phase: str | None = Field(default=None, description="VBM phase if VBM drift detected")
+    vbm_score: float | None = Field(default=None, description="VBM drift score [0, 1]")
+    vbm_lattice_hits: list[str] = Field(
+        default_factory=list, description="VBM operator lattice hits"
+    )
+    temporal_mode: str | None = Field(default=None, description="Temporal mode from TDD")
+    sovereignty_risk: str | None = Field(default=None, description="Sovereignty risk level from TDD")
+    tdd_operator_hits: list[str] = Field(
+        default_factory=list, description="TDD operator hits (RTI, DTA, HSE, UCS)"
+    )
+    response_mode: str | None = Field(default=None, description="Response mode (de-escalate if high risk)")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     class Config:

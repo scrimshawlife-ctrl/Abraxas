@@ -43,6 +43,25 @@
 
 Think of it as a **weather system for language** — detecting symbol compression, mapping affective drift, and forecasting symbolic evolution.
 
+### At a Glance
+
+- **Deterministic by design** — every output is reproducible with SHA-256 provenance
+- **Dual-lane architecture** — prediction and diagnostics stay strictly separated
+- **Edge-ready** — optimized for Jetson Orin with systemd and atomic updates
+- **Full-stack** — Python SCO/ECO core + TypeScript orchestration + UI tooling
+
+### Core Capabilities
+
+- **Symbolic Compression Detection (SCO/ECO)** — quantify when opaque symbols are replaced with semantically transparent substitutes
+- **Weather Engine** — transform linguistic events into memetic weather patterns and drift signals
+- **Scenario Envelope Runner (SER)** — deterministic forecasting with cascade sheets and contamination advisories
+- **Governance Registry** — discover components, track rent-manifest coverage, and record approvals
+- **Always-On Daemon** — continuous ingestion via Decodo API with chat-style interaction
+- **Self-Healing Infrastructure** — drift detection, watchdog monitoring, atomic updates
+- **Orin-Ready Edge Deployment** — Jetson Orin systemd integration
+- **Provenance-First Design** — every event includes a SHA-256 hash for auditability
+- **Anagram Sweep Engine (ASE)** — deterministic anagram mining for current-events feeds (Tier-1/2 + PFDI drift baseline)
+
 ### Design Principles
 
 | Principle | Description |
@@ -229,14 +248,31 @@ abraxas-ase run --in items.jsonl --out out/ase --date 2026-01-24 \
   --pfdi-state out_prev/ase/pfdi_state.json
 ```
 
-#### SDCT v0.1 (ABX-Runes)
+### SDCT (Symbolic Domain Cartridge Template)
 
-SDCT domains are ABX-Runes enforced: the ASE engine only invokes rune IDs.
+**ABX-Runes Enforced**: SDCT domains are invoked via rune contracts only. Engine does not call cartridges directly.
+
+| Rune ID | Domain | Description |
+|---------|--------|-------------|
+| `sdct.text_subword.v1` | text.subword.v1 | Text subword motif extraction |
+| `sdct.digit.v1` | digit.v1 | Digit n-gram motif extraction |
+
+```python
+from abraxas_ase.runes import invoke_rune
+
+# Engine invokes via rune_id
+result = invoke_rune("sdct.text_subword.v1", {"items": items}, ctx)
+
+# Direct cartridge imports in engine are FORBIDDEN
+# from abraxas_ase.domains.text_subword import TextSubwordCartridge  # Never!
+```
 
 To add a new cartridge:
-- Create a domain module in `abraxas_ase/sdct/domains/`.
+- Create a domain module in `abraxas_ase/domains/`.
 - Add a rune wrapper in `abraxas_ase/runes/` and register it in `abraxas_ase/runes/catalog.v0.yaml`.
-- Register the domain in `abraxas_ase/sdct/registry.py`.
+- Register the domain in `abraxas_ase/domains/registry.py`.
+
+See `abraxas_ase/runes/catalog.v0.yaml` for full rune catalog.
 
 ### Shadow Detectors & Metrics
 

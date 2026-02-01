@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CLI SMV Input",
+  "description": "Input schema for cli.smv capability",
+  "type": "object",
+  "required": ["args"],
+  "properties": {
+    "args": {
+      "type": "object",
+      "description": "CLI arguments for signal marginal value analysis",
+      "properties": {
+        "run_id": {"type": "string"},
+        "portfolio": {"type": "string"},
+        "vector_map": {"type": "string"},
+        "allowlist_spec": {"type": "string"},
+        "cases_dir": {"type": "string"},
+        "portfolios_path": {"type": "string"},
+        "max_units": {"type": "integer"}
+      },
+      "required": ["run_id", "portfolio", "vector_map"]
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "Deterministic seed for provenance"
+    }
+  },
+  "additionalProperties": false
+}

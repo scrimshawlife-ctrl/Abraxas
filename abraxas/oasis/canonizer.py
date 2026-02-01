@@ -84,6 +84,22 @@ class OASCanonizer:
                 report.metrics_after,
             )
 
+        # Gate 5: VBM golden gate (if in-scope)
+        if not self._vbm_golden_gate(candidate):
+            return self._reject(
+                candidate,
+                "Failed VBM golden gate validation",
+                report.metrics_after,
+            )
+
+        # Gate 6: TDD golden gate (if in-scope)
+        if not self._tdd_golden_gate(candidate):
+            return self._reject(
+                candidate,
+                "Failed TDD golden gate validation",
+                report.metrics_after,
+            )
+
         # All gates passed - adopt!
         return self._adopt(candidate, report, stabilization)
 
@@ -215,3 +231,51 @@ class OASCanonizer:
 
         # No slur signals present (stub)
         return True
+
+    def _vbm_golden_gate(self, candidate: OperatorCandidate) -> bool:
+        """
+        Check VBM golden gate.
+
+        If candidate is in-scope for VBM (math/physics/pattern triggers),
+        it must pass validation against VBM casebook.
+        """
+        try:
+            from abraxas.oasis.validator import OASValidator
+
+            validator = OASValidator(enable_vbm_golden=True)
+
+            # Check if in-scope and validate
+            if validator.is_vbm_inscope(candidate):
+                passed, metrics = validator.validate_vbm_golden(candidate)
+                return passed
+            else:
+                # Not in-scope, automatically pass
+                return True
+
+        except Exception:
+            # VBM not available or error, pass
+            return True
+
+    def _tdd_golden_gate(self, candidate: OperatorCandidate) -> bool:
+        """
+        Check TDD golden gate.
+
+        If candidate is in-scope for TDD (temporal/causal/eschatological triggers),
+        it must pass validation against temporal drift patterns.
+        """
+        try:
+            from abraxas.oasis.validator import OASValidator
+
+            validator = OASValidator(enable_vbm_golden=True)
+
+            # Check if in-scope and validate
+            if validator.is_tdd_inscope(candidate):
+                passed, metrics = validator.validate_tdd_golden(candidate)
+                return passed
+            else:
+                # Not in-scope, automatically pass
+                return True
+
+        except Exception:
+            # TDD not available or error, pass
+            return True

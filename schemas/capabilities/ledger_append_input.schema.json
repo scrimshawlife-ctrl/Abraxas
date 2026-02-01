@@ -4,17 +4,17 @@
   "title": "Ledger Append Input",
   "description": "Input schema for evolve.ledger.append capability",
   "type": "object",
-  "required": ["ledger_path", "record"],
+  "required": ["path", "record"],
   "properties": {
-    "ledger_path": {
+    "path": {
       "type": "string",
       "minLength": 1,
-      "description": "Path to JSONL ledger file (will be created if doesn't exist)"
+      "description": "Path to the JSONL ledger file (creates parent directories if needed)"
     },
     "record": {
       "type": "object",
-      "description": "Record to append to ledger (will be augmented with prev_hash and step_hash)",
-      "additionalProperties": true
+      "minProperties": 1,
+      "description": "Dictionary record to append to the ledger (will be enhanced with prev_hash and step_hash)"
     },
     "seed": {
       "type": "integer",
@@ -26,6 +26,7 @@
     "capability_id": "evolve.ledger.append",
     "version": "1.0.0",
     "deterministic": true,
-    "provenance_required": true
+    "provenance_required": true,
+    "side_effects": true
   }
 }

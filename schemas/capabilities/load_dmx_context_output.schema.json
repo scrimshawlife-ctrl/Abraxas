@@ -1,54 +1,79 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/load_dmx_context_output.json",
   "title": "Load DMX Context Output",
   "description": "Output schema for memetic.dmx_context.load capability",
   "type": "object",
-  "required": ["dmx_context", "provenance", "not_computable"],
+  "required": ["success", "dmx_context", "provenance", "not_computable"],
   "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the DMX context loading succeeded"
+    },
     "dmx_context": {
-      "type": "object",
-      "description": "DMX context dict with manipulation risk metrics",
-      "required": ["version", "overall_manipulation_risk", "bucket"],
-      "properties": {
-        "version": {
-          "type": "string",
-          "description": "DMX version identifier"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["version", "overall_manipulation_risk", "bucket"],
+          "properties": {
+            "version": {
+              "type": "string",
+              "description": "DMX version identifier"
+            },
+            "overall_manipulation_risk": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Overall manipulation risk score [0,1]"
+            },
+            "bucket": {
+              "type": "string",
+              "enum": ["LOW", "MED", "HIGH"],
+              "description": "Risk bucket classification"
+            }
+          }
         },
-        "overall_manipulation_risk": {
-          "type": "number",
-          "description": "Overall manipulation risk score [0, 1]",
-          "minimum": 0.0,
-          "maximum": 1.0
-        },
-        "bucket": {
-          "type": "string",
-          "enum": ["LOW", "MED", "HIGH"],
-          "description": "Risk bucket classification"
-        }
-      }
+        {"type": "null"}
+      ],
+      "description": "DMX context result (null if failed)"
     },
     "provenance": {
-      "type": ["object", "null"],
-      "description": "Provenance envelope with SHA-256 hash",
-      "properties": {
-        "operation_id": {
-          "type": "string",
-          "const": "memetic.dmx_context.load"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "config_sha256", "inputs_sha256"],
+          "properties": {
+            "operation_id": {"type": "string"},
+            "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "seed": {"type": ["integer", "null"]}
+          }
         },
-        "inputs_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "timestamp_utc": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
+        {"type": "null"}
+      ],
+      "description": "Provenance envelope with SHA-256 hashes"
     },
     "not_computable": {
-      "type": "null",
-      "description": "Always null - DMX context loading never fails, returns default LOW bucket on error"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason", "missing_inputs"],
+          "properties": {
+            "reason": {"type": "string"},
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Error details if operation failed"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "memetic.dmx_context.load",
+    "version": "1.0.0"
+  }
 }

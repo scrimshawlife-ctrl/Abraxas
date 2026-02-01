@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/compute_term_csp_input.json",
+  "title": "Compute Term CSP Input",
+  "description": "Input schema for conspiracy.csp.compute_term capability",
+  "type": "object",
+  "required": ["term", "profile", "dmx_bucket", "dmx_overall", "term_class"],
+  "properties": {
+    "term": {
+      "type": "string",
+      "description": "Term string for COH (Coordination Hypothesis) inference"
+    },
+    "profile": {
+      "type": "object",
+      "description": "A2 profile dict with attribution, diversity, consensus metrics",
+      "properties": {
+        "attribution_strength": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "attribution_strength_uplifted": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "source_diversity": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "source_diversity_uplifted": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "consensus_gap_term": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "manipulation_risk": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "dmx_bucket": {
+      "type": "string",
+      "enum": ["LOW", "MED", "HIGH", "UNKNOWN"],
+      "description": "DMX bucket classification"
+    },
+    "dmx_overall": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Overall manipulation risk [0,1]"
+    },
+    "term_class": {
+      "type": "string",
+      "enum": ["stable", "emerging", "contested", "volatile", "unknown"],
+      "description": "Term stability classification"
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional deterministic seed (unused for CSP, kept for consistency)"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "conspiracy.csp.compute_term",
+    "version": "1.0.0",
+    "deterministic": true,
+    "provenance_required": true,
+    "side_effects": false
+  }
+}

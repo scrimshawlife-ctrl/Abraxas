@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from abraxas.oracle.v2.guard import assert_mode_lock
 from abraxas.oracle.v2.wire import build_v2_block
 
 
@@ -28,6 +29,7 @@ def attach_v2_to_envelope(
         config_payload=config_payload,
         config_source=config_source,
     )
+    assert_mode_lock(v2_block)
 
     # Ensure oracle_signal exists
     if "oracle_signal" not in envelope:
@@ -38,5 +40,4 @@ def attach_v2_to_envelope(
     # Observation-only slang payload (Dual-Lane principle: may observe, never govern)
     if slang_observation is not None:
         envelope["oracle_signal"]["v2"]["slang"] = slang_observation
-
     return envelope

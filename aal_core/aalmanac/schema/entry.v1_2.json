@@ -1,0 +1,104 @@
+{
+  "schema_version": "aal.aalmanac.entry.v1_2",
+  "type": "object",
+  "required": [
+    "entry_id",
+    "term_raw",
+    "term_canonical",
+    "term_class",
+    "sense_id",
+    "definition",
+    "usage_context",
+    "mutation_type",
+    "signals",
+    "drift",
+    "provenance",
+    "timestamps"
+  ],
+  "properties": {
+    "entry_id": {"type": "string"},
+    "term_raw": {"type": "string"},
+    "term_canonical": {"type": "string"},
+    "term_class": {"type": "string", "enum": ["single", "compound", "phrase"]},
+    "sense_id": {"type": "string"},
+    "definition": {"type": "string"},
+    "usage_context": {
+      "type": "object",
+      "required": ["domain", "subdomain", "register", "valence"],
+      "properties": {
+        "domain": {"type": "string"},
+        "subdomain": {"type": "string"},
+        "register": {
+          "type": "string",
+          "enum": [
+            "casual",
+            "technical",
+            "ironic",
+            "ritual",
+            "finance",
+            "politics",
+            "art",
+            "recovery"
+          ]
+        },
+        "valence": {"type": "string", "enum": ["positive", "negative", "neutral", "mixed"]},
+        "example_utterances": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "mutation_type": {
+      "type": "string",
+      "enum": [
+        "neologism",
+        "context_shift",
+        "metaphor_bind",
+        "semantic_narrowing",
+        "semantic_broadening",
+        "reappropriation",
+        "phonetic_flip",
+        "orthographic_variant"
+      ]
+    },
+    "signals": {
+      "type": "object",
+      "required": ["novelty", "plausibility", "adoption_pressure", "stickiness", "compression_gain"],
+      "properties": {
+        "novelty": {"type": "number", "minimum": 0, "maximum": 1},
+        "plausibility": {"type": "number", "minimum": 0, "maximum": 1},
+        "adoption_pressure": {"type": "number", "minimum": 0, "maximum": 1},
+        "stickiness": {"type": "number", "minimum": 0, "maximum": 1},
+        "source_fingerprint": {"type": "array", "items": {"type": "string"}},
+        "co_occurring_handles": {"type": "array", "items": {"type": "string"}},
+        "compression_gain": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "drift": {
+      "type": "object",
+      "required": ["drift_charge", "delta_from_prior", "half_life_days"],
+      "properties": {
+        "drift_charge": {"type": "number", "minimum": 0, "maximum": 1},
+        "delta_from_prior": {"type": "number", "minimum": -1, "maximum": 1},
+        "half_life_days": {"type": "number", "minimum": 0.1, "maximum": 365}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["run_id", "generator", "deterministic", "seed", "inputs_hash"],
+      "properties": {
+        "run_id": {"type": "string"},
+        "generator": {"type": "string"},
+        "deterministic": {"type": "boolean"},
+        "seed": {"type": "integer"},
+        "inputs_hash": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    },
+    "timestamps": {
+      "type": "object",
+      "required": ["first_seen_utc", "last_seen_utc"],
+      "properties": {
+        "first_seen_utc": {"type": "string"},
+        "last_seen_utc": {"type": "string"}
+      }
+    }
+  }
+}

@@ -8,10 +8,8 @@ from typing import Any, Dict, Optional
 
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-# decide_gate replaced by forecast.gating_policy.decide_gate capability
-# brier_score and expected_error_band replaced by forecast.scoring capabilities
-# horizon_uncertainty_multiplier replaced by forecast.uncertainty.horizon_multiplier capability
-# load_dmx_context replaced by memetic.dmx_context.load capability
+from abraxas.forecast.scoring import ExpectedErrorBand, brier_score, expected_error_band
+from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier
 
 
 def _utc_now_iso() -> str:
@@ -32,15 +30,15 @@ def _write_json(path: str, obj: Any) -> None:
         json.dump(obj, f, ensure_ascii=False, indent=2)
 
 
-def _apply_eeb_multiplier(eeb_dict: Dict[str, Any], multiplier: float) -> Dict[str, Any]:
+def _apply_eeb_multiplier(eeb: ExpectedErrorBand, multiplier: float) -> Dict[str, Any]:
     mul = max(1.0, float(multiplier))
-    out = dict(eeb_dict)
-    out["timing_days_min"] = float(out.get("timing_days_min") or 0.0) * mul
-    out["timing_days_max"] = float(out.get("timing_days_max") or 0.0) * mul
-    out["magnitude_pct_min"] = min(0.99, float(out.get("magnitude_pct_min") or 0.0) * mul)
-    out["magnitude_pct_max"] = min(0.99, float(out.get("magnitude_pct_max") or 0.0) * mul)
-    out["multiplier"] = mul
-    return out
+    eeb_dict = eeb.to_dict()
+    eeb_dict["timing_days_min"] = float(eeb_dict["timing_days_min"]) * mul
+    eeb_dict["timing_days_max"] = float(eeb_dict["timing_days_max"]) * mul
+    eeb_dict["magnitude_pct_min"] = min(0.99, float(eeb_dict["magnitude_pct_min"]) * mul)
+    eeb_dict["magnitude_pct_max"] = min(0.99, float(eeb_dict["magnitude_pct_max"]) * mul)
+    eeb_dict["multiplier"] = mul
+    return eeb_dict
 
 
 def _scale_eeb_dict(eeb_dict: Dict[str, Any], multiplier: float) -> Dict[str, Any]:
@@ -90,14 +88,9 @@ def main() -> int:
                 if isinstance(profile, dict) and profile.get("term"):
                     phase_map[str(profile["term"]).lower()] = profile
 
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.forecast_score",
-        git_hash="unknown"
-    )
     gate_inputs = _extract_gate_inputs(a2_phase)
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_score", git_hash="unknown")
     dmx_result = invoke_capability(
         "memetic.dmx_context.load",
         {"mwr_path": mwr_path},
@@ -106,16 +99,14 @@ def main() -> int:
     )
     dmx_ctx = dmx_result["dmx_context"]
     dmx_overall = float(dmx_ctx.get("overall_manipulation_risk") or 0.0)
-
-    # Compute base gate for overall report
     base_gate_result = invoke_capability(
-        "forecast.gating_policy.decide_gate",
+        "forecast.gating.decide_gate",
         {
             "dmx_overall": dmx_overall,
             "attribution_strength": gate_inputs["attribution_strength"],
             "source_diversity": gate_inputs["source_diversity"],
             "consensus_gap": gate_inputs["consensus_gap"],
-            "manipulation_risk_mean": gate_inputs["manipulation_risk_mean"]
+            "manipulation_risk_mean": gate_inputs["manipulation_risk_mean"],
         },
         ctx=ctx,
         strict_execution=True
@@ -144,39 +135,26 @@ def main() -> int:
         recurrence = (profile or {}).get("recurrence_days")
 
         gate_result = invoke_capability(
-            "forecast.gating_policy.decide_gate",
+            "forecast.gating.decide_gate",
             {
                 "dmx_overall": dmx_overall,
                 "attribution_strength": gate_inputs["attribution_strength"],
                 "source_diversity": gate_inputs["source_diversity"],
                 "consensus_gap": gate_inputs["consensus_gap"],
-                "manipulation_risk_mean": risk
+                "manipulation_risk_mean": risk,
             },
             ctx=ctx,
             strict_execution=True
         )
         gate = gate_result["gate_decision"]
-        eeb_result = invoke_capability(
-            "forecast.scoring.expected_error_band",
-            {
-                "horizon": horizon,
-                "phase": phase,
-                "half_life_days": half_life,
-                "manipulation_risk": risk,
-                "recurrence_days": recurrence if recurrence is None else float(recurrence),
-            },
-            ctx=ctx,
-            strict_execution=True
+        eeb = expected_error_band(
+            horizon=horizon,
+            phase=phase,
+            half_life_days=half_life,
+            manipulation_risk=risk,
+            recurrence_days=recurrence if recurrence is None else float(recurrence),
         )
-        # Get horizon uncertainty multiplier via capability
-        multiplier_result = invoke_capability(
-            "forecast.uncertainty.horizon_multiplier",
-            {"horizon": horizon},
-            ctx=ctx,
-            strict_execution=True
-        )
-        # Apply multipliers to error band dict
-        eeb_dict = _apply_eeb_multiplier(eeb_result["error_band"], multiplier_result["multiplier"])
+        eeb_dict = _apply_eeb_multiplier(eeb, horizon_uncertainty_multiplier(horizon))
         eeb_dict = _scale_eeb_dict(eeb_dict, float(gate.get("eeb_multiplier") or 1.0))
         out_item = {
             **item,
@@ -194,13 +172,7 @@ def main() -> int:
 
     calibration = {}
     if probs and outcomes:
-        brier_result = invoke_capability(
-            "forecast.scoring.brier",
-            {"probs": probs, "outcomes": outcomes},
-            ctx=ctx,
-            strict_execution=True
-        )
-        calibration = {"brier": brier_result["brier_score"], "n_scored": len(probs)}
+        calibration = {"brier": brier_score(probs, outcomes), "n_scored": len(probs)}
 
     out_core = {
         "version": "forecast_score.v0.1",
@@ -212,19 +184,10 @@ def main() -> int:
         "views": {"annotated_top_30": annotated[:30]},
         "provenance": {"builder": "abx.forecast_score.v0.1"},
     }
-
-    # Enforce non-truncation policy via capability contract
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.forecast_score",
-        git_hash="unknown"
-    )
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_score", git_hash="unknown")
     result = invoke_capability(
-        capability="evolve.policy.enforce_non_truncation",
-        inputs={
-            "artifact": out_core,
-            "raw_full": {"annotated": list(annotated)}
-        },
+        "evolve.policy.enforce_non_truncation",
+        {"artifact": out_core, "raw_full": {"annotated": list(annotated)}},
         ctx=ctx,
         strict_execution=True
     )

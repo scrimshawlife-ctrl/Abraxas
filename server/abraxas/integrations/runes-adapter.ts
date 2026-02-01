@@ -18,6 +18,11 @@ import { wiringSanityCheck } from "../runes/registry.js";
 
 export const REQUIRED_RUNE_CAPABILITIES = ["runes:get_today", "runes:run_ritual"];
 
+function parseRitualTimestamp(date: string): number {
+  const parsed = Date.parse(date);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 function assertRequiredCapabilities(): void {
   const sanity = wiringSanityCheck(REQUIRED_RUNE_CAPABILITIES);
   if (sanity.missingCapabilities.length > 0) {
@@ -57,7 +62,7 @@ export function ritualToContext(ritual: RitualInput): RitualContext {
     seed: ritual.seed,
     date: ritual.date,
     runes: ritual.runes.map((r) => r.id),
-    timestamp: Date.now(),
+    timestamp: parseRitualTimestamp(ritual.date),
   };
 }
 
@@ -74,11 +79,11 @@ export function createFeatureVector(
     source: "abraxas",
     module: "feature-extraction",
     operation: `generate_${type}_features`,
-    generatedAt: Date.now(),
+    generatedAt: context.timestamp,
   };
 
   return {
-    id: `${type}-${subject}-${context.seed}-${Date.now()}`,
+    id: `${type}-${subject}-${context.seed}-${context.timestamp}`,
     type,
     subject,
     features,
@@ -96,21 +101,22 @@ export function createPipelineVector(
   features: Record<string, number>,
   subject: string,
   seed: string,
-  module: string
+  module: string,
+  timestamp: number
 ): FeatureVector {
   const provenance: VectorProvenance = {
     source: "abraxas",
     module,
     operation: `generate_features`,
-    generatedAt: Date.now(),
+    generatedAt: timestamp,
   };
 
   return {
-    id: `pipeline-${subject}-${seed}-${Date.now()}`,
+    id: `pipeline-${subject}-${seed}-${timestamp}`,
     type: "equity", // Generic type for pipeline vectors
     subject,
     features,
-    timestamp: Date.now(),
+    timestamp,
     seed,
     provenance,
   };
@@ -134,15 +140,15 @@ export function mergeVectors(
     module: "vector-merge",
     operation,
     parentId: vectors.map((v) => v.id).join(","),
-    generatedAt: Date.now(),
+    generatedAt: vectors[0]?.timestamp ?? 0,
   };
 
   return {
-    id: `merged-${Date.now()}`,
+    id: `merged-${vectors[0]?.timestamp ?? 0}`,
     type: "aggregate",
     subject: "merged",
     features: merged,
-    timestamp: Date.now(),
+    timestamp: vectors[0]?.timestamp ?? 0,
     seed: vectors[0]?.seed || "",
     provenance,
   };

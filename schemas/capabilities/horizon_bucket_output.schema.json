@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/horizon_bucket_output.json",
+  "title": "Horizon Bucket Output",
+  "description": "Output schema for forecast.horizon.bucket capability",
+  "type": "object",
+  "required": ["success", "bucket", "provenance", "not_computable"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the bucket normalization succeeded"
+    },
+    "bucket": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["days", "weeks", "months", "years", "unknown"]
+        },
+        {"type": "null"}
+      ],
+      "description": "Normalized horizon bucket (null if failed)"
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["operation_id", "config_sha256", "inputs_sha256"],
+          "properties": {
+            "operation_id": {"type": "string"},
+            "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "seed": {"type": ["integer", "null"]}
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Provenance envelope with SHA-256 hashes"
+    },
+    "not_computable": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["reason", "missing_inputs"],
+          "properties": {
+            "reason": {"type": "string"},
+            "missing_inputs": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Error details if operation failed"
+    }
+  },
+  "additionalProperties": false,
+  "x-abraxas": {
+    "capability_id": "forecast.horizon.bucket",
+    "version": "1.0.0"
+  }
+}

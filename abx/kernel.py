@@ -29,8 +29,11 @@ from shared.stabilization import (
     save_state,
 )
 from shared.governance import find_receipt
-from abraxas.runes.ctx import RuneInvocationContext
+
+# compression.detect replaced by compression.detect capability
 from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
+
 REGISTRY_PATH = os.path.join(
     os.path.dirname(__file__),
     "..",
@@ -64,27 +67,6 @@ def _hash_obj(obj: dict[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(obj, sort_keys=True).encode("utf-8")
     ).hexdigest()
-
-
-def _normalize_seed(seed: Any) -> int | None:
-    if seed is None:
-        return None
-    if isinstance(seed, dict):
-        if "seed" in seed:
-            return _normalize_seed(seed.get("seed"))
-        return int(_hash_obj(seed), 16) % (2**32)
-    if isinstance(seed, (list, tuple)):
-        payload = {"seed_list": list(seed)}
-        return int(_hash_obj(payload), 16) % (2**32)
-    if isinstance(seed, bool):
-        return int(seed)
-    if isinstance(seed, (int, float)):
-        return int(seed)
-    if isinstance(seed, str):
-        payload = {"seed_str": seed}
-        return int(_hash_obj(payload), 16) % (2**32)
-    payload = {"seed_repr": repr(seed)}
-    return int(_hash_obj(payload), 16) % (2**32)
 
 
 def load_registry() -> dict[str, Any]:
@@ -188,7 +170,7 @@ def invoke(
                 "Governance receipt rune mismatch."
             )
 
-    seed = _normalize_seed(payload.get("seed"))
+    seed = payload.get("seed")
     if seed is not None:
         # deterministic hook (explicit only)
         import random
@@ -209,47 +191,29 @@ def invoke(
 
                 result = run_doctor(payload)
             elif rune_id == "compression.detect":
+                # Use capability contract
                 ctx = RuneInvocationContext(
-                    run_id=str((context or {}).get("run_id") or rune_id),
+                    run_id=run_id,
                     subsystem_id="abx.kernel",
-                    git_hash=_git_commit(),
+                    git_hash=git_commit
                 )
-                cap_result = invoke_capability(
+                result = invoke_capability(
                     "compression.detect",
                     payload,
                     ctx=ctx,
-                    strict_execution=True,
+                    strict_execution=True
                 )
-                result = dict(cap_result)
-                if "provenance" in result:
-                    result["provenance_bundle"] = result.pop("provenance")
             elif rune_id == "infra.self_heal":
                 from infra.self_heal_advisory import generate_plan
 
                 result = generate_plan(payload)
-            elif rune_id == "weather.generate":
-                from abraxas.runes.handlers.weather_generate import generate_weather
-
-                result = generate_weather(payload)
-            elif rune_id == "ser.run":
-                from abraxas.runes.handlers.ser_run import run_scenario_envelope
-
-                result = run_scenario_envelope(payload)
-            elif rune_id == "daemon.ingest":
-                from abraxas.runes.handlers.daemon_ingest import ingest_daemon_plan
-
-                result = ingest_daemon_plan(payload)
-            elif rune_id == "edge.deploy_orin":
-                from abraxas.runes.handlers.edge_deploy_orin import plan_edge_deploy
-
-                result = plan_edge_deploy(payload)
             elif rune_id == "actuator.apply":
                 from infra.actuator import apply
 
                 result = apply(payload)
             else:
-                raise ValueError(
-                    f"Rune wired but not routed: {rune_id}"
+                raise NotImplementedError(
+                    f"Rune wired but not yet routed: {rune_id}"
                 )
     except Exception as dispatch_error:
         # Runtime telemetry: invocation failed

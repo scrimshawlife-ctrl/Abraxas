@@ -19,7 +19,7 @@ from abraxas.forecast.horizon_policy import compare_horizon as compare_horizon_c
 from abraxas.forecast.horizon_policy import enforce_horizon_policy as enforce_horizon_policy_core
 from abraxas.forecast.ledger import issue_prediction as issue_prediction_core
 from abraxas.forecast.ledger import record_outcome as record_outcome_core
-from abraxas.forecast.policy_candidates import candidates_v0_1 as policy_candidates_v0_1_core
+from abraxas.forecast.policy_candidates import candidates_v0_1 as candidates_v0_1_core
 from abraxas.forecast.uncertainty import horizon_uncertainty_multiplier as horizon_uncertainty_multiplier_core
 
 
@@ -224,7 +224,7 @@ def load_policy_candidates_v0_1_deterministic(
 
     Returns policy threshold candidates with provenance envelope.
     """
-    candidates = policy_candidates_v0_1_core()
+    candidates = candidates_v0_1_core()
 
     envelope = canonical_envelope(
         result={"candidates": candidates},
@@ -648,6 +648,42 @@ def record_forecast_outcome_deterministic(
     }
 
 
+def policy_candidates_v0_1_deterministic(
+    seed: Optional[int] = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Rune-compatible policy candidates loader.
+
+    Wraps existing candidates_v0_1 with provenance envelope.
+    Returns static policy candidate thresholds (conservative, balanced, aggressive).
+
+    Args:
+        seed: Optional deterministic seed (unused for static data, kept for consistency)
+
+    Returns:
+        Dictionary with candidates, provenance, and not_computable (always None)
+    """
+    # Call existing candidates_v0_1 function (returns static dict)
+    candidates = candidates_v0_1_core()
+
+    # Wrap in canonical envelope
+    envelope = canonical_envelope(
+        result={"candidates": candidates},
+        config={},
+        inputs={},
+        operation_id="forecast.policy.candidates_v0_1",
+        seed=seed
+    )
+
+    # Return with renamed keys for clarity
+    return {
+        "candidates": candidates,
+        "provenance": envelope["provenance"],
+        "not_computable": None  # static data never fails
+    }
+
+
 __all__ = [
     "compute_brier_score_deterministic",
     "compute_expected_error_band_deterministic",
@@ -660,5 +696,6 @@ __all__ = [
     "enforce_horizon_policy_deterministic",
     "issue_prediction_deterministic",
     "horizon_uncertainty_multiplier_deterministic",
+    "policy_candidates_v0_1_deterministic",
     "record_forecast_outcome_deterministic"
 ]

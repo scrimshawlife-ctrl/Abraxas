@@ -8,28 +8,20 @@
   "properties": {
     "artifact": {
       "type": "object",
-      "description": "The artifact to augment with non-truncation policy",
-      "additionalProperties": true
+      "minProperties": 0,
+      "description": "Base artifact dictionary to enhance with non-truncation policy"
     },
     "raw_full": {
-      "description": "Full raw data to preserve (embedded or written to disk)",
-      "oneOf": [
-        {"type": "object"},
-        {"type": "array"},
-        {"type": "string"},
-        {"type": "number"},
-        {"type": "boolean"},
-        {"type": "null"}
-      ]
+      "description": "Full raw data to preserve (any type: dict, list, string, etc.)"
     },
     "raw_full_path": {
       "type": "string",
       "minLength": 1,
-      "description": "Optional path to write raw_full to disk (instead of embedding)"
+      "description": "Optional path to write raw_full to disk (if omitted, raw_full is embedded)"
     },
     "seed": {
       "type": "integer",
-      "description": "Optional deterministic seed (unused for policy enforcement, kept for consistency)"
+      "description": "Optional deterministic seed (unused for non-truncation, kept for consistency)"
     }
   },
   "additionalProperties": false,
@@ -37,6 +29,7 @@
     "capability_id": "evolve.policy.enforce_non_truncation",
     "version": "1.0.0",
     "deterministic": true,
-    "provenance_required": true
+    "provenance_required": true,
+    "side_effects": true
   }
 }

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 
-from abraxas.runes.ctx import RuneInvocationContext
+# compile_jobs_from_dap and run_osh_jobs replaced by OSH capabilities
 from abraxas.runes.invoke import invoke_capability
+from abraxas.runes.ctx import RuneInvocationContext
 
 
 def main() -> int:
@@ -31,23 +32,46 @@ def main() -> int:
     if not args.allowlist_spec and not args.allowlist_map:
         parser.error("Either --allowlist-spec or --allowlist-map is required.")
 
-    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.osh", git_hash="unknown")
-    result = invoke_capability(
-        "osh.execute",
+    # Create invocation context
+    ctx = RuneInvocationContext(
+        run_id=args.run_id,
+        subsystem_id="abx.osh",
+        git_hash="unknown"
+    )
+
+    # Compile jobs via capability
+    compile_result = invoke_capability(
+        "osh.compile_jobs_from_dap",
         {
             "dap_json_path": args.dap,
             "run_id": args.run_id,
-            "out_dir": args.out_dir,
             "allowlist_spec_path": args.allowlist_spec,
             "allowlist_map_fallback_path": args.allowlist_map,
             "vector_map_path": args.vector_map,
         },
         ctx=ctx,
-        strict_execution=True,
+        strict_execution=True
     )
 
-    print(f"[OSH] compiled jobs: {result.get('jobs_count', 0)}")
-    print(f"[OSH] artifacts: {len(result.get('artifacts', []))} packets: {len(result.get('packets', []))}")
+    jobs = compile_result["jobs"]
+    print(f"[OSH] compiled jobs: {len(jobs)}")
+    if not jobs:
+        return 0
+
+    # Run jobs via capability
+    run_result = invoke_capability(
+        "osh.run_jobs",
+        {
+            "jobs": jobs,
+            "out_dir": args.out_dir
+        },
+        ctx=ctx,
+        strict_execution=True
+    )
+
+    artifacts = run_result["artifacts"]
+    packets = run_result["packets"]
+    print(f"[OSH] artifacts: {len(artifacts)} packets: {len(packets)}")
     return 0
 
 

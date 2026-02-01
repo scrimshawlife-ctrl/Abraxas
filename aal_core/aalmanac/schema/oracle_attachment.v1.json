@@ -1,0 +1,28 @@
+{
+  "schema_version": "aal.aalmanac.oracle_attachment.v1",
+  "type": "object",
+  "required": ["run_id", "top_single", "top_compound", "watchlist", "meta", "rejections"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "top_single": {"type": "array", "items": {"type": "string"}},
+    "top_compound": {"type": "array", "items": {"type": "string"}},
+    "watchlist": {"type": "array", "items": {"type": "string"}},
+    "meta": {
+      "type": "object",
+      "required": ["total_new", "total_mutations", "mean_drift_charge"],
+      "properties": {
+        "total_new": {"type": "integer"},
+        "total_mutations": {"type": "integer"},
+        "mean_drift_charge": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "rejections": {
+      "type": "object",
+      "required": ["total", "reasons"],
+      "properties": {
+        "total": {"type": "integer"},
+        "reasons": {"type": "object"}
+      }
+    }
+  }
+}

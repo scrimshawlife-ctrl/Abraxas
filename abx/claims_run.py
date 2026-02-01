@@ -6,11 +6,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from abraxas.memetic.claim_cluster import cluster_claims
 from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
-# load_sources_from_osh replaced by memetic.claims_sources.load capability
-# extract_claim_items_from_sources replaced by memetic.claim_extract.extract capability
-# cluster_claims replaced by memetic.claim_cluster.cluster capability
+from abraxas.memetic.claim_extract import extract_claim_items_from_sources
+from abraxas.memetic.claims_sources import load_sources_from_osh
 
 
 def _utc_now_iso() -> str:
@@ -34,41 +34,17 @@ def main() -> int:
     args = p.parse_args()
 
     ts = _utc_now_iso()
-    # Create context for capability invocations
-    ctx = RuneInvocationContext(
+    sources, sig = load_sources_from_osh(args.osh_ledger)
+    items = extract_claim_items_from_sources(
+        sources,
         run_id=args.run_id,
-        subsystem_id="abx.claims_run",
-        git_hash="unknown"
+        max_per_source=int(args.max_per_source),
     )
-    sources_result = invoke_capability(
-        "memetic.claims_sources.load",
-        {"osh_ledger_path": args.osh_ledger},
-        ctx=ctx,
-        strict_execution=True
+    clusters, metrics = cluster_claims(
+        items,
+        sim_threshold=float(args.sim_threshold),
+        max_pairs=int(args.max_pairs),
     )
-    sources, sig = sources_result["sources"], sources_result["stats"]
-    items_result = invoke_capability(
-        "memetic.claim_extract.extract",
-        {
-            "sources": sources,
-            "run_id": args.run_id,
-            "max_per_source": int(args.max_per_source)
-        },
-        ctx=ctx,
-        strict_execution=True
-    )
-    items = items_result["items"]
-    cluster_result = invoke_capability(
-        "memetic.claim_cluster.cluster",
-        {
-            "items": items,
-            "sim_threshold": float(args.sim_threshold),
-            "max_pairs": int(args.max_pairs)
-        },
-        ctx=ctx,
-        strict_execution=True
-    )
-    clusters, metrics = cluster_result["clusters"], cluster_result["metrics"]
 
     top_clusters = []
     for cluster in clusters[:8]:
@@ -90,23 +66,14 @@ def main() -> int:
         },
     }
 
-    # Enforce non-truncation policy via capability contract
-    ctx = RuneInvocationContext(
-        run_id=args.run_id,
-        subsystem_id="abx.claims_run",
-        git_hash="unknown"
-    )
+    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.claims_run", git_hash="unknown")
     result = invoke_capability(
-        capability="evolve.policy.enforce_non_truncation",
-        inputs={
-            "artifact": core,
-            "raw_full": {"sources": sources, "signals": sig, "items": items, "clusters": clusters}
-        },
+        "evolve.policy.enforce_non_truncation",
+        {"artifact": core, "raw_full": {"sources": sources, "signals": sig, "items": items, "clusters": clusters}},
         ctx=ctx,
         strict_execution=True
     )
     out = result["artifact"]
-
     path = os.path.join(args.out_reports, f"claims_{args.run_id}.json")
     _write_json(path, out)
     print(f"[CLAIMS_RUN] wrote: {path}")

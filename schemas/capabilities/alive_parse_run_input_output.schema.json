@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ALIVE Parse Run Input Output",
+  "description": "Output schema for alive.parse_run_input capability",
+  "type": "object",
+  "required": ["parsed_input", "parse_error", "provenance", "not_computable"],
+  "properties": {
+    "parsed_input": {
+      "type": ["object", "null"],
+      "description": "Parsed and validated run input (null if parsing failed)"
+    },
+    "parse_error": {
+      "type": ["string", "null"],
+      "description": "Parse error message (null if parsing succeeded)"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "SHA-256 provenance envelope",
+      "required": ["inputs_hash", "outputs_hash", "config_hash"],
+      "properties": {
+        "inputs_hash": {"type": "string"},
+        "outputs_hash": {"type": "string"},
+        "config_hash": {"type": "string"},
+        "envelope_hash": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": "null",
+      "description": "Always null for this capability"
+    }
+  },
+  "additionalProperties": false
+}

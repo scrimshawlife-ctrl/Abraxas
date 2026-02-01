@@ -239,6 +239,7 @@ def run_ase(
         "date": date,
         "key_fingerprint": key_fp,
         "schema_versions": {"sdct": "v0.1"},
+        "runtime_lexicon_hash": rt.runtime_hash,
     }
 
     sdct_domains: List[dict] = []
