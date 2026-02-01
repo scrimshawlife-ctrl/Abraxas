@@ -23,8 +23,7 @@ CATALOG_PATH = Path("abraxas_ase") / "runes" / "catalog.v0.yaml"
 DISCOVERY_ROOT = Path("abraxas_ase") / "runes"
 EXCLUDED_FILES = {"__init__.py", "invoke.py"}
 
-RUNE_ID_REGEX = re.compile(r'"rune_id"\s*:\s*"([^"]+)"')
-DOCSTRING_REGEX = re.compile(r"ABX-Runes Adapter:\s*([A-Za-z0-9_.-]+)")
+FILENAME_REGEX = re.compile(r"^sdct_(?P<name>[a-z0-9_]+)_v(?P<major>\d+)\.py$")
 HANDLER_RUN_REGEX = re.compile(r"\bdef\s+run\s*\(")
 HANDLER_INVOKE_REGEX = re.compile(r"\bdef\s+invoke\s*\(")
 
@@ -34,6 +33,7 @@ class RuneCandidate:
     rune_id: str
     sources: List[str]
     handler: str
+    module: str
 
 
 @dataclass(frozen=True)
@@ -45,13 +45,14 @@ class CandidateWithoutId:
 def run_gate(repo_root: Optional[Path] = None) -> Tuple[int, str]:
     repo_root = Path(repo_root) if repo_root else _default_repo_root()
     catalog_path = repo_root / CATALOG_PATH
-    registered_ids, catalog_index, catalog_notes, catalog_defaults = _load_catalog_ids(
+    registered_ids, catalog_index, catalog_notes, catalog_defaults, module_targets = _load_catalog_ids(
         catalog_path, repo_root
     )
 
     discovered_ids, without_id, discovery_notes = _discover_rune_ids(repo_root)
     missing = sorted(discovered_ids.keys() - registered_ids)
     orphans = sorted(registered_ids - discovered_ids.keys())
+    broken_modules = _check_module_targets(module_targets, repo_root)
 
     output = _format_report(
         repo_root=repo_root,
@@ -60,28 +61,35 @@ def run_gate(repo_root: Optional[Path] = None) -> Tuple[int, str]:
         discovered_ids=discovered_ids,
         missing=missing,
         orphans=orphans,
+        broken_modules=broken_modules,
         without_id=without_id,
         discovery_notes=discovery_notes,
         catalog_index=catalog_index,
         catalog_notes=catalog_notes,
         catalog_defaults=catalog_defaults,
     )
-    exit_code = 2 if missing or "catalog_missing" in catalog_notes else 0
+    if broken_modules or "catalog_missing" in catalog_notes:
+        exit_code = 3
+    elif missing:
+        exit_code = 2
+    else:
+        exit_code = 0
     return exit_code, output
 
 
 def _load_catalog_ids(
     catalog_path: Path,
     repo_root: Path,
-) -> Tuple[Set[str], Dict[str, List[str]], List[str], Dict[str, object]]:
+) -> Tuple[Set[str], Dict[str, List[str]], List[str], Dict[str, object], Dict[str, str]]:
     rune_ids: Set[str] = set()
     catalog_index: Dict[str, List[str]] = {}
     notes: List[str] = []
     defaults: Dict[str, object] = {}
+    module_targets: Dict[str, str] = {}
 
     if not catalog_path.exists():
         notes.append("catalog_missing")
-        return rune_ids, catalog_index, notes, defaults
+        return rune_ids, catalog_index, notes, defaults, module_targets
 
     try:
         data = yaml.safe_load(catalog_path.read_text(encoding="utf-8")) or {}
@@ -89,14 +97,14 @@ def _load_catalog_ids(
         notes.append(
             f"catalog_unreadable: {_relative_path(catalog_path, repo_root)} ({exc})"
         )
-        return rune_ids, catalog_index, notes, defaults
+        return rune_ids, catalog_index, notes, defaults, module_targets
 
     runes = data.get("runes", [])
     if not isinstance(runes, list):
         notes.append(
             f"catalog_runes_list_missing: {_relative_path(catalog_path, repo_root)}"
         )
-        return rune_ids, catalog_index, notes, defaults
+        return rune_ids, catalog_index, notes, defaults, module_targets
 
     for entry in runes:
         if not isinstance(entry, dict):
@@ -107,10 +115,13 @@ def _load_catalog_ids(
             catalog_index.setdefault(rune_id, []).append(
                 _relative_path(catalog_path, repo_root)
             )
+            module_path = entry.get("module")
+            if isinstance(module_path, str) and module_path.strip():
+                module_targets[rune_id] = module_path
 
     defaults = _extract_catalog_defaults(runes)
     notes = sorted(set(notes))
-    return rune_ids, catalog_index, notes, defaults
+    return rune_ids, catalog_index, notes, defaults, module_targets
 
 
 def _discover_rune_ids(
@@ -119,8 +130,8 @@ def _discover_rune_ids(
     discovered: Dict[str, RuneCandidate] = {}
     without_id: List[CandidateWithoutId] = []
     notes = [
-        "rune_id discovery scans dict key literals and adapter docstrings only.",
-        'patterns: `"rune_id": "<id>"` and `ABX-Runes Adapter: <id>`.',
+        "rune_id discovery uses filename convention only.",
+        "pattern: sdct_<name>_v<major>.py -> sdct.<name>.v<major>",
     ]
 
     discovery_root = repo_root / DISCOVERY_ROOT
@@ -132,38 +143,43 @@ def _discover_rune_ids(
         if path.name in EXCLUDED_FILES:
             continue
         relative = _relative_path(path, repo_root)
+        match = FILENAME_REGEX.match(path.name)
+        if not match:
+            without_id.append(
+                CandidateWithoutId(
+                    path=relative, reason="filename_not_matching_pattern"
+                )
+            )
+            continue
+
+        rune_id = f"sdct.{match.group('name')}.v{match.group('major')}"
+        module = _module_path_from_source(relative, repo_root)
+        handler = "invoke"
         try:
             text = path.read_text(encoding="utf-8")
+            handler = _infer_handler(text)
         except Exception:
             without_id.append(
                 CandidateWithoutId(path=relative, reason="unreadable python file")
             )
-            continue
 
-        rune_ids = set(RUNE_ID_REGEX.findall(text))
-        rune_ids.update(DOCSTRING_REGEX.findall(text))
-        handler = _infer_handler(text)
-        has_rune_hint = ("rune_id" in text) or ("ABX-Runes Adapter:" in text)
-
-        if rune_ids:
-            for rune_id in sorted(rune_ids):
-                entry = discovered.get(rune_id)
-                if entry is None:
-                    discovered[rune_id] = RuneCandidate(
-                        rune_id=rune_id, sources=[relative], handler=handler
-                    )
-                else:
-                    entry.sources.append(relative)
-                    entry = RuneCandidate(
-                        rune_id=rune_id,
-                        sources=entry.sources,
-                        handler=_merge_handler(entry.handler, handler),
-                    )
-                    discovered[rune_id] = entry
-        elif has_rune_hint:
-            without_id.append(
-                CandidateWithoutId(path=relative, reason="rune_id literal not found")
+        entry = discovered.get(rune_id)
+        if entry is None:
+            discovered[rune_id] = RuneCandidate(
+                rune_id=rune_id,
+                sources=[relative],
+                handler=handler,
+                module=module,
             )
+        else:
+            entry.sources.append(relative)
+            entry = RuneCandidate(
+                rune_id=rune_id,
+                sources=entry.sources,
+                handler=_merge_handler(entry.handler, handler),
+                module=entry.module or module,
+            )
+            discovered[rune_id] = entry
 
     for candidate in discovered.values():
         candidate.sources.sort()
@@ -179,13 +195,14 @@ def _format_report(
     discovered_ids: Dict[str, RuneCandidate],
     missing: Sequence[str],
     orphans: Sequence[str],
+    broken_modules: Sequence["BrokenModule"],
     without_id: Sequence[CandidateWithoutId],
     discovery_notes: Sequence[str],
     catalog_index: Dict[str, List[str]],
     catalog_notes: Sequence[str],
     catalog_defaults: Dict[str, object],
 ) -> str:
-    status = "FAIL" if missing or "catalog_missing" in catalog_notes else "PASS"
+    status = "FAIL" if missing or broken_modules or "catalog_missing" in catalog_notes else "PASS"
     catalog_list = (
         [_relative_path(catalog_path, repo_root)] if catalog_path.exists() else []
     )
@@ -199,6 +216,7 @@ def _format_report(
         f"- discovered_rune_ids: {len(discovered_ids)}",
         f"- candidate_without_id: {len(without_id)}",
         f"- missing_registry: {len(missing)}",
+        f"- broken_module_targets: {len(broken_modules)}",
         f"- orphan_registry: {len(orphans)}",
         f"- status: {status}",
         "",
@@ -246,6 +264,16 @@ def _format_report(
         for candidate in without_id:
             lines.append(f"- {candidate.path} ({candidate.reason})")
 
+    lines.extend(["", "## Broken module targets (ERROR)"])
+    if not broken_modules:
+        lines.append("- none")
+    else:
+        for broken in broken_modules:
+            lines.append(f"- {broken.rune_id}")
+            lines.append(f"  - module: {broken.module}")
+            lines.append(f"  - expected_path: {broken.expected_path}")
+            lines.append(f"  - hint: {broken.hint}")
+
     lines.extend(["", "## SCaffold Pack"])
     if not missing:
         lines.append("- none")
@@ -253,9 +281,7 @@ def _format_report(
         for rune_id in missing:
             sources = discovered_ids[rune_id].sources
             module_path = (
-                _module_path_from_source(sources[0], repo_root)
-                if sources
-                else "unknown"
+                discovered_ids[rune_id].module if rune_id in discovered_ids else "unknown"
             )
             handler = discovered_ids[rune_id].handler
             slug = _slugify_rune_id(rune_id)
@@ -368,6 +394,57 @@ def _merge_handler(existing: str, candidate: str) -> str:
 
 def _default_repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
+
+
+@dataclass(frozen=True)
+class BrokenModule:
+    rune_id: str
+    module: str
+    expected_path: str
+    hint: str
+
+
+def _check_module_targets(
+    module_targets: Dict[str, str],
+    repo_root: Path,
+) -> List[BrokenModule]:
+    broken: List[BrokenModule] = []
+    for rune_id, module in sorted(module_targets.items()):
+        expected = _module_to_path(module, repo_root)
+        if expected is None:
+            broken.append(
+                BrokenModule(
+                    rune_id=rune_id,
+                    module=module,
+                    expected_path="unknown",
+                    hint="module path invalid",
+                )
+            )
+            continue
+        if not expected.exists():
+            broken.append(
+                BrokenModule(
+                    rune_id=rune_id,
+                    module=module,
+                    expected_path=_relative_path(expected, repo_root),
+                    hint="create module file or update catalog module path",
+                )
+            )
+    return broken
+
+
+def _module_to_path(module: str, repo_root: Path) -> Optional[Path]:
+    parts = [p for p in module.split(".") if p]
+    if not parts:
+        return None
+    file_path = repo_root.joinpath(*parts).with_suffix(".py")
+    if file_path.exists():
+        return file_path
+    package_path = repo_root.joinpath(*parts)
+    init_path = package_path / "__init__.py"
+    if init_path.exists():
+        return init_path
+    return file_path
 
 
 def main() -> None:

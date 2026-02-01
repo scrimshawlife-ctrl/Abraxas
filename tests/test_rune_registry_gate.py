@@ -1,22 +1,34 @@
 from pathlib import Path
+import re
 
 from abraxas.governance.rune_registry_gate import run_gate
 
 
-def _write_catalog(root: Path, rune_ids: list[str]) -> Path:
+def _module_for_rune_id(rune_id: str) -> str:
+    match = re.match(r"^sdct\.(?P<name>[a-z0-9_]+)\.v(?P<major>\d+)$", rune_id)
+    if not match:
+        return "abraxas_ase.runes.unknown"
+    name = match.group("name")
+    major = match.group("major")
+    return f"abraxas_ase.runes.sdct_{name}_v{major}"
+
+
+def _write_catalog(root: Path, rune_ids: list[str], module_overrides: dict[str, str] | None = None) -> Path:
     catalog_dir = root / "abraxas_ase" / "runes"
     catalog_dir.mkdir(parents=True, exist_ok=True)
     catalog_path = catalog_dir / "catalog.v0.yaml"
+    module_overrides = module_overrides or {}
     lines = [
         'catalog_version: "0.1.0"',
         'schema_version: "catalog.v0"',
         "runes:",
     ]
     for rune_id in rune_ids:
+        module_path = module_overrides.get(rune_id, _module_for_rune_id(rune_id))
         lines.extend(
             [
                 f"  - rune_id: {rune_id}",
-                "    module: abraxas_ase.runes.stub",
+                f"    module: {module_path}",
                 "    handler: run",
                 "    version: \"1.0.0\"",
                 f"    domain_id: {rune_id}",
@@ -36,9 +48,10 @@ def _write_catalog(root: Path, rune_ids: list[str]) -> Path:
     return catalog_path
 
 
-def _write_rune_module(root: Path, file_name: str, rune_id: str) -> Path:
+def _write_rune_module(root: Path, rune_id: str) -> Path:
     runes_dir = root / "abraxas_ase" / "runes"
     runes_dir.mkdir(parents=True, exist_ok=True)
+    file_name = _module_for_rune_id(rune_id).split(".")[-1] + ".py"
     module_path = runes_dir / file_name
     module_path.write_text(
         "\n".join(
@@ -56,8 +69,8 @@ def _write_rune_module(root: Path, file_name: str, rune_id: str) -> Path:
 
 def test_rune_registry_gate_deterministic_output(tmp_path):
     _write_catalog(tmp_path, ["sdct.text_subword.v1", "sdct.digit_motif.v1"])
-    _write_rune_module(tmp_path, "sdct_text_subword_v1.py", "sdct.text_subword.v1")
-    _write_rune_module(tmp_path, "sdct_digit_motif_v1.py", "sdct.digit_motif.v1")
+    _write_rune_module(tmp_path, "sdct.text_subword.v1")
+    _write_rune_module(tmp_path, "sdct.digit_motif.v1")
 
     exit_code_1, output_1 = run_gate(repo_root=tmp_path)
     exit_code_2, output_2 = run_gate(repo_root=tmp_path)
@@ -69,8 +82,8 @@ def test_rune_registry_gate_deterministic_output(tmp_path):
 
 def test_rune_registry_gate_failures_emit_scaffold(tmp_path):
     _write_catalog(tmp_path, ["sdct.text_subword.v1"])
-    _write_rune_module(tmp_path, "sdct_text_subword_v1.py", "sdct.text_subword.v1")
-    _write_rune_module(tmp_path, "sdct_fake_v1.py", "sdct.fake.v1")
+    _write_rune_module(tmp_path, "sdct.text_subword.v1")
+    _write_rune_module(tmp_path, "sdct.fake.v1")
 
     exit_code, output = run_gate(repo_root=tmp_path)
 
@@ -80,9 +93,22 @@ def test_rune_registry_gate_failures_emit_scaffold(tmp_path):
     assert "handler: run" in output
 
 
+def test_rune_registry_gate_broken_module_target(tmp_path):
+    _write_catalog(
+        tmp_path,
+        ["sdct.text_subword.v1"],
+        module_overrides={"sdct.text_subword.v1": "abraxas_ase.runes.sdct_missing_v1"},
+    )
+
+    exit_code, output = run_gate(repo_root=tmp_path)
+
+    assert exit_code == 3
+    assert "Broken module targets" in output
+
+
 def test_rune_registry_gate_pass(tmp_path):
     _write_catalog(tmp_path, ["sdct.text_subword.v1"])
-    _write_rune_module(tmp_path, "sdct_text_subword_v1.py", "sdct.text_subword.v1")
+    _write_rune_module(tmp_path, "sdct.text_subword.v1")
 
     exit_code, output = run_gate(repo_root=tmp_path)
 

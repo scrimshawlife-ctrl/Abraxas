@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - governance: add inventory_report v0.1
 - governance: add rune_registry_gate v0.1 (hard fail + scaffolds)
 - governance: add rune_registry_gate v1.0 (hard fail + scaffolds)
-- registry: sync catalog.v0.yaml to match existing rune modules
+- registry: sync catalog.v0.yaml and repair sdct.digit.v1 module target
 - Kernel routing and deterministic handlers for `weather.generate`, `ser.run`, `daemon.ingest`, and `edge.deploy_orin`
 - Oracle v2 factory wiring for lifecycle, tau, weather registry, integrity composites, and AAlmanac context
 - Kernel and patch registry tests covering new rune routing and proposal-only patch receipts
