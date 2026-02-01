@@ -1,9 +1,5 @@
 {
-  "toggles": {
-    "emit_signal_v2": true,
-    "emit_md": true,
-    "ledger": true,
-    "jsonl": true
-  }
+  "emit_signal_v2": true,
+  "ledger_enabled": true
 }
 
