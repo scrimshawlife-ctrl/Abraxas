@@ -1,12 +1,11 @@
 """
-MDA (Memetic Drift Analyzer) Sandbox
+MDA (Minimal Deterministic Adapter) subsystem.
 
-This package is a deterministic practice harness. It is intentionally decoupled
-from the rest of Abraxas ingestion/oracle systems.
-
-Core contract:
-  explicit inputs -> governed transforms -> repeatable outputs
+This package is intentionally small and deterministic:
+- no network
+- no time reads
+- no randomness without an explicit seed
 """
 
-__all__ = []
+from __future__ import annotations
 

@@ -1,29 +1,4 @@
 {
-  "vectors": {
-    "tech_ai": {
-      "foundation_models": [
-        {
-          "event_id": "evt_001",
-          "text": "A model release triggers a short-lived attention spike.",
-          "evidence_ref": "ev://sample/001"
-        }
-      ],
-      "policy": []
-    },
-    "media": {
-      "platforms": [
-        {
-          "event_id": "evt_002",
-          "text": "Algorithm update changes distribution surface for a topic.",
-          "evidence_ref": "ev://sample/002"
-        },
-        {
-          "event_id": "evt_003",
-          "text": "A creator coalition amplifies a motif across channels.",
-          "evidence_ref": "ev://sample/003"
-        }
-      ]
-    }
-  }
+  "inputs": {}
 }
 

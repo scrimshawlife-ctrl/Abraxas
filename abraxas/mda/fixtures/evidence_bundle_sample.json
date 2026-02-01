@@ -1,48 +1,11 @@
 {
-  "evidence_bundle": {
-    "notes": ["ref:evidence_bundle:root"],
-    "vectors": {
-      "tech_ai": {
-        "foundation_models": {
-          "scores": { "impact": 0.5, "velocity": 0.2, "uncertainty": 0.4, "polarity": 0.0 },
-          "evidence_refs": ["ref:bundle:tech_ai"],
-          "events": [
-            {
-              "title": "Evidence-bundle event (tech_ai)",
-              "time": "2026-01-01T00:00:00Z",
-              "claims": [
-                {
-                  "claim": "Evidence bundle adapter routed correctly",
-                  "confidence": 0.8,
-                  "evidence_refs": ["ref:bundle:tech_ai:a"]
-                }
-              ],
-              "tags": ["actor:test", "meme:evidence_bundle"],
-              "metrics": { "sample": true }
-            }
-          ]
-        }
-      },
-      "culture_memes": {
-        "slang_language_drift": {
-          "scores": { "impact": 0.2, "velocity": 0.1, "uncertainty": 0.8, "polarity": 0.0 },
-          "evidence_refs": ["ref:bundle:culture_memes"],
-          "events": [
-            {
-              "title": "Evidence-bundle event (culture_memes)",
-              "time": "2026-01-01T00:00:00Z",
-              "claims": [
-                {
-                  "claim": "Bridge vs direct path parity canary payload",
-                  "confidence": 0.6,
-                  "evidence_refs": ["ref:bundle:culture_memes:a"]
-                }
-              ],
-              "tags": ["actor:test", "meme:evidence_bundle"],
-              "metrics": { "sample": true }
-            }
-          ]
-        }
+  "bundle_id": "sample_bundle_v1",
+  "vectors": {
+    "tech_ai": {
+      "foundation_models": {
+        "scores": {},
+        "events": [],
+        "evidence_refs": []
       }
     }
   }
