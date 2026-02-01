@@ -1,30 +1,12 @@
 """
-Abraxas Multi-Domain Analysis (MDA)
+MDA (Memetic Drift Analyzer) Sandbox
 
-Canon: MDA v1.1 (Hierarchical Subdomains)
-- Domain -> Subdomain -> Signal Units
-- Uniform DSP contract
-- Evidence-gated; missing inputs => not_computable
-- Deterministic provenance + invariance support
+This package is a deterministic practice harness. It is intentionally decoupled
+from the rest of Abraxas ingestion/oracle systems.
+
+Core contract:
+  explicit inputs -> governed transforms -> repeatable outputs
 """
 
-from .registry import DomainRegistryV1
-from .types import (
-    Domain,
-    DomainSignalPack,
-    DSPStatus,
-    EdgeType,
-    FusionGraph,
-    MDARunEnvelope,
-)
-
-__all__ = [
-    "Domain",
-    "DomainSignalPack",
-    "DSPStatus",
-    "EdgeType",
-    "FusionGraph",
-    "MDARunEnvelope",
-    "DomainRegistryV1",
-]
+__all__ = []
 
