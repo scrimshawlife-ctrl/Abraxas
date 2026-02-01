@@ -1,3 +1,1 @@
-"""Sandbox utilities for practice runs."""
-
-from __future__ import annotations
+# Sandbox entrypoints live here (practice rigs, canaries, replay tools).

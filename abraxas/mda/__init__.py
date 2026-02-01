@@ -1,11 +1,7 @@
 """
-MDA (Minimal Deterministic Adapter) subsystem.
+MDA (Practice Sandbox) - deterministic practice runner.
 
-This package is intentionally small and deterministic:
-- no network
-- no time reads
-- no randomness without an explicit seed
+This module is intentionally lightweight: it exists to provide a stable, repeatable
+"practice run" surface for refactors elsewhere in the codebase.
 """
-
-from __future__ import annotations
 

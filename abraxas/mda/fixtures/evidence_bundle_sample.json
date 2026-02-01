@@ -1,13 +1,13 @@
 {
-  "bundle_id": "sample_bundle_v1",
-  "vectors": {
-    "tech_ai": {
-      "foundation_models": {
-        "scores": {},
-        "events": [],
-        "evidence_refs": []
+  "evidence_bundle": {
+    "bundle_id": "BUNDLE-SAMPLE-0001",
+    "sources": [
+      {
+        "source_id": "SRC-001",
+        "kind": "sandbox",
+        "title": "Practice bundle"
       }
-    }
+    ]
   }
 }
 

@@ -1,6 +1,9 @@
 {
-  "enabled_subdomains": [
-    "tech_ai:foundation_models"
-  ]
+  "toggles": {
+    "emit_signal_v2": true,
+    "emit_md": true,
+    "ledger": true,
+    "jsonl": true
+  }
 }
 
