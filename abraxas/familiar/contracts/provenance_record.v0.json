@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.provenance_record.v0",
+  "title": "Provenance Record v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "input_hash",
+    "plan_hash",
+    "policy_hash",
+    "capability_decision_hash",
+    "result_hash",
+    "details",
+    "provenance_hash"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "run_id": { "type": "string" },
+    "input_hash": { "type": ["string", "null"] },
+    "plan_hash": { "type": ["string", "null"] },
+    "policy_hash": { "type": ["string", "null"] },
+    "capability_decision_hash": { "type": ["string", "null"] },
+    "result_hash": { "type": "string" },
+    "details": { "type": ["object", "null"], "additionalProperties": true },
+    "provenance_hash": { "type": "string" }
+  },
+  "additionalProperties": false
+}

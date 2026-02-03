@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.run_plan.v0",
+  "title": "Familiar Run Plan v0",
+  "type": "object",
+  "required": ["schema_version", "run_id", "steps", "ordered_step_ids"],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "run_id": { "type": "string" },
+    "steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Step" }
+    },
+    "ordered_step_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "Value": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "integer" },
+        { "type": "boolean" },
+        { "type": "null" },
+        { "$ref": "#/$defs/Object" },
+        { "$ref": "#/$defs/Array" }
+      ]
+    },
+    "Object": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "Array": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Value" }
+    },
+    "Step": {
+      "type": "object",
+      "required": ["step_id", "action", "depends_on", "parameters"],
+      "properties": {
+        "step_id": { "type": "string" },
+        "action": { "type": "string" },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "parameters": {
+          "type": ["object", "null"],
+          "additionalProperties": { "$ref": "#/$defs/Value" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.capability_decision.v0",
+  "title": "Capability Decision v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "policy_id",
+    "allowed",
+    "reason_code",
+    "granted_capabilities",
+    "denied_capabilities",
+    "details"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "policy_id": { "type": ["string", "null"] },
+    "allowed": { "type": "boolean" },
+    "reason_code": { "type": "string" },
+    "granted_capabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "denied_capabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "details": { "type": ["object", "null"], "additionalProperties": true }
+  },
+  "additionalProperties": false
+}

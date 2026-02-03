@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.capability_grant.v0",
+  "title": "Capability Grant v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_id",
+    "granted",
+    "reason",
+    "constraints"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "capability_id": { "type": "string" },
+    "granted": { "type": "boolean" },
+    "reason": { "type": ["string", "null"] },
+    "constraints": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

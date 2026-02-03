@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.stabilization_window.v0",
+  "title": "Stabilization Window v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "window_id",
+    "run_ids",
+    "start_run_id",
+    "end_run_id",
+    "status",
+    "notes",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "window_id": { "type": "string" },
+    "run_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "start_run_id": { "type": ["string", "null"] },
+    "end_run_id": { "type": ["string", "null"] },
+    "status": { "type": "string" },
+    "notes": { "type": ["string", "null"] },
+    "metadata": { "type": ["object", "null"], "additionalProperties": true }
+  },
+  "additionalProperties": false
+}

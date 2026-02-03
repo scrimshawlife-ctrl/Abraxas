@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.ledger_event.v0",
+  "title": "Familiar Ledger Event v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "run_id",
+    "prev_hash",
+    "payload",
+    "event_hash"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "event_id": { "type": "string" },
+    "event_type": { "type": "string" },
+    "run_id": { "type": "string" },
+    "prev_hash": { "type": ["string", "null"] },
+    "payload": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "event_hash": { "type": "string" }
+  },
+  "$defs": {
+    "Value": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "integer" },
+        { "type": "boolean" },
+        { "type": "null" },
+        { "$ref": "#/$defs/Object" },
+        { "$ref": "#/$defs/Array" }
+      ]
+    },
+    "Object": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "Array": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Value" }
+    }
+  },
+  "additionalProperties": false
+}
