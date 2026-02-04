@@ -1,9 +1,6 @@
-from webpanel import app as webpanel_app
-from webpanel.core_bridge import _STEP_STATE
-from webpanel.ledger import LedgerChain
-from webpanel.models import AbraxasSignalPacket
+from webpanel.core_bridge import core_ingest
+from webpanel.models import AbraxasSignalPacket, RunState
 from webpanel.policy import get_policy_snapshot
-from webpanel.store import InMemoryStore
 from webpanel.stability import run_stabilization
 
 
@@ -23,14 +20,9 @@ def _packet() -> AbraxasSignalPacket:
     )
 
 
-def _reset_and_get_run():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
-    _STEP_STATE.clear()
-    resp = webpanel_app.ingest(_packet())
-    run = webpanel_app.store.get(resp["run_id"])
-    assert run is not None
-    return run
+def _get_run() -> RunState:
+    result = core_ingest(_packet().model_dump())
+    return RunState(**result)
 
 
 def _force_nondeterminism(final_payload: dict, cycle: int) -> None:
@@ -39,7 +31,7 @@ def _force_nondeterminism(final_payload: dict, cycle: int) -> None:
 
 
 def test_stability_report_includes_policy_hash_per_cycle():
-    run = _reset_and_get_run()
+    run = _get_run()
     snapshot = get_policy_snapshot()
     report = run_stabilization(
         run,
@@ -52,7 +44,7 @@ def test_stability_report_includes_policy_hash_per_cycle():
 
 
 def test_drift_class_nondeterminism():
-    run = _reset_and_get_run()
+    run = _get_run()
     snapshot = get_policy_snapshot()
     report = run_stabilization(
         run,
@@ -65,7 +57,7 @@ def test_drift_class_nondeterminism():
 
 
 def test_drift_class_policy_change():
-    run = _reset_and_get_run()
+    run = _get_run()
     snapshot = get_policy_snapshot()
     report = run_stabilization(
         run,
