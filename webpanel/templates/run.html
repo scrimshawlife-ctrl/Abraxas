@@ -9,7 +9,7 @@
   </div>
 {% endif %}
 
-{% if top_gate %}
+{% if top_gate and show_sections.gates %}
   <div class="card {% if top_gate.severity == 'block' %}warn{% endif %}" style="margin-top:12px;">
     <b>Gate:</b> {{ top_gate.message }} <b>Remedy:</b> {{ top_gate.remedy }}
     {% if top_gate.code == "policy_ack_required" %}
@@ -198,7 +198,7 @@
   <pre><code>{{ run.last_step_result | tojson(indent=2) if run.last_step_result else "None" }}</code></pre>
 </div>
 
-{% if oracle_view %}
+{% if oracle_view and show_sections.oracle %}
   <div class="card" style="margin-top:16px;">
     <h2>Oracle (OSLv2)</h2>
     <p><b>Tier:</b> {{ oracle_view.tier }} · <b>Lane:</b> {{ oracle_view.lane }}</p>
@@ -317,12 +317,12 @@
           </div>
           <div><b>Preview:</b> {{ action.preview_effect }}</div>
           {% set consideration = considerations.get(action.action_id) %}
-          {% if consideration %}
+          {% if consideration and show_sections.consideration %}
             <details style="margin-top:8px;">
               <summary>Explain</summary>
               <div><b>Rationale:</b>
                 <ul>
-                  {% for line in consideration.rationale %}
+                  {% for line in consideration.rationale_display %}
                     <li>{{ line }}</li>
                   {% endfor %}
                 </ul>
@@ -335,7 +335,16 @@
                   {% endfor %}
                 </ul>
               </div>
-              <div><b>Risk flags:</b> {{ consideration.risk_flags }}</div>
+              <div><b>Risk flags:</b>
+                {% for flag in consideration.risk_flags %}
+                  {% if flag in consideration.risk_flags_emphasis %}
+                    <b>{{ flag }}</b>
+                  {% else %}
+                    {{ flag }}
+                  {% endif %}
+                  {% if not loop.last %}, {% endif %}
+                {% endfor %}
+              </div>
               <div><b>Evidence refs:</b> {{ consideration.evidence_refs | length }}</div>
             </details>
           {% endif %}
@@ -361,12 +370,13 @@
   </div>
 {% endif %}
 
-{% if continuity_report %}
+{% if continuity_report and show_sections.continuity %}
   <div class="card" style="margin-top:16px;">
     <h2>Continuity</h2>
-    {% if continuity_report.summary_lines %}
+    {% set summary_lines = continuity_summary_lines or continuity_report.summary_lines %}
+    {% if summary_lines %}
       <ul>
-        {% for line in continuity_report.summary_lines %}
+        {% for line in summary_lines %}
           <li>{{ line }}</li>
         {% endfor %}
       </ul>
@@ -453,6 +463,54 @@
       {% endfor %}
     </ul>
   {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Pins</h2>
+  <form method="post" action="/ui/runs/{{ run.run_id }}/prefs">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <div class="grid">
+      <div>
+        <label>verbosity</label>
+        <select name="verbosity" style="width:100%;">
+          <option value="low" {% if prefs.verbosity == "low" %}selected{% endif %}>low</option>
+          <option value="medium" {% if prefs.verbosity == "medium" %}selected{% endif %}>medium</option>
+          <option value="high" {% if prefs.verbosity == "high" %}selected{% endif %}>high</option>
+        </select>
+      </div>
+      <div>
+        <label>risk_tolerance</label>
+        <select name="risk_tolerance" style="width:100%;">
+          <option value="low" {% if prefs.risk_tolerance == "low" %}selected{% endif %}>low</option>
+          <option value="medium" {% if prefs.risk_tolerance == "medium" %}selected{% endif %}>medium</option>
+          <option value="high" {% if prefs.risk_tolerance == "high" %}selected{% endif %}>high</option>
+        </select>
+      </div>
+      <div>
+        <label>focus (comma-separated)</label>
+        <input type="text" name="focus" value="{{ prefs.focus | join(', ') }}" style="width:100%;"/>
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <label>show</label>
+      {% for opt in ["oracle","gates","continuity","consideration"] %}
+        <label style="margin-right:8px;">
+          <input type="checkbox" name="show" value="{{ opt }}" {% if opt in prefs.show %}checked{% endif %}/> {{ opt }}
+        </label>
+      {% endfor %}
+    </div>
+    <div style="margin-top:8px;">
+      <label>hide</label>
+      {% for opt in ["oracle","gates","continuity","consideration"] %}
+        <label style="margin-right:8px;">
+          <input type="checkbox" name="hide" value="{{ opt }}" {% if opt in prefs.hide %}checked{% endif %}/> {{ opt }}
+        </label>
+      {% endfor %}
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn" type="submit">Save Pins</button>
+    </div>
+  </form>
 </div>
 
 <div class="card" style="margin-top:16px;">

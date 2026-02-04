@@ -11,6 +11,7 @@ from webpanel.consideration import build_considerations_for_run
 from webpanel.continuity import build_continuity_report
 from webpanel.gates import compute_gate_stack
 from webpanel.oracle_output import extract_oracle_output, oracle_hash_prefix
+from webpanel.preference_kernel import normalize_prefs
 
 
 def canonical_json_bytes(obj: Any) -> bytes:
@@ -158,6 +159,20 @@ def build_bundle(
         continuity_sha = sha256_hex(continuity_bytes)
     if continuity_sha:
         manifest["continuity_sha256"] = continuity_sha
+
+    prefs_sha: Optional[str] = None
+    prefs_source = None
+    if getattr(right_run, "prefs", None):
+        prefs_source = right_run
+    elif getattr(left_run, "prefs", None):
+        prefs_source = left_run
+    if prefs_source:
+        prefs = normalize_prefs(prefs_source.prefs)
+        prefs_bytes = canonical_json_bytes(prefs)
+        files.append(("prefs.json", prefs_bytes))
+        prefs_sha = sha256_hex(prefs_bytes)
+    if prefs_sha:
+        manifest["prefs_sha256"] = prefs_sha
     files.append(("manifest.json", canonical_json_bytes(manifest)))
 
     buffer = BytesIO()

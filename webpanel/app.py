@@ -34,6 +34,13 @@ from .continuity import build_continuity_report
 from .gates import compute_gate_stack
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
 from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
+from .preference_kernel import (
+    apply_prefs_update,
+    build_consideration_view,
+    normalize_prefs,
+    prefs_focus_priority,
+    prefs_show_sections,
+)
 from .session_mode import (
     SessionGateError,
     consume_session_step,
@@ -244,6 +251,11 @@ def ui_run(request: Request, run_id: str):
     gate_stack = compute_gate_stack(run, current_hash)
     top_gate = gate_stack[0] if gate_stack else None
     considerations = {}
+    try:
+        prefs = normalize_prefs(run.prefs) if getattr(run, "prefs", None) else normalize_prefs({})
+    except Exception:
+        prefs = normalize_prefs({})
+    show_sections = prefs_show_sections(prefs)
     proposals = None
     if run.last_step_result and isinstance(run.last_step_result, dict):
         if run.last_step_result.get("kind") == "propose_actions_v0":
@@ -259,14 +271,19 @@ def ui_run(request: Request, run_id: str):
             if isinstance(proposal, dict):
                 key = proposal.get("action_id") or consideration.get("proposal_id")
                 if key:
-                    considerations[key] = consideration
+                    considerations[key] = build_consideration_view(consideration, prefs)
     continuity_report = None
+    continuity_summary_lines = None
     prev_run = store.get(run.prev_run_id) if run.prev_run_id else None
     if prev_run:
         prev_events = ledger.list_events(prev_run.run_id)
         setattr(run, "ledger_events", events)
         setattr(prev_run, "ledger_events", prev_events)
         continuity_report = build_continuity_report(run, prev_run, current_hash)
+        if continuity_report:
+            continuity_summary_lines = prefs_focus_priority(
+                continuity_report.get("summary_lines", []), prefs.get("focus", [])
+            )
         try:
             delattr(run, "ledger_events")
             delattr(prev_run, "ledger_events")
@@ -296,6 +313,9 @@ def ui_run(request: Request, run_id: str):
             "top_gate": top_gate,
             "considerations": considerations,
             "continuity_report": continuity_report,
+            "continuity_summary_lines": continuity_summary_lines,
+            "prefs": prefs,
+            "show_sections": show_sections,
         },
     )
 
@@ -1137,6 +1157,40 @@ async def ui_policy_ack(run_id: str, request: Request):
     form = await request.form()
     require_token(request, form)
     _record_policy_ack(run_id)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/prefs")
+async def ui_update_prefs(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    verbosity = form.get("verbosity") or "medium"
+    risk_tolerance = form.get("risk_tolerance") or "medium"
+    focus = form.get("focus") or ""
+    show = form.getlist("show")
+    hide = form.getlist("hide")
+    payload = {
+        "verbosity": verbosity,
+        "risk_tolerance": risk_tolerance,
+        "focus": focus,
+        "show": show,
+        "hide": hide,
+    }
+    try:
+        apply_prefs_update(
+            run=run,
+            new_prefs=payload,
+            ledger=ledger,
+            event_id=eid("ev"),
+            timestamp_utc=now_utc(),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    store.put(run)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
