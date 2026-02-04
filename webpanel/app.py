@@ -404,17 +404,25 @@ def _step_deferral(run_id: str) -> dict:
     run.actions_taken += 1
     run.phase = max(run.phase, 6)
 
+    event_payload = {
+        "step_id": step.step_id,
+        "kind": step.kind,
+        "produces": step.produces,
+        "result_keys": list(result.keys()),
+    }
+    if step.kind == "extract_structure_v0":
+        event_payload["paths_count"] = result.get("keys_topology", {}).get("paths_count")
+        event_payload["numeric_count"] = len(result.get("numeric_metrics", []))
+        event_payload["unknowns_count"] = len(result.get("unknowns", []))
+        event_payload["refs_count"] = len(result.get("evidence_refs", []))
+        event_payload["claims_count"] = len(result.get("claims_preview", []))
+
     ledger.append(
         run_id,
         eid("ev"),
         "runplan_step_executed",
         now_utc(),
-        {
-            "step_id": step.step_id,
-            "kind": step.kind,
-            "produces": step.produces,
-            "result_keys": list(result.keys()),
-        },
+        event_payload,
     )
     ledger.append(
         run_id,

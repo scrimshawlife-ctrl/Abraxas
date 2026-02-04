@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from webpanel.models import RunState
 
 RunPlanStepKind = Literal[
+    "extract_structure_v0",
     "summarize_context",
     "surface_unknowns",
     "propose_options",
@@ -67,6 +68,13 @@ def build_runplan(run_state: "RunState") -> RunPlan:
             )
         )
 
+    if isinstance(run_state.signal.payload, dict) and run_state.signal.payload:
+        add_step(
+            "extract_structure_v0",
+            "note",
+            {"payload_keys": sorted(run_state.signal.payload.keys())},
+        )
+
     add_step(
         "summarize_context",
         "note",
@@ -109,6 +117,32 @@ def build_runplan(run_state: "RunState") -> RunPlan:
 
 
 def execute_step(run_state: "RunState", step: RunPlanStep) -> Dict[str, Any]:
+    if step.kind == "extract_structure_v0":
+        from webpanel.structure_extract import (
+            detect_unknowns,
+            extract_claims_if_present,
+            walk_payload,
+        )
+
+        payload = run_state.signal.payload
+        extract = walk_payload(payload)
+        unknowns = detect_unknowns(payload)
+        claims = extract_claims_if_present(payload if isinstance(payload, dict) else {})
+        paths = extract["paths"]
+        sample_paths = [entry["path"] for entry in paths[:25]]
+        numeric_metrics = extract["numeric_metrics"][:25]
+        evidence_refs = extract["string_refs"][:25]
+        unknowns_out = unknowns[:25]
+        return {
+            "kind": "extract_structure_v0",
+            "keys_topology": {"paths_count": len(paths), "sample_paths": sample_paths},
+            "numeric_metrics": numeric_metrics,
+            "unknowns": unknowns_out,
+            "evidence_refs": evidence_refs,
+            "claims_present": len(claims) > 0,
+            "claims_preview": claims[:5],
+        }
+
     if step.kind == "summarize_context":
         ctx = run_state.context
         return {
