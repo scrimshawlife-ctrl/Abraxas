@@ -31,6 +31,13 @@ from .runplan import build_runplan, execute_step
 from .compare import compare_runs
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
 from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
+from .session_mode import (
+    SessionGateError,
+    consume_session_step,
+    end_session,
+    enforce_session,
+    start_session,
+)
 from .export_bundle import build_bundle
 from .stability import run_stabilization
 
@@ -224,6 +231,12 @@ def ui_run(request: Request, run_id: str):
     if policy_status == "CHANGED":
         policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
     policy_ack_needed = policy_ack_required(run, current_hash)
+    error_code = request.query_params.get("error")
+    session_error = None
+    if error_code == "session_required":
+        session_error = "Start a session"
+    elif error_code == "session_exhausted":
+        session_error = "Session budget exhausted; renew"
     oracle_output = extract_oracle_output(run)
     oracle_view = None
     oracle_validation = {"valid": True, "errors": []}
@@ -249,6 +262,7 @@ def ui_run(request: Request, run_id: str):
             "policy_diff_keys": policy_diff_keys,
             "policy_ack_required": policy_ack_needed,
             "policy_current_hash": current_hash,
+            "session_error": session_error,
             "oracle_view": oracle_view,
             "oracle_validation": oracle_validation,
         },
@@ -645,6 +659,10 @@ def _start_deferral(run_id: str, body: DeferralStart) -> dict:
         enforce_policy_ack(run, current_hash)
     except PolicyAckRequired:
         raise HTTPException(status_code=409, detail="policy_ack_required")
+    try:
+        enforce_session(run)
+    except SessionGateError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason)
 
     if run.requires_human_confirmation and not run.human_ack:
         raise HTTPException(status_code=409, detail="ack required before deferral")
@@ -684,6 +702,10 @@ def _step_deferral(run_id: str) -> dict:
         enforce_policy_ack(run, current_hash)
     except PolicyAckRequired:
         raise HTTPException(status_code=409, detail="policy_ack_required")
+    try:
+        enforce_session(run)
+    except SessionGateError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason)
 
     if not run.deferral_active or run.quota_max_actions is None:
         raise HTTPException(status_code=409, detail="deferral not active")
@@ -702,6 +724,17 @@ def _step_deferral(run_id: str) -> dict:
         if run.requires_human_confirmation and not run.human_ack:
             raise HTTPException(status_code=409, detail="ack required before execution")
 
+        consume_session_step(
+            run=run,
+            ledger=ledger,
+            event_id=eid("ev"),
+            end_event_id=eid("ev"),
+            timestamp_utc=now_utc(),
+            route="defer_step:selected_action",
+            step_index=int(run.selected_action_progress.get("phase", 0))
+            if run.selected_action_progress
+            else 0,
+        )
         run, exec_result = execute_one(run)
         run.step_results.append(exec_result)
         run.last_step_result = exec_result
@@ -745,6 +778,15 @@ def _step_deferral(run_id: str) -> dict:
         return run.model_dump()
 
     step = steps[run.current_step_index]
+    consume_session_step(
+        run=run,
+        ledger=ledger,
+        event_id=eid("ev"),
+        end_event_id=eid("ev"),
+        timestamp_utc=now_utc(),
+        route="defer_step:runplan",
+        step_index=int(run.current_step_index),
+    )
     result = execute_step(run, step)
     run.last_step_result = result
     run.step_results.append(result)
@@ -970,6 +1012,8 @@ async def ui_defer_start(run_id: str, quota: int, request: Request):
     except HTTPException as exc:
         if exc.detail == "policy_ack_required":
             return RedirectResponse(url=f"/runs/{run_id}?error=policy_ack_required", status_code=303)
+        if exc.detail in {"session_required", "session_exhausted"}:
+            return RedirectResponse(url=f"/runs/{run_id}?error={exc.detail}", status_code=303)
         raise
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
@@ -983,7 +1027,61 @@ async def ui_defer_step(run_id: str, request: Request):
     except HTTPException as exc:
         if exc.detail == "policy_ack_required":
             return RedirectResponse(url=f"/runs/{run_id}?error=policy_ack_required", status_code=303)
+        if exc.detail in {"session_required", "session_exhausted"}:
+            return RedirectResponse(url=f"/runs/{run_id}?error={exc.detail}", status_code=303)
         raise
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+def _start_session(run_id: str, max_steps: int) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    started_utc = now_utc()
+    start_session(
+        run=run,
+        max_steps=max_steps,
+        started_utc=started_utc,
+        ledger=ledger,
+        event_id=eid("ev"),
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+def _end_session(run_id: str, reason: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    end_session(
+        run=run,
+        ended_utc=now_utc(),
+        ledger=ledger,
+        event_id=eid("ev"),
+        reason=reason,
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+@app.post("/ui/runs/{run_id}/session/start")
+async def ui_session_start(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    raw_max = form.get("session_max_steps") or "3"
+    try:
+        max_steps = int(raw_max)
+    except ValueError:
+        max_steps = 3
+    _start_session(run_id, max_steps)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/session/end")
+async def ui_session_end(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _end_session(run_id, reason="user")
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 

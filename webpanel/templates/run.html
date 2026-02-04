@@ -109,6 +109,33 @@
         <p class="badge warn">Quota exhausted - approval required to continue.</p>
       {% endif %}
     {% endif %}
+
+    <hr/>
+    <h3>Session Mode</h3>
+    <p><b>Active:</b> {{ run.session_active }}</p>
+    <p><b>Steps:</b> {{ run.session_steps_used }} / {{ run.session_max_steps }}</p>
+    <p><b>Session ID:</b> {{ run.session_id[:8] if run.session_id else "n/a" }}</p>
+    <p><b>Started:</b> {{ run.session_started_utc or "n/a" }}</p>
+    {% if session_error %}
+      <p class="badge warn">{{ session_error }}</p>
+    {% endif %}
+    {% if not run.session_active %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/session/start" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <label>max_steps</label>
+        <select name="session_max_steps">
+          {% for s in [1,2,3,4,5] %}
+            <option value="{{ s }}" {% if s == 3 %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn" type="submit">Start Session</button>
+      </form>
+    {% else %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/session/end" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">End Session</button>
+      </form>
+    {% endif %}
   </div>
 </div>
 
