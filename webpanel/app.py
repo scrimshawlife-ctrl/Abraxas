@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from dataclasses import asdict
 from datetime import datetime, timezone
+from typing import Any, Mapping, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
@@ -20,6 +22,9 @@ from .store import InMemoryStore
 #   pip install fastapi uvicorn jinja2 pydantic
 #   uvicorn webpanel.app:app --reload --port 8008
 #   open http://localhost:8008/
+# Token guard:
+#   export ABX_PANEL_TOKEN="yourtoken"
+#   API clients send header X-ABX-Token: yourtoken
 app = FastAPI(title="ABX-Familiar Web Panel (MVP)", version="0.1.0")
 templates = Jinja2Templates(directory="webpanel/templates")
 
@@ -34,6 +39,24 @@ def now_utc() -> str:
 
 def eid(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:16]}"
+
+
+def _panel_token() -> str:
+    return os.environ.get("ABX_PANEL_TOKEN", "").strip()
+
+
+def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] = None) -> None:
+    token = _panel_token()
+    if not token:
+        return
+    if request is None:
+        raise HTTPException(status_code=401, detail="invalid token")
+    header_token = request.headers.get("X-ABX-Token")
+    if header_token == token:
+        return
+    if form is not None and form.get("abx_token") == token:
+        return
+    raise HTTPException(status_code=401, detail="invalid token")
 
 
 def _emit_and_ingest_payload(payload_obj: dict, *, tier: str, lane: str) -> str:
@@ -52,14 +75,17 @@ def _emit_and_ingest_payload(payload_obj: dict, *, tier: str, lane: str) -> str:
         not_computable_regions=[],
     )
     packet = AbraxasSignalPacket.model_validate(packet_dict)
-    resp = ingest(packet)
+    resp = _ingest_packet(packet)
     return resp["run_id"]
 
 
 @app.get("/", response_class=HTMLResponse)
 def ui_index(request: Request):
     runs = store.list(limit=50)
-    return templates.TemplateResponse("index.html", {"request": request, "runs": runs})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "runs": runs, "panel_token": _panel_token()},
+    )
 
 
 @app.get("/runs/{run_id}", response_class=HTMLResponse)
@@ -71,7 +97,13 @@ def ui_run(request: Request, run_id: str):
     chain_valid = ledger.chain_valid(run_id)
     return templates.TemplateResponse(
         "run.html",
-        {"request": request, "run": run, "events": events, "chain_valid": chain_valid},
+        {
+            "request": request,
+            "run": run,
+            "events": events,
+            "chain_valid": chain_valid,
+            "panel_token": _panel_token(),
+        },
     )
 
 
@@ -84,7 +116,13 @@ def ui_ledger(request: Request, run_id: str):
     chain_valid = ledger.chain_valid(run_id)
     return templates.TemplateResponse(
         "ledger.html",
-        {"request": request, "run": run, "events": events, "chain_valid": chain_valid},
+        {
+            "request": request,
+            "run": run,
+            "events": events,
+            "chain_valid": chain_valid,
+            "panel_token": _panel_token(),
+        },
     )
 
 
@@ -146,8 +184,7 @@ def ui_sample_packet():
     )
 
 
-@app.post("/api/v1/familiar/ingest")
-def ingest(packet: AbraxasSignalPacket):
+def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
     run, _ctx_id = adapter.ingest(packet)
     store.put(run)
 
@@ -196,6 +233,12 @@ def ingest(packet: AbraxasSignalPacket):
     }
 
 
+@app.post("/api/v1/familiar/ingest")
+def ingest(packet: AbraxasSignalPacket, request: Optional[Request] = None):
+    require_token(request)
+    return _ingest_packet(packet)
+
+
 @app.get("/api/v1/familiar/runs/{run_id}")
 def get_run(run_id: str):
     run = store.get(run_id)
@@ -222,8 +265,7 @@ def get_ledger(run_id: str):
     }
 
 
-@app.post("/api/v1/familiar/runs/{run_id}/ack")
-def ack(run_id: str, ack: HumanAck):
+def _record_ack(run_id: str, ack: HumanAck) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
@@ -244,8 +286,13 @@ def ack(run_id: str, ack: HumanAck):
     return run.model_dump()
 
 
-@app.post("/api/v1/familiar/runs/{run_id}/defer/start")
-def defer_start(run_id: str, body: DeferralStart):
+@app.post("/api/v1/familiar/runs/{run_id}/ack")
+def ack(run_id: str, ack: HumanAck, request: Optional[Request] = None):
+    require_token(request)
+    return _record_ack(run_id, ack)
+
+
+def _start_deferral(run_id: str, body: DeferralStart) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
@@ -273,8 +320,13 @@ def defer_start(run_id: str, body: DeferralStart):
     }
 
 
-@app.post("/api/v1/familiar/runs/{run_id}/defer/step")
-def defer_step(run_id: str):
+@app.post("/api/v1/familiar/runs/{run_id}/defer/start")
+def defer_start(run_id: str, body: DeferralStart, request: Optional[Request] = None):
+    require_token(request)
+    return _start_deferral(run_id, body)
+
+
+def _step_deferral(run_id: str) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
@@ -328,8 +380,13 @@ def defer_step(run_id: str):
     return run.model_dump()
 
 
-@app.post("/api/v1/familiar/runs/{run_id}/defer/stop")
-def defer_stop(run_id: str):
+@app.post("/api/v1/familiar/runs/{run_id}/defer/step")
+def defer_step(run_id: str, request: Optional[Request] = None):
+    require_token(request)
+    return _step_deferral(run_id)
+
+
+def _stop_deferral(run_id: str) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
@@ -350,9 +407,16 @@ def defer_stop(run_id: str):
     return run.model_dump()
 
 
+@app.post("/api/v1/familiar/runs/{run_id}/defer/stop")
+def defer_stop(run_id: str, request: Optional[Request] = None):
+    require_token(request)
+    return _stop_deferral(run_id)
+
+
 @app.post("/ui/ingest")
 async def ui_ingest(request: Request):
     form = await request.form()
+    require_token(request, form)
     raw = form.get("packet_json", "")
     try:
         packet = AbraxasSignalPacket.model_validate(json.loads(raw))
@@ -360,16 +424,23 @@ async def ui_ingest(request: Request):
         runs = store.list(limit=50)
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "runs": runs, "error": str(exc), "packet_json": raw},
+            {
+                "request": request,
+                "runs": runs,
+                "error": str(exc),
+                "packet_json": raw,
+                "panel_token": _panel_token(),
+            },
         )
 
-    resp = ingest(packet)
+    resp = _ingest_packet(packet)
     return RedirectResponse(url=f"/runs/{resp['run_id']}", status_code=303)
 
 
 @app.post("/ui/upload_payload")
 async def ui_upload_payload(request: Request):
     form = await request.form()
+    require_token(request, form)
     tier = form.get("tier", "")
     lane = form.get("lane", "")
     payload_file = form.get("payload_file")
@@ -378,14 +449,24 @@ async def ui_upload_payload(request: Request):
         runs = store.list(limit=50)
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "runs": runs, "error": "tier and lane are required"},
+            {
+                "request": request,
+                "runs": runs,
+                "error": "tier and lane are required",
+                "panel_token": _panel_token(),
+            },
         )
 
     if payload_file is None or not hasattr(payload_file, "read"):
         runs = store.list(limit=50)
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "runs": runs, "error": "payload file is required"},
+            {
+                "request": request,
+                "runs": runs,
+                "error": "payload file is required",
+                "panel_token": _panel_token(),
+            },
         )
 
     try:
@@ -398,7 +479,7 @@ async def ui_upload_payload(request: Request):
         runs = store.list(limit=50)
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "runs": runs, "error": str(exc)},
+            {"request": request, "runs": runs, "error": str(exc), "panel_token": _panel_token()},
         )
 
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
@@ -406,28 +487,36 @@ async def ui_upload_payload(request: Request):
 
 @app.post("/ui/runs/{run_id}/ack")
 async def ui_ack(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
     ack_obj = HumanAck(
         ack_mode="ui_confirm",
         ack_id=eid("ack"),
         ack_timestamp_utc=now_utc(),
     )
-    ack(run_id, ack_obj)
+    _record_ack(run_id, ack_obj)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
 @app.post("/ui/runs/{run_id}/defer/start/{quota}")
-async def ui_defer_start(run_id: str, quota: int):
-    defer_start(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
+async def ui_defer_start(run_id: str, quota: int, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _start_deferral(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
 @app.post("/ui/runs/{run_id}/defer/step")
-async def ui_defer_step(run_id: str):
-    defer_step(run_id)
+async def ui_defer_step(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _step_deferral(run_id)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
 @app.post("/ui/runs/{run_id}/defer/stop")
-async def ui_defer_stop(run_id: str):
-    defer_stop(run_id)
+async def ui_defer_stop(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _stop_deferral(run_id)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)

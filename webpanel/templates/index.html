@@ -76,6 +76,7 @@
 <div class="card">
   <h2>Upload Abraxas Payload (Local)</h2>
   <form method="post" action="/ui/upload_payload" enctype="multipart/form-data">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
     <div class="grid">
       <div>
         <label>payload.json</label>
@@ -107,6 +108,7 @@
 <div class="card {% if error %}warn{% endif %}">
   <h2>Run Intake</h2>
   <form method="post" action="/ui/ingest">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
     <textarea id="packet_json" name="packet_json" placeholder='Paste AbraxasSignalPacket JSON here...'>{{ packet_json or "" }}</textarea>
     <div style="margin-top:10px;">
       <button class="btn" type="submit">Ingest</button>

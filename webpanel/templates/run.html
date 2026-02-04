@@ -30,6 +30,7 @@
 
     {% if run.requires_human_confirmation and not run.human_ack %}
       <form method="post" action="/ui/runs/{{ run.run_id }}/ack">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
         <button class="btn" type="submit">ACKNOWLEDGE / APPROVE</button>
       </form>
       <p><small>Execution blocked until explicit ACK is recorded.</small></p>
@@ -45,20 +46,24 @@
     {% if not run.deferral_active %}
       <div style="display:flex; gap:10px;">
         <form method="post" action="/ui/runs/{{ run.run_id }}/defer/start/2">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
           <button class="btn" type="submit">Start Deferral (2)</button>
         </form>
         <form method="post" action="/ui/runs/{{ run.run_id }}/defer/start/3">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
           <button class="btn" type="submit">Start Deferral (3)</button>
         </form>
       </div>
     {% else %}
       <div style="display:flex; gap:10px;">
         <form method="post" action="/ui/runs/{{ run.run_id }}/defer/step">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
           <button class="btn" type="submit" {% if run.actions_remaining is not none and run.actions_remaining <= 0 %}disabled{% endif %}>
             Execute Next Action (spends 1)
           </button>
         </form>
         <form method="post" action="/ui/runs/{{ run.run_id }}/defer/stop">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
           <button class="btn" type="submit">Stop Deferral</button>
         </form>
       </div>
