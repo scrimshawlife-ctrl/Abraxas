@@ -70,3 +70,5 @@ def test_compare_policy_export_bundle():
     assert "compare.json" in names
     assert "policy.json" in names
     assert "manifest.json" in names
+    assert "policy.left_at_ingest.json" in names
+    assert "policy.right_at_ingest.json" in names

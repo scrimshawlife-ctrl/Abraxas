@@ -60,12 +60,14 @@ def test_stability_and_bundle():
         cycles=12,
         operators=["extract_structure_v0", "compress_signal_v0", "propose_actions_v0"],
         policy_hash=snapshot["policy_hash"],
+        prior_report=None,
     )
     run_b.stability_report = run_stabilization(
         run_b,
         cycles=12,
         operators=["extract_structure_v0", "compress_signal_v0", "propose_actions_v0"],
         policy_hash=snapshot["policy_hash"],
+        prior_report=None,
     )
 
     client = TestClient(webpanel_app.app)
@@ -78,3 +80,5 @@ def test_stability_and_bundle():
     assert "stability.left.json" in names
     assert "stability.right.json" in names
     assert "manifest.json" in names
+    assert "policy.left_at_ingest.json" in names
+    assert "policy.right_at_ingest.json" in names

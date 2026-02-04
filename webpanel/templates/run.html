@@ -251,6 +251,24 @@
 </div>
 
 <div class="card" style="margin-top:16px;">
+  <h2>Policy</h2>
+  <p><b>Ingest policy hash:</b> {{ run.policy_hash_at_ingest[:12] if run.policy_hash_at_ingest else "n/a" }}</p>
+  <p><b>Current policy hash:</b> {{ current_policy_hash[:12] if current_policy_hash else "n/a" }}</p>
+  <p><b>Status:</b> {{ policy_status }}</p>
+  {% if run.stability_report and run.stability_report.policy_hash %}
+    <p><b>Stability policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
+  {% endif %}
+  {% if policy_diff_keys %}
+    <p><b>Changed keys:</b></p>
+    <ul>
+      {% for key in policy_diff_keys %}
+        <li><code>{{ key }}</code></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
   <h2>Artifacts</h2>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
     <a class="btn" href="/runs/{{ run.run_id }}/packet.json">Download signal packet (packet.json)</a>

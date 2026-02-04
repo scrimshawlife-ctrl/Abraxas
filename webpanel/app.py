@@ -22,7 +22,7 @@ from .select_action import build_checklist
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
-from .policy import policy_snapshot
+from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
 from .export_bundle import build_bundle
 from .stability import run_stabilization
 
@@ -77,6 +77,37 @@ def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] 
     if form is not None and form.get("abx_token") == token:
         return
     raise HTTPException(status_code=401, detail="invalid token")
+
+
+def _strip_policy(snapshot: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    if not snapshot:
+        return {}
+    return {
+        k: v
+        for k, v in snapshot.items()
+        if k not in {"timestamp_utc", "policy_hash"}
+    }
+
+
+def _policy_diff_keys(
+    ingest_snapshot: Optional[Dict[str, Any]],
+    current_snapshot: Optional[Dict[str, Any]],
+) -> list:
+    left = _strip_policy(ingest_snapshot)
+    right = _strip_policy(current_snapshot)
+    diffs = []
+
+    def walk(prefix: str, a: Any, b: Any) -> None:
+        if isinstance(a, dict) and isinstance(b, dict):
+            keys = sorted(set(a.keys()) | set(b.keys()))
+            for key in keys:
+                walk(f"{prefix}.{key}" if prefix else str(key), a.get(key), b.get(key))
+        else:
+            if a != b:
+                diffs.append(prefix)
+
+    walk("", left, right)
+    return diffs
 
 
 def _emit_and_ingest_payload(
@@ -160,6 +191,16 @@ def ui_run(request: Request, run_id: str):
     chain_valid = ledger.chain_valid(run_id)
     lineage = get_lineage(run_id, store)
     lineage_ids = [entry.run_id for entry in lineage]
+    current_snapshot = get_policy_snapshot()
+    current_hash = compute_policy_hash(current_snapshot)
+    ingest_hash = run.policy_hash_at_ingest
+    if ingest_hash:
+        policy_status = "MATCH" if ingest_hash == current_hash else "CHANGED"
+    else:
+        policy_status = "UNKNOWN"
+    policy_diff_keys = []
+    if policy_status == "CHANGED":
+        policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
     return templates.TemplateResponse(
         "run.html",
         {
@@ -172,6 +213,10 @@ def ui_run(request: Request, run_id: str):
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
             "token_enabled": _token_enabled(),
+            "current_policy_hash": current_hash,
+            "current_policy_snapshot": current_snapshot,
+            "policy_status": policy_status,
+            "policy_diff_keys": policy_diff_keys,
         },
     )
 
@@ -273,6 +318,13 @@ def ui_compare(request: Request):
         raise HTTPException(status_code=404, detail="run not found")
 
     compare_summary = compare_runs(left, right)
+    current_snapshot = get_policy_snapshot()
+    current_hash = compute_policy_hash(current_snapshot)
+    left_ingest = left.policy_hash_at_ingest
+    right_ingest = right.policy_hash_at_ingest
+    left_match = left_ingest == current_hash if left_ingest else None
+    right_match = right_ingest == current_hash if right_ingest else None
+    ingest_diff = bool(left_ingest and right_ingest and left_ingest != right_ingest)
 
     return templates.TemplateResponse(
         "compare.html",
@@ -281,6 +333,12 @@ def ui_compare(request: Request):
             "left": left,
             "right": right,
             "compare": compare_summary,
+            "current_policy_hash": current_hash,
+            "left_ingest_policy_hash": left_ingest,
+            "right_ingest_policy_hash": right_ingest,
+            "left_policy_match": left_match,
+            "right_policy_match": right_match,
+            "ingest_policy_diff": ingest_diff,
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
             "token_enabled": _token_enabled(),
@@ -361,6 +419,9 @@ def ui_sample_packet():
 
 def _ingest_packet(packet: AbraxasSignalPacket, prev_run_id: Optional[str] = None) -> dict:
     run, _ctx_id = adapter.ingest(packet)
+    snapshot = get_policy_snapshot()
+    run.policy_snapshot_at_ingest = snapshot
+    run.policy_hash_at_ingest = compute_policy_hash(snapshot)
     run.runplan = build_runplan(run)
     run.current_step_index = 0
     run.last_step_result = None
@@ -435,6 +496,18 @@ def _ingest_packet(packet: AbraxasSignalPacket, prev_run_id: Optional[str] = Non
                 "step_count": len(run.runplan.steps),
             },
         )
+
+    ledger.append(
+        run.run_id,
+        eid("ev"),
+        "policy_locked_at_ingest",
+        now_utc(),
+        {
+            "policy_hash_prefix": (run.policy_hash_at_ingest or "")[:8],
+            "thresholds": snapshot.get("thresholds"),
+            "caps": snapshot.get("caps"),
+        },
+    )
 
     events = ledger.list_events(run.run_id)
     tail_hash = events[-1].event_hash if events else None
@@ -872,6 +945,16 @@ async def ui_select_action(run_id: str, request: Request):
         chain_valid = ledger.chain_valid(run_id)
         lineage = get_lineage(run_id, store)
         lineage_ids = [entry.run_id for entry in lineage]
+        current_snapshot = get_policy_snapshot()
+        current_hash = compute_policy_hash(current_snapshot)
+        ingest_hash = run.policy_hash_at_ingest
+        if ingest_hash:
+            policy_status = "MATCH" if ingest_hash == current_hash else "CHANGED"
+        else:
+            policy_status = "UNKNOWN"
+        policy_diff_keys = []
+        if policy_status == "CHANGED":
+            policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
         return templates.TemplateResponse(
             "run.html",
             {
@@ -885,6 +968,10 @@ async def ui_select_action(run_id: str, request: Request):
                 "panel_port": _panel_port(),
                 "token_enabled": _token_enabled(),
                 "error": str(exc),
+                "current_policy_hash": current_hash,
+                "current_policy_snapshot": current_snapshot,
+                "policy_status": policy_status,
+                "policy_diff_keys": policy_diff_keys,
             },
         )
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)

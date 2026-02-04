@@ -56,6 +56,20 @@ def build_bundle(
         files.append(("stability.left.json", canonical_json_bytes(left_run.stability_report)))
     if right_run.stability_report:
         files.append(("stability.right.json", canonical_json_bytes(right_run.stability_report)))
+    if left_run.policy_snapshot_at_ingest:
+        files.append(
+            (
+                "policy.left_at_ingest.json",
+                canonical_json_bytes(left_run.policy_snapshot_at_ingest),
+            )
+        )
+    if right_run.policy_snapshot_at_ingest:
+        files.append(
+            (
+                "policy.right_at_ingest.json",
+                canonical_json_bytes(right_run.policy_snapshot_at_ingest),
+            )
+        )
 
     manifest_files = []
     for name, data in files:
@@ -67,6 +81,9 @@ def build_bundle(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "left_run_id": left_run.run_id,
         "right_run_id": right_run.run_id,
+        "left_policy_hash_at_ingest": left_run.policy_hash_at_ingest,
+        "right_policy_hash_at_ingest": right_run.policy_hash_at_ingest,
+        "current_policy_hash": policy_snapshot.get("policy_hash"),
         "files": manifest_files,
     }
     files.append(("manifest.json", canonical_json_bytes(manifest)))

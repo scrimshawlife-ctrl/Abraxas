@@ -30,6 +30,27 @@
   </table>
 </div>
 
+<div class="card" style="margin-top:12px;">
+  <h2>Policy Drift</h2>
+  <p><b>Current policy hash:</b> {{ current_policy_hash[:12] if current_policy_hash else "n/a" }}</p>
+  <table>
+    <tr><th align="left">side</th><th align="left">ingest hash</th><th align="left">match current</th></tr>
+    <tr>
+      <td>left</td>
+      <td>{{ left_ingest_policy_hash[:12] if left_ingest_policy_hash else "n/a" }}</td>
+      <td>{{ left_policy_match if left_policy_match is not none else "unknown" }}</td>
+    </tr>
+    <tr>
+      <td>right</td>
+      <td>{{ right_ingest_policy_hash[:12] if right_ingest_policy_hash else "n/a" }}</td>
+      <td>{{ right_policy_match if right_policy_match is not none else "unknown" }}</td>
+    </tr>
+  </table>
+  {% if ingest_policy_diff %}
+    <p><b>Ingest policy differed between runs.</b></p>
+  {% endif %}
+</div>
+
 {% if compare.pressure.left or compare.pressure.right %}
   <div class="card" style="margin-top:12px;">
     <h2>Plan Pressure</h2>

@@ -29,8 +29,12 @@ def _canonical_json_bytes(obj: Any) -> bytes:
     return rendered.encode("utf-8")
 
 
-def _policy_hash(snapshot: Dict[str, Any]) -> str:
-    snapshot_no_ts = {k: v for k, v in snapshot.items() if k != "timestamp_utc"}
+def compute_policy_hash(snapshot: Dict[str, Any]) -> str:
+    snapshot_no_ts = {
+        k: v
+        for k, v in snapshot.items()
+        if k not in {"timestamp_utc", "policy_hash"}
+    }
     return hashlib.sha256(_canonical_json_bytes(snapshot_no_ts)).hexdigest()
 
 
@@ -50,7 +54,7 @@ def get_policy_snapshot() -> Dict[str, Any]:
         },
         "runtime": {"host": host, "port": port, "token_enabled": token_enabled},
     }
-    snapshot["policy_hash"] = _policy_hash(snapshot)
+    snapshot["policy_hash"] = compute_policy_hash(snapshot)
     return snapshot
 
 
