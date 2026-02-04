@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from abraxas.signal.exporter import emit_signal_packet
 from .familiar_adapter import FamiliarAdapter
+from .execute_action import execute_one
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
 from .select_action import build_checklist
@@ -251,6 +252,8 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
     run.selected_action_id = None
     run.selected_action = None
     run.execution_checklist = None
+    run.selected_action_progress = None
+    run.last_execution_result = None
     store.put(run)
 
     ledger.append(
@@ -427,6 +430,39 @@ def _step_deferral(run_id: str) -> dict:
         run.pause_required = True
         run.pause_reason = "quota_exhausted"
         ledger.append(run_id, eid("ev"), "quota_exhausted_pause", now_utc(), {})
+        store.put(run)
+        return run.model_dump()
+
+    if run.selected_action_id and run.execution_checklist:
+        if run.requires_human_confirmation and not run.human_ack:
+            raise HTTPException(status_code=409, detail="ack required before execution")
+
+        run, exec_result = execute_one(run)
+        run.step_results.append(exec_result)
+        run.last_step_result = exec_result
+        run.actions_taken += 1
+
+        ledger.append(
+            run_id,
+            eid("ev"),
+            "selected_action_micro_step_executed",
+            now_utc(),
+            {
+                "action_id": exec_result.get("action_id"),
+                "micro_step_id": exec_result.get("micro_step_id"),
+                "completed": exec_result.get("completed"),
+            },
+        )
+
+        if exec_result.get("completed"):
+            run.pause_required = True
+            run.pause_reason = "completed"
+
+        if run.actions_remaining is not None and run.actions_remaining <= 0:
+            run.pause_required = True
+            run.pause_reason = "quota_exhausted"
+            ledger.append(run_id, eid("ev"), "quota_exhausted_pause", now_utc(), {})
+
         store.put(run)
         return run.model_dump()
 

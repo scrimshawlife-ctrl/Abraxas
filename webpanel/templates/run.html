@@ -168,6 +168,9 @@
   <div class="card" style="margin-top:16px;">
     <h2>Execution Checklist</h2>
     <p><b>Selected action:</b> {{ run.selected_action_id }}</p>
+    {% if run.selected_action_progress %}
+      <p><b>Progress:</b> phase {{ run.selected_action_progress.phase }} · completed {{ run.selected_action_progress.completed }}</p>
+    {% endif %}
     <p><b>Gates required:</b> {{ run.execution_checklist.gates_required }}</p>
     <p><b>Preconditions:</b> {{ run.execution_checklist.preconditions }}</p>
     <p><b>Required inputs:</b> {{ run.execution_checklist.required_inputs }}</p>
