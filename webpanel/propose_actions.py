@@ -100,6 +100,9 @@ def propose_actions(
             )
         )
 
+    if signal_meta.get("tier") == "enterprise":
+        actions = [action for action in actions if action.kind == "enter_observe_only"]
+
     actions = actions[:3]
     for idx, action in enumerate(actions, start=1):
         action.action_id = f"act_{action.kind}_{idx}"

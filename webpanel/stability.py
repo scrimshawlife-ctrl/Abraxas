@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime, timezone
-import hashlib
-import json
 from typing import Any, Callable, Dict, List, Optional
 
 from webpanel.compress_signal import (
@@ -16,20 +14,8 @@ from webpanel.compress_signal import (
 )
 from webpanel.models import RunState
 from webpanel.propose_actions import propose_actions
+from webpanel.osl_v2 import build_input_envelope_for_hash, stable_hash
 from webpanel.structure_extract import detect_unknowns, extract_claims_if_present, walk_payload
-
-
-def canonical_json_bytes(obj: Any) -> bytes:
-    rendered = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
-    return rendered.encode("utf-8")
-
-
-def sha256_hex(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def stable_hash(obj: Any) -> str:
-    return sha256_hex(canonical_json_bytes(obj))
 
 
 def clone_run_state(run: RunState) -> RunState:
@@ -107,6 +93,7 @@ def _compress_signal(run: RunState, extracted: Dict[str, Any]) -> Dict[str, Any]
 
 def _propose_actions(run: RunState, compressed: Dict[str, Any]) -> Dict[str, Any]:
     signal_meta = {
+        "tier": run.signal.tier,
         "lane": run.signal.lane,
         "invariance_status": run.signal.invariance_status,
         "provenance_status": run.signal.provenance_status,
@@ -130,6 +117,7 @@ def run_stabilization(
     policy_hash: str,
     prior_report: Optional[Dict[str, Any]] = None,
     test_mutator: Optional[Callable[[RunState, int], None]] = None,
+    test_finalizer: Optional[Callable[[Dict[str, Any], int], None]] = None,
 ) -> Dict[str, Any]:
     clone = clone_run_state(run)
     created_at_utc = datetime.now(timezone.utc).isoformat()
@@ -143,7 +131,7 @@ def run_stabilization(
     for cycle in range(cycles):
         if test_mutator is not None:
             test_mutator(clone, cycle)
-        input_envelope = deepcopy(build_input_envelope(clone))
+        input_envelope = deepcopy(build_input_envelope_for_hash(clone))
         input_hash = stable_hash(input_envelope)
         extract = _extract_structure(clone) if "extract_structure_v0" in selected else None
         compress = (
@@ -169,6 +157,8 @@ def run_stabilization(
             operator_hashes["propose_actions_v0"] = stable_hash(propose)
             final_payload["propose_actions_v0"] = propose
 
+        if test_finalizer is not None:
+            test_finalizer(final_payload, cycle)
         final_hash = stable_hash(final_payload)
         final_hashes.append(final_hash)
         input_hashes.append(input_hash)
@@ -176,6 +166,7 @@ def run_stabilization(
             {
                 "cycle": cycle,
                 "input_hash": input_hash,
+                "policy_hash": policy_hash,
                 "operator_hashes": operator_hashes,
                 "final_hash": final_hash,
             }
