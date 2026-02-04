@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from webpanel import app as webpanel_app
 from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
@@ -47,3 +49,15 @@ def test_core_bridge_ingest_and_quota_boundary():
     assert run.actions_taken == 2
     assert run.pause_required is True
     assert run.pause_reason == "quota_exhausted"
+
+
+def test_sample_packet_route():
+    webpanel_app.store = InMemoryStore()
+    webpanel_app.ledger = LedgerChain()
+    _STEP_STATE.clear()
+
+    response = webpanel_app.ui_sample_packet()
+    payload = json.loads(response.body.decode("utf-8"))
+    packet = AbraxasSignalPacket.model_validate(payload)
+    resp = webpanel_app.ingest(packet)
+    assert resp["run_id"]

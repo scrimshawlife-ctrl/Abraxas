@@ -6,7 +6,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from .core_bridge import core_step
@@ -64,6 +64,30 @@ def ui_ledger(request: Request, run_id: str):
     return templates.TemplateResponse(
         "ledger.html",
         {"request": request, "run": run, "events": events, "chain_valid": chain_valid},
+    )
+
+
+@app.get("/ui/sample_packet")
+def ui_sample_packet():
+    packet = {
+        "signal_id": "sig_sample",
+        "timestamp_utc": now_utc(),
+        "tier": "psychonaut",
+        "lane": "canon",
+        "payload": {
+            "kind": "mvp_test",
+            "note": "replace with real Abraxas output when available",
+        },
+        "confidence": {"mvp_confidence": 0.5},
+        "provenance_status": "complete",
+        "invariance_status": "pass",
+        "drift_flags": [],
+        "rent_status": "paid",
+        "not_computable_regions": [],
+    }
+    return PlainTextResponse(
+        json.dumps(packet, indent=2, ensure_ascii=True),
+        media_type="text/plain",
     )
 
 
