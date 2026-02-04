@@ -130,6 +130,29 @@
   </div>
 {% endif %}
 
+{% if run.last_step_result and run.last_step_result.kind == "propose_actions_v0" %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Proposed Actions</h2>
+    <ul>
+      {% for action in run.last_step_result.actions %}
+        <li style="margin-bottom:10px;">
+          <b>{{ action.title }}</b> · <code>{{ action.kind }}</code>
+          <div><b>Entropy reduction:</b> {{ action.expected_entropy_reduction }}</div>
+          <div><b>Required gates:</b> {{ action.required_gates }}</div>
+          <div><b>Rationale:</b>
+            <ul>
+              {% for line in action.rationale %}
+                <li>{{ line }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div><b>Preview:</b> {{ action.preview_effect }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
 <div class="card" style="margin-top:16px;">
   <h2>Artifacts</h2>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">

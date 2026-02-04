@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 RunPlanStepKind = Literal[
     "extract_structure_v0",
     "compress_signal_v0",
+    "propose_actions_v0",
     "summarize_context",
     "surface_unknowns",
     "propose_options",
@@ -70,6 +71,7 @@ def build_runplan(run_state: "RunState") -> RunPlan:
         )
 
     has_extract = False
+    has_compress = False
     if isinstance(run_state.signal.payload, dict) and run_state.signal.payload:
         add_step(
             "extract_structure_v0",
@@ -83,6 +85,14 @@ def build_runplan(run_state: "RunState") -> RunPlan:
             "compress_signal_v0",
             "note",
             {"source": "extract_structure_v0"},
+        )
+        has_compress = True
+
+    if has_compress:
+        add_step(
+            "propose_actions_v0",
+            "note",
+            {"source": "compress_signal_v0"},
         )
 
     add_step(
@@ -194,6 +204,33 @@ def execute_step(run_state: "RunState", step: RunPlanStep) -> Dict[str, Any]:
             "evidence_surface": evidence_surface,
             "recommended_mode": mode,
             "next_questions": questions,
+        }
+
+    if step.kind == "propose_actions_v0":
+        from webpanel.propose_actions import propose_actions
+
+        compressed = None
+        for result in reversed(run_state.step_results):
+            if isinstance(result, dict) and result.get("kind") == "compress_signal_v0":
+                compressed = result
+                break
+        if compressed is None:
+            return {"kind": "propose_actions_v0", "error": "missing_compress_signal_v0"}
+
+        signal_meta = {
+            "lane": run_state.signal.lane,
+            "invariance_status": run_state.signal.invariance_status,
+            "provenance_status": run_state.signal.provenance_status,
+            "drift_flags": list(run_state.signal.drift_flags),
+        }
+        actions = propose_actions(
+            signal_meta=signal_meta,
+            compressed=compressed,
+            requires_human_confirmation=run_state.requires_human_confirmation,
+        )
+        return {
+            "kind": "propose_actions_v0",
+            "actions": [action.model_dump() for action in actions],
         }
 
     if step.kind == "summarize_context":

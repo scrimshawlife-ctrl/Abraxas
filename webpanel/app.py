@@ -428,6 +428,10 @@ def _step_deferral(run_id: str) -> dict:
             len(entries) for entries in result.get("evidence_surface", {}).values()
         )
         event_payload["questions_count"] = len(result.get("next_questions", []))
+    if step.kind == "propose_actions_v0":
+        actions = result.get("actions", [])
+        event_payload["actions_count"] = len(actions)
+        event_payload["kinds"] = [action.get("kind") for action in actions if isinstance(action, dict)]
 
     ledger.append(
         run_id,
