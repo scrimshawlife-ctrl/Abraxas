@@ -8,6 +8,7 @@ import zipfile
 from typing import Any, Dict, List, Optional, Tuple
 
 from webpanel.consideration import build_considerations_for_run
+from webpanel.continuity import build_continuity_report
 from webpanel.gates import compute_gate_stack
 from webpanel.oracle_output import extract_oracle_output, oracle_hash_prefix
 
@@ -141,6 +142,22 @@ def build_bundle(
         manifest["right_oracle_policy_hash_prefix"] = oracle_hash_prefix(right_oracle, "policy_hash")
     if considerations_sha:
         manifest["considerations_sha256"] = considerations_sha
+
+    continuity_sha: Optional[str] = None
+    if right_run.prev_run_id and right_run.prev_run_id == left_run.run_id:
+        setattr(right_run, "ledger_events", ledger_store.list_events(right_run.run_id))
+        setattr(left_run, "ledger_events", ledger_store.list_events(left_run.run_id))
+        continuity = build_continuity_report(right_run, left_run, current_hash)
+        try:
+            delattr(right_run, "ledger_events")
+            delattr(left_run, "ledger_events")
+        except Exception:
+            pass
+        continuity_bytes = canonical_json_bytes(continuity)
+        files.append(("continuity.json", continuity_bytes))
+        continuity_sha = sha256_hex(continuity_bytes)
+    if continuity_sha:
+        manifest["continuity_sha256"] = continuity_sha
     files.append(("manifest.json", canonical_json_bytes(manifest)))
 
     buffer = BytesIO()

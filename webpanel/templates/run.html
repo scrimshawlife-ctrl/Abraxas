@@ -361,6 +361,30 @@
   </div>
 {% endif %}
 
+{% if continuity_report %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Continuity</h2>
+    {% if continuity_report.summary_lines %}
+      <ul>
+        {% for line in continuity_report.summary_lines %}
+          <li>{{ line }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No continuity deltas detected.</small></p>
+    {% endif %}
+    <p><b>Top gate prev:</b> {{ continuity_report.deltas.gates.top_gate_prev or "n/a" }}</p>
+    <p><b>Top gate now:</b> {{ continuity_report.deltas.gates.top_gate_now or "n/a" }}</p>
+    {% if continuity_report.provenance.oracle_input_hash_prefix_current or continuity_report.provenance.oracle_input_hash_prefix_prev %}
+      <p><b>Oracle input hash:</b> {{ continuity_report.provenance.oracle_input_hash_prefix_prev or "n/a" }} → {{ continuity_report.provenance.oracle_input_hash_prefix_current or "n/a" }}</p>
+    {% endif %}
+    <details style="margin-top:8px;">
+      <summary>View details</summary>
+      <pre><code>{{ continuity_report | tojson(indent=2) }}</code></pre>
+    </details>
+  </div>
+{% endif %}
+
 <div class="card" style="margin-top:16px;">
   <h2>Stability</h2>
   {% if run.stability_report %}

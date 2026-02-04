@@ -30,6 +30,7 @@ from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
 from .consideration import build_considerations_for_run
+from .continuity import build_continuity_report
 from .gates import compute_gate_stack
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
 from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
@@ -259,6 +260,18 @@ def ui_run(request: Request, run_id: str):
                 key = proposal.get("action_id") or consideration.get("proposal_id")
                 if key:
                     considerations[key] = consideration
+    continuity_report = None
+    prev_run = store.get(run.prev_run_id) if run.prev_run_id else None
+    if prev_run:
+        prev_events = ledger.list_events(prev_run.run_id)
+        setattr(run, "ledger_events", events)
+        setattr(prev_run, "ledger_events", prev_events)
+        continuity_report = build_continuity_report(run, prev_run, current_hash)
+        try:
+            delattr(run, "ledger_events")
+            delattr(prev_run, "ledger_events")
+        except Exception:
+            pass
     return templates.TemplateResponse(
         "run.html",
         {
@@ -282,6 +295,7 @@ def ui_run(request: Request, run_id: str):
             "gate_stack": gate_stack,
             "top_gate": top_gate,
             "considerations": considerations,
+            "continuity_report": continuity_report,
         },
     )
 
