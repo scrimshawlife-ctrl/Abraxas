@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.run_request.v0",
+  "title": "Familiar Run Request v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "inputs",
+    "required_inputs",
+    "requested_capabilities",
+    "steps",
+    "policy_snapshot"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "run_id": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "required_inputs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requested_capabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Step" }
+    },
+    "policy_snapshot": { "$ref": "#/$defs/PolicySnapshot" },
+    "policy_snapshot_id": { "type": ["string", "null"] },
+    "metadata": { "type": ["object", "null"], "additionalProperties": true }
+  },
+  "$defs": {
+    "Value": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "integer" },
+        { "type": "boolean" },
+        { "type": "null" },
+        { "$ref": "#/$defs/Object" },
+        { "$ref": "#/$defs/Array" }
+      ]
+    },
+    "Object": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "Array": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Value" }
+    },
+    "Step": {
+      "type": "object",
+      "required": ["step_id", "action", "depends_on", "parameters"],
+      "properties": {
+        "step_id": { "type": "string" },
+        "action": { "type": "string" },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "parameters": {
+          "type": ["object", "null"],
+          "additionalProperties": { "$ref": "#/$defs/Value" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PolicySnapshot": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_id",
+        "issued_at",
+        "capability_grants",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "type": "string", "enum": ["v0"] },
+        "policy_id": { "type": "string" },
+        "issued_at": { "type": ["string", "null"] },
+        "capability_grants": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/CapabilityGrant" }
+        },
+        "metadata": { "type": ["object", "null"], "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "CapabilityGrant": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "capability_id",
+        "granted",
+        "reason",
+        "constraints"
+      ],
+      "properties": {
+        "schema_version": { "type": "string", "enum": ["v0"] },
+        "capability_id": { "type": "string" },
+        "granted": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "constraints": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

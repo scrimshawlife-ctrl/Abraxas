@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>ABX-Familiar Web Panel (MVP)</h1>
+
+<div class="card">
+  <h2>Packet Builder (MVP)</h2>
+  <p><small>Payload defaults to mvp_test. Edit the JSON box below to override.</small></p>
+  <div class="grid">
+    <div>
+      <label>signal_id</label>
+      <input id="pb_signal_id" type="text" placeholder="auto-generated if blank" style="width:100%;"/>
+    </div>
+    <div>
+      <label>timestamp_utc</label>
+      <input id="pb_timestamp_utc" type="text" placeholder="auto now UTC" style="width:100%;"/>
+    </div>
+    <div>
+      <label>tier</label>
+      <select id="pb_tier" style="width:100%;">
+        <option value="psychonaut" selected>psychonaut</option>
+        <option value="academic">academic</option>
+        <option value="enterprise">enterprise</option>
+      </select>
+    </div>
+    <div>
+      <label>lane</label>
+      <select id="pb_lane" style="width:100%;">
+        <option value="canon" selected>canon</option>
+        <option value="shadow">shadow</option>
+        <option value="sandbox">sandbox</option>
+      </select>
+    </div>
+    <div>
+      <label>invariance_status</label>
+      <select id="pb_invariance_status" style="width:100%;">
+        <option value="pass" selected>pass</option>
+        <option value="fail">fail</option>
+        <option value="not_evaluated">not_evaluated</option>
+      </select>
+    </div>
+    <div>
+      <label>provenance_status</label>
+      <select id="pb_provenance_status" style="width:100%;">
+        <option value="complete" selected>complete</option>
+        <option value="partial">partial</option>
+        <option value="missing">missing</option>
+      </select>
+    </div>
+    <div>
+      <label>drift_flags (comma-separated)</label>
+      <input id="pb_drift_flags" type="text" placeholder="e.g. flag_a,flag_b" style="width:100%;"/>
+    </div>
+    <div>
+      <label>rent_status</label>
+      <select id="pb_rent_status" style="width:100%;">
+        <option value="paid" selected>paid</option>
+        <option value="unpaid">unpaid</option>
+        <option value="not_applicable">not_applicable</option>
+      </select>
+    </div>
+    <div>
+      <label>not_computable_regions (JSON array)</label>
+      <textarea id="pb_not_computable_regions" style="height:90px;">[]</textarea>
+    </div>
+    <div>
+      <label>confidence (JSON object)</label>
+      <textarea id="pb_confidence" style="height:90px;">{"mvp_confidence":0.5}</textarea>
+    </div>
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn" type="button" onclick="generatePacketJson()">Generate JSON</button>
+    <a class="btn" href="/ui/sample_packet" style="text-decoration:none;">Sample Packet</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Upload Abraxas Payload (Local)</h2>
+  <form method="post" action="/ui/upload_payload" enctype="multipart/form-data">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <div class="grid">
+      <div>
+        <label>payload.json</label>
+        <input type="file" name="payload_file" accept=".json" style="width:100%;" />
+      </div>
+      <div>
+        <label>tier</label>
+        <select name="tier" style="width:100%;">
+          <option value="psychonaut" selected>psychonaut</option>
+          <option value="academic">academic</option>
+          <option value="enterprise">enterprise</option>
+        </select>
+      </div>
+      <div>
+        <label>lane</label>
+        <select name="lane" style="width:100%;">
+          <option value="canon" selected>canon</option>
+          <option value="shadow">shadow</option>
+          <option value="sandbox">sandbox</option>
+        </select>
+      </div>
+      <div>
+        <label>Continue from run_id (optional)</label>
+        <input type="text" name="prev_run_id" placeholder="run_id to supersede" style="width:100%;" value="{{ prev_run_id_prefill or '' }}"/>
+        <small>Use this to supersede a paused run with a new packet.</small>
+        {% if prev_run_id_prefill %}
+          <div>Continuing from: {{ prev_run_id_prefill }}</div>
+        {% endif %}
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn" type="submit">Upload -&gt; Emit Packet -&gt; Ingest</button>
+    </div>
+  </form>
+</div>
+
+<div class="card {% if error %}warn{% endif %}">
+  <h2>Run Intake</h2>
+  <form method="post" action="/ui/ingest">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <div style="margin-bottom:8px;">
+      <label>Continue from run_id (optional)</label>
+      <input type="text" name="prev_run_id" placeholder="run_id to supersede" style="width:100%;" value="{{ prev_run_id_prefill or '' }}"/>
+      <small>Use this to supersede a paused run with a new packet.</small>
+      {% if prev_run_id_prefill %}
+        <div>Continuing from: {{ prev_run_id_prefill }}</div>
+      {% endif %}
+    </div>
+    <textarea id="packet_json" name="packet_json" placeholder='Paste AbraxasSignalPacket JSON here...'>{{ packet_json or "" }}</textarea>
+    <div style="margin-top:10px;">
+      <button class="btn" type="submit">Ingest</button>
+      <a class="btn" href="/docs" style="text-decoration:none;">API Docs</a>
+    </div>
+  </form>
+  {% if error %}
+    <p><b>Validation error:</b></p>
+    <pre><code>{{ error }}</code></pre>
+  {% endif %}
+</div>
+
+<h2 style="margin-top:18px;">Recent Runs</h2>
+<div class="card">
+  {% if runs|length == 0 %}
+    <p>No runs yet.</p>
+  {% else %}
+    <ul>
+      {% for r in runs %}
+        <li>
+          <a href="/runs/{{ r.run_id }}">{{ r.run_id }}</a>
+          - <span class="badge">{{ r.tier }}</span><span class="badge">{{ r.lane }}</span>
+          - phase {{ r.phase }}
+          {% if r.pause_required %}
+            <span class="badge warn">PAUSED{% if r.pause_reason %}: {{ r.pause_reason }}{% endif %}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+<script>
+  function _parseJsonField(value, fallback, label) {
+    var trimmed = (value || "").trim();
+    if (!trimmed) {
+      return fallback;
+    }
+    try {
+      return JSON.parse(trimmed);
+    } catch (err) {
+      alert("Invalid JSON in " + label);
+      throw err;
+    }
+  }
+
+  function _defaultSignalId() {
+    var rand = Math.random().toString(16).slice(2, 10);
+    return "sig_" + rand;
+  }
+
+  function generatePacketJson() {
+    var signalId = document.getElementById("pb_signal_id").value.trim();
+    var timestamp = document.getElementById("pb_timestamp_utc").value.trim();
+    var tier = document.getElementById("pb_tier").value;
+    var lane = document.getElementById("pb_lane").value;
+    var invarianceStatus = document.getElementById("pb_invariance_status").value;
+    var provenanceStatus = document.getElementById("pb_provenance_status").value;
+    var driftRaw = document.getElementById("pb_drift_flags").value;
+    var rentStatus = document.getElementById("pb_rent_status").value;
+    var notComputableRaw = document.getElementById("pb_not_computable_regions").value;
+    var confidenceRaw = document.getElementById("pb_confidence").value;
+
+    var driftFlags = (driftRaw || "")
+      .split(",")
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 0; });
+
+    var notComputable = _parseJsonField(notComputableRaw, [], "not_computable_regions");
+    var confidence = _parseJsonField(confidenceRaw, {"mvp_confidence": 0.5}, "confidence");
+
+    var packet = {
+      signal_id: signalId || _defaultSignalId(),
+      timestamp_utc: timestamp || new Date().toISOString(),
+      tier: tier,
+      lane: lane,
+      payload: {
+        kind: "mvp_test",
+        note: "replace with real Abraxas output when available"
+      },
+      confidence: confidence,
+      provenance_status: provenanceStatus,
+      invariance_status: invarianceStatus,
+      drift_flags: driftFlags,
+      rent_status: rentStatus,
+      not_computable_regions: notComputable
+    };
+
+    document.getElementById("packet_json").value = JSON.stringify(packet, null, 2);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.policy_snapshot.v0",
+  "title": "Policy Snapshot v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "policy_id",
+    "issued_at",
+    "capability_grants",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "policy_id": { "type": "string" },
+    "issued_at": { "type": ["string", "null"] },
+    "capability_grants": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/capability_grant" }
+    },
+    "metadata": { "type": ["object", "null"], "additionalProperties": true }
+  },
+  "$defs": {
+    "capability_grant": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "capability_id",
+        "granted",
+        "reason",
+        "constraints"
+      ],
+      "properties": {
+        "schema_version": { "type": "string", "enum": ["v0"] },
+        "capability_id": { "type": "string" },
+        "granted": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "constraints": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.invariant_report.v0",
+  "title": "Invariant Report v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "passed",
+    "runs_required",
+    "reason_code",
+    "reference_hashes",
+    "mismatches",
+    "runs",
+    "details"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "passed": { "type": "boolean" },
+    "runs_required": { "type": "integer", "minimum": 0 },
+    "reason_code": { "type": "string" },
+    "reference_hashes": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "null"] }
+    },
+    "mismatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["run_index", "key", "expected", "got"],
+        "properties": {
+          "run_index": { "type": "integer" },
+          "key": { "type": "string" },
+          "expected": { "type": ["string", "null"] },
+          "got": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["run_index", "hashes"],
+        "properties": {
+          "run_index": { "type": "integer" },
+          "hashes": {
+            "type": "object",
+            "additionalProperties": { "type": ["string", "null"] }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "details": { "type": ["object", "null"], "additionalProperties": true }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Run: {{ run.run_id }}</h1>
+<p><a href="/"><- back</a> · <a href="/runs/{{ run.run_id }}/ledger">ledger view</a></p>
+
+{% if error %}
+  <div class="card warn" style="margin-top:12px;">
+    <b>Error:</b> {{ error }}
+  </div>
+{% endif %}
+
+{% if run.prev_run_id or (lineage_ids and lineage_ids|length > 1) %}
+  <div class="card" style="margin-top:12px;">
+    <h2>Run Lineage</h2>
+    <p><b>Current:</b> {{ run.run_id }}</p>
+    <p>
+      <a href="/?prev_run_id={{ run.run_id }}">
+        {% if run.pause_required %}
+          Supersede this paused run with a new packet
+        {% else %}
+          Continue from this run
+        {% endif %}
+      </a>
+    </p>
+    {% if run.prev_run_id %}
+      <p><b>Previous:</b> <a href="/runs/{{ run.prev_run_id }}">{{ run.prev_run_id }}</a></p>
+      <p><a href="/compare?left={{ run.prev_run_id }}&right={{ run.run_id }}">Compare with previous</a></p>
+      <p><a href="/export/bundle?left={{ run.prev_run_id }}&right={{ run.run_id }}">Export bundle (prev vs current)</a></p>
+      {% if run.continuity_reason %}
+        <p><b>Reason:</b> {{ run.continuity_reason }}</p>
+      {% endif %}
+    {% endif %}
+    {% if lineage_ids %}
+      <p><b>Ancestors:</b></p>
+      <ul>
+        {% for rid in lineage_ids[1:] %}
+          <li><a href="/runs/{{ rid }}">{{ rid }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}
+
+<div class="grid">
+  <div class="card">
+    <h2>Signal Metadata</h2>
+    <div>
+      <span class="badge">{{ run.signal.tier }}</span>
+      <span class="badge">{{ run.signal.lane }}</span>
+      <span class="badge">inv: {{ run.signal.invariance_status }}</span>
+      <span class="badge">prov: {{ run.signal.provenance_status }}</span>
+      <span class="badge">rent: {{ run.signal.rent_status }}</span>
+    </div>
+    <p><b>Confidence:</b> {{ run.signal.confidence }}</p>
+    <p><b>Drift flags:</b> {{ run.signal.drift_flags }}</p>
+    <p><b>Not computable:</b> {{ run.signal.not_computable_regions }}</p>
+  </div>
+
+  <div class="card">
+    <h2>Lifecycle and Gates</h2>
+    <p><b>Phase:</b> {{ run.phase }}</p>
+    <p><b>Mode:</b> {{ run.context.recommended_interaction_mode }}</p>
+    <p><b>Requires ACK:</b> {{ run.requires_human_confirmation }}</p>
+
+    {% if run.pause_required %}
+      <p class="badge warn"><b>PAUSED</b>{% if run.pause_reason %}: {{ run.pause_reason }}{% endif %}</p>
+    {% endif %}
+
+    {% if run.requires_human_confirmation and not run.human_ack %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/ack">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">ACKNOWLEDGE / APPROVE</button>
+      </form>
+      <p><small>Execution blocked until explicit ACK is recorded.</small></p>
+    {% else %}
+      <p><small>ACK satisfied or not required.</small></p>
+    {% endif %}
+
+    <hr/>
+    <h3>Bounded Deferral</h3>
+    <p><b>Active:</b> {{ run.deferral_active }}</p>
+    <p><b>Quota:</b> {{ run.quota_max_actions }} · <b>Taken:</b> {{ run.actions_taken }} · <b>Remaining:</b> {{ run.actions_remaining }}</p>
+
+    {% if not run.deferral_active %}
+      <div style="display:flex; gap:10px;">
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/start/2">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+          <button class="btn" type="submit">Start Deferral (2)</button>
+        </form>
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/start/3">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+          <button class="btn" type="submit">Start Deferral (3)</button>
+        </form>
+      </div>
+    {% else %}
+      <div style="display:flex; gap:10px;">
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/step">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+          <button class="btn" type="submit" {% if run.actions_remaining is not none and run.actions_remaining <= 0 %}disabled{% endif %}>
+            Execute Next Action (spends 1)
+          </button>
+        </form>
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/stop">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+          <button class="btn" type="submit">Stop Deferral</button>
+        </form>
+      </div>
+      {% if run.actions_remaining is not none and run.actions_remaining <= 0 %}
+        <p class="badge warn">Quota exhausted - approval required to continue.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Decision Context</h2>
+  <p><b>Allowed lanes:</b> {{ run.context.execution_lanes_allowed }}</p>
+  <p><b>Risk:</b> action={{ run.context.risk_profile.risk_of_action }} / inaction={{ run.context.risk_profile.risk_of_inaction }}</p>
+  <p><b>Unknowns:</b> {{ run.context.unknowns }}</p>
+  <p><b>Notes:</b> {{ run.context.risk_profile.risk_notes }}</p>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>RunPlan</h2>
+  {% if run.runplan %}
+    <p><b>Plan:</b> {{ run.runplan.plan_id }} · hash {{ run.runplan.deterministic_hash[:10] }}</p>
+    <p><b>Steps:</b> {{ run.runplan.steps|length }} · <b>Current index:</b> {{ run.current_step_index }}</p>
+    <ul>
+      {% for step in run.runplan.steps %}
+        <li><code>{{ step.kind }}</code> · <small>{{ step.step_id }}</small></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No runplan available yet.</p>
+  {% endif %}
+  <p><b>Last step result:</b></p>
+  <pre><code>{{ run.last_step_result | tojson(indent=2) if run.last_step_result else "None" }}</code></pre>
+</div>
+
+{% if run.last_step_result and run.last_step_result.kind == "extract_structure_v0" %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Extracted Structure</h2>
+    <p><b>Paths:</b> {{ run.last_step_result.keys_topology.paths_count }}</p>
+    <p><b>Refs:</b> {{ run.last_step_result.evidence_refs | length }}</p>
+    <p><b>Sample paths:</b> {{ run.last_step_result.keys_topology.sample_paths }}</p>
+    <p><b>Numeric metrics:</b> {{ run.last_step_result.numeric_metrics }}</p>
+  </div>
+{% endif %}
+
+{% if run.last_step_result and run.last_step_result.kind == "compress_signal_v0" %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Compressed Signal</h2>
+    <p><b>Pressure score:</b> {{ run.last_step_result.plan_pressure.score }}</p>
+    <p><b>Components:</b> {{ run.last_step_result.plan_pressure.components }}</p>
+    <p><b>Evidence surface:</b> {{ run.last_step_result.evidence_surface }}</p>
+    <p><b>Salient metrics:</b></p>
+    <ul>
+      {% for metric in run.last_step_result.salient_metrics %}
+        <li><code>{{ metric.path }}</code> = {{ metric.value }}</li>
+      {% endfor %}
+    </ul>
+    <p><b>Next questions:</b></p>
+    <ul>
+      {% for q in run.last_step_result.next_questions %}
+        <li>{{ q }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if run.last_step_result and run.last_step_result.kind == "propose_actions_v0" %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Proposed Actions</h2>
+    <ul>
+      {% for action in run.last_step_result.actions %}
+        <li style="margin-bottom:10px;">
+          <b>{{ action.title }}</b> · <code>{{ action.kind }}</code>
+          <div><b>Entropy reduction:</b> {{ action.expected_entropy_reduction }}</div>
+          <div><b>Required gates:</b> {{ action.required_gates }}</div>
+          <form method="post" action="/ui/runs/{{ run.run_id }}/select_action" style="margin:6px 0;">
+            <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+            <input type="hidden" name="selected_action_id" value="{{ action.action_id }}"/>
+            <button class="btn" type="submit">Select</button>
+          </form>
+          <div><b>Rationale:</b>
+            <ul>
+              {% for line in action.rationale %}
+                <li>{{ line }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div><b>Preview:</b> {{ action.preview_effect }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if run.execution_checklist %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Execution Checklist</h2>
+    <p><b>Selected action:</b> {{ run.selected_action_id }}</p>
+    {% if run.selected_action_progress %}
+      <p><b>Progress:</b> phase {{ run.selected_action_progress.phase }} · completed {{ run.selected_action_progress.completed }}</p>
+    {% endif %}
+    <p><b>Gates required:</b> {{ run.execution_checklist.gates_required }}</p>
+    <p><b>Preconditions:</b> {{ run.execution_checklist.preconditions }}</p>
+    <p><b>Required inputs:</b> {{ run.execution_checklist.required_inputs }}</p>
+    <p><b>Stop conditions:</b> {{ run.execution_checklist.stop_conditions }}</p>
+    <p><b>Notes:</b> {{ run.execution_checklist.notes }}</p>
+    <p><b>Selected action preview:</b> {{ run.execution_checklist.produces }}</p>
+  </div>
+{% endif %}
+
+<div class="card" style="margin-top:16px;">
+  <h2>Stability</h2>
+  {% if run.stability_report %}
+    <p><b>Passed:</b> {{ run.stability_report.invariance.passed }}</p>
+    <p><b>Distinct hashes:</b> {{ run.stability_report.invariance.distinct_final_hashes }}</p>
+    {% if run.stability_report.invariance.distinct_input_hashes is defined %}
+      <p><b>Distinct input hashes:</b> {{ run.stability_report.invariance.distinct_input_hashes }}</p>
+    {% endif %}
+    <p><b>Drift class:</b> {{ run.stability_report.drift_class }}</p>
+    <p><b>Policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
+    <p><b>Operators:</b> {{ run.stability_report.operators }}</p>
+    <p><a href="/runs/{{ run.run_id }}/stability">View report</a> · <a href="/runs/{{ run.run_id }}/stability.json">Download JSON</a></p>
+    <form method="post" action="/ui/runs/{{ run.run_id }}/stabilize" style="margin-top:8px;">
+      <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+      <label>cycles</label>
+      <input type="number" name="cycles" value="12" min="1" max="24"/>
+      <div>
+        <label><input type="checkbox" name="operators" value="extract_structure_v0" checked/> extract_structure_v0</label>
+        <label><input type="checkbox" name="operators" value="compress_signal_v0" checked/> compress_signal_v0</label>
+        <label><input type="checkbox" name="operators" value="propose_actions_v0" checked/> propose_actions_v0</label>
+      </div>
+      <button class="btn" type="submit">Re-run Stabilization</button>
+    </form>
+  {% else %}
+    <form method="post" action="/ui/runs/{{ run.run_id }}/stabilize">
+      <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+      <label>cycles</label>
+      <input type="number" name="cycles" value="12" min="1" max="24"/>
+      <div>
+        <label><input type="checkbox" name="operators" value="extract_structure_v0" checked/> extract_structure_v0</label>
+        <label><input type="checkbox" name="operators" value="compress_signal_v0" checked/> compress_signal_v0</label>
+        <label><input type="checkbox" name="operators" value="propose_actions_v0" checked/> propose_actions_v0</label>
+      </div>
+      <button class="btn" type="submit">Run Stabilization</button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Policy</h2>
+  <p><b>Ingest policy hash:</b> {{ run.policy_hash_at_ingest[:12] if run.policy_hash_at_ingest else "n/a" }}</p>
+  <p><b>Current policy hash:</b> {{ current_policy_hash[:12] if current_policy_hash else "n/a" }}</p>
+  <p><b>Status:</b> {{ policy_status }}</p>
+  {% if run.stability_report and run.stability_report.policy_hash %}
+    <p><b>Stability policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
+  {% endif %}
+  {% if policy_diff_keys %}
+    <p><b>Changed keys:</b></p>
+    <ul>
+      {% for key in policy_diff_keys %}
+        <li><code>{{ key }}</code></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Artifacts</h2>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="/runs/{{ run.run_id }}/packet.json">Download signal packet (packet.json)</a>
+    <a class="btn" href="/runs/{{ run.run_id }}/ledger.json">Download ledger (ledger.json)</a>
+    <button class="btn" type="button" onclick="copyPacketJson()">Copy packet JSON</button>
+  </div>
+  <p id="copy_status" style="margin-top:8px;"></p>
+  <textarea id="packet_json_copy" style="position:absolute; left:-9999px; top:-9999px;"></textarea>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Ledger Integrity</h2>
+  <p><b>Chain valid:</b> {{ chain_valid }}</p>
+  <p><b>Events:</b> {{ events|length }}</p>
+  <ul>
+    {% for e in events[-8:] %}
+      <li><code>{{ e.event_type }}</code> · <small>{{ e.timestamp_utc }}</small> · <code>{{ e.event_hash[:10] }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<script>
+  async function copyPacketJson() {
+    var status = document.getElementById("copy_status");
+    status.textContent = "";
+    try {
+      var resp = await fetch("/runs/{{ run.run_id }}/packet.json");
+      if (!resp.ok) {
+        throw new Error("failed to fetch packet.json");
+      }
+      var text = await resp.text();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        status.textContent = "Copied packet JSON to clipboard.";
+        return;
+      }
+      var textarea = document.getElementById("packet_json_copy");
+      textarea.value = text;
+      textarea.select();
+      var ok = document.execCommand("copy");
+      status.textContent = ok ? "Copied packet JSON to clipboard." : "Copy failed. Select and copy manually.";
+    } catch (err) {
+      status.textContent = "Copy failed. " + String(err);
+    }
+  }
+</script>
+{% endblock %}

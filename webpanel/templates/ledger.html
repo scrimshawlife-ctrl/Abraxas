@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Ledger: {{ run.run_id }}</h1>
+<p><a href="/runs/{{ run.run_id }}"><- back to run</a></p>
+
+<div class="card">
+  <p><b>Chain valid:</b> {{ chain_valid }}</p>
+  <table>
+    <tr><th align="left">type</th><th align="left">time</th><th align="left">prev</th><th align="left">hash</th></tr>
+    {% for e in events %}
+      <tr>
+        <td><code>{{ e.event_type }}</code></td>
+        <td><small>{{ e.timestamp_utc }}</small></td>
+        <td><code>{{ (e.prev_event_hash or "")[:12] }}</code></td>
+        <td><code>{{ e.event_hash[:12] }}</code></td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

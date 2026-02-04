@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas.familiar.run_result.v0",
+  "title": "Familiar Run Result v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "status",
+    "not_computable",
+    "reason_code",
+    "missing_inputs",
+    "outputs",
+    "input_hash",
+    "plan_hash",
+    "policy_hash",
+    "capability_decision_hash",
+    "details",
+    "result_hash"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["v0"] },
+    "run_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["ok", "not_computable"] },
+    "not_computable": { "type": "boolean" },
+    "reason_code": { "type": "string" },
+    "missing_inputs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "outputs": {
+      "type": ["object", "null"],
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "input_hash": { "type": ["string", "null"] },
+    "plan_hash": { "type": ["string", "null"] },
+    "policy_hash": { "type": ["string", "null"] },
+    "capability_decision_hash": { "type": ["string", "null"] },
+    "details": { "type": ["object", "null"], "additionalProperties": true },
+    "result_hash": { "type": "string" }
+  },
+  "$defs": {
+    "Value": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "integer" },
+        { "type": "boolean" },
+        { "type": "null" },
+        { "$ref": "#/$defs/Object" },
+        { "$ref": "#/$defs/Array" }
+      ]
+    },
+    "Object": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/Value" }
+    },
+    "Array": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Value" }
+    }
+  },
+  "additionalProperties": false
+}

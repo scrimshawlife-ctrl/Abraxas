@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ABX-Familiar Web Panel</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 14px; }
+    .badge { display:inline-block; padding:2px 8px; border:1px solid #ccc; border-radius:999px; margin-right:6px; }
+    .warn { border-color:#d88; background:#fff7f7; }
+    textarea { width:100%; height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95em; }
+    .btn { padding:8px 10px; border:1px solid #bbb; border-radius:10px; background:#fff; cursor:pointer; }
+    .btn:hover { background:#f6f6f6; }
+    a { color: inherit; }
+  </style>
+</head>
+<body>
+  {% if panel_host != "127.0.0.1" %}
+    <div class="card {% if not token_enabled %}warn{% endif %}" style="margin-bottom:16px;">
+      <b>LAN EXPOSED:</b> host={{ panel_host }}:{{ panel_port }} |
+      token={{ "enabled" if token_enabled else "disabled" }}
+    </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</body>
+</html>
