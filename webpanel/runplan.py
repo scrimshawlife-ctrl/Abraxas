@@ -220,6 +220,7 @@ def execute_step(run_state: "RunState", step: RunPlanStep) -> Dict[str, Any]:
             return {"kind": "propose_actions_v0", "error": "missing_compress_signal_v0"}
 
         signal_meta = {
+            "tier": run_state.signal.tier,
             "lane": run_state.signal.lane,
             "invariance_status": run_state.signal.invariance_status,
             "provenance_status": run_state.signal.provenance_status,

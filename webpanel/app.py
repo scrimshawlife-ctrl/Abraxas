@@ -18,11 +18,36 @@ from .lineage import get_lineage
 from .execute_action import execute_one
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
+from .oracle_output import (
+    build_oracle_json,
+    build_oracle_view,
+    extract_oracle_output,
+    validate_oracle_output_v2,
+)
 from .select_action import build_checklist
+from .filters import build_run_view, filter_runs, parse_filter_params
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
+from .consideration import build_considerations_for_run
+from .continuity import build_continuity_report
+from .gates import compute_gate_stack
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
+from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
+from .preference_kernel import (
+    apply_prefs_update,
+    build_consideration_view,
+    normalize_prefs,
+    prefs_focus_priority,
+    prefs_show_sections,
+)
+from .session_mode import (
+    SessionGateError,
+    consume_session_step,
+    end_session,
+    enforce_session,
+    start_session,
+)
 from .export_bundle import build_bundle
 from .stability import run_stabilization
 
@@ -164,15 +189,19 @@ def _select_action(run_id: str, selected_action_id: str) -> dict:
     return run.model_dump()
 
 
-@app.get("/", response_class=HTMLResponse)
-def ui_index(request: Request):
-    runs = store.list(limit=50)
+def _render_runs_page(request: Request):
+    params = parse_filter_params(request.query_params)
+    runs = store.list_runs()
+    filtered = filter_runs(runs, params)
+    run_views = [build_run_view(run) for run in filtered[:50]]
     prev_run_id_prefill = request.query_params.get("prev_run_id")
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "runs": runs,
+            "runs": run_views,
+            "runs_total": len(filtered),
+            "filters": params,
             "panel_token": _panel_token(),
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
@@ -180,6 +209,16 @@ def ui_index(request: Request):
             "prev_run_id_prefill": prev_run_id_prefill,
         },
     )
+
+
+@app.get("/", response_class=HTMLResponse)
+def ui_index(request: Request):
+    return _render_runs_page(request)
+
+
+@app.get("/runs", response_class=HTMLResponse)
+def ui_runs(request: Request):
+    return _render_runs_page(request)
 
 
 @app.get("/runs/{run_id}", response_class=HTMLResponse)
@@ -201,6 +240,55 @@ def ui_run(request: Request, run_id: str):
     policy_diff_keys = []
     if policy_status == "CHANGED":
         policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
+    policy_ack_needed = policy_ack_required(run, current_hash)
+    oracle_output = extract_oracle_output(run)
+    oracle_view = None
+    oracle_validation = {"valid": True, "errors": []}
+    if oracle_output:
+        valid, errors = validate_oracle_output_v2(oracle_output)
+        oracle_validation = {"valid": valid, "errors": errors}
+        oracle_view = build_oracle_view(oracle_output)
+    gate_stack = compute_gate_stack(run, current_hash)
+    top_gate = gate_stack[0] if gate_stack else None
+    considerations = {}
+    try:
+        prefs = normalize_prefs(run.prefs) if getattr(run, "prefs", None) else normalize_prefs({})
+    except Exception:
+        prefs = normalize_prefs({})
+    show_sections = prefs_show_sections(prefs)
+    proposals = None
+    if run.last_step_result and isinstance(run.last_step_result, dict):
+        if run.last_step_result.get("kind") == "propose_actions_v0":
+            proposals = run.last_step_result.get("actions", [])
+    if proposals:
+        considerations_list = build_considerations_for_run(
+            run,
+            oracle=oracle_output,
+            gates=gate_stack,
+            ledger_events=events,
+        )
+        for proposal, consideration in zip(proposals, considerations_list):
+            if isinstance(proposal, dict):
+                key = proposal.get("action_id") or consideration.get("proposal_id")
+                if key:
+                    considerations[key] = build_consideration_view(consideration, prefs)
+    continuity_report = None
+    continuity_summary_lines = None
+    prev_run = store.get(run.prev_run_id) if run.prev_run_id else None
+    if prev_run:
+        prev_events = ledger.list_events(prev_run.run_id)
+        setattr(run, "ledger_events", events)
+        setattr(prev_run, "ledger_events", prev_events)
+        continuity_report = build_continuity_report(run, prev_run, current_hash)
+        if continuity_report:
+            continuity_summary_lines = prefs_focus_priority(
+                continuity_report.get("summary_lines", []), prefs.get("focus", [])
+            )
+        try:
+            delattr(run, "ledger_events")
+            delattr(prev_run, "ledger_events")
+        except Exception:
+            pass
     return templates.TemplateResponse(
         "run.html",
         {
@@ -217,6 +305,17 @@ def ui_run(request: Request, run_id: str):
             "current_policy_snapshot": current_snapshot,
             "policy_status": policy_status,
             "policy_diff_keys": policy_diff_keys,
+            "policy_ack_required": policy_ack_needed,
+            "policy_current_hash": current_hash,
+            "oracle_view": oracle_view,
+            "oracle_validation": oracle_validation,
+            "gate_stack": gate_stack,
+            "top_gate": top_gate,
+            "considerations": considerations,
+            "continuity_report": continuity_report,
+            "continuity_summary_lines": continuity_summary_lines,
+            "prefs": prefs,
+            "show_sections": show_sections,
         },
     )
 
@@ -275,6 +374,17 @@ def ui_ledger_json(run_id: str):
     }
     rendered = json.dumps(payload, sort_keys=True, ensure_ascii=True)
     return Response(content=rendered, media_type="application/json")
+
+
+@app.get("/runs/{run_id}/oracle.json")
+def ui_oracle_json(run_id: str):
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    payload = build_oracle_json(run)
+    if not payload:
+        raise HTTPException(status_code=404, detail="oracle output not found")
+    return Response(content=payload, media_type="application/json")
 
 
 @app.get("/runs/{run_id}/stability")
@@ -595,6 +705,15 @@ def _start_deferral(run_id: str, body: DeferralStart) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    try:
+        enforce_policy_ack(run, current_hash)
+    except PolicyAckRequired:
+        raise HTTPException(status_code=409, detail="policy_ack_required")
+    try:
+        enforce_session(run)
+    except SessionGateError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason)
 
     if run.requires_human_confirmation and not run.human_ack:
         raise HTTPException(status_code=409, detail="ack required before deferral")
@@ -629,6 +748,15 @@ def _step_deferral(run_id: str) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    try:
+        enforce_policy_ack(run, current_hash)
+    except PolicyAckRequired:
+        raise HTTPException(status_code=409, detail="policy_ack_required")
+    try:
+        enforce_session(run)
+    except SessionGateError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason)
 
     if not run.deferral_active or run.quota_max_actions is None:
         raise HTTPException(status_code=409, detail="deferral not active")
@@ -647,6 +775,17 @@ def _step_deferral(run_id: str) -> dict:
         if run.requires_human_confirmation and not run.human_ack:
             raise HTTPException(status_code=409, detail="ack required before execution")
 
+        consume_session_step(
+            run=run,
+            ledger=ledger,
+            event_id=eid("ev"),
+            end_event_id=eid("ev"),
+            timestamp_utc=now_utc(),
+            route="defer_step:selected_action",
+            step_index=int(run.selected_action_progress.get("phase", 0))
+            if run.selected_action_progress
+            else 0,
+        )
         run, exec_result = execute_one(run)
         run.step_results.append(exec_result)
         run.last_step_result = exec_result
@@ -690,6 +829,15 @@ def _step_deferral(run_id: str) -> dict:
         return run.model_dump()
 
     step = steps[run.current_step_index]
+    consume_session_step(
+        run=run,
+        ledger=ledger,
+        event_id=eid("ev"),
+        end_event_id=eid("ev"),
+        timestamp_utc=now_utc(),
+        route="defer_step:runplan",
+        step_index=int(run.current_step_index),
+    )
     result = execute_step(run, step)
     run.last_step_result = result
     run.step_results.append(result)
@@ -910,7 +1058,14 @@ async def ui_ack(run_id: str, request: Request):
 async def ui_defer_start(run_id: str, quota: int, request: Request):
     form = await request.form()
     require_token(request, form)
-    _start_deferral(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
+    try:
+        _start_deferral(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
+    except HTTPException as exc:
+        if exc.detail == "policy_ack_required":
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+        if exc.detail in {"session_required", "session_exhausted"}:
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+        raise
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
@@ -918,7 +1073,124 @@ async def ui_defer_start(run_id: str, quota: int, request: Request):
 async def ui_defer_step(run_id: str, request: Request):
     form = await request.form()
     require_token(request, form)
-    _step_deferral(run_id)
+    try:
+        _step_deferral(run_id)
+    except HTTPException as exc:
+        if exc.detail == "policy_ack_required":
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+        if exc.detail in {"session_required", "session_exhausted"}:
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+        raise
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+def _start_session(run_id: str, max_steps: int) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    started_utc = now_utc()
+    start_session(
+        run=run,
+        max_steps=max_steps,
+        started_utc=started_utc,
+        ledger=ledger,
+        event_id=eid("ev"),
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+def _end_session(run_id: str, reason: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    end_session(
+        run=run,
+        ended_utc=now_utc(),
+        ledger=ledger,
+        event_id=eid("ev"),
+        reason=reason,
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+@app.post("/ui/runs/{run_id}/session/start")
+async def ui_session_start(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    raw_max = form.get("session_max_steps") or "3"
+    try:
+        max_steps = int(raw_max)
+    except ValueError:
+        max_steps = 3
+    _start_session(run_id, max_steps)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/session/end")
+async def ui_session_end(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _end_session(run_id, reason="user")
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+def _record_policy_ack(run_id: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    record_policy_ack(
+        run=run,
+        current_policy_hash=current_hash,
+        ledger=ledger,
+        event_id=eid("ev"),
+        timestamp_utc=now_utc(),
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+@app.post("/ui/runs/{run_id}/policy/ack")
+async def ui_policy_ack(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _record_policy_ack(run_id)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/prefs")
+async def ui_update_prefs(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    verbosity = form.get("verbosity") or "medium"
+    risk_tolerance = form.get("risk_tolerance") or "medium"
+    focus = form.get("focus") or ""
+    show = form.getlist("show")
+    hide = form.getlist("hide")
+    payload = {
+        "verbosity": verbosity,
+        "risk_tolerance": risk_tolerance,
+        "focus": focus,
+        "show": show,
+        "hide": hide,
+    }
+    try:
+        apply_prefs_update(
+            run=run,
+            new_prefs=payload,
+            ledger=ledger,
+            event_id=eid("ev"),
+            timestamp_utc=now_utc(),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    store.put(run)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 

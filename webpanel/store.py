@@ -33,3 +33,6 @@ class InMemoryStore:
                 )
             )
         return out
+
+    def list_runs(self) -> List[RunState]:
+        return list(self._runs.values())

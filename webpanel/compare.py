@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from webpanel.oracle_output import (
+    canonical_json_str,
+    evidence_entries,
+    extract_oracle_output,
+    flag_entries,
+    indicator_entries,
+)
 from webpanel.policy import MAX_DIFF_METRICS, MAX_DIFF_PATHS, MAX_DIFF_REFS, MAX_DIFF_UNKNOWNS
 
 
@@ -61,6 +68,71 @@ def extract_paths(extract: Optional[Dict[str, Any]]) -> List[str]:
     if isinstance(sample_paths, list):
         return [str(path) for path in sample_paths]
     return []
+
+
+def _is_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _provenance_value(provenance: Dict[str, Any], key: str) -> Any:
+    value = provenance.get(key)
+    if isinstance(value, dict):
+        return canonical_json_str(value)
+    return value
+
+
+def compare_oracle(left_oracle: Optional[Dict[str, Any]], right_oracle: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    present_left = isinstance(left_oracle, dict)
+    present_right = isinstance(right_oracle, dict)
+
+    left_flags = flag_entries(left_oracle.get("flags") if present_left else [])
+    right_flags = flag_entries(right_oracle.get("flags") if present_right else [])
+    flags_diff = diff_sets(left_flags, right_flags, lambda x: x)
+
+    left_evidence = evidence_entries(left_oracle.get("evidence") if present_left else [])
+    right_evidence = evidence_entries(right_oracle.get("evidence") if present_right else [])
+    evidence_diff = diff_sets(left_evidence, right_evidence, lambda x: x)
+
+    left_indicators = indicator_entries(left_oracle.get("indicators") if present_left else {})
+    right_indicators = indicator_entries(right_oracle.get("indicators") if present_right else {})
+    indicator_paths = sorted(set(left_indicators.keys()) | set(right_indicators.keys()))
+    indicator_deltas: List[Dict[str, Any]] = []
+    indicator_changes: List[Dict[str, Any]] = []
+    for path in indicator_paths:
+        left_val = left_indicators.get(path)
+        right_val = right_indicators.get(path)
+        if _is_number(left_val) and _is_number(right_val):
+            delta = float(right_val) - float(left_val)
+            indicator_deltas.append(
+                {"path": path, "left": left_val, "right": right_val, "delta": delta}
+            )
+        elif left_val != right_val:
+            indicator_changes.append({"path": path, "left": left_val, "right": right_val})
+
+    indicator_deltas = sorted(
+        indicator_deltas, key=lambda item: (-abs(item.get("delta", 0.0)), item.get("path") or "")
+    )
+    indicator_changes = sorted(indicator_changes, key=lambda item: item.get("path") or "")
+
+    left_prov = left_oracle.get("provenance") if present_left else {}
+    right_prov = right_oracle.get("provenance") if present_right else {}
+    provenance_diff = {}
+    for key in ("input_hash", "policy_hash", "stability_status"):
+        left_val = _provenance_value(left_prov or {}, key)
+        right_val = _provenance_value(right_prov or {}, key)
+        provenance_diff[key] = {"left": left_val, "right": right_val, "changed": left_val != right_val}
+
+    return {
+        "present_left": present_left,
+        "present_right": present_right,
+        "flags_added": flags_diff["added"],
+        "flags_removed": flags_diff["removed"],
+        "evidence_added": evidence_diff["added"],
+        "evidence_removed": evidence_diff["removed"],
+        "indicator_deltas": indicator_deltas,
+        "indicator_changes": indicator_changes,
+        "provenance_diffs": provenance_diff,
+    }
 
 
 def safe_extract_fields(run) -> Dict[str, Any]:
@@ -130,6 +202,7 @@ def compare_runs(left_run, right_run) -> Dict[str, Any]:
 
     lineage_note = "direct supersession" if right_run.prev_run_id == left_run.run_id else None
 
+    oracle_compare = compare_oracle(extract_oracle_output(left_run), extract_oracle_output(right_run))
     return {
         "left_run_id": left_run.run_id,
         "right_run_id": right_run.run_id,
@@ -144,4 +217,5 @@ def compare_runs(left_run, right_run) -> Dict[str, Any]:
         "refs_added": refs_diff["added"][:MAX_DIFF_REFS],
         "refs_removed": refs_diff["removed"][:MAX_DIFF_REFS],
         "lineage_note": lineage_note,
+        "oracle": oracle_compare,
     }

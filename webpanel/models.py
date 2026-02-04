@@ -122,6 +122,14 @@ class RunState(BaseModel):
     selected_action_progress: Optional[Dict[str, Any]] = None
     last_execution_result: Optional[Dict[str, Any]] = None
     stability_report: Optional[Dict[str, Any]] = None
+    oracle_output: Optional[Dict[str, Any]] = None
+    policy_ack: bool = False
+    session_active: bool = False
+    session_id: Optional[str] = None
+    session_max_steps: int = 0
+    session_steps_used: int = 0
+    session_started_utc: Optional[str] = None
+    prefs: Optional[Dict[str, Any]] = None
     policy_snapshot_at_ingest: Optional[Dict[str, Any]] = None
     policy_hash_at_ingest: Optional[str] = None
 

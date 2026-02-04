@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/input_envelope.v2.json",
+  "title": "InputEnvelope.v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["signal_sources", "payload", "metadata"],
+  "properties": {
+    "signal_sources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "payload": { "type": "object" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "lane",
+        "provenance_status",
+        "invariance_status",
+        "drift_flags"
+      ],
+      "properties": {
+        "tier": { "type": "string", "enum": ["psychonaut", "academic", "enterprise"] },
+        "lane": { "type": "string", "enum": ["canon", "shadow", "sandbox"] },
+        "provenance_status": { "type": "string", "enum": ["complete", "partial", "missing"] },
+        "invariance_status": { "type": "string", "enum": ["pass", "fail", "not_evaluated"] },
+        "drift_flags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unknowns": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/unknown_region" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "unknown_region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_id", "reason_code"],
+      "properties": {
+        "region_id": { "type": "string" },
+        "reason_code": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

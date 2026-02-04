@@ -9,6 +9,40 @@
   </div>
 {% endif %}
 
+{% if top_gate and show_sections.gates %}
+  <div class="card {% if top_gate.severity == 'block' %}warn{% endif %}" style="margin-top:12px;">
+    <b>Gate:</b> {{ top_gate.message }} <b>Remedy:</b> {{ top_gate.remedy }}
+    {% if top_gate.code == "policy_ack_required" %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/policy/ack" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">ACK Policy Change</button>
+      </form>
+    {% endif %}
+    {% if top_gate.code in ["session_inactive", "session_exhausted"] %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/session/start" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <label>max_steps</label>
+        <select name="session_max_steps">
+          {% for s in [1,2,3,4,5] %}
+            <option value="{{ s }}" {% if s == 3 %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn" type="submit">Start Session</button>
+      </form>
+    {% endif %}
+    {% if gate_stack and gate_stack|length > 1 %}
+      <details style="margin-top:8px;">
+        <summary>Other active gates ({{ gate_stack|length - 1 }})</summary>
+        <ul>
+          {% for gate in gate_stack[1:] %}
+            <li><code>{{ gate.code }}</code> — {{ gate.message }} ({{ gate.severity }})</li>
+          {% endfor %}
+        </ul>
+      </details>
+    {% endif %}
+  </div>
+{% endif %}
+
 {% if run.prev_run_id or (lineage_ids and lineage_ids|length > 1) %}
   <div class="card" style="margin-top:12px;">
     <h2>Run Lineage</h2>
@@ -109,6 +143,33 @@
         <p class="badge warn">Quota exhausted - approval required to continue.</p>
       {% endif %}
     {% endif %}
+
+    <hr/>
+    <h3>Session Mode</h3>
+    <p><b>Active:</b> {{ run.session_active }}</p>
+    <p><b>Steps:</b> {{ run.session_steps_used }} / {{ run.session_max_steps }}</p>
+    <p><b>Session ID:</b> {{ run.session_id[:8] if run.session_id else "n/a" }}</p>
+    <p><b>Started:</b> {{ run.session_started_utc or "n/a" }}</p>
+    {% if session_error %}
+      <p class="badge warn">{{ session_error }}</p>
+    {% endif %}
+    {% if not run.session_active %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/session/start" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <label>max_steps</label>
+        <select name="session_max_steps">
+          {% for s in [1,2,3,4,5] %}
+            <option value="{{ s }}" {% if s == 3 %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn" type="submit">Start Session</button>
+      </form>
+    {% else %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/session/end" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">End Session</button>
+      </form>
+    {% endif %}
   </div>
 </div>
 
@@ -136,6 +197,71 @@
   <p><b>Last step result:</b></p>
   <pre><code>{{ run.last_step_result | tojson(indent=2) if run.last_step_result else "None" }}</code></pre>
 </div>
+
+{% if oracle_view and show_sections.oracle %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Oracle (OSLv2)</h2>
+    <p><b>Tier:</b> {{ oracle_view.tier }} · <b>Lane:</b> {{ oracle_view.lane }}</p>
+    <p><b>Summary:</b> {{ oracle_view.summary }}</p>
+    {% if not oracle_validation.valid %}
+      <p class="badge warn"><b>Warning:</b> OracleOutput.v2 validation failed</p>
+      {% if oracle_validation.errors %}
+        <ul>
+          {% for err in oracle_validation.errors[:5] %}
+            <li><code>{{ err }}</code></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endif %}
+    <p><a href="/runs/{{ run.run_id }}/oracle.json">Download oracle.json</a></p>
+
+    <h3>Indicators ({{ oracle_view.indicator_total }})</h3>
+    {% if oracle_view.indicator_items %}
+      <ul>
+        {% for item in oracle_view.indicator_items %}
+          <li><code>{{ item.path }}</code> = {{ item.value }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No indicators available.</small></p>
+    {% endif %}
+
+    <h3>Evidence ({{ oracle_view.evidence_total }})</h3>
+    {% if oracle_view.evidence_items %}
+      <ul>
+        {% for item in oracle_view.evidence_items %}
+          <li><code>{{ item }}</code></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No evidence entries.</small></p>
+    {% endif %}
+
+    <h3>Flags</h3>
+    {% if oracle_view.flags_items %}
+      <ul>
+        {% for item in oracle_view.flags_items %}
+          <li><code>{{ item }}</code></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No flags reported.</small></p>
+    {% endif %}
+
+    <h3>Provenance</h3>
+    <p><b>Input hash:</b> {{ oracle_view.provenance.input_hash[:8] if oracle_view.provenance.input_hash else "n/a" }}</p>
+    <p><b>Policy hash:</b> {{ oracle_view.provenance.policy_hash[:8] if oracle_view.provenance.policy_hash else "n/a" }}</p>
+    <p><b>Stability status:</b> {{ oracle_view.provenance.stability_status }}</p>
+    {% if oracle_view.provenance.operator_versions %}
+      <p><b>Operator versions:</b></p>
+      <ul>
+        {% for entry in oracle_view.provenance.operator_versions %}
+          <li><code>{{ entry.name }}</code> = {{ entry.version }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}
 
 {% if run.last_step_result and run.last_step_result.kind == "extract_structure_v0" %}
   <div class="card" style="margin-top:16px;">
@@ -190,6 +316,38 @@
             </ul>
           </div>
           <div><b>Preview:</b> {{ action.preview_effect }}</div>
+          {% set consideration = considerations.get(action.action_id) %}
+          {% if consideration and show_sections.consideration %}
+            <details style="margin-top:8px;">
+              <summary>Explain</summary>
+              <div><b>Rationale:</b>
+                <ul>
+                  {% for line in consideration.rationale_display %}
+                    <li>{{ line }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div><b>Dependencies:</b> {{ consideration.dependencies }}</div>
+              <div><b>Counterfactuals:</b>
+                <ul>
+                  {% for item in consideration.counterfactuals %}
+                    <li><code>{{ item.if_skipped }}</code> → {{ item.likely_effect }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div><b>Risk flags:</b>
+                {% for flag in consideration.risk_flags %}
+                  {% if flag in consideration.risk_flags_emphasis %}
+                    <b>{{ flag }}</b>
+                  {% else %}
+                    {{ flag }}
+                  {% endif %}
+                  {% if not loop.last %}, {% endif %}
+                {% endfor %}
+              </div>
+              <div><b>Evidence refs:</b> {{ consideration.evidence_refs | length }}</div>
+            </details>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>
@@ -209,6 +367,31 @@
     <p><b>Stop conditions:</b> {{ run.execution_checklist.stop_conditions }}</p>
     <p><b>Notes:</b> {{ run.execution_checklist.notes }}</p>
     <p><b>Selected action preview:</b> {{ run.execution_checklist.produces }}</p>
+  </div>
+{% endif %}
+
+{% if continuity_report and show_sections.continuity %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Continuity</h2>
+    {% set summary_lines = continuity_summary_lines or continuity_report.summary_lines %}
+    {% if summary_lines %}
+      <ul>
+        {% for line in summary_lines %}
+          <li>{{ line }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No continuity deltas detected.</small></p>
+    {% endif %}
+    <p><b>Top gate prev:</b> {{ continuity_report.deltas.gates.top_gate_prev or "n/a" }}</p>
+    <p><b>Top gate now:</b> {{ continuity_report.deltas.gates.top_gate_now or "n/a" }}</p>
+    {% if continuity_report.provenance.oracle_input_hash_prefix_current or continuity_report.provenance.oracle_input_hash_prefix_prev %}
+      <p><b>Oracle input hash:</b> {{ continuity_report.provenance.oracle_input_hash_prefix_prev or "n/a" }} → {{ continuity_report.provenance.oracle_input_hash_prefix_current or "n/a" }}</p>
+    {% endif %}
+    <details style="margin-top:8px;">
+      <summary>View details</summary>
+      <pre><code>{{ continuity_report | tojson(indent=2) }}</code></pre>
+    </details>
   </div>
 {% endif %}
 
@@ -255,10 +438,24 @@
   <p><b>Ingest policy hash:</b> {{ run.policy_hash_at_ingest[:12] if run.policy_hash_at_ingest else "n/a" }}</p>
   <p><b>Current policy hash:</b> {{ current_policy_hash[:12] if current_policy_hash else "n/a" }}</p>
   <p><b>Status:</b> {{ policy_status }}</p>
+  <p><b>Policy ACK:</b> {{ run.policy_ack }}</p>
+  {% if policy_ack_required %}
+    <p class="badge warn"><b>Policy has changed since ingest. ACK required.</b></p>
+    <p><b>Ingest hash prefix:</b> {{ run.policy_hash_at_ingest[:8] if run.policy_hash_at_ingest else "n/a" }}</p>
+    <p><b>Current hash prefix:</b> {{ policy_current_hash[:8] if policy_current_hash else "n/a" }}</p>
+    {% if policy_diff_keys %}
+      <p><b>Changed keys:</b></p>
+      <ul>
+        {% for key in policy_diff_keys %}
+          <li><code>{{ key }}</code></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
   {% if run.stability_report and run.stability_report.policy_hash %}
     <p><b>Stability policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
   {% endif %}
-  {% if policy_diff_keys %}
+  {% if policy_diff_keys and not policy_ack_required %}
     <p><b>Changed keys:</b></p>
     <ul>
       {% for key in policy_diff_keys %}
@@ -266,6 +463,54 @@
       {% endfor %}
     </ul>
   {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Pins</h2>
+  <form method="post" action="/ui/runs/{{ run.run_id }}/prefs">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <div class="grid">
+      <div>
+        <label>verbosity</label>
+        <select name="verbosity" style="width:100%;">
+          <option value="low" {% if prefs.verbosity == "low" %}selected{% endif %}>low</option>
+          <option value="medium" {% if prefs.verbosity == "medium" %}selected{% endif %}>medium</option>
+          <option value="high" {% if prefs.verbosity == "high" %}selected{% endif %}>high</option>
+        </select>
+      </div>
+      <div>
+        <label>risk_tolerance</label>
+        <select name="risk_tolerance" style="width:100%;">
+          <option value="low" {% if prefs.risk_tolerance == "low" %}selected{% endif %}>low</option>
+          <option value="medium" {% if prefs.risk_tolerance == "medium" %}selected{% endif %}>medium</option>
+          <option value="high" {% if prefs.risk_tolerance == "high" %}selected{% endif %}>high</option>
+        </select>
+      </div>
+      <div>
+        <label>focus (comma-separated)</label>
+        <input type="text" name="focus" value="{{ prefs.focus | join(', ') }}" style="width:100%;"/>
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <label>show</label>
+      {% for opt in ["oracle","gates","continuity","consideration"] %}
+        <label style="margin-right:8px;">
+          <input type="checkbox" name="show" value="{{ opt }}" {% if opt in prefs.show %}checked{% endif %}/> {{ opt }}
+        </label>
+      {% endfor %}
+    </div>
+    <div style="margin-top:8px;">
+      <label>hide</label>
+      {% for opt in ["oracle","gates","continuity","consideration"] %}
+        <label style="margin-right:8px;">
+          <input type="checkbox" name="hide" value="{{ opt }}" {% if opt in prefs.hide %}checked{% endif %}/> {{ opt }}
+        </label>
+      {% endfor %}
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn" type="submit">Save Pins</button>
+    </div>
+  </form>
 </div>
 
 <div class="card" style="margin-top:16px;">
