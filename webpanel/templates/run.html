@@ -13,6 +13,7 @@
       <span class="badge">prov: {{ run.signal.provenance_status }}</span>
       <span class="badge">rent: {{ run.signal.rent_status }}</span>
     </div>
+    <p><b>Confidence:</b> {{ run.signal.confidence }}</p>
     <p><b>Drift flags:</b> {{ run.signal.drift_flags }}</p>
     <p><b>Not computable:</b> {{ run.signal.not_computable_regions }}</p>
   </div>

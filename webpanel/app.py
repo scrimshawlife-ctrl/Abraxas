@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import uuid
+from dataclasses import asdict
 from datetime import datetime, timezone
-from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -14,6 +14,10 @@ from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
 from .store import InMemoryStore
 
+# Run instructions:
+#   pip install fastapi uvicorn jinja2 pydantic
+#   uvicorn webpanel.app:app --reload --port 8008
+#   open http://localhost:8008/
 app = FastAPI(title="ABX-Familiar Web Panel (MVP)", version="0.1.0")
 templates = Jinja2Templates(directory="webpanel/templates")
 
@@ -125,6 +129,19 @@ def list_runs(limit: int = 50):
     return [r.model_dump() for r in store.list(limit=limit)]
 
 
+@app.get("/api/v1/familiar/runs/{run_id}/ledger")
+def get_ledger(run_id: str):
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    events = ledger.list_events(run_id)
+    return {
+        "run_id": run_id,
+        "chain_valid": ledger.chain_valid(run_id),
+        "events": [asdict(event) for event in events],
+    }
+
+
 @app.post("/api/v1/familiar/runs/{run_id}/ack")
 def ack(run_id: str, ack: HumanAck):
     run = store.get(run_id)
@@ -184,6 +201,9 @@ def defer_step(run_id: str):
 
     if not run.deferral_active or run.quota_max_actions is None:
         raise HTTPException(status_code=409, detail="deferral not active")
+
+    if run.requires_human_confirmation and not run.human_ack:
+        raise HTTPException(status_code=409, detail="ack required before deferral")
 
     if run.actions_remaining is not None and run.actions_remaining <= 0:
         run.pause_required = True
