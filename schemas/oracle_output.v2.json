@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/oracle_output.v2.json",
+  "title": "OracleOutput.v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["signal_id", "tier", "lane", "indicators", "evidence", "flags", "provenance"],
+  "properties": {
+    "signal_id": { "type": "string" },
+    "tier": { "type": "string", "enum": ["psychonaut", "academic", "enterprise"] },
+    "lane": { "type": "string", "enum": ["canon", "shadow", "sandbox"] },
+    "indicators": { "type": "object" },
+    "evidence": { "type": "array", "items": {} },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suppressed"],
+      "properties": {
+        "suppressed": { "type": "boolean" },
+        "not_computable": { "$ref": "#/$defs/not_computable" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_hash", "policy_hash", "operator_versions", "stability_status"],
+      "properties": {
+        "input_hash": { "type": "string" },
+        "policy_hash": { "type": "string" },
+        "operator_versions": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "stability_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passed", "drift_class"],
+          "properties": {
+            "passed": { "type": "boolean" },
+            "drift_class": {
+              "type": "string",
+              "enum": ["none", "policy_change", "input_variation", "nondeterminism"]
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "not_computable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "reason": { "type": "string" },
+        "missing_inputs": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
