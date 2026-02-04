@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 RunPlanStepKind = Literal[
     "extract_structure_v0",
+    "compress_signal_v0",
     "summarize_context",
     "surface_unknowns",
     "propose_options",
@@ -68,11 +69,20 @@ def build_runplan(run_state: "RunState") -> RunPlan:
             )
         )
 
+    has_extract = False
     if isinstance(run_state.signal.payload, dict) and run_state.signal.payload:
         add_step(
             "extract_structure_v0",
             "note",
             {"payload_keys": sorted(run_state.signal.payload.keys())},
+        )
+        has_extract = True
+
+    if has_extract:
+        add_step(
+            "compress_signal_v0",
+            "note",
+            {"source": "extract_structure_v0"},
         )
 
     add_step(
@@ -141,6 +151,49 @@ def execute_step(run_state: "RunState", step: RunPlanStep) -> Dict[str, Any]:
             "evidence_refs": evidence_refs,
             "claims_present": len(claims) > 0,
             "claims_preview": claims[:5],
+        }
+
+    if step.kind == "compress_signal_v0":
+        from webpanel.compress_signal import (
+            build_uncertainty_map,
+            classify_refs,
+            compute_plan_pressure,
+            next_questions,
+            pick_salient_metrics,
+            recommended_mode,
+        )
+
+        extracted = None
+        for result in reversed(run_state.step_results):
+            if isinstance(result, dict) and result.get("kind") == "extract_structure_v0":
+                extracted = result
+                break
+        if extracted is None:
+            return {"kind": "compress_signal_v0", "error": "missing_extract_structure_v0"}
+
+        signal_meta = {
+            "lane": run_state.signal.lane,
+            "invariance_status": run_state.signal.invariance_status,
+            "provenance_status": run_state.signal.provenance_status,
+            "drift_flags": list(run_state.signal.drift_flags),
+        }
+        ctx = {"unknowns": list(run_state.context.unknowns)}
+
+        plan_pressure = compute_plan_pressure(signal_meta, ctx, extracted)
+        salient_metrics = pick_salient_metrics(extracted.get("numeric_metrics", []))
+        uncertainty_map = build_uncertainty_map(extracted.get("unknowns", []), ctx["unknowns"])
+        evidence_surface = classify_refs(extracted.get("evidence_refs", []))
+        mode = recommended_mode(signal_meta, plan_pressure["score"])
+        questions = next_questions(signal_meta, extracted, uncertainty_map)
+
+        return {
+            "kind": "compress_signal_v0",
+            "plan_pressure": plan_pressure,
+            "salient_metrics": salient_metrics,
+            "uncertainty_map": uncertainty_map,
+            "evidence_surface": evidence_surface,
+            "recommended_mode": mode,
+            "next_questions": questions,
         }
 
     if step.kind == "summarize_context":

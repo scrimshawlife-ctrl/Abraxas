@@ -113,6 +113,7 @@ class RunState(BaseModel):
     runplan: Optional[RunPlan] = None
     current_step_index: int = 0
     last_step_result: Optional[Dict[str, Any]] = None
+    step_results: List[Dict[str, Any]] = Field(default_factory=list)
 
     @property
     def actions_remaining(self) -> Optional[int]:

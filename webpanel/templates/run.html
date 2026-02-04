@@ -109,6 +109,27 @@
   </div>
 {% endif %}
 
+{% if run.last_step_result and run.last_step_result.kind == "compress_signal_v0" %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Compressed Signal</h2>
+    <p><b>Pressure score:</b> {{ run.last_step_result.plan_pressure.score }}</p>
+    <p><b>Components:</b> {{ run.last_step_result.plan_pressure.components }}</p>
+    <p><b>Evidence surface:</b> {{ run.last_step_result.evidence_surface }}</p>
+    <p><b>Salient metrics:</b></p>
+    <ul>
+      {% for metric in run.last_step_result.salient_metrics %}
+        <li><code>{{ metric.path }}</code> = {{ metric.value }}</li>
+      {% endfor %}
+    </ul>
+    <p><b>Next questions:</b></p>
+    <ul>
+      {% for q in run.last_step_result.next_questions %}
+        <li>{{ q }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
 <div class="card" style="margin-top:16px;">
   <h2>Artifacts</h2>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">

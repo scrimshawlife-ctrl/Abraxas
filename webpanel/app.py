@@ -214,6 +214,7 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
     run.runplan = build_runplan(run)
     run.current_step_index = 0
     run.last_step_result = None
+    run.step_results = []
     store.put(run)
 
     ledger.append(
@@ -389,6 +390,7 @@ def _step_deferral(run_id: str) -> dict:
         run.runplan = build_runplan(run)
         run.current_step_index = 0
         run.last_step_result = None
+        run.step_results = []
 
     steps = run.runplan.steps if run.runplan is not None else []
     if run.current_step_index >= len(steps):
@@ -400,6 +402,7 @@ def _step_deferral(run_id: str) -> dict:
     step = steps[run.current_step_index]
     result = execute_step(run, step)
     run.last_step_result = result
+    run.step_results.append(result)
     run.current_step_index += 1
     run.actions_taken += 1
     run.phase = max(run.phase, 6)
@@ -416,6 +419,15 @@ def _step_deferral(run_id: str) -> dict:
         event_payload["unknowns_count"] = len(result.get("unknowns", []))
         event_payload["refs_count"] = len(result.get("evidence_refs", []))
         event_payload["claims_count"] = len(result.get("claims_preview", []))
+    if step.kind == "compress_signal_v0":
+        pressure = result.get("plan_pressure", {}).get("score")
+        event_payload["pressure_score"] = pressure
+        event_payload["metrics_count"] = len(result.get("salient_metrics", []))
+        event_payload["unknown_groups"] = len(result.get("uncertainty_map", {}))
+        event_payload["refs_count"] = sum(
+            len(entries) for entries in result.get("evidence_surface", {}).values()
+        )
+        event_payload["questions_count"] = len(result.get("next_questions", []))
 
     ledger.append(
         run_id,
