@@ -4,6 +4,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from webpanel.core_bridge import core_ingest
 from webpanel.gates import compute_gate_stack
+from webpanel.preference_kernel import normalize_prefs, prefs_show_sections
 from webpanel.models import AbraxasSignalPacket, RunState
 
 
@@ -95,6 +96,8 @@ def test_banner_rendered_on_run_page():
     run.policy_hash_at_ingest = "hash_a"
     run.policy_ack = False
     gates = compute_gate_stack(run, "hash_b")
+    prefs = normalize_prefs({})
+    show_sections = prefs_show_sections(prefs)
     env = Environment(loader=FileSystemLoader("webpanel/templates"), autoescape=True)
     template = env.get_template("run.html")
     rendered = template.render(
@@ -116,6 +119,11 @@ def test_banner_rendered_on_run_page():
         oracle_validation={"valid": True, "errors": []},
         gate_stack=gates,
         top_gate=gates[0],
+        considerations={},
+        continuity_report=None,
+        continuity_summary_lines=None,
+        prefs=prefs,
+        show_sections=show_sections,
     )
     assert "Gate:" in rendered
     assert "Policy changed since ingest." in rendered

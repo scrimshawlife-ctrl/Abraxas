@@ -5,6 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 from webpanel.core_bridge import core_ingest
 from webpanel.models import AbraxasSignalPacket, RunState
 from webpanel.oracle_output import build_oracle_json, build_oracle_view, validate_oracle_output_v2
+from webpanel.preference_kernel import normalize_prefs, prefs_show_sections
 
 
 def _packet() -> AbraxasSignalPacket:
@@ -51,6 +52,8 @@ def test_run_template_renders_oracle_section():
     run = _run_state()
     oracle_view = build_oracle_view(run.oracle_output)
     valid, errors = validate_oracle_output_v2(run.oracle_output)
+    prefs = normalize_prefs({})
+    show_sections = prefs_show_sections(prefs)
     env = Environment(loader=FileSystemLoader("webpanel/templates"), autoescape=True)
     template = env.get_template("run.html")
     rendered = template.render(
@@ -68,6 +71,13 @@ def test_run_template_renders_oracle_section():
         policy_diff_keys=[],
         oracle_view=oracle_view,
         oracle_validation={"valid": valid, "errors": errors},
+        gate_stack=[],
+        top_gate=None,
+        considerations={},
+        continuity_report=None,
+        continuity_summary_lines=None,
+        prefs=prefs,
+        show_sections=show_sections,
     )
     assert "Oracle (OSLv2)" in rendered
     assert "Download oracle.json" in rendered
