@@ -213,6 +213,22 @@
 {% endif %}
 
 <div class="card" style="margin-top:16px;">
+  <h2>Stability</h2>
+  {% if run.stability_report %}
+    <p><b>Passed:</b> {{ run.stability_report.invariance.passed }}</p>
+    <p><b>Distinct hashes:</b> {{ run.stability_report.invariance.distinct_final_hashes }}</p>
+    <p><a href="/runs/{{ run.run_id }}/stability">View report</a> · <a href="/runs/{{ run.run_id }}/stability.json">Download JSON</a></p>
+  {% else %}
+    <form method="post" action="/ui/runs/{{ run.run_id }}/stabilize">
+      <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+      <label>cycles</label>
+      <input type="number" name="cycles" value="12" min="1" max="24"/>
+      <button class="btn" type="submit">Run Stabilization</button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
   <h2>Artifacts</h2>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
     <a class="btn" href="/runs/{{ run.run_id }}/packet.json">Download signal packet (packet.json)</a>

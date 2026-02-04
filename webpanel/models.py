@@ -121,6 +121,7 @@ class RunState(BaseModel):
     selected_action: Optional[Dict[str, Any]] = None
     selected_action_progress: Optional[Dict[str, Any]] = None
     last_execution_result: Optional[Dict[str, Any]] = None
+    stability_report: Optional[Dict[str, Any]] = None
 
     @property
     def actions_remaining(self) -> Optional[int]:

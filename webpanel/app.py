@@ -24,6 +24,7 @@ from .runplan import build_runplan, execute_step
 from .compare import compare_runs
 from .policy import policy_snapshot
 from .export_bundle import build_bundle
+from .stability import run_stabilization
 
 # Run instructions:
 #   pip install fastapi uvicorn jinja2 pydantic
@@ -228,6 +229,34 @@ def ui_ledger_json(run_id: str):
         ],
     }
     rendered = json.dumps(payload, sort_keys=True, ensure_ascii=True)
+    return Response(content=rendered, media_type="application/json")
+
+
+@app.get("/runs/{run_id}/stability")
+def ui_stability(request: Request, run_id: str):
+    run = store.get(run_id)
+    if not run or not run.stability_report:
+        raise HTTPException(status_code=404, detail="stability report not found")
+    return templates.TemplateResponse(
+        "stability.html",
+        {
+            "request": request,
+            "run": run,
+            "report": run.stability_report,
+            "panel_host": _panel_host(),
+            "panel_port": _panel_port(),
+            "token_enabled": _token_enabled(),
+            "panel_token": _panel_token(),
+        },
+    )
+
+
+@app.get("/runs/{run_id}/stability.json")
+def ui_stability_json(run_id: str):
+    run = store.get(run_id)
+    if not run or not run.stability_report:
+        raise HTTPException(status_code=404, detail="stability report not found")
+    rendered = json.dumps(run.stability_report, sort_keys=True, ensure_ascii=True)
     return Response(content=rendered, media_type="application/json")
 
 
@@ -859,3 +888,39 @@ async def ui_select_action(run_id: str, request: Request):
             },
         )
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/stabilize")
+async def ui_stabilize(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    raw_cycles = form.get("cycles") or "12"
+    try:
+        cycles = int(raw_cycles)
+    except ValueError:
+        cycles = 12
+    if cycles < 1:
+        cycles = 1
+    if cycles > 24:
+        cycles = 24
+
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    report = run_stabilization(run, cycles)
+    run.stability_report = report
+    store.put(run)
+
+    ledger.append(
+        run_id,
+        eid("ev"),
+        "stability_ran",
+        now_utc(),
+        {
+            "cycles": cycles,
+            "passed": report["invariance"]["passed"],
+            "distinct_final_hashes": report["invariance"]["distinct_final_hashes"],
+        },
+    )
+    return RedirectResponse(url=f"/runs/{run_id}/stability", status_code=303)
