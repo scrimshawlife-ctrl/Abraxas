@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from .core_bridge import core_step
 from .familiar_adapter import FamiliarAdapter
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
@@ -212,8 +213,25 @@ def defer_step(run_id: str):
         store.put(run)
         return run.model_dump()
 
-    run.actions_taken += 1
-    run.phase = max(run.phase, 6)
+    update = core_step(run_id)
+    if isinstance(update, dict):
+        if "actions_taken" in update:
+            run.actions_taken = int(update["actions_taken"])
+        elif "actions_taken_delta" in update:
+            run.actions_taken += int(update["actions_taken_delta"])
+        else:
+            run.actions_taken += 1
+        if "phase" in update:
+            run.phase = max(run.phase, int(update["phase"]))
+        else:
+            run.phase = max(run.phase, 6)
+        if "pause_required" in update:
+            run.pause_required = bool(update["pause_required"])
+        if "pause_reason" in update:
+            run.pause_reason = update["pause_reason"]
+    else:
+        run.actions_taken += 1
+        run.phase = max(run.phase, 6)
     ledger.append(
         run_id,
         eid("ev"),
