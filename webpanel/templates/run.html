@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Run: {{ run.run_id }}</h1>
+<p><a href="/"><- back</a> · <a href="/runs/{{ run.run_id }}/ledger">ledger view</a></p>
+
+<div class="grid">
+  <div class="card">
+    <h2>Signal Metadata</h2>
+    <div>
+      <span class="badge">{{ run.signal.tier }}</span>
+      <span class="badge">{{ run.signal.lane }}</span>
+      <span class="badge">inv: {{ run.signal.invariance_status }}</span>
+      <span class="badge">prov: {{ run.signal.provenance_status }}</span>
+      <span class="badge">rent: {{ run.signal.rent_status }}</span>
+    </div>
+    <p><b>Drift flags:</b> {{ run.signal.drift_flags }}</p>
+    <p><b>Not computable:</b> {{ run.signal.not_computable_regions }}</p>
+  </div>
+
+  <div class="card">
+    <h2>Lifecycle and Gates</h2>
+    <p><b>Phase:</b> {{ run.phase }}</p>
+    <p><b>Mode:</b> {{ run.context.recommended_interaction_mode }}</p>
+    <p><b>Requires ACK:</b> {{ run.requires_human_confirmation }}</p>
+
+    {% if run.pause_required %}
+      <p class="badge warn"><b>PAUSED</b>{% if run.pause_reason %}: {{ run.pause_reason }}{% endif %}</p>
+    {% endif %}
+
+    {% if run.requires_human_confirmation and not run.human_ack %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/ack">
+        <button class="btn" type="submit">ACKNOWLEDGE / APPROVE</button>
+      </form>
+      <p><small>Execution blocked until explicit ACK is recorded.</small></p>
+    {% else %}
+      <p><small>ACK satisfied or not required.</small></p>
+    {% endif %}
+
+    <hr/>
+    <h3>Bounded Deferral</h3>
+    <p><b>Active:</b> {{ run.deferral_active }}</p>
+    <p><b>Quota:</b> {{ run.quota_max_actions }} · <b>Taken:</b> {{ run.actions_taken }} · <b>Remaining:</b> {{ run.actions_remaining }}</p>
+
+    {% if not run.deferral_active %}
+      <div style="display:flex; gap:10px;">
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/start/2">
+          <button class="btn" type="submit">Start Deferral (2)</button>
+        </form>
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/start/3">
+          <button class="btn" type="submit">Start Deferral (3)</button>
+        </form>
+      </div>
+    {% else %}
+      <div style="display:flex; gap:10px;">
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/step">
+          <button class="btn" type="submit" {% if run.actions_remaining is not none and run.actions_remaining <= 0 %}disabled{% endif %}>
+            Execute Next Action (spends 1)
+          </button>
+        </form>
+        <form method="post" action="/ui/runs/{{ run.run_id }}/defer/stop">
+          <button class="btn" type="submit">Stop Deferral</button>
+        </form>
+      </div>
+      {% if run.actions_remaining is not none and run.actions_remaining <= 0 %}
+        <p class="badge warn">Quota exhausted - approval required to continue.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Decision Context</h2>
+  <p><b>Allowed lanes:</b> {{ run.context.execution_lanes_allowed }}</p>
+  <p><b>Risk:</b> action={{ run.context.risk_profile.risk_of_action }} / inaction={{ run.context.risk_profile.risk_of_inaction }}</p>
+  <p><b>Unknowns:</b> {{ run.context.unknowns }}</p>
+  <p><b>Notes:</b> {{ run.context.risk_profile.risk_notes }}</p>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Ledger Integrity</h2>
+  <p><b>Chain valid:</b> {{ chain_valid }}</p>
+  <p><b>Events:</b> {{ events|length }}</p>
+  <ul>
+    {% for e in events[-8:] %}
+      <li><code>{{ e.event_type }}</code> · <small>{{ e.timestamp_utc }}</small> · <code>{{ e.event_hash[:10] }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% endblock %}

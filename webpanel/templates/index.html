@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>ABX-Familiar Web Panel (MVP)</h1>
+
+<div class="card {% if error %}warn{% endif %}">
+  <h2>Run Intake</h2>
+  <form method="post" action="/ui/ingest">
+    <textarea name="packet_json" placeholder='Paste AbraxasSignalPacket JSON here...'>{{ packet_json or "" }}</textarea>
+    <div style="margin-top:10px;">
+      <button class="btn" type="submit">Ingest</button>
+      <a class="btn" href="/docs" style="text-decoration:none;">API Docs</a>
+    </div>
+  </form>
+  {% if error %}
+    <p><b>Validation error:</b></p>
+    <pre><code>{{ error }}</code></pre>
+  {% endif %}
+</div>
+
+<h2 style="margin-top:18px;">Recent Runs</h2>
+<div class="card">
+  {% if runs|length == 0 %}
+    <p>No runs yet.</p>
+  {% else %}
+    <ul>
+      {% for r in runs %}
+        <li>
+          <a href="/runs/{{ r.run_id }}">{{ r.run_id }}</a>
+          - <span class="badge">{{ r.tier }}</span><span class="badge">{{ r.lane }}</span>
+          - phase {{ r.phase }}
+          {% if r.pause_required %}
+            <span class="badge warn">PAUSED{% if r.pause_reason %}: {{ r.pause_reason }}{% endif %}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}
