@@ -6,7 +6,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from abraxas.signal.exporter import emit_signal_packet
@@ -86,6 +86,40 @@ def ui_ledger(request: Request, run_id: str):
         "ledger.html",
         {"request": request, "run": run, "events": events, "chain_valid": chain_valid},
     )
+
+
+@app.get("/runs/{run_id}/packet.json")
+def ui_packet_json(run_id: str):
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    payload = json.dumps(run.signal.model_dump(), sort_keys=True, ensure_ascii=True)
+    return Response(content=payload, media_type="application/json")
+
+
+@app.get("/runs/{run_id}/ledger.json")
+def ui_ledger_json(run_id: str):
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    events = ledger.list_events(run_id)
+    payload = {
+        "run_id": run_id,
+        "chain_valid": ledger.chain_valid(run_id),
+        "events": [
+            {
+                "event_id": event.event_id,
+                "event_type": event.event_type,
+                "timestamp_utc": event.timestamp_utc,
+                "prev_event_hash": event.prev_event_hash,
+                "event_hash": event.event_hash,
+                "data": event.data,
+            }
+            for event in events
+        ],
+    }
+    rendered = json.dumps(payload, sort_keys=True, ensure_ascii=True)
+    return Response(content=rendered, media_type="application/json")
 
 
 @app.get("/ui/sample_packet")

@@ -78,6 +78,17 @@
 </div>
 
 <div class="card" style="margin-top:16px;">
+  <h2>Artifacts</h2>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="/runs/{{ run.run_id }}/packet.json">Download signal packet (packet.json)</a>
+    <a class="btn" href="/runs/{{ run.run_id }}/ledger.json">Download ledger (ledger.json)</a>
+    <button class="btn" type="button" onclick="copyPacketJson()">Copy packet JSON</button>
+  </div>
+  <p id="copy_status" style="margin-top:8px;"></p>
+  <textarea id="packet_json_copy" style="position:absolute; left:-9999px; top:-9999px;"></textarea>
+</div>
+
+<div class="card" style="margin-top:16px;">
   <h2>Ledger Integrity</h2>
   <p><b>Chain valid:</b> {{ chain_valid }}</p>
   <p><b>Events:</b> {{ events|length }}</p>
@@ -88,4 +99,29 @@
   </ul>
 </div>
 
+<script>
+  async function copyPacketJson() {
+    var status = document.getElementById("copy_status");
+    status.textContent = "";
+    try {
+      var resp = await fetch("/runs/{{ run.run_id }}/packet.json");
+      if (!resp.ok) {
+        throw new Error("failed to fetch packet.json");
+      }
+      var text = await resp.text();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        status.textContent = "Copied packet JSON to clipboard.";
+        return;
+      }
+      var textarea = document.getElementById("packet_json_copy");
+      textarea.value = text;
+      textarea.select();
+      var ok = document.execCommand("copy");
+      status.textContent = ok ? "Copied packet JSON to clipboard." : "Copy failed. Select and copy manually.";
+    } catch (err) {
+      status.textContent = "Copy failed. " + String(err);
+    }
+  }
+</script>
 {% endblock %}
