@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import os
 import uuid
+from io import BytesIO
 from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from abraxas.signal.exporter import emit_signal_packet
@@ -20,7 +21,9 @@ from .models import AbraxasSignalPacket, DeferralStart, HumanAck
 from .select_action import build_checklist
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
-from .compare import diff_numeric_metrics, diff_sets, extract_paths, get_latest_step
+from .compare import compare_runs
+from .policy import policy_snapshot
+from .export_bundle import build_bundle
 
 # Run instructions:
 #   pip install fastapi uvicorn jinja2 pydantic
@@ -240,40 +243,7 @@ def ui_compare(request: Request):
     if not left or not right:
         raise HTTPException(status_code=404, detail="run not found")
 
-    left_extract = get_latest_step(left, "extract_structure_v0")
-    right_extract = get_latest_step(right, "extract_structure_v0")
-    left_compress = get_latest_step(left, "compress_signal_v0")
-    right_compress = get_latest_step(right, "compress_signal_v0")
-
-    left_paths = extract_paths(left_extract)
-    right_paths = extract_paths(right_extract)
-    paths_diff = diff_sets(left_paths, right_paths, lambda x: x)
-
-    left_unknowns = left_extract.get("unknowns", []) if left_extract else []
-    right_unknowns = right_extract.get("unknowns", []) if right_extract else []
-    unknowns_diff = diff_sets(
-        left_unknowns,
-        right_unknowns,
-        lambda x: str(x.get("path") if isinstance(x, dict) else x),
-    )
-
-    left_refs = left_extract.get("evidence_refs", []) if left_extract else []
-    right_refs = right_extract.get("evidence_refs", []) if right_extract else []
-    refs_diff = diff_sets(
-        left_refs,
-        right_refs,
-        lambda x: f"{x.get('path')}|{x.get('value')}" if isinstance(x, dict) else str(x),
-    )
-
-    numeric_diff = diff_numeric_metrics(
-        left_extract.get("numeric_metrics", []) if left_extract else [],
-        right_extract.get("numeric_metrics", []) if right_extract else [],
-    )
-
-    left_pressure = left_compress.get("plan_pressure") if left_compress else None
-    right_pressure = right_compress.get("plan_pressure") if right_compress else None
-
-    direct_supersession = right.prev_run_id == left.run_id
+    compare_summary = compare_runs(left, right)
 
     return templates.TemplateResponse(
         "compare.html",
@@ -281,19 +251,59 @@ def ui_compare(request: Request):
             "request": request,
             "left": left,
             "right": right,
-            "paths_diff": paths_diff,
-            "numeric_diff": numeric_diff,
-            "unknowns_diff": unknowns_diff,
-            "refs_diff": refs_diff,
-            "left_pressure": left_pressure,
-            "right_pressure": right_pressure,
-            "direct_supersession": direct_supersession,
+            "compare": compare_summary,
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
             "token_enabled": _token_enabled(),
             "panel_token": _panel_token(),
         },
     )
+
+
+@app.get("/policy")
+def ui_policy(request: Request):
+    snapshot = policy_snapshot()
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept:
+        rendered = json.dumps(snapshot, sort_keys=True, ensure_ascii=True)
+        return Response(content=rendered, media_type="application/json")
+    return templates.TemplateResponse(
+        "policy.html",
+        {
+            "request": request,
+            "policy": snapshot,
+            "panel_host": _panel_host(),
+            "panel_port": _panel_port(),
+            "token_enabled": _token_enabled(),
+            "panel_token": _panel_token(),
+        },
+    )
+
+
+@app.get("/export/bundle")
+def ui_export_bundle(request: Request):
+    left_id = request.query_params.get("left")
+    right_id = request.query_params.get("right")
+    if not left_id or not right_id:
+        raise HTTPException(status_code=404, detail="left and right run_id required")
+
+    left = store.get(left_id)
+    right = store.get(right_id)
+    if not left or not right:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    compare_summary = compare_runs(left, right)
+    snapshot = policy_snapshot()
+    bundle_bytes = build_bundle(
+        left_run=left,
+        right_run=right,
+        compare_summary=compare_summary,
+        policy_snapshot=snapshot,
+        ledger_store=ledger,
+    )
+    filename = f"abx_bundle_{left_id}_{right_id}.zip"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return StreamingResponse(BytesIO(bundle_bytes), media_type="application/zip", headers=headers)
 
 
 @app.get("/ui/sample_packet")
