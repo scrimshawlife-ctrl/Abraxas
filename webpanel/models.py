@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from .runplan import RunPlan
+
 
 Tier = Literal["psychonaut", "academic", "enterprise"]
 Lane = Literal["canon", "shadow", "sandbox"]
@@ -108,6 +110,9 @@ class RunState(BaseModel):
 
     pause_required: bool = False
     pause_reason: Optional[PauseReason] = None
+    runplan: Optional[RunPlan] = None
+    current_step_index: int = 0
+    last_step_result: Optional[Dict[str, Any]] = None
 
     @property
     def actions_remaining(self) -> Optional[int]:

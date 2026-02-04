@@ -1,0 +1,165 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, Literal, TYPE_CHECKING
+
+from pydantic import BaseModel, Field
+
+from abraxas.util.canonical_hash import canonical_hash
+
+if TYPE_CHECKING:
+    from webpanel.models import RunState
+
+RunPlanStepKind = Literal[
+    "summarize_context",
+    "surface_unknowns",
+    "propose_options",
+    "prepare_next_questions",
+]
+RunPlanProduces = Literal["note", "options", "questions"]
+
+
+class RunPlanStep(BaseModel):
+    step_id: str
+    kind: RunPlanStepKind
+    input_refs: Dict[str, Any] = Field(default_factory=dict)
+    params: Dict[str, Any] = Field(default_factory=dict)
+    produces: RunPlanProduces
+    requires_human_confirmation: bool = False
+
+
+class RunPlan(BaseModel):
+    plan_id: str
+    run_id: str
+    created_at_utc: str
+    steps: List[RunPlanStep]
+    deterministic_hash: str
+
+
+def _plan_content_hash(run_state: "RunState", steps: List[RunPlanStep]) -> str:
+    payload = {
+        "signal_id": run_state.signal.signal_id,
+        "tier": run_state.signal.tier,
+        "lane": run_state.signal.lane,
+        "requires_human_confirmation": run_state.requires_human_confirmation,
+        "unknowns": run_state.context.unknowns,
+        "steps": [step.model_dump() for step in steps],
+    }
+    return canonical_hash(payload)
+
+
+def build_runplan(run_state: "RunState") -> RunPlan:
+    steps: List[RunPlanStep] = []
+    input_refs = {
+        "signal_id": run_state.signal.signal_id,
+        "context_id": run_state.context.context_id,
+    }
+
+    def add_step(kind: RunPlanStepKind, produces: RunPlanProduces, params: Dict[str, Any]) -> None:
+        step_id = f"{len(steps) + 1:02d}_{kind}"
+        steps.append(
+            RunPlanStep(
+                step_id=step_id,
+                kind=kind,
+                input_refs=input_refs,
+                params=params,
+                produces=produces,
+                requires_human_confirmation=False,
+            )
+        )
+
+    add_step(
+        "summarize_context",
+        "note",
+        {
+            "include": ["stable_elements", "unstable_elements", "risk_profile", "lanes"],
+        },
+    )
+    if run_state.context.unknowns:
+        add_step("surface_unknowns", "note", {"count": len(run_state.context.unknowns)})
+    add_step(
+        "propose_options",
+        "options",
+        {
+            "lane": run_state.signal.lane,
+            "requires_human_confirmation": run_state.requires_human_confirmation,
+        },
+    )
+    if run_state.requires_human_confirmation:
+        add_step(
+            "prepare_next_questions",
+            "questions",
+            {
+                "has_unknowns": bool(run_state.context.unknowns),
+                "drift_flags": list(run_state.signal.drift_flags),
+                "provenance_status": run_state.signal.provenance_status,
+                "invariance_status": run_state.signal.invariance_status,
+            },
+        )
+
+    deterministic_hash = _plan_content_hash(run_state, steps)
+    plan_id = f"plan_{deterministic_hash[:16]}"
+    created_at_utc = run_state.signal.timestamp_utc or run_state.created_at_utc
+    return RunPlan(
+        plan_id=plan_id,
+        run_id=run_state.run_id,
+        created_at_utc=created_at_utc,
+        steps=steps,
+        deterministic_hash=deterministic_hash,
+    )
+
+
+def execute_step(run_state: "RunState", step: RunPlanStep) -> Dict[str, Any]:
+    if step.kind == "summarize_context":
+        ctx = run_state.context
+        return {
+            "kind": "summary",
+            "stable_count": len(ctx.stable_elements),
+            "unstable_count": len(ctx.unstable_elements),
+            "allowed_lanes": list(ctx.execution_lanes_allowed),
+            "risk_of_action": ctx.risk_profile.risk_of_action,
+            "risk_of_inaction": ctx.risk_profile.risk_of_inaction,
+        }
+
+    if step.kind == "surface_unknowns":
+        unknowns = list(run_state.context.unknowns)
+        return {
+            "kind": "unknowns",
+            "count": len(unknowns),
+            "unknowns": unknowns,
+            "note": f"{len(unknowns)} unknowns surfaced",
+        }
+
+    if step.kind == "propose_options":
+        if run_state.signal.lane == "shadow":
+            options = [
+                {"id": "observe_only", "action": "observe_only"},
+                {"id": "request_evidence", "action": "request_evidence"},
+                {"id": "log", "action": "log"},
+            ]
+        else:
+            options = [
+                {"id": "ack_then_defer_2", "action": "ack_then_defer", "quota": 2},
+                {"id": "ack_then_defer_3", "action": "ack_then_defer", "quota": 3},
+                {"id": "ask_clarifying", "action": "ask_clarifying"},
+            ]
+        return {"kind": "options", "options": options}
+
+    if step.kind == "prepare_next_questions":
+        questions: List[str] = []
+        if run_state.context.unknowns:
+            for entry in run_state.context.unknowns:
+                region_id = entry.get("region_id") if isinstance(entry, dict) else None
+                reason_code = entry.get("reason_code") if isinstance(entry, dict) else None
+                if region_id:
+                    questions.append(f"Clarify region {region_id} ({reason_code})")
+        if run_state.signal.drift_flags:
+            questions.append("Which drift flags require follow-up?")
+        if run_state.signal.invariance_status != "pass":
+            questions.append("Can invariance be evaluated for this signal?")
+        if run_state.signal.provenance_status != "complete":
+            questions.append("What provenance gaps remain?")
+        if not questions:
+            questions.append("Are there additional context constraints to confirm?")
+        return {"kind": "questions", "questions": questions}
+
+    return {"kind": "noop"}

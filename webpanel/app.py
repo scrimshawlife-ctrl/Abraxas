@@ -12,11 +12,11 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse,
 from fastapi.templating import Jinja2Templates
 
 from abraxas.signal.exporter import emit_signal_packet
-from .core_bridge import core_step
 from .familiar_adapter import FamiliarAdapter
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
 from .store import InMemoryStore
+from .runplan import build_runplan, execute_step
 
 # Run instructions:
 #   pip install fastapi uvicorn jinja2 pydantic
@@ -211,6 +211,9 @@ def ui_sample_packet():
 
 def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
     run, _ctx_id = adapter.ingest(packet)
+    run.runplan = build_runplan(run)
+    run.current_step_index = 0
+    run.last_step_result = None
     store.put(run)
 
     ledger.append(
@@ -241,6 +244,19 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
             "execution_deferred",
             now_utc(),
             {"reason": "awaiting_ack"},
+        )
+
+    if run.runplan is not None:
+        ledger.append(
+            run.run_id,
+            eid("ev"),
+            "runplan_created",
+            now_utc(),
+            {
+                "plan_id": run.runplan.plan_id,
+                "plan_hash": run.runplan.deterministic_hash,
+                "step_count": len(run.runplan.steps),
+            },
         )
 
     events = ledger.list_events(run.run_id)
@@ -369,25 +385,37 @@ def _step_deferral(run_id: str) -> dict:
         store.put(run)
         return run.model_dump()
 
-    update = core_step(run_id)
-    if isinstance(update, dict):
-        if "actions_taken" in update:
-            run.actions_taken = int(update["actions_taken"])
-        elif "actions_taken_delta" in update:
-            run.actions_taken += int(update["actions_taken_delta"])
-        else:
-            run.actions_taken += 1
-        if "phase" in update:
-            run.phase = max(run.phase, int(update["phase"]))
-        else:
-            run.phase = max(run.phase, 6)
-        if "pause_required" in update:
-            run.pause_required = bool(update["pause_required"])
-        if "pause_reason" in update:
-            run.pause_reason = update["pause_reason"]
-    else:
-        run.actions_taken += 1
-        run.phase = max(run.phase, 6)
+    if run.runplan is None:
+        run.runplan = build_runplan(run)
+        run.current_step_index = 0
+        run.last_step_result = None
+
+    steps = run.runplan.steps if run.runplan is not None else []
+    if run.current_step_index >= len(steps):
+        run.pause_required = True
+        run.pause_reason = "completed"
+        store.put(run)
+        return run.model_dump()
+
+    step = steps[run.current_step_index]
+    result = execute_step(run, step)
+    run.last_step_result = result
+    run.current_step_index += 1
+    run.actions_taken += 1
+    run.phase = max(run.phase, 6)
+
+    ledger.append(
+        run_id,
+        eid("ev"),
+        "runplan_step_executed",
+        now_utc(),
+        {
+            "step_id": step.step_id,
+            "kind": step.kind,
+            "produces": step.produces,
+            "result_keys": list(result.keys()),
+        },
+    )
     ledger.append(
         run_id,
         eid("ev"),
@@ -395,6 +423,10 @@ def _step_deferral(run_id: str) -> dict:
         now_utc(),
         {"action_index": run.actions_taken},
     )
+
+    if run.current_step_index >= len(steps):
+        run.pause_required = True
+        run.pause_reason = "completed"
 
     if run.actions_remaining is not None and run.actions_remaining <= 0:
         run.pause_required = True

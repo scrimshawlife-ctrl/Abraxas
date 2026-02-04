@@ -83,6 +83,23 @@
 </div>
 
 <div class="card" style="margin-top:16px;">
+  <h2>RunPlan</h2>
+  {% if run.runplan %}
+    <p><b>Plan:</b> {{ run.runplan.plan_id }} · hash {{ run.runplan.deterministic_hash[:10] }}</p>
+    <p><b>Steps:</b> {{ run.runplan.steps|length }} · <b>Current index:</b> {{ run.current_step_index }}</p>
+    <ul>
+      {% for step in run.runplan.steps %}
+        <li><code>{{ step.kind }}</code> · <small>{{ step.step_id }}</small></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No runplan available yet.</p>
+  {% endif %}
+  <p><b>Last step result:</b></p>
+  <pre><code>{{ run.last_step_result | tojson(indent=2) if run.last_step_result else "None" }}</code></pre>
+</div>
+
+<div class="card" style="margin-top:16px;">
   <h2>Artifacts</h2>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
     <a class="btn" href="/runs/{{ run.run_id }}/packet.json">Download signal packet (packet.json)</a>
