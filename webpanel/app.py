@@ -25,6 +25,7 @@ from .oracle_output import (
     validate_oracle_output_v2,
 )
 from .select_action import build_checklist
+from .run_filters import build_run_view, filter_runs, parse_filter_params
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
@@ -170,15 +171,19 @@ def _select_action(run_id: str, selected_action_id: str) -> dict:
     return run.model_dump()
 
 
-@app.get("/", response_class=HTMLResponse)
-def ui_index(request: Request):
-    runs = store.list(limit=50)
+def _render_runs_page(request: Request):
+    params = parse_filter_params(request.query_params)
+    runs = store.list_runs()
+    filtered = filter_runs(runs, params)
+    run_views = [build_run_view(run) for run in filtered[:50]]
     prev_run_id_prefill = request.query_params.get("prev_run_id")
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "runs": runs,
+            "runs": run_views,
+            "runs_total": len(filtered),
+            "filters": params,
             "panel_token": _panel_token(),
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
@@ -186,6 +191,16 @@ def ui_index(request: Request):
             "prev_run_id_prefill": prev_run_id_prefill,
         },
     )
+
+
+@app.get("/", response_class=HTMLResponse)
+def ui_index(request: Request):
+    return _render_runs_page(request)
+
+
+@app.get("/runs", response_class=HTMLResponse)
+def ui_runs(request: Request):
+    return _render_runs_page(request)
 
 
 @app.get("/runs/{run_id}", response_class=HTMLResponse)

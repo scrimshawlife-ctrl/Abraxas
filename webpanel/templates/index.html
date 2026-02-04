@@ -139,17 +139,84 @@
 
 <h2 style="margin-top:18px;">Recent Runs</h2>
 <div class="card">
+  <form method="get" action="/runs" style="margin-bottom:12px;">
+    <div class="grid">
+      <div>
+        <label>has_oracle</label>
+        <select name="has_oracle" style="width:100%;">
+          <option value="any" {% if filters.has_oracle == "any" %}selected{% endif %}>any</option>
+          <option value="yes" {% if filters.has_oracle == "yes" %}selected{% endif %}>yes</option>
+          <option value="no" {% if filters.has_oracle == "no" %}selected{% endif %}>no</option>
+        </select>
+      </div>
+      <div>
+        <label>tier</label>
+        <select name="tier" style="width:100%;">
+          <option value="any" {% if filters.tier == "any" %}selected{% endif %}>any</option>
+          <option value="psychonaut" {% if filters.tier == "psychonaut" %}selected{% endif %}>psychonaut</option>
+          <option value="academic" {% if filters.tier == "academic" %}selected{% endif %}>academic</option>
+          <option value="enterprise" {% if filters.tier == "enterprise" %}selected{% endif %}>enterprise</option>
+        </select>
+      </div>
+      <div>
+        <label>lane</label>
+        <select name="lane" style="width:100%;">
+          <option value="any" {% if filters.lane == "any" %}selected{% endif %}>any</option>
+          <option value="canon" {% if filters.lane == "canon" %}selected{% endif %}>canon</option>
+          <option value="forecast" {% if filters.lane == "forecast" %}selected{% endif %}>forecast</option>
+          <option value="observation" {% if filters.lane == "observation" %}selected{% endif %}>observation</option>
+          <option value="shadow" {% if filters.lane == "shadow" %}selected{% endif %}>shadow</option>
+        </select>
+      </div>
+      <div>
+        <label>drift_class</label>
+        <select name="drift_class" style="width:100%;">
+          <option value="any" {% if filters.drift_class == "any" %}selected{% endif %}>any</option>
+          <option value="none" {% if filters.drift_class == "none" %}selected{% endif %}>none</option>
+          <option value="policy_change" {% if filters.drift_class == "policy_change" %}selected{% endif %}>policy_change</option>
+          <option value="input_variation" {% if filters.drift_class == "input_variation" %}selected{% endif %}>input_variation</option>
+          <option value="nondeterminism" {% if filters.drift_class == "nondeterminism" %}selected{% endif %}>nondeterminism</option>
+        </select>
+      </div>
+      <div>
+        <label>evidence</label>
+        <select name="evidence" style="width:100%;">
+          <option value="any" {% if filters.evidence == "any" %}selected{% endif %}>any</option>
+          <option value="present" {% if filters.evidence == "present" %}selected{% endif %}>present</option>
+          <option value="missing" {% if filters.evidence == "missing" %}selected{% endif %}>missing</option>
+        </select>
+      </div>
+      <div>
+        <label>flag contains (comma-separated)</label>
+        <input type="text" name="flag" value="{{ filters.flag_input }}" style="width:100%;" placeholder="evidence_missing, suppression"/>
+      </div>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:10px;">
+      <button class="btn" type="submit">Apply filters</button>
+      <a class="btn" href="/runs" style="text-decoration:none;">Clear</a>
+    </div>
+  </form>
+
   {% if runs|length == 0 %}
     <p>No runs yet.</p>
   {% else %}
+    <p><small>Showing {{ runs|length }} of {{ runs_total }}</small></p>
     <ul>
       {% for r in runs %}
         <li>
           <a href="/runs/{{ r.run_id }}">{{ r.run_id }}</a>
           - <span class="badge">{{ r.tier }}</span><span class="badge">{{ r.lane }}</span>
+          {% if r.has_oracle %}
+            <span class="badge">oracle</span>
+          {% endif %}
           - phase {{ r.phase }}
+          <span class="badge">drift {{ r.drift_class }}</span>
           {% if r.pause_required %}
             <span class="badge warn">PAUSED{% if r.pause_reason %}: {{ r.pause_reason }}{% endif %}</span>
+          {% endif %}
+          {% if r.prev_run_id %}
+            · <a href="/compare?left={{ r.prev_run_id }}&right={{ r.run_id }}">compare</a>
+            · <a href="/export/bundle?left={{ r.prev_run_id }}&right={{ r.run_id }}">export bundle</a>
           {% endif %}
         </li>
       {% endfor %}
