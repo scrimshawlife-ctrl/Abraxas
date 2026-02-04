@@ -30,6 +30,7 @@ from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
+from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
 from .export_bundle import build_bundle
 from .stability import run_stabilization
 
@@ -222,6 +223,7 @@ def ui_run(request: Request, run_id: str):
     policy_diff_keys = []
     if policy_status == "CHANGED":
         policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
+    policy_ack_needed = policy_ack_required(run, current_hash)
     oracle_output = extract_oracle_output(run)
     oracle_view = None
     oracle_validation = {"valid": True, "errors": []}
@@ -245,6 +247,8 @@ def ui_run(request: Request, run_id: str):
             "current_policy_snapshot": current_snapshot,
             "policy_status": policy_status,
             "policy_diff_keys": policy_diff_keys,
+            "policy_ack_required": policy_ack_needed,
+            "policy_current_hash": current_hash,
             "oracle_view": oracle_view,
             "oracle_validation": oracle_validation,
         },
@@ -636,6 +640,11 @@ def _start_deferral(run_id: str, body: DeferralStart) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    try:
+        enforce_policy_ack(run, current_hash)
+    except PolicyAckRequired:
+        raise HTTPException(status_code=409, detail="policy_ack_required")
 
     if run.requires_human_confirmation and not run.human_ack:
         raise HTTPException(status_code=409, detail="ack required before deferral")
@@ -670,6 +679,11 @@ def _step_deferral(run_id: str) -> dict:
     run = store.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    try:
+        enforce_policy_ack(run, current_hash)
+    except PolicyAckRequired:
+        raise HTTPException(status_code=409, detail="policy_ack_required")
 
     if not run.deferral_active or run.quota_max_actions is None:
         raise HTTPException(status_code=409, detail="deferral not active")
@@ -951,7 +965,12 @@ async def ui_ack(run_id: str, request: Request):
 async def ui_defer_start(run_id: str, quota: int, request: Request):
     form = await request.form()
     require_token(request, form)
-    _start_deferral(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
+    try:
+        _start_deferral(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
+    except HTTPException as exc:
+        if exc.detail == "policy_ack_required":
+            return RedirectResponse(url=f"/runs/{run_id}?error=policy_ack_required", status_code=303)
+        raise
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
@@ -959,7 +978,36 @@ async def ui_defer_start(run_id: str, quota: int, request: Request):
 async def ui_defer_step(run_id: str, request: Request):
     form = await request.form()
     require_token(request, form)
-    _step_deferral(run_id)
+    try:
+        _step_deferral(run_id)
+    except HTTPException as exc:
+        if exc.detail == "policy_ack_required":
+            return RedirectResponse(url=f"/runs/{run_id}?error=policy_ack_required", status_code=303)
+        raise
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+def _record_policy_ack(run_id: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    record_policy_ack(
+        run=run,
+        current_policy_hash=current_hash,
+        ledger=ledger,
+        event_id=eid("ev"),
+        timestamp_utc=now_utc(),
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+@app.post("/ui/runs/{run_id}/policy/ack")
+async def ui_policy_ack(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _record_policy_ack(run_id)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 

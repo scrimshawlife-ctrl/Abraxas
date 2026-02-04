@@ -123,6 +123,7 @@ class RunState(BaseModel):
     last_execution_result: Optional[Dict[str, Any]] = None
     stability_report: Optional[Dict[str, Any]] = None
     oracle_output: Optional[Dict[str, Any]] = None
+    policy_ack: bool = False
     policy_snapshot_at_ingest: Optional[Dict[str, Any]] = None
     policy_hash_at_ingest: Optional[str] = None
 

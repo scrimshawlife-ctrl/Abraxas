@@ -320,10 +320,28 @@
   <p><b>Ingest policy hash:</b> {{ run.policy_hash_at_ingest[:12] if run.policy_hash_at_ingest else "n/a" }}</p>
   <p><b>Current policy hash:</b> {{ current_policy_hash[:12] if current_policy_hash else "n/a" }}</p>
   <p><b>Status:</b> {{ policy_status }}</p>
+  <p><b>Policy ACK:</b> {{ run.policy_ack }}</p>
+  {% if policy_ack_required %}
+    <p class="badge warn"><b>Policy has changed since ingest. ACK required.</b></p>
+    <p><b>Ingest hash prefix:</b> {{ run.policy_hash_at_ingest[:8] if run.policy_hash_at_ingest else "n/a" }}</p>
+    <p><b>Current hash prefix:</b> {{ policy_current_hash[:8] if policy_current_hash else "n/a" }}</p>
+    <form method="post" action="/ui/runs/{{ run.run_id }}/policy/ack" style="margin-top:8px;">
+      <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+      <button class="btn" type="submit">ACK Policy Change</button>
+    </form>
+    {% if policy_diff_keys %}
+      <p><b>Changed keys:</b></p>
+      <ul>
+        {% for key in policy_diff_keys %}
+          <li><code>{{ key }}</code></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
   {% if run.stability_report and run.stability_report.policy_hash %}
     <p><b>Stability policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
   {% endif %}
-  {% if policy_diff_keys %}
+  {% if policy_diff_keys and not policy_ack_required %}
     <p><b>Changed keys:</b></p>
     <ul>
       {% for key in policy_diff_keys %}
