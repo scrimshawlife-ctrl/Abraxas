@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from webpanel.core_bridge import core_ingest
 from webpanel.models import AbraxasSignalPacket, RunState
-from webpanel.run_filters import filter_runs
+from webpanel.filters import filter_runs
 
 
 def _packet(signal_id: str, *, tier: str = "psychonaut", lane: str = "canon") -> AbraxasSignalPacket:
