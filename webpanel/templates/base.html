@@ -18,6 +18,12 @@
   </style>
 </head>
 <body>
+  {% if panel_host != "127.0.0.1" %}
+    <div class="card {% if not token_enabled %}warn{% endif %}" style="margin-bottom:16px;">
+      <b>LAN EXPOSED:</b> host={{ panel_host }}:{{ panel_port }} |
+      token={{ "enabled" if token_enabled else "disabled" }}
+    </div>
+  {% endif %}
   {% block content %}{% endblock %}
 </body>
 </html>

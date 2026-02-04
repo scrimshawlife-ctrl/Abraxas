@@ -45,6 +45,18 @@ def _panel_token() -> str:
     return os.environ.get("ABX_PANEL_TOKEN", "").strip()
 
 
+def _panel_host() -> str:
+    return os.environ.get("ABX_PANEL_HOST", "127.0.0.1").strip() or "127.0.0.1"
+
+
+def _panel_port() -> str:
+    return os.environ.get("ABX_PANEL_PORT", "8008").strip() or "8008"
+
+
+def _token_enabled() -> bool:
+    return bool(_panel_token())
+
+
 def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] = None) -> None:
     token = _panel_token()
     if not token:
@@ -84,7 +96,14 @@ def ui_index(request: Request):
     runs = store.list(limit=50)
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "runs": runs, "panel_token": _panel_token()},
+        {
+            "request": request,
+            "runs": runs,
+            "panel_token": _panel_token(),
+            "panel_host": _panel_host(),
+            "panel_port": _panel_port(),
+            "token_enabled": _token_enabled(),
+        },
     )
 
 
@@ -103,6 +122,9 @@ def ui_run(request: Request, run_id: str):
             "events": events,
             "chain_valid": chain_valid,
             "panel_token": _panel_token(),
+            "panel_host": _panel_host(),
+            "panel_port": _panel_port(),
+            "token_enabled": _token_enabled(),
         },
     )
 
@@ -122,6 +144,9 @@ def ui_ledger(request: Request, run_id: str):
             "events": events,
             "chain_valid": chain_valid,
             "panel_token": _panel_token(),
+            "panel_host": _panel_host(),
+            "panel_port": _panel_port(),
+            "token_enabled": _token_enabled(),
         },
     )
 
@@ -430,6 +455,9 @@ async def ui_ingest(request: Request):
                 "error": str(exc),
                 "packet_json": raw,
                 "panel_token": _panel_token(),
+                "panel_host": _panel_host(),
+                "panel_port": _panel_port(),
+                "token_enabled": _token_enabled(),
             },
         )
 
@@ -454,6 +482,9 @@ async def ui_upload_payload(request: Request):
                 "runs": runs,
                 "error": "tier and lane are required",
                 "panel_token": _panel_token(),
+                "panel_host": _panel_host(),
+                "panel_port": _panel_port(),
+                "token_enabled": _token_enabled(),
             },
         )
 
@@ -466,6 +497,9 @@ async def ui_upload_payload(request: Request):
                 "runs": runs,
                 "error": "payload file is required",
                 "panel_token": _panel_token(),
+                "panel_host": _panel_host(),
+                "panel_port": _panel_port(),
+                "token_enabled": _token_enabled(),
             },
         )
 
@@ -479,7 +513,15 @@ async def ui_upload_payload(request: Request):
         runs = store.list(limit=50)
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "runs": runs, "error": str(exc), "panel_token": _panel_token()},
+            {
+                "request": request,
+                "runs": runs,
+                "error": str(exc),
+                "panel_token": _panel_token(),
+                "panel_host": _panel_host(),
+                "panel_port": _panel_port(),
+                "token_enabled": _token_enabled(),
+            },
         )
 
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
