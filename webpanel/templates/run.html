@@ -13,6 +13,15 @@
   <div class="card" style="margin-top:12px;">
     <h2>Run Lineage</h2>
     <p><b>Current:</b> {{ run.run_id }}</p>
+    <p>
+      <a href="/?prev_run_id={{ run.run_id }}">
+        {% if run.pause_required %}
+          Supersede this paused run with a new packet
+        {% else %}
+          Continue from this run
+        {% endif %}
+      </a>
+    </p>
     {% if run.prev_run_id %}
       <p><b>Previous:</b> <a href="/runs/{{ run.prev_run_id }}">{{ run.prev_run_id }}</a></p>
       {% if run.continuity_reason %}

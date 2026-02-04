@@ -131,6 +131,7 @@ def _select_action(run_id: str, selected_action_id: str) -> dict:
 @app.get("/", response_class=HTMLResponse)
 def ui_index(request: Request):
     runs = store.list(limit=50)
+    prev_run_id_prefill = request.query_params.get("prev_run_id")
     return templates.TemplateResponse(
         "index.html",
         {
@@ -140,6 +141,7 @@ def ui_index(request: Request):
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
             "token_enabled": _token_enabled(),
+            "prev_run_id_prefill": prev_run_id_prefill,
         },
     )
 
