@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from abraxas.signal.exporter import emit_signal_packet
 from .core_bridge import core_step
 from .familiar_adapter import FamiliarAdapter
 from .ledger import LedgerChain
@@ -33,6 +34,26 @@ def now_utc() -> str:
 
 def eid(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:16]}"
+
+
+def _emit_and_ingest_payload(payload_obj: dict, *, tier: str, lane: str) -> str:
+    confidence = payload_obj.get("confidence")
+    if not isinstance(confidence, dict):
+        confidence = {"source": "payload_upload", "mvp": True}
+    packet_dict = emit_signal_packet(
+        payload=payload_obj,
+        tier=tier,
+        lane=lane,
+        confidence=confidence,
+        provenance_status="partial",
+        invariance_status="not_evaluated",
+        drift_flags=[],
+        rent_status="not_applicable",
+        not_computable_regions=[],
+    )
+    packet = AbraxasSignalPacket.model_validate(packet_dict)
+    resp = ingest(packet)
+    return resp["run_id"]
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -310,6 +331,43 @@ async def ui_ingest(request: Request):
 
     resp = ingest(packet)
     return RedirectResponse(url=f"/runs/{resp['run_id']}", status_code=303)
+
+
+@app.post("/ui/upload_payload")
+async def ui_upload_payload(request: Request):
+    form = await request.form()
+    tier = form.get("tier", "")
+    lane = form.get("lane", "")
+    payload_file = form.get("payload_file")
+
+    if not tier or not lane:
+        runs = store.list(limit=50)
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "runs": runs, "error": "tier and lane are required"},
+        )
+
+    if payload_file is None or not hasattr(payload_file, "read"):
+        runs = store.list(limit=50)
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "runs": runs, "error": "payload file is required"},
+        )
+
+    try:
+        raw_bytes = await payload_file.read()
+        payload_obj = json.loads(raw_bytes.decode("utf-8"))
+        if not isinstance(payload_obj, dict):
+            raise ValueError("payload must be a JSON object")
+        run_id = _emit_and_ingest_payload(payload_obj, tier=tier, lane=lane)
+    except Exception as exc:
+        runs = store.list(limit=50)
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "runs": runs, "error": str(exc)},
+        )
+
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
 @app.post("/ui/runs/{run_id}/ack")

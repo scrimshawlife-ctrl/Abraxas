@@ -73,6 +73,37 @@
   </div>
 </div>
 
+<div class="card">
+  <h2>Upload Abraxas Payload (Local)</h2>
+  <form method="post" action="/ui/upload_payload" enctype="multipart/form-data">
+    <div class="grid">
+      <div>
+        <label>payload.json</label>
+        <input type="file" name="payload_file" accept=".json" style="width:100%;" />
+      </div>
+      <div>
+        <label>tier</label>
+        <select name="tier" style="width:100%;">
+          <option value="psychonaut" selected>psychonaut</option>
+          <option value="academic">academic</option>
+          <option value="enterprise">enterprise</option>
+        </select>
+      </div>
+      <div>
+        <label>lane</label>
+        <select name="lane" style="width:100%;">
+          <option value="canon" selected>canon</option>
+          <option value="shadow">shadow</option>
+          <option value="sandbox">sandbox</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn" type="submit">Upload -&gt; Emit Packet -&gt; Ingest</button>
+    </div>
+  </form>
+</div>
+
 <div class="card {% if error %}warn{% endif %}">
   <h2>Run Intake</h2>
   <form method="post" action="/ui/ingest">
