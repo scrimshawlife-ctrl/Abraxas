@@ -316,6 +316,29 @@
             </ul>
           </div>
           <div><b>Preview:</b> {{ action.preview_effect }}</div>
+          {% set consideration = considerations.get(action.action_id) %}
+          {% if consideration %}
+            <details style="margin-top:8px;">
+              <summary>Explain</summary>
+              <div><b>Rationale:</b>
+                <ul>
+                  {% for line in consideration.rationale %}
+                    <li>{{ line }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div><b>Dependencies:</b> {{ consideration.dependencies }}</div>
+              <div><b>Counterfactuals:</b>
+                <ul>
+                  {% for item in consideration.counterfactuals %}
+                    <li><code>{{ item.if_skipped }}</code> → {{ item.likely_effect }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div><b>Risk flags:</b> {{ consideration.risk_flags }}</div>
+              <div><b>Evidence refs:</b> {{ consideration.evidence_refs | length }}</div>
+            </details>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>

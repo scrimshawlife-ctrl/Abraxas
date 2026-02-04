@@ -29,6 +29,7 @@ from .filters import build_run_view, filter_runs, parse_filter_params
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
+from .consideration import build_considerations_for_run
 from .gates import compute_gate_stack
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
 from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
@@ -241,6 +242,23 @@ def ui_run(request: Request, run_id: str):
         oracle_view = build_oracle_view(oracle_output)
     gate_stack = compute_gate_stack(run, current_hash)
     top_gate = gate_stack[0] if gate_stack else None
+    considerations = {}
+    proposals = None
+    if run.last_step_result and isinstance(run.last_step_result, dict):
+        if run.last_step_result.get("kind") == "propose_actions_v0":
+            proposals = run.last_step_result.get("actions", [])
+    if proposals:
+        considerations_list = build_considerations_for_run(
+            run,
+            oracle=oracle_output,
+            gates=gate_stack,
+            ledger_events=events,
+        )
+        for proposal, consideration in zip(proposals, considerations_list):
+            if isinstance(proposal, dict):
+                key = proposal.get("action_id") or consideration.get("proposal_id")
+                if key:
+                    considerations[key] = consideration
     return templates.TemplateResponse(
         "run.html",
         {
@@ -263,6 +281,7 @@ def ui_run(request: Request, run_id: str):
             "oracle_validation": oracle_validation,
             "gate_stack": gate_stack,
             "top_gate": top_gate,
+            "considerations": considerations,
         },
     )
 
