@@ -13,6 +13,7 @@ RunPlanStepKind = Literal[
     "extract_structure_v0",
     "compress_signal_v0",
     "propose_actions_v0",
+    "select_action_v0",
     "summarize_context",
     "surface_unknowns",
     "propose_options",

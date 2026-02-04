@@ -3,6 +3,12 @@
 <h1>Run: {{ run.run_id }}</h1>
 <p><a href="/"><- back</a> · <a href="/runs/{{ run.run_id }}/ledger">ledger view</a></p>
 
+{% if error %}
+  <div class="card warn" style="margin-top:12px;">
+    <b>Error:</b> {{ error }}
+  </div>
+{% endif %}
+
 <div class="grid">
   <div class="card">
     <h2>Signal Metadata</h2>
@@ -139,6 +145,11 @@
           <b>{{ action.title }}</b> · <code>{{ action.kind }}</code>
           <div><b>Entropy reduction:</b> {{ action.expected_entropy_reduction }}</div>
           <div><b>Required gates:</b> {{ action.required_gates }}</div>
+          <form method="post" action="/ui/runs/{{ run.run_id }}/select_action" style="margin:6px 0;">
+            <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+            <input type="hidden" name="selected_action_id" value="{{ action.action_id }}"/>
+            <button class="btn" type="submit">Select</button>
+          </form>
           <div><b>Rationale:</b>
             <ul>
               {% for line in action.rationale %}
@@ -150,6 +161,19 @@
         </li>
       {% endfor %}
     </ul>
+  </div>
+{% endif %}
+
+{% if run.execution_checklist %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Execution Checklist</h2>
+    <p><b>Selected action:</b> {{ run.selected_action_id }}</p>
+    <p><b>Gates required:</b> {{ run.execution_checklist.gates_required }}</p>
+    <p><b>Preconditions:</b> {{ run.execution_checklist.preconditions }}</p>
+    <p><b>Required inputs:</b> {{ run.execution_checklist.required_inputs }}</p>
+    <p><b>Stop conditions:</b> {{ run.execution_checklist.stop_conditions }}</p>
+    <p><b>Notes:</b> {{ run.execution_checklist.notes }}</p>
+    <p><b>Selected action preview:</b> {{ run.execution_checklist.produces }}</p>
   </div>
 {% endif %}
 

@@ -15,6 +15,7 @@ from abraxas.signal.exporter import emit_signal_packet
 from .familiar_adapter import FamiliarAdapter
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
+from .select_action import build_checklist
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 
@@ -89,6 +90,38 @@ def _emit_and_ingest_payload(payload_obj: dict, *, tier: str, lane: str) -> str:
     packet = AbraxasSignalPacket.model_validate(packet_dict)
     resp = _ingest_packet(packet)
     return resp["run_id"]
+
+
+def _select_action(run_id: str, selected_action_id: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    actions = _latest_proposals(run)
+    if not actions:
+        raise ValueError("no proposed actions available")
+
+    selected = None
+    for action in actions:
+        if isinstance(action, dict) and action.get("action_id") == selected_action_id:
+            selected = action
+            break
+    if selected is None:
+        raise ValueError("invalid selected_action_id")
+
+    run.selected_action_id = selected_action_id
+    run.selected_action = selected
+    run.execution_checklist = build_checklist(run, selected)
+    store.put(run)
+
+    ledger.append(
+        run_id,
+        eid("ev"),
+        "action_selected",
+        now_utc(),
+        {"selected_action_id": selected_action_id, "kind": selected.get("kind")},
+    )
+    return run.model_dump()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -215,6 +248,9 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
     run.current_step_index = 0
     run.last_step_result = None
     run.step_results = []
+    run.selected_action_id = None
+    run.selected_action = None
+    run.execution_checklist = None
     store.put(run)
 
     ledger.append(
@@ -273,6 +309,14 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
         "actions_remaining": run.actions_remaining,
         "ledger_tail_event_hash": tail_hash,
     }
+
+
+def _latest_proposals(run) -> Optional[list]:
+    for result in reversed(run.step_results):
+        if isinstance(result, dict) and result.get("kind") == "propose_actions_v0":
+            actions = result.get("actions")
+            return actions if isinstance(actions, list) else None
+    return None
 
 
 @app.post("/api/v1/familiar/ingest")
@@ -617,4 +661,34 @@ async def ui_defer_stop(run_id: str, request: Request):
     form = await request.form()
     require_token(request, form)
     _stop_deferral(run_id)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/select_action")
+async def ui_select_action(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    selected_action_id = form.get("selected_action_id", "")
+    try:
+        _select_action(run_id, selected_action_id)
+    except Exception as exc:
+        run = store.get(run_id)
+        if not run:
+            raise HTTPException(status_code=404, detail="run not found")
+        events = ledger.list_events(run_id)
+        chain_valid = ledger.chain_valid(run_id)
+        return templates.TemplateResponse(
+            "run.html",
+            {
+                "request": request,
+                "run": run,
+                "events": events,
+                "chain_valid": chain_valid,
+                "panel_token": _panel_token(),
+                "panel_host": _panel_host(),
+                "panel_port": _panel_port(),
+                "token_enabled": _token_enabled(),
+                "error": str(exc),
+            },
+        )
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)

@@ -114,6 +114,9 @@ class RunState(BaseModel):
     current_step_index: int = 0
     last_step_result: Optional[Dict[str, Any]] = None
     step_results: List[Dict[str, Any]] = Field(default_factory=list)
+    selected_action_id: Optional[str] = None
+    execution_checklist: Optional[Dict[str, Any]] = None
+    selected_action: Optional[Dict[str, Any]] = None
 
     @property
     def actions_remaining(self) -> Optional[int]:
