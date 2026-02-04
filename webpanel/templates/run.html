@@ -9,6 +9,40 @@
   </div>
 {% endif %}
 
+{% if top_gate %}
+  <div class="card {% if top_gate.severity == 'block' %}warn{% endif %}" style="margin-top:12px;">
+    <b>Gate:</b> {{ top_gate.message }} <b>Remedy:</b> {{ top_gate.remedy }}
+    {% if top_gate.code == "policy_ack_required" %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/policy/ack" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">ACK Policy Change</button>
+      </form>
+    {% endif %}
+    {% if top_gate.code in ["session_inactive", "session_exhausted"] %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/session/start" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <label>max_steps</label>
+        <select name="session_max_steps">
+          {% for s in [1,2,3,4,5] %}
+            <option value="{{ s }}" {% if s == 3 %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn" type="submit">Start Session</button>
+      </form>
+    {% endif %}
+    {% if gate_stack and gate_stack|length > 1 %}
+      <details style="margin-top:8px;">
+        <summary>Other active gates ({{ gate_stack|length - 1 }})</summary>
+        <ul>
+          {% for gate in gate_stack[1:] %}
+            <li><code>{{ gate.code }}</code> — {{ gate.message }} ({{ gate.severity }})</li>
+          {% endfor %}
+        </ul>
+      </details>
+    {% endif %}
+  </div>
+{% endif %}
+
 {% if run.prev_run_id or (lineage_ids and lineage_ids|length > 1) %}
   <div class="card" style="margin-top:12px;">
     <h2>Run Lineage</h2>
@@ -352,10 +386,6 @@
     <p class="badge warn"><b>Policy has changed since ingest. ACK required.</b></p>
     <p><b>Ingest hash prefix:</b> {{ run.policy_hash_at_ingest[:8] if run.policy_hash_at_ingest else "n/a" }}</p>
     <p><b>Current hash prefix:</b> {{ policy_current_hash[:8] if policy_current_hash else "n/a" }}</p>
-    <form method="post" action="/ui/runs/{{ run.run_id }}/policy/ack" style="margin-top:8px;">
-      <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
-      <button class="btn" type="submit">ACK Policy Change</button>
-    </form>
     {% if policy_diff_keys %}
       <p><b>Changed keys:</b></p>
       <ul>

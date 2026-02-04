@@ -29,6 +29,7 @@ from .filters import build_run_view, filter_runs, parse_filter_params
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
 from .compare import compare_runs
+from .gates import compute_gate_stack
 from .policy import compute_policy_hash, get_policy_snapshot, policy_snapshot
 from .policy_gate import PolicyAckRequired, enforce_policy_ack, policy_ack_required, record_policy_ack
 from .session_mode import (
@@ -231,12 +232,6 @@ def ui_run(request: Request, run_id: str):
     if policy_status == "CHANGED":
         policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
     policy_ack_needed = policy_ack_required(run, current_hash)
-    error_code = request.query_params.get("error")
-    session_error = None
-    if error_code == "session_required":
-        session_error = "Start a session"
-    elif error_code == "session_exhausted":
-        session_error = "Session budget exhausted; renew"
     oracle_output = extract_oracle_output(run)
     oracle_view = None
     oracle_validation = {"valid": True, "errors": []}
@@ -244,6 +239,8 @@ def ui_run(request: Request, run_id: str):
         valid, errors = validate_oracle_output_v2(oracle_output)
         oracle_validation = {"valid": valid, "errors": errors}
         oracle_view = build_oracle_view(oracle_output)
+    gate_stack = compute_gate_stack(run, current_hash)
+    top_gate = gate_stack[0] if gate_stack else None
     return templates.TemplateResponse(
         "run.html",
         {
@@ -262,9 +259,10 @@ def ui_run(request: Request, run_id: str):
             "policy_diff_keys": policy_diff_keys,
             "policy_ack_required": policy_ack_needed,
             "policy_current_hash": current_hash,
-            "session_error": session_error,
             "oracle_view": oracle_view,
             "oracle_validation": oracle_validation,
+            "gate_stack": gate_stack,
+            "top_gate": top_gate,
         },
     )
 
@@ -1011,9 +1009,9 @@ async def ui_defer_start(run_id: str, quota: int, request: Request):
         _start_deferral(run_id, DeferralStart(quota_max_actions=quota))  # type: ignore[arg-type]
     except HTTPException as exc:
         if exc.detail == "policy_ack_required":
-            return RedirectResponse(url=f"/runs/{run_id}?error=policy_ack_required", status_code=303)
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
         if exc.detail in {"session_required", "session_exhausted"}:
-            return RedirectResponse(url=f"/runs/{run_id}?error={exc.detail}", status_code=303)
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
         raise
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
@@ -1026,9 +1024,9 @@ async def ui_defer_step(run_id: str, request: Request):
         _step_deferral(run_id)
     except HTTPException as exc:
         if exc.detail == "policy_ack_required":
-            return RedirectResponse(url=f"/runs/{run_id}?error=policy_ack_required", status_code=303)
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
         if exc.detail in {"session_required", "session_exhausted"}:
-            return RedirectResponse(url=f"/runs/{run_id}?error={exc.detail}", status_code=303)
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
         raise
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
