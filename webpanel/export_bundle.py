@@ -5,7 +5,9 @@ from io import BytesIO
 import hashlib
 import json
 import zipfile
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+from webpanel.oracle_output import extract_oracle_output, oracle_hash_prefix
 
 
 def canonical_json_bytes(obj: Any) -> bytes:
@@ -71,6 +73,19 @@ def build_bundle(
             )
         )
 
+    left_oracle = extract_oracle_output(left_run)
+    right_oracle = extract_oracle_output(right_run)
+    left_oracle_sha: Optional[str] = None
+    right_oracle_sha: Optional[str] = None
+    if left_oracle:
+        left_bytes = canonical_json_bytes(left_oracle)
+        files.append(("oracle.left.json", left_bytes))
+        left_oracle_sha = sha256_hex(left_bytes)
+    if right_oracle:
+        right_bytes = canonical_json_bytes(right_oracle)
+        files.append(("oracle.right.json", right_bytes))
+        right_oracle_sha = sha256_hex(right_bytes)
+
     manifest_files = []
     for name, data in files:
         manifest_files.append(
@@ -86,6 +101,14 @@ def build_bundle(
         "current_policy_hash": policy_snapshot.get("policy_hash"),
         "files": manifest_files,
     }
+    if left_oracle_sha:
+        manifest["left_oracle_sha256"] = left_oracle_sha
+        manifest["left_oracle_input_hash_prefix"] = oracle_hash_prefix(left_oracle, "input_hash")
+        manifest["left_oracle_policy_hash_prefix"] = oracle_hash_prefix(left_oracle, "policy_hash")
+    if right_oracle_sha:
+        manifest["right_oracle_sha256"] = right_oracle_sha
+        manifest["right_oracle_input_hash_prefix"] = oracle_hash_prefix(right_oracle, "input_hash")
+        manifest["right_oracle_policy_hash_prefix"] = oracle_hash_prefix(right_oracle, "policy_hash")
     files.append(("manifest.json", canonical_json_bytes(manifest)))
 
     buffer = BytesIO()

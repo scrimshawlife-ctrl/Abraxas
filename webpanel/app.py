@@ -18,6 +18,12 @@ from .lineage import get_lineage
 from .execute_action import execute_one
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
+from .oracle_output import (
+    build_oracle_json,
+    build_oracle_view,
+    extract_oracle_output,
+    validate_oracle_output_v2,
+)
 from .select_action import build_checklist
 from .store import InMemoryStore
 from .runplan import build_runplan, execute_step
@@ -201,6 +207,13 @@ def ui_run(request: Request, run_id: str):
     policy_diff_keys = []
     if policy_status == "CHANGED":
         policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
+    oracle_output = extract_oracle_output(run)
+    oracle_view = None
+    oracle_validation = {"valid": True, "errors": []}
+    if oracle_output:
+        valid, errors = validate_oracle_output_v2(oracle_output)
+        oracle_validation = {"valid": valid, "errors": errors}
+        oracle_view = build_oracle_view(oracle_output)
     return templates.TemplateResponse(
         "run.html",
         {
@@ -217,6 +230,8 @@ def ui_run(request: Request, run_id: str):
             "current_policy_snapshot": current_snapshot,
             "policy_status": policy_status,
             "policy_diff_keys": policy_diff_keys,
+            "oracle_view": oracle_view,
+            "oracle_validation": oracle_validation,
         },
     )
 
@@ -275,6 +290,17 @@ def ui_ledger_json(run_id: str):
     }
     rendered = json.dumps(payload, sort_keys=True, ensure_ascii=True)
     return Response(content=rendered, media_type="application/json")
+
+
+@app.get("/runs/{run_id}/oracle.json")
+def ui_oracle_json(run_id: str):
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    payload = build_oracle_json(run)
+    if not payload:
+        raise HTTPException(status_code=404, detail="oracle output not found")
+    return Response(content=payload, media_type="application/json")
 
 
 @app.get("/runs/{run_id}/stability")

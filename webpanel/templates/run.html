@@ -137,6 +137,71 @@
   <pre><code>{{ run.last_step_result | tojson(indent=2) if run.last_step_result else "None" }}</code></pre>
 </div>
 
+{% if oracle_view %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Oracle (OSLv2)</h2>
+    <p><b>Tier:</b> {{ oracle_view.tier }} · <b>Lane:</b> {{ oracle_view.lane }}</p>
+    <p><b>Summary:</b> {{ oracle_view.summary }}</p>
+    {% if not oracle_validation.valid %}
+      <p class="badge warn"><b>Warning:</b> OracleOutput.v2 validation failed</p>
+      {% if oracle_validation.errors %}
+        <ul>
+          {% for err in oracle_validation.errors[:5] %}
+            <li><code>{{ err }}</code></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endif %}
+    <p><a href="/runs/{{ run.run_id }}/oracle.json">Download oracle.json</a></p>
+
+    <h3>Indicators ({{ oracle_view.indicator_total }})</h3>
+    {% if oracle_view.indicator_items %}
+      <ul>
+        {% for item in oracle_view.indicator_items %}
+          <li><code>{{ item.path }}</code> = {{ item.value }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No indicators available.</small></p>
+    {% endif %}
+
+    <h3>Evidence ({{ oracle_view.evidence_total }})</h3>
+    {% if oracle_view.evidence_items %}
+      <ul>
+        {% for item in oracle_view.evidence_items %}
+          <li><code>{{ item }}</code></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No evidence entries.</small></p>
+    {% endif %}
+
+    <h3>Flags</h3>
+    {% if oracle_view.flags_items %}
+      <ul>
+        {% for item in oracle_view.flags_items %}
+          <li><code>{{ item }}</code></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p><small>No flags reported.</small></p>
+    {% endif %}
+
+    <h3>Provenance</h3>
+    <p><b>Input hash:</b> {{ oracle_view.provenance.input_hash[:8] if oracle_view.provenance.input_hash else "n/a" }}</p>
+    <p><b>Policy hash:</b> {{ oracle_view.provenance.policy_hash[:8] if oracle_view.provenance.policy_hash else "n/a" }}</p>
+    <p><b>Stability status:</b> {{ oracle_view.provenance.stability_status }}</p>
+    {% if oracle_view.provenance.operator_versions %}
+      <p><b>Operator versions:</b></p>
+      <ul>
+        {% for entry in oracle_view.provenance.operator_versions %}
+          <li><code>{{ entry.name }}</code> = {{ entry.version }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}
+
 {% if run.last_step_result and run.last_step_result.kind == "extract_structure_v0" %}
   <div class="card" style="margin-top:16px;">
     <h2>Extracted Structure</h2>
