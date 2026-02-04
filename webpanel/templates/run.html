@@ -9,6 +9,27 @@
   </div>
 {% endif %}
 
+{% if run.prev_run_id or (lineage_ids and lineage_ids|length > 1) %}
+  <div class="card" style="margin-top:12px;">
+    <h2>Run Lineage</h2>
+    <p><b>Current:</b> {{ run.run_id }}</p>
+    {% if run.prev_run_id %}
+      <p><b>Previous:</b> <a href="/runs/{{ run.prev_run_id }}">{{ run.prev_run_id }}</a></p>
+      {% if run.continuity_reason %}
+        <p><b>Reason:</b> {{ run.continuity_reason }}</p>
+      {% endif %}
+    {% endif %}
+    {% if lineage_ids %}
+      <p><b>Ancestors:</b></p>
+      <ul>
+        {% for rid in lineage_ids[1:] %}
+          <li><a href="/runs/{{ rid }}">{{ rid }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}
+
 <div class="grid">
   <div class="card">
     <h2>Signal Metadata</h2>

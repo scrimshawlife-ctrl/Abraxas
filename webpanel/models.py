@@ -110,6 +110,8 @@ class RunState(BaseModel):
 
     pause_required: bool = False
     pause_reason: Optional[PauseReason] = None
+    prev_run_id: Optional[str] = None
+    continuity_reason: Optional[str] = None
     runplan: Optional[RunPlan] = None
     current_step_index: int = 0
     last_step_result: Optional[Dict[str, Any]] = None

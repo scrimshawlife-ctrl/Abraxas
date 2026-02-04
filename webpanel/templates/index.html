@@ -98,6 +98,11 @@
           <option value="sandbox">sandbox</option>
         </select>
       </div>
+      <div>
+        <label>Continue from run_id (optional)</label>
+        <input type="text" name="prev_run_id" placeholder="run_id to supersede" style="width:100%;"/>
+        <small>Use this to supersede a paused run with a new packet.</small>
+      </div>
     </div>
     <div style="margin-top:10px;">
       <button class="btn" type="submit">Upload -&gt; Emit Packet -&gt; Ingest</button>
@@ -109,6 +114,11 @@
   <h2>Run Intake</h2>
   <form method="post" action="/ui/ingest">
     <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <div style="margin-bottom:8px;">
+      <label>Continue from run_id (optional)</label>
+      <input type="text" name="prev_run_id" placeholder="run_id to supersede" style="width:100%;"/>
+      <small>Use this to supersede a paused run with a new packet.</small>
+    </div>
     <textarea id="packet_json" name="packet_json" placeholder='Paste AbraxasSignalPacket JSON here...'>{{ packet_json or "" }}</textarea>
     <div style="margin-top:10px;">
       <button class="btn" type="submit">Ingest</button>

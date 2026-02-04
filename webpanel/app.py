@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from abraxas.signal.exporter import emit_signal_packet
 from .familiar_adapter import FamiliarAdapter
+from .lineage import get_lineage
 from .execute_action import execute_one
 from .ledger import LedgerChain
 from .models import AbraxasSignalPacket, DeferralStart, HumanAck
@@ -73,7 +74,9 @@ def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] 
     raise HTTPException(status_code=401, detail="invalid token")
 
 
-def _emit_and_ingest_payload(payload_obj: dict, *, tier: str, lane: str) -> str:
+def _emit_and_ingest_payload(
+    payload_obj: dict, *, tier: str, lane: str, prev_run_id: Optional[str] = None
+) -> str:
     confidence = payload_obj.get("confidence")
     if not isinstance(confidence, dict):
         confidence = {"source": "payload_upload", "mvp": True}
@@ -89,7 +92,7 @@ def _emit_and_ingest_payload(payload_obj: dict, *, tier: str, lane: str) -> str:
         not_computable_regions=[],
     )
     packet = AbraxasSignalPacket.model_validate(packet_dict)
-    resp = _ingest_packet(packet)
+    resp = _ingest_packet(packet, prev_run_id=prev_run_id)
     return resp["run_id"]
 
 
@@ -148,6 +151,8 @@ def ui_run(request: Request, run_id: str):
         raise HTTPException(status_code=404, detail="run not found")
     events = ledger.list_events(run_id)
     chain_valid = ledger.chain_valid(run_id)
+    lineage = get_lineage(run_id, store)
+    lineage_ids = [entry.run_id for entry in lineage]
     return templates.TemplateResponse(
         "run.html",
         {
@@ -155,6 +160,7 @@ def ui_run(request: Request, run_id: str):
             "run": run,
             "events": events,
             "chain_valid": chain_valid,
+            "lineage_ids": lineage_ids,
             "panel_token": _panel_token(),
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
@@ -243,7 +249,7 @@ def ui_sample_packet():
     )
 
 
-def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
+def _ingest_packet(packet: AbraxasSignalPacket, prev_run_id: Optional[str] = None) -> dict:
     run, _ctx_id = adapter.ingest(packet)
     run.runplan = build_runplan(run)
     run.current_step_index = 0
@@ -254,6 +260,8 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
     run.execution_checklist = None
     run.selected_action_progress = None
     run.last_execution_result = None
+    run.prev_run_id = None
+    run.continuity_reason = None
     store.put(run)
 
     ledger.append(
@@ -284,6 +292,25 @@ def _ingest_packet(packet: AbraxasSignalPacket) -> dict:
             "execution_deferred",
             now_utc(),
             {"reason": "awaiting_ack"},
+        )
+
+    if prev_run_id and store.get(prev_run_id):
+        run.prev_run_id = prev_run_id
+        run.continuity_reason = "new_packet_supersedes_previous"
+        store.put(run)
+        ledger.append(
+            run.run_id,
+            eid("ev"),
+            "continuity_linked",
+            now_utc(),
+            {"prev_run_id": prev_run_id, "reason": run.continuity_reason},
+        )
+        ledger.append(
+            prev_run_id,
+            eid("ev"),
+            "superseded_by",
+            now_utc(),
+            {"new_run_id": run.run_id},
         )
 
     if run.runplan is not None:
@@ -579,6 +606,7 @@ async def ui_ingest(request: Request):
     form = await request.form()
     require_token(request, form)
     raw = form.get("packet_json", "")
+    prev_run_id = form.get("prev_run_id") or ""
     try:
         packet = AbraxasSignalPacket.model_validate(json.loads(raw))
     except Exception as exc:
@@ -597,7 +625,23 @@ async def ui_ingest(request: Request):
             },
         )
 
-    resp = _ingest_packet(packet)
+    if prev_run_id and store.get(prev_run_id) is None:
+        runs = store.list(limit=50)
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "runs": runs,
+                "error": f"prev_run_id not found: {prev_run_id}",
+                "packet_json": raw,
+                "panel_token": _panel_token(),
+                "panel_host": _panel_host(),
+                "panel_port": _panel_port(),
+                "token_enabled": _token_enabled(),
+            },
+        )
+
+    resp = _ingest_packet(packet, prev_run_id=prev_run_id or None)
     return RedirectResponse(url=f"/runs/{resp['run_id']}", status_code=303)
 
 
@@ -608,6 +652,7 @@ async def ui_upload_payload(request: Request):
     tier = form.get("tier", "")
     lane = form.get("lane", "")
     payload_file = form.get("payload_file")
+    prev_run_id = form.get("prev_run_id") or ""
 
     if not tier or not lane:
         runs = store.list(limit=50)
@@ -644,7 +689,9 @@ async def ui_upload_payload(request: Request):
         payload_obj = json.loads(raw_bytes.decode("utf-8"))
         if not isinstance(payload_obj, dict):
             raise ValueError("payload must be a JSON object")
-        run_id = _emit_and_ingest_payload(payload_obj, tier=tier, lane=lane)
+        if prev_run_id and store.get(prev_run_id) is None:
+            raise ValueError(f"prev_run_id not found: {prev_run_id}")
+        run_id = _emit_and_ingest_payload(payload_obj, tier=tier, lane=lane, prev_run_id=prev_run_id or None)
     except Exception as exc:
         runs = store.list(limit=50)
         return templates.TemplateResponse(
@@ -713,6 +760,8 @@ async def ui_select_action(run_id: str, request: Request):
             raise HTTPException(status_code=404, detail="run not found")
         events = ledger.list_events(run_id)
         chain_valid = ledger.chain_valid(run_id)
+        lineage = get_lineage(run_id, store)
+        lineage_ids = [entry.run_id for entry in lineage]
         return templates.TemplateResponse(
             "run.html",
             {
@@ -720,6 +769,7 @@ async def ui_select_action(run_id: str, request: Request):
                 "run": run,
                 "events": events,
                 "chain_valid": chain_valid,
+                "lineage_ids": lineage_ids,
                 "panel_token": _panel_token(),
                 "panel_host": _panel_host(),
                 "panel_port": _panel_port(),
