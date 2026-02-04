@@ -9,6 +9,8 @@
   <p><b>Distinct hashes:</b> {{ report.invariance.distinct_final_hashes }}</p>
   <p><b>Leader hash:</b> {{ report.invariance.leader_hash[:12] }}</p>
   <p><b>Drift class:</b> {{ report.drift_class }}</p>
+  <p><b>Policy hash:</b> {{ report.policy_hash[:12] }}</p>
+  <p><b>Operators:</b> {{ report.operators }}</p>
 </div>
 
 {% if report.invariance.mismatched_cycles %}
@@ -26,9 +28,9 @@
       <tr>
         <td>{{ entry.cycle }}</td>
         <td><code>{{ entry.final_hash[:12] }}</code></td>
-        <td><code>{{ entry.operator_hashes.extract_structure_v0[:10] }}</code></td>
-        <td><code>{{ entry.operator_hashes.compress_signal_v0[:10] }}</code></td>
-        <td><code>{{ entry.operator_hashes.propose_actions_v0[:10] }}</code></td>
+        <td><code>{{ entry.operator_hashes.extract_structure_v0[:10] if entry.operator_hashes.extract_structure_v0 else "" }}</code></td>
+        <td><code>{{ entry.operator_hashes.compress_signal_v0[:10] if entry.operator_hashes.compress_signal_v0 else "" }}</code></td>
+        <td><code>{{ entry.operator_hashes.propose_actions_v0[:10] if entry.operator_hashes.propose_actions_v0 else "" }}</code></td>
       </tr>
     {% endfor %}
   </table>

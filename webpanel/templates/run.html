@@ -217,12 +217,31 @@
   {% if run.stability_report %}
     <p><b>Passed:</b> {{ run.stability_report.invariance.passed }}</p>
     <p><b>Distinct hashes:</b> {{ run.stability_report.invariance.distinct_final_hashes }}</p>
+    <p><b>Drift class:</b> {{ run.stability_report.drift_class }}</p>
+    <p><b>Policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
+    <p><b>Operators:</b> {{ run.stability_report.operators }}</p>
     <p><a href="/runs/{{ run.run_id }}/stability">View report</a> · <a href="/runs/{{ run.run_id }}/stability.json">Download JSON</a></p>
+    <form method="post" action="/ui/runs/{{ run.run_id }}/stabilize" style="margin-top:8px;">
+      <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+      <label>cycles</label>
+      <input type="number" name="cycles" value="12" min="1" max="24"/>
+      <div>
+        <label><input type="checkbox" name="operators" value="extract_structure_v0" checked/> extract_structure_v0</label>
+        <label><input type="checkbox" name="operators" value="compress_signal_v0" checked/> compress_signal_v0</label>
+        <label><input type="checkbox" name="operators" value="propose_actions_v0" checked/> propose_actions_v0</label>
+      </div>
+      <button class="btn" type="submit">Re-run Stabilization</button>
+    </form>
   {% else %}
     <form method="post" action="/ui/runs/{{ run.run_id }}/stabilize">
       <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
       <label>cycles</label>
       <input type="number" name="cycles" value="12" min="1" max="24"/>
+      <div>
+        <label><input type="checkbox" name="operators" value="extract_structure_v0" checked/> extract_structure_v0</label>
+        <label><input type="checkbox" name="operators" value="compress_signal_v0" checked/> compress_signal_v0</label>
+        <label><input type="checkbox" name="operators" value="propose_actions_v0" checked/> propose_actions_v0</label>
+      </div>
       <button class="btn" type="submit">Run Stabilization</button>
     </form>
   {% endif %}

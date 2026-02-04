@@ -895,6 +895,7 @@ async def ui_stabilize(run_id: str, request: Request):
     form = await request.form()
     require_token(request, form)
     raw_cycles = form.get("cycles") or "12"
+    selected_ops = form.getlist("operators")
     try:
         cycles = int(raw_cycles)
     except ValueError:
@@ -908,7 +909,28 @@ async def ui_stabilize(run_id: str, request: Request):
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
 
-    report = run_stabilization(run, cycles)
+    base_ops = ["extract_structure_v0", "compress_signal_v0", "propose_actions_v0"]
+    ops_set = set(selected_ops or base_ops)
+    if "compress_signal_v0" in ops_set:
+        ops_set.add("extract_structure_v0")
+    if "propose_actions_v0" in ops_set:
+        ops_set.add("compress_signal_v0")
+        ops_set.add("extract_structure_v0")
+    operators = [op for op in base_ops if op in ops_set]
+
+    snapshot = policy_snapshot()
+    policy_hash = snapshot.get("policy_hash", "")
+
+    report = run_stabilization(run, cycles, operators, policy_hash)
+    if report["invariance"]["passed"]:
+        report["drift_class"] = "none"
+    else:
+        prior = run.stability_report
+        if prior and prior.get("policy_hash") != policy_hash:
+            report["drift_class"] = "policy_change"
+        else:
+            report["drift_class"] = "nondeterminism"
+
     run.stability_report = report
     store.put(run)
 
@@ -921,6 +943,8 @@ async def ui_stabilize(run_id: str, request: Request):
             "cycles": cycles,
             "passed": report["invariance"]["passed"],
             "distinct_final_hashes": report["invariance"]["distinct_final_hashes"],
+            "drift_class": report["drift_class"],
+            "policy_hash_prefix": policy_hash[:8],
         },
     )
     return RedirectResponse(url=f"/runs/{run_id}/stability", status_code=303)

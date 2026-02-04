@@ -19,13 +19,17 @@ from webpanel.propose_actions import propose_actions
 from webpanel.structure_extract import detect_unknowns, extract_claims_if_present, walk_payload
 
 
-def canonical_bytes(obj: Any) -> bytes:
+def canonical_json_bytes(obj: Any) -> bytes:
     rendered = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
     return rendered.encode("utf-8")
 
 
+def sha256_hex(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
 def stable_hash(obj: Any) -> str:
-    return hashlib.sha256(canonical_bytes(obj)).hexdigest()
+    return sha256_hex(canonical_json_bytes(obj))
 
 
 def clone_run_state(run: RunState) -> RunState:
@@ -97,30 +101,46 @@ def _propose_actions(run: RunState, compressed: Dict[str, Any]) -> Dict[str, Any
     }
 
 
-def run_stabilization(run: RunState, cycles: int) -> Dict[str, Any]:
+def run_stabilization(
+    run: RunState,
+    cycles: int,
+    operators: List[str],
+    policy_hash: str,
+) -> Dict[str, Any]:
     clone = clone_run_state(run)
     created_at_utc = datetime.now(timezone.utc).isoformat()
-    operators = ["extract_structure_v0", "compress_signal_v0", "propose_actions_v0"]
+    operator_order = ["extract_structure_v0", "compress_signal_v0", "propose_actions_v0"]
+    selected = [op for op in operator_order if op in operators]
 
     results: List[Dict[str, Any]] = []
     final_hashes: List[str] = []
 
     for cycle in range(cycles):
-        extract = _extract_structure(clone)
-        compress = _compress_signal(clone, extract)
-        propose = _propose_actions(clone, compress)
-        operator_hashes = {
-            "extract_structure_v0": stable_hash(extract),
-            "compress_signal_v0": stable_hash(compress),
-            "propose_actions_v0": stable_hash(propose),
-        }
-        final_hash = stable_hash(
-            {
-                "extract_structure_v0": extract,
-                "compress_signal_v0": compress,
-                "propose_actions_v0": propose,
-            }
+        extract = _extract_structure(clone) if "extract_structure_v0" in selected else None
+        compress = (
+            _compress_signal(clone, extract)
+            if "compress_signal_v0" in selected and extract is not None
+            else None
         )
+        propose = (
+            _propose_actions(clone, compress)
+            if "propose_actions_v0" in selected and compress is not None
+            else None
+        )
+
+        operator_hashes: Dict[str, str] = {}
+        final_payload: Dict[str, Any] = {}
+        if extract is not None:
+            operator_hashes["extract_structure_v0"] = stable_hash(extract)
+            final_payload["extract_structure_v0"] = extract
+        if compress is not None:
+            operator_hashes["compress_signal_v0"] = stable_hash(compress)
+            final_payload["compress_signal_v0"] = compress
+        if propose is not None:
+            operator_hashes["propose_actions_v0"] = stable_hash(propose)
+            final_payload["propose_actions_v0"] = propose
+
+        final_hash = stable_hash(final_payload)
         final_hashes.append(final_hash)
         results.append(
             {
@@ -130,21 +150,26 @@ def run_stabilization(run: RunState, cycles: int) -> Dict[str, Any]:
             }
         )
 
-    leader_hash = final_hashes[0] if final_hashes else ""
-    distinct = len(set(final_hashes))
-    mismatched_cycles = [
-        result["cycle"] for result in results if result["final_hash"] != leader_hash
-    ]
+    counts: Dict[str, int] = {}
+    for value in final_hashes:
+        counts[value] = counts.get(value, 0) + 1
+    if counts:
+        leader_hash = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[0][0]
+    else:
+        leader_hash = ""
+    distinct = len(counts)
+    mismatched_cycles = [result["cycle"] for result in results if result["final_hash"] != leader_hash]
     passed = distinct == 1
     drift_class = "none" if passed else "nondeterminism"
 
     report = {
         "kind": "StabilityReport.v0",
-        "report_id": f"stb_{stable_hash({'run_id': run.run_id, 'created_at_utc': created_at_utc, 'cycles': cycles})[:16]}",
+        "report_id": f"stab_{run.run_id}_{policy_hash[:8]}",
         "run_id": run.run_id,
         "created_at_utc": created_at_utc,
         "cycles": cycles,
-        "operators": operators,
+        "operators": selected,
+        "policy_hash": policy_hash,
         "results": results,
         "invariance": {
             "passed": passed,

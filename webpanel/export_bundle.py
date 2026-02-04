@@ -52,6 +52,10 @@ def build_bundle(
     files.append(("right.ledger.json", canonical_json_bytes(_ledger_payload(ledger_store, right_run.run_id))))
     files.append(("compare.json", canonical_json_bytes(compare_summary)))
     files.append(("policy.json", canonical_json_bytes(policy_snapshot)))
+    if left_run.stability_report:
+        files.append(("stability.left.json", canonical_json_bytes(left_run.stability_report)))
+    if right_run.stability_report:
+        files.append(("stability.right.json", canonical_json_bytes(right_run.stability_report)))
 
     manifest_files = []
     for name, data in files:

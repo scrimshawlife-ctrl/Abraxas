@@ -6,6 +6,7 @@ from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket
 from webpanel.store import InMemoryStore
 from webpanel.stability import run_stabilization
+from webpanel.policy import get_policy_snapshot
 
 
 def _packet() -> AbraxasSignalPacket:
@@ -33,7 +34,13 @@ def test_stability_report_passes():
     run = webpanel_app.store.get(resp["run_id"])
     assert run is not None
 
-    report = run_stabilization(run, cycles=12)
+    snapshot = get_policy_snapshot()
+    report = run_stabilization(
+        run,
+        cycles=12,
+        operators=["extract_structure_v0", "compress_signal_v0", "propose_actions_v0"],
+        policy_hash=snapshot["policy_hash"],
+    )
     assert report["kind"] == "StabilityReport.v0"
     assert report["invariance"]["passed"] is True
     assert report["invariance"]["distinct_final_hashes"] == 1
