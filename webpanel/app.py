@@ -921,15 +921,8 @@ async def ui_stabilize(run_id: str, request: Request):
     snapshot = policy_snapshot()
     policy_hash = snapshot.get("policy_hash", "")
 
-    report = run_stabilization(run, cycles, operators, policy_hash)
-    if report["invariance"]["passed"]:
-        report["drift_class"] = "none"
-    else:
-        prior = run.stability_report
-        if prior and prior.get("policy_hash") != policy_hash:
-            report["drift_class"] = "policy_change"
-        else:
-            report["drift_class"] = "nondeterminism"
+    prior = run.stability_report
+    report = run_stabilization(run, cycles, operators, policy_hash, prior_report=prior)
 
     run.stability_report = report
     store.put(run)

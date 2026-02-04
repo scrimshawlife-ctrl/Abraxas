@@ -217,6 +217,9 @@
   {% if run.stability_report %}
     <p><b>Passed:</b> {{ run.stability_report.invariance.passed }}</p>
     <p><b>Distinct hashes:</b> {{ run.stability_report.invariance.distinct_final_hashes }}</p>
+    {% if run.stability_report.invariance.distinct_input_hashes is defined %}
+      <p><b>Distinct input hashes:</b> {{ run.stability_report.invariance.distinct_input_hashes }}</p>
+    {% endif %}
     <p><b>Drift class:</b> {{ run.stability_report.drift_class }}</p>
     <p><b>Policy hash:</b> {{ run.stability_report.policy_hash[:12] }}</p>
     <p><b>Operators:</b> {{ run.stability_report.operators }}</p>

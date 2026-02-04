@@ -7,6 +7,10 @@
   <h2>Summary</h2>
   <p><b>Passed:</b> {{ report.invariance.passed }}</p>
   <p><b>Distinct hashes:</b> {{ report.invariance.distinct_final_hashes }}</p>
+  {% if report.invariance.distinct_input_hashes is defined %}
+    <p><b>Distinct input hashes:</b> {{ report.invariance.distinct_input_hashes }}</p>
+    <p><b>Leader input hash:</b> {{ report.invariance.leader_input_hash[:12] }}</p>
+  {% endif %}
   <p><b>Leader hash:</b> {{ report.invariance.leader_hash[:12] }}</p>
   <p><b>Drift class:</b> {{ report.drift_class }}</p>
   <p><b>Policy hash:</b> {{ report.policy_hash[:12] }}</p>
@@ -20,13 +24,21 @@
   </div>
 {% endif %}
 
+{% if report.invariance.input_mismatched_cycles is defined and report.invariance.input_mismatched_cycles %}
+  <div class="card" style="margin-top:12px;">
+    <h2>Input mismatched cycles</h2>
+    <p>{{ report.invariance.input_mismatched_cycles }}</p>
+  </div>
+{% endif %}
+
 <div class="card" style="margin-top:12px;">
   <h2>Cycles</h2>
   <table>
-    <tr><th align="left">cycle</th><th align="left">final hash</th><th align="left">extract</th><th align="left">compress</th><th align="left">propose</th></tr>
+    <tr><th align="left">cycle</th><th align="left">input hash</th><th align="left">final hash</th><th align="left">extract</th><th align="left">compress</th><th align="left">propose</th></tr>
     {% for entry in report.results %}
       <tr>
         <td>{{ entry.cycle }}</td>
+        <td><code>{{ entry.input_hash[:12] if entry.input_hash else "" }}</code></td>
         <td><code>{{ entry.final_hash[:12] }}</code></td>
         <td><code>{{ entry.operator_hashes.extract_structure_v0[:10] if entry.operator_hashes.extract_structure_v0 else "" }}</code></td>
         <td><code>{{ entry.operator_hashes.compress_signal_v0[:10] if entry.operator_hashes.compress_signal_v0 else "" }}</code></td>

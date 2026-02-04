@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import json
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from webpanel.compress_signal import (
     build_uncertainty_map,
@@ -34,6 +34,28 @@ def stable_hash(obj: Any) -> str:
 
 def clone_run_state(run: RunState) -> RunState:
     return deepcopy(run)
+
+
+def build_input_envelope(run: RunState) -> Dict[str, Any]:
+    meta = {
+        "tier": run.signal.tier,
+        "lane": run.signal.lane,
+        "invariance_status": run.signal.invariance_status,
+        "provenance_status": run.signal.provenance_status,
+        "drift_flags": list(run.signal.drift_flags),
+        "rent_status": getattr(run.signal, "rent_status", None),
+    }
+    ctx = {
+        "context_id": run.context.context_id,
+        "unknowns": list(run.context.unknowns),
+    }
+    if hasattr(run.context, "not_computable_regions"):
+        ctx["not_computable_regions"] = getattr(run.context, "not_computable_regions")
+    return {
+        "payload": run.signal.payload,
+        "meta": meta,
+        "ctx": ctx,
+    }
 
 
 def _extract_structure(run: RunState) -> Dict[str, Any]:
@@ -106,6 +128,8 @@ def run_stabilization(
     cycles: int,
     operators: List[str],
     policy_hash: str,
+    prior_report: Optional[Dict[str, Any]] = None,
+    test_mutator: Optional[Callable[[RunState, int], None]] = None,
 ) -> Dict[str, Any]:
     clone = clone_run_state(run)
     created_at_utc = datetime.now(timezone.utc).isoformat()
@@ -114,8 +138,13 @@ def run_stabilization(
 
     results: List[Dict[str, Any]] = []
     final_hashes: List[str] = []
+    input_hashes: List[str] = []
 
     for cycle in range(cycles):
+        if test_mutator is not None:
+            test_mutator(clone, cycle)
+        input_envelope = deepcopy(build_input_envelope(clone))
+        input_hash = stable_hash(input_envelope)
         extract = _extract_structure(clone) if "extract_structure_v0" in selected else None
         compress = (
             _compress_signal(clone, extract)
@@ -142,25 +171,43 @@ def run_stabilization(
 
         final_hash = stable_hash(final_payload)
         final_hashes.append(final_hash)
+        input_hashes.append(input_hash)
         results.append(
             {
                 "cycle": cycle,
+                "input_hash": input_hash,
                 "operator_hashes": operator_hashes,
                 "final_hash": final_hash,
             }
         )
 
-    counts: Dict[str, int] = {}
-    for value in final_hashes:
-        counts[value] = counts.get(value, 0) + 1
-    if counts:
-        leader_hash = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[0][0]
-    else:
-        leader_hash = ""
-    distinct = len(counts)
+    def _leader_hash(values: List[str]) -> str:
+        counts: Dict[str, int] = {}
+        for value in values:
+            counts[value] = counts.get(value, 0) + 1
+        if not counts:
+            return ""
+        return sorted(counts.items(), key=lambda item: (-item[1], item[0]))[0][0]
+
+    leader_hash = _leader_hash(final_hashes)
+    distinct = len(set(final_hashes))
     mismatched_cycles = [result["cycle"] for result in results if result["final_hash"] != leader_hash]
     passed = distinct == 1
-    drift_class = "none" if passed else "nondeterminism"
+
+    leader_input_hash = _leader_hash(input_hashes)
+    distinct_input_hashes = len(set(input_hashes))
+    input_mismatched_cycles = [
+        result["cycle"] for result in results if result["input_hash"] != leader_input_hash
+    ]
+
+    if passed:
+        drift_class = "none"
+    elif prior_report and prior_report.get("policy_hash") != policy_hash:
+        drift_class = "policy_change"
+    elif distinct_input_hashes > 1:
+        drift_class = "input_variation"
+    else:
+        drift_class = "nondeterminism"
 
     report = {
         "kind": "StabilityReport.v0",
@@ -176,6 +223,9 @@ def run_stabilization(
             "distinct_final_hashes": distinct,
             "leader_hash": leader_hash,
             "mismatched_cycles": mismatched_cycles,
+            "distinct_input_hashes": distinct_input_hashes,
+            "leader_input_hash": leader_input_hash,
+            "input_mismatched_cycles": input_mismatched_cycles,
         },
         "drift_class": drift_class,
         "notes": "Stability harness run on deterministic operators only.",
