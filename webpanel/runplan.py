@@ -157,6 +157,7 @@ def execute_step(run_state: "RunState", step: RunPlanStep) -> Dict[str, Any]:
         return {
             "kind": "extract_structure_v0",
             "keys_topology": {"paths_count": len(paths), "sample_paths": sample_paths},
+            "paths": [entry["path"] for entry in paths],
             "numeric_metrics": numeric_metrics,
             "unknowns": unknowns_out,
             "evidence_refs": evidence_refs,

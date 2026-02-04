@@ -24,6 +24,7 @@
     </p>
     {% if run.prev_run_id %}
       <p><b>Previous:</b> <a href="/runs/{{ run.prev_run_id }}">{{ run.prev_run_id }}</a></p>
+      <p><a href="/compare?left={{ run.prev_run_id }}&right={{ run.run_id }}">Compare with previous</a></p>
       {% if run.continuity_reason %}
         <p><b>Reason:</b> {{ run.continuity_reason }}</p>
       {% endif %}

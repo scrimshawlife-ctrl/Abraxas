@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Compare {{ left.run_id }} vs {{ right.run_id }}</h1>
+<p><a href="/runs/{{ left.run_id }}">left run</a> · <a href="/runs/{{ right.run_id }}">right run</a></p>
+
+{% if direct_supersession %}
+  <div class="card warn">
+    <b>Direct supersession:</b> right.prev_run_id == left.run_id
+  </div>
+{% endif %}
+
+<div class="card" style="margin-top:12px;">
+  <h2>Meta Diffs</h2>
+  <table>
+    <tr><th align="left">field</th><th align="left">left</th><th align="left">right</th></tr>
+    <tr><td>tier</td><td>{{ left.signal.tier }}</td><td>{{ right.signal.tier }}</td></tr>
+    <tr><td>lane</td><td>{{ left.signal.lane }}</td><td>{{ right.signal.lane }}</td></tr>
+    <tr><td>invariance_status</td><td>{{ left.signal.invariance_status }}</td><td>{{ right.signal.invariance_status }}</td></tr>
+    <tr><td>provenance_status</td><td>{{ left.signal.provenance_status }}</td><td>{{ right.signal.provenance_status }}</td></tr>
+    <tr><td>drift_flags</td><td>{{ left.signal.drift_flags }}</td><td>{{ right.signal.drift_flags }}</td></tr>
+  </table>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h2>Pause Diffs</h2>
+  <table>
+    <tr><th align="left">field</th><th align="left">left</th><th align="left">right</th></tr>
+    <tr><td>pause_required</td><td>{{ left.pause_required }}</td><td>{{ right.pause_required }}</td></tr>
+    <tr><td>pause_reason</td><td>{{ left.pause_reason }}</td><td>{{ right.pause_reason }}</td></tr>
+  </table>
+</div>
+
+{% if left_pressure or right_pressure %}
+  <div class="card" style="margin-top:12px;">
+    <h2>Plan Pressure</h2>
+    <table>
+      <tr><th align="left">side</th><th align="left">score</th><th align="left">components</th></tr>
+      <tr><td>left</td><td>{{ left_pressure.score if left_pressure else "" }}</td><td>{{ left_pressure.components if left_pressure else "" }}</td></tr>
+      <tr><td>right</td><td>{{ right_pressure.score if right_pressure else "" }}</td><td>{{ right_pressure.components if right_pressure else "" }}</td></tr>
+    </table>
+  </div>
+{% endif %}
+
+<div class="card" style="margin-top:12px;">
+  <h2>Extracted Structure Diffs</h2>
+  <h3>Added paths</h3>
+  <ul>
+    {% for path in paths_diff.added[:50] %}
+      <li><code>{{ path }}</code></li>
+    {% endfor %}
+  </ul>
+  <h3>Removed paths</h3>
+  <ul>
+    {% for path in paths_diff.removed[:50] %}
+      <li><code>{{ path }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h2>Numeric Metric Deltas</h2>
+  <table>
+    <tr><th align="left">path</th><th align="left">left</th><th align="left">right</th><th align="left">delta</th></tr>
+    {% for row in numeric_diff[:30] %}
+      <tr>
+        <td><code>{{ row.path }}</code></td>
+        <td>{{ row.left }}</td>
+        <td>{{ row.right }}</td>
+        <td>{{ row.delta }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h2>Unknowns</h2>
+  <h3>Added</h3>
+  <ul>
+    {% for path in unknowns_diff.added[:50] %}
+      <li><code>{{ path }}</code></li>
+    {% endfor %}
+  </ul>
+  <h3>Removed</h3>
+  <ul>
+    {% for path in unknowns_diff.removed[:50] %}
+      <li><code>{{ path }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h2>Evidence Refs</h2>
+  <h3>Added</h3>
+  <ul>
+    {% for ref in refs_diff.added[:50] %}
+      <li><code>{{ ref }}</code></li>
+    {% endfor %}
+  </ul>
+  <h3>Removed</h3>
+  <ul>
+    {% for ref in refs_diff.removed[:50] %}
+      <li><code>{{ ref }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
