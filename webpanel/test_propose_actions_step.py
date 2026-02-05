@@ -34,8 +34,7 @@ def _run_steps(run_id: str) -> None:
 
 
 def test_propose_actions_step():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())
@@ -52,8 +51,7 @@ def test_propose_actions_step():
 
 
 def test_propose_actions_determinism():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp_a = webpanel_app.ingest(_packet())

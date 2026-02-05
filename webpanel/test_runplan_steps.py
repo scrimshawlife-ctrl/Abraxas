@@ -27,8 +27,7 @@ def _packet(with_unknowns: bool) -> AbraxasSignalPacket:
 
 
 def test_runplan_steps_and_quota():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet(with_unknowns=True))
@@ -52,8 +51,7 @@ def test_runplan_steps_and_quota():
 
 
 def test_runplan_hash_determinism():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp_a = webpanel_app.ingest(_packet(with_unknowns=False))

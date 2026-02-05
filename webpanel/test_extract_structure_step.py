@@ -29,8 +29,7 @@ def _packet() -> AbraxasSignalPacket:
 
 
 def test_extract_structure_step():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())
@@ -54,8 +53,7 @@ def test_extract_structure_step():
 
 
 def test_extract_structure_deterministic():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp_a = webpanel_app.ingest(_packet())

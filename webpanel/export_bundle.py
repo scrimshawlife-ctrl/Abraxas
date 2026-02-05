@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from webpanel.consideration import build_considerations_for_run
 from webpanel.continuity import build_continuity_report
+from webpanel.explain_mode import build_run_brief
 from webpanel.gates import compute_gate_stack
 from webpanel.oracle_output import extract_oracle_output, oracle_hash_prefix
 from webpanel.preference_kernel import normalize_prefs
@@ -91,7 +92,7 @@ def build_bundle(
         right_oracle_sha = sha256_hex(right_bytes)
 
     considerations: List[Dict[str, Any]] = []
-    current_hash = policy_snapshot.get("policy_hash")
+    current_hash = policy_snapshot.get("policy_hash") or ""
     left_considerations = build_considerations_for_run(
         left_run,
         oracle=left_oracle,
@@ -143,6 +144,12 @@ def build_bundle(
         manifest["right_oracle_policy_hash_prefix"] = oracle_hash_prefix(right_oracle, "policy_hash")
     if considerations_sha:
         manifest["considerations_sha256"] = considerations_sha
+
+    brief_prev = left_run if right_run.prev_run_id == left_run.run_id else None
+    run_brief = build_run_brief(right_run, brief_prev, current_hash)
+    brief_bytes = canonical_json_bytes(run_brief)
+    files.append(("run_brief.json", brief_bytes))
+    manifest["run_brief_sha256"] = sha256_hex(brief_bytes)
 
     continuity_sha: Optional[str] = None
     if right_run.prev_run_id and right_run.prev_run_id == left_run.run_id:

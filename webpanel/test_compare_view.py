@@ -32,8 +32,7 @@ def _run_extract_compress(run_id: str) -> None:
 
 
 def test_compare_view():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp_a = webpanel_app.ingest(_packet("sig-a", {"a": 1, "url": "https://x", "empty": {}}))
