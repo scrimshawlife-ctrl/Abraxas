@@ -25,8 +25,7 @@ def _packet(signal_id: str, invariance: str) -> AbraxasSignalPacket:
 
 
 def test_continuity_linking():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp_a = webpanel_app.ingest(_packet("sig-a", "fail"))

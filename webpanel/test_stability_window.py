@@ -26,8 +26,7 @@ def _packet() -> AbraxasSignalPacket:
 
 
 def test_stability_report_passes():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())

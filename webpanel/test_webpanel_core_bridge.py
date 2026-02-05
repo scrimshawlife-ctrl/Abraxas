@@ -26,8 +26,7 @@ def _packet() -> AbraxasSignalPacket:
 
 
 def test_core_bridge_ingest_and_quota_boundary():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())
@@ -52,8 +51,7 @@ def test_core_bridge_ingest_and_quota_boundary():
 
 
 def test_sample_packet_route():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     response = webpanel_app.ui_sample_packet()

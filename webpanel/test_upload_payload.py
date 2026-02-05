@@ -7,8 +7,7 @@ from webpanel.store import InMemoryStore
 
 
 def test_emit_and_ingest_payload_helper():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     payload = {"kind": "unit_test_payload"}

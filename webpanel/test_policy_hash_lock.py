@@ -25,8 +25,7 @@ def _packet() -> dict:
 
 
 def test_policy_hash_lock(monkeypatch):
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
     monkeypatch.setenv("ABX_DRIFT_PAUSE_THRESHOLD", "3")
     client = TestClient(webpanel_app.app)

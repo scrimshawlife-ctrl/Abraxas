@@ -35,8 +35,7 @@ def _run_extract_compress(run_id: str) -> None:
 
 
 def test_compare_policy_export_bundle():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp_a = webpanel_app.ingest(_packet("sig-a", {"a": 1, "url": "https://x", "empty": {}}))
@@ -70,5 +69,6 @@ def test_compare_policy_export_bundle():
     assert "compare.json" in names
     assert "policy.json" in names
     assert "manifest.json" in names
+    assert "run_brief.json" in names
     assert "policy.left_at_ingest.json" in names
     assert "policy.right_at_ingest.json" in names

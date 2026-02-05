@@ -43,6 +43,62 @@
   </div>
 {% endif %}
 
+{% if delta_notifications and delta_notifications.has_changes %}
+  <div class="card" style="margin-top:12px;">
+    <b>Δ Changes since previous run</b>
+    <ul>
+      {% for change in delta_notifications.changes %}
+        <li><code>{{ change.code }}</code> — {{ change.message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if run_brief %}
+  <div class="card" style="margin-top:12px;">
+    <h2>Explain</h2>
+    <form method="get" action="/runs/{{ run.run_id }}" style="margin-bottom:8px;">
+      <button class="btn" type="submit">Generate Run Brief</button>
+    </form>
+    {% if run_brief.brief_lines %}
+      <ol>
+        {% for line in run_brief.brief_lines %}
+          <li>{{ line }}</li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p><small>No brief lines available.</small></p>
+    {% endif %}
+    <details style="margin-top:8px;">
+      <summary>Brief details</summary>
+      <div style="margin-top:8px;">
+        {% if run_brief.sections.gate %}
+          <p><b>Gate:</b> {{ run_brief.sections.gate.code }} — {{ run_brief.sections.gate.message }}</p>
+        {% endif %}
+        {% if run_brief.sections.session %}
+          <p><b>Session:</b> {{ run_brief.sections.session.used }}/{{ run_brief.sections.session.max }} used</p>
+        {% endif %}
+        {% if run_brief.sections.continuity %}
+          <p><b>Continuity:</b> {{ run_brief.sections.continuity.summary_lines }}</p>
+        {% endif %}
+        {% if run_brief.sections.oracle %}
+          <p><b>Oracle:</b> {{ run_brief.sections.oracle.tier }} / {{ run_brief.sections.oracle.lane }}</p>
+          <p><b>Indicators:</b> {{ run_brief.sections.oracle.top_indicators }}</p>
+          <p><b>Flags:</b> {{ run_brief.sections.oracle.flags }}</p>
+        {% endif %}
+        {% if run_brief.sections.next_action %}
+          <p><b>Next action:</b> {{ run_brief.sections.next_action.title }}</p>
+          <p><b>Rationale:</b> {{ run_brief.sections.next_action.top_rationale }}</p>
+          <p><b>Risks:</b> {{ run_brief.sections.next_action.risk_flags }}</p>
+        {% endif %}
+        {% if run_brief.sections.pins %}
+          <p><b>Pins:</b> {{ run_brief.sections.pins }}</p>
+        {% endif %}
+      </div>
+    </details>
+  </div>
+{% endif %}
+
 {% if run.prev_run_id or (lineage_ids and lineage_ids|length > 1) %}
   <div class="card" style="margin-top:12px;">
     <h2>Run Lineage</h2>

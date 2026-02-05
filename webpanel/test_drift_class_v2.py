@@ -26,8 +26,7 @@ def _packet() -> AbraxasSignalPacket:
 
 
 def test_drift_class_none():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())
@@ -45,8 +44,7 @@ def test_drift_class_none():
 
 
 def test_drift_class_input_variation():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())

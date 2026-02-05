@@ -34,8 +34,7 @@ def _run_steps(run_id: str) -> None:
 
 
 def test_execute_selected_action_micro_steps():
-    webpanel_app.store = InMemoryStore()
-    webpanel_app.ledger = LedgerChain()
+    webpanel_app.reset_state(store=InMemoryStore(), ledger=LedgerChain())
     _STEP_STATE.clear()
 
     resp = webpanel_app.ingest(_packet())
