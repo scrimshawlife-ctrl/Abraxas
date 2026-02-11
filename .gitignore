@@ -44,9 +44,12 @@ env/
 data/intel/
 data/intel2/
 data/intel_daily/
+data/cas/
 out/reports/
 out/reports_daily/
 out/test_daily/
+out/ledger/
+out/perf_ledgers/
 artifacts_seal/
 artifacts_gate/
 .aal/
