@@ -156,4 +156,9 @@ class ValidationError(Exception):
     """
 
 
-__all__ = ["BaseModel", "Field", "FieldInfo", "ValidationError"]
+def ConfigDict(**kwargs: Any) -> Dict[str, Any]:
+    """Lightweight stand-in for pydantic.ConfigDict (returns a plain dict)."""
+    return dict(**kwargs)
+
+
+__all__ = ["BaseModel", "ConfigDict", "Field", "FieldInfo", "ValidationError"]

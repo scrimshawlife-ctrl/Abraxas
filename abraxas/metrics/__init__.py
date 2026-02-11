@@ -32,7 +32,11 @@ from abraxas.metrics.governance import (
     PromotionDecision,
     PromotionLedgerEntry,
 )
-from abraxas.metrics.evaluate import MetricEvaluator
+def __getattr__(name: str):
+    if name == "MetricEvaluator":
+        from abraxas.metrics.evaluate import MetricEvaluator
+        return MetricEvaluator
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 from abraxas.metrics.registry_io import (
     CandidateRegistry,
     PromotionLedger,
