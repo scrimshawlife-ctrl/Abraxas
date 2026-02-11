@@ -9,10 +9,6 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from abraxas.core.provenance import canonical_envelope
-from abraxas.core.rendering import render_output as render_output_core
-from abraxas.fn_exports import EXPORTS, NOW
-from abraxas.io.config import UserConfig, OverlaysConfig
-from abraxas.core.oracle_runner import run_oracle as run_oracle_kernel
 
 
 def render_output_deterministic(
@@ -36,7 +32,8 @@ def render_output_deterministic(
             - provenance (dict): SHA-256 provenance envelope
             - not_computable (None): Always None for this capability
     """
-    # Call core function
+    # Call core function (lazy import to avoid top-level coupling)
+    from abraxas.core.rendering import render_output as render_output_core
     rendered_text = render_output_core(draft_text, context=context or {})
 
     # Build provenance envelope
@@ -69,6 +66,7 @@ def load_fn_exports_deterministic(
     **kwargs
 ) -> Dict[str, Any]:
     """Deterministic wrapper for core.fn_exports.load capability."""
+    from abx.fn_exports import EXPORTS, NOW
     payload = {
         "owner": "Abraxas",
         "generated_at_unix": NOW,
@@ -123,6 +121,10 @@ def run_oracle_kernel_deterministic(
             - provenance (dict): SHA-256 capability envelope provenance
             - not_computable (dict|None): Error details if execution failed
     """
+    # Lazy imports to avoid top-level coupling
+    from abraxas.io.config import UserConfig, OverlaysConfig
+    from abraxas.core.oracle_runner import run_oracle as run_oracle_kernel
+
     # Convert dicts to config objects
     user_config = (
         UserConfig.from_dict(user)

@@ -27,13 +27,21 @@ def _default_scores(events: List[Dict[str, Any]]) -> ScoreVector:
 def run_mda(
     envelope: MDARunEnvelope,
     abraxas_version: str,
-    registry: DomainRegistryV1,
+    registry: DomainRegistryV1 | None = None,
     *,
     domains: str = "*",
     subdomains: str = "*",
 ) -> Tuple[Tuple[DomainSignalPack, ...], Dict[str, Any]]:
-    fixture = _load_fixture(envelope.fixture_path)
-    vectors = fixture.get("vectors", {}) or {}
+    if registry is None:
+        registry = DomainRegistryV1()
+    # Support both fixture-path mode and inputs-dict mode
+    if envelope.inputs is not None:
+        vectors = envelope.inputs.get("vectors", {}) or {}
+    elif envelope.fixture_path is not None:
+        fixture = _load_fixture(envelope.fixture_path)
+        vectors = fixture.get("vectors", {}) or {}
+    else:
+        vectors = {}
 
     pairs = registry.filter_pairs(domains=domains, subdomains=subdomains)
 

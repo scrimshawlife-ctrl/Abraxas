@@ -27,6 +27,126 @@ def load_items_jsonl(path: Path) -> List[dict]:
     return sort_items(items)
 
 
+def _token_tap(token: str, lex: 'Lexicon') -> float:
+    """Deterministic Token Anagram Probability proxy (cheap heuristic)."""
+    if not token:
+        return 0.0
+    n = len(token)
+    unique = len(set(token))
+    return round(min(1.0, unique / max(n, 1)), 4)
+
+
+def _letter_entropy(token: str) -> float:
+    """Shannon entropy over letter frequencies, base-2."""
+    if not token:
+        return 0.0
+    freq: Dict[str, int] = {}
+    for ch in token:
+        freq[ch] = freq.get(ch, 0) + 1
+    n = len(token)
+    ent = 0.0
+    for count in freq.values():
+        p = count / n
+        if p > 0:
+            ent -= p * math.log2(p)
+    return round(ent, 6)
+
+
+def build_token_records(
+    items: List[dict],
+    *,
+    lex: 'Lexicon',
+    min_len: int = 4,
+) -> List['TokenRec']:
+    """
+    Extract unique normalized tokens from items and build TokenRec entries.
+
+    Deterministic: sorted by (token, item_id).
+    """
+    from .types import TokenRec
+
+    records: List[TokenRec] = []
+    seen: set[tuple[str, str]] = set()
+
+    for item in items:
+        item_id = str(item.get("id", ""))
+        source = str(item.get("source", ""))
+        text = str(item.get("text", "")) + " " + str(item.get("title", ""))
+        # Normalize: lowercase, keep only alpha
+        words = text.lower().split()
+        for w in words:
+            norm = "".join(ch for ch in w if ch.isalpha())
+            if len(norm) < min_len:
+                continue
+            if norm in lex.stopwords:
+                continue
+            key = (norm, item_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            letters_sorted = "".join(sorted(norm))
+            records.append(TokenRec(
+                token=norm,
+                norm=norm,
+                letters_sorted=letters_sorted,
+                length=len(norm),
+                unique_letters=len(set(norm)),
+                letter_entropy=_letter_entropy(norm),
+                tap=_token_tap(norm, lex),
+                item_id=item_id,
+                source=source,
+            ))
+
+    records.sort(key=lambda r: (r.token, r.item_id))
+    return records
+
+
+def tier2_subanagrams(
+    records: List['TokenRec'],
+    *,
+    lex: 'Lexicon',
+    min_sub_len: int = 3,
+    canary_subwords: Optional[frozenset] = None,
+) -> List['SubAnagramHit']:
+    """
+    For each token record, check if any lexicon subword is a subanagram.
+
+    A subanagram means the subword's letter multiset is contained in the token's letter multiset.
+    Deterministic: sorted by (token, sub, item_id).
+    """
+    from .types import SubAnagramHit
+
+    all_subwords = set(lex.subwords)
+    if canary_subwords:
+        all_subwords = all_subwords | set(canary_subwords)
+
+    hits: List[SubAnagramHit] = []
+
+    for rec in records:
+        token_counter = Counter(rec.norm)
+        for sub in sorted(all_subwords):
+            if len(sub) < min_sub_len:
+                continue
+            if len(sub) >= len(rec.norm):
+                continue
+            sub_counter = Counter(sub)
+            # Check if sub's letter multiset is contained in token's
+            if all(sub_counter[ch] <= token_counter.get(ch, 0) for ch in sub_counter):
+                lane = "canary" if (canary_subwords and sub in canary_subwords) else "core"
+                hits.append(SubAnagramHit(
+                    token=rec.norm,
+                    sub=sub,
+                    tier=2,
+                    verified=True,
+                    lane=lane,
+                    item_id=rec.item_id,
+                    source=rec.source,
+                ))
+
+    hits.sort(key=lambda h: (h.token, h.sub, h.item_id))
+    return hits
+
+
 def _cluster_key(it: dict, key: bytes | None) -> str:
     """
     Deterministic phrase-field key.
