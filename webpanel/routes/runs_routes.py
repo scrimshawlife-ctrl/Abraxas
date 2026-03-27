@@ -9,6 +9,7 @@ from ..consideration import build_considerations_for_run
 from ..continuity import build_continuity_report
 from ..delta_notifications import compute_delta_notifications
 from ..explain_mode import build_run_brief
+from ..execution_validation import load_execution_validation_for_run
 from ..gates import compute_gate_stack
 from ..lineage import get_lineage
 from ..oracle_output import build_oracle_json, build_oracle_view, extract_oracle_output, validate_oracle_output_v2
@@ -131,6 +132,9 @@ def ui_run(request: Request, run_id: str):
             pass
     run_brief = build_run_brief(run, prev_run, current_hash)
     delta_notifications = compute_delta_notifications(run, prev_run, current_hash)
+    execution_validation = load_execution_validation_for_run(run.run_id)
+    if execution_validation:
+        run.execution_validation = execution_validation
     return templates.TemplateResponse(
         "run.html",
         {
@@ -160,6 +164,7 @@ def ui_run(request: Request, run_id: str):
             "show_sections": show_sections,
             "run_brief": run_brief,
             "delta_notifications": delta_notifications,
+            "execution_validation": execution_validation,
         },
     )
 

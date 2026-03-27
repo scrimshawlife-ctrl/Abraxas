@@ -132,6 +132,7 @@ class RunState(BaseModel):
     prefs: Optional[Dict[str, Any]] = None
     policy_snapshot_at_ingest: Optional[Dict[str, Any]] = None
     policy_hash_at_ingest: Optional[str] = None
+    execution_validation: Optional[Dict[str, Any]] = None
 
     @property
     def actions_remaining(self) -> Optional[int]:

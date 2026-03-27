@@ -77,6 +77,8 @@ def _runs_fixture():
     )
     run_c = _run("sig-c", "2026-02-03T00:00:01+00:00", tier="academic")
     run_c.stability_report = {"drift_class": "nondeterminism"}
+    run_a.execution_validation = {"status": "ERROR"}
+    run_b.execution_validation = {"status": "VALID"}
     return [run_b, run_c, run_a]
 
 
@@ -117,3 +119,12 @@ def test_filter_flags_and_evidence():
 
     filtered_present = filter_runs(runs, {"evidence": "present"})
     assert [run.signal.signal_id for run in filtered_present] == ["sig-b"]
+
+
+def test_filter_execution_validation_state():
+    runs = _runs_fixture()
+    filtered_valid = filter_runs(runs, {"execution_validation": "VALID"})
+    assert [run.signal.signal_id for run in filtered_valid] == ["sig-b"]
+
+    filtered_error = filter_runs(runs, {"execution_validation": "ERROR"})
+    assert [run.signal.signal_id for run in filtered_error] == ["sig-a"]

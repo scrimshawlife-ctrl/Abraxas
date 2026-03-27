@@ -452,6 +452,43 @@
 {% endif %}
 
 <div class="card" style="margin-top:16px;">
+  <h2>Execution Validation</h2>
+  {% if execution_validation %}
+    <p>
+      <b>Status:</b>
+      <span class="badge {% if execution_validation.status == 'ERROR' or execution_validation.status == 'INVALID' %}warn{% endif %}">
+        {{ execution_validation.status }}
+      </span>
+    </p>
+    <p><b>Validator:</b> {{ execution_validation.validatorId or "n/a" }}</p>
+    <p><b>Artifact:</b> {{ execution_validation.artifactId or "n/a" }}</p>
+    <p><b>Checked:</b> {{ execution_validation.timestamp or "n/a" }}</p>
+    <p><b>Validated artifacts:</b> {{ execution_validation.validatedArtifacts or [] }}</p>
+    {% if execution_validation.warnings %}
+      <p><b>Warnings:</b></p>
+      <ul>
+        {% for warning in execution_validation.warnings %}
+          <li><code>{{ warning }}</code></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if execution_validation.errors %}
+      <p><b>Errors:</b></p>
+      <ul>
+        {% for err in execution_validation.errors %}
+          <li><code>{{ err }}</code></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if execution_validation._source_path %}
+      <p><small>Source: {{ execution_validation._source_path }}</small></p>
+    {% endif %}
+  {% else %}
+    <p><small>No execution validator artifact found for this run.</small></p>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:16px;">
   <h2>Stability</h2>
   {% if run.stability_report %}
     <p><b>Passed:</b> {{ run.stability_report.invariance.passed }}</p>

@@ -1,7 +1,7 @@
 # Abraxas Makefile
 # Provides targets for common development and release tasks
 
-.PHONY: help test seal validate clean lint
+.PHONY: help test seal validate clean lint attest
 
 # Default target
 help:
@@ -11,6 +11,7 @@ help:
 	@echo "  make test      - Run pytest test suite"
 	@echo "  make seal      - Run seal release validation"
 	@echo "  make validate  - Validate artifacts in ./artifacts_seal"
+	@echo "  make attest RUN_ID=<id> - Run unified execution attestation"
 	@echo "  make clean     - Remove seal/gate artifacts"
 	@echo "  make lint      - Run linting (if configured)"
 	@echo "  make lexicon-check - Verify ASE lexicon artifacts are up to date"
@@ -29,6 +30,10 @@ seal:
 # Validate existing artifacts
 validate:
 	python3 -m scripts.validate_artifacts --artifacts_dir ./artifacts_seal --run_id seal --tick 0
+
+# Run unified execution attestation (validator + acceptance; optional seal via WITH_SEAL=1)
+attest:
+	python3 scripts/run_execution_attestation.py $(RUN_ID) $(if $(WITH_SEAL),--with-seal,)
 
 # Clean up seal/gate artifacts
 clean:

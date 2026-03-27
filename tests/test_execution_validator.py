@@ -103,3 +103,54 @@ def test_validate_run_is_deterministic_for_same_inputs(tmp_path: Path) -> None:
     assert result_a.to_dict() == result_b.to_dict()
     assert result_a.status == ExecutionValidationStatus.PASS
     assert result_a.valid is True
+
+
+def test_validate_run_matches_camel_case_run_id_and_linked_paths(tmp_path: Path) -> None:
+    ledger_dir = tmp_path / "out" / "ledger"
+    ledger_dir.mkdir(parents=True, exist_ok=True)
+    (ledger_dir / "task_outcomes.jsonl").write_text(
+        json.dumps(
+            {
+                "runId": "RUN-CAMEL-0001",
+                "event_id": "event-camel",
+                "refs": {"result": "artifacts_seal/results/seal/000000.resultspack.json"},
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = validate_run("RUN-CAMEL-0001", base_dir=tmp_path, checked_at="2026-03-27T00:00:00+00:00")
+    assert result.status == ExecutionValidationStatus.PASS
+    assert "event-camel" in result.ledger_record_ids
+    assert "000000.resultspack.json" in result.ledger_artifact_ids
+
+
+def test_validate_run_collects_artifacts_from_runindex_refs(tmp_path: Path) -> None:
+    runindex_dir = tmp_path / "artifacts_seal" / "run_index" / "RUN-INDEX-0001"
+    runindex_dir.mkdir(parents=True, exist_ok=True)
+    runindex = {
+        "run_id": "RUN-INDEX-0001",
+        "refs": {
+            "results_pack": "artifacts_seal/results/seal/000000.resultspack.json",
+            "run_header": "artifacts_seal/runs/seal.runheader.json",
+            "trendpack": "artifacts_seal/viz/seal/000000.trendpack.json",
+        },
+    }
+    (runindex_dir / "000000.runindex.json").write_text(
+        json.dumps(runindex),
+        encoding="utf-8",
+    )
+
+    ledger_dir = tmp_path / "out" / "ledger"
+    ledger_dir.mkdir(parents=True, exist_ok=True)
+    (ledger_dir / "oracle_runs.jsonl").write_text(
+        json.dumps({"run_id": "RUN-INDEX-0001", "event_id": "event-idx"}) + "\n",
+        encoding="utf-8",
+    )
+
+    result = validate_run("RUN-INDEX-0001", base_dir=tmp_path, checked_at="2026-03-27T00:00:00+00:00")
+    assert result.status == ExecutionValidationStatus.PASS
+    assert "000000.resultspack.json" in result.ledger_artifact_ids
+    assert "000000.trendpack.json" in result.ledger_artifact_ids
+    assert "seal.runheader.json" in result.ledger_artifact_ids
