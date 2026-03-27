@@ -29,8 +29,6 @@ def _coverage_vectors(source: Dict[str, Any]) -> List[str]:
 
 def apply_source_redundancy_check(sources: List[Dict[str, Any]], *, strict_execution: bool = False) -> Dict[str, Any]:
     if sources is None:
-        if strict_execution:
-            raise NotImplementedError("SOURCE_REDUNDANCY_CHECK requires sources")
         provenance = {
             "inputs_hash": sha256_hex(canonical_json({"sources": []})),
             "pairs": 0,
@@ -40,6 +38,8 @@ def apply_source_redundancy_check(sources: List[Dict[str, Any]], *, strict_execu
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["sources"],
+                "reason_code": "missing_sources",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

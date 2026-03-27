@@ -156,11 +156,9 @@ def apply_influence_detect(frames: List[Dict[str, Any]], *, strict_execution: bo
 
     Args:
         frames: TVM vector frames
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        strict_execution: Marks strict invocation mode in provenance
     """
     if frames is None:
-        if strict_execution:
-            raise NotImplementedError("INFLUENCE_DETECT requires frames")
         metric = InfluenceMetric(not_computable=["CVP", "TLL", "RD", "CDEC", "RRS"])
         inputs_hash = sha256_hex(canonical_json({"frames": []}))
         bundle = InfluenceBundle(
@@ -168,6 +166,8 @@ def apply_influence_detect(frames: List[Dict[str, Any]], *, strict_execution: bo
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["frames"],
+                "reason_code": "missing_frames",
+                "strict_execution": bool(strict_execution),
             },
             provenance={
                 "inputs_hash": inputs_hash,

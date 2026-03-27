@@ -48,6 +48,7 @@ def discover_manifest(
     seed_entries = []
     urls_union: List[str] = []
     decodo_remaining = budgets.ubv.decodo_policy.max_requests
+    cache_only_mode = bool(run_ctx.get("cache_only_mode", False))
 
     for seed in sorted(seeds):
         fetch_result, reason_code = _fetch_seed(
@@ -55,6 +56,7 @@ def discover_manifest(
             source_id,
             run_ctx,
             cas_store,
+            cache_only_mode,
             allow_decodo and budgets.ubv.decodo_policy.manifest_only,
             decodo_remaining,
         )
@@ -131,7 +133,7 @@ def discover_manifest(
     provenance = ManifestProvenance(
         retrieval_method=_derive_retrieval_method(seed_entries),
         decodo_used=any(e.get("decodo_used") for e in seed_entries),
-        reason_code=None,
+        reason_code=_derive_reason_code(seed_entries),
         raw_hash=raw_hash,
         parse_hash=parse_hash,
         cache_path=parsed_ref.path,
@@ -168,13 +170,15 @@ def _fetch_seed(
     source_id: str,
     run_ctx: Dict[str, Any],
     cas_store: CASStore,
+    cache_only_mode: bool,
     allow_decodo: bool,
     decodo_remaining: int,
 ) -> Tuple[Any | None, Optional[str]]:
     cached = acquire_cache_only(url=seed, cas_store=cas_store)
-    if cached:
-        return cached, "cache_hit"
-
+    if cache_only_mode:
+        if cached:
+            return cached, "policy_cache_only_cache_hit"
+        return None, "policy_cache_only_cache_miss"
     try:
         result = acquire_bulk(
             url=seed,
@@ -186,6 +190,9 @@ def _fetch_seed(
         return result, None
     except Exception as exc:
         bulk_reason = f"bulk_failed:{type(exc).__name__}"
+
+    if cached:
+        return cached, f"cache_fallback_after_{bulk_reason}"
 
     if allow_decodo and decodo_remaining > 0:
         try:
@@ -255,3 +262,20 @@ def _derive_retrieval_method(seed_entries: List[Dict[str, Any]]) -> str:
     if "bulk" in methods:
         return "bulk"
     return "cache_only"
+
+
+def _derive_reason_code(seed_entries: List[Dict[str, Any]]) -> Optional[str]:
+    reason_codes = [str(entry.get("reason_code")) for entry in seed_entries if entry.get("reason_code")]
+    if not reason_codes:
+        return None
+    if all(code.startswith("policy_cache_only_") for code in reason_codes):
+        return "policy_cache_only"
+    if any(code.startswith("surgical_failed:") for code in reason_codes):
+        return "surgical_failed"
+    if any(code.startswith("bulk_failed:") for code in reason_codes):
+        return "bulk_failed"
+    if any("cache_fallback_after_bulk_failed" in code for code in reason_codes):
+        return "cache_fallback_after_bulk_failed"
+    if any(code == "cache_hit" for code in reason_codes):
+        return "cache_hit"
+    return reason_codes[0]

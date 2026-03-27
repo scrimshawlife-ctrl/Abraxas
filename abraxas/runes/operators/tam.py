@@ -56,13 +56,11 @@ def apply_tam(
                 traversal_path: Input traversal_path
         node_sequence: Input node_sequence
         context_history: Input context_history
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        strict_execution: Marks strict invocation mode in not_computable envelope
 
     Returns:
         Dict with keys: emergent_meaning, path_signature, semantic_trace
 
-    Raises:
-        NotImplementedError: If strict_execution=True and operator not implemented
     """
     missing = []
     if traversal_path is None:
@@ -72,10 +70,6 @@ def apply_tam(
     if context_history is None:
         missing.append("context_history")
     if missing:
-        if strict_execution:
-            raise NotImplementedError(
-                f"TAM requires inputs: {', '.join(missing)}"
-            )
         return {
             "emergent_meaning": "",
             "path_signature": "",
@@ -83,6 +77,8 @@ def apply_tam(
             "not_computable": {
                 "reason": "missing required inputs",
                 "missing_inputs": missing,
+                "reason_code": "missing_tam_inputs",
+                "strict_execution": bool(strict_execution),
             },
         }
     path_steps = _normalize_sequence(traversal_path)

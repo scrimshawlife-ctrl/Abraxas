@@ -80,3 +80,17 @@ def test_kernel_policy_gate(monkeypatch):
     monkeypatch.setattr(kernel, "load_policy", lambda: {"allow_runes": []})
     with pytest.raises(PermissionError):
         invoke("weather.generate", _weather_payload())
+
+
+def test_kernel_unrouted_rune_returns_not_computable(monkeypatch):
+    from abx import kernel
+
+    monkeypatch.setattr(kernel, "load_registry", lambda: {"runes": [{"rune_id": "test.unrouted", "evidence_mode": "detector_only"}]})
+    monkeypatch.setattr(kernel, "load_policy", lambda: {"allow_runes": ["test.unrouted"]})
+    monkeypatch.setattr(kernel, "is_allowed", lambda _policy, _rune_id: True)
+    monkeypatch.setattr(kernel, "payload_schema_for", lambda _rune_id: None)
+    monkeypatch.setattr(kernel, "result_schema_for", lambda _rune_id: None)
+
+    out = invoke("test.unrouted", payload={}, context={})
+    assert out["result"]["status"] == "not_computable"
+    assert out["result"]["not_computable"]["reason_code"] == "kernel_route_missing"

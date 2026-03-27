@@ -16,7 +16,7 @@ def test_route_online_sources_builds_decodo_request_envelope() -> None:
             "https://example.com/a",
             "https://news.example.org/b",
         ],
-        caps={"decodo_available": True},
+        caps={"decodo_available": True, "online_allowed": True},
     )
 
     assert routing["provider"] == "decodo"
@@ -24,6 +24,21 @@ def test_route_online_sources_builds_decodo_request_envelope() -> None:
     assert req["candidate_urls"] == ["https://example.com/a", "https://news.example.org/b"]
     assert req["domains"] == ["example.com", "news.example.org"]
     assert req["max_results"] == 12
+    assert req["capability"] == {"online_allowed": True, "decodo_available": True}
+    assert routing["transport_outcome"] == "executed_live"
+
+
+def test_route_online_sources_reports_policy_block_when_online_disabled() -> None:
+    routing = route_online_sources(
+        term="abraxas",
+        query="abraxas resonance",
+        known_urls=["https://example.com/a"],
+        caps={"online_allowed": False, "decodo_available": False},
+    )
+
+    assert routing["provider"] == "none"
+    assert routing["transport_outcome"] == "blocked_policy"
+    assert routing["error"] == "online_blocked_by_policy"
 
 
 def test_resolve_routing_to_urls_decodo_uses_candidates_and_domains() -> None:
@@ -34,7 +49,9 @@ def test_resolve_routing_to_urls_decodo_uses_candidates_and_domains() -> None:
                 "candidate_urls": ["https://example.com/a"],
                 "domains": ["example.com", "alt.example.com"],
                 "max_results": 3,
+                "capability": {"online_allowed": True, "decodo_available": True},
             },
+            "transport_outcome": "executed_live",
         }
     )
 
@@ -45,6 +62,7 @@ def test_resolve_routing_to_urls_decodo_uses_candidates_and_domains() -> None:
         "https://alt.example.com",
     ]
     assert "request" in meta
+    assert meta["transport_outcome"] == "executed_live"
 
 
 def test_resolve_routing_to_urls_decodo_filters_non_http_and_invalid_max_results() -> None:
@@ -55,12 +73,30 @@ def test_resolve_routing_to_urls_decodo_filters_non_http_and_invalid_max_results
                 "candidate_urls": ["file:///etc/passwd", "https://ok.example/path"],
                 "domains": ["site.example"],
                 "max_results": "invalid",
+                "capability": {"online_allowed": True, "decodo_available": True},
             },
         }
     )
 
     assert provider == "decodo"
     assert urls == ["https://ok.example/path", "https://site.example"]
+
+
+def test_resolve_routing_to_urls_decodo_blocked_by_capability() -> None:
+    provider, urls, meta = resolve_routing_to_urls(
+        {
+            "provider": "decodo",
+            "request": {
+                "candidate_urls": ["https://ok.example/path"],
+                "capability": {"online_allowed": True, "decodo_available": False},
+            },
+        }
+    )
+
+    assert provider == "decodo"
+    assert urls == []
+    assert meta["transport_outcome"] == "blocked_policy"
+    assert meta["reason_code"] == "decodo_unavailable_or_policy_blocked"
 
 
 def test_execute_task_routing_decodo_emits_anchors(tmp_path, monkeypatch) -> None:
@@ -98,7 +134,9 @@ def test_execute_task_routing_decodo_emits_anchors(tmp_path, monkeypatch) -> Non
                 "candidate_urls": ["https://example.com/a"],
                 "domains": [],
                 "max_results": 5,
+                "capability": {"online_allowed": True, "decodo_available": True},
             },
+            "transport_outcome": "executed_live",
         },
         anchor_ledger=str(anchor_ledger),
         evidence_graph_ledger=str(evidence_ledger),
@@ -107,6 +145,7 @@ def test_execute_task_routing_decodo_emits_anchors(tmp_path, monkeypatch) -> Non
 
     assert result["status"] == "OK"
     assert result["provider"] == "decodo"
+    assert result["transport_outcome"] == "executed_live"
     assert len(result["created_anchors"]) == 1
 
     rows = [json.loads(line) for line in anchor_ledger.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -128,4 +167,5 @@ def test_execute_task_routing_returns_noop_when_no_urls(tmp_path) -> None:
     )
 
     assert result["status"] == "NOOP"
+    assert result["transport_outcome"] == "executed_live"
     assert result["created_anchors"] == []

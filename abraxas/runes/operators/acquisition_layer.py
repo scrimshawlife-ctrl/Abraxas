@@ -86,10 +86,22 @@ def apply_acquire_bulk(
     - Never calls Decodo (uses official bulk endpoint semantics only)
     """
     if strict_execution:
-        raise NotImplementedError(
-            "ABX-ACQUIRE_BULK requires adapter integration. "
-            "Implement adapter.fetch(source_id, window_utc, params) first."
-        )
+        return {
+            "raw_path": "",
+            "parsed_path": "",
+            "cache_hit": False,
+            "not_computable": {
+                "reason": "adapter integration unavailable in strict mode",
+                "missing_inputs": [],
+                "reason_code": "adapter_integration_required",
+                "strict_execution": True,
+            },
+            "provenance": {
+                "run_id": run_ctx.get("run_id", "RUN_UNKNOWN"),
+                "source_id": source_id,
+                "window_utc": window_utc,
+            },
+        }
 
     run_id = run_ctx.get("run_id", "RUN_UNKNOWN")
     cache_key = stable_hash_json(
@@ -195,7 +207,18 @@ def apply_acquire_cache_only(
 ) -> Dict[str, Any]:
     """Apply ABX-ACQUIRE_CACHE_ONLY rune - cache-only replay."""
     if strict_execution:
-        raise NotImplementedError("ABX-ACQUIRE_CACHE_ONLY requires CAS integration")
+        return {
+            "paths": [],
+            "cache_hits": 0,
+            "failures": list(cache_keys or []),
+            "error": "strict_mode_cache_replay_blocked",
+            "not_computable": {
+                "reason": "cache-only replay disabled in strict mode",
+                "missing_inputs": [],
+                "reason_code": "cache_replay_strict_blocked",
+                "strict_execution": True,
+            },
+        }
 
     run_id = run_ctx.get("run_id", "RUN_UNKNOWN")
     start_time = time.time()
@@ -247,10 +270,23 @@ def apply_acquire_surgical(
 ) -> Dict[str, Any]:
     """Apply ABX-ACQUIRE_SURGICAL rune - surgical Decodo gate with caps."""
     if strict_execution:
-        raise NotImplementedError(
-            "ABX-ACQUIRE_SURGICAL requires Decodo adapter integration. "
-            "Implement decodo.fetch_surgical(target, cap) first."
-        )
+        return {
+            "manifest_candidates": [],
+            "cached_paths": [],
+            "requests_used": 0,
+            "requests_capped": False,
+            "not_computable": {
+                "reason": "surgical adapter integration unavailable in strict mode",
+                "missing_inputs": [],
+                "reason_code": "surgical_adapter_integration_required",
+                "strict_execution": True,
+            },
+            "provenance": {
+                "run_id": run_ctx.get("run_id", "RUN_UNKNOWN"),
+                "target": target,
+                "reason_code": reason_code,
+            },
+        }
 
     run_id = run_ctx.get("run_id", "RUN_UNKNOWN")
     start_time = time.time()

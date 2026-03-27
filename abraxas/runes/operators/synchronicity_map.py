@@ -175,8 +175,6 @@ def _parse_iso(ts: str):
 def apply_synchronicity_map(frames: List[Dict[str, Any]], *, strict_execution: bool = False) -> Dict[str, Any]:
     """Apply SYNCHRONICITY_MAP rune operator."""
     if frames is None:
-        if strict_execution:
-            raise NotImplementedError("SYNCHRONICITY_MAP requires frames")
         bundle = SynchronicityBundle(
             envelopes=[],
             clusters=[],
@@ -184,6 +182,8 @@ def apply_synchronicity_map(frames: List[Dict[str, Any]], *, strict_execution: b
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["frames"],
+                "reason_code": "missing_frames",
+                "strict_execution": bool(strict_execution),
             },
             provenance={"inputs_hash": sha256_hex(canonical_json({"frames": []}))},
         )

@@ -1,0 +1,46 @@
+{
+  "version": "stub_taxonomy.v0.1",
+  "generated_at": "auto",
+  "source": "tools/stub_index.json",
+  "n_stubs": 4,
+  "gap_summary": {
+    "intentional_abstract": 4,
+    "implementation_gap": 0,
+    "policy_block": 0
+  },
+  "stubs": [
+    {
+      "file": "abraxas/detectors/shadow/types.py",
+      "marker": "raise NotImplementedError(\"Subclasses must implement detect()\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "not_implemented",
+      "gap_category": "intentional_abstract"
+    },
+    {
+      "file": "abraxas/metric_extractors/base.py",
+      "marker": "raise NotImplementedError",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "interface",
+      "gap_category": "intentional_abstract"
+    },
+    {
+      "file": "abraxas/narratives/templates.py",
+      "marker": "raise NotImplementedError(\"Subclasses must implement render()\")",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "not_implemented",
+      "gap_category": "intentional_abstract"
+    },
+    {
+      "file": "abraxas/sources/adapters/base.py",
+      "marker": "raise NotImplementedError",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "interface",
+      "gap_category": "intentional_abstract"
+    }
+  ],
+  "notes": "Wave 1 taxonomy for Notion closure: intentional_abstract vs implementation_gap vs policy_block."
+}

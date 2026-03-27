@@ -175,7 +175,11 @@ def invoke(
         # deterministic hook (explicit only)
         import random
 
-        random.seed(seed)
+        if isinstance(seed, (dict, list, tuple, set)):
+            seed_value = _hash_obj({"seed": seed})
+        else:
+            seed_value = seed
+        random.seed(seed_value)
 
     # Runtime telemetry: invocation started (after validation, before dispatch)
     emit_event({
@@ -190,6 +194,22 @@ def invoke(
                 from abx.doctor import run_doctor
 
                 result = run_doctor(payload)
+            elif rune_id == "weather.generate":
+                from abraxas.runes.handlers.weather_generate import generate_weather
+
+                result = generate_weather(payload)
+            elif rune_id == "ser.run":
+                from abraxas.runes.handlers.ser_run import run_scenario_envelope
+
+                result = run_scenario_envelope(payload)
+            elif rune_id == "daemon.ingest":
+                from abraxas.runes.handlers.daemon_ingest import ingest_daemon_plan
+
+                result = ingest_daemon_plan(payload)
+            elif rune_id == "edge.deploy_orin":
+                from abraxas.runes.handlers.edge_deploy_orin import plan_edge_deploy
+
+                result = plan_edge_deploy(payload)
             elif rune_id == "compression.detect":
                 # Use capability contract
                 ctx = RuneInvocationContext(
@@ -212,9 +232,14 @@ def invoke(
 
                 result = apply(payload)
             else:
-                raise NotImplementedError(
-                    f"Rune wired but not yet routed: {rune_id}"
-                )
+                result = {
+                    "not_computable": {
+                        "reason": "rune wired but not yet routed",
+                        "reason_code": "kernel_route_missing",
+                        "rune_id": rune_id,
+                    },
+                    "status": "not_computable",
+                }
     except Exception as dispatch_error:
         # Runtime telemetry: invocation failed
         end_ns = time.time_ns()

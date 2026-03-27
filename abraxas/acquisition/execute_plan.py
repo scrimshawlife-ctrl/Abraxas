@@ -66,6 +66,7 @@ def execute_plan(
                 "plan_id": plan.plan_id,
                 "step_id": output.get("step_id"),
                 "acquisition_method": output.get("method"),
+                "reason_code": output.get("reason_code"),
             },
         )
         packets.append(packet)
@@ -112,7 +113,12 @@ def _execute_unit(
             return WorkResult(
                 unit_id=unit.unit_id,
                 key=unit.key,
-                output_refs={"skipped": True, "step_id": step_id, "url": url},
+                output_refs={
+                    "skipped": True,
+                    "step_id": step_id,
+                    "url": url,
+                    "reason_code": "offline_cache_miss",
+                },
                 bytes_processed=0,
                 stage=unit.stage,
             )
@@ -122,6 +128,7 @@ def _execute_unit(
             output_refs={
                 "cache_ref": cached.raw_ref.to_dict(),
                 "method": "cache_only",
+                "reason_code": "offline_cache_only_policy",
                 "content_type": cached.content_type,
                 "step_id": step_id,
                 "url": url,

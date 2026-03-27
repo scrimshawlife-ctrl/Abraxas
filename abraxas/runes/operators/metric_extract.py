@@ -22,8 +22,6 @@ class MetricExtractResult(BaseModel):
 
 def apply_metric_extract(packets: List[Dict[str, Any]], *, strict_execution: bool = False) -> Dict[str, Any]:
     if packets is None:
-        if strict_execution:
-            raise NotImplementedError("METRIC_EXTRACT requires packets")
         provenance = {
             "inputs_hash": sha256_hex(canonical_json([])),
             "metrics_hash": sha256_hex(canonical_json([])),
@@ -33,6 +31,8 @@ def apply_metric_extract(packets: List[Dict[str, Any]], *, strict_execution: boo
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["packets"],
+                "reason_code": "missing_packets",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

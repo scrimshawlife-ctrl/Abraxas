@@ -1,7 +1,7 @@
 # Notion ↔ Repo Execution Plan (Remaining Coding Tasks)
 
 Date: 2026-03-27 (UTC)
-Status: initiated
+Status: wave_4_completed
 
 ## ALIGN — repo-vs-notion reality check
 
@@ -13,10 +13,10 @@ Status: initiated
 
 2. **Stub surface exists, but concentrated and classifiable**
    - `python scripts/scan_stubs.py --write` refreshed `tools/stub_index.json`.
-   - Current scanner output: 23 P1 markers total, concentrated in:
-     - Rune operators (18)
+   - Current scanner output: 4 P1 markers total, concentrated in:
+     - Rune operators (0)
      - Interfaces/abstract contracts (2)
-     - Other explicit NotImplemented surfaces (3)
+     - Other explicit NotImplemented surfaces (2)
 
 3. **Online source stack is partially live, partially fallback-oriented**
    - `abx/online_sourcing.py` already builds deterministic Decodo request envelopes and has direct-http/search/rss fallback routing.
@@ -68,6 +68,22 @@ Status: initiated
 - Ran inventory report to verify current notion checklist pressure surface.
 - Refreshed stub index (`tools/stub_index.json`) from live repository scan.
 - Established phased execution sequence above and set status to **initiated**.
+- Added resolver transport outcome semantics (`executed_live`, `executed_fallback`, `blocked_policy`) for Notion parity.
+- Added Decodo capability envelope (`online_allowed`, `decodo_available`) to keep sourcing/resolver capability checks aligned.
+- Added `scripts/build_stub_taxonomy_artifact.py` and emitted `docs/artifacts/notion_stub_taxonomy.json` (Wave 1 taxonomy artifact).
+- Added regression tests for Decodo outcome semantics and taxonomy classification.
+- Wave 2 advance: manifest discovery now supports explicit `cache_only_mode` policy gating with provenance reason codes.
+- Wave 2 advance: default manifest retrieval path now prefers live bulk fetch and only falls back to cache on bulk failure.
+- Wave 2 advance: offline execute-plan packets now stamp explicit cache-only policy reason codes.
+- Wave 3 advance: burned down strict missing-input operator gaps for NO_CAUSAL_ASSERT / NO_DOMAIN_PRIOR / PROVENANCE_SEAL / TEMPORAL_NORMALIZE / TVM_FRAME with deterministic `not_computable_detail` envelopes.
+- Wave 3 advance: refreshed `tools/stub_index.json` and reduced tracked stubs from 23 to 18.
+- Wave 4 advance: emitted deterministic Notion sync artifact `docs/artifacts/notion_sync_status.json` from repo evidence.
+- Wave 4 advance: additional operator-gap burn-down reduced tracked stubs from 18 to 11 and refreshed sync artifacts.
+- Wave 4 advance: documentation + strict-envelope refinements reduced tracked stubs from 11 to 6.
+- Wave 4 advance: acquisition-layer strict-mode envelopes removed final operator stub marker; tracked stubs now 5.
+- Wave 4 advance: taxonomy classifier now treats detector/narrative abstract base stubs as intentional abstractions; implementation-gap count reduced to 1.
+- Wave 4 advance: kernel unrouted fallback moved to deterministic not_computable envelope and wired additional handlers; tracked stubs now 4.
+- Wave 4 completion: sync artifact now auto-resolves `status.wave` to `wave_4_completed` when actionable implementation/policy gaps are zero.
 
 ## SEAL
 
