@@ -8,7 +8,7 @@ from server.abraxas.upgrade_spine.types import UpgradeCandidate
 from server.abraxas.upgrade_spine.utils import (
     compute_candidate_id,
     not_computable_payload,
-    patch_plan_stub,
+    build_patch_plan,
     read_json,
     stable_input_hash,
     utc_now_iso,
@@ -27,7 +27,10 @@ def collect_drift_candidates(base_path: Path) -> List[UpgradeCandidate]:
             "source_loop": "drift",
             "change_type": "thresholds",
             "target_paths": [],
-            "patch_plan": patch_plan_stub(notes=["drift_missing"]),
+            "patch_plan": build_patch_plan(
+                operations=[{"op": "collect_drift_report", "path": str(drift_path)}],
+                notes=["drift_missing"],
+            ),
             "evidence_refs": [],
             "constraints": {"drift_gate_required": True},
             "not_computable": missing,
@@ -51,7 +54,16 @@ def collect_drift_candidates(base_path: Path) -> List[UpgradeCandidate]:
         ]
 
     report = read_json(drift_path)
-    patch_plan = patch_plan_stub(notes=["drift_report_reference"])
+    patch_plan = build_patch_plan(
+        operations=[
+            {
+                "op": "tune_drift_thresholds",
+                "schema_version": report.get("schema_version"),
+                "alert_count": len(report.get("alerts", [])),
+            }
+        ],
+        notes=["drift_report_reference"],
+    )
     candidate_payload = {
         "source_loop": "drift",
         "change_type": "thresholds",

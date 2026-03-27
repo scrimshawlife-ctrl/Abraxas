@@ -175,6 +175,10 @@ def decompress_bytes(compressed_bytes: bytes, codec: Codec) -> bytes:
         try:
             import zstandard as zstd
         except ImportError:
+            # Compression path already falls back to gzip when zstd is unavailable.
+            # If bytes are gzip-framed, decode with gzip for compatibility.
+            if compressed_bytes.startswith(b"\x1f\x8b"):
+                return gzip.decompress(compressed_bytes)
             raise RuntimeError("zstandard library required for zstd decompression")
 
         decompressor = zstd.ZstdDecompressor()

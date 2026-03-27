@@ -8,7 +8,7 @@ from server.abraxas.upgrade_spine.types import UpgradeCandidate
 from server.abraxas.upgrade_spine.utils import (
     compute_candidate_id,
     not_computable_payload,
-    patch_plan_stub,
+    build_patch_plan,
     pick_paths,
     read_json,
     stable_input_hash,
@@ -20,8 +20,15 @@ def _candidate_from_evogate(path: Path, payload: Dict[str, Any]) -> UpgradeCandi
     run_id = str(payload.get("run_id") or payload.get("pack_id") or "evogate")
     created_at = str(payload.get("ts") or utc_now_iso())
     evidence_refs = [str(path)]
-    patch_plan = patch_plan_stub(
-        notes=["evogate_candidate_policy_reference"]
+    patch_plan = build_patch_plan(
+        operations=[
+            {
+                "op": "apply_candidate_policy_reference",
+                "candidate_policy_path": str(payload.get("candidate_policy_path", "")),
+                "evogate_report": str(path),
+            }
+        ],
+        notes=["evogate_candidate_policy_reference"],
     )
     candidate_payload = {
         "source_loop": "evogate",
@@ -76,7 +83,17 @@ def _candidate_from_evolution(path: Path, payload: Dict[str, Any]) -> UpgradeCan
     constraints = {"no_direct_canon_write": True}
     not_computable = None
     if kind != "param_tweak":
-        patch_plan = patch_plan_stub(notes=["evolution_candidate_ticket_required"])
+        patch_plan = build_patch_plan(
+            operations=[
+                {
+                    "op": "open_implementation_ticket",
+                    "candidate_id": payload.get("candidate_id"),
+                    "kind": kind,
+                    "rationale": payload.get("rationale"),
+                }
+            ],
+            notes=["evolution_candidate_ticket_required"],
+        )
         constraints["requires_implementation_ticket"] = True
         target_paths = ["data/evolution/implementation_tickets"]
         not_computable = not_computable_payload(
@@ -123,7 +140,10 @@ def collect_evogate_candidates(base_path: Path) -> List[UpgradeCandidate]:
             "source_loop": "evogate",
             "change_type": "rules",
             "target_paths": [],
-            "patch_plan": patch_plan_stub(notes=["evogate_missing"]),
+            "patch_plan": build_patch_plan(
+                operations=[{"op": "collect_evogate_reports", "pattern": "out/**/evogate_*.json"}],
+                notes=["evogate_missing"],
+            ),
             "evidence_refs": [],
             "constraints": {"no_direct_canon_write": True},
             "not_computable": missing,

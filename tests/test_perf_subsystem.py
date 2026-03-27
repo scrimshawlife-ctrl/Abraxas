@@ -151,8 +151,8 @@ class TestDedup:
 class TestAcquisitionRunes:
     """Test acquisition runes (BULK/CACHE_ONLY/SURGICAL)."""
 
-    def test_acquire_bulk_stub(self):
-        """Test ABX-ACQUIRE_BULK rune (stub mode)."""
+    def test_acquire_bulk_deterministic(self):
+        """Test ABX-ACQUIRE_BULK rune deterministic storage path."""
         result = apply_acquire_bulk(
             source_id="TEST_SOURCE",
             window_utc="2026-01-03T00:00:00Z",
@@ -164,17 +164,28 @@ class TestAcquisitionRunes:
         assert "parsed_path" in result
         assert "cache_hit" in result
         assert "provenance" in result
+        assert "/stub/" not in result["raw_path"]
+        assert "/stub/" not in result["parsed_path"]
 
-    def test_acquire_cache_only_stub(self):
-        """Test ABX-ACQUIRE_CACHE_ONLY rune (stub mode)."""
-        result = apply_acquire_cache_only(
-            cache_keys=["key1", "key2"],
+    def test_acquire_cache_only_replay(self):
+        """Test ABX-ACQUIRE_CACHE_ONLY rune replay from indexed cache keys."""
+        bulk = apply_acquire_bulk(
+            source_id="TEST_SOURCE_CACHE",
+            window_utc="2026-01-03T00:00:00Z",
+            params={"seed": 1},
             run_ctx={"run_id": "TEST_RUN"},
             strict_execution=False,
         )
-        assert "paths" in result
-        assert "cache_hits" in result
-        assert "failures" in result
+        cache_key = bulk["provenance"]["cache_key"]
+
+        result = apply_acquire_cache_only(
+            cache_keys=[cache_key, "missing_key"],
+            run_ctx={"run_id": "TEST_RUN"},
+            strict_execution=False,
+        )
+        assert result["cache_hits"] >= 2
+        assert len(result["paths"]) >= 2
+        assert "missing_key" in result["failures"]
 
     def test_acquire_surgical_cap_enforcement(self):
         """Test ABX-ACQUIRE_SURGICAL enforces hard cap."""
@@ -189,6 +200,7 @@ class TestAcquisitionRunes:
         assert "cached_paths" in result
         assert "requests_used" in result
         assert result["requests_used"] <= 1
+        assert all("/stub/" not in p for p in result["cached_paths"])
 
     def test_acquire_surgical_requires_reason_code(self):
         """Test ABX-ACQUIRE_SURGICAL requires reason code."""

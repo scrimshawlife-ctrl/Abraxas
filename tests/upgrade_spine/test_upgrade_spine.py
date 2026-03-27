@@ -393,3 +393,56 @@ def test_promote_refuses_if_not_promotable(tmp_path: Path) -> None:
     bundle_dict = finalize_artifact_bundle(artifact_dir, bundle_dict)
     with pytest.raises(ValueError):
         promote_from_bundle(decision, artifact_dir, tmp_path)
+
+
+def test_adapter_patch_plans_missing_inputs_are_actionable(tmp_path: Path) -> None:
+    shadow = collect_shadow_candidates(tmp_path)[0]
+    rent = collect_rent_candidates(tmp_path)[0]
+    drift = collect_drift_candidates(tmp_path)[0]
+    evogate = collect_evogate_candidates(tmp_path)[0]
+
+    assert shadow.patch_plan["operations"][0]["op"] == "collect_shadow_outcomes"
+    assert rent.patch_plan["operations"][0]["op"] == "collect_rent_reports"
+    assert drift.patch_plan["operations"][0]["op"] == "collect_drift_report"
+    assert evogate.patch_plan["operations"][0]["op"] == "collect_evogate_reports"
+
+
+
+def test_adapter_patch_plans_with_inputs_are_live_not_noop(tmp_path: Path) -> None:
+    _write_json(
+        tmp_path / "out" / "reports" / "rent_check_20250101_000000.json",
+        {"passed": False, "failures": ["manifest_missing"], "warnings": []},
+    )
+    _write_json(
+        tmp_path / "out" / "drift_report_v1.json",
+        {"schema_version": "1.0.0", "alerts": [{"id": "a1"}]},
+    )
+    outcomes_path = tmp_path / ".aal" / "ledger" / "outcomes.jsonl"
+    outcomes_path.parent.mkdir(parents=True, exist_ok=True)
+    outcomes_path.write_text(
+        json.dumps({"cycle": 2, "shadow_metrics": {"SEI": 0.2}}) + "\n",
+        encoding="utf-8",
+    )
+    _write_json(
+        tmp_path / "out" / "evogate_run.json",
+        {
+            "run_id": "run-live",
+            "ts": "2025-01-01T00:00:00Z",
+            "candidate_policy_path": "out/policies/candidate_live.json",
+        },
+    )
+
+    shadow = collect_shadow_candidates(tmp_path)[0]
+    rent = collect_rent_candidates(tmp_path)[0]
+    drift = collect_drift_candidates(tmp_path)[0]
+    evogate = collect_evogate_candidates(tmp_path)[0]
+
+    for candidate in [shadow, rent, drift, evogate]:
+        ops = candidate.patch_plan.get("operations", [])
+        assert ops
+        assert all(op.get("op") != "noop" for op in ops)
+
+    assert shadow.patch_plan["operations"][0]["op"] == "review_shadow_summary"
+    assert rent.patch_plan["operations"][0]["op"] == "apply_rent_ruleset_update"
+    assert drift.patch_plan["operations"][0]["op"] == "tune_drift_thresholds"
+    assert evogate.patch_plan["operations"][0]["op"] == "apply_candidate_policy_reference"

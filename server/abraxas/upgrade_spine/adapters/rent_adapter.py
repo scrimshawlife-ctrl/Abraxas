@@ -8,7 +8,7 @@ from server.abraxas.upgrade_spine.types import UpgradeCandidate
 from server.abraxas.upgrade_spine.utils import (
     compute_candidate_id,
     not_computable_payload,
-    patch_plan_stub,
+    build_patch_plan,
     pick_paths,
     read_json,
     stable_input_hash,
@@ -32,7 +32,10 @@ def collect_rent_candidates(base_path: Path) -> List[UpgradeCandidate]:
             "source_loop": "rent",
             "change_type": "rules",
             "target_paths": ["data/rent_manifests"],
-            "patch_plan": patch_plan_stub(notes=["rent_missing"]),
+            "patch_plan": build_patch_plan(
+                operations=[{"op": "collect_rent_reports", "pattern": "out/reports/rent_check_*.json"}],
+                notes=["rent_missing"],
+            ),
             "evidence_refs": [],
             "constraints": {"rent_gate_required": True},
             "not_computable": missing,
@@ -67,7 +70,16 @@ def collect_rent_candidates(base_path: Path) -> List[UpgradeCandidate]:
             missing_inputs=[],
             provenance={"report": str(report_path)},
         )
-    patch_plan = patch_plan_stub(notes=["rent_report_reference"])
+    patch_plan = build_patch_plan(
+        operations=[
+            {
+                "op": "apply_rent_ruleset_update" if issues else "affirm_rent_ruleset",
+                "report_path": str(report_path),
+                "issues": issues,
+            }
+        ],
+        notes=["rent_report_reference"],
+    )
     candidate_payload = {
         "source_loop": "rent",
         "change_type": "rules",

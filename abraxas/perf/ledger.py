@@ -33,8 +33,21 @@ def write_perf_event(event: PerfEvent) -> None:
     ledger_path = get_perf_ledger_path()
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
 
+    if hasattr(event, "model_dump_json"):
+        serialized = event.model_dump_json(exclude_none=True)
+    elif hasattr(event, "model_dump"):
+        payload = event.model_dump()
+        payload = {k: v for k, v in payload.items() if v is not None}
+        serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    elif hasattr(event, "dict"):
+        payload = event.dict()
+        payload = {k: v for k, v in payload.items() if v is not None}
+        serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    else:
+        raise TypeError("Unsupported PerfEvent serialization backend")
+
     with open(ledger_path, "a", encoding="utf-8") as f:
-        f.write(event.model_dump_json(exclude_none=True) + "\n")
+        f.write(serialized + "\n")
 
 
 def read_perf_events(
