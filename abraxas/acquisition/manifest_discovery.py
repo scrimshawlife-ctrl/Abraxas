@@ -13,7 +13,25 @@ from abraxas.acquisition.manifest_parse import (
 )
 from abraxas.acquisition.manifest_schema import ManifestArtifact, ManifestProvenance
 from abraxas.acquisition.perf_ledger import PerfLedger
-from abraxas.acquisition.transport import acquire_bulk, acquire_cache_only, acquire_surgical
+from abraxas.acquisition.reason_codes import (
+    CACHE_POLICY_MANIFEST_PROBE,
+    DECODO_USED,
+    FETCH_FAILED,
+    POLICY_CACHE_ONLY_CACHE_HIT,
+    POLICY_CACHE_ONLY_CACHE_MISS,
+    canonicalize_policy_reason,
+    derive_manifest_reason_code,
+    format_bulk_failed_reason,
+    format_cache_fallback_reason,
+    format_surgical_failed_reason,
+    summarize_reason_codes,
+    summarize_policy_reasons,
+)
+from abraxas.acquisition.transport import (
+    acquire_bulk,
+    acquire_cache_only,
+    acquire_surgical,
+)
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.policy.utp import PortfolioTuningIR
 from abraxas.sources import get_source
@@ -61,12 +79,14 @@ def discover_manifest(
             decodo_remaining,
         )
         if fetch_result is None:
+            failure_reason = reason_code or FETCH_FAILED
             seed_entries.append(
                 {
                     "seed_url": seed,
                     "kind": "UNKNOWN",
                     "urls": [],
-                    "error": reason_code or "fetch_failed",
+                    "error": failure_reason,
+                    "reason_code": failure_reason,
                 }
             )
             continue
@@ -89,6 +109,10 @@ def discover_manifest(
                 "retrieval_method": fetch_result.method,
                 "decodo_used": fetch_result.decodo_used,
                 "reason_code": reason_code,
+                "policy_reason": getattr(fetch_result, "policy_reason", None),
+                "policy_reason_canonical": canonicalize_policy_reason(
+                    getattr(fetch_result, "policy_reason", None)
+                ),
                 "parse_notes": parse_notes,
             }
         )
@@ -103,6 +127,10 @@ def discover_manifest(
                 "method": fetch_result.method,
                 "decodo_used": fetch_result.decodo_used,
                 "reason_code": reason_code,
+                "policy_reason": getattr(fetch_result, "policy_reason", None),
+                "policy_reason_canonical": canonicalize_policy_reason(
+                    getattr(fetch_result, "policy_reason", None)
+                ),
             }
         )
 
@@ -114,6 +142,8 @@ def discover_manifest(
     manifest_metadata = {
         "seed_manifests": seed_entries,
         "seed_count": len(seed_entries),
+        "reason_summary": summarize_reason_codes([entry.get("reason_code") for entry in seed_entries]),
+        "policy_summary": summarize_policy_reasons([entry.get("policy_reason") for entry in seed_entries]),
     }
 
     parsed_ref = cas_store.store_json(
@@ -174,11 +204,15 @@ def _fetch_seed(
     allow_decodo: bool,
     decodo_remaining: int,
 ) -> Tuple[Any | None, Optional[str]]:
-    cached = acquire_cache_only(url=seed, cas_store=cas_store)
+    cached = acquire_cache_only(
+        url=seed,
+        cas_store=cas_store,
+        policy_reason=CACHE_POLICY_MANIFEST_PROBE,
+    )
     if cache_only_mode:
         if cached:
-            return cached, "policy_cache_only_cache_hit"
-        return None, "policy_cache_only_cache_miss"
+            return cached, POLICY_CACHE_ONLY_CACHE_HIT
+        return None, POLICY_CACHE_ONLY_CACHE_MISS
     try:
         result = acquire_bulk(
             url=seed,
@@ -189,10 +223,10 @@ def _fetch_seed(
         )
         return result, None
     except Exception as exc:
-        bulk_reason = f"bulk_failed:{type(exc).__name__}"
+        bulk_reason = format_bulk_failed_reason(exc)
 
     if cached:
-        return cached, f"cache_fallback_after_{bulk_reason}"
+        return cached, format_cache_fallback_reason(bulk_reason)
 
     if allow_decodo and decodo_remaining > 0:
         try:
@@ -203,9 +237,9 @@ def _fetch_seed(
                 cas_store=cas_store,
                 recorded_at_utc=run_ctx.get("now_utc"),
             )
-            return result, "decodo"
+            return result, DECODO_USED
         except Exception as exc:
-            return None, f"surgical_failed:{type(exc).__name__}:{bulk_reason}"
+            return None, format_surgical_failed_reason(exc, bulk_reason)
 
     return None, bulk_reason
 
@@ -266,16 +300,4 @@ def _derive_retrieval_method(seed_entries: List[Dict[str, Any]]) -> str:
 
 def _derive_reason_code(seed_entries: List[Dict[str, Any]]) -> Optional[str]:
     reason_codes = [str(entry.get("reason_code")) for entry in seed_entries if entry.get("reason_code")]
-    if not reason_codes:
-        return None
-    if all(code.startswith("policy_cache_only_") for code in reason_codes):
-        return "policy_cache_only"
-    if any(code.startswith("surgical_failed:") for code in reason_codes):
-        return "surgical_failed"
-    if any(code.startswith("bulk_failed:") for code in reason_codes):
-        return "bulk_failed"
-    if any("cache_fallback_after_bulk_failed" in code for code in reason_codes):
-        return "cache_fallback_after_bulk_failed"
-    if any(code == "cache_hit" for code in reason_codes):
-        return "cache_hit"
-    return reason_codes[0]
+    return derive_manifest_reason_code(reason_codes)

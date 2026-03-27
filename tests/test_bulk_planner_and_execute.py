@@ -6,6 +6,7 @@ from abraxas.acquisition.bulk_planner import build_bulk_plan
 from abraxas.acquisition.execute_plan import execute_plan
 from abraxas.acquisition.manifest_schema import ManifestArtifact, ManifestProvenance
 from abraxas.acquisition.plan_schema import BulkPullPlan, PlanStep
+from abraxas.acquisition.reason_codes import CACHE_POLICY_OFFLINE_ONLY
 from abraxas.policy.utp import PortfolioTuningIR, UBVBudgets
 from abraxas.storage.cas import CASStore
 
@@ -80,7 +81,7 @@ def test_execute_plan_offline_cache_only(tmp_path: Path) -> None:
     )
     assert len(result.packets) == 1
     assert result.packets[0].provenance.get("acquisition_method") == "cache_only"
-    assert result.packets[0].provenance.get("reason_code") == "offline_cache_only_policy"
+    assert result.packets[0].provenance.get("reason_code") == CACHE_POLICY_OFFLINE_ONLY
 
 
 def test_execute_plan_offline_cache_miss_skips(tmp_path: Path) -> None:

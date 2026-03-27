@@ -5,17 +5,30 @@ from typing import Any, Dict, Tuple
 
 from ..io.config import OverlaysConfig, UserConfig
 
+_ALLOWED_STUB_SCOPES = {"test", "dev"}
+
 
 def _stub_allowed() -> bool:
     return os.getenv("ABRAXAS_ALLOW_STUB_ORACLE", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _stub_scope() -> str:
+    return os.getenv("ABRAXAS_STUB_ORACLE_SCOPE", "").strip().lower()
+
+
+def _stub_scope_allowed() -> bool:
+    return _stub_scope() in _ALLOWED_STUB_SCOPES
+
+
 def _enforce_stub_gate() -> None:
-    if _stub_allowed():
+    if _stub_allowed() and _stub_scope_allowed():
         return
+    scope = _stub_scope() or "<unset>"
+    allowed = "|".join(sorted(_ALLOWED_STUB_SCOPES))
     raise RuntimeError(
         "stub_oracle_engine is disabled by default. "
-        "Set ABRAXAS_ALLOW_STUB_ORACLE=1 for explicit test/fallback usage."
+        f"Set ABRAXAS_ALLOW_STUB_ORACLE=1 and ABRAXAS_STUB_ORACLE_SCOPE={allowed} "
+        f"for explicit bounded usage (current scope: {scope})."
     )
 
 

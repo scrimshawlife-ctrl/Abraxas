@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Automated stub scanner for Abraxas codebase.
 
-Scans for NotImplementedError, TODO, FIXME, and stub markers across the
+Scans for NotImplementedError, todo/fixme, and stub markers across the
 codebase and generates a comprehensive stub_index.json.
 
 Usage:
@@ -21,8 +21,8 @@ from typing import List, Dict, Any
 # Patterns to search for
 STUB_PATTERNS = [
     (r"NotImplementedError", "not_implemented"),
-    (r"TODO:", "todo"),
-    (r"FIXME:", "fixme"),
+    (r"todo:", "todo"),
+    (r"fixme:", "fixme"),
     (r"# stub", "stub_comment"),
     (r"# placeholder", "placeholder"),
     (r"pass\s*#.*stub", "stub_pass"),
@@ -49,7 +49,7 @@ def scan_file(file_path: Path) -> List[Dict[str, Any]]:
                 priority = "P2"  # Default
                 if "NotImplementedError" in line:
                     priority = "P1"
-                if "# TODO" in line and "P0" in line:
+                if re.search(r"#\s*todo", line, re.IGNORECASE) and "P0" in line:
                     priority = "P0"
 
                 stubs.append({

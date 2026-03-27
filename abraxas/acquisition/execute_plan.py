@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 
 from abraxas.acquisition.perf_ledger import PerfLedger
 from abraxas.acquisition.plan_schema import BulkPullPlan, PlanStep
+from abraxas.acquisition.reason_codes import CACHE_POLICY_OFFLINE_ONLY, OFFLINE_CACHE_MISS
 from abraxas.acquisition.transport import acquire_bulk, acquire_cache_only
 from abraxas.policy.utp import PortfolioTuningIR
 from abraxas.runtime.concurrency import ConcurrencyConfig
@@ -108,7 +109,11 @@ def _execute_unit(
     step_id = unit.input_refs.get("step_id")
     url = unit.input_refs.get("url")
     if offline:
-        cached = acquire_cache_only(url=url, cas_store=cas_store)
+        cached = acquire_cache_only(
+            url=url,
+            cas_store=cas_store,
+            policy_reason=CACHE_POLICY_OFFLINE_ONLY,
+        )
         if cached is None:
             return WorkResult(
                 unit_id=unit.unit_id,
@@ -117,7 +122,7 @@ def _execute_unit(
                     "skipped": True,
                     "step_id": step_id,
                     "url": url,
-                    "reason_code": "offline_cache_miss",
+                    "reason_code": OFFLINE_CACHE_MISS,
                 },
                 bytes_processed=0,
                 stage=unit.stage,
@@ -128,7 +133,7 @@ def _execute_unit(
             output_refs={
                 "cache_ref": cached.raw_ref.to_dict(),
                 "method": "cache_only",
-                "reason_code": "offline_cache_only_policy",
+                "reason_code": cached.policy_reason or CACHE_POLICY_OFFLINE_ONLY,
                 "content_type": cached.content_type,
                 "step_id": step_id,
                 "url": url,
