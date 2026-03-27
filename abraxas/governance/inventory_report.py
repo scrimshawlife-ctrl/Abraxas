@@ -7,15 +7,19 @@ Deterministic, read-only governance inventory for runes and overlays.
 from __future__ import annotations
 
 import ast
+import importlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-try:
-    import yaml  # type: ignore
-except ImportError:  # pragma: no cover - environment-specific dependency
-    yaml = None
+yaml = None
+for module_name in ("yaml", "vendor.pyyaml.yaml"):
+    try:
+        yaml = importlib.import_module(module_name)
+        break
+    except ImportError:
+        continue
 
 DEFAULT_CANON_STATE_PATH = Path(".abraxas") / "canon_state.v0.yaml"
 DEFAULT_RUNES_REGISTRY_PATH = Path("abraxas") / "runes" / "registry.json"
@@ -517,10 +521,10 @@ def _rune_numeric_id(rune_id: str) -> int:
     }
     digits: List[str] = []
     for char in rune_id:
-        if char.isdigit():
-            digits.append(char)
-        elif char in subscript_digits:
+        if char in subscript_digits:
             digits.append(subscript_digits[char])
+        elif char.isdigit():
+            digits.append(char)
     if not digits:
         return 10**6
     return int("".join(digits))

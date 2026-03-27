@@ -18,3 +18,10 @@ def test_inventory_report_missing_paths(tmp_path):
     assert "## Runes" in output
     assert "## Overlays" in output
     assert "## Canon metadata coverage" in output
+
+
+def test_inventory_report_orders_subscript_rune_ids_numerically():
+    repo_root = Path(__file__).parent.parent
+    output = build_inventory_report(repo_root=repo_root)
+
+    assert output.index("- ϟ₁ |") < output.index("- ϟ₁₀ |")
