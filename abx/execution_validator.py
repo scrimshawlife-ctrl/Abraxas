@@ -19,6 +19,14 @@ DEFAULT_ARTIFACT_GLOBS = (
     "out/proof_bundles/**/*",
     "out/reports/*",
     "artifacts_seal/**/*",
+    "out/*/manifest.json",
+    "out/*/envelope.json",
+    "out/*/surface.json",
+    "artifacts_seal/run_index/**/*.runindex.json",
+    "artifacts_seal/results/**/*.resultspack.json",
+    "artifacts_seal/viz/**/*.trendpack.json",
+    "artifacts_seal/view/**/*.viewpack.json",
+    "artifacts_seal/runs/*.runheader.json",
 )
 
 CANON_STATUS_BY_INTERNAL = {
@@ -57,6 +65,68 @@ def _read_jsonl(path: Path) -> list[tuple[int, dict[str, Any]]]:
 
 def _canonical_status(status: ExecutionValidationStatus) -> str:
     return CANON_STATUS_BY_INTERNAL.get(status, "ERROR")
+
+
+def _extract_nested_run_id(row: dict[str, Any]) -> str | None:
+    provenance = row.get("provenance")
+    if isinstance(provenance, dict):
+        run_id = provenance.get("run_id") or provenance.get("runId")
+        if isinstance(run_id, str) and run_id:
+            return run_id
+    return None
+
+
+def _row_matches_run_id(row: dict[str, Any], run_id: str) -> bool:
+    direct = (
+        row.get("run_id")
+        or row.get("runId")
+        or row.get("oracle_run_id")
+        or row.get("oracleRunId")
+        or _extract_nested_run_id(row)
+    )
+    return str(direct or "") == run_id
+
+
+def _record_id_for_row(row: dict[str, Any], fallback: str) -> str:
+    rec_id = (
+        row.get("record_id")
+        or row.get("event_id")
+        or row.get("id")
+        or row.get("task_id")
+        or row.get("forecast_id")
+        or row.get("artifact_id")
+        or row.get("artifactId")
+        or row.get("sha256")
+        or fallback
+    )
+    return str(rec_id)
+
+
+def _iter_linked_paths(row: dict[str, Any]) -> list[str]:
+    out: list[str] = []
+    for key in ("refs", "paths", "artifacts"):
+        node = row.get(key)
+        if isinstance(node, dict):
+            for value in node.values():
+                if isinstance(value, str) and value:
+                    out.append(value)
+                elif isinstance(value, dict):
+                    path_value = value.get("path")
+                    if isinstance(path_value, str) and path_value:
+                        out.append(path_value)
+        elif isinstance(node, list):
+            for value in node:
+                if isinstance(value, str) and value:
+                    out.append(value)
+    return out
+
+
+def _read_json_file(path: Path) -> dict[str, Any] | None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
 
 
 def to_canon_artifact(
@@ -103,27 +173,35 @@ def find_run_evidence(
     for pattern in ledger_globs:
         for ledger_path in sorted(base_dir.glob(pattern)):
             for line_no, row in _read_jsonl(ledger_path):
-                if str(row.get("run_id", "")) != run_id:
+                if not _row_matches_run_id(row, run_id):
                     continue
-                rec_id = (
-                    row.get("record_id")
-                    or row.get("event_id")
-                    or row.get("id")
-                    or row.get("sha256")
-                    or f"{ledger_path.name}:{line_no}"
-                )
-                ledger_record_ids.append(str(rec_id))
-                if row.get("artifact_id"):
-                    ledger_artifact_ids.append(str(row["artifact_id"]))
+                rec_id = _record_id_for_row(row, f"{ledger_path.name}:{line_no}")
+                ledger_record_ids.append(rec_id)
+                if row.get("artifact_id") or row.get("artifactId"):
+                    ledger_artifact_ids.append(str(row.get("artifact_id") or row.get("artifactId")))
+                for linked in _iter_linked_paths(row):
+                    ledger_artifact_ids.append(Path(linked).name)
                 correlation_pointers.append(f"{ledger_path.as_posix()}:{line_no}")
 
     for pattern in artifact_globs:
         for path in sorted(base_dir.glob(pattern)):
             if not path.is_file():
                 continue
-            if run_id in path.name or run_id in path.as_posix():
-                ledger_artifact_ids.append(path.name)
-                correlation_pointers.append(path.as_posix())
+            payload = _read_json_file(path) if path.suffix.lower() == ".json" else None
+            payload_match = bool(payload and _row_matches_run_id(payload, run_id))
+            path_match = run_id in path.name or run_id in path.as_posix()
+            if not payload_match and not path_match:
+                continue
+
+            artifact_id = None
+            if payload:
+                artifact_id = payload.get("artifact_id") or payload.get("artifactId")
+            ledger_artifact_ids.append(str(artifact_id) if artifact_id else path.name)
+            correlation_pointers.append(path.as_posix())
+
+            if payload:
+                for linked in _iter_linked_paths(payload):
+                    ledger_artifact_ids.append(Path(linked).name)
 
     # Deduplicate deterministically.
     ledger_record_ids = sorted(set(ledger_record_ids))

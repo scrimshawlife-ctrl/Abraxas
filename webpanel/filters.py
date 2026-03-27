@@ -83,6 +83,16 @@ def get_effective_evidence_state(run: Any) -> str:
     return "missing"
 
 
+def get_execution_validation_state(run: Any) -> str:
+    payload = getattr(run, "execution_validation", None)
+    if not isinstance(payload, dict):
+        return "unknown"
+    status = str(payload.get("status", "")).strip().upper()
+    if not status:
+        return "unknown"
+    return status
+
+
 def _run_sort_key_signal(run: Any) -> str:
     signal = getattr(run, "signal", None)
     if signal is None:
@@ -129,6 +139,7 @@ def parse_filter_params(params: Mapping[str, Any]) -> Dict[str, Any]:
     lane = _get("lane")
     drift_class = _get("drift_class")
     evidence = _get("evidence")
+    execution_validation = _get("execution_validation")
     flags = _parse_flags_param(params)
 
     return {
@@ -137,6 +148,7 @@ def parse_filter_params(params: Mapping[str, Any]) -> Dict[str, Any]:
         "lane": lane,
         "drift_class": drift_class,
         "evidence": evidence,
+        "execution_validation": execution_validation,
         "flags": flags,
         "flag_input": ", ".join(flags),
     }
@@ -149,6 +161,7 @@ def filter_runs(runs: List[Any], params: Mapping[str, Any]) -> List[Any]:
     lane = parsed["lane"]
     drift_class = parsed["drift_class"]
     evidence = parsed["evidence"]
+    execution_validation = parsed["execution_validation"]
     required_flags = parsed["flags"]
 
     filtered: List[Any] = []
@@ -175,6 +188,10 @@ def filter_runs(runs: List[Any], params: Mapping[str, Any]) -> List[Any]:
                 continue
             if get_effective_evidence_state(run) != evidence:
                 continue
+        if execution_validation != "any":
+            state = get_execution_validation_state(run).lower()
+            if state != execution_validation.lower():
+                continue
         filtered.append(run)
 
     return sort_runs_deterministically(filtered)
@@ -194,4 +211,5 @@ def build_run_view(run: Any) -> Dict[str, Any]:
         "lane": get_effective_lane(run),
         "has_oracle": bool(oracle),
         "drift_class": get_effective_drift_class(run),
+        "execution_validation": get_execution_validation_state(run),
     }

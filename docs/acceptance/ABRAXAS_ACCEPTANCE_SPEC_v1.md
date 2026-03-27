@@ -296,7 +296,7 @@ Abraxas is doing its job.
 1. **Block release**: Do not proceed with deployment
 2. **Emit drift report**: Generate `drift_report_v1` artifact
 3. **Classify cause**: Apply F1 classification taxonomy
-4. **Log to ledger**: Append to `out/ledger/acceptance_failures.jsonl`
+4. **Log to ledger**: Append to canonical `out/ledger/acceptance_failures.jsonl` (and mirror to `out/acceptance/acceptance_failures.jsonl` when `--output out/acceptance` is used)
 
 ### Drift Report Example
 

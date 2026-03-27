@@ -188,6 +188,16 @@
         </select>
       </div>
       <div>
+        <label>execution_validation</label>
+        <select name="execution_validation" style="width:100%;">
+          <option value="any" {% if filters.execution_validation == "any" %}selected{% endif %}>any</option>
+          <option value="VALID" {% if filters.execution_validation == "VALID" %}selected{% endif %}>VALID</option>
+          <option value="INVALID" {% if filters.execution_validation == "INVALID" %}selected{% endif %}>INVALID</option>
+          <option value="ERROR" {% if filters.execution_validation == "ERROR" %}selected{% endif %}>ERROR</option>
+          <option value="unknown" {% if filters.execution_validation == "unknown" %}selected{% endif %}>unknown</option>
+        </select>
+      </div>
+      <div>
         <label>flag contains (comma-separated)</label>
         <input type="text" name="flag" value="{{ filters.flag_input }}" style="width:100%;" placeholder="evidence_missing, suppression"/>
       </div>
@@ -210,6 +220,7 @@
           {% if r.has_oracle %}
             <span class="badge">oracle</span>
           {% endif %}
+          <span class="badge">exec {{ r.execution_validation }}</span>
           - phase {{ r.phase }}
           <span class="badge">drift {{ r.drift_class }}</span>
           {% if r.pause_required %}

@@ -502,16 +502,30 @@ class AcceptanceTestSuite:
             }
         }
 
-        # Write to ledger
-        ledger_path = self.output_dir / "acceptance_failures.jsonl"
-        with open(ledger_path, "a") as f:
-            f.write(json.dumps(drift_report, sort_keys=True) + "\n")
+        ledger_paths = self._ledger_paths()
+        drift_report["metadata"]["ledger_paths"] = [path.as_posix() for path in ledger_paths]
+        self._append_failure_ledger(drift_report, ledger_paths)
 
         changes = [
             {"pointer": path, "before": None, "after": None}
             for path in test_result.details.get("diff_paths", [])
         ]
         emit_drift_on_failure(self.output_dir, envelopes, changes)
+
+    def _ledger_paths(self) -> List[Path]:
+        canonical_ledger = Path("out") / "ledger" / "acceptance_failures.jsonl"
+        local_ledger = self.output_dir / "acceptance_failures.jsonl"
+        if local_ledger == canonical_ledger:
+            return [canonical_ledger]
+        return [canonical_ledger, local_ledger]
+
+    def _append_failure_ledger(self, drift_report: Dict[str, Any], ledger_paths: List[Path]) -> None:
+        """Append drift report entries to canonical and local acceptance ledgers."""
+        record = json.dumps(drift_report, sort_keys=True) + "\n"
+        for ledger_path in ledger_paths:
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(ledger_path, "a") as handle:
+                handle.write(record)
 
     def _compute_overall_result(self) -> AcceptanceSuiteResult:
         """Compute overall acceptance suite result."""
