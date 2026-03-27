@@ -1,0 +1,109 @@
+{
+  "repo_root": "/workspace/Abraxas",
+  "schema": "TodoMarkerScan.v0",
+  "top_files": [
+    {
+      "first_hit_line": 2,
+      "fixme": 3,
+      "path": "scripts/scan_todo_markers.py",
+      "todo": 11,
+      "total": 14
+    },
+    {
+      "first_hit_line": 1,
+      "fixme": 0,
+      "path": "docs/artifacts/todo_audit_2026-03-27.md",
+      "todo": 11,
+      "total": 11
+    },
+    {
+      "first_hit_line": 43,
+      "fixme": 0,
+      "path": "docs/MERGE_CONFLICT_ANALYSIS.md",
+      "todo": 7,
+      "total": 7
+    },
+    {
+      "first_hit_line": 1,
+      "fixme": 0,
+      "path": "docs/artifacts/todo_handling_plan_2026-03-27.md",
+      "todo": 7,
+      "total": 7
+    },
+    {
+      "first_hit_line": 151,
+      "fixme": 0,
+      "path": "CLAUDE.md",
+      "todo": 4,
+      "total": 4
+    },
+    {
+      "first_hit_line": 4,
+      "fixme": 0,
+      "path": "Makefile",
+      "todo": 4,
+      "total": 4
+    },
+    {
+      "first_hit_line": 4,
+      "fixme": 1,
+      "path": "scripts/scan_stubs.py",
+      "todo": 3,
+      "total": 4
+    },
+    {
+      "first_hit_line": 8,
+      "fixme": 0,
+      "path": "scripts/run_large_chunk_plan.py",
+      "todo": 3,
+      "total": 3
+    },
+    {
+      "first_hit_line": 9,
+      "fixme": 1,
+      "path": "tests/test_scan_todo_markers.py",
+      "todo": 2,
+      "total": 3
+    },
+    {
+      "first_hit_line": 7,
+      "fixme": 0,
+      "path": "docs/artifacts/wave6_large_chunk_execution_plan_2026-03-27.md",
+      "todo": 2,
+      "total": 2
+    },
+    {
+      "first_hit_line": 187,
+      "fixme": 0,
+      "path": "vendor/pyyaml/yaml/scanner.py",
+      "todo": 2,
+      "total": 2
+    },
+    {
+      "first_hit_line": 16,
+      "fixme": 0,
+      "path": "docs/artifacts/wave6_chunk_execution_report.json",
+      "todo": 1,
+      "total": 1
+    },
+    {
+      "first_hit_line": 12,
+      "fixme": 0,
+      "path": "docs/notion_execution_plan_2026-03-27.md",
+      "todo": 1,
+      "total": 1
+    },
+    {
+      "first_hit_line": 472,
+      "fixme": 0,
+      "path": "docs/work_sessions/abx_runes_session_2026_01_07.md",
+      "todo": 1,
+      "total": 1
+    }
+  ],
+  "totals": {
+    "files_with_markers": 14,
+    "fixme": 5,
+    "todo": 59
+  }
+}
