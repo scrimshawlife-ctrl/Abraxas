@@ -16,9 +16,43 @@ NO CROSS-REPO IMPORTS:
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+import hashlib
 
 from abraxas.core.provenance import canonical_envelope
 from abraxas.overlay.run import check_overlay_available, invoke_overlay
+
+
+def _deterministic_symbolic_fallback(
+    prompt: str,
+    context: dict,
+    seed: Optional[int],
+) -> Dict[str, Any]:
+    """Generate deterministic symbolic output when overlay is unavailable."""
+    normalized_prompt = " ".join(prompt.strip().split())
+    tokens = [tok for tok in normalized_prompt.lower().split(" ") if tok]
+    motifs = sorted({tok.strip(".,!?;:") for tok in tokens if len(tok) >= 4})[:4]
+
+    seed_material = {
+        "prompt": normalized_prompt,
+        "context": context,
+        "seed": seed,
+    }
+    digest = hashlib.sha256(str(seed_material).encode("utf-8")).hexdigest()
+    resonance = int(digest[:8], 16) / 0xFFFFFFFF
+
+    glyph = f"NG-{digest[:10].upper()}"
+    line = motifs[0] if motifs else "signal"
+    text = f"{glyph}::{line}"
+
+    return {
+        "text": text,
+        "glyph": glyph,
+        "motifs": motifs,
+        "resonance": round(resonance, 6),
+        "seed": seed,
+        "mode": context.get("mode", "symbolic"),
+        "source": "deterministic_fallback",
+    }
 
 
 def generate_symbolic_v0(
@@ -62,6 +96,8 @@ def generate_symbolic_v0(
             "metadata": {"no_influence": True, "lane": "OBSERVATION"}
         }
 
+    fallback_mode = False
+
     # Invoke through overlay runtime (external call, no cross-repo imports)
     try:
         generated_output = _invoke_neon_genie_overlay(
@@ -70,30 +106,12 @@ def generate_symbolic_v0(
             config=config,
             seed=seed
         )
-
         if generated_output is None:
-            # Overlay not available or returned None
-            return {
-                "generated_output": None,
-                "not_computable": {
-                    "reason": "Neon-Genie overlay not yet integrated (stub mode)",
-                    "missing_inputs": []
-                },
-                "provenance": None,
-                "metadata": {"no_influence": True, "lane": "OBSERVATION"}
-            }
-
-    except Exception as e:
-        # Not computable - return structured error
-        return {
-            "generated_output": None,
-            "not_computable": {
-                "reason": f"Neon-Genie invocation failed: {str(e)}",
-                "missing_inputs": []
-            },
-            "provenance": None,
-            "metadata": {"no_influence": True, "lane": "OBSERVATION"}
-        }
+            generated_output = _deterministic_symbolic_fallback(prompt, context, seed)
+            fallback_mode = True
+    except Exception:
+        generated_output = _deterministic_symbolic_fallback(prompt, context, seed)
+        fallback_mode = True
 
     # Wrap in canonical envelope
     envelope = canonical_envelope(
@@ -113,7 +131,8 @@ def generate_symbolic_v0(
             "no_influence": True,
             "lane": "OBSERVATION",
             "artifact_only": True,
-            "generation_mode": context.get("mode", "symbolic")
+            "generation_mode": context.get("mode", "symbolic"),
+            "overlay_mode": "fallback" if fallback_mode else "live"
         }
     }
 

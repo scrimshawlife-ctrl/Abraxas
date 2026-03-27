@@ -39,33 +39,33 @@ def test_generate_symbolic_v0_missing_prompt() -> None:
 
 
 def test_generate_symbolic_v0_overlay_not_available() -> None:
-    """Test graceful failure when overlay runtime not available."""
-    # Mock the internal stub to return None (overlay not available)
+    """Test deterministic fallback when overlay runtime not available."""
     with patch("abraxas.aal.neon_genie_adapter._invoke_neon_genie_overlay", return_value=None):
         result = generate_symbolic_v0(
             prompt="Generate a symbolic representation of truth",
             seed=42
         )
 
-    assert result["generated_output"] is None
-    assert result["not_computable"] is not None
-    assert "stub mode" in result["not_computable"]["reason"].lower()
+    assert result["generated_output"] is not None
+    assert result["generated_output"]["source"] == "deterministic_fallback"
+    assert result["not_computable"] is None
     assert result["metadata"]["no_influence"] is True
+    assert result["metadata"]["overlay_mode"] == "fallback"
 
 
 def test_generate_symbolic_v0_overlay_invocation_error() -> None:
-    """Test graceful failure when overlay invocation raises exception."""
-    # Mock the internal stub to raise an exception
+    """Test fallback path when overlay invocation raises exception."""
     with patch("abraxas.aal.neon_genie_adapter._invoke_neon_genie_overlay", side_effect=RuntimeError("Overlay error")):
         result = generate_symbolic_v0(
             prompt="Generate a symbolic representation of truth",
             seed=42
         )
 
-    assert result["generated_output"] is None
-    assert result["not_computable"] is not None
-    assert "Neon-Genie invocation failed" in result["not_computable"]["reason"]
+    assert result["generated_output"] is not None
+    assert result["generated_output"]["source"] == "deterministic_fallback"
+    assert result["not_computable"] is None
     assert result["metadata"]["no_influence"] is True
+    assert result["metadata"]["overlay_mode"] == "fallback"
 
 
 def test_generate_symbolic_v0_successful_generation() -> None:
@@ -93,6 +93,7 @@ def test_generate_symbolic_v0_successful_generation() -> None:
     assert result["metadata"]["no_influence"] is True
     assert result["metadata"]["lane"] == "OBSERVATION"
     assert result["metadata"]["artifact_only"] is True
+    assert result["metadata"]["overlay_mode"] == "live"
 
 
 def test_generate_symbolic_v0_golden_provenance() -> None:

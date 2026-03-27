@@ -60,9 +60,18 @@ def not_computable_payload(reason: str, missing_inputs: Iterable[str], provenanc
     }
 
 
-def patch_plan_stub(notes: Optional[List[str]] = None) -> Dict[str, Any]:
-    return {
+def build_patch_plan(
+    *,
+    operations: List[Dict[str, Any]],
+    notes: Optional[List[str]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    payload = {
         "format_version": "0.1",
-        "operations": [],
+        "operations": operations,
         "notes": notes or [],
+        "metadata": metadata or {},
     }
+    payload["plan_id"] = compute_candidate_id(payload)
+    return payload
+

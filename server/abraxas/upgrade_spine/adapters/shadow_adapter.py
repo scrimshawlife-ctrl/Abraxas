@@ -8,7 +8,7 @@ from server.abraxas.upgrade_spine.types import UpgradeCandidate
 from server.abraxas.upgrade_spine.utils import (
     compute_candidate_id,
     not_computable_payload,
-    patch_plan_stub,
+    build_patch_plan,
     read_jsonl,
     stable_input_hash,
     utc_now_iso,
@@ -38,7 +38,10 @@ def collect_shadow_candidates(base_path: Path) -> List[UpgradeCandidate]:
             "source_loop": "shadow",
             "change_type": "thresholds",
             "target_paths": [],
-            "patch_plan": patch_plan_stub(notes=["shadow_missing"]),
+            "patch_plan": build_patch_plan(
+                operations=[{"op": "collect_shadow_outcomes", "ledger_path": str(ledger_path)}],
+                notes=["shadow_missing"],
+            ),
             "evidence_refs": [],
             "constraints": {"shadow_only": True},
             "not_computable": missing,
@@ -64,7 +67,18 @@ def collect_shadow_candidates(base_path: Path) -> List[UpgradeCandidate]:
     entries = read_jsonl(ledger_path)
     summary = _summarize_shadow(entries)
     evidence_refs = [str(ledger_path)]
-    patch_plan = patch_plan_stub(notes=["shadow_summary_reference"])
+    patch_plan = build_patch_plan(
+        operations=[
+            {
+                "op": "review_shadow_summary",
+                "entries": summary.get("entries", 0),
+                "latest_cycle": summary.get("latest_cycle"),
+                "shadow_metrics": summary.get("shadow_metrics", {}),
+            }
+        ],
+        notes=["shadow_summary_reference"],
+        metadata={"evidence_count": len(evidence_refs)},
+    )
     candidate_payload = {
         "source_loop": "shadow",
         "change_type": "thresholds",
