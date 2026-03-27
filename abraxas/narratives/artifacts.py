@@ -12,13 +12,17 @@ Design:
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from abraxas.core.provenance import Provenance
 from abraxas.core.canonical import sha256_hex, canonical_json
+
+if TYPE_CHECKING:
+    from abraxas.narratives.generator import GeneratedNarrative
 
 
 @dataclass(frozen=True)
@@ -117,7 +121,7 @@ class ArtifactPackager:
 
     def package_narrative(
         self,
-        narrative: any,  # GeneratedNarrative
+        narrative: "GeneratedNarrative",
         additional_evidence: Optional[List[str]] = None,
         additional_provenance: Optional[List[Provenance]] = None,
     ) -> EvidenceArtifact:
@@ -167,7 +171,7 @@ class ArtifactPackager:
     def package_comprehensive_report(
         self,
         report_content: str,
-        narratives: List[any],  # List of GeneratedNarrative
+        narratives: List["GeneratedNarrative"],
         run_id: str,
     ) -> EvidenceArtifact:
         """Package comprehensive report as evidence-grade artifact.
@@ -199,7 +203,7 @@ class ArtifactPackager:
         metadata = {
             "run_id": run_id,
             "narrative_count": len(narratives),
-            "narrative_types": list(set(n.narrative_type for n in narratives)),
+            "narrative_types": sorted(set(n.narrative_type for n in narratives)),
             "generated_at_utc": timestamp,
         }
 
@@ -220,7 +224,7 @@ class ArtifactPackager:
         self,
         artifact: EvidenceArtifact,
         output_dir: Path,
-        formats: List[str] = ["json", "md"],
+        formats: Optional[List[str]] = None,
     ) -> Dict[str, Path]:
         """Export artifact to files.
 
@@ -234,22 +238,37 @@ class ArtifactPackager:
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
+        resolved_formats = formats or ["json", "md"]
+        filename_stem = self._build_filename_stem(artifact.artifact_id)
 
         exported = {}
 
         # Export JSON
-        if "json" in formats:
-            json_path = output_dir / f"{artifact.artifact_id}.json"
+        if "json" in resolved_formats:
+            json_path = output_dir / f"{filename_stem}.json"
             json_path.write_text(artifact.to_json(), encoding="utf-8")
             exported["json"] = json_path
 
         # Export Markdown
-        if "md" in formats:
-            md_path = output_dir / f"{artifact.artifact_id}.md"
+        if "md" in resolved_formats:
+            md_path = output_dir / f"{filename_stem}.md"
             md_path.write_text(artifact.to_markdown(), encoding="utf-8")
             exported["md"] = md_path
 
         return exported
+
+    @staticmethod
+    def _sanitize_filename(value: str) -> str:
+        """Normalize artifact IDs into safe filename stems."""
+        safe = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._")
+        return safe or "artifact"
+
+    @staticmethod
+    def _build_filename_stem(artifact_id: str) -> str:
+        """Build deterministic filename stem with hash suffix for collision resistance."""
+        safe = ArtifactPackager._sanitize_filename(artifact_id)
+        suffix = sha256_hex(canonical_json({"artifact_id": artifact_id}))[:8]
+        return f"{safe}-{suffix}"
 
 
 def create_artifact_packager(package_version: str = "1.0.0") -> ArtifactPackager:

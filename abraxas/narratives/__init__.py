@@ -29,6 +29,10 @@ from .artifacts import (
     ArtifactPackager,
     create_artifact_packager,
 )
+from .workflows import (
+    WorkflowResult,
+    build_resonance_narrative_artifacts,
+)
 
 __all__ = [
     # Templates
@@ -43,4 +47,7 @@ __all__ = [
     "EvidenceArtifact",
     "ArtifactPackager",
     "create_artifact_packager",
+    # Workflows
+    "WorkflowResult",
+    "build_resonance_narrative_artifacts",
 ]
