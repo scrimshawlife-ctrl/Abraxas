@@ -13,15 +13,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from abraxas.core.provenance import Provenance
 from abraxas.core.canonical import sha256_hex, canonical_json
+from abraxas.phase.coupling import DriftResonanceCoupling
+from abraxas.phase.detector import PhaseAlignment
+from abraxas.phase.early_warning import PhaseTransitionWarning
 from abraxas.narratives.templates import (
     PhaseTransitionTemplate,
     ResonanceSpikeTemplate,
     CascadeTrajectoryTemplate,
 )
+
+if TYPE_CHECKING:
+    from abraxas.oracle.v2.pipeline import OracleV2Output
 
 
 @dataclass(frozen=True)
@@ -61,9 +67,18 @@ class NarrativeGenerator:
         self._resonance_template = ResonanceSpikeTemplate()
         self._cascade_template = CascadeTrajectoryTemplate()
 
+    @staticmethod
+    def _coerce_observation_count(raw_observation_count: object) -> int:
+        """Convert observation_count input to a safe token count."""
+        if isinstance(raw_observation_count, bool):
+            return 0
+        if isinstance(raw_observation_count, int):
+            return max(0, raw_observation_count)
+        return 0
+
     def generate_phase_transition_narrative(
         self,
-        warning: any,  # PhaseTransitionWarning from early_warning
+        warning: PhaseTransitionWarning,
         run_id: str = "NARRATIVE",
     ) -> GeneratedNarrative:
         """Generate narrative from phase transition warning.
@@ -81,7 +96,8 @@ class NarrativeGenerator:
         evidence_hash = warning.provenance.inputs_hash if warning.provenance else "unknown"
 
         # Count tokens from evidence
-        token_count = len(warning.evidence.get("observation_count", 0))
+        raw_observation_count = warning.evidence.get("observation_count", 0)
+        token_count = self._coerce_observation_count(raw_observation_count)
 
         # Render narrative
         content = self._phase_template.render(
@@ -102,7 +118,7 @@ class NarrativeGenerator:
             config_hash=sha256_hex(canonical_json({"template": "phase_transition_v1"})),
         )
 
-        narrative_id = f"NARR-PHASE-{warning.domain}-{timestamp[:10]}"
+        narrative_id = f"NARR-PHASE-{warning.warning_id}"
 
         return GeneratedNarrative(
             narrative_id=narrative_id,
@@ -116,7 +132,7 @@ class NarrativeGenerator:
 
     def generate_resonance_spike_narrative(
         self,
-        alignment: any,  # PhaseAlignment from detector
+        alignment: PhaseAlignment,
         resonance_score: float,
         run_id: str = "NARRATIVE",
     ) -> GeneratedNarrative:
@@ -153,7 +169,7 @@ class NarrativeGenerator:
             config_hash=sha256_hex(canonical_json({"template": "resonance_spike_v1"})),
         )
 
-        narrative_id = f"NARR-RESONANCE-{'-'.join(sorted(alignment.domains))}-{timestamp[:10]}"
+        narrative_id = f"NARR-RESONANCE-{alignment.alignment_id}"
 
         return GeneratedNarrative(
             narrative_id=narrative_id,
@@ -167,8 +183,8 @@ class NarrativeGenerator:
 
     def generate_cascade_trajectory_narrative(
         self,
-        coupling: any,  # DriftResonanceCoupling from coupling detector
-        warnings: List[any],  # List of PhaseTransitionWarning objects
+        coupling: DriftResonanceCoupling,
+        warnings: List[PhaseTransitionWarning],
         run_id: str = "NARRATIVE",
     ) -> GeneratedNarrative:
         """Generate narrative from drift-resonance coupling.
@@ -216,7 +232,7 @@ class NarrativeGenerator:
             config_hash=sha256_hex(canonical_json({"template": "cascade_trajectory_v1"})),
         )
 
-        narrative_id = f"NARR-CASCADE-{coupling.cascade_risk}-{timestamp[:10]}"
+        narrative_id = f"NARR-CASCADE-{coupling.coupling_id}"
 
         # Collect all evidence hashes
         evidence_hashes = [evidence_hash]
@@ -236,10 +252,10 @@ class NarrativeGenerator:
 
     def generate_comprehensive_report(
         self,
-        oracle_output: any,  # OracleV2Output
-        alignments: List[any],  # PhaseAlignment objects
-        warnings: List[any],  # PhaseTransitionWarning objects
-        couplings: List[any],  # DriftResonanceCoupling objects
+        oracle_output: "OracleV2Output",
+        alignments: List[PhaseAlignment],
+        warnings: List[PhaseTransitionWarning],
+        couplings: List[DriftResonanceCoupling],
         run_id: str = "REPORT",
     ) -> str:
         """Generate comprehensive report from all inputs.
