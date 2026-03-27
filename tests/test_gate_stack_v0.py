@@ -72,6 +72,8 @@ def test_gate_priority_drift_blocked():
     run.session_active = True
     run.session_max_steps = 3
     run.session_steps_used = 1
+    run.agency_enabled = True
+    run.agency_mode = "guided"
     run.oracle_output = _oracle_output("nondeterminism")
     gates = compute_gate_stack(run, "hash_a")
     assert gates[0]["code"] == "drift_blocked"
@@ -84,6 +86,8 @@ def test_gate_priority_quota_exhausted():
     run.session_active = True
     run.session_max_steps = 3
     run.session_steps_used = 0
+    run.agency_enabled = True
+    run.agency_mode = "guided"
     run.deferral_active = True
     run.quota_max_actions = 1
     run.actions_taken = 1

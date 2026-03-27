@@ -48,6 +48,15 @@ from .session_mode import (
     enforce_session,
     start_session,
 )
+from .task_router import PROFILE_LABELS, recommend_profile
+from .agency_toggle import (
+    AgencyGateError,
+    auto_disable_on_policy_change,
+    disable_agency,
+    enable_agency,
+    enforce_agency_enabled,
+)
+from .burst_dry_run import simulate_burst
 from .export_bundle import build_bundle
 from .stability import run_stabilization
 
@@ -59,7 +68,7 @@ from .stability import run_stabilization
 #   export ABX_PANEL_TOKEN="yourtoken"
 #   API clients send header X-ABX-Token: yourtoken
 app = FastAPI(title="ABX-Familiar Web Panel (MVP)", version="0.1.0")
-templates = Jinja2Templates(directory="webpanel/templates")
+_templates_env: Optional[Jinja2Templates] = None
 
 store = InMemoryStore()
 ledger = LedgerChain()
@@ -88,6 +97,20 @@ def _panel_port() -> str:
 
 def _token_enabled() -> bool:
     return bool(_panel_token())
+
+
+def _templates() -> Jinja2Templates:
+    global _templates_env
+    if _templates_env is None:
+        try:
+            import jinja2  # noqa: F401
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "Missing dependency: jinja2. Install Abraxas with webpanel extras: "
+                "pip install 'abraxas[webpanel]'"
+            ) from exc
+        _templates_env = Jinja2Templates(directory="webpanel/templates")
+    return _templates_env
 
 
 def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] = None) -> None:
@@ -195,7 +218,7 @@ def _render_runs_page(request: Request):
     filtered = filter_runs(runs, params)
     run_views = [build_run_view(run) for run in filtered[:50]]
     prev_run_id_prefill = request.query_params.get("prev_run_id")
-    return templates.TemplateResponse(
+    return _templates().TemplateResponse(
         "index.html",
         {
             "request": request,
@@ -289,7 +312,27 @@ def ui_run(request: Request, run_id: str):
             delattr(prev_run, "ledger_events")
         except Exception:
             pass
-    return templates.TemplateResponse(
+    profile_recommendation = recommend_profile(run, prev_run, current_hash)
+    recommended_profile_id = profile_recommendation.get("recommended_profile_id")
+    recommended_profile_label = PROFILE_LABELS.get(
+        recommended_profile_id, recommended_profile_id
+    )
+    profile_options = [
+        {"id": profile_id, "label": PROFILE_LABELS.get(profile_id, profile_id)}
+        for profile_id in sorted(PROFILE_LABELS.keys())
+    ]
+    burst_preview = None
+    burst_requested_n = None
+    if run.agency_mode == "burst":
+        burst_requested_raw = request.query_params.get("burst_n") or "3"
+        try:
+            burst_requested_n = int(burst_requested_raw)
+        except ValueError:
+            burst_requested_n = 3
+        if burst_requested_n < 0:
+            burst_requested_n = 0
+        burst_preview = simulate_burst(run, burst_requested_n)
+    return _templates().TemplateResponse(
         "run.html",
         {
             "request": request,
@@ -316,6 +359,11 @@ def ui_run(request: Request, run_id: str):
             "continuity_summary_lines": continuity_summary_lines,
             "prefs": prefs,
             "show_sections": show_sections,
+            "profile_recommendation": profile_recommendation,
+            "profile_options": profile_options,
+            "recommended_profile_label": recommended_profile_label,
+            "burst_preview": burst_preview,
+            "burst_requested_n": burst_requested_n,
         },
     )
 
@@ -327,7 +375,7 @@ def ui_ledger(request: Request, run_id: str):
         raise HTTPException(status_code=404, detail="run not found")
     events = ledger.list_events(run_id)
     chain_valid = ledger.chain_valid(run_id)
-    return templates.TemplateResponse(
+    return _templates().TemplateResponse(
         "ledger.html",
         {
             "request": request,
@@ -392,7 +440,7 @@ def ui_stability(request: Request, run_id: str):
     run = store.get(run_id)
     if not run or not run.stability_report:
         raise HTTPException(status_code=404, detail="stability report not found")
-    return templates.TemplateResponse(
+    return _templates().TemplateResponse(
         "stability.html",
         {
             "request": request,
@@ -436,7 +484,7 @@ def ui_compare(request: Request):
     right_match = right_ingest == current_hash if right_ingest else None
     ingest_diff = bool(left_ingest and right_ingest and left_ingest != right_ingest)
 
-    return templates.TemplateResponse(
+    return _templates().TemplateResponse(
         "compare.html",
         {
             "request": request,
@@ -464,7 +512,7 @@ def ui_policy(request: Request):
     if "application/json" in accept:
         rendered = json.dumps(snapshot, sort_keys=True, ensure_ascii=True)
         return Response(content=rendered, media_type="application/json")
-    return templates.TemplateResponse(
+    return _templates().TemplateResponse(
         "policy.html",
         {
             "request": request,
@@ -695,6 +743,29 @@ def _record_ack(run_id: str, ack: HumanAck) -> dict:
     return run.model_dump()
 
 
+def _enforce_execution_gates(run, current_hash: str) -> None:
+    if auto_disable_on_policy_change(
+        run=run,
+        current_policy_hash=current_hash,
+        ledger=ledger,
+        event_id=eid("ev"),
+        timestamp_utc=now_utc(),
+    ):
+        store.put(run)
+    try:
+        enforce_policy_ack(run, current_hash)
+    except PolicyAckRequired:
+        raise HTTPException(status_code=409, detail="policy_ack_required")
+    try:
+        enforce_session(run)
+    except SessionGateError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason)
+    try:
+        enforce_agency_enabled(run)
+    except AgencyGateError:
+        raise HTTPException(status_code=409, detail="Agency OFF. Enable to proceed.")
+
+
 @app.post("/api/v1/familiar/runs/{run_id}/ack")
 def ack(run_id: str, ack: HumanAck, request: Optional[Request] = None):
     require_token(request)
@@ -706,14 +777,7 @@ def _start_deferral(run_id: str, body: DeferralStart) -> dict:
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
     current_hash = compute_policy_hash(get_policy_snapshot())
-    try:
-        enforce_policy_ack(run, current_hash)
-    except PolicyAckRequired:
-        raise HTTPException(status_code=409, detail="policy_ack_required")
-    try:
-        enforce_session(run)
-    except SessionGateError as exc:
-        raise HTTPException(status_code=409, detail=exc.reason)
+    _enforce_execution_gates(run, current_hash)
 
     if run.requires_human_confirmation and not run.human_ack:
         raise HTTPException(status_code=409, detail="ack required before deferral")
@@ -749,14 +813,7 @@ def _step_deferral(run_id: str) -> dict:
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
     current_hash = compute_policy_hash(get_policy_snapshot())
-    try:
-        enforce_policy_ack(run, current_hash)
-    except PolicyAckRequired:
-        raise HTTPException(status_code=409, detail="policy_ack_required")
-    try:
-        enforce_session(run)
-    except SessionGateError as exc:
-        raise HTTPException(status_code=409, detail=exc.reason)
+    _enforce_execution_gates(run, current_hash)
 
     if not run.deferral_active or run.quota_max_actions is None:
         raise HTTPException(status_code=409, detail="deferral not active")
@@ -780,6 +837,7 @@ def _step_deferral(run_id: str) -> dict:
             ledger=ledger,
             event_id=eid("ev"),
             end_event_id=eid("ev"),
+            agency_event_id=eid("ev"),
             timestamp_utc=now_utc(),
             route="defer_step:selected_action",
             step_index=int(run.selected_action_progress.get("phase", 0))
@@ -834,6 +892,7 @@ def _step_deferral(run_id: str) -> dict:
         ledger=ledger,
         event_id=eid("ev"),
         end_event_id=eid("ev"),
+        agency_event_id=eid("ev"),
         timestamp_utc=now_utc(),
         route="defer_step:runplan",
         step_index=int(run.current_step_index),
@@ -942,7 +1001,7 @@ async def ui_ingest(request: Request):
         packet = AbraxasSignalPacket.model_validate(json.loads(raw))
     except Exception as exc:
         runs = store.list(limit=50)
-        return templates.TemplateResponse(
+        return _templates().TemplateResponse(
             "index.html",
             {
                 "request": request,
@@ -958,7 +1017,7 @@ async def ui_ingest(request: Request):
 
     if prev_run_id and store.get(prev_run_id) is None:
         runs = store.list(limit=50)
-        return templates.TemplateResponse(
+        return _templates().TemplateResponse(
             "index.html",
             {
                 "request": request,
@@ -987,7 +1046,7 @@ async def ui_upload_payload(request: Request):
 
     if not tier or not lane:
         runs = store.list(limit=50)
-        return templates.TemplateResponse(
+        return _templates().TemplateResponse(
             "index.html",
             {
                 "request": request,
@@ -1002,7 +1061,7 @@ async def ui_upload_payload(request: Request):
 
     if payload_file is None or not hasattr(payload_file, "read"):
         runs = store.list(limit=50)
-        return templates.TemplateResponse(
+        return _templates().TemplateResponse(
             "index.html",
             {
                 "request": request,
@@ -1025,7 +1084,7 @@ async def ui_upload_payload(request: Request):
         run_id = _emit_and_ingest_payload(payload_obj, tier=tier, lane=lane, prev_run_id=prev_run_id or None)
     except Exception as exc:
         runs = store.list(limit=50)
-        return templates.TemplateResponse(
+        return _templates().TemplateResponse(
             "index.html",
             {
                 "request": request,
@@ -1110,7 +1169,60 @@ def _end_session(run_id: str, reason: str) -> dict:
         ledger=ledger,
         event_id=eid("ev"),
         reason=reason,
+        agency_event_id=eid("ev"),
     )
+    store.put(run)
+    return run.model_dump()
+
+
+def _enable_agency(run_id: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    current_hash = compute_policy_hash(get_policy_snapshot())
+    try:
+        enforce_policy_ack(run, current_hash)
+    except PolicyAckRequired:
+        raise HTTPException(status_code=409, detail="policy_ack_required")
+    try:
+        enforce_session(run)
+    except SessionGateError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason)
+    enable_agency(
+        run=run,
+        mode="guided",
+        timestamp_utc=now_utc(),
+        ledger=ledger,
+        event_id=eid("ev"),
+        policy_hash=current_hash,
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+def _disable_agency(run_id: str, reason: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    disable_agency(
+        run=run,
+        reason=reason,
+        timestamp_utc=now_utc(),
+        ledger=ledger,
+        event_id=eid("ev"),
+    )
+    store.put(run)
+    return run.model_dump()
+
+
+def _apply_profile(run_id: str, profile_id: str) -> dict:
+    run = store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    if profile_id not in PROFILE_LABELS:
+        raise HTTPException(status_code=400, detail="unknown profile")
+    run.profile_id = profile_id
+    run.profile_applied_utc = now_utc()
     store.put(run)
     return run.model_dump()
 
@@ -1136,6 +1248,27 @@ async def ui_session_end(run_id: str, request: Request):
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
+@app.post("/ui/runs/{run_id}/agency/enable")
+async def ui_agency_enable(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    try:
+        _enable_agency(run_id)
+    except HTTPException as exc:
+        if exc.detail in {"policy_ack_required", "session_required", "session_exhausted"}:
+            return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+        raise
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/agency/disable")
+async def ui_agency_disable(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    _disable_agency(run_id, reason="user")
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
 def _record_policy_ack(run_id: str) -> dict:
     run = store.get(run_id)
     if not run:
@@ -1157,6 +1290,22 @@ async def ui_policy_ack(run_id: str, request: Request):
     form = await request.form()
     require_token(request, form)
     _record_policy_ack(run_id)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/profile/apply")
+async def ui_profile_apply(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
+    profile_id = form.get("profile_id") or ""
+    _apply_profile(run_id, profile_id)
+    return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
+
+
+@app.post("/ui/runs/{run_id}/burst/run")
+async def ui_burst_run(run_id: str, request: Request):
+    form = await request.form()
+    require_token(request, form)
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
 
@@ -1227,7 +1376,28 @@ async def ui_select_action(run_id: str, request: Request):
         policy_diff_keys = []
         if policy_status == "CHANGED":
             policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
-        return templates.TemplateResponse(
+        prev_run = store.get(run.prev_run_id) if run.prev_run_id else None
+        profile_recommendation = recommend_profile(run, prev_run, current_hash)
+        recommended_profile_id = profile_recommendation.get("recommended_profile_id")
+        recommended_profile_label = PROFILE_LABELS.get(
+            recommended_profile_id, recommended_profile_id
+        )
+        profile_options = [
+            {"id": profile_id, "label": PROFILE_LABELS.get(profile_id, profile_id)}
+            for profile_id in sorted(PROFILE_LABELS.keys())
+        ]
+        burst_preview = None
+        burst_requested_n = None
+        if run.agency_mode == "burst":
+            burst_requested_raw = request.query_params.get("burst_n") or "3"
+            try:
+                burst_requested_n = int(burst_requested_raw)
+            except ValueError:
+                burst_requested_n = 3
+            if burst_requested_n < 0:
+                burst_requested_n = 0
+            burst_preview = simulate_burst(run, burst_requested_n)
+        return _templates().TemplateResponse(
             "run.html",
             {
                 "request": request,
@@ -1244,6 +1414,11 @@ async def ui_select_action(run_id: str, request: Request):
                 "current_policy_snapshot": current_snapshot,
                 "policy_status": policy_status,
                 "policy_diff_keys": policy_diff_keys,
+                "profile_recommendation": profile_recommendation,
+                "profile_options": profile_options,
+                "recommended_profile_label": recommended_profile_label,
+                "burst_preview": burst_preview,
+                "burst_requested_n": burst_requested_n,
             },
         )
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)

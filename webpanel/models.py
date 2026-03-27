@@ -29,6 +29,7 @@ PauseReason = Literal[
     "invariance_failed",
     "drift_escalated",
 ]
+AgencyMode = Literal["off", "guided", "burst"]
 
 
 class NotComputableRegion(BaseModel):
@@ -132,6 +133,13 @@ class RunState(BaseModel):
     prefs: Optional[Dict[str, Any]] = None
     policy_snapshot_at_ingest: Optional[Dict[str, Any]] = None
     policy_hash_at_ingest: Optional[str] = None
+    agency_enabled: bool = False
+    agency_mode: AgencyMode = "off"
+    agency_enabled_utc: Optional[str] = None
+    agency_disabled_utc: Optional[str] = None
+    agency_disable_reason: Optional[str] = None
+    profile_id: Optional[str] = None
+    profile_applied_utc: Optional[str] = None
 
     @property
     def actions_remaining(self) -> Optional[int]:

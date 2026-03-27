@@ -12,6 +12,7 @@ from webpanel.continuity import build_continuity_report
 from webpanel.gates import compute_gate_stack
 from webpanel.oracle_output import extract_oracle_output, oracle_hash_prefix
 from webpanel.preference_kernel import normalize_prefs
+from webpanel.task_router import recommend_profile
 
 
 def canonical_json_bytes(obj: Any) -> bytes:
@@ -173,6 +174,19 @@ def build_bundle(
         prefs_sha = sha256_hex(prefs_bytes)
     if prefs_sha:
         manifest["prefs_sha256"] = prefs_sha
+
+    profile_rec_sha: Optional[str] = None
+    profile_prev = left_run if right_run.prev_run_id == left_run.run_id else None
+    profile_recommendation = recommend_profile(
+        right_run,
+        profile_prev,
+        str(policy_snapshot.get("policy_hash") or ""),
+    )
+    profile_bytes = canonical_json_bytes(profile_recommendation)
+    files.append(("profile_recommendation.json", profile_bytes))
+    profile_rec_sha = sha256_hex(profile_bytes)
+    if profile_rec_sha:
+        manifest["profile_recommendation_sha256"] = profile_rec_sha
     files.append(("manifest.json", canonical_json_bytes(manifest)))
 
     buffer = BytesIO()

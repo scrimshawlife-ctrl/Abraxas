@@ -76,6 +76,17 @@ def compute_gate_stack(run: Any, current_policy_hash: Optional[str]) -> List[Dic
             }
         )
 
+    if not bool(getattr(run, "agency_enabled", False)):
+        gates.append(
+            {
+                "code": "agency_off",
+                "severity": "block",
+                "message": "Agency OFF. Enable to proceed.",
+                "remedy": "Enable agency.",
+                "priority": 4,
+            }
+        )
+
     drift_class = _effective_drift_class(run)
     if drift_class not in {"none", "unknown"}:
         gates.append(
@@ -84,7 +95,7 @@ def compute_gate_stack(run: Any, current_policy_hash: Optional[str]) -> List[Dic
                 "severity": "block",
                 "message": f"Drift class: {drift_class}.",
                 "remedy": "Re-run stabilization.",
-                "priority": 4,
+                "priority": 5,
             }
         )
 

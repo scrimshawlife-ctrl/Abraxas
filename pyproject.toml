@@ -47,6 +47,10 @@ server = [
     "websockets>=12.0",
 ]
 
+webpanel = [
+    "jinja2>=3.1.0",
+]
+
 lens = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
@@ -91,7 +95,7 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.schema", "abraxas.schemas", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
             "abraxas.temporal", "abraxas.metric_extractors", "abraxas.influence",
             "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
-            "abraxas.economics", "abraxas.governance", "abraxas.lens",
+            "abraxas.economics", "abraxas.governance", "abraxas.lens", "abraxas.detectors",
             "abraxas.modules", "abraxas.modules.gtx", "abraxas.modules.gtx.sim",
             "abraxas.oracle", "abraxas.lexicon", "abraxas.events", "abraxas.api",
             "abraxas.mda",

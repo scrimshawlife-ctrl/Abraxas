@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 from typing import Any, Dict, Optional
 
+from .agency_toggle import disable_agency
+
 
 class SessionGateError(RuntimeError):
     def __init__(self, reason: str) -> None:
@@ -46,6 +48,7 @@ def end_session(
     ledger,
     event_id: str,
     reason: str,
+    agency_event_id: Optional[str] = None,
 ) -> None:
     session_id = getattr(run, "session_id", None)
     run.session_active = False
@@ -61,6 +64,16 @@ def end_session(
             "reason": reason,
         },
     )
+    if bool(getattr(run, "agency_enabled", False)):
+        agency_reason = "exhausted" if reason == "exhausted" else "session_end"
+        event_suffix = agency_event_id or f"{event_id}_agency"
+        disable_agency(
+            run=run,
+            reason=agency_reason,
+            timestamp_utc=ended_utc,
+            ledger=ledger,
+            event_id=event_suffix,
+        )
 
 
 def enforce_session(run: Any) -> None:
@@ -81,6 +94,7 @@ def consume_session_step(
     timestamp_utc: str,
     route: str,
     step_index: int,
+    agency_event_id: Optional[str] = None,
 ) -> None:
     run.session_steps_used = int(getattr(run, "session_steps_used", 0) or 0) + 1
     max_steps = int(getattr(run, "session_max_steps", 0) or 0)
@@ -107,4 +121,5 @@ def consume_session_step(
             ledger=ledger,
             event_id=end_event_id,
             reason="exhausted",
+            agency_event_id=agency_event_id,
         )

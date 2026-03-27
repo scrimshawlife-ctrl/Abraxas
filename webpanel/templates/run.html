@@ -170,6 +170,31 @@
         <button class="btn" type="submit">End Session</button>
       </form>
     {% endif %}
+
+    <hr/>
+    <h3>Agency Toggle</h3>
+    <p>
+      <b>State:</b>
+      <span class="badge {% if not run.agency_enabled %}warn{% endif %}">
+        {% if run.agency_enabled %}GUIDED{% else %}OFF{% endif %}
+      </span>
+    </p>
+    <p><b>Enabled:</b> {{ run.agency_enabled_utc or "n/a" }}</p>
+    {% if not run.agency_enabled and run.agency_disabled_utc %}
+      <p><b>Disabled:</b> {{ run.agency_disabled_utc }}</p>
+      <p><b>Reason:</b> {{ run.agency_disable_reason or "n/a" }}</p>
+    {% endif %}
+    {% if not run.agency_enabled %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/agency/enable" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">Enable Agency</button>
+      </form>
+    {% else %}
+      <form method="post" action="/ui/runs/{{ run.run_id }}/agency/disable" style="margin-top:8px;">
+        <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+        <button class="btn" type="submit">Disable Agency</button>
+      </form>
+    {% endif %}
   </div>
 </div>
 
@@ -464,6 +489,69 @@
     </ul>
   {% endif %}
 </div>
+
+<div class="card" style="margin-top:16px;">
+  <h2>Profiles</h2>
+  <p><b>Recommended profile:</b> {{ recommended_profile_label }}</p>
+  <p><b>Confidence:</b> {{ profile_recommendation.confidence }}</p>
+  {% if profile_recommendation.reasons %}
+    <p><b>Reasons:</b></p>
+    <ul>
+      {% for reason in profile_recommendation.reasons %}
+        <li><code>{{ reason }}</code></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if run.profile_id %}
+    <p><b>Applied profile:</b> {{ run.profile_id }}</p>
+  {% endif %}
+  <form method="post" action="/ui/runs/{{ run.run_id }}/profile/apply">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <label>profile</label>
+    <select name="profile_id">
+      {% for opt in profile_options %}
+        <option value="{{ opt.id }}" {% if opt.id == profile_recommendation.recommended_profile_id %}selected{% endif %}>
+          {{ opt.label }}
+        </option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit">Apply Profile</button>
+  </form>
+</div>
+
+{% if run.agency_mode == "burst" %}
+  <div class="card" style="margin-top:16px;">
+    <h2>Burst Preview</h2>
+    <form method="get" action="/runs/{{ run.run_id }}" style="display:flex; gap:8px; align-items:flex-end;">
+      <div>
+        <label>steps (N)</label>
+        <input type="number" name="burst_n" value="{{ burst_requested_n or 3 }}" min="0" max="5"/>
+      </div>
+      <button class="btn" type="submit">Preview Burst</button>
+    </form>
+    {% if burst_preview %}
+      <p><b>Effective N:</b> {{ burst_preview.effective_n }}</p>
+      <p><b>Blockers:</b> {{ burst_preview.blockers or [] }}</p>
+      {% if burst_preview.steps %}
+        <ul>
+          {% for step in burst_preview.steps %}
+            <li>
+              <code>#{{ step.index }}</code> · {{ step.title }}
+              {% if step.action_id %}· action {{ step.action_id }}{% endif %}
+              {% if step.notes %}<small>({{ step.notes | join(', ') }})</small>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if not burst_preview.blockers %}
+        <form method="post" action="/ui/runs/{{ run.run_id }}/burst/run">
+          <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+          <button class="btn" type="submit">Run Burst</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endif %}
 
 <div class="card" style="margin-top:16px;">
   <h2>Pins</h2>
