@@ -1,6 +1,7 @@
 """Source adapter implementations."""
 
 from .cache_only_stub import CacheOnlyAdapter
+from .http_snapshot import HTTPSnapshotAdapter
 from .cldr_snapshot import CLDRSnapshotAdapter
 from .jpl_horizons import JPLHorizonsAdapter
 from .linguistic_jsonl import LinguisticJSONLAdapter
@@ -14,6 +15,7 @@ from .tzdb_snapshot import TZDBSnapshotAdapter
 
 __all__ = [
     "CacheOnlyAdapter",
+    "HTTPSnapshotAdapter",
     "CLDRSnapshotAdapter",
     "JPLHorizonsAdapter",
     "LinguisticJSONLAdapter",

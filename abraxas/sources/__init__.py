@@ -3,6 +3,7 @@
 from .atlas import atlas_version, build_source_atlas, get_source, list_sources, resolve_sources
 from .discovery import discover_sources
 from .scheduler import CadencePlan, build_cadence_plan
+from .runtime import ADAPTER_REGISTRY, resolve_adapter, run_source_once, run_sources_batch
 from .types import (
     CandidateSourceRecord,
     Cadence,
@@ -29,6 +30,10 @@ __all__ = [
     "discover_sources",
     "build_cadence_plan",
     "CadencePlan",
+    "ADAPTER_REGISTRY",
+    "resolve_adapter",
+    "run_source_once",
+    "run_sources_batch",
     "CandidateSourceRecord",
     "Cadence",
     "CachePolicy",

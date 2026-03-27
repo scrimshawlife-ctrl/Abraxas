@@ -1,0 +1,131 @@
+from __future__ import annotations
+
+import json
+from types import SimpleNamespace
+
+from abx.online_sourcing import route_online_sources
+from abx.online_resolver import execute_task_routing, resolve_routing_to_urls
+
+
+def test_route_online_sources_builds_decodo_request_envelope() -> None:
+    routing = route_online_sources(
+        term="abraxas",
+        query="abraxas resonance",
+        known_urls=[
+            "https://example.com/a",
+            "https://example.com/a",
+            "https://news.example.org/b",
+        ],
+        caps={"decodo_available": True},
+    )
+
+    assert routing["provider"] == "decodo"
+    req = routing["request"]
+    assert req["candidate_urls"] == ["https://example.com/a", "https://news.example.org/b"]
+    assert req["domains"] == ["example.com", "news.example.org"]
+    assert req["max_results"] == 12
+
+
+def test_resolve_routing_to_urls_decodo_uses_candidates_and_domains() -> None:
+    provider, urls, meta = resolve_routing_to_urls(
+        {
+            "provider": "decodo",
+            "request": {
+                "candidate_urls": ["https://example.com/a"],
+                "domains": ["example.com", "alt.example.com"],
+                "max_results": 3,
+            },
+        }
+    )
+
+    assert provider == "decodo"
+    assert urls == [
+        "https://example.com/a",
+        "https://example.com",
+        "https://alt.example.com",
+    ]
+    assert "request" in meta
+
+
+def test_resolve_routing_to_urls_decodo_filters_non_http_and_invalid_max_results() -> None:
+    provider, urls, _ = resolve_routing_to_urls(
+        {
+            "provider": "decodo",
+            "request": {
+                "candidate_urls": ["file:///etc/passwd", "https://ok.example/path"],
+                "domains": ["site.example"],
+                "max_results": "invalid",
+            },
+        }
+    )
+
+    assert provider == "decodo"
+    assert urls == ["https://ok.example/path", "https://site.example"]
+
+
+def test_execute_task_routing_decodo_emits_anchors(tmp_path, monkeypatch) -> None:
+    anchor_ledger = tmp_path / "anchor_ledger.jsonl"
+    evidence_ledger = tmp_path / "evidence_graph.jsonl"
+
+    evidence_ledger.write_text(
+        json.dumps(
+            {
+                "kind": "claim_added",
+                "claim_id": "claim-1",
+                "text": "Abraxas signal strengthening",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    def fake_http_get(url: str, timeout: int = 14, headers: dict | None = None):
+        html = "<html><head><title>Abraxas Signal Note</title></head><body>Signal structure update.</body></html>"
+        return html, {"content-type": "text/html"}
+
+    monkeypatch.setattr("abx.online_resolver._http_get", fake_http_get)
+    monkeypatch.setattr(
+        "abx.online_resolver.classify_relation",
+        lambda **kwargs: SimpleNamespace(relation="SUPPORTS", confidence=0.9, rationale="keyword overlap"),
+    )
+
+    result = execute_task_routing(
+        run_id="run-1",
+        task={"task_id": "task-1", "claim_id": "claim-1", "term": "Abraxas"},
+        routing={
+            "provider": "decodo",
+            "request": {
+                "candidate_urls": ["https://example.com/a"],
+                "domains": [],
+                "max_results": 5,
+            },
+        },
+        anchor_ledger=str(anchor_ledger),
+        evidence_graph_ledger=str(evidence_ledger),
+        max_fetch=2,
+    )
+
+    assert result["status"] == "OK"
+    assert result["provider"] == "decodo"
+    assert len(result["created_anchors"]) == 1
+
+    rows = [json.loads(line) for line in anchor_ledger.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert len(rows) == 1
+    assert rows[0]["provider"] == "decodo"
+
+
+def test_execute_task_routing_returns_noop_when_no_urls(tmp_path) -> None:
+    anchor_ledger = tmp_path / "anchor_ledger.jsonl"
+    evidence_ledger = tmp_path / "evidence_graph.jsonl"
+    evidence_ledger.write_text("", encoding="utf-8")
+
+    result = execute_task_routing(
+        run_id="run-2",
+        task={"task_id": "task-2", "claim_id": "claim-2", "term": "Abraxas"},
+        routing={"provider": "decodo", "request": {"candidate_urls": [], "domains": []}},
+        anchor_ledger=str(anchor_ledger),
+        evidence_graph_ledger=str(evidence_ledger),
+    )
+
+    assert result["status"] == "NOOP"
+    assert result["created_anchors"] == []

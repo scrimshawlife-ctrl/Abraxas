@@ -144,7 +144,7 @@ def _invoke_neon_genie_overlay(
     seed: Optional[int] = None
 ) -> Optional[Dict[str, Any]]:
     """
-    Internal stub for Neon-Genie overlay invocation.
+    Internal Neon-Genie overlay invocation helper.
 
     Args:
         prompt: Generation prompt

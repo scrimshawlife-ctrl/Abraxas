@@ -1,10 +1,10 @@
-"""NASA JPL Horizons adapter (cache-only stub)."""
+"""NASA JPL Horizons adapter (HTTP snapshot + cache fallback)."""
 
 from __future__ import annotations
 
-from abraxas.sources.adapters.cache_only_stub import CacheOnlyAdapter
+from abraxas.sources.adapters.http_snapshot import HTTPSnapshotAdapter
 
 
-class JPLHorizonsAdapter(CacheOnlyAdapter):
+class JPLHorizonsAdapter(HTTPSnapshotAdapter):
     adapter_name = "jpl_horizons_api"
-    version = "0.1"
+    version = "0.2"

@@ -11,7 +11,7 @@ from abraxas.runes.ctx import RuneInvocationContext
 
 def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None = None) -> Dict[str, Any]:
     # messages: [{"role":"user"|"assistant"|"system","content":"..."}]
-    # Deterministic stub: we run the bus pipeline using last user content as payload.
+    # Deterministic runtime path: bus pipeline + strict capability execution.
     last_user = ""
     for m in messages[::-1]:
         if m.get("role") == "user":
