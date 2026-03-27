@@ -1,10 +1,10 @@
-"""NOAA SWPC Kp adapter (cache-only stub)."""
+"""NOAA SWPC Kp adapter (HTTP snapshot + cache fallback)."""
 
 from __future__ import annotations
 
-from abraxas.sources.adapters.cache_only_stub import CacheOnlyAdapter
+from abraxas.sources.adapters.http_snapshot import HTTPSnapshotAdapter
 
 
-class SWPCKpAdapter(CacheOnlyAdapter):
+class SWPCKpAdapter(HTTPSnapshotAdapter):
     adapter_name = "swpc_kp_json"
-    version = "0.1"
+    version = "0.2"

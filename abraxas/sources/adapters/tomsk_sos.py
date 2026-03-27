@@ -1,10 +1,10 @@
-"""Tomsk SOS adapter (cache-only stub)."""
+"""Tomsk SOS adapter (HTTP snapshot + cache fallback)."""
 
 from __future__ import annotations
 
-from abraxas.sources.adapters.cache_only_stub import CacheOnlyAdapter
+from abraxas.sources.adapters.http_snapshot import HTTPSnapshotAdapter
 
 
-class TomskSOSAdapter(CacheOnlyAdapter):
+class TomskSOSAdapter(HTTPSnapshotAdapter):
     adapter_name = "tomsk_sos_scrape_cache"
-    version = "0.1"
+    version = "0.2"

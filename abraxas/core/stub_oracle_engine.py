@@ -1,11 +1,26 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, Tuple
 
 from ..io.config import OverlaysConfig, UserConfig
 
 
+def _stub_allowed() -> bool:
+    return os.getenv("ABRAXAS_ALLOW_STUB_ORACLE", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _enforce_stub_gate() -> None:
+    if _stub_allowed():
+        return
+    raise RuntimeError(
+        "stub_oracle_engine is disabled by default. "
+        "Set ABRAXAS_ALLOW_STUB_ORACLE=1 for explicit test/fallback usage."
+    )
+
+
 def run_oracle_engine(uc: UserConfig, oc: OverlaysConfig, day: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    _enforce_stub_gate()
     # Deterministic stub for plumbing only.
     # Replace with the real engine; keep output shape identical.
     readout = {
@@ -58,6 +73,7 @@ def run_oracle_engine(uc: UserConfig, oc: OverlaysConfig, day: str) -> Tuple[Dic
 
 
 def _stub_engine_adapter(inputs: Any) -> Dict[str, Any]:
+    _enforce_stub_gate()
     # Keep deterministic; no pretending it's real data.
     day = inputs.day
     location = inputs.user.get("location_label", "Unknown")

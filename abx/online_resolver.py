@@ -130,6 +130,21 @@ def _dedupe_urls(urls: List[str], limit: int = 12) -> List[str]:
     return out
 
 
+def _safe_int(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _is_supported_http_url(url: str) -> bool:
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except Exception:
+        return False
+    return parsed.scheme.lower() in ("http", "https") and bool(parsed.netloc.strip())
+
+
 def _parse_rss_urls(xml_text: str, limit: int = 12) -> List[str]:
     urls = []
     try:
@@ -238,8 +253,25 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
         return provider, _dedupe_urls(urls, limit=12), {"note": "rss feed urls"}
     if provider == "decodo":
-        # Decodo execution lives elsewhere; here we only return stub.
-        return provider, [], {"request": routing.get("request")}
+        request = routing.get("request") if isinstance(routing.get("request"), dict) else {}
+        urls: List[str] = []
+        candidate_urls = request.get("candidate_urls") if isinstance(request.get("candidate_urls"), list) else []
+        for u in candidate_urls:
+            if isinstance(u, str) and u.strip() and _is_supported_http_url(u.strip()):
+                urls.append(u.strip())
+
+        domains = request.get("domains") if isinstance(request.get("domains"), list) else []
+        for d in domains:
+            if not isinstance(d, str):
+                continue
+            dom = d.strip().lower()
+            if not dom:
+                continue
+            probe = f"https://{dom}"
+            urls.append(probe)
+
+        max_results = _safe_int(request.get("max_results"), 12)
+        return provider, _dedupe_urls(urls, limit=max(1, min(30, max_results))), {"request": request}
     return provider, [], {"error": "unsupported_or_empty_routing"}
 
 
@@ -254,20 +286,28 @@ def execute_task_routing(
     max_fetch: int = 8,
 ) -> Dict[str, Any]:
     """
-    For non-decodo providers: fetch minimal metadata and emit anchors + edges.
+    Fetch minimal metadata and emit anchors + edges.
     For RSS: fetch feeds, extract item urls, then fetch those.
     For search_lite: fetch candidate URLs directly (no search re-fetch).
     For direct_http: fetch provided URLs.
+    For decodo: execute deterministic candidate URL probing from routing.request.
     """
     claim_id = str(task.get("claim_id") or "")
     term = str(task.get("term") or "")
     task_id = str(task.get("task_id") or "")
-    mode = str(task.get("mode") or "")
-    task_kind = str(task.get("task_kind") or "")
-
     provider, urls, meta = resolve_routing_to_urls(routing)
     created = []
     errors = []
+
+    if not urls:
+        return {
+            "status": "NOOP",
+            "provider": provider,
+            "meta": meta,
+            "created_anchors": [],
+            "errors": [],
+            "notes": "No resolvable URLs from routing payload.",
+        }
 
     # Pull claim text (best effort) for relation classification
     claim_text = ""
@@ -278,15 +318,6 @@ def execute_task_routing(
                 break
     except Exception:
         claim_text = ""
-
-    if provider == "decodo":
-        return {
-            "status": "DEFERRED",
-            "provider": "decodo",
-            "created_anchors": [],
-            "errors": [],
-            "notes": "Decodo execution is handled by a separate operator (WO-78D).",
-        }
 
     # RSS special: urls are feeds; fetch feeds and expand into item links
     expanded_urls: List[str] = []

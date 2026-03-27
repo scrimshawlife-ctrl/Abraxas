@@ -20,7 +20,7 @@ from abraxas.cli.storage import (
 )
 from abraxas.cli.seed import run_seed
 from abraxas.cli.sonify import run_sonify_cmd
-from abraxas.cli.sources import list_sources_cmd
+from abraxas.cli.sources import fetch_source_cmd, fetch_sources_batch_cmd, list_sources_cmd, refresh_sources_cmd
 from abraxas.cli.temporal import tzdb_version_cmd
 from abraxas.cli.visualize import run_visualize_cmd
 from abraxas.cli.year_run import run_year_cmd
@@ -38,6 +38,41 @@ def main() -> int:
     sources_parser = subparsers.add_parser("sources", help="SourceAtlas commands")
     sources_sub = sources_parser.add_subparsers(dest="sources_cmd", required=True)
     sources_sub.add_parser("list", help="List SourceAtlas entries")
+    sources_fetch = sources_sub.add_parser("fetch", help="Fetch one source via adapter runtime")
+    sources_fetch.add_argument("--source-id", required=True, help="SourceAtlas source_id")
+    sources_fetch.add_argument("--start", help="Window start UTC ISO8601")
+    sources_fetch.add_argument("--end", help="Window end UTC ISO8601")
+    sources_fetch.add_argument("--params-json", default="{}", help="Adapter params JSON object")
+    sources_fetch.add_argument("--cache-dir", help="Optional cache directory")
+    sources_fetch.add_argument("--run-id", default="sources_fetch", help="Run identifier")
+    sources_fetch_batch = sources_sub.add_parser("fetch-batch", help="Fetch multiple sources via adapter runtime")
+    sources_fetch_batch.add_argument("--source-id", action="append", required=True, help="SourceAtlas source_id (repeatable)")
+    sources_fetch_batch.add_argument("--start", help="Window start UTC ISO8601")
+    sources_fetch_batch.add_argument("--end", help="Window end UTC ISO8601")
+    sources_fetch_batch.add_argument("--default-params-json", default="{}", help="Default adapter params JSON object")
+    sources_fetch_batch.add_argument(
+        "--params-by-source-json",
+        default="{}",
+        help='Per-source adapter params JSON object, e.g. {"SOURCE_ID": {"url": "..."} }',
+    )
+    sources_fetch_batch.add_argument("--cache-dir", help="Optional cache directory")
+    sources_fetch_batch.add_argument("--run-id", default="sources_fetch_batch", help="Run identifier")
+    sources_fetch_batch.add_argument("--strict", action="store_true", help="Return non-zero if any source errors")
+    sources_refresh = sources_sub.add_parser("refresh", help="Refresh selected or all sources and emit a report")
+    sources_refresh.add_argument("--source-id", action="append", help="SourceAtlas source_id (repeatable)")
+    sources_refresh.add_argument("--all", action="store_true", help="Refresh all SourceAtlas sources")
+    sources_refresh.add_argument("--start", help="Window start UTC ISO8601")
+    sources_refresh.add_argument("--end", help="Window end UTC ISO8601")
+    sources_refresh.add_argument("--default-params-json", default="{}", help="Default adapter params JSON object")
+    sources_refresh.add_argument(
+        "--params-by-source-json",
+        default="{}",
+        help='Per-source adapter params JSON object, e.g. {"SOURCE_ID": {"url": "..."} }',
+    )
+    sources_refresh.add_argument("--cache-dir", help="Optional cache directory")
+    sources_refresh.add_argument("--run-id", default="sources_refresh", help="Run identifier")
+    sources_refresh.add_argument("--out", help="Optional output file for refresh report JSON")
+    sources_refresh.add_argument("--strict", action="store_true", help="Return non-zero if any source errors")
 
     temporal_parser = subparsers.add_parser("temporal", help="Temporal suite commands")
     temporal_sub = temporal_parser.add_subparsers(dest="temporal_cmd", required=True)
@@ -196,6 +231,39 @@ def main() -> int:
     if args.command == "sources":
         if args.sources_cmd == "list":
             return list_sources_cmd()
+        if args.sources_cmd == "fetch":
+            return fetch_source_cmd(
+                args.source_id,
+                start_utc=args.start,
+                end_utc=args.end,
+                params_json=args.params_json,
+                cache_dir=args.cache_dir,
+                run_id=args.run_id,
+            )
+        if args.sources_cmd == "fetch-batch":
+            return fetch_sources_batch_cmd(
+                args.source_id,
+                start_utc=args.start,
+                end_utc=args.end,
+                default_params_json=args.default_params_json,
+                params_by_source_json=args.params_by_source_json,
+                cache_dir=args.cache_dir,
+                run_id=args.run_id,
+                strict=bool(args.strict),
+            )
+        if args.sources_cmd == "refresh":
+            return refresh_sources_cmd(
+                args.source_id or [],
+                refresh_all=bool(args.all),
+                start_utc=args.start,
+                end_utc=args.end,
+                default_params_json=args.default_params_json,
+                params_by_source_json=args.params_by_source_json,
+                cache_dir=args.cache_dir,
+                run_id=args.run_id,
+                out=args.out,
+                strict=bool(args.strict),
+            )
     if args.command == "temporal":
         if args.temporal_cmd == "tzdb-version":
             return tzdb_version_cmd()

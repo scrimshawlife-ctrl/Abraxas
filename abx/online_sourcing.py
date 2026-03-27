@@ -96,18 +96,36 @@ def route_online_sources(
 ) -> Dict[str, Any]:
     """
     Deterministic provider fallback:
-    - if Decodo available: return a 'decodo' request stub (WO-78 will execute)
+    - if Decodo available: return a decodo request envelope with candidate URLs/domains
     - else: direct_http for known URLs
     - else: search_lite (if enabled)
     - else: rss (if enabled)
     """
     if caps.get("decodo_available", False):
+        clean_urls = []
+        for raw_url in known_urls:
+            u = (raw_url or "").strip()
+            if u and u not in clean_urls:
+                clean_urls.append(u)
+
+        domains: list[str] = []
+        for u in clean_urls:
+            try:
+                dom = urllib.parse.urlparse(u).netloc.lower().strip()
+            except Exception:
+                dom = ""
+            if dom and dom not in domains:
+                domains.append(dom)
+
         return {
             "provider": "decodo",
             "request": {
                 "term": term,
                 "query": query,
-                "notes": "Decodo stub; executed in WO-78 operator.",
+                "candidate_urls": clean_urls[:12],
+                "domains": domains[:12],
+                "max_results": 12,
+                "notes": "Decodo request envelope with deterministic fallback candidates.",
             },
             "results": [],
         }

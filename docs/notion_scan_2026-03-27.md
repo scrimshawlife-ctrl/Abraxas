@@ -1,7 +1,7 @@
-# Notion Scan — Abraxas Subsystems Needing Coding
+# Notion Scan — Abraxas Subsystems vs Repo (Remaining Coding Tasks)
 
 Date: 2026-03-27 (UTC)
-Scope: Subsystems, ABX-Runes, runtime surfaces that are still stubbed/placeholder or flagged as active roadmap work.
+Method: Re-validated prior Notion scan claims against current repository code paths and runtime behavior indicators.
 
 ## 1) Notion catch-up status (inventory-driven)
 
@@ -10,74 +10,88 @@ From `python abraxas/governance/inventory_report.py`:
 - Runes discovered: 46
 - Overlays discovered: 3
 - Notion Catch-up checklist currently emits unchecked entries for all rune registry entries and overlay registry entries.
-- Canon metadata is `not_computable` because `PyYAML` is unavailable in this environment.
+- Canon metadata remains `not_computable` in report output (`PyYAML unavailable`).
 
-Implication: Notion documentation sync appears incomplete (or intentionally open) across runes/overlays and canon metadata.
+Implication: Notion sync remains administratively open for runes/overlays/canon metadata, independent of implementation status.
 
-## 2) ABX-Runes that still need coding attention
+## 2) Repo comparison against prior Notion coding claims
 
-### 2.1 Direct stub implementation still present
+## Claim status legend
+- ✅ Resolved in codebase
+- ⚠️ Partially true / reframed
+- ❌ Still open
 
-- `abraxas/runes/operators/acquisition_layer.py`
-  - Contains explicit stub paths and simulated adapter responses (`/stub/raw`, `/stub/parsed`, `{"stub": ...}`).
-  - Includes comments indicating placeholder behavior for bulk fetch/manifest candidates.
+### 2.1 ABX-Runes acquisition layer stubs
 
-### 2.2 Runtime enforcement for stubbed rune operators
+- Prior claim: direct `/stub/*` paths + simulated stub packets still active in `abraxas/runes/operators/acquisition_layer.py`.
+- Repo status: ✅ `/stub/*` path artifacts are no longer present; deterministic CAS-backed acquisition/cache flows are implemented.
+- Residual: ⚠️ strict mode still raises `NotImplementedError` until live adapter integration is completed.
 
-- `abraxas/runes/invoke.py`
-  - Raises `RuneStubError` and emits `stub_blocked` statuses when operators/contracts are stubbed.
+### 2.2 Invocation enforcement of stub operators
 
-Implication: ABX-Runes contract layer is enforcing correctness, but at least one operator family (acquisition layer) still needs full implementation wiring.
+- Prior claim: `abraxas/runes/invoke.py` emits `stub_blocked` and raises `RuneStubError`.
+- Repo status: ✅ true by design (governance safeguard, not a defect).
+- Residual: none; keep as contract enforcement.
 
-## 3) Runtime surfaces still needing coding
+### 2.3 Bus runtime still stubbed
 
-### 3.1 Bus runtime remains a stub
+- Prior claim: `abx/bus/runtime.py` returns status `"stub"` replacement-needed envelope.
+- Repo status: ✅ resolved; bus runtime now executes deterministic module pipeline and returns `output.status = "ok"`.
 
-- `abx/bus/runtime.py`
-  - Module-level docstring and functions identify this runtime as stubbed.
-  - `process_payload` returns status `"stub"` and a replacement-needed message.
+### 2.4 Chat runtime deterministic stub
 
-### 3.2 Chat runtime uses deterministic stub
+- Prior claim: `abx/ui/chat_engine.py` still operates as deterministic stub.
+- Repo status: ⚠️ comment still says "Deterministic stub", but runtime now uses bus process + capability invocations (`core.rendering.render_output`, `drift.orchestrator.analyze_text_for_drift`) under strict execution.
+- Residual: comment debt only; behavior is no longer simple echo stub.
 
-- `abx/ui/chat_engine.py`
-  - Current behavior noted as deterministic stub using pipeline payload echo-style behavior.
+### 2.5 Kernel/oracle fallback stub in core path
 
-### 3.3 Kernel/oracle fallback stub still active in core path
+- Prior claim: dispatcher routes fallback to `_stub_engine_adapter`.
+- Repo status: ✅ resolved naming/path; current fallback is deterministic `_error_engine_adapter` envelope when kernel entrypoint is unavailable.
+- Residual: ⚠️ `abraxas/core/stub_oracle_engine.py` still exists and should be either retired, isolated to tests, or explicitly wired only under test flags.
 
-- `abraxas/core/stub_oracle_engine.py`
-  - Contains explicit notes to replace stub with real oracle output.
-- `abraxas/kernel/dispatcher.py`
-  - Routes to `_stub_engine_adapter` for fallback paths.
+### 2.6 Neon-Genie integration
 
-Implication: Core runtime contracts exist, but production-grade runtime behavior is still partially scaffolded in bus/chat/oracle fallback layers.
+- Prior claim: `abraxas/aal/neon_genie_adapter.py` is "not yet integrated (stub mode)".
+- Repo status: ⚠️ partially resolved; adapter performs real overlay runtime invocation (`check_overlay_available` + `invoke_overlay`) with deterministic fallback when unavailable.
+- Residual: docstring/comment wording still references "internal stub"; should be renamed to fallback adapter semantics.
 
-## 4) Subsystems still needing coding (high-signal list)
+### 2.7 Upgrade-spine `patch_plan_stub` adapters
 
-- `abraxas/aal/neon_genie_adapter.py`
-  - Reports `"Neon-Genie overlay not yet integrated (stub mode)"` and contains internal stub invocation.
-- `server/abraxas/upgrade_spine/adapters/*.py`
-  - Multiple adapters return `patch_plan_stub(...)` flows (shadow/evogate/rent/drift).
-- `abx/online_resolver.py` and `abx/online_sourcing.py`
-  - Decodo execution/sourcing still marked as stub-oriented in current implementation comments.
-- `abraxas/sources/adapters/*.py`
-  - Several adapters are cache-only stubs (JPL/CLDR/NOAA/NIST/Tomsk).
+- Prior claim: `server/abraxas/upgrade_spine/adapters/*.py` return `patch_plan_stub(...)` flows.
+- Repo status: ✅ resolved; no `patch_plan_stub` references remain, and adapters use `build_patch_plan(...)`.
 
-## 5) Cross-check against repo roadmap doc
+### 2.8 Online sourcing/resolver + source adapters
 
-`CLAUDE.md` indicates:
+- Prior claim: online resolver/sourcing and multiple source adapters remain stub-oriented.
+- Repo status: ❌ still open.
+  - `abx/online_sourcing.py` and `abx/online_resolver.py` still describe Decodo execution as stub/deferred.
+  - `abraxas/sources/adapters/*` includes cache-only stubs (JPL, CLDR, NOAA, NIST, Tomsk, etc.).
 
-- Active work still includes roadmap features (`Resonance Narratives`, `UI Dashboard`, `Multi-Domain Analysis expansion`).
-- Technical debt still open: remaining placeholder comments + expanding test coverage.
-- Also notes 4 remaining ABX-Runes coupling exceptions in `abx/cli.py` (documented as acceptable CLI composition imports).
+## 3) Remaining coding task queue (repo-grounded)
 
-Implication: Even after major migrations, runtime maturity and feature completeness are still in-progress.
+Ordered by impact and dependency:
 
-## 6) Suggested next coding pass (ordered)
+1. **Live source adapter implementation pass**
+   - Replace cache-only source adapters with network-backed deterministic adapters + provenance envelopes.
+2. **Decodo execution closure**
+   - Move `abx/online_sourcing.py` / `abx/online_resolver.py` from stub/deferred notes to executable sourced flow with explicit policy gates.
+3. **Kernel stub retirement policy**
+   - Constrain `abraxas/core/stub_oracle_engine.py` to explicit test-only usage or remove if superseded by error envelope routing.
+4. **Comment/semantic de-stub cleanup**
+   - Remove stale "stub" wording in `abx/ui/chat_engine.py` and Neon-Genie internal helper naming/docs where behavior is live+fallback.
+5. **Notion sync closure**
+   - Mark completed chunk claims in Notion to prevent roadmap drift (bus runtime, acquisition paths, upgrade-spine planners).
 
-1. Replace acquisition-layer rune stubs with real adapter/storage wiring.
-2. Replace bus runtime stub (`abx/bus/runtime.py`) with deterministic production path + tests.
-3. Complete Neon-Genie external overlay integration to remove stub mode.
-4. Eliminate stub oracle fallback from default kernel execution path.
-5. Convert upgrade-spine `patch_plan_stub` adapters into live planners.
-6. Close remaining placeholder/test-coverage debt in runtime + ERS modules.
+## 4) Delta from earlier Notion scan
 
+Resolved since earlier scan:
+- Bus runtime de-stubbed.
+- Upgrade-spine `patch_plan_stub` removed.
+- Acquisition layer no longer emits `/stub/*` artifacts.
+- Dispatcher fallback shifted from stub-engine naming to deterministic kernel-unavailable envelope.
+
+Still open:
+- Source adapter live integrations.
+- Decodo execution closure.
+- Stub-comment debt and legacy stub file retirement.
