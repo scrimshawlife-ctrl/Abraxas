@@ -25,6 +25,14 @@ jobs:
         run: |
           python -m abraxas.governance.rune_registry_gate
 
+      - name: Run baseline enforcement (default governance gate)
+        run: |
+          python scripts/run_baseline_enforcement.py
+
+      - name: Run runbook validation
+        run: |
+          python scripts/run_runbook_check.py
+
       - name: Run pytest (familiar canary scope)
         run: |
           pytest abx_familiar/tests

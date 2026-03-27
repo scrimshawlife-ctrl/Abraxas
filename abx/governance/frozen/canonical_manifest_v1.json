@@ -1,0 +1,110 @@
+{
+  "artifact_id": "canonical-manifest-abx",
+  "artifact_type": "CanonicalManifestArtifact.v1",
+  "baseline_id": "ABX-GOV-BASELINE-001",
+  "baseline_version": "v1.0.0-rc1",
+  "exclusions": [
+    "ad-hoc debug scripts",
+    "non-governed local experiment files",
+    "raw_operator_stdout"
+  ],
+  "manifest_hash": "dbe590ffbc7889d0dddba8fc150bd0f42e828b5967f753bcd50ed23aca8d3d2a",
+  "members": [
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "rune.registry",
+      "member_type": "registry",
+      "surface": "abx.rune_contracts + abx.rune_governance"
+    },
+    {
+      "classification": "DERIVED",
+      "member_id": "schema.adapter_audit.v1",
+      "member_type": "schema",
+      "surface": "AdapterAuditArtifact.v1"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "schema.closure_summary.v1",
+      "member_type": "schema",
+      "surface": "ClosureSummaryArtifact.v1"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "schema.continuity_summary.v1",
+      "member_type": "schema",
+      "surface": "ContinuitySummaryArtifact.v1"
+    },
+    {
+      "classification": "DERIVED",
+      "member_id": "schema.frame_projection.v1",
+      "member_type": "schema",
+      "surface": "FrameProjection.v1"
+    },
+    {
+      "classification": "EXCLUDED",
+      "member_id": "schema.portfolio_view.v1",
+      "member_type": "schema",
+      "surface": "portfolio-view"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "schema.promotion_pack.v1",
+      "member_type": "schema",
+      "surface": "PromotionPackArtifact.v1"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "schema.proof_chain.v1",
+      "member_type": "schema",
+      "surface": "ProofChainArtifact.v1"
+    },
+    {
+      "classification": "LEGACY_TOLERATED",
+      "member_id": "schema.raw_operator_stdout",
+      "member_type": "schema",
+      "surface": "raw-operator-stdout"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "schema.resonance_frame.v1",
+      "member_type": "schema",
+      "surface": "ResonanceFrame.v1"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "source.continuity",
+      "member_type": "source_of_truth",
+      "surface": "abx.continuity.ContinuitySummaryArtifact.v1"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "source.contracts_registry",
+      "member_type": "source_of_truth",
+      "surface": "abx.rune_contracts + abx.rune_governance"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "source.lifecycle_promotion",
+      "member_type": "source_of_truth",
+      "surface": "abx.lifecycle_policy + abx.promotion_pack"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "source.portfolio_state",
+      "member_type": "source_of_truth",
+      "surface": "abx.paper_trading.PortfolioState"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "source.runtime_frame",
+      "member_type": "source_of_truth",
+      "surface": "abx.resonance_frame.ResonanceFrame.v1"
+    },
+    {
+      "classification": "AUTHORITATIVE",
+      "member_id": "source.validation_proof_closure",
+      "member_type": "source_of_truth",
+      "surface": "abx.simulation_validation + abx.proof_chain + abx.closure_summary"
+    }
+  ]
+}
