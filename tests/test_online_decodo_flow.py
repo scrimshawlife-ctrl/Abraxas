@@ -26,6 +26,7 @@ def test_route_online_sources_builds_decodo_request_envelope() -> None:
     assert req["max_results"] == 12
     assert req["capability"] == {"online_allowed": True, "decodo_available": True}
     assert routing["transport_outcome"] == "executed_live"
+    assert routing["reason_code"] == "decodo_live_path"
 
 
 def test_route_online_sources_reports_policy_block_when_online_disabled() -> None:
@@ -39,6 +40,20 @@ def test_route_online_sources_reports_policy_block_when_online_disabled() -> Non
     assert routing["provider"] == "none"
     assert routing["transport_outcome"] == "blocked_policy"
     assert routing["error"] == "online_blocked_by_policy"
+    assert routing["reason_code"] == "online_policy_blocked"
+
+
+def test_route_online_sources_honors_online_policy_even_if_decodo_available() -> None:
+    routing = route_online_sources(
+        term="abraxas",
+        query="abraxas resonance",
+        known_urls=["https://example.com/a"],
+        caps={"online_allowed": False, "decodo_available": True},
+    )
+
+    assert routing["provider"] == "none"
+    assert routing["transport_outcome"] == "blocked_policy"
+    assert routing["reason_code"] == "online_policy_blocked"
 
 
 def test_resolve_routing_to_urls_decodo_uses_candidates_and_domains() -> None:
@@ -63,6 +78,7 @@ def test_resolve_routing_to_urls_decodo_uses_candidates_and_domains() -> None:
     ]
     assert "request" in meta
     assert meta["transport_outcome"] == "executed_live"
+    assert meta["reason_code"] == "decodo_live_path"
 
 
 def test_resolve_routing_to_urls_decodo_filters_non_http_and_invalid_max_results() -> None:
@@ -97,6 +113,22 @@ def test_resolve_routing_to_urls_decodo_blocked_by_capability() -> None:
     assert urls == []
     assert meta["transport_outcome"] == "blocked_policy"
     assert meta["reason_code"] == "decodo_unavailable_or_policy_blocked"
+
+
+def test_resolve_routing_to_urls_fallback_reason_codes() -> None:
+    provider, urls, meta = resolve_routing_to_urls(
+        {
+            "provider": "direct_http",
+            "results": [{"url": "https://example.com/a"}],
+            "transport_outcome": "executed_fallback",
+            "reason_code": "fallback_direct_http",
+        }
+    )
+
+    assert provider == "direct_http"
+    assert urls == ["https://example.com/a"]
+    assert meta["transport_outcome"] == "executed_fallback"
+    assert meta["reason_code"] == "fallback_direct_http"
 
 
 def test_execute_task_routing_decodo_emits_anchors(tmp_path, monkeypatch) -> None:

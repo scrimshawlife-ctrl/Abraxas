@@ -1,0 +1,188 @@
+{
+  "chunks": {
+    "chunk_a_runtime_gate": {
+      "goal": "Canonical runtime gate behavior stays stable",
+      "status": "PASS"
+    },
+    "chunk_b_guardrails": {
+      "goal": "Behavioral guardrails remain enforced by tests",
+      "status": "PASS"
+    },
+    "chunk_c_repetition_proof": {
+      "goal": "Nx deterministic test repetition + N-run gate proof",
+      "status": "PASS"
+    },
+    "chunk_d_todo_closure": {
+      "goal": "Regenerate TODO/stub scan + taxonomy/sync artifacts from repo state",
+      "status": "PASS"
+    },
+    "chunk_e_verification": {
+      "goal": "Verify sync artifacts and taxonomy/stub metrics remain consistent",
+      "status": "PASS"
+    },
+    "chunk_f_runtime_ers_coverage": {
+      "goal": "Protect runtime/ERS boundaries with focused regression checks",
+      "status": "PASS"
+    }
+  },
+  "config": {
+    "chunks_executed": [
+      "chunk_a",
+      "chunk_b",
+      "chunk_c",
+      "chunk_d",
+      "chunk_e",
+      "chunk_f"
+    ],
+    "gate_artifacts_dir": "artifacts_gate",
+    "gate_run_id": "wave6_chunk_c_gate",
+    "gate_runs": 1,
+    "pytest_runs": 1,
+    "pytest_target": "tests/test_verify_wave6_artifacts.py",
+    "repo_root": "/workspace/Abraxas",
+    "runtime_ers_targets": [
+      "tests/test_runtime_infrastructure.py",
+      "tests/test_ers_invariance_gate.py"
+    ]
+  },
+  "finished_at": "2026-03-27T16:42:06+00:00",
+  "generated_at": "2026-03-27T16:42:06+00:00",
+  "overall_status": "PASS",
+  "provenance": {
+    "python": "/root/.pyenv/versions/3.10.19/bin/python",
+    "runner": "scripts.run_large_chunk_plan"
+  },
+  "started_at": "2026-03-27T16:42:01+00:00",
+  "steps": [
+    {
+      "chunk": "chunk_a",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_dozen_run_gate_runtime.py"
+      ],
+      "name": "runtime_gate_canonical_tests",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_b",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_online_decodo_flow.py"
+      ],
+      "name": "decodo_guardrail_tests",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_c",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_verify_wave6_artifacts.py"
+      ],
+      "name": "pytest_repetition_1",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_c",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "-m",
+        "scripts.n_run_gate_runtime",
+        "--artifacts_dir",
+        "artifacts_gate",
+        "--run_id",
+        "wave6_chunk_c_gate",
+        "--runs",
+        "1"
+      ],
+      "name": "n_run_gate",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_d",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "scripts/scan_todo_markers.py"
+      ],
+      "name": "scan_todo_markers",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_d",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "scripts/scan_stubs.py",
+        "--write"
+      ],
+      "name": "scan_stubs",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_d",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "scripts/build_stub_taxonomy_artifact.py"
+      ],
+      "name": "build_stub_taxonomy",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_d",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "scripts/build_notion_sync_artifact.py"
+      ],
+      "name": "build_notion_sync",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_e",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_stub_taxonomy_artifact.py"
+      ],
+      "name": "stub_taxonomy_tests",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_e",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "scripts/verify_wave6_artifacts.py"
+      ],
+      "name": "wave6_artifact_consistency_verify",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "chunk": "chunk_f",
+      "command": [
+        "/root/.pyenv/versions/3.10.19/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_runtime_infrastructure.py",
+        "tests/test_ers_invariance_gate.py"
+      ],
+      "name": "runtime_ers_stabilization_tests",
+      "ok": true,
+      "returncode": 0
+    }
+  ],
+  "version": "wave6_large_chunk_report.v0.3"
+}

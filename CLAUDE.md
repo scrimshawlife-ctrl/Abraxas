@@ -150,7 +150,7 @@ See "Known Stubs and Incomplete Features" section below for detailed inventory.
 
 ## TODO
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-03-27
 
 ### Summary
 
@@ -194,20 +194,32 @@ Most critical blockers (P0) and high-priority items (P1) have been resolved. Act
 
 ### Active Work
 
+#### Prioritized TODO List (2026-03-27)
+- [ ] **Decodo/source lane hardening**
+  - Remove fallback ambiguity by enforcing explicit transport outcomes (`executed_live`, `executed_fallback`, `blocked_policy`) across resolver + sourcing reports.
+- [ ] **Adapter policy tightening**
+  - Keep cache-only mode as explicit policy path with reason codes; default path remains live-first with deterministic fallback.
+- [ ] **Runtime gate evidence loop**
+  - Finish Wave 6 Chunk C repetition proof (`10x` targeted module + one full gate run) and persist PASS envelopes.
+- [ ] **Notion/repo sync cadence**
+  - Regenerate `docs/artifacts/notion_sync_status.json` after each large chunk and keep checklist state evidence-backed.
+- [ ] **Coverage increment in runtime surfaces**
+  - Raise coverage in `abraxas/runtime/` and `abraxas/ers/` via behavior-driven tests around policy boundaries.
+
 #### Roadmap Features
 - [ ] Resonance Narratives (human-readable output layer)
 - [ ] UI Dashboard (after Oracle v2 artifacts stabilize)
 - [ ] Multi-Domain Analysis expansion
 
-#### Technical Improvements
+#### Completed Recently
 - [x] ABX-Runes coupling migration (data flow violations resolved, 4 CLI exceptions documented)
-- [ ] Address remaining placeholder comments in non-critical paths
-- [ ] Expand test coverage beyond 33%
+- [x] Runtime TODO marker in rune scaffold remediated (`rune_registry_gate.py` description now concrete)
 
 #### Suggested Next Steps
-1. **Placeholder cleanup** - Run `rg "TODO|FIXME|XXX" abraxas -g "*.py" | wc -l` to scope
-2. **Test coverage** - Priority modules: `abraxas/runtime/`, `abraxas/ers/`
-3. **Resonance Narratives** - Large feature, needs design doc first
+1. **Evidence first** - Run stub/todo scans and attach artifact diffs before implementation.
+2. **Wave 6 closure** - Execute repetition proof loop and store deterministic outputs.
+3. **Source stack closure** - Continue decodo + adapter hardening and refresh sync artifact.
+4. **Coverage pass** - Add tests on runtime/ERS policy gates and rerun full targeted suite.
 
 ---
 

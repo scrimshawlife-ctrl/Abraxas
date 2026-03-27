@@ -241,18 +241,31 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
     """
     provider = str(routing.get("provider") or "none")
     transport_outcome = str(routing.get("transport_outcome") or "")
+    reason_code = str(routing.get("reason_code") or "")
     if provider == "direct_http":
         res = routing.get("results") if isinstance(routing.get("results"), list) else []
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
-        return provider, _dedupe_urls(urls, limit=12), {"note": "direct_http urls", "transport_outcome": transport_outcome or "executed_fallback"}
+        return provider, _dedupe_urls(urls, limit=12), {
+            "note": "direct_http urls",
+            "transport_outcome": transport_outcome or "executed_fallback",
+            "reason_code": reason_code or "fallback_direct_http",
+        }
     if provider == "search_lite":
         res = routing.get("results") if isinstance(routing.get("results"), list) else []
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
-        return provider, _dedupe_urls(urls, limit=12), {"query": routing.get("query"), "transport_outcome": transport_outcome or "executed_fallback"}
+        return provider, _dedupe_urls(urls, limit=12), {
+            "query": routing.get("query"),
+            "transport_outcome": transport_outcome or "executed_fallback",
+            "reason_code": reason_code or "fallback_search_lite",
+        }
     if provider == "rss":
         res = routing.get("results") if isinstance(routing.get("results"), list) else []
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
-        return provider, _dedupe_urls(urls, limit=12), {"note": "rss feed urls", "transport_outcome": transport_outcome or "executed_fallback"}
+        return provider, _dedupe_urls(urls, limit=12), {
+            "note": "rss feed urls",
+            "transport_outcome": transport_outcome or "executed_fallback",
+            "reason_code": reason_code or "fallback_rss",
+        }
     if provider == "decodo":
         request = routing.get("request") if isinstance(routing.get("request"), dict) else {}
         capability = request.get("capability") if isinstance(request.get("capability"), dict) else {}
@@ -262,7 +275,7 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
             return provider, [], {
                 "request": request,
                 "transport_outcome": "blocked_policy",
-                "reason_code": "decodo_unavailable_or_policy_blocked",
+                "reason_code": reason_code or "decodo_unavailable_or_policy_blocked",
             }
         urls: List[str] = []
         candidate_urls = request.get("candidate_urls") if isinstance(request.get("candidate_urls"), list) else []
@@ -284,8 +297,13 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
         return provider, _dedupe_urls(urls, limit=max(1, min(30, max_results))), {
             "request": request,
             "transport_outcome": transport_outcome or "executed_live",
+            "reason_code": reason_code or "decodo_live_path",
         }
-    return provider, [], {"error": "unsupported_or_empty_routing", "transport_outcome": transport_outcome or "blocked_policy"}
+    return provider, [], {
+        "error": "unsupported_or_empty_routing",
+        "transport_outcome": transport_outcome or "blocked_policy",
+        "reason_code": reason_code or "unsupported_or_empty_routing",
+    }
 
 
 def execute_task_routing(
