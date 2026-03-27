@@ -1,7 +1,29 @@
 # Notion ↔ Repo Execution Plan (Remaining Coding Tasks)
 
 Date: 2026-03-27 (UTC)
-Status: wave_4_completed
+Status: wave_5_initiated
+
+## OPEN — rescan pulse (2026-03-27 follow-up)
+
+Rescan objective: re-validate remaining Notion task pressure after Wave 4 and initiate the next coding closure.
+
+### Fresh scan signals
+
+1. **Runtime TODO marker in rune scaffold**  
+   - Resolved in follow-up: no longer emitted by `rune_registry_gate.py`.
+2. **Kernel stub retirement still open**  
+   - `abraxas/core/stub_oracle_engine.py` remained env-gated but not scope-bounded.
+3. **Source adapter / Decodo closure still partially open**  
+   - `cache_only_stub` and fallback-heavy online paths still visible in repo scan outputs.
+
+### Wave 5 tasks (ranked)
+
+1. **Kernel stub scope-bound gate (initiated this commit)**
+   - Require explicit allow + explicit scope (`test|dev`) for stub oracle execution.
+2. **Adapter lane closure continuation**
+   - Reduce default reliance on cache-only adapters; keep policy-tagged fallback only.
+3. **Decodo/source live-path hardening**
+   - Continue replacing deferred/stub semantics with explicit live/fallback/blocked envelopes.
 
 ## ALIGN — repo-vs-notion reality check
 
@@ -84,6 +106,7 @@ Status: wave_4_completed
 - Wave 4 advance: taxonomy classifier now treats detector/narrative abstract base stubs as intentional abstractions; implementation-gap count reduced to 1.
 - Wave 4 advance: kernel unrouted fallback moved to deterministic not_computable envelope and wired additional handlers; tracked stubs now 4.
 - Wave 4 completion: sync artifact now auto-resolves `status.wave` to `wave_4_completed` when actionable implementation/policy gaps are zero.
+- Wave 5 initiation: tightened `stub_oracle_engine` gating to require explicit scope bounds (`ABRAXAS_STUB_ORACLE_SCOPE=test|dev`) in addition to allow-flag and added coverage tests.
 
 ## SEAL
 

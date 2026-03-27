@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 from abraxas.core.canonical import sha256_hex
 from abraxas.osh.types import OSHFetchJob, RawFetchArtifact
 from abraxas.storage.cas import CASRef, CASStore
+from abraxas.acquisition.reason_codes import CachePolicyReason, validate_cache_policy_reason
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class FetchResult:
     raw_ref: CASRef
     method: str
     decodo_used: bool
+    policy_reason: str | None = None
     artifact: Optional[RawFetchArtifact] = None
 
 
@@ -95,7 +97,9 @@ def acquire_cache_only(
     *,
     url: str,
     cas_store: CASStore,
+    policy_reason: CachePolicyReason | str,
 ) -> FetchResult | None:
+    policy_reason = validate_cache_policy_reason(policy_reason)
     entry = cas_store.lookup_url(url)
     if not entry:
         return None
@@ -115,6 +119,7 @@ def acquire_cache_only(
         raw_ref=raw_ref,
         method="cache_only",
         decodo_used=False,
+        policy_reason=policy_reason,
         artifact=None,
     )
 

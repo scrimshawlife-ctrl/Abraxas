@@ -16,6 +16,11 @@ class CacheOnlyAdapter(SourceAdapter):
     version: str = "0.1"
 
     def fetch(self, window: SourceWindow, params: Dict[str, Any], cache_dir: Optional[Path], run_ctx: Dict[str, Any]) -> bytes:
+        if not bool(run_ctx.get("cache_only_mode", False)):
+            raise RuntimeError(
+                "cache_only adapter requires run_ctx.cache_only_mode=True "
+                "for explicit policy-bounded execution."
+            )
         cache_key = self.cache_key(window=window, params=params, run_ctx=run_ctx)
         cache_path = self.cache_path(cache_dir=cache_dir, cache_key=cache_key)
         return load_cached(cache_path)
