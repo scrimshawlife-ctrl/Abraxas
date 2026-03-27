@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from abx.governance.breaking_change_detection import scan_breaking_changes
+
+
+if __name__ == "__main__":
+    print(json.dumps(scan_breaking_changes().__dict__, indent=2, sort_keys=True))

@@ -1,0 +1,18 @@
+{
+  "waivers": [
+    {
+      "waiver_id": "waiver.schema-mapping-deprecation.2026q2",
+      "owner": "governance-core",
+      "reason": "Allow one cycle for removing deprecated portfolio mapping alias while migration PRs land.",
+      "scope": [
+        "mapping.portfolio_fields"
+      ],
+      "status": "APPROVED",
+      "expires_on": "2026-06-30",
+      "related_checks": [
+        "deprecated-schema-mappings-present",
+        "migration-guard-required"
+      ]
+    }
+  ]
+}
