@@ -80,3 +80,5 @@ Acceptance Gate:
 - 2026-03-27: Added deterministic tests for acquisition cache-index replay and patch-plan builder plan_id stability.
 - 2026-03-27: Completed chunk 6 hardening gates (de-stub regression guard + acquisition index determinism + patch-plan determinism tests).
 - 2026-03-27: Aligned acquisition cache index path to CAS root via ABRAXAS_ROOT-aware layout helpers.
+
+- 2026-03-27: Initiated Notion↔Repo closure track; refreshed `tools/stub_index.json` and created `docs/notion_execution_plan_2026-03-27.md` with Wave 1-4 sequencing.
