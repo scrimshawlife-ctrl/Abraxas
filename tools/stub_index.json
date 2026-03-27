@@ -67,7 +67,7 @@
     },
     {
       "file": "abraxas/runes/operators/acquisition_layer.py",
-      "marker": "strict_execution: If True, raises NotImplementedError for unimplemented",
+      "marker": "raise NotImplementedError(",
       "type": "not_implemented",
       "priority": "P1",
       "stub_type": "operator"
@@ -197,19 +197,26 @@
       "type": "not_implemented",
       "priority": "P1",
       "stub_type": "interface"
+    },
+    {
+      "file": "abx/kernel.py",
+      "marker": "raise NotImplementedError(",
+      "type": "not_implemented",
+      "priority": "P1",
+      "stub_type": "not_implemented"
     }
   ],
   "summary": {
-    "total_stubs": 22,
+    "total_stubs": 23,
     "by_priority": {
       "P0": 0,
-      "P1": 22,
+      "P1": 23,
       "P2": 0
     },
     "by_type": {
       "operator": 18,
       "interface": 2,
-      "not_implemented": 2,
+      "not_implemented": 3,
       "module": 0
     }
   }
