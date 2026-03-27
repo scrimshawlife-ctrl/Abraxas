@@ -101,7 +101,10 @@ def route_online_sources(
     - else: search_lite (if enabled)
     - else: rss (if enabled)
     """
-    if caps.get("decodo_available", False):
+    online_allowed = bool(caps.get("online_allowed", True))
+    decodo_available = bool(caps.get("decodo_available", False))
+
+    if decodo_available:
         clean_urls = []
         for raw_url in known_urls:
             u = (raw_url or "").strip()
@@ -125,20 +128,43 @@ def route_online_sources(
                 "candidate_urls": clean_urls[:12],
                 "domains": domains[:12],
                 "max_results": 12,
+                "capability": {
+                    "online_allowed": online_allowed,
+                    "decodo_available": decodo_available,
+                },
                 "notes": "Decodo request envelope with deterministic fallback candidates.",
             },
             "results": [],
+            "transport_outcome": "executed_live",
         }
 
     # Non-Decodo online fallback chain
     if caps.get("direct_http_available", False) and known_urls:
-        return direct_http_fetch(known_urls)
+        out = direct_http_fetch(known_urls)
+        out["transport_outcome"] = "executed_fallback"
+        return out
 
     if caps.get("search_lite_available", False):
-        return search_lite_duckduckgo(query=query, max_results=10)
+        out = search_lite_duckduckgo(query=query, max_results=10)
+        out["transport_outcome"] = "executed_fallback"
+        return out
 
     if caps.get("rss_available", False):
         feeds_path = os.getenv("ABX_RSS_FEEDS_PATH", "").strip()
-        return rss_from_feeds(term=term, feeds_path=feeds_path, max_results=12)
+        out = rss_from_feeds(term=term, feeds_path=feeds_path, max_results=12)
+        out["transport_outcome"] = "executed_fallback"
+        return out
 
-    return {"provider": "none", "results": [], "error": "no_online_provider_available"}
+    if not online_allowed:
+        return {
+            "provider": "none",
+            "results": [],
+            "error": "online_blocked_by_policy",
+            "transport_outcome": "blocked_policy",
+        }
+    return {
+        "provider": "none",
+        "results": [],
+        "error": "no_online_provider_available",
+        "transport_outcome": "blocked_policy",
+    }

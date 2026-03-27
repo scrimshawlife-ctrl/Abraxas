@@ -80,3 +80,33 @@ def test_execute_plan_offline_cache_only(tmp_path: Path) -> None:
     )
     assert len(result.packets) == 1
     assert result.packets[0].provenance.get("acquisition_method") == "cache_only"
+    assert result.packets[0].provenance.get("reason_code") == "offline_cache_only_policy"
+
+
+def test_execute_plan_offline_cache_miss_skips(tmp_path: Path) -> None:
+    step = PlanStep(
+        step_id="step-1",
+        action="DOWNLOAD",
+        url_or_key="https://example.com/missing.json",
+        expected_bytes=None,
+        cache_policy="REQUIRED",
+        codec_hint=None,
+        notes=None,
+        deterministic_order_index=0,
+    )
+    plan = BulkPullPlan.build(
+        source_id="TEST_SOURCE",
+        created_at_utc="2025-01-01T00:00:00Z",
+        window_utc={},
+        manifest_id="manifest-1",
+        steps=[step],
+    )
+    result = execute_plan(
+        plan=plan,
+        run_ctx={"run_id": "run-2", "now_utc": "2025-01-01T00:00:00Z"},
+        budgets=PortfolioTuningIR(ubv=UBVBudgets(max_requests_per_run=1)),
+        cas_store=CASStore(base_dir=tmp_path / "cas"),
+        offline=True,
+    )
+    assert result.packets == []
+    assert result.cache_refs == []

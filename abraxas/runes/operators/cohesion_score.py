@@ -27,14 +27,14 @@ def _mean(values: List[float]) -> Optional[float]:
 
 def apply_cohesion_score(synchronicity_envelopes: Dict[str, Any], *, strict_execution: bool = False) -> Dict[str, Any]:
     if synchronicity_envelopes is None:
-        if strict_execution:
-            raise NotImplementedError("COHESION_SCORE requires synchronicity_envelopes")
         result = CohesionResult(
             cohesion_score=None,
             not_computable=True,
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["synchronicity_envelopes"],
+                "reason_code": "missing_synchronicity_envelopes",
+                "strict_execution": bool(strict_execution),
             },
             provenance={"inputs_hash": sha256_hex(canonical_json({"envelopes": []}))},
         )

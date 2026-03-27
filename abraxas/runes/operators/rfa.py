@@ -60,13 +60,11 @@ def apply_rfa(
                 semantic_field: Input semantic_field
         context_vector: Input context_vector
         anchor_candidates: Input anchor_candidates
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        strict_execution: Marks strict invocation mode in not_computable envelope
 
     Returns:
         Dict with keys: anchored_field, resonance_strength, stability_metric
 
-    Raises:
-        NotImplementedError: If strict_execution=True and operator not implemented
     """
     missing = []
     if semantic_field is None:
@@ -76,10 +74,6 @@ def apply_rfa(
     if anchor_candidates is None:
         missing.append("anchor_candidates")
     if missing:
-        if strict_execution:
-            raise NotImplementedError(
-                f"RFA requires inputs: {', '.join(missing)}"
-            )
         return {
             "anchored_field": {},
             "resonance_strength": 0.0,
@@ -87,6 +81,8 @@ def apply_rfa(
             "not_computable": {
                 "reason": "missing required inputs",
                 "missing_inputs": missing,
+                "reason_code": "missing_rfa_inputs",
+                "strict_execution": bool(strict_execution),
             },
         }
     field_tokens = _tokenize(semantic_field)

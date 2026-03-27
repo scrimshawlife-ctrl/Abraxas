@@ -41,8 +41,6 @@ def _scan_for_domain_priors(payload: Any) -> List[str]:
 
 def apply_no_domain_prior(payload: Any, *, strict_execution: bool = False) -> Dict[str, Any]:
     if payload is None:
-        if strict_execution:
-            raise NotImplementedError("NO_DOMAIN_PRIOR requires payload")
         provenance = {"inputs_hash": sha256_hex(canonical_json({"payload": None}))}
         return DomainPriorResult(
             compliance=False,
@@ -50,6 +48,8 @@ def apply_no_domain_prior(payload: Any, *, strict_execution: bool = False) -> Di
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["payload"],
+                "reason_code": "missing_payload",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

@@ -32,8 +32,6 @@ def apply_temporal_normalize(
     strict_execution: bool = False,
 ) -> Dict[str, Any]:
     if not timestamp:
-        if strict_execution:
-            raise NotImplementedError("TEMPORAL_NORMALIZE requires timestamp")
         return TemporalNormalizeResult(
             normalized_timestamp_utc="",
             timezone_snapshot={},
@@ -41,6 +39,8 @@ def apply_temporal_normalize(
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["timestamp"],
+                "reason_code": "missing_timestamp",
+                "strict_execution": bool(strict_execution),
             },
             provenance={
                 "inputs_hash": sha256_hex(canonical_json({"timestamp": None})),

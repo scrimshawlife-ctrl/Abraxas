@@ -21,8 +21,6 @@ class ProvenanceSealResult(BaseModel):
 
 def apply_provenance_seal(payload: Any, *, strict_execution: bool = False) -> Dict[str, Any]:
     if payload is None:
-        if strict_execution:
-            raise NotImplementedError("PROVENANCE_SEAL requires payload")
         inputs_hash = sha256_hex(canonical_json({"payload": None}))
         return ProvenanceSealResult(
             payload_hash="",
@@ -30,6 +28,8 @@ def apply_provenance_seal(payload: Any, *, strict_execution: bool = False) -> Di
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["payload"],
+                "reason_code": "missing_payload",
+                "strict_execution": bool(strict_execution),
             },
             provenance={"payload_hash": ""},
         ).model_dump()

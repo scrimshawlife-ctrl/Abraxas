@@ -21,8 +21,6 @@ class LinguisticDiscoverResult(BaseModel):
 
 def apply_linguistic_source_discover(tokens: List[str], *, strict_execution: bool = False) -> Dict[str, Any]:
     if tokens is None:
-        if strict_execution:
-            raise NotImplementedError("LINGUISTIC_SOURCE_DISCOVER requires tokens")
         provenance = {
             "inputs_hash": sha256_hex(canonical_json({"tokens": []})),
             "candidate_hash": sha256_hex(canonical_json([])),
@@ -32,6 +30,8 @@ def apply_linguistic_source_discover(tokens: List[str], *, strict_execution: boo
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["tokens"],
+                "reason_code": "missing_tokens",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

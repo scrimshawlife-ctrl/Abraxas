@@ -38,11 +38,9 @@ def apply_influence_weight(ics_bundle: Dict[str, Any], *, strict_execution: bool
 
     Args:
         ics_bundle: Output from influence detect
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        strict_execution: Marks strict invocation mode in provenance
     """
     if ics_bundle is None:
-        if strict_execution:
-            raise NotImplementedError("INFLUENCE_WEIGHT requires ics_bundle")
         provenance = {
             "inputs_hash": sha256_hex(canonical_json({"ics_bundle": {}})),
             "metrics": ["CVP", "TLL", "RD", "CDEC", "RRS"],
@@ -53,6 +51,8 @@ def apply_influence_weight(ics_bundle: Dict[str, Any], *, strict_execution: bool
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["ics_bundle"],
+                "reason_code": "missing_ics_bundle",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         )

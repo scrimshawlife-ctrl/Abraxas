@@ -28,8 +28,6 @@ def apply_tvm_frame(
     strict_execution: bool = False,
 ) -> Dict[str, Any]:
     if metrics is None:
-        if strict_execution:
-            raise NotImplementedError("TVM_FRAME requires metrics")
         provenance = {
             "inputs_hash": sha256_hex(canonical_json([])),
             "frame_hashes": [],
@@ -39,6 +37,8 @@ def apply_tvm_frame(
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["metrics"],
+                "reason_code": "missing_metrics",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

@@ -1,0 +1,48 @@
+{
+  "version": "notion_sync.v0.1",
+  "generated_at": "auto",
+  "sources": {
+    "stub_index": "tools/stub_index.json",
+    "stub_taxonomy": "docs/artifacts/notion_stub_taxonomy.json",
+    "execution_plan": "docs/notion_execution_plan_2026-03-27.md"
+  },
+  "status": {
+    "wave": "wave_4_completed",
+    "notion_sync_ready": true,
+    "evidence_backed": true
+  },
+  "metrics": {
+    "total_stubs": 4,
+    "implementation_gap": 0,
+    "policy_block": 0,
+    "intentional_abstract": 4
+  },
+  "tasks": [
+    {
+      "id": "operator_gap_burn_down",
+      "state": "completed",
+      "remaining": 0,
+      "evidence": [
+        "tools/stub_index.json",
+        "docs/artifacts/notion_stub_taxonomy.json"
+      ]
+    },
+    {
+      "id": "policy_guardrails",
+      "state": "completed",
+      "remaining": 0,
+      "evidence": [
+        "docs/artifacts/notion_stub_taxonomy.json"
+      ]
+    },
+    {
+      "id": "intentional_abstract_inventory",
+      "state": "tracked",
+      "remaining": 4,
+      "evidence": [
+        "docs/artifacts/notion_stub_taxonomy.json"
+      ]
+    }
+  ],
+  "notes": "Machine-readable closure artifact for Notion task updates."
+}

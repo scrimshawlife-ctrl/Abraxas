@@ -36,3 +36,63 @@ def test_manifest_discovery_stable_ordering(tmp_path: Path) -> None:
     assert manifest.urls == ["https://example.com/a", "https://example.com/b"]
     seed_entries = manifest.metadata.get("seed_manifests")
     assert [entry["seed_url"] for entry in seed_entries] == sorted([seed_a, seed_b])
+
+
+def test_manifest_discovery_prefers_bulk_over_cache_hit(monkeypatch, tmp_path: Path) -> None:
+    cas_store = CASStore(base_dir=tmp_path / "cas")
+    seed = "https://example.com/sitemap.xml"
+    cas_store.store_bytes(
+        b"<urlset><url><loc>https://example.com/from-cache</loc></url></urlset>",
+        url=seed,
+        recorded_at_utc="2025-01-01T00:00:00Z",
+    )
+
+    class _FakeRawRef:
+        content_hash = "raw_hash"
+        bytes = 12
+        path = "/tmp/raw.bin"
+
+    class _FakeFetch:
+        body = b"<urlset><url><loc>https://example.com/from-bulk</loc></url></urlset>"
+        method = "bulk"
+        decodo_used = False
+        raw_ref = _FakeRawRef()
+
+    monkeypatch.setattr(
+        "abraxas.acquisition.manifest_discovery.acquire_bulk",
+        lambda **kwargs: _FakeFetch(),
+    )
+
+    result = discover_manifest(
+        source_id="TEST_SOURCE",
+        seed_targets=[seed],
+        run_ctx={"run_id": "run-1", "now_utc": "2025-01-01T00:00:00Z"},
+        budgets=PortfolioTuningIR(ubv=UBVBudgets(max_requests_per_run=5)),
+        cas_store=cas_store,
+        allow_decodo=False,
+    )
+
+    assert result.manifest.urls == ["https://example.com/from-bulk"]
+    assert result.manifest.provenance.retrieval_method == "bulk"
+    assert result.manifest.provenance.reason_code is None
+
+
+def test_manifest_discovery_cache_only_mode_sets_policy_reason(tmp_path: Path) -> None:
+    cas_store = CASStore(base_dir=tmp_path / "cas")
+    seed = "https://example.com/sitemap.xml"
+    cas_store.store_bytes(
+        b"<urlset><url><loc>https://example.com/from-cache</loc></url></urlset>",
+        url=seed,
+        recorded_at_utc="2025-01-01T00:00:00Z",
+    )
+
+    result = discover_manifest(
+        source_id="TEST_SOURCE",
+        seed_targets=[seed],
+        run_ctx={"run_id": "run-1", "now_utc": "2025-01-01T00:00:00Z", "cache_only_mode": True},
+        budgets=PortfolioTuningIR(ubv=UBVBudgets(max_requests_per_run=5)),
+        cas_store=cas_store,
+        allow_decodo=False,
+    )
+    assert result.manifest.provenance.retrieval_method == "cache_only"
+    assert result.manifest.provenance.reason_code == "policy_cache_only"

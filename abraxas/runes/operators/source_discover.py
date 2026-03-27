@@ -28,8 +28,6 @@ def apply_source_discover(
     strict_execution: bool = False,
 ) -> Dict[str, Any]:
     if residuals is None and anomalies is None and convergence is None and silence is None:
-        if strict_execution:
-            raise NotImplementedError("SOURCE_DISCOVER requires at least one input list")
         provenance = {
             "inputs_hash": sha256_hex(
                 canonical_json(
@@ -48,6 +46,8 @@ def apply_source_discover(
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["residuals", "anomalies", "convergence", "silence"],
+                "reason_code": "missing_signal_inputs",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

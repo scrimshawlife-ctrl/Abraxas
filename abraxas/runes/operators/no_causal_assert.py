@@ -37,8 +37,6 @@ def _scan_for_causal_claims(payload: Any) -> List[str]:
 
 def apply_no_causal_assert(payload: Any, *, strict_execution: bool = False) -> Dict[str, Any]:
     if payload is None:
-        if strict_execution:
-            raise NotImplementedError("NO_CAUSAL_ASSERT requires payload")
         provenance = {"inputs_hash": sha256_hex(canonical_json({"payload": None}))}
         return CausalAssertResult(
             compliance=False,
@@ -46,6 +44,8 @@ def apply_no_causal_assert(payload: Any, *, strict_execution: bool = False) -> D
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["payload"],
+                "reason_code": "missing_payload",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()

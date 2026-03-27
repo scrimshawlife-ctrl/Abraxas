@@ -240,20 +240,30 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
     Returns (provider, urls, meta)
     """
     provider = str(routing.get("provider") or "none")
+    transport_outcome = str(routing.get("transport_outcome") or "")
     if provider == "direct_http":
         res = routing.get("results") if isinstance(routing.get("results"), list) else []
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
-        return provider, _dedupe_urls(urls, limit=12), {"note": "direct_http urls"}
+        return provider, _dedupe_urls(urls, limit=12), {"note": "direct_http urls", "transport_outcome": transport_outcome or "executed_fallback"}
     if provider == "search_lite":
         res = routing.get("results") if isinstance(routing.get("results"), list) else []
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
-        return provider, _dedupe_urls(urls, limit=12), {"query": routing.get("query")}
+        return provider, _dedupe_urls(urls, limit=12), {"query": routing.get("query"), "transport_outcome": transport_outcome or "executed_fallback"}
     if provider == "rss":
         res = routing.get("results") if isinstance(routing.get("results"), list) else []
         urls = [str(r.get("url") or "") for r in res if isinstance(r, dict)]
-        return provider, _dedupe_urls(urls, limit=12), {"note": "rss feed urls"}
+        return provider, _dedupe_urls(urls, limit=12), {"note": "rss feed urls", "transport_outcome": transport_outcome or "executed_fallback"}
     if provider == "decodo":
         request = routing.get("request") if isinstance(routing.get("request"), dict) else {}
+        capability = request.get("capability") if isinstance(request.get("capability"), dict) else {}
+        decodo_available = bool(capability.get("decodo_available", True))
+        online_allowed = bool(capability.get("online_allowed", True))
+        if not online_allowed or not decodo_available:
+            return provider, [], {
+                "request": request,
+                "transport_outcome": "blocked_policy",
+                "reason_code": "decodo_unavailable_or_policy_blocked",
+            }
         urls: List[str] = []
         candidate_urls = request.get("candidate_urls") if isinstance(request.get("candidate_urls"), list) else []
         for u in candidate_urls:
@@ -271,8 +281,11 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
             urls.append(probe)
 
         max_results = _safe_int(request.get("max_results"), 12)
-        return provider, _dedupe_urls(urls, limit=max(1, min(30, max_results))), {"request": request}
-    return provider, [], {"error": "unsupported_or_empty_routing"}
+        return provider, _dedupe_urls(urls, limit=max(1, min(30, max_results))), {
+            "request": request,
+            "transport_outcome": transport_outcome or "executed_live",
+        }
+    return provider, [], {"error": "unsupported_or_empty_routing", "transport_outcome": transport_outcome or "blocked_policy"}
 
 
 def execute_task_routing(
@@ -296,6 +309,7 @@ def execute_task_routing(
     term = str(task.get("term") or "")
     task_id = str(task.get("task_id") or "")
     provider, urls, meta = resolve_routing_to_urls(routing)
+    transport_outcome = str(meta.get("transport_outcome") or routing.get("transport_outcome") or "executed_fallback")
     created = []
     errors = []
 
@@ -304,6 +318,7 @@ def execute_task_routing(
             "status": "NOOP",
             "provider": provider,
             "meta": meta,
+            "transport_outcome": transport_outcome,
             "created_anchors": [],
             "errors": [],
             "notes": "No resolvable URLs from routing payload.",
@@ -380,6 +395,7 @@ def execute_task_routing(
         "status": "OK",
         "provider": provider,
         "meta": meta,
+        "transport_outcome": transport_outcome,
         "created_anchors": created,
         "errors": errors,
         "notes": "Anchors emitted + edges linked. Downstream metrics recompute required.",

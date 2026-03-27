@@ -71,13 +71,11 @@ def apply_wsss(
                 signal_amplitude: Input signal_amplitude
         structural_coherence: Input structural_coherence
         pattern_matrix: Input pattern_matrix
-        strict_execution: If True, raises NotImplementedError for unimplemented operators
+        strict_execution: Marks strict invocation mode in not_computable envelope
 
     Returns:
         Dict with keys: structure_score, signal_quality, validation_result
 
-    Raises:
-        NotImplementedError: If strict_execution=True and operator not implemented
     """
     missing = []
     if signal_amplitude is None:
@@ -87,10 +85,6 @@ def apply_wsss(
     if pattern_matrix is None:
         missing.append("pattern_matrix")
     if missing:
-        if strict_execution:
-            raise NotImplementedError(
-                f"WSSS requires inputs: {', '.join(missing)}"
-            )
         return {
             "structure_score": 0.0,
             "signal_quality": 0.0,
@@ -98,6 +92,8 @@ def apply_wsss(
             "not_computable": {
                 "reason": "missing required inputs",
                 "missing_inputs": missing,
+                "reason_code": "missing_wsss_inputs",
+                "strict_execution": bool(strict_execution),
             },
         }
     amplitude = _coerce_float(signal_amplitude, 0.0)

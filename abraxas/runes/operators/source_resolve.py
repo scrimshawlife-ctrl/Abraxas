@@ -22,8 +22,6 @@ class SourceResolveResult(BaseModel):
 
 def apply_source_resolve(source_ids: List[str], *, strict_execution: bool = False) -> Dict[str, Any]:
     if source_ids is None:
-        if strict_execution:
-            raise NotImplementedError("SOURCE_RESOLVE requires source_ids")
         provenance = {
             "atlas_hash": build_source_atlas().atlas_hash(),
             "inputs_hash": sha256_hex(canonical_json({"source_ids": []})),
@@ -35,6 +33,8 @@ def apply_source_resolve(source_ids: List[str], *, strict_execution: bool = Fals
             not_computable_detail={
                 "reason": "missing required inputs",
                 "missing_inputs": ["source_ids"],
+                "reason_code": "missing_source_ids",
+                "strict_execution": bool(strict_execution),
             },
             provenance=provenance,
         ).model_dump()
