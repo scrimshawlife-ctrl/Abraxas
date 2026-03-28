@@ -9,6 +9,8 @@ class LineageRecord:
     state_ref: str
     lineage_kind: str
     source_ref: str
+    lineage_state: str = "LINEAGE_UNKNOWN"
+    lineage_continuity: str = "UNKNOWN"
 
 
 @dataclass(frozen=True)
@@ -17,6 +19,8 @@ class ProvenanceRecord:
     lineage_id: str
     transform_chain: str
     provenance_state: str
+    transform_semantics: str = "UNKNOWN"
+    upstream_version: str = "UNKNOWN"
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,7 @@ class DerivationRecord:
     provenance_id: str
     derivation_state: str
     stale_state: str
+    rederivation_required: str = "NO"
 
 
 @dataclass(frozen=True)
@@ -33,6 +38,9 @@ class MutationLegitimacyRecord:
     state_ref: str
     actor: str
     legitimacy_state: str
+    mutation_scope: str = "UNKNOWN"
+    authority_ref: str = "UNKNOWN"
+    mutation_semantics: str = "OVERWRITE"
 
 
 @dataclass(frozen=True)
@@ -41,6 +49,7 @@ class MutationAuthorityRecord:
     legitimacy_id: str
     authority_scope: str
     authority_state: str
+    policy_ref: str = "UNKNOWN"
 
 
 @dataclass(frozen=True)
@@ -49,6 +58,7 @@ class ReplayabilityRecord:
     state_ref: str
     replay_state: str
     reconstructable_state: str
+    replay_basis: str = "UNKNOWN"
 
 
 @dataclass(frozen=True)
@@ -58,6 +68,8 @@ class ProvenanceTransitionRecord:
     from_state: str
     to_state: str
     reason: str
+    trust_posture: str = "UNCHANGED"
+    action_required: str = "NONE"
 
 
 @dataclass(frozen=True)
@@ -66,6 +78,8 @@ class UnauthorizedMutationRecord:
     state_ref: str
     unauthorized_state: str
     response_state: str
+    authority_ref: str = "UNKNOWN"
+    quarantine_required: str = "NO"
 
 
 @dataclass(frozen=True)
