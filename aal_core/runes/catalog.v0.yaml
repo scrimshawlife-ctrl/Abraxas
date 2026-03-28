@@ -1,0 +1,69 @@
+schema_version: aal.runes.catalog.v0
+updated_at: "2026-03-28T00:00:00Z"
+runes:
+  - rune_id: RUNE.INGEST
+    name: Ingest
+    description: Deterministic ingestion and normalization of source payloads into run-scoped inputs.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: ACTIVE
+    determinism_notes: Input ordering and canonicalization required; no nondeterministic preprocessing.
+    provenance_requirements:
+      - source_uri_or_origin
+      - acquisition_method
+      - collected_at
+  - rune_id: RUNE.SCAN
+    name: Scan
+    description: Deterministic scanning/classification step over normalized inputs.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Stable sort and fixed thresholds required; avoid ambient state.
+    provenance_requirements:
+      - scanner_version
+      - rule_set_id
+      - evaluated_at
+  - rune_id: RUNE.PARSE
+    name: Parse
+    description: Structured parse of scanned artifacts into contract-conforming intermediate forms.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Parser config and grammar versions must be explicit and immutable per run.
+    provenance_requirements:
+      - parser_version
+      - grammar_id
+      - parsed_at
+  - rune_id: RUNE.MAP
+    name: Map
+    description: Mapping from parsed structures to canonical domain fields and semantic vectors.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Mapping tables must be version-pinned and side-effect free.
+    provenance_requirements:
+      - mapping_version
+      - taxonomy_ref
+      - mapped_at
+  - rune_id: RUNE.DIFF
+    name: Diff
+    description: Deterministic diff between current and prior run-linked states.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Baseline selection must be explicit and deterministic.
+    provenance_requirements:
+      - baseline_run_id
+      - comparison_strategy
+      - diffed_at
+  - rune_id: RUNE.ERS
+    name: Evidence-Resolution Surface
+    description: Evaluate evidence and resolution state for validator-facing surfacing.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Resolution policies and scoring weights must be version-pinned.
+    provenance_requirements:
+      - policy_version
+      - evaluator_id
+      - evaluated_at
