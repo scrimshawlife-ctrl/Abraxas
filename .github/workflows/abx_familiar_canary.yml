@@ -37,6 +37,10 @@ jobs:
         run: |
           pytest abx_familiar/tests
 
+      - name: Run generalized closure regression guard
+        run: |
+          pytest tests/test_closure_generalized_regression_guard.py
+
       - name: Run CANARY invariance harness
         run: |
           python -c "from abx_familiar.canary.canary_runner_v0 import run_canary; r=run_canary(12); import sys; print(r); sys.exit(0 if r.get('passed') else 1)"

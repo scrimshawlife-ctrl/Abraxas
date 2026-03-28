@@ -14,6 +14,7 @@ from .routes import (
     register_export,
     register_governance,
     register_index,
+    register_operator,
     register_runs,
 )
 from .routes.governance_routes import (
@@ -47,6 +48,7 @@ from .store import InMemoryStore
 def create_app() -> FastAPI:
     app = FastAPI(title="ABX-Familiar Web Panel (MVP)", version="0.1.0")
     register_index(app)
+    register_operator(app)
     register_runs(app)
     register_compare(app)
     register_export(app)

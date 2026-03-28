@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Operator Console v1.5 — Minimal Control Spine</h1>
+
+<div class="card">
+  <h2>Snapshot Header</h2>
+  <p><b>closure:</b> <span class="badge">{{ view.snapshot_header.closure_status }}</span></p>
+  <p><b>visible runs:</b> {{ view.snapshot_header.visible_run_count }}</p>
+  <p><b>health:</b> strong={{ view.snapshot_header.health_counts.strong }}, partial={{ view.snapshot_header.health_counts.partial }}, weak={{ view.snapshot_header.health_counts.weak }}</p>
+  <p><b>suggested focus:</b> {{ view.snapshot_header.suggested_focus_run_id }}</p>
+  <p><b>last action:</b> {{ view.snapshot_header.last_action_summary }}</p>
+  <p><b>newest activity:</b> {{ view.snapshot_header.newest_activity_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Closure Status</h2>
+  <p><span class="badge">{{ view.closure_status }}</span></p>
+</div>
+
+<div class="card">
+  <h2>Operator Action</h2>
+  <form method="post" action="/operator/actions/run-compliance-probe">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <input type="hidden" name="run_id" value="{{ view.selected_run_id or '' }}"/>
+    <input type="hidden" name="health" value="{{ view.focus_filters.health }}"/>
+    <input type="hidden" name="run_query" value="{{ view.focus_filters.run_query }}"/>
+    <input type="hidden" name="sort_mode" value="{{ view.focus_filters.sort_mode }}"/>
+    <input type="hidden" name="compare_run_id" value="{{ view.comparison_run_id or '' }}"/>
+    <button class="btn" type="submit">Run compliance probe</button>
+  </form>
+  {% if view.last_action %}
+  <div class="card {% if view.last_action.outcome_status != 'SUCCESS' %}warn{% endif %}" style="margin-top:10px;">
+    <h3>Last Action</h3>
+    <p><b>action:</b> {{ view.last_action.action_name }}</p>
+    <p><b>attempted_at:</b> {{ view.last_action.attempted_at }}</p>
+    <p><b>outcome:</b> <span class="badge">{{ view.last_action.outcome_status }}</span></p>
+    <p><b>triggered_run_id:</b> {{ view.last_action.triggered_run_id or "UNAVAILABLE" }}</p>
+    <p><b>message:</b> {{ view.last_action.message }}</p>
+  </div>
+  {% endif %}
+  {% if action_result %}
+  <div style="margin-top:10px;">
+    <p><b>Action status:</b> {{ action_result.status }} (exit={{ action_result.exit_code }})</p>
+    <pre><code>{{ action_result.command }}</code></pre>
+    {% if action_result.stdout_tail %}<pre><code>{{ action_result.stdout_tail }}</code></pre>{% endif %}
+    {% if action_result.stderr_tail %}<pre><code>{{ action_result.stderr_tail }}</code></pre>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+
+<div class="card">
+  <h2>Suggested Focus</h2>
+  <p><b>run_id:</b> {{ view.suggested_run_id or "UNAVAILABLE" }}</p>
+  <p><b>reason:</b> {{ view.suggestion_reason }}</p>
+</div>
+
+<div class="card">
+  <h2>Recent Activity</h2>
+  {% if view.recent_activity|length == 0 %}
+    <p>No recent activity available.</p>
+  {% else %}
+    <ul>
+    {% for item in view.recent_activity %}
+      <li>
+        <span class="badge">{{ item.activity_type }}</span>
+        {{ item.timestamp }}
+        {% if item.run_id %} | run={{ item.run_id }}{% endif %}
+        | {{ item.summary }}
+      </li>
+    {% endfor %}
+    </ul>
+    <p><small>showing latest {{ view.recent_activity|length }} / {{ view.recent_activity_limit }}</small></p>
+  {% endif %}
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Recent Runs</h2>
+    <form method="get" action="/operator" style="margin-bottom:10px;">
+      <div class="grid">
+        <div>
+          <label>health</label>
+          <select name="health" style="width:100%;">
+            <option value="all" {% if view.focus_filters.health == "all" %}selected{% endif %}>all</option>
+            <option value="strong" {% if view.focus_filters.health == "strong" %}selected{% endif %}>strong</option>
+            <option value="partial" {% if view.focus_filters.health == "partial" %}selected{% endif %}>partial</option>
+            <option value="weak" {% if view.focus_filters.health == "weak" %}selected{% endif %}>weak</option>
+          </select>
+        </div>
+        <div>
+          <label>run filter</label>
+          <input type="text" name="run_query" value="{{ view.focus_filters.run_query }}" style="width:100%;" placeholder="run prefix / substring"/>
+        </div>
+        <div>
+          <label>sort</label>
+          <select name="sort_mode" style="width:100%;">
+            <option value="latest_first" {% if view.focus_filters.sort_mode == "latest_first" %}selected{% endif %}>latest first</option>
+            <option value="run_id_asc" {% if view.focus_filters.sort_mode == "run_id_asc" %}selected{% endif %}>run_id ascending</option>
+          </select>
+        </div>
+        <div>
+          <label>compare run</label>
+          <select name="compare_run_id" style="width:100%;">
+            <option value="">none</option>
+            {% for run_id in view.available_runs %}
+              {% if run_id != view.selected_run_id %}
+                <option value="{{ run_id }}" {% if view.comparison_run_id == run_id %}selected{% endif %}>{{ run_id }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:8px;">
+        <button class="btn" type="submit">Apply focus</button>
+        <a class="btn" href="/operator" style="text-decoration:none;">Clear</a>
+      </div>
+    </form>
+
+    {% if view.visible_run_ids|length == 0 %}
+      <p>No runs match current filters.</p>
+    {% else %}
+      <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">run_id</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">artifact</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">validator</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">pointers</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">latest timestamp</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">health</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in view.visible_run_health_summaries %}
+          <tr>
+            <td style="padding:4px 0;">
+              {% if row.run_id == view.selected_run_id %}
+                <b>{{ row.run_id }}</b>
+              {% else %}
+                <a href="/operator?run_id={{ row.run_id }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}">{{ row.run_id }}</a>
+              {% endif %}
+            </td>
+            <td>{{ row.artifact_status }}</td>
+            <td>{{ row.validator_status }}</td>
+            <td>{{ row.correlation_pointers_count }}</td>
+            <td>{{ row.latest_timestamp }}</td>
+            <td><span class="badge">{{ row.health_label }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Selected Run Details</h2>
+    {% if not view.selected_run_id %}
+      <p>No run selected.</p>
+    {% else %}
+      <p><b>run_id:</b> {{ view.selected_run_id }}</p>
+      <p><b>mode:</b> {{ view.mode }}</p>
+      <p><b>artifact path:</b> {{ view.selected_run_detail.artifact_path or "MISSING" }}</p>
+      <p><b>validator path:</b> {{ view.selected_run_detail.validator_path or "MISSING" }}</p>
+      <p><b>artifact status:</b> {{ view.selected_run_detail.artifact_status }}</p>
+      <p><b>validator status:</b> {{ view.selected_run_detail.validator_status }}</p>
+      <p><b>ledger_record_ids count:</b> {{ view.selected_run_detail.ledger_record_ids_count }}</p>
+      <p><b>ledger_artifact_ids count:</b> {{ view.selected_run_detail.ledger_artifact_ids_count }}</p>
+      <p><b>correlation_pointers count:</b> {{ view.selected_run_detail.correlation_pointers_count }}</p>
+      <p><b>latest timestamp:</b> {{ view.selected_run_detail.latest_timestamp }}</p>
+      {% if view.weakness_reasons|length > 0 %}
+      <h3>Why not strong</h3>
+      <ul>
+      {% for reason in view.weakness_reasons %}
+        <li>{{ reason }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+      <h3>Suggested Next Step</h3>
+      <p>{{ view.suggested_next_step }}</p>
+      <h3>Evidence Drilldown</h3>
+      <p><b>artifact path:</b> {{ view.evidence_drilldown.artifact_path or "MISSING" }}</p>
+      <p><b>validator path:</b> {{ view.evidence_drilldown.validator_path or "MISSING" }}</p>
+      <p><b>ledger linkage:</b> {{ view.evidence_drilldown.ledger_linkage_summary }}</p>
+      <p><b>correlation pointers (preview):</b></p>
+      {% if view.evidence_drilldown.correlation_pointers_preview|length == 0 %}
+      <p>none</p>
+      {% else %}
+      <ul>
+      {% for pointer in view.evidence_drilldown.correlation_pointers_preview %}
+        <li>{{ pointer }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+      {% if view.evidence_drilldown.audit_refs_preview|length > 0 %}
+      <p><b>audit refs (preview):</b></p>
+      <ul>
+      {% for ref in view.evidence_drilldown.audit_refs_preview %}
+        <li>{{ ref }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+
+      <h3>Artifact Summary</h3>
+      <p>count={{ view.selected_run_artifact_summary.count }}</p>
+      <ul>
+      {% for item in view.selected_run_artifact_summary.artifacts %}
+        <li>
+          {{ item.path }} | artifact={{ item.artifact_id }} | rune={{ item.rune_id }} | status={{ item.status }}
+        </li>
+      {% endfor %}
+      </ul>
+
+      <h3>Validator Summary</h3>
+      <p>count={{ view.selected_run_validator_summary.count }}</p>
+      <ul>
+      {% for item in view.selected_run_validator_summary.validators %}
+        <li>
+          {{ item.path }} | validated={{ item.validated_artifacts_count }} | ledgerIds={{ item.ledger_ids_count }} | pointers={{ item.pointers_count }}
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  {% if view.compare_strip.enabled %}
+  <div class="card">
+    <h2>Two-Run Compare</h2>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; border-bottom:1px solid #ddd;">field</th>
+          <th style="text-align:left; border-bottom:1px solid #ddd;">selected</th>
+          <th style="text-align:left; border-bottom:1px solid #ddd;">comparison</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>run_id</td><td>{{ view.compare_strip.selected.run_id }}</td><td>{{ view.compare_strip.comparison.run_id }}</td></tr>
+        <tr><td>artifact status</td><td>{{ view.compare_strip.selected.artifact_status }}</td><td>{{ view.compare_strip.comparison.artifact_status }}</td></tr>
+        <tr><td>validator status</td><td>{{ view.compare_strip.selected.validator_status }}</td><td>{{ view.compare_strip.comparison.validator_status }}</td></tr>
+        <tr><td>correlation_pointers count</td><td>{{ view.compare_strip.selected.correlation_pointers_count }}</td><td>{{ view.compare_strip.comparison.correlation_pointers_count }}</td></tr>
+        <tr><td>health label</td><td>{{ view.compare_strip.selected.health_label }}</td><td>{{ view.compare_strip.comparison.health_label }}</td></tr>
+        <tr><td>latest timestamp</td><td>{{ view.compare_strip.selected.latest_timestamp }}</td><td>{{ view.compare_strip.comparison.latest_timestamp }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
