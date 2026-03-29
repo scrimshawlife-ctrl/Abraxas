@@ -1,0 +1,586 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Operator Console v1.5 — Minimal Control Spine</h1>
+<div class="card">
+  <h2>Workbench Modes</h2>
+  <p>
+    {% for mode in view.workbench_modes_allowed %}
+      {% if mode == view.workbench_mode %}<b>{{ mode }}</b>{% else %}<a href="/operator?mode={{ mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}">{{ mode }}</a>{% endif %}
+      {% if not loop.last %} | {% endif %}
+    {% endfor %}
+  </p>
+</div>
+
+<div class="card">
+  <h2>Snapshot Header</h2>
+  <p><b>closure:</b> <span class="badge">{{ view.snapshot_header.closure_status }}</span></p>
+  <p><b>visible runs:</b> {{ view.snapshot_header.visible_run_count }}</p>
+  <p><b>health:</b> strong={{ view.snapshot_header.health_counts.strong }}, partial={{ view.snapshot_header.health_counts.partial }}, weak={{ view.snapshot_header.health_counts.weak }}</p>
+  <p><b>suggested focus:</b> {{ view.snapshot_header.suggested_focus_run_id }}</p>
+  <p><b>last action:</b> {{ view.snapshot_header.last_action_summary }}</p>
+  <p><b>newest activity:</b> {{ view.snapshot_header.newest_activity_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Workbench</h2>
+  <p><b>suggested focus:</b> {{ view.workbench_header.suggested_focus_run_id }}</p>
+  <p><b>suggested compare:</b> {{ view.workbench_header.suggested_compare_run_id }}</p>
+  <p><b>highlights:</b> {{ view.workbench_header.highlights_count }} | <b>pinned:</b> {{ view.workbench_header.pinned_count }} | <b>attention:</b> {{ view.workbench_header.attention_count }}</p>
+  {% if view.attention_queue|length == 0 %}
+    <p>No attention items.</p>
+  {% else %}
+    <ul>
+    {% for item in view.attention_queue %}
+      <li>{{ item.priority_band }} | {{ item.run_id }} | {{ item.reason }} {% if view.attention_actions_enabled %}<a href="/operator?mode={{ view.workbench_mode }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&focus_attention={{ item.run_id }}">focus</a>{% endif %}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  <p><small>{{ view.attention_action_hint }}</small></p>
+</div>
+
+<div class="card">
+  <h2>Run Triage</h2>
+  <p><small>bucket limit={{ view.triage_limit_per_bucket }}</small></p>
+  <p><b>needs_action_now:</b></p>
+  <ul>{% for item in view.triage_panel.needs_action_now %}<li>{{ item.run_id }} | {{ item.health_label }} | {{ item.validator_status }}</li>{% endfor %}</ul>
+  <p><b>inspect_soon:</b></p>
+  <ul>{% for item in view.triage_panel.inspect_soon %}<li>{{ item.run_id }} | {{ item.health_label }} | {{ item.validator_status }}</li>{% endfor %}</ul>
+  <p><b>stable:</b></p>
+  <ul>{% for item in view.triage_panel.stable %}<li>{{ item.run_id }} | {{ item.health_label }} | {{ item.validator_status }}</li>{% endfor %}</ul>
+</div>
+
+<div class="card">
+  <h2>Closure Status</h2>
+  <p><span class="badge">{{ view.closure_status }}</span></p>
+</div>
+
+<div class="card">
+  <h2>Operator Action</h2>
+  <p><b>Action Safety:</b> {{ view.action_safety_envelope.scope_note }}</p>
+  <p><b>Allowed:</b> {{ view.action_safety_envelope.allowed_actions }}</p>
+  <p><b>Control plane:</b> rail={{ view.control_plane.action_rail }} | states={{ view.control_plane.action_states }}</p>
+  <p><b>Preset selection:</b> {{ view.selected_preset_id or "UNAVAILABLE" }}</p>
+  {% if view.control_plane.command_preview %}
+    <p><b>Command previews:</b></p>
+    <ul>
+    {% for action_name, command_preview in view.control_plane.command_preview.items() %}
+      <li>{{ action_name }} → <code>{{ command_preview }}</code></li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  <p><small>{{ view.action_safety_envelope.command_family_note }}</small></p>
+  <form method="post" action="/operator/actions/run-compliance-probe">
+    <input type="hidden" name="abx_token" value="{{ panel_token or '' }}"/>
+    <input type="hidden" name="run_id" value="{{ view.selected_run_id or '' }}"/>
+    <input type="hidden" name="health" value="{{ view.focus_filters.health }}"/>
+    <input type="hidden" name="run_query" value="{{ view.focus_filters.run_query }}"/>
+    <input type="hidden" name="sort_mode" value="{{ view.focus_filters.sort_mode }}"/>
+    <input type="hidden" name="compare_run_id" value="{{ view.comparison_run_id or '' }}"/>
+    <label>Preset</label>
+    <select name="preset_id" style="width:100%; margin-bottom:8px;">
+      {% for preset in view.action_presets %}
+        <option value="{{ preset.preset_id }}" {% if preset.preset_id == view.selected_preset_id %}selected{% endif %}>{{ preset.preset_id }} | {{ preset.action_name }}</option>
+      {% endfor %}
+    </select>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn" type="submit" name="action_intent" value="preview">Dry-run preview</button>
+      <button class="btn" type="submit" name="action_intent" value="execute">Execute preset</button>
+      <button class="btn" type="submit" name="action_intent" value="reapply">Reapply last</button>
+    </div>
+  </form>
+  <div class="card" style="margin-top:10px;">
+    <h3>Dry-Run Preview</h3>
+    <p><b>enabled:</b> {{ view.dry_run_preview.enabled }}</p>
+    <p><b>status:</b> {{ view.dry_run_preview.status }}</p>
+    <p><b>preset:</b> {{ view.dry_run_preview.preset_id or "UNAVAILABLE" }}</p>
+    <p><b>action:</b> {{ view.dry_run_preview.action_name or "UNAVAILABLE" }}</p>
+    <p><b>command:</b> <code>{{ view.dry_run_preview.resolved_command_preview or "UNAVAILABLE" }}</code></p>
+    <p><b>expected path:</b> {{ view.dry_run_preview.expected_result_path or "UNAVAILABLE" }}</p>
+  </div>
+  <div class="card" style="margin-top:10px;">
+    <h3>Result Packet</h3>
+    <p><b>status:</b> <span class="badge">{{ view.result_packet.status }}</span></p>
+    <p><b>preset:</b> {{ view.result_packet.preset_id or "UNAVAILABLE" }}</p>
+    <p><b>action:</b> {{ view.result_packet.action_name or "UNAVAILABLE" }}</p>
+    <p><b>adapter:</b> {{ view.result_packet.adapter_name or "UNAVAILABLE" }}</p>
+    <p><b>attempted_at:</b> {{ view.result_packet.attempted_at or "UNAVAILABLE" }}</p>
+    <p><b>run:</b> {{ view.result_packet.run_id or "UNAVAILABLE" }}</p>
+    <p><b>artifact path:</b> {{ view.result_packet.artifact_path or "UNAVAILABLE" }}</p>
+    {% if view.result_packet.error_info %}<p><b>error:</b> {{ view.result_packet.error_info }}</p>{% endif %}
+    <p><b>summary:</b> {{ view.result_packet.summary or "UNAVAILABLE" }}</p>
+  </div>
+  <div class="card" style="margin-top:10px;">
+    <h3>Retry / Reapply</h3>
+    <p><b>enabled:</b> {{ view.retry_reapply.enabled }}</p>
+    <p><b>status:</b> {{ view.retry_reapply.status }}</p>
+    <p><b>last preset:</b> {{ view.retry_reapply.last_preset_id or "UNAVAILABLE" }}</p>
+    <p><b>last action:</b> {{ view.retry_reapply.last_action_name or "UNAVAILABLE" }}</p>
+    <p><b>last run:</b> {{ view.retry_reapply.last_run_id or "UNAVAILABLE" }}</p>
+  </div>
+  {% if view.last_action %}
+  <div class="card {% if view.last_action.outcome_status != 'SUCCESS' %}warn{% endif %}" style="margin-top:10px;">
+    <h3>Last Action</h3>
+    <p><b>action:</b> {{ view.last_action.action_name }}</p>
+    <p><b>attempted_at:</b> {{ view.last_action.attempted_at }}</p>
+    <p><b>outcome:</b> <span class="badge">{{ view.last_action.outcome_status }}</span></p>
+    <p><b>triggered_run_id:</b> {{ view.last_action.triggered_run_id or "UNAVAILABLE" }}</p>
+    <p><b>message:</b> {{ view.last_action.message }}</p>
+  </div>
+  {% endif %}
+  {% if action_result %}
+  <div style="margin-top:10px;">
+    <p><b>Action status:</b> {{ action_result.status }} (exit={{ action_result.exit_code }})</p>
+    <pre><code>{{ action_result.command }}</code></pre>
+    {% if action_result.stdout_tail %}<pre><code>{{ action_result.stdout_tail }}</code></pre>{% endif %}
+    {% if action_result.stderr_tail %}<pre><code>{{ action_result.stderr_tail }}</code></pre>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+
+<div class="card">
+  <h2>Suggested Focus</h2>
+  <p><b>run_id:</b> {{ view.suggested_run_id or "UNAVAILABLE" }}</p>
+  <p><b>reason:</b> {{ view.suggestion_reason }}</p>
+</div>
+
+<div class="card">
+  <h2>Session Export</h2>
+  <p><b>status:</b> {{ view.latest_snapshot_report_status }}</p>
+  <p><b>path:</b> {{ view.latest_snapshot_report_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&export_snapshot=1" style="text-decoration:none;">Export snapshot report</a>
+  <p><b>load status:</b> {{ view.loaded_snapshot_status }} | <b>loaded path:</b> {{ view.loaded_snapshot_path or "UNAVAILABLE" }}</p>
+  {% if view.snapshot_recall_items|length == 0 %}
+    <p>No snapshots available.</p>
+  {% else %}
+    <ul>
+    {% for item in view.snapshot_recall_items %}
+      <li>{{ item.generated_at }} | {{ item.path }} | <a href="/operator?mode=export&load_snapshot={{ item.path }}">load</a></li>
+    {% endfor %}
+    </ul>
+    <p><small>showing {{ view.snapshot_recall_items|length }} / {{ view.snapshot_recall_limit }}</small></p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Execution Report Export (v1.8.6)</h2>
+  <p><b>status:</b> {{ view.latest_execution_report_status }}</p>
+  <p><b>path:</b> {{ view.latest_execution_report_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&export_execution_report=1" style="text-decoration:none;">Export execution report</a>
+  <p><small>report preset={{ view.execution_report_preview.selected_preset_id or "UNAVAILABLE" }} | ledger_slice={{ view.execution_report_preview.execution_ledger_slice|length }}</small></p>
+</div>
+
+<div class="card">
+  <h2>Operator Runbook Card (v1.8.7)</h2>
+  <p><b>selected:</b> {{ view.runbook_card.selected_run_id }}</p>
+  <p><b>compare:</b> {{ view.runbook_card.compare_run_id }}</p>
+  <p><b>baseline:</b> {{ view.runbook_card.baseline_run_id }}</p>
+  <p><b>next step:</b> {{ view.runbook_card.suggested_next_step }}</p>
+  <p><b>last result:</b> {{ view.runbook_card.last_result_summary }}</p>
+  {% if view.runbook_card.weakness_reasons|length > 0 %}
+  <p><b>weakness reasons:</b></p>
+  <ul>{% for reason in view.runbook_card.weakness_reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+  {% endif %}
+  <p><b>evidence refs:</b></p>
+  <ul>{% for ref in view.runbook_card.evidence_refs %}<li>{{ ref }}</li>{% endfor %}</ul>
+</div>
+
+<div class="card">
+  <h2>Runtime Handoff Bundle (v1.8.8)</h2>
+  <p><b>status:</b> {{ view.latest_handoff_bundle_status }}</p>
+  <p><b>path:</b> {{ view.latest_handoff_bundle_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&export_handoff_bundle=1" style="text-decoration:none;">Export handoff bundle</a>
+  <p><small>allowed={{ view.handoff_bundle_preview.allowed_actions }} | attention={{ view.handoff_bundle_preview.attention_item.run_id or "none" }}</small></p>
+</div>
+
+<div class="card">
+  <h2>Checkpoint / Restore (v1.8.9)</h2>
+  <p><b>save status:</b> {{ view.latest_checkpoint_status }} | <b>save path:</b> {{ view.latest_checkpoint_path or "UNAVAILABLE" }}</p>
+  <p><b>restore status:</b> {{ view.restored_checkpoint_status }} | <b>restore path:</b> {{ view.restored_checkpoint_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&save_checkpoint=1" style="text-decoration:none;">Save checkpoint</a>
+  {% if view.latest_checkpoint_path %}
+  <a class="btn" href="/operator?restore_checkpoint={{ view.latest_checkpoint_path }}" style="text-decoration:none;">Restore latest checkpoint</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Quick Actions / Command Palette (v1.9)</h2>
+  <p><b>preview-first:</b> {{ view.quick_actions.preview_first }}</p>
+  <p><b>allowed actions:</b> {{ view.quick_actions.allowed_actions }}</p>
+  <p><small>{{ view.quick_actions.scope_note }}</small></p>
+  <ul>
+  {% for item in view.quick_actions.presets %}
+    <li>{{ item.preset_id }} | {{ item.action_name }} | {{ item.scope_note }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Runtime Adapter Audit (v2.0.1)</h2>
+  <ul>
+  {% for row in view.runtime_adapter_audit %}
+    <li>{{ row.action_name }} | adapter={{ row.adapter_name }} | mode={{ row.invocation_mode }} | preview={{ row.preview_supported }} | last={{ row.last_outcome }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Per-Action Safety Notes (v2.0.2)</h2>
+  <ul>
+  {% for row in view.runtime_safety_notes %}
+    <li><b>{{ row.action_name }}</b> | runs={{ row.runs }} | outputs={{ row.expected_outputs }} | scope={{ row.scope_note }} | does_not_do={{ row.does_not_do }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Runflow Cards (v2.0.3)</h2>
+  <ul>
+  {% for row in view.runflow_cards %}
+    <li>{{ row.preset_id }} | action={{ row.action_name }} | preview={{ row.preview_ready }} | execute={{ row.execute_ready }} | last={{ row.last_result_summary }} | run={{ row.last_run_id or "UNAVAILABLE" }} | artifact={{ row.last_artifact_ref or "UNAVAILABLE" }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Runtime Result Drilldown (v2.0.4)</h2>
+  <p><b>adapter:</b> {{ view.runtime_result_drilldown.adapter_name or "UNAVAILABLE" }}</p>
+  <p><b>status:</b> {{ view.runtime_result_drilldown.outcome_status or "UNAVAILABLE" }}</p>
+  <p><b>run_id:</b> {{ view.runtime_result_drilldown.run_id or "UNAVAILABLE" }}</p>
+  <p><b>validator output:</b> {{ view.runtime_result_drilldown.validator_output_path or "UNAVAILABLE" }}</p>
+  <p><b>audit output:</b> {{ view.runtime_result_drilldown.audit_output_path or "UNAVAILABLE" }}</p>
+  <p><b>error detail:</b> {{ view.runtime_result_drilldown.error_detail or "none" }}</p>
+  <p><b>summary:</b> {{ view.runtime_result_drilldown.adapter_summary or "UNAVAILABLE" }}</p>
+  {% if view.runtime_result_drilldown.artifact_paths|length > 0 %}
+  <ul>{% for path in view.runtime_result_drilldown.artifact_paths %}<li>{{ path }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Adapter Health / Integrity (v2.0.5)</h2>
+  <p><b>overall:</b> {{ view.adapter_health_checks.overall_status }}</p>
+  <ul>
+  {% for row in view.adapter_health_checks.checks %}
+    <li>{{ row.action_name }} | exists={{ row.adapter_exists }} | allowlisted={{ row.allowlisted }} | preview={{ row.preview_renderable }} | packet_shape={{ row.packet_shape_valid }} | status={{ row.status }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Operator Runflow Workspace (v2.1)</h2>
+  <p><b>current step:</b> {{ view.runflow_workspace.current_step }}</p>
+  <p><b>selected preset:</b> {{ view.runflow_workspace.selected_preset_id or "UNAVAILABLE" }}</p>
+  <p><b>preview state:</b> {{ view.runflow_workspace.preview_state }}</p>
+  <p><b>execute state:</b> {{ view.runflow_workspace.execute_state }}</p>
+  <p><b>retry state:</b> {{ view.runflow_workspace.retry_state }}</p>
+  {% if view.runflow_workspace.focus_run_link %}
+    <p><a href="{{ view.runflow_workspace.focus_run_link }}">focus resulting run</a></p>
+  {% else %}
+    <p>focus resulting run unavailable</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Recent Activity</h2>
+  {% if view.recent_activity|length == 0 %}
+    <p>No recent activity available.</p>
+  {% else %}
+    <ul>
+    {% for item in view.recent_activity %}
+      <li>
+        <span class="badge">{{ item.activity_type }}</span>
+        {{ item.timestamp }}
+        {% if item.run_id %} | run={{ item.run_id }}{% endif %}
+        | {{ item.summary }}
+      </li>
+    {% endfor %}
+    </ul>
+    <p><small>showing latest {{ view.recent_activity|length }} / {{ view.recent_activity_limit }}</small></p>
+  {% endif %}
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Recent Runs</h2>
+    <form method="get" action="/operator" style="margin-bottom:10px;">
+      <div class="grid">
+        <div>
+          <label>health</label>
+          <select name="health" style="width:100%;">
+            <option value="all" {% if view.focus_filters.health == "all" %}selected{% endif %}>all</option>
+            <option value="strong" {% if view.focus_filters.health == "strong" %}selected{% endif %}>strong</option>
+            <option value="partial" {% if view.focus_filters.health == "partial" %}selected{% endif %}>partial</option>
+            <option value="weak" {% if view.focus_filters.health == "weak" %}selected{% endif %}>weak</option>
+          </select>
+        </div>
+        <div>
+          <label>run filter</label>
+          <input type="text" name="run_query" value="{{ view.focus_filters.run_query }}" style="width:100%;" placeholder="run prefix / substring"/>
+        </div>
+        <div>
+          <label>sort</label>
+          <select name="sort_mode" style="width:100%;">
+            <option value="latest_first" {% if view.focus_filters.sort_mode == "latest_first" %}selected{% endif %}>latest first</option>
+            <option value="run_id_asc" {% if view.focus_filters.sort_mode == "run_id_asc" %}selected{% endif %}>run_id ascending</option>
+          </select>
+        </div>
+        <div>
+          <label>compare run</label>
+          <select name="compare_run_id" style="width:100%;">
+            <option value="">none</option>
+            {% for run_id in view.available_runs %}
+              {% if run_id != view.selected_run_id %}
+                <option value="{{ run_id }}" {% if view.comparison_run_id == run_id %}selected{% endif %}>{{ run_id }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <p style="margin-top:6px;"><small>suggested: {{ view.suggested_compare_run_id or "UNAVAILABLE" }} ({{ view.suggested_compare_reason }})</small></p>
+          {% if view.suggested_compare_run_id and view.suggested_compare_run_id != view.comparison_run_id %}
+          <a
+            class="btn"
+            style="margin-top:6px; display:inline-block; text-decoration:none;"
+            href="/operator?run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&apply_suggested_compare=1"
+          >
+            Use suggested compare
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:8px;">
+        <button class="btn" type="submit">Apply focus</button>
+        <a class="btn" href="/operator" style="text-decoration:none;">Clear</a>
+      </div>
+      <p style="margin-top:6px;"><small>baseline: {{ view.baseline_run_id or "UNAVAILABLE" }} ({{ view.baseline_reason }}) lock={{ view.baseline_locked }}</small></p>
+      {% if view.baseline_run_id %}
+      <p><a href="/operator?mode={{ view.workbench_mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&lock_baseline={{ view.baseline_run_id }}">lock baseline</a> | <a href="/operator?mode={{ view.workbench_mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&unlock_baseline=1">unlock baseline</a></p>
+      {% endif %}
+    </form>
+
+    {% if view.visible_run_ids|length == 0 %}
+      <p>No runs match current filters.</p>
+    {% else %}
+      <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">run_id</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">artifact</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">validator</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">pointers</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">latest timestamp</th>
+            <th style="text-align:left; border-bottom:1px solid #ddd;">health</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in view.visible_run_health_summaries %}
+          <tr>
+            <td style="padding:4px 0;">
+              {% if row.run_id == view.selected_run_id %}
+                <b>{{ row.run_id }}</b>
+              {% else %}
+                <a href="/operator?run_id={{ row.run_id }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}">{{ row.run_id }}</a>
+              {% endif %}
+            </td>
+            <td>{{ row.artifact_status }}</td>
+            <td>{{ row.validator_status }}</td>
+            <td>{{ row.correlation_pointers_count }}</td>
+            <td>{{ row.latest_timestamp }}</td>
+            <td><span class="badge">{{ row.health_label }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if view.selected_run_id %}
+      <div style="display:flex; gap:8px;">
+        <a class="btn" href="/operator?run_id={{ view.selected_run_id }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&pin_run_id={{ view.selected_run_id }}" style="text-decoration:none;">Pin selected run</a>
+        <a class="btn" href="/operator?run_id={{ view.selected_run_id }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&unpin_run_id={{ view.selected_run_id }}" style="text-decoration:none;">Unpin selected run</a>
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Selected Run Details</h2>
+    {% if not view.selected_run_id %}
+      <p>No run selected.</p>
+    {% else %}
+      <p><b>run_id:</b> {{ view.selected_run_id }}</p>
+      <p><b>mode:</b> {{ view.mode }}</p>
+      <p><b>artifact path:</b> {{ view.selected_run_detail.artifact_path or "MISSING" }}</p>
+      <p><b>validator path:</b> {{ view.selected_run_detail.validator_path or "MISSING" }}</p>
+      <p><b>artifact status:</b> {{ view.selected_run_detail.artifact_status }}</p>
+      <p><b>validator status:</b> {{ view.selected_run_detail.validator_status }}</p>
+      <p><b>ledger_record_ids count:</b> {{ view.selected_run_detail.ledger_record_ids_count }}</p>
+      <p><b>ledger_artifact_ids count:</b> {{ view.selected_run_detail.ledger_artifact_ids_count }}</p>
+      <p><b>correlation_pointers count:</b> {{ view.selected_run_detail.correlation_pointers_count }}</p>
+      <p><b>latest timestamp:</b> {{ view.selected_run_detail.latest_timestamp }}</p>
+      {% if view.weakness_reasons|length > 0 %}
+      <h3>Why not strong</h3>
+      <ul>
+      {% for reason in view.weakness_reasons %}
+        <li>{{ reason }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+      <h3>Suggested Next Step</h3>
+      <p>{{ view.suggested_next_step }}</p>
+      <h3>Evidence Drilldown</h3>
+      <p><b>artifact path:</b> {{ view.evidence_drilldown.artifact_path or "MISSING" }}</p>
+      <p><b>validator path:</b> {{ view.evidence_drilldown.validator_path or "MISSING" }}</p>
+      <p><b>ledger linkage:</b> {{ view.evidence_drilldown.ledger_linkage_summary }}</p>
+      <p><b>correlation pointers (preview):</b></p>
+      {% if view.evidence_drilldown.correlation_pointers_preview|length == 0 %}
+      <p>none</p>
+      {% else %}
+      <ul>
+      {% for pointer in view.evidence_drilldown.correlation_pointers_preview %}
+        <li>{{ pointer }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+      {% if view.evidence_drilldown.audit_refs_preview|length > 0 %}
+      <p><b>audit refs (preview):</b></p>
+      <ul>
+      {% for ref in view.evidence_drilldown.audit_refs_preview %}
+        <li>{{ ref }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+
+      <h3>Artifact Summary</h3>
+      <p>count={{ view.selected_run_artifact_summary.count }}</p>
+      <ul>
+      {% for item in view.selected_run_artifact_summary.artifacts %}
+        <li>
+          {{ item.path }} | artifact={{ item.artifact_id }} | rune={{ item.rune_id }} | status={{ item.status }}
+        </li>
+      {% endfor %}
+      </ul>
+
+      <h3>Validator Summary</h3>
+      <p>count={{ view.selected_run_validator_summary.count }}</p>
+      <ul>
+      {% for item in view.selected_run_validator_summary.validators %}
+        <li>
+          {{ item.path }} | validated={{ item.validated_artifacts_count }} | ledgerIds={{ item.ledger_ids_count }} | pointers={{ item.pointers_count }}
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Pinned Runs</h2>
+    {% if not view.pin_panel.enabled %}
+      <p>No pinned runs.</p>
+    {% else %}
+      <ul>
+      {% for run_id in view.pin_panel.items %}
+        <li>{{ run_id }}</li>
+      {% endfor %}
+      </ul>
+      <p><small>{{ view.pin_panel.count }} / {{ view.pin_panel.max_items }}</small></p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Pinned Run Deep Cards</h2>
+    {% if view.pinned_run_deep_cards|length == 0 %}
+      <p>No pinned run deep cards.</p>
+    {% else %}
+      <ul>
+      {% for card in view.pinned_run_deep_cards %}
+        <li>{{ card.run_id }} | {{ card.health_label }} | {{ card.validator_status }} | {{ card.latest_timestamp }} | {{ card.suggested_next_step }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Highlights</h2>
+    {% if view.highlights|length == 0 %}
+      <p>No active highlights.</p>
+    {% else %}
+      <ul>
+      {% for item in view.highlights %}
+        <li><span class="badge">{{ item.severity }}</span> {{ item.run_id }} | {{ item.reason }}</li>
+      {% endfor %}
+      </ul>
+      <p><small>showing {{ view.highlights|length }} / {{ view.highlights_limit }}</small></p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Action History</h2>
+    {% if view.action_history|length == 0 %}
+      <p>No action history yet.</p>
+    {% else %}
+      <ul>
+      {% for item in view.action_history %}
+        <li>{{ item.timestamp }} | {{ item.action_name }} | run={{ item.run_id or "UNAVAILABLE" }} | {{ item.outcome_status }} | {{ item.summary }}</li>
+      {% endfor %}
+      </ul>
+      <p><small>showing {{ view.action_history|length }} / {{ view.action_history_limit }}</small></p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Execution Ledger</h2>
+    {% if view.execution_ledger|length == 0 %}
+      <p>No execution ledger entries.</p>
+    {% else %}
+      <ul>
+      {% for item in view.execution_ledger %}
+        <li>{{ item.timestamp }} | {{ item.preset_id or "UNAVAILABLE" }} | {{ item.action_name }} | run={{ item.run_id or "UNAVAILABLE" }} | {{ item.outcome_status }}</li>
+      {% endfor %}
+      </ul>
+      <p><small>showing {{ view.execution_ledger|length }} / {{ view.execution_ledger_limit }}</small></p>
+    {% endif %}
+  </div>
+
+  {% if view.compare_strip.enabled %}
+  <div class="card">
+    <h2>Two-Run Compare</h2>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; border-bottom:1px solid #ddd;">field</th>
+          <th style="text-align:left; border-bottom:1px solid #ddd;">selected</th>
+          <th style="text-align:left; border-bottom:1px solid #ddd;">comparison</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>run_id</td><td>{{ view.compare_strip.selected.run_id }}</td><td>{{ view.compare_strip.comparison.run_id }}</td></tr>
+        <tr><td>artifact status</td><td>{{ view.compare_strip.selected.artifact_status }}</td><td>{{ view.compare_strip.comparison.artifact_status }}</td></tr>
+        <tr><td>validator status</td><td>{{ view.compare_strip.selected.validator_status }}</td><td>{{ view.compare_strip.comparison.validator_status }}</td></tr>
+        <tr><td>correlation_pointers count</td><td>{{ view.compare_strip.selected.correlation_pointers_count }}</td><td>{{ view.compare_strip.comparison.correlation_pointers_count }}</td></tr>
+        <tr><td>health label</td><td>{{ view.compare_strip.selected.health_label }}</td><td>{{ view.compare_strip.comparison.health_label }}</td></tr>
+        <tr><td>latest timestamp</td><td>{{ view.compare_strip.selected.latest_timestamp }}</td><td>{{ view.compare_strip.comparison.latest_timestamp }}</td></tr>
+      </tbody>
+    </table>
+    {% if view.compare_delta_summary.enabled %}
+    <h3>Delta Summary</h3>
+    <ul>
+      <li>artifact status: {{ view.compare_delta_summary.artifact_status_delta }}</li>
+      <li>validator status: {{ view.compare_delta_summary.validator_status_delta }}</li>
+      <li>correlation pointers: {{ view.compare_delta_summary.correlation_pointers_delta }}</li>
+      <li>health label: {{ view.compare_delta_summary.health_label_delta }}</li>
+      <li>timestamp ordering: {{ view.compare_delta_summary.timestamp_ordering }}</li>
+    </ul>
+    {% endif %}
+    {% if view.evidence_delta_preview.enabled %}
+    <h3>Evidence Delta Preview</h3>
+    <ul>
+      <li>artifact path: {{ view.evidence_delta_preview.artifact_path_delta }}</li>
+      <li>validator path: {{ view.evidence_delta_preview.validator_path_delta }}</li>
+      <li>ledger_record_ids: {{ view.evidence_delta_preview.ledger_record_ids_delta }}</li>
+      <li>ledger_artifact_ids: {{ view.evidence_delta_preview.ledger_artifact_ids_delta }}</li>
+      <li>correlation overlap: {{ view.evidence_delta_preview.correlation_overlap_count }}</li>
+      <li>correlation selected-only: {{ view.evidence_delta_preview.correlation_selected_only_count }}</li>
+      <li>correlation comparison-only: {{ view.evidence_delta_preview.correlation_comparison_only_count }}</li>
+      <li>audit overlap: {{ view.evidence_delta_preview.audit_overlap_count }}</li>
+    </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
