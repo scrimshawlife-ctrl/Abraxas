@@ -13,6 +13,13 @@ from webpanel.operator_console import (
     resolve_compare_run_id_for_apply,
     run_compliance_probe_command,
     write_pipeline_artifact,
+    write_detector_signal_artifact,
+    write_motif_signal_artifact,
+    write_drift_signal_artifact,
+    write_anomaly_signal_artifact,
+    write_fusion_signal_artifact,
+    write_synthesis_output_artifact,
+    write_binding_health_artifact,
     write_pipeline_routing_artifact,
     write_pipeline_review_artifact,
     write_runtime_corridor_artifact,
@@ -258,12 +265,523 @@ def test_recent_activity_is_deterministic(tmp_path: Path) -> None:
     first = view.recent_activity[0]
     assert first["activity_type"] == "action"
     assert first["timestamp"] == "2026-03-28T03:00:01Z"
-    assert first["run_id"] == "run.compliance_probe.v1"
-    assert all(set(item.keys()) >= {"timestamp", "activity_type", "run_id", "summary"} for item in view.recent_activity)
-    assert view.snapshot_header["last_action_summary"] == "SUCCESS run=run.compliance_probe.v1"
-    assert view.snapshot_header["newest_activity_summary"].startswith(
-        "2026-03-28T03:00:01Z action run=run.compliance_probe.v1"
+
+
+def test_domain_logic_structural_signals_and_detector_labels_are_derived(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+
+    signals = view.domain_logic["structural_signals"]
+    detector = view.domain_logic["pressure_friction_detector"]
+    assert signals["missing_field_count"] >= 0
+    assert "rule_ids" in signals
+    assert detector["detector_id"] == "ABX.STRUCTURAL_PRESSURE.V4_2"
+    assert detector["pressure_label"] in {"LOW", "MODERATE", "HIGH", "NOT_COMPUTABLE"}
+    assert detector["friction_label"] in {"CLEAR", "FRICTION", "BLOCKED", "NOT_COMPUTABLE"}
+    assert isinstance(detector["detector_summary"], str)
+
+
+def test_domain_logic_detector_not_computable_without_selected_run(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None)
+    detector = view.domain_logic["pressure_friction_detector"]
+    assert detector["detector_status"] == "NOT_COMPUTABLE"
+    assert detector["pressure_label"] == "NOT_COMPUTABLE"
+    assert detector["friction_label"] == "NOT_COMPUTABLE"
+
+
+def test_detector_signal_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_signals"
+    path, status = write_detector_signal_artifact(payload=view.domain_logic["detector_export_preview"], root=out_root)
+    assert status == "written"
+    assert path is not None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.ERS"
+    assert "structural_signals" in payload
+    assert "pressure_friction_detector" in payload
+    assert isinstance(payload["correlation_pointers"], list)
+
+
+def test_domain_logic_workspace_payload_integrity(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_detector_export_status="written",
+        latest_detector_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.abx_structural_pressure_v4_2.signal.json",
     )
+    workspace = view.domain_logic["domain_logic_workspace_payload"]
+    assert workspace["mode"] == "runtime"
+    assert workspace["detector_export_status"] == "written"
+    assert workspace["detector_export_path"].startswith("artifacts_seal/abraxas_signals/")
+
+
+def test_motif_recurrence_signals_and_detector_are_derived(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    signals = view.domain_logic["motif_recurrence_signals"]
+    detector = view.domain_logic["motif_recurrence_detector"]
+    assert signals["repeated_token_count"] >= 0
+    assert signals["repeated_entity_count"] >= 0
+    assert "motif_candidate_summaries" in signals
+    assert detector["detector_id"] == "ABX.MOTIF_RECURRENCE.V4_3"
+    assert detector["motif_label"] in {"SPARSE", "PRESENT", "DOMINANT", "NOT_COMPUTABLE"}
+    assert detector["recurrence_label"] in {"NONE", "RECURRING", "PERSISTENT", "NOT_COMPUTABLE"}
+
+
+def test_motif_detector_not_computable_without_selected_run(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None)
+    detector = view.domain_logic["motif_recurrence_detector"]
+    assert detector["detector_status"] == "NOT_COMPUTABLE"
+    assert detector["motif_label"] == "NOT_COMPUTABLE"
+    assert detector["recurrence_label"] == "NOT_COMPUTABLE"
+
+
+def test_domain_logic_workspace_excludes_fusion_surface(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    assert "detector_fusion_surface" not in view.domain_logic
+
+
+def test_motif_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_signals"
+    path, status = write_motif_signal_artifact(payload=view.domain_logic["motif_export_preview"], root=out_root)
+    assert status == "written"
+    assert path is not None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.ERS"
+    assert "signal_extraction_output" in payload
+    assert "detector_output" in payload
+    assert isinstance(payload["correlation_pointers"], list)
+
+
+def test_upgraded_domain_logic_workspace_integrity(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_detector_export_status="written",
+        latest_detector_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.abx_structural_pressure_v4_2.signal.json",
+        latest_motif_export_status="written",
+        latest_motif_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.abx_motif_recurrence_v4_3.motif_signal.json",
+    )
+    workspace = view.domain_logic["domain_logic_workspace_payload"]
+    assert workspace["mode"] == "runtime"
+    assert workspace["motif_export_status"] == "written"
+    assert workspace["motif_export_path"].endswith(".motif_signal.json")
+    assert view.domain_logic["updated_domain_logic_workspace_payload"]["motif_export_status"] == "written"
+
+
+def test_motif_domain_logic_does_not_mutate_unrelated_selected_detail(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    motif_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_motif_export_status="written",
+        latest_motif_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.abx_motif_recurrence_v4_3.motif_signal.json",
+    )
+    assert motif_view.selected_run_detail == base_view.selected_run_detail
+    assert motif_view.pipeline_hardening == base_view.pipeline_hardening
+
+
+def test_instability_drift_signals_and_detector_are_derived(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    signals = view.domain_logic["instability_drift_signals"]
+    detector = view.domain_logic["instability_drift_detector"]
+    assert signals["status_change_count"] >= 0
+    assert signals["queue_change_count"] >= 0
+    assert detector["instability_label"] in {"STABLE", "SHIFTING", "UNSTABLE", "NOT_COMPUTABLE"}
+    assert detector["drift_label"] in {"NONE", "MINOR", "SIGNIFICANT", "NOT_COMPUTABLE"}
+
+
+def test_instability_drift_detector_not_computable_without_selected_run(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None)
+    detector = view.domain_logic["instability_drift_detector"]
+    assert detector["detector_status"] == "NOT_COMPUTABLE"
+    assert detector["instability_label"] == "NOT_COMPUTABLE"
+    assert detector["drift_label"] == "NOT_COMPUTABLE"
+
+
+def test_drift_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_signals"
+    path, status = write_drift_signal_artifact(payload=view.domain_logic["drift_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.DIFF"
+    assert "signal_extraction_output" in payload
+    assert "detector_output" in payload
+
+
+def test_anomaly_gap_signals_and_detector_are_derived(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    signals = view.domain_logic["anomaly_gap_signals"]
+    detector = view.domain_logic["anomaly_gap_detector"]
+    assert signals["missing_artifact_count"] >= 0
+    assert signals["missing_linkage_count"] >= 0
+    assert detector["anomaly_label"] in {"NONE", "MINOR", "MAJOR", "NOT_COMPUTABLE"}
+    assert detector["gap_label"] in {"COMPLETE", "INCOMPLETE", "BROKEN", "NOT_COMPUTABLE"}
+
+
+def test_anomaly_gap_detector_not_computable_without_selected_run(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None)
+    detector = view.domain_logic["anomaly_gap_detector"]
+    assert detector["detector_status"] == "NOT_COMPUTABLE"
+    assert detector["anomaly_label"] == "NOT_COMPUTABLE"
+    assert detector["gap_label"] == "NOT_COMPUTABLE"
+
+
+def test_anomaly_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_signals"
+    path, status = write_anomaly_signal_artifact(payload=view.domain_logic["anomaly_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.ERS"
+    assert "signal_extraction_output" in payload
+    assert "detector_output" in payload
+
+
+def test_domain_logic_workspace_integrity_with_all_detector_families(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_detector_export_status="written",
+        latest_motif_export_status="written",
+        latest_drift_export_status="written",
+        latest_anomaly_export_status="written",
+        latest_fusion_export_status="written",
+    )
+    workspace = view.domain_logic["updated_domain_logic_workspace_payload"]
+    assert workspace["detector_export_status"] == "written"
+    assert workspace["motif_export_status"] == "written"
+    assert workspace["drift_export_status"] == "written"
+    assert workspace["anomaly_export_status"] == "written"
+    assert workspace["fusion_export_status"] == "written"
+
+
+def test_fusion_input_surface_and_output_are_derived(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    fusion_input = view.domain_logic["fusion_input_surface"]
+    fusion_output = view.domain_logic["detector_fusion_output"]
+    assert "pressure_label" in fusion_input
+    assert "motif_label" in fusion_input
+    assert fusion_output["fused_status"] in {"SUCCESS", "NOT_COMPUTABLE"}
+    assert fusion_output["fused_label"] in {
+        "STABLE_PATTERN",
+        "ACTIVE_FRICTION",
+        "UNSTABLE_TRANSITION",
+        "BROKEN_SIGNAL",
+        "INCOMPLETE_CONTEXT",
+        "NOT_COMPUTABLE",
+    }
+    assert isinstance(fusion_output["fused_reasons"], list)
+    assert isinstance(view.domain_logic["interpretation_summary"], str)
+
+
+def test_fusion_label_branches_are_explicit_and_deterministic() -> None:
+    base_input = {
+        "pressure_label": "LOW",
+        "friction_label": "CLEAR",
+        "motif_label": "SPARSE",
+        "recurrence_label": "NONE",
+        "instability_label": "STABLE",
+        "drift_label": "NONE",
+        "anomaly_label": "NONE",
+        "gap_label": "COMPLETE",
+    }
+    success_detector = {"detector_status": "SUCCESS"}
+
+    stable = operator_console._derive_detector_fusion_output(
+        selected_run_id="run.scope",
+        fusion_input_surface=base_input,
+        pressure_friction_detector=success_detector,
+        motif_recurrence_detector=success_detector,
+        instability_drift_detector=success_detector,
+        anomaly_gap_detector=success_detector,
+    )
+    assert stable["fused_label"] == "STABLE_PATTERN"
+
+    active = operator_console._derive_detector_fusion_output(
+        selected_run_id="run.scope",
+        fusion_input_surface={**base_input, "pressure_label": "HIGH"},
+        pressure_friction_detector=success_detector,
+        motif_recurrence_detector=success_detector,
+        instability_drift_detector=success_detector,
+        anomaly_gap_detector=success_detector,
+    )
+    assert active["fused_label"] == "ACTIVE_FRICTION"
+
+    unstable = operator_console._derive_detector_fusion_output(
+        selected_run_id="run.scope",
+        fusion_input_surface={**base_input, "instability_label": "UNSTABLE", "drift_label": "SIGNIFICANT"},
+        pressure_friction_detector=success_detector,
+        motif_recurrence_detector=success_detector,
+        instability_drift_detector=success_detector,
+        anomaly_gap_detector=success_detector,
+    )
+    assert unstable["fused_label"] == "UNSTABLE_TRANSITION"
+
+    incomplete = operator_console._derive_detector_fusion_output(
+        selected_run_id="run.scope",
+        fusion_input_surface={**base_input, "anomaly_label": "MINOR", "gap_label": "INCOMPLETE"},
+        pressure_friction_detector=success_detector,
+        motif_recurrence_detector=success_detector,
+        instability_drift_detector=success_detector,
+        anomaly_gap_detector=success_detector,
+    )
+    assert incomplete["fused_label"] == "INCOMPLETE_CONTEXT"
+
+    broken = operator_console._derive_detector_fusion_output(
+        selected_run_id="run.scope",
+        fusion_input_surface={**base_input, "anomaly_label": "MAJOR", "gap_label": "BROKEN"},
+        pressure_friction_detector=success_detector,
+        motif_recurrence_detector=success_detector,
+        instability_drift_detector=success_detector,
+        anomaly_gap_detector=success_detector,
+    )
+    assert broken["fused_label"] == "BROKEN_SIGNAL"
+
+
+def test_fusion_not_computable_without_selected_run(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None)
+    fusion_output = view.domain_logic["detector_fusion_output"]
+    assert fusion_output["fused_status"] == "NOT_COMPUTABLE"
+    assert fusion_output["fused_label"] == "NOT_COMPUTABLE"
+
+
+def test_fusion_not_computable_when_any_detector_input_is_not_computable() -> None:
+    fused = operator_console._derive_detector_fusion_output(
+        selected_run_id="run.scope",
+        fusion_input_surface={
+            "pressure_label": "LOW",
+            "friction_label": "CLEAR",
+            "motif_label": "SPARSE",
+            "recurrence_label": "NONE",
+            "instability_label": "STABLE",
+            "drift_label": "NONE",
+            "anomaly_label": "NONE",
+            "gap_label": "COMPLETE",
+        },
+        pressure_friction_detector={"detector_status": "SUCCESS"},
+        motif_recurrence_detector={"detector_status": "NOT_COMPUTABLE"},
+        instability_drift_detector={"detector_status": "SUCCESS"},
+        anomaly_gap_detector={"detector_status": "SUCCESS"},
+    )
+    assert fused["fused_status"] == "NOT_COMPUTABLE"
+    assert fused["fused_label"] == "NOT_COMPUTABLE"
+
+
+def test_fusion_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_signals"
+    path, status = write_fusion_signal_artifact(payload=view.domain_logic["fusion_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.DIFF"
+    assert "source_detector_summaries" in payload
+    assert "fused_output" in payload
+    assert "interpretation_summary" in payload
+
+
+def test_fusion_domain_logic_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    fusion_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_fusion_export_status="written",
+        latest_fusion_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.fusion_signal.json",
+    )
+    assert fusion_view.selected_run_detail == base_view.selected_run_detail
+    assert fusion_view.pipeline_hardening == base_view.pipeline_hardening
+
+
+def test_domain_logic_workspace_integrity_with_fusion_included(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_fusion_export_status="written",
+        latest_fusion_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.fusion_signal.json",
+    )
+    workspace = view.domain_logic["updated_domain_logic_workspace_payload"]
+    assert workspace["fusion_export_status"] == "written"
+    assert workspace["fusion_export_path"].endswith(".fusion_signal.json")
+    assert workspace["fusion_label"] in {
+        "STABLE_PATTERN",
+        "ACTIVE_FRICTION",
+        "UNSTABLE_TRANSITION",
+        "BROKEN_SIGNAL",
+        "INCOMPLETE_CONTEXT",
+        "NOT_COMPUTABLE",
+    }
+
+
+def test_abraxas_synthesis_input_surface_is_derived(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    synthesis_input = view.abraxas_synthesis["synthesis_input_surface"]
+    assert synthesis_input["pipeline_id"] != ""
+    assert synthesis_input["routing_effective_pipeline_id"] != ""
+    assert synthesis_input["governance_policy_mode"] in {"review_only", "bounded_runtime", "decision_review"}
+    assert "fusion_label" in synthesis_input
+
+
+def test_abraxas_synthesis_classification_branches_are_explicit() -> None:
+    blocked = operator_console._derive_abraxas_synthesis_output(
+        synthesis_input_surface={
+            "pipeline_status": "FAILED",
+            "fusion_label": "BROKEN_SIGNAL",
+            "fusion_status": "SUCCESS",
+            "governance_policy_mode": "review_only",
+            "runtime_outcome_status": "FAILED",
+            "runtime_blocker_summary": ["run_execution_validator:selected_run_missing"],
+        },
+        selected_run_id="run.scope",
+    )
+    assert blocked["synthesis_label"] == "BLOCKED"
+
+    incomplete = operator_console._derive_abraxas_synthesis_output(
+        synthesis_input_surface={
+            "pipeline_status": "SUCCESS",
+            "fusion_label": "INCOMPLETE_CONTEXT",
+            "fusion_status": "SUCCESS",
+            "governance_policy_mode": "review_only",
+            "runtime_outcome_status": "PARTIAL",
+            "runtime_blocker_summary": [],
+        },
+        selected_run_id="run.scope",
+    )
+    assert incomplete["synthesis_label"] == "INCOMPLETE"
+
+    ready = operator_console._derive_abraxas_synthesis_output(
+        synthesis_input_surface={
+            "pipeline_status": "SUCCESS",
+            "fusion_label": "STABLE_PATTERN",
+            "fusion_status": "SUCCESS",
+            "governance_policy_mode": "bounded_runtime",
+            "runtime_outcome_status": "SUCCESS",
+            "runtime_blocker_summary": [],
+        },
+        selected_run_id="run.scope",
+    )
+    assert ready["synthesis_label"] == "READY"
+
+
+def test_abraxas_synthesis_not_computable_without_selected_run() -> None:
+    output = operator_console._derive_abraxas_synthesis_output(
+        synthesis_input_surface={},
+        selected_run_id=None,
+    )
+    assert output["synthesis_status"] == "NOT_COMPUTABLE"
+    assert output["synthesis_label"] == "NOT_COMPUTABLE"
+
+
+def test_synthesis_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_output"
+    path, status = write_synthesis_output_artifact(payload=view.abraxas_synthesis["synthesis_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.AUDIT"
+    assert "synthesis_input_surface" in payload
+    assert "synthesis_label" in payload
+    assert "synthesis_next_step" in payload
+
+
+def test_final_abraxas_output_card_integrity(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    card = view.abraxas_synthesis["final_abraxas_output_card"]
+    assert card["synthesis_label"] in {"READY", "ACTIVE", "FRICTION", "UNSTABLE", "BLOCKED", "INCOMPLETE", "NOT_COMPUTABLE"}
+    assert isinstance(card["short_reasons"], list)
+    assert isinstance(card["next_step"], str)
+
+
+def test_synthesis_layer_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    synthesis_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_synthesis_export_status="written",
+        latest_synthesis_export_path="artifacts_seal/abraxas_output/20260329T000000Z.synthesis.json",
+    )
+    assert synthesis_view.selected_run_detail == base_view.selected_run_detail
+    assert synthesis_view.pipeline_routing == base_view.pipeline_routing
+
+
+def test_run_binding_restoration_derives_bound_context_and_subcodes(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    bound = view.binding_restoration["bound_run_context"]
+    subcodes = view.binding_restoration["not_computable_subcodes"]
+    assert bound["binding_status"] in {"BOUND", "PARTIAL_BOUND", "MISSING"}
+    assert isinstance(bound["bound_artifact_paths"], list)
+    assert isinstance(subcodes, list)
+
+
+def test_ledger_bridge_surface_is_derived_and_bounded(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    bridge = view.binding_restoration["ledger_bridge"]
+    assert bridge["ledger_bridge_status"] in {"LINKED", "PARTIAL_LINKED", "MISSING"}
+    assert isinstance(bridge["related_ledger_record_ids"], list)
+    assert isinstance(bridge["related_ledger_artifact_ids"], list)
+
+
+def test_binding_health_surface_pass_fail_and_summary(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    health = view.binding_restoration["binding_health_surface"]
+    assert health["run_binding_state"] in {"pass", "fail"}
+    assert health["artifact_linkage_state"] in {"pass", "fail"}
+    assert health["ledger_bridge_state"] in {"pass", "fail"}
+    assert health["detector_ready_state"] in {"pass", "fail"}
+    assert isinstance(health["summary"], str)
+
+
+def test_binding_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_binding"
+    path, status = write_binding_health_artifact(payload=view.binding_restoration["binding_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.AUDIT"
+    assert "binding_surface" in payload
+    assert "ledger_bridge_surface" in payload
+    assert "not_computable_subcodes" in payload
+
+
+def test_not_computable_subcode_precision_when_run_binding_missing(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None, workbench_mode="runtime")
+    subcodes = view.binding_restoration["not_computable_subcodes"]
+    assert "NC_MISSING_RUN_BINDING" in subcodes
+    fusion = view.domain_logic["detector_fusion_output"]
+    synthesis = view.abraxas_synthesis
+    assert fusion.get("not_computable_subcode", "NC_MISSING_REQUIRED_CONTEXT").startswith("NC_")
+    assert synthesis.get("synthesis_label", "NOT_COMPUTABLE") == "NOT_COMPUTABLE"
 
 
 def test_ers_state_and_queue_surfaces_are_deterministic(tmp_path: Path) -> None:

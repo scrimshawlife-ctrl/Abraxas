@@ -115,6 +115,9 @@ class ViewState:
     abraxas_pipeline: Dict[str, Any]
     pipeline_hardening: Dict[str, Any]
     pipeline_routing: Dict[str, Any]
+    domain_logic: Dict[str, Any]
+    abraxas_synthesis: Dict[str, Any]
+    binding_restoration: Dict[str, Any]
     session_context: Dict[str, str]
     data_provenance: Dict[str, Any]
 
@@ -338,6 +341,199 @@ def write_pipeline_routing_artifact(
     return path.as_posix(), "written"
 
 
+def write_detector_signal_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_signals",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    detector_id = str(payload.get("detector_id", "ABX.STRUCTURAL_PRESSURE.V4_2")).replace(".", "_").lower()
+    path = root / f"{stamp}.{detector_id}.signal.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{detector_id}.{index}.signal.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.2.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.ERS",
+        "artifact_id": f"detector_signal.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_motif_signal_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_signals",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    detector_id = str(payload.get("detector_id", "ABX.MOTIF_RECURRENCE.V4_3")).replace(".", "_").lower()
+    path = root / f"{stamp}.{detector_id}.motif_signal.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{detector_id}.{index}.motif_signal.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.3.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.ERS",
+        "artifact_id": f"motif_signal.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_drift_signal_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_signals",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    detector_id = str(payload.get("detector_id", "ABX.INSTABILITY_DRIFT.V4_4")).replace(".", "_").lower()
+    path = root / f"{stamp}.{detector_id}.drift_signal.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{detector_id}.{index}.drift_signal.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.4.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.DIFF",
+        "artifact_id": f"drift_signal.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_anomaly_signal_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_signals",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    detector_id = str(payload.get("detector_id", "ABX.ANOMALY_GAP.V4_4")).replace(".", "_").lower()
+    path = root / f"{stamp}.{detector_id}.anomaly_signal.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{detector_id}.{index}.anomaly_signal.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.4.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.ERS",
+        "artifact_id": f"anomaly_signal.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_fusion_signal_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_signals",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.fusion_signal.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.fusion_signal.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.5.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.DIFF",
+        "artifact_id": f"fusion_signal.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_synthesis_output_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_output",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.synthesis.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.synthesis.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.6.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.AUDIT",
+        "artifact_id": f"synthesis_output.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_binding_health_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.binding_health.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.binding_health.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.7.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.AUDIT",
+        "artifact_id": f"binding_health.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
 def _load_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -406,6 +602,40 @@ def _collect_run_artifacts(base_dir: Path) -> List[Dict[str, Any]]:
                 "timestamp": _normalize_timestamp(payload.get("timestamp")),
             }
         )
+    # Run-binding restoration fallback: expose ResultsPack surfaces as partial run artifacts when
+    # canonical *.artifact.json files are absent for local runs.
+    results_root = base_dir / "artifacts_seal" / "results"
+    if results_root.exists():
+        known_paths = {str(item["path"]) for item in records}
+        for path in sorted(results_root.rglob("*.resultspack.json")):
+            if path.as_posix() in known_paths:
+                continue
+            payload = _load_json(path)
+            if not payload:
+                continue
+            run_id = payload.get("run_id")
+            if not isinstance(run_id, str) or not run_id:
+                continue
+            items = payload.get("items", [])
+            status = "SUCCESS"
+            if isinstance(items, list):
+                if any(isinstance(item, Mapping) and isinstance(item.get("result", {}), Mapping) and str(item["result"].get("status", "ok")) != "ok" for item in items):
+                    status = "PARTIAL"
+            records.append(
+                {
+                    "path": path.as_posix(),
+                    "run_id": run_id,
+                    "artifact_id": f"resultspack.{run_id}",
+                    "rune_id": "RUNE.AUDIT",
+                    "status": status,
+                    "ledger_record_ids_count": 0,
+                    "ledger_artifact_ids_count": 0,
+                    "correlation_pointers_count": 0,
+                    "correlation_pointers": [],
+                    "timestamp": None,
+                    "binding_surface": "resultspack_fallback",
+                }
+            )
     return records
 
 
@@ -546,6 +776,148 @@ def _compute_suggested_next_step(selected_detail: Dict[str, Any]) -> str:
     if str(selected_detail.get("latest_timestamp", "NOT_COMPUTABLE")) == "NOT_COMPUTABLE":
         return "Inspect timestamp normalization for this run"
     return "No action needed"
+
+
+def _derive_bound_run_context(
+    *,
+    selected_run_id: Optional[str],
+    selected_detail: Mapping[str, Any],
+    artifacts: List[Mapping[str, Any]],
+    pipeline_workspace_payload: Mapping[str, Any],
+) -> Dict[str, Any]:
+    if not selected_run_id:
+        return {
+            "bound_run_id": "NOT_COMPUTABLE",
+            "bound_artifact_paths": [],
+            "bound_pipeline_id": "NOT_COMPUTABLE",
+            "bound_step_summaries": [],
+            "binding_status": "MISSING",
+            "binding_reason": "NC_MISSING_RUN_BINDING",
+            "provenance": "operator_console.binding_restoration.bound_run_context.v4.7",
+        }
+    run_artifacts = [row for row in artifacts if str(row.get("run_id", "")) == selected_run_id]
+    artifact_paths = [str(row.get("path", "")) for row in run_artifacts if str(row.get("path", ""))]
+    has_canonical_artifact = bool(selected_detail.get("artifact_path"))
+    has_any_artifact = bool(artifact_paths) or has_canonical_artifact
+    if has_canonical_artifact:
+        binding_status = "BOUND"
+        binding_reason = "artifact_path_present"
+    elif has_any_artifact:
+        binding_status = "PARTIAL_BOUND"
+        binding_reason = "fallback_artifact_surface_present"
+    else:
+        binding_status = "MISSING"
+        binding_reason = "NC_MISSING_ARTIFACT"
+    return {
+        "bound_run_id": selected_run_id,
+        "bound_artifact_paths": artifact_paths[:8],
+        "bound_pipeline_id": str(pipeline_workspace_payload.get("pipeline_id", "NOT_COMPUTABLE")),
+        "bound_step_summaries": [
+            f"pipeline_status={str(pipeline_workspace_payload.get('pipeline_status', 'NOT_COMPUTABLE'))}",
+            f"pipeline_quality={str(pipeline_workspace_payload.get('pipeline_quality_label', 'NOT_COMPUTABLE'))}",
+        ],
+        "binding_status": binding_status,
+        "binding_reason": binding_reason,
+        "provenance": "operator_console.binding_restoration.bound_run_context.v4.7",
+    }
+
+
+def _derive_ledger_bridge(
+    *,
+    base_dir: Path,
+    bound_run_context: Mapping[str, Any],
+    selected_detail: Mapping[str, Any],
+) -> Dict[str, Any]:
+    run_id = str(bound_run_context.get("bound_run_id", "NOT_COMPUTABLE"))
+    related_ledger_record_ids: List[str] = []
+    related_ledger_artifact_ids: List[str] = []
+    if int(selected_detail.get("ledger_record_ids_count", 0)) > 0:
+        related_ledger_record_ids.append(f"count:{int(selected_detail.get('ledger_record_ids_count', 0))}")
+    if int(selected_detail.get("ledger_artifact_ids_count", 0)) > 0:
+        related_ledger_artifact_ids.append(f"count:{int(selected_detail.get('ledger_artifact_ids_count', 0))}")
+    ledger_path = base_dir / "out" / "ledger" / "oracle_runs_2026-01-01.jsonl"
+    ledger_line_match = False
+    if ledger_path.exists() and run_id and run_id != "NOT_COMPUTABLE":
+        for line in ledger_path.read_text(encoding="utf-8").splitlines()[:500]:
+            if f"\"run_id\": \"{run_id}\"" in line:
+                ledger_line_match = True
+                break
+    if related_ledger_record_ids or related_ledger_artifact_ids:
+        status = "LINKED"
+        reason = "artifact_ledger_counts_present"
+    elif ledger_line_match:
+        status = "PARTIAL_LINKED"
+        reason = "ledger_line_match_without_artifact_link_counts"
+    else:
+        status = "MISSING"
+        reason = "NC_MISSING_LEDGER_LINK"
+    return {
+        "related_ledger_record_ids": related_ledger_record_ids[:8],
+        "related_ledger_artifact_ids": related_ledger_artifact_ids[:8],
+        "ledger_context_summary": f"status={status}; reason={reason}; run_id={run_id}",
+        "ledger_bridge_status": status,
+        "ledger_bridge_reason": reason,
+        "provenance": "operator_console.binding_restoration.ledger_bridge.v4.7",
+    }
+
+
+def _derive_not_computable_subcodes(
+    *,
+    bound_run_context: Mapping[str, Any],
+    ledger_bridge: Mapping[str, Any],
+    selected_detail: Mapping[str, Any],
+) -> List[str]:
+    subcodes: List[str] = []
+    if str(bound_run_context.get("binding_status", "MISSING")) == "MISSING":
+        subcodes.append("NC_MISSING_RUN_BINDING")
+    if str(bound_run_context.get("binding_reason", "")) == "NC_MISSING_ARTIFACT":
+        subcodes.append("NC_MISSING_ARTIFACT")
+    if str(ledger_bridge.get("ledger_bridge_status", "MISSING")) == "MISSING":
+        subcodes.append("NC_MISSING_LEDGER_LINK")
+    if str(selected_detail.get("validator_path", "")) in {"", "None"}:
+        subcodes.append("NC_MISSING_REQUIRED_CONTEXT")
+    if not subcodes:
+        return []
+    deduped: List[str] = []
+    for code in subcodes:
+        if code not in deduped:
+            deduped.append(code)
+    return deduped[:5]
+
+
+def _derive_binding_health_surface(
+    *,
+    bound_run_context: Mapping[str, Any],
+    ledger_bridge: Mapping[str, Any],
+    not_computable_subcodes: List[str],
+) -> Dict[str, Any]:
+    run_binding_present = str(bound_run_context.get("binding_status", "MISSING")) in {"BOUND", "PARTIAL_BOUND"}
+    artifact_linkage_present = bool(bound_run_context.get("bound_artifact_paths", []))
+    ledger_bridge_present = str(ledger_bridge.get("ledger_bridge_status", "MISSING")) in {"LINKED", "PARTIAL_LINKED"}
+    detector_ready_context_present = run_binding_present and artifact_linkage_present
+    reasons: List[str] = []
+    if not run_binding_present:
+        reasons.append("run_binding_missing")
+    if not artifact_linkage_present:
+        reasons.append("artifact_linkage_missing")
+    if not ledger_bridge_present:
+        reasons.append("ledger_bridge_missing")
+    if not detector_ready_context_present:
+        reasons.append("detector_context_missing")
+    return {
+        "run_binding_state": "pass" if run_binding_present else "fail",
+        "artifact_linkage_state": "pass" if artifact_linkage_present else "fail",
+        "ledger_bridge_state": "pass" if ledger_bridge_present else "fail",
+        "detector_ready_state": "pass" if detector_ready_context_present else "fail",
+        "reasons": reasons[:6],
+        "summary": (
+            f"binding={str(bound_run_context.get('binding_status', 'MISSING'))}; "
+            f"ledger={str(ledger_bridge.get('ledger_bridge_status', 'MISSING'))}; "
+            f"detector_ready={'yes' if detector_ready_context_present else 'no'}; "
+            f"subcodes={','.join(not_computable_subcodes[:3]) or 'none'}"
+        ),
+        "provenance": "operator_console.binding_restoration.binding_health.v4.7",
+    }
 
 
 def _build_evidence_drilldown(
@@ -1039,7 +1411,7 @@ def _build_action_safety_envelope() -> Dict[str, Any]:
 
 
 def _sanitize_workbench_mode(value: Optional[str]) -> str:
-    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers", "runtime"]
+    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers", "runtime", "domain_logic"]
     return str(value) if value in allowed else "overview"
 
 
@@ -3292,6 +3664,871 @@ def _derive_policy_surface(*, workbench_mode: str, control_plane: Mapping[str, A
     }
 
 
+def _bounded_token_repeat_count(*, text_blocks: List[str], max_tokens: int = 80) -> int:
+    tokens: List[str] = []
+    for block in text_blocks:
+        for token in re.findall(r"[a-z0-9_]+", block.lower()):
+            if len(token) < 4:
+                continue
+            tokens.append(token)
+            if len(tokens) >= max_tokens:
+                break
+        if len(tokens) >= max_tokens:
+            break
+    if not tokens:
+        return 0
+    return max(0, len(tokens) - len(set(tokens)))
+
+
+def _derive_structural_signals(
+    *,
+    selected_detail: Mapping[str, Any],
+    pipeline_step_audit: List[Mapping[str, Any]],
+    pipeline_quality_matrix: List[Mapping[str, Any]],
+    runtime_gating: List[Mapping[str, Any]],
+    ers_review_workspace_payload: Mapping[str, Any],
+    latest_pipeline_envelope: Mapping[str, Any],
+) -> Dict[str, Any]:
+    entity_count = 0
+    relation_count = 0
+    for row in pipeline_quality_matrix:
+        if str(row.get("surface", "")) == "map_projection":
+            entity_count = int(row.get("entity_count", 0))
+            relation_count = int(row.get("relation_count", 0))
+            break
+    repeated_token_count = _bounded_token_repeat_count(
+        text_blocks=[
+            str(latest_pipeline_envelope.get("final_result_summary", "")),
+            str(selected_detail.get("artifact_status", "")),
+            str(selected_detail.get("validator_status", "")),
+            str(ers_review_workspace_payload.get("drift_label", "")),
+        ]
+    )
+    missing_field_count = 0
+    required_fields = {
+        "artifact_path": selected_detail.get("artifact_path"),
+        "validator_path": selected_detail.get("validator_path"),
+        "latest_timestamp": selected_detail.get("latest_timestamp"),
+        "pipeline_id": latest_pipeline_envelope.get("pipeline_id"),
+    }
+    for value in required_fields.values():
+        if value in (None, "", "NOT_COMPUTABLE"):
+            missing_field_count += 1
+    blocked_or_not_computable_count = 0
+    degraded_step_count = 0
+    for row in pipeline_step_audit:
+        status = str(row.get("status", "NOT_COMPUTABLE"))
+        if status in {"FAILED", "NOT_COMPUTABLE", "BLOCKED"}:
+            blocked_or_not_computable_count += 1
+        if status in {"FAILED", "DEGRADED"}:
+            degraded_step_count += 1
+    for row in runtime_gating:
+        if str(row.get("invokable", "false")) != "true":
+            blocked_or_not_computable_count += 1
+    transition_count = int(ers_review_workspace_payload.get("transition_count", 0))
+    anomaly_markers: List[str] = []
+    if missing_field_count > 0:
+        anomaly_markers.append("missing_core_fields")
+    if blocked_or_not_computable_count > 0:
+        anomaly_markers.append("blocked_or_not_computable_present")
+    if relation_count == 0 and entity_count > 0:
+        anomaly_markers.append("entity_relation_imbalance")
+    if transition_count >= 3:
+        anomaly_markers.append("transition_instability")
+    return {
+        "entity_count": entity_count,
+        "relation_count": relation_count,
+        "repeated_token_count": repeated_token_count,
+        "missing_field_count": missing_field_count,
+        "blocked_or_not_computable_count": blocked_or_not_computable_count,
+        "degraded_step_count": degraded_step_count,
+        "transition_count": transition_count,
+        "anomaly_markers": anomaly_markers[:5],
+        "rule_ids": [
+            "signals.entity_relation_from_map_projection",
+            "signals.missing_field_from_required_surface",
+            "signals.status_counts_from_pipeline_runtime",
+            "signals.transition_from_ers_review",
+            "signals.repetition_from_bounded_summary_tokens",
+        ],
+        "provenance": "operator_console.domain_logic.structural_signals.v4.2.derived_from_runtime_pipeline_review",
+    }
+
+
+def _derive_pressure_friction_detector(*, structural_signals: Mapping[str, Any], selected_run_id: Optional[str]) -> Dict[str, Any]:
+    detector_id = "ABX.STRUCTURAL_PRESSURE.V4_2"
+    if not selected_run_id:
+        return {
+            "detector_id": detector_id,
+            "detector_status": "NOT_COMPUTABLE",
+            "pressure_label": "NOT_COMPUTABLE",
+            "friction_label": "NOT_COMPUTABLE",
+            "pressure_reasons": ["selected_run_id_missing"],
+            "friction_reasons": ["selected_run_id_missing"],
+            "detector_summary": "Detector inert: selected run context unavailable.",
+            "rule_ids": ["detector.not_computable_when_selected_run_missing"],
+            "provenance": "operator_console.domain_logic.detector.v4.2.not_computable",
+        }
+    missing = int(structural_signals.get("missing_field_count", 0))
+    blocked = int(structural_signals.get("blocked_or_not_computable_count", 0))
+    degraded = int(structural_signals.get("degraded_step_count", 0))
+    relation_count = int(structural_signals.get("relation_count", 0))
+    entity_count = int(structural_signals.get("entity_count", 0))
+    transition_count = int(structural_signals.get("transition_count", 0))
+    pressure_reasons: List[str] = []
+    friction_reasons: List[str] = []
+    if missing > 0:
+        pressure_reasons.append("missing_fields_present")
+    if degraded > 0:
+        pressure_reasons.append("degraded_steps_present")
+        friction_reasons.append("degraded_steps_present")
+    if blocked > 0:
+        pressure_reasons.append("blocked_or_not_computable_surfaces_present")
+        friction_reasons.append("blocked_or_not_computable_surfaces_present")
+    if entity_count > 0 and relation_count == 0:
+        pressure_reasons.append("entity_relation_imbalance")
+        friction_reasons.append("entity_relation_imbalance")
+    if transition_count >= 3:
+        pressure_reasons.append("transition_instability")
+        friction_reasons.append("transition_instability")
+    if blocked > 0:
+        pressure_label = "HIGH"
+        friction_label = "BLOCKED"
+    elif missing >= 2 or degraded >= 2 or transition_count >= 3:
+        pressure_label = "HIGH"
+        friction_label = "FRICTION"
+    elif missing == 1 or degraded == 1 or (entity_count > 0 and relation_count == 0):
+        pressure_label = "MODERATE"
+        friction_label = "FRICTION"
+    else:
+        pressure_label = "LOW"
+        friction_label = "CLEAR"
+    return {
+        "detector_id": detector_id,
+        "detector_status": "SUCCESS",
+        "pressure_label": pressure_label,
+        "friction_label": friction_label,
+        "pressure_reasons": pressure_reasons[:6],
+        "friction_reasons": friction_reasons[:6],
+        "detector_summary": (
+            f"pressure={pressure_label} friction={friction_label} "
+            f"missing={missing} blocked_or_not_computable={blocked} degraded={degraded} transitions={transition_count}"
+        ),
+        "rule_ids": [
+            "detector.blocked_implies_friction_blocked",
+            "detector.high_pressure_on_missing_degraded_transition_thresholds",
+            "detector.moderate_pressure_on_single_surface_drift",
+            "detector.low_pressure_when_no_explicit_drift_markers",
+        ],
+        "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder",
+    }
+
+
+def _count_repeats(values: List[str]) -> int:
+    counts: Dict[str, int] = {}
+    for value in values:
+        if not value:
+            continue
+        counts[value] = counts.get(value, 0) + 1
+    if not counts:
+        return 0
+    return sum(max(0, count - 1) for count in counts.values())
+
+
+def _derive_motif_recurrence_signals(
+    *,
+    structural_signals: Mapping[str, Any],
+    pressure_friction_detector: Mapping[str, Any],
+    pipeline_step_audit: List[Mapping[str, Any]],
+    pipeline_quality_matrix: List[Mapping[str, Any]],
+    pipeline_routing: Mapping[str, Any],
+    ers_review_workspace_payload: Mapping[str, Any],
+    runtime_gating: List[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    repeated_token_count = int(structural_signals.get("repeated_token_count", 0))
+    transition_entities = [
+        str(row.get("item_id", "")).strip()
+        for row in ers_review_workspace_payload.get("transition_log", [])
+        if isinstance(row, Mapping) and str(row.get("item_id", "")).strip()
+    ]
+    repeated_entity_count = _count_repeats(transition_entities)
+    transition_forms = [
+        str(row.get("transition_type", "")).strip()
+        for row in ers_review_workspace_payload.get("transition_log", [])
+        if isinstance(row, Mapping) and str(row.get("transition_type", "")).strip()
+    ]
+    repeated_relation_form_count = _count_repeats(transition_forms)
+    blocker_reasons = [str(row.get("blocking_reason", "")) for row in pipeline_step_audit if str(row.get("blocking_reason", ""))]
+    blocker_reasons.extend([str(row.get("gating_reason", "")) for row in runtime_gating if str(row.get("invokable", "false")) != "true"])
+    blocker_reasons.extend([str(x) for x in pressure_friction_detector.get("friction_reasons", []) if isinstance(x, str)])
+    repeated_blocker_reason_count = _count_repeats(blocker_reasons)
+    transitions = [
+        f"{str(row.get('item_id', ''))}:{str(row.get('transition_type', ''))}"
+        for row in ers_review_workspace_payload.get("transition_log", [])
+        if isinstance(row, Mapping)
+    ]
+    repeated_transition_pattern_count = _count_repeats(transitions)
+    routing_patterns = [
+        f"recommended:{str(pipeline_routing.get('recommended_pipeline_id', ''))}",
+        f"effective:{str(pipeline_routing.get('effective_pipeline_id', ''))}",
+        f"source:{str(pipeline_routing.get('selection_source', ''))}",
+    ]
+    repeated_pipeline_or_routing_pattern_count = _count_repeats(routing_patterns)
+    motifs: List[str] = []
+    if repeated_blocker_reason_count > 0:
+        motifs.append(f"blocker_pattern:repeat={repeated_blocker_reason_count}")
+    if repeated_transition_pattern_count > 0:
+        motifs.append(f"transition_pattern:repeat={repeated_transition_pattern_count}")
+    if repeated_token_count > 0:
+        motifs.append(f"token_pattern:repeat={repeated_token_count}")
+    if repeated_entity_count > 0:
+        motifs.append(f"entity_pattern:repeat={repeated_entity_count}")
+    if repeated_relation_form_count > 0:
+        motifs.append(f"relation_pattern:repeat={repeated_relation_form_count}")
+    return {
+        "repeated_token_count": repeated_token_count,
+        "repeated_entity_count": repeated_entity_count,
+        "repeated_relation_form_count": repeated_relation_form_count,
+        "repeated_blocker_reason_count": repeated_blocker_reason_count,
+        "repeated_transition_pattern_count": repeated_transition_pattern_count,
+        "repeated_pipeline_or_routing_pattern_count": repeated_pipeline_or_routing_pattern_count,
+        "motif_candidate_summaries": motifs[:5],
+        "rule_ids": [
+            "motif.repeat_token_from_structural_signal",
+            "motif.repeat_entity_relation_from_ers_transition_log",
+            "motif.repeat_blocker_reason_from_pipeline_runtime_detector_reasons",
+            "motif.repeat_transition_from_ers_transitions",
+            "motif.repeat_routing_pattern_from_pipeline_routing_surface",
+        ],
+        "provenance": "operator_console.domain_logic.motif_signals.v4.3.local_runtime_pipeline_review_state",
+    }
+
+
+def _derive_motif_recurrence_detector(
+    *,
+    motif_recurrence_signals: Mapping[str, Any],
+    selected_run_id: Optional[str],
+) -> Dict[str, Any]:
+    detector_id = "ABX.MOTIF_RECURRENCE.V4_3"
+    if not selected_run_id:
+        return {
+            "detector_id": detector_id,
+            "detector_status": "NOT_COMPUTABLE",
+            "motif_label": "NOT_COMPUTABLE",
+            "recurrence_label": "NOT_COMPUTABLE",
+            "motif_reasons": ["selected_run_id_missing"],
+            "recurrence_reasons": ["selected_run_id_missing"],
+            "detector_summary": "Motif detector inert: selected run context unavailable.",
+            "rule_ids": ["motif_detector.not_computable_when_selected_run_missing"],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.not_computable",
+        }
+    token = int(motif_recurrence_signals.get("repeated_token_count", 0))
+    entity = int(motif_recurrence_signals.get("repeated_entity_count", 0))
+    relation = int(motif_recurrence_signals.get("repeated_relation_form_count", 0))
+    blocker = int(motif_recurrence_signals.get("repeated_blocker_reason_count", 0))
+    transition = int(motif_recurrence_signals.get("repeated_transition_pattern_count", 0))
+    routing = int(motif_recurrence_signals.get("repeated_pipeline_or_routing_pattern_count", 0))
+    intensity = token + entity + relation + blocker + transition + routing
+    motif_reasons: List[str] = []
+    recurrence_reasons: List[str] = []
+    if blocker > 0:
+        motif_reasons.append("repeated_blocker_reasons")
+        recurrence_reasons.append("repeated_blocker_reasons")
+    if transition > 0:
+        motif_reasons.append("repeated_transition_patterns")
+        recurrence_reasons.append("repeated_transition_patterns")
+    if token > 0:
+        motif_reasons.append("repeated_tokens")
+    if entity > 0 or relation > 0:
+        motif_reasons.append("repeated_entity_relation_forms")
+    if routing > 0:
+        recurrence_reasons.append("repeated_pipeline_routing_pattern")
+    if intensity >= 6 or blocker >= 2 or transition >= 2:
+        motif_label = "DOMINANT"
+        recurrence_label = "PERSISTENT"
+    elif intensity >= 2:
+        motif_label = "PRESENT"
+        recurrence_label = "RECURRING"
+    else:
+        motif_label = "SPARSE"
+        recurrence_label = "NONE"
+    return {
+        "detector_id": detector_id,
+        "detector_status": "SUCCESS",
+        "motif_label": motif_label,
+        "recurrence_label": recurrence_label,
+        "motif_reasons": motif_reasons[:6],
+        "recurrence_reasons": recurrence_reasons[:6],
+        "detector_summary": (
+            f"motif={motif_label} recurrence={recurrence_label} "
+            f"token={token} entity={entity} relation={relation} blocker={blocker} transition={transition}"
+        ),
+        "rule_ids": [
+            "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+            "motif_detector.recurring_when_repetition_signals_present",
+            "motif_detector.sparse_when_repetition_signals_absent",
+        ],
+        "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder",
+    }
+
+
+def _derive_instability_drift_signals(
+    *,
+    ers_snapshot_diff: Mapping[str, Any],
+    ers_transition_log: List[Mapping[str, Any]],
+    prior_result_diff: Mapping[str, Any],
+    pipeline_quality_matrix: List[Mapping[str, Any]],
+    review_history: List[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    changed_items = int(ers_snapshot_diff.get("changed_items_count", 0))
+    blocked_to_runnable_transition_count = len(
+        [x for x in ers_transition_log if str(x.get("transition_type", "")) == "entered_runnable"]
+    )
+    runnable_to_blocked_transition_count = len(
+        [x for x in ers_transition_log if str(x.get("transition_type", "")) == "entered_blocked"]
+    )
+    queue_change_count = changed_items
+    status_change_count = len(
+        [
+            key
+            for key in ["outcome_change", "run_id_change", "artifact_path_change", "error_change"]
+            if str(prior_result_diff.get(key, "unchanged")) == "changed"
+        ]
+    )
+    latest_vs_prior_result_change_count = status_change_count
+    pipeline_quality_shift_count = len(
+        [row for row in pipeline_quality_matrix if str(row.get("quality_label", "")) in {"DEGRADED", "NOT_COMPUTABLE"}]
+    )
+    review_decision_change_count = 0
+    if len(review_history) >= 2:
+        current = review_history[0]
+        prior = review_history[1]
+        if str(current.get("decision_label", "")) != str(prior.get("decision_label", "")):
+            review_decision_change_count = 1
+    drift_candidates: List[str] = []
+    if queue_change_count > 0:
+        drift_candidates.append(f"queue_change={queue_change_count}")
+    if blocked_to_runnable_transition_count > 0:
+        drift_candidates.append(f"blocked_to_runnable={blocked_to_runnable_transition_count}")
+    if runnable_to_blocked_transition_count > 0:
+        drift_candidates.append(f"runnable_to_blocked={runnable_to_blocked_transition_count}")
+    if latest_vs_prior_result_change_count > 0:
+        drift_candidates.append(f"result_change={latest_vs_prior_result_change_count}")
+    if pipeline_quality_shift_count > 0:
+        drift_candidates.append(f"pipeline_quality_shift={pipeline_quality_shift_count}")
+    return {
+        "status_change_count": status_change_count,
+        "queue_change_count": queue_change_count,
+        "blocked_to_runnable_transition_count": blocked_to_runnable_transition_count,
+        "runnable_to_blocked_transition_count": runnable_to_blocked_transition_count,
+        "latest_vs_prior_result_change_count": latest_vs_prior_result_change_count,
+        "pipeline_quality_shift_count": pipeline_quality_shift_count,
+        "review_decision_change_count": review_decision_change_count,
+        "drift_candidate_summaries": drift_candidates[:6],
+        "rule_ids": [
+            "drift.status_change_from_prior_result_diff",
+            "drift.queue_change_from_ers_snapshot_diff",
+            "drift.transition_direction_counts_from_ers_transition_log",
+            "drift.pipeline_quality_shift_from_quality_matrix",
+            "drift.review_change_from_review_history",
+        ],
+        "provenance": "operator_console.domain_logic.instability_drift_signals.v4.4.local_state_only",
+    }
+
+
+def _derive_instability_drift_detector(
+    *,
+    instability_drift_signals: Mapping[str, Any],
+    selected_run_id: Optional[str],
+) -> Dict[str, Any]:
+    detector_id = "ABX.INSTABILITY_DRIFT.V4_4"
+    if not selected_run_id:
+        return {
+            "detector_id": detector_id,
+            "detector_status": "NOT_COMPUTABLE",
+            "instability_label": "NOT_COMPUTABLE",
+            "drift_label": "NOT_COMPUTABLE",
+            "instability_reasons": ["selected_run_id_missing"],
+            "drift_reasons": ["selected_run_id_missing"],
+            "detector_summary": "Instability/drift detector inert: selected run context unavailable.",
+            "rule_ids": ["drift_detector.not_computable_when_selected_run_missing"],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.not_computable",
+        }
+    status_change_count = int(instability_drift_signals.get("status_change_count", 0))
+    queue_change_count = int(instability_drift_signals.get("queue_change_count", 0))
+    blocked_to_runnable = int(instability_drift_signals.get("blocked_to_runnable_transition_count", 0))
+    runnable_to_blocked = int(instability_drift_signals.get("runnable_to_blocked_transition_count", 0))
+    result_changes = int(instability_drift_signals.get("latest_vs_prior_result_change_count", 0))
+    quality_shifts = int(instability_drift_signals.get("pipeline_quality_shift_count", 0))
+    review_changes = int(instability_drift_signals.get("review_decision_change_count", 0))
+    instability_reasons: List[str] = []
+    drift_reasons: List[str] = []
+    if queue_change_count > 0:
+        instability_reasons.append("queue_changes_present")
+    if runnable_to_blocked > 0:
+        instability_reasons.append("runnable_to_blocked_transitions_present")
+        drift_reasons.append("runnable_to_blocked_transitions_present")
+    if result_changes > 0:
+        drift_reasons.append("result_change_present")
+    if quality_shifts > 0:
+        drift_reasons.append("pipeline_quality_shift_present")
+    if review_changes > 0:
+        drift_reasons.append("review_decision_change_present")
+    intensity = status_change_count + queue_change_count + result_changes + quality_shifts + review_changes
+    if intensity >= 5 or runnable_to_blocked >= 2:
+        instability_label = "UNSTABLE"
+        drift_label = "SIGNIFICANT"
+    elif intensity >= 2 or blocked_to_runnable > 0 or runnable_to_blocked > 0:
+        instability_label = "SHIFTING"
+        drift_label = "MINOR"
+    else:
+        instability_label = "STABLE"
+        drift_label = "NONE"
+    return {
+        "detector_id": detector_id,
+        "detector_status": "SUCCESS",
+        "instability_label": instability_label,
+        "drift_label": drift_label,
+        "instability_reasons": instability_reasons[:6],
+        "drift_reasons": drift_reasons[:6],
+        "detector_summary": (
+            f"instability={instability_label} drift={drift_label} "
+            f"status_changes={status_change_count} queue_changes={queue_change_count} quality_shifts={quality_shifts}"
+        ),
+        "rule_ids": [
+            "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+            "drift_detector.shifting_minor_on_partial_shift",
+            "drift_detector.stable_none_on_no_shift",
+        ],
+        "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder",
+    }
+
+
+def _derive_anomaly_gap_signals(
+    *,
+    selected_detail: Mapping[str, Any],
+    pipeline_step_audit: List[Mapping[str, Any]],
+    pipeline_review_export_path: Optional[str],
+    ers_review_export_path: Optional[str],
+    runtime_corridor: Mapping[str, Any],
+) -> Dict[str, Any]:
+    missing_artifact_count = 0
+    if not str(selected_detail.get("artifact_path", "")):
+        missing_artifact_count += 1
+    if not pipeline_review_export_path:
+        missing_artifact_count += 1
+    if not ers_review_export_path:
+        missing_artifact_count += 1
+    missing_linkage_count = 0
+    if int(selected_detail.get("ledger_record_ids_count", 0)) == 0:
+        missing_linkage_count += 1
+    if int(selected_detail.get("correlation_pointers_count", 0)) == 0:
+        missing_linkage_count += 1
+    empty_required_field_count = len(
+        [key for key in ["artifact_path", "validator_path", "latest_timestamp"] if str(selected_detail.get(key, "")) in {"", "None", "NOT_COMPUTABLE"}]
+    )
+    broken_expected_step_pattern_count = len(
+        [row for row in pipeline_step_audit if str(row.get("status", "")) in {"FAILED", "NOT_COMPUTABLE"}]
+    )
+    review_export_mismatch_count = 0
+    if (pipeline_review_export_path and not ers_review_export_path) or (ers_review_export_path and not pipeline_review_export_path):
+        review_export_mismatch_count = 1
+    unexpected_not_computable_count = 0
+    runtime_state = runtime_corridor.get("runtime_state_surface", {}) if isinstance(runtime_corridor.get("runtime_state_surface", {}), Mapping) else {}
+    if str(runtime_state.get("latest_runtime_status", "")) == "NOT_COMPUTABLE" and bool(selected_detail.get("artifact_path")):
+        unexpected_not_computable_count += 1
+    anomaly_candidates: List[str] = []
+    if missing_artifact_count > 0:
+        anomaly_candidates.append(f"missing_artifact={missing_artifact_count}")
+    if missing_linkage_count > 0:
+        anomaly_candidates.append(f"missing_linkage={missing_linkage_count}")
+    if broken_expected_step_pattern_count > 0:
+        anomaly_candidates.append(f"broken_step_pattern={broken_expected_step_pattern_count}")
+    return {
+        "missing_artifact_count": missing_artifact_count,
+        "missing_linkage_count": missing_linkage_count,
+        "empty_required_field_count": empty_required_field_count,
+        "broken_expected_step_pattern_count": broken_expected_step_pattern_count,
+        "review_export_mismatch_count": review_export_mismatch_count,
+        "unexpected_not_computable_count": unexpected_not_computable_count,
+        "anomaly_candidate_summaries": anomaly_candidates[:6],
+        "rule_ids": [
+            "anomaly.missing_artifact_from_expected_surfaces",
+            "anomaly.missing_linkage_from_selected_detail_linkage_counts",
+            "anomaly.broken_step_pattern_from_pipeline_step_audit",
+            "anomaly.review_export_mismatch_from_export_paths",
+            "anomaly.unexpected_not_computable_from_runtime_vs_selected_artifact",
+        ],
+        "provenance": "operator_console.domain_logic.anomaly_gap_signals.v4.4.local_state_only",
+    }
+
+
+def _derive_anomaly_gap_detector(
+    *,
+    anomaly_gap_signals: Mapping[str, Any],
+    selected_run_id: Optional[str],
+) -> Dict[str, Any]:
+    detector_id = "ABX.ANOMALY_GAP.V4_4"
+    if not selected_run_id:
+        return {
+            "detector_id": detector_id,
+            "detector_status": "NOT_COMPUTABLE",
+            "anomaly_label": "NOT_COMPUTABLE",
+            "gap_label": "NOT_COMPUTABLE",
+            "anomaly_reasons": ["selected_run_id_missing"],
+            "gap_reasons": ["selected_run_id_missing"],
+            "detector_summary": "Anomaly/gap detector inert: selected run context unavailable.",
+            "rule_ids": ["anomaly_detector.not_computable_when_selected_run_missing"],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.not_computable",
+        }
+    missing_artifact_count = int(anomaly_gap_signals.get("missing_artifact_count", 0))
+    missing_linkage_count = int(anomaly_gap_signals.get("missing_linkage_count", 0))
+    empty_required_field_count = int(anomaly_gap_signals.get("empty_required_field_count", 0))
+    broken_expected_step_pattern_count = int(anomaly_gap_signals.get("broken_expected_step_pattern_count", 0))
+    review_export_mismatch_count = int(anomaly_gap_signals.get("review_export_mismatch_count", 0))
+    unexpected_not_computable_count = int(anomaly_gap_signals.get("unexpected_not_computable_count", 0))
+    anomaly_reasons: List[str] = []
+    gap_reasons: List[str] = []
+    if missing_artifact_count > 0:
+        anomaly_reasons.append("missing_artifacts_present")
+        gap_reasons.append("missing_artifacts_present")
+    if missing_linkage_count > 0:
+        anomaly_reasons.append("missing_linkage_present")
+        gap_reasons.append("missing_linkage_present")
+    if broken_expected_step_pattern_count > 0:
+        anomaly_reasons.append("broken_step_pattern_present")
+        gap_reasons.append("broken_step_pattern_present")
+    if empty_required_field_count > 0:
+        gap_reasons.append("empty_required_fields_present")
+    if review_export_mismatch_count > 0:
+        gap_reasons.append("review_export_mismatch_present")
+    if unexpected_not_computable_count > 0:
+        anomaly_reasons.append("unexpected_not_computable_present")
+    severity = (
+        missing_artifact_count
+        + missing_linkage_count
+        + broken_expected_step_pattern_count
+        + review_export_mismatch_count
+        + unexpected_not_computable_count
+    )
+    if severity >= 4 or broken_expected_step_pattern_count >= 2:
+        anomaly_label = "MAJOR"
+        gap_label = "BROKEN"
+    elif severity >= 1 or empty_required_field_count > 0:
+        anomaly_label = "MINOR"
+        gap_label = "INCOMPLETE"
+    else:
+        anomaly_label = "NONE"
+        gap_label = "COMPLETE"
+    return {
+        "detector_id": detector_id,
+        "detector_status": "SUCCESS",
+        "anomaly_label": anomaly_label,
+        "gap_label": gap_label,
+        "anomaly_reasons": anomaly_reasons[:6],
+        "gap_reasons": gap_reasons[:6],
+        "detector_summary": (
+            f"anomaly={anomaly_label} gap={gap_label} "
+            f"missing_artifact={missing_artifact_count} missing_linkage={missing_linkage_count} broken_steps={broken_expected_step_pattern_count}"
+        ),
+        "rule_ids": [
+            "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+            "anomaly_detector.minor_incomplete_on_partial_gap",
+            "anomaly_detector.none_complete_on_no_gap",
+        ],
+        "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder",
+    }
+
+
+def _derive_fusion_input_surface(
+    *,
+    structural_signals: Mapping[str, Any],
+    pressure_friction_detector: Mapping[str, Any],
+    motif_recurrence_detector: Mapping[str, Any],
+    instability_drift_detector: Mapping[str, Any],
+    anomaly_gap_detector: Mapping[str, Any],
+) -> Dict[str, Any]:
+    return {
+        "structural_signal_summary": (
+            f"entity={int(structural_signals.get('entity_count', 0))};"
+            f"relation={int(structural_signals.get('relation_count', 0))};"
+            f"transition={int(structural_signals.get('transition_count', 0))}"
+        ),
+        "pressure_label": str(pressure_friction_detector.get("pressure_label", "NOT_COMPUTABLE")),
+        "friction_label": str(pressure_friction_detector.get("friction_label", "NOT_COMPUTABLE")),
+        "motif_label": str(motif_recurrence_detector.get("motif_label", "NOT_COMPUTABLE")),
+        "recurrence_label": str(motif_recurrence_detector.get("recurrence_label", "NOT_COMPUTABLE")),
+        "instability_label": str(instability_drift_detector.get("instability_label", "NOT_COMPUTABLE")),
+        "drift_label": str(instability_drift_detector.get("drift_label", "NOT_COMPUTABLE")),
+        "anomaly_label": str(anomaly_gap_detector.get("anomaly_label", "NOT_COMPUTABLE")),
+        "gap_label": str(anomaly_gap_detector.get("gap_label", "NOT_COMPUTABLE")),
+        "pressure_reasons_count": len([x for x in pressure_friction_detector.get("pressure_reasons", []) if isinstance(x, str)]),
+        "motif_reasons_count": len([x for x in motif_recurrence_detector.get("motif_reasons", []) if isinstance(x, str)]),
+        "drift_reasons_count": len([x for x in instability_drift_detector.get("drift_reasons", []) if isinstance(x, str)]),
+        "anomaly_reasons_count": len([x for x in anomaly_gap_detector.get("anomaly_reasons", []) if isinstance(x, str)]),
+        "rule_ids": [
+            "fusion_input.from_structural_detector_family_outputs_only",
+            "fusion_input.bounded_label_reason_projection",
+        ],
+        "provenance": "operator_console.domain_logic.fusion_input.v4.5.detector_surface_only",
+    }
+
+
+def _derive_detector_fusion_output(
+    *,
+    selected_run_id: Optional[str],
+    fusion_input_surface: Mapping[str, Any],
+    pressure_friction_detector: Mapping[str, Any],
+    motif_recurrence_detector: Mapping[str, Any],
+    instability_drift_detector: Mapping[str, Any],
+    anomaly_gap_detector: Mapping[str, Any],
+) -> Dict[str, Any]:
+    if not selected_run_id:
+        return {
+            "fused_label": "NOT_COMPUTABLE",
+            "fused_status": "NOT_COMPUTABLE",
+            "fused_reasons": ["selected_run_id_missing"],
+            "interpretation_summary": "fusion=NOT_COMPUTABLE; reason=selected_run_id_missing",
+            "rule_ids": ["fusion.not_computable_when_selected_run_missing"],
+            "provenance": "operator_console.domain_logic.fusion_output.v4.5.not_computable",
+        }
+    detector_statuses = [
+        str(pressure_friction_detector.get("detector_status", "NOT_COMPUTABLE")),
+        str(motif_recurrence_detector.get("detector_status", "NOT_COMPUTABLE")),
+        str(instability_drift_detector.get("detector_status", "NOT_COMPUTABLE")),
+        str(anomaly_gap_detector.get("detector_status", "NOT_COMPUTABLE")),
+    ]
+    if any(status == "NOT_COMPUTABLE" for status in detector_statuses):
+        return {
+            "fused_label": "NOT_COMPUTABLE",
+            "fused_status": "NOT_COMPUTABLE",
+            "fused_reasons": ["detector_input_not_computable"],
+            "interpretation_summary": "fusion=NOT_COMPUTABLE; reason=detector_input_not_computable",
+            "rule_ids": ["fusion.not_computable_when_any_detector_not_computable"],
+            "provenance": "operator_console.domain_logic.fusion_output.v4.5.not_computable",
+        }
+    pressure_label = str(fusion_input_surface.get("pressure_label", "NOT_COMPUTABLE"))
+    friction_label = str(fusion_input_surface.get("friction_label", "NOT_COMPUTABLE"))
+    recurrence_label = str(fusion_input_surface.get("recurrence_label", "NOT_COMPUTABLE"))
+    instability_label = str(fusion_input_surface.get("instability_label", "NOT_COMPUTABLE"))
+    drift_label = str(fusion_input_surface.get("drift_label", "NOT_COMPUTABLE"))
+    anomaly_label = str(fusion_input_surface.get("anomaly_label", "NOT_COMPUTABLE"))
+    gap_label = str(fusion_input_surface.get("gap_label", "NOT_COMPUTABLE"))
+    fused_reasons: List[str] = []
+    if gap_label == "BROKEN" or anomaly_label == "MAJOR":
+        fused_label = "BROKEN_SIGNAL"
+        fused_reasons.extend(
+            [
+                "anomaly_or_gap_broken",
+                f"anomaly_label={anomaly_label}",
+                f"gap_label={gap_label}",
+            ]
+        )
+    elif gap_label == "INCOMPLETE" or anomaly_label == "MINOR":
+        fused_label = "INCOMPLETE_CONTEXT"
+        fused_reasons.extend(
+            [
+                "anomaly_or_gap_incomplete",
+                f"anomaly_label={anomaly_label}",
+                f"gap_label={gap_label}",
+            ]
+        )
+    elif instability_label == "UNSTABLE" or drift_label == "SIGNIFICANT":
+        fused_label = "UNSTABLE_TRANSITION"
+        fused_reasons.extend(
+            [
+                "instability_or_drift_significant",
+                f"instability_label={instability_label}",
+                f"drift_label={drift_label}",
+            ]
+        )
+    elif pressure_label == "HIGH" or friction_label in {"FRICTION", "BLOCKED"} or recurrence_label == "PERSISTENT":
+        fused_label = "ACTIVE_FRICTION"
+        fused_reasons.extend(
+            [
+                "pressure_friction_or_recurrence_active",
+                f"pressure_label={pressure_label}",
+                f"friction_label={friction_label}",
+                f"recurrence_label={recurrence_label}",
+            ]
+        )
+    elif (
+        pressure_label == "LOW"
+        and friction_label == "CLEAR"
+        and recurrence_label in {"NONE", "RECURRING"}
+        and instability_label == "STABLE"
+        and anomaly_label == "NONE"
+    ):
+        fused_label = "STABLE_PATTERN"
+        fused_reasons.extend(
+            [
+                "all_detector_families_stable_or_clear",
+                f"pressure_label={pressure_label}",
+                f"friction_label={friction_label}",
+                f"instability_label={instability_label}",
+                f"anomaly_label={anomaly_label}",
+            ]
+        )
+    else:
+        fused_label = "ACTIVE_FRICTION"
+        fused_reasons.extend(["default_active_friction_bucket"])
+    interpretation_summary = (
+        f"fusion={fused_label}; pressure/friction={pressure_label}/{friction_label}; "
+        f"motif/recurrence={str(fusion_input_surface.get('motif_label', 'NOT_COMPUTABLE'))}/{recurrence_label}; "
+        f"instability/drift={instability_label}/{drift_label}; anomaly/gap={anomaly_label}/{gap_label}; "
+        f"drivers={','.join(fused_reasons[:4])}"
+    )
+    return {
+        "fused_label": fused_label,
+        "fused_status": "SUCCESS",
+        "fused_reasons": fused_reasons[:6],
+        "interpretation_summary": interpretation_summary[:320],
+        "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket",
+        ],
+        "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder",
+    }
+
+
+def _derive_abraxas_synthesis_input_surface(
+    *,
+    selected_run_id: Optional[str],
+    latest_pipeline_envelope: Mapping[str, Any],
+    pipeline_routing: Mapping[str, Any],
+    governance: Mapping[str, Any],
+    runtime_corridor: Mapping[str, Any],
+    decision_workspace_payload: Mapping[str, Any],
+    detector_fusion_output: Mapping[str, Any],
+    not_computable_subcodes: List[str],
+    attention_queue: List[Mapping[str, Any]],
+    suggested_next_step: str,
+) -> Dict[str, Any]:
+    policy_surface = governance.get("policy_surface", {}) if isinstance(governance.get("policy_surface", {}), Mapping) else {}
+    runtime_workspace = runtime_corridor.get("runtime_workspace_payload", {}) if isinstance(runtime_corridor.get("runtime_workspace_payload", {}), Mapping) else {}
+    blocker_rows = runtime_corridor.get("runtime_blocked_rows", []) if isinstance(runtime_corridor.get("runtime_blocked_rows", []), list) else []
+    blocker_summary = [
+        f"{str(row.get('action_name', 'unknown'))}:{str(row.get('gating_reason', 'not_computable'))}"
+        for row in blocker_rows[:5]
+        if isinstance(row, Mapping)
+    ]
+    return {
+        "run_id": selected_run_id or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+        "pipeline_classification": str(decision_workspace_payload.get("decision", "NOT_COMPUTABLE")),
+        "routing_recommended_pipeline_id": str(pipeline_routing.get("recommended_pipeline_id", "NOT_COMPUTABLE")),
+        "routing_effective_pipeline_id": str(pipeline_routing.get("effective_pipeline_id", "NOT_COMPUTABLE")),
+        "routing_selection_source": str(pipeline_routing.get("selection_source", "NOT_COMPUTABLE")),
+        "governance_policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+        "governance_allowlisted_action_count": len([x for x in policy_surface.get("allowed_actions", []) if isinstance(x, str)]),
+        "runtime_outcome_status": str(runtime_workspace.get("outcome_status", "NOT_COMPUTABLE")),
+        "runtime_action_name": str(runtime_workspace.get("action_name", "NOT_COMPUTABLE")),
+        "runtime_blocker_summary": blocker_summary[:5],
+        "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
+        "fusion_status": str(detector_fusion_output.get("fused_status", "NOT_COMPUTABLE")),
+        "not_computable_subcodes": not_computable_subcodes[:5],
+        "session_attention_count": len(attention_queue),
+        "next_step_hint": suggested_next_step,
+        "rule_ids": [
+            "synthesis_input.pipeline_routing_governance_runtime_fusion_projection",
+            "synthesis_input.blockers_from_runtime_blocked_rows",
+            "synthesis_input.next_step_from_existing_suggestion_surface",
+        ],
+        "provenance": "operator_console.abraxas_synthesis.input.v4.6.local_state_projection",
+    }
+
+
+def _derive_abraxas_synthesis_output(
+    *,
+    synthesis_input_surface: Mapping[str, Any],
+    selected_run_id: Optional[str],
+) -> Dict[str, Any]:
+    if not selected_run_id:
+        return {
+            "synthesis_label": "NOT_COMPUTABLE",
+            "synthesis_status": "NOT_COMPUTABLE",
+            "synthesis_reasons": ["selected_run_id_missing"],
+            "synthesis_blockers": ["selected_run_id_missing"],
+            "synthesis_next_step": "Select run to compute synthesis output.",
+            "interpretation_summary": "synthesis=NOT_COMPUTABLE; reason=selected_run_id_missing",
+            "rule_ids": ["synthesis.not_computable_when_selected_run_missing"],
+            "provenance": "operator_console.abraxas_synthesis.output.v4.6.not_computable",
+        }
+    pipeline_status = str(synthesis_input_surface.get("pipeline_status", "NOT_COMPUTABLE"))
+    fusion_label = str(synthesis_input_surface.get("fusion_label", "NOT_COMPUTABLE"))
+    fusion_status = str(synthesis_input_surface.get("fusion_status", "NOT_COMPUTABLE"))
+    policy_mode = str(synthesis_input_surface.get("governance_policy_mode", "review_only"))
+    runtime_outcome = str(synthesis_input_surface.get("runtime_outcome_status", "NOT_COMPUTABLE"))
+    blockers = [str(x) for x in synthesis_input_surface.get("runtime_blocker_summary", []) if isinstance(x, str)]
+    reasons: List[str] = []
+    synthesis_blockers: List[str] = []
+    if fusion_status == "NOT_COMPUTABLE" or pipeline_status == "NOT_COMPUTABLE":
+        label = "NOT_COMPUTABLE"
+        reasons.append("fusion_or_pipeline_not_computable")
+        synthesis_blockers.append("missing_required_computation_surfaces")
+    elif blockers or fusion_label == "BROKEN_SIGNAL" or pipeline_status in {"FAILED", "BLOCKED"}:
+        label = "BLOCKED"
+        reasons.append("active_blocker_or_broken_signal")
+        synthesis_blockers.extend(blockers[:4] or ["fusion_or_pipeline_blocked"])
+    elif fusion_label == "INCOMPLETE_CONTEXT" or runtime_outcome in {"PARTIAL", "NOT_COMPUTABLE"}:
+        label = "INCOMPLETE"
+        reasons.append("context_or_runtime_incomplete")
+        synthesis_blockers.append("context_completion_required")
+    elif fusion_label == "UNSTABLE_TRANSITION":
+        label = "UNSTABLE"
+        reasons.append("fusion_unstable_transition")
+    elif fusion_label == "ACTIVE_FRICTION":
+        label = "FRICTION"
+        reasons.append("fusion_active_friction")
+    elif (
+        fusion_label == "STABLE_PATTERN"
+        and pipeline_status in {"SUCCESS", "READY"}
+        and runtime_outcome in {"SUCCESS", "READY"}
+        and policy_mode in {"bounded_runtime", "decision_review"}
+    ):
+        label = "READY"
+        reasons.append("stable_pipeline_runtime_governance_alignment")
+    else:
+        label = "ACTIVE"
+        reasons.append("active_progress_state")
+    next_step_map = {
+        "BLOCKED": "Investigate runtime blockers and broken signal sources before next execution.",
+        "INCOMPLETE": "Complete missing context/linkage surfaces and re-evaluate synthesis state.",
+        "UNSTABLE": "Run review and drift checks before advancing pipeline execution.",
+        "FRICTION": "Apply hardening or routing adjustment to reduce active friction.",
+        "READY": "Proceed with bounded handoff/export for current stable run context.",
+        "ACTIVE": "Continue monitored execution and re-check synthesis after next action.",
+        "NOT_COMPUTABLE": "Establish required run/pipeline/fusion context first.",
+    }
+    synthesis_next_step = next_step_map[label]
+    interpretation_summary = (
+        f"synthesis={label}; pipeline={pipeline_status}; fusion={fusion_label}; "
+        f"runtime={runtime_outcome}; policy={policy_mode}; blockers={','.join(synthesis_blockers[:3]) or 'none'}"
+    )
+    return {
+        "synthesis_label": label,
+        "synthesis_status": "SUCCESS",
+        "synthesis_reasons": reasons[:6],
+        "synthesis_blockers": synthesis_blockers[:6],
+        "synthesis_next_step": synthesis_next_step,
+        "interpretation_summary": interpretation_summary[:320],
+        "rule_ids": [
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state",
+        ],
+        "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder",
+    }
+
+
 def _derive_guard_conditions(
     *,
     selected_run_id: Optional[str],
@@ -3330,7 +4567,7 @@ def _derive_guard_conditions(
         },
         {
             "guard_name": "policy_mode_valid",
-            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "ers", "runtime"} else "fail",
+            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "ers", "runtime", "domain_logic"} else "fail",
             "explanation": "Workbench mode must match an approved governance mode.",
         },
     ]
@@ -3604,6 +4841,20 @@ def build_view_state(
     manual_pipeline_override: Optional[str] = None,
     latest_pipeline_routing_export_path: Optional[str] = None,
     latest_pipeline_routing_export_status: str = "not_requested",
+    latest_detector_export_path: Optional[str] = None,
+    latest_detector_export_status: str = "not_requested",
+    latest_motif_export_path: Optional[str] = None,
+    latest_motif_export_status: str = "not_requested",
+    latest_drift_export_path: Optional[str] = None,
+    latest_drift_export_status: str = "not_requested",
+    latest_anomaly_export_path: Optional[str] = None,
+    latest_anomaly_export_status: str = "not_requested",
+    latest_fusion_export_path: Optional[str] = None,
+    latest_fusion_export_status: str = "not_requested",
+    latest_synthesis_export_path: Optional[str] = None,
+    latest_synthesis_export_status: str = "not_requested",
+    latest_binding_export_path: Optional[str] = None,
+    latest_binding_export_status: str = "not_requested",
 ) -> ViewState:
     artifacts = _collect_run_artifacts(base_dir)
     validators = _collect_validator_outputs(base_dir)
@@ -4588,6 +5839,27 @@ def build_view_state(
         "pipeline_export_status": latest_pipeline_export_status,
         "pipeline_export_path": latest_pipeline_export_path or "",
     }
+    bound_run_context = _derive_bound_run_context(
+        selected_run_id=chosen,
+        selected_detail=selected_detail,
+        artifacts=artifacts,
+        pipeline_workspace_payload=pipeline_workspace_payload,
+    )
+    ledger_bridge = _derive_ledger_bridge(
+        base_dir=base_dir,
+        bound_run_context=bound_run_context,
+        selected_detail=selected_detail,
+    )
+    not_computable_subcodes = _derive_not_computable_subcodes(
+        bound_run_context=bound_run_context,
+        ledger_bridge=ledger_bridge,
+        selected_detail=selected_detail,
+    )
+    binding_health_surface = _derive_binding_health_surface(
+        bound_run_context=bound_run_context,
+        ledger_bridge=ledger_bridge,
+        not_computable_subcodes=not_computable_subcodes,
+    )
     comparative_pipeline_readiness = []
     for pipeline_id in (_ABRAXAS_PIPELINE_ID, _ABRAXAS_PIPELINE_REVIEW_PATH_ID):
         is_active = pipeline_id == active_pipeline_id
@@ -4809,6 +6081,384 @@ def build_view_state(
         "pipeline_review_export_status": latest_pipeline_review_export_status,
         "pipeline_review_export_path": latest_pipeline_review_export_path,
         "pipeline_hardening_workspace_payload": pipeline_hardening_workspace_payload,
+    }
+    structural_signals = _derive_structural_signals(
+        selected_detail=selected_detail,
+        pipeline_step_audit=pipeline_step_audit,
+        pipeline_quality_matrix=pipeline_quality_matrix,
+        runtime_gating=(runtime_corridor.get("runtime_gating", []) if isinstance(runtime_corridor, Mapping) else []),
+        ers_review_workspace_payload=(ers_review.get("ers_review_workspace_payload", {}) if isinstance(ers_review, Mapping) else {}),
+        latest_pipeline_envelope=latest_pipeline_envelope,
+    )
+    pressure_friction_detector = _derive_pressure_friction_detector(
+        structural_signals=structural_signals,
+        selected_run_id=chosen,
+    )
+    if str(pressure_friction_detector.get("detector_status", "")) == "NOT_COMPUTABLE":
+        pressure_friction_detector["not_computable_subcode"] = (
+            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+        )
+    motif_recurrence_signals = _derive_motif_recurrence_signals(
+        structural_signals=structural_signals,
+        pressure_friction_detector=pressure_friction_detector,
+        pipeline_step_audit=pipeline_step_audit,
+        pipeline_quality_matrix=pipeline_quality_matrix,
+        pipeline_routing=pipeline_routing,
+        ers_review_workspace_payload={
+            "transition_log": (
+                ers_review.get("ers_transition_log", [])
+                if isinstance(ers_review, Mapping)
+                else []
+            ),
+            "drift_label": (
+                (ers_review.get("ers_review_workspace_payload", {}) if isinstance(ers_review, Mapping) else {}).get("drift_label", "NOT_COMPUTABLE")
+            ),
+        },
+        runtime_gating=(runtime_corridor.get("runtime_gating", []) if isinstance(runtime_corridor, Mapping) else []),
+    )
+    motif_recurrence_detector = _derive_motif_recurrence_detector(
+        motif_recurrence_signals=motif_recurrence_signals,
+        selected_run_id=chosen,
+    )
+    if str(motif_recurrence_detector.get("detector_status", "")) == "NOT_COMPUTABLE":
+        motif_recurrence_detector["not_computable_subcode"] = (
+            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+        )
+    instability_drift_signals = _derive_instability_drift_signals(
+        ers_snapshot_diff=(ers_review.get("ers_snapshot_diff", {}) if isinstance(ers_review, Mapping) else {}),
+        ers_transition_log=(ers_review.get("ers_transition_log", []) if isinstance(ers_review, Mapping) else []),
+        prior_result_diff=prior_result_diff,
+        pipeline_quality_matrix=pipeline_quality_matrix,
+        review_history=(decision_layer.get("review_history", []) if isinstance(decision_layer, Mapping) else []),
+    )
+    instability_drift_detector = _derive_instability_drift_detector(
+        instability_drift_signals=instability_drift_signals,
+        selected_run_id=chosen,
+    )
+    if str(instability_drift_detector.get("detector_status", "")) == "NOT_COMPUTABLE":
+        instability_drift_detector["not_computable_subcode"] = (
+            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+        )
+    anomaly_gap_signals = _derive_anomaly_gap_signals(
+        selected_detail=selected_detail,
+        pipeline_step_audit=pipeline_step_audit,
+        pipeline_review_export_path=latest_pipeline_review_export_path,
+        ers_review_export_path=latest_ers_review_export_path,
+        runtime_corridor=runtime_corridor if isinstance(runtime_corridor, Mapping) else {},
+    )
+    anomaly_gap_detector = _derive_anomaly_gap_detector(
+        anomaly_gap_signals=anomaly_gap_signals,
+        selected_run_id=chosen,
+    )
+    if str(anomaly_gap_detector.get("detector_status", "")) == "NOT_COMPUTABLE":
+        anomaly_gap_detector["not_computable_subcode"] = (
+            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+        )
+    fusion_input_surface = _derive_fusion_input_surface(
+        structural_signals=structural_signals,
+        pressure_friction_detector=pressure_friction_detector,
+        motif_recurrence_detector=motif_recurrence_detector,
+        instability_drift_detector=instability_drift_detector,
+        anomaly_gap_detector=anomaly_gap_detector,
+    )
+    detector_fusion_output = _derive_detector_fusion_output(
+        selected_run_id=chosen,
+        fusion_input_surface=fusion_input_surface,
+        pressure_friction_detector=pressure_friction_detector,
+        motif_recurrence_detector=motif_recurrence_detector,
+        instability_drift_detector=instability_drift_detector,
+        anomaly_gap_detector=anomaly_gap_detector,
+    )
+    if str(detector_fusion_output.get("fused_status", "")) == "NOT_COMPUTABLE":
+        detector_fusion_output["not_computable_subcode"] = (
+            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+        )
+    interpretation_summary = str(detector_fusion_output.get("interpretation_summary", ""))
+    detector_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "timestamp": _utc_now(),
+        "detector_id": str(pressure_friction_detector.get("detector_id", "ABX.STRUCTURAL_PRESSURE.V4_2")),
+        "source_context_summary": {
+            "selected_run_id": chosen or "",
+            "workbench_mode": applied_mode,
+            "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+            "ers_drift_label": str((ers_review.get("ers_review_workspace_payload", {}) if isinstance(ers_review, Mapping) else {}).get("drift_label", "NOT_COMPUTABLE")),
+        },
+        "structural_signals": structural_signals,
+        "pressure_friction_detector": pressure_friction_detector,
+        "provenance": "operator_console.domain_logic.export.v4.2.bounded_signal_surface",
+        "rule_strings": [
+            "detector_rule=explicit_ladder_missing_degraded_blocked_transition",
+            "label_rule=blocked->BLOCKED else thresholded pressure labels",
+            "source_rule=local_runtime_pipeline_review_state_only",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    domain_logic_workspace_payload = {
+        "mode": "runtime",
+        "pressure_label": str(pressure_friction_detector.get("pressure_label", "NOT_COMPUTABLE")),
+        "friction_label": str(pressure_friction_detector.get("friction_label", "NOT_COMPUTABLE")),
+        "detector_status": str(pressure_friction_detector.get("detector_status", "NOT_COMPUTABLE")),
+        "detector_export_status": latest_detector_export_status,
+        "detector_export_path": latest_detector_export_path or "",
+        "motif_label": str(motif_recurrence_detector.get("motif_label", "NOT_COMPUTABLE")),
+        "recurrence_label": str(motif_recurrence_detector.get("recurrence_label", "NOT_COMPUTABLE")),
+        "motif_export_status": latest_motif_export_status,
+        "motif_export_path": latest_motif_export_path or "",
+        "instability_label": str(instability_drift_detector.get("instability_label", "NOT_COMPUTABLE")),
+        "drift_label": str(instability_drift_detector.get("drift_label", "NOT_COMPUTABLE")),
+        "drift_export_status": latest_drift_export_status,
+        "drift_export_path": latest_drift_export_path or "",
+        "anomaly_label": str(anomaly_gap_detector.get("anomaly_label", "NOT_COMPUTABLE")),
+        "gap_label": str(anomaly_gap_detector.get("gap_label", "NOT_COMPUTABLE")),
+        "anomaly_export_status": latest_anomaly_export_status,
+        "anomaly_export_path": latest_anomaly_export_path or "",
+        "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
+        "fusion_status": str(detector_fusion_output.get("fused_status", "NOT_COMPUTABLE")),
+        "fusion_interpretation_summary": interpretation_summary,
+        "fusion_export_status": latest_fusion_export_status,
+        "fusion_export_path": latest_fusion_export_path or "",
+    }
+    motif_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "timestamp": _utc_now(),
+        "detector_id": str(motif_recurrence_detector.get("detector_id", "ABX.MOTIF_RECURRENCE.V4_3")),
+        "source_context_summary": {
+            "selected_run_id": chosen or "",
+            "workbench_mode": applied_mode,
+            "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+            "routing_effective_pipeline_id": str(pipeline_routing.get("effective_pipeline_id", "NOT_COMPUTABLE")),
+        },
+        "signal_extraction_output": motif_recurrence_signals,
+        "detector_output": motif_recurrence_detector,
+        "provenance": "operator_console.domain_logic.motif_export.v4.3.bounded_signal_surface",
+        "rule_strings": [
+            "motif_rule=repeat_counts_from_local_runtime_pipeline_review_state",
+            "motif_label_rule=explicit_threshold_ladder_sparse_present_dominant",
+            "recurrence_rule=none_recurring_persistent_from_repetition_surfaces",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "motif_recurrence_signals": motif_recurrence_signals,
+        "motif_recurrence_detector": motif_recurrence_detector,
+    }
+    drift_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "timestamp": _utc_now(),
+        "detector_id": str(instability_drift_detector.get("detector_id", "ABX.INSTABILITY_DRIFT.V4_4")),
+        "source_context_summary": {
+            "selected_run_id": chosen or "",
+            "workbench_mode": applied_mode,
+            "ers_diff_status": str((ers_review.get("ers_review_workspace_payload", {}) if isinstance(ers_review, Mapping) else {}).get("diff_status", "NOT_COMPUTABLE")),
+        },
+        "signal_extraction_output": instability_drift_signals,
+        "detector_output": instability_drift_detector,
+        "provenance": "operator_console.domain_logic.drift_export.v4.4.bounded_signal_surface",
+        "rule_strings": [
+            "drift_rule=status_queue_transition_quality_review_changes",
+            "drift_label_rule=stable_shifting_unstable + none_minor_significant",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    anomaly_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "timestamp": _utc_now(),
+        "detector_id": str(anomaly_gap_detector.get("detector_id", "ABX.ANOMALY_GAP.V4_4")),
+        "source_context_summary": {
+            "selected_run_id": chosen or "",
+            "workbench_mode": applied_mode,
+            "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+        },
+        "signal_extraction_output": anomaly_gap_signals,
+        "detector_output": anomaly_gap_detector,
+        "provenance": "operator_console.domain_logic.anomaly_export.v4.4.bounded_signal_surface",
+        "rule_strings": [
+            "anomaly_rule=missing_artifact_linkage_required_fields_step_pattern_export_mismatch",
+            "anomaly_label_rule=none_minor_major + complete_incomplete_broken",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    fusion_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "timestamp": _utc_now(),
+        "source_detector_summaries": {
+            "pressure_friction": {
+                "pressure_label": str(pressure_friction_detector.get("pressure_label", "NOT_COMPUTABLE")),
+                "friction_label": str(pressure_friction_detector.get("friction_label", "NOT_COMPUTABLE")),
+            },
+            "motif_recurrence": {
+                "motif_label": str(motif_recurrence_detector.get("motif_label", "NOT_COMPUTABLE")),
+                "recurrence_label": str(motif_recurrence_detector.get("recurrence_label", "NOT_COMPUTABLE")),
+            },
+            "instability_drift": {
+                "instability_label": str(instability_drift_detector.get("instability_label", "NOT_COMPUTABLE")),
+                "drift_label": str(instability_drift_detector.get("drift_label", "NOT_COMPUTABLE")),
+            },
+            "anomaly_gap": {
+                "anomaly_label": str(anomaly_gap_detector.get("anomaly_label", "NOT_COMPUTABLE")),
+                "gap_label": str(anomaly_gap_detector.get("gap_label", "NOT_COMPUTABLE")),
+            },
+        },
+        "fusion_input_surface": fusion_input_surface,
+        "fused_output": detector_fusion_output,
+        "interpretation_summary": interpretation_summary,
+        "provenance": "operator_console.domain_logic.fusion_export.v4.5.bounded_signal_surface",
+        "rule_strings": [
+            "fusion_input_rule=existing_detector_outputs_only",
+            "fusion_ladder_rule=broken>incomplete>unstable>active>stable>default",
+            "interpretation_rule=bounded_template_from_detector_labels_and_fused_reasons",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    domain_logic = {
+        "structural_signals": structural_signals,
+        "pressure_friction_detector": pressure_friction_detector,
+        "detector_export_preview": detector_export_preview,
+        "detector_export_status": latest_detector_export_status,
+        "detector_export_path": latest_detector_export_path,
+        "motif_recurrence_signals": motif_recurrence_signals,
+        "motif_recurrence_detector": motif_recurrence_detector,
+        "motif_export_preview": motif_export_preview,
+        "motif_export_status": latest_motif_export_status,
+        "motif_export_path": latest_motif_export_path,
+        "instability_drift_signals": instability_drift_signals,
+        "instability_drift_detector": instability_drift_detector,
+        "drift_export_preview": drift_export_preview,
+        "drift_export_status": latest_drift_export_status,
+        "drift_export_path": latest_drift_export_path,
+        "anomaly_gap_signals": anomaly_gap_signals,
+        "anomaly_gap_detector": anomaly_gap_detector,
+        "anomaly_export_preview": anomaly_export_preview,
+        "anomaly_export_status": latest_anomaly_export_status,
+        "anomaly_export_path": latest_anomaly_export_path,
+        "fusion_input_surface": fusion_input_surface,
+        "detector_fusion_output": detector_fusion_output,
+        "interpretation_summary": interpretation_summary,
+        "fusion_export_preview": fusion_export_preview,
+        "fusion_export_status": latest_fusion_export_status,
+        "fusion_export_path": latest_fusion_export_path,
+        "domain_logic_workspace_payload": domain_logic_workspace_payload,
+        "updated_domain_logic_workspace_payload": domain_logic_workspace_payload,
+    }
+    synthesis_input_surface = _derive_abraxas_synthesis_input_surface(
+        selected_run_id=chosen,
+        latest_pipeline_envelope=latest_pipeline_envelope,
+        pipeline_routing=pipeline_routing,
+        governance=governance,
+        runtime_corridor=runtime_corridor if isinstance(runtime_corridor, Mapping) else {},
+        decision_workspace_payload=decision_workspace_payload,
+        detector_fusion_output=detector_fusion_output,
+        not_computable_subcodes=not_computable_subcodes,
+        attention_queue=attention_queue,
+        suggested_next_step=suggested_next_step,
+    )
+    synthesis_output = _derive_abraxas_synthesis_output(
+        synthesis_input_surface=synthesis_input_surface,
+        selected_run_id=chosen,
+    )
+    if str(synthesis_output.get("synthesis_status", "")) == "NOT_COMPUTABLE":
+        synthesis_output["not_computable_subcode"] = (
+            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+        )
+    synthesis_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "timestamp": _utc_now(),
+        "synthesis_input_surface": synthesis_input_surface,
+        "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
+        "synthesis_reasons": list(synthesis_output.get("synthesis_reasons", []))[:6],
+        "synthesis_blockers": list(synthesis_output.get("synthesis_blockers", []))[:6],
+        "synthesis_next_step": str(synthesis_output.get("synthesis_next_step", "")),
+        "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
+        "selected_context": {
+            "workbench_mode": applied_mode,
+            "routing_effective_pipeline_id": str(pipeline_routing.get("effective_pipeline_id", "NOT_COMPUTABLE")),
+            "runtime_action_name": str((runtime_corridor.get("runtime_workspace_payload", {}) if isinstance(runtime_corridor.get("runtime_workspace_payload", {}), Mapping) else {}).get("action_name", "NOT_COMPUTABLE")),
+            "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
+        },
+        "provenance": "operator_console.abraxas_synthesis.export.v4.6.bounded_surface",
+        "rule_strings": [
+            "synthesis_input_rule=project_existing_pipeline_routing_governance_runtime_fusion_state",
+            "synthesis_label_rule=deterministic_precedence_not_computable_blocked_incomplete_unstable_friction_ready_active",
+            "synthesis_summary_rule=bounded_what_happened_means_blockers_next_step_template",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    synthesis_workspace_payload = {
+        "mode": "runtime",
+        "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
+        "synthesis_status": str(synthesis_output.get("synthesis_status", "NOT_COMPUTABLE")),
+        "synthesis_next_step": str(synthesis_output.get("synthesis_next_step", "")),
+        "synthesis_export_status": latest_synthesis_export_status,
+        "synthesis_export_path": latest_synthesis_export_path or "",
+        "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+    }
+    final_abraxas_output_card = {
+        "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
+        "short_reasons": list(synthesis_output.get("synthesis_reasons", []))[:3],
+        "blockers": list(synthesis_output.get("synthesis_blockers", []))[:3],
+        "next_step": str(synthesis_output.get("synthesis_next_step", "")),
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "runtime_status": str((runtime_corridor.get("runtime_workspace_payload", {}) if isinstance(runtime_corridor.get("runtime_workspace_payload", {}), Mapping) else {}).get("outcome_status", "NOT_COMPUTABLE")),
+        "fused_detector_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
+        "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
+    }
+    abraxas_synthesis = {
+        "synthesis_input_surface": synthesis_input_surface,
+        "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
+        "synthesis_reasons": list(synthesis_output.get("synthesis_reasons", []))[:6],
+        "synthesis_blockers": list(synthesis_output.get("synthesis_blockers", []))[:6],
+        "synthesis_next_step": str(synthesis_output.get("synthesis_next_step", "")),
+        "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
+        "synthesis_export_preview": synthesis_export_preview,
+        "synthesis_export_status": latest_synthesis_export_status,
+        "synthesis_export_path": latest_synthesis_export_path,
+        "synthesis_workspace_payload": synthesis_workspace_payload,
+        "final_abraxas_output_card": final_abraxas_output_card,
+    }
+    binding_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "timestamp": _utc_now(),
+        "binding_surface": bound_run_context,
+        "ledger_bridge_surface": ledger_bridge,
+        "not_computable_subcodes": not_computable_subcodes[:5],
+        "binding_health_surface": binding_health_surface,
+        "blocker_summary": list(binding_health_surface.get("reasons", []))[:5],
+        "provenance": "operator_console.binding_restoration.export.v4.7.bounded_surface",
+        "rule_strings": [
+            "binding_rule=canonical_artifact_then_resultspack_fallback_then_missing",
+            "ledger_bridge_rule=artifact_counts_then_local_ledger_match_then_missing",
+            "nc_subcode_rule=known_specific_causes_only_with_bounded_priority_order",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    binding_restoration = {
+        "bound_run_context": bound_run_context,
+        "ledger_bridge": ledger_bridge,
+        "not_computable_subcodes": not_computable_subcodes[:5],
+        "binding_health_surface": binding_health_surface,
+        "binding_export_preview": binding_export_preview,
+        "binding_export_status": latest_binding_export_status,
+        "binding_export_path": latest_binding_export_path,
     }
     resolved_viz_mode = _sanitize_viz_mode(viz_mode)
     viz_payloads = _derive_viz_payloads(
@@ -5043,7 +6693,7 @@ def build_view_state(
         loaded_snapshot_path=loaded_snapshot_path,
         loaded_snapshot_status=loaded_snapshot_status,
         workbench_mode=applied_mode,
-        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers", "runtime"],
+        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers", "runtime", "domain_logic"],
         attention_actions_enabled=attention_actions_enabled,
         attention_action_hint=attention_action_hint,
         baseline_locked=baseline_locked,
@@ -5096,6 +6746,9 @@ def build_view_state(
         abraxas_pipeline=abraxas_pipeline,
         pipeline_hardening=pipeline_hardening,
         pipeline_routing=pipeline_routing,
+        domain_logic=domain_logic,
+        abraxas_synthesis=abraxas_synthesis,
+        binding_restoration=binding_restoration,
         session_context=resolved_session_context,
         data_provenance={
             "artifacts_runs_scanned": len(artifacts),
@@ -5135,6 +6788,22 @@ def build_view_state(
             "pipeline_map_rule": "map projection deterministically derives bounded entity-relation associations from parse projection keys and selected_run_id tokens",
             "pipeline_diff_input_rule": "diff input summary explicitly includes bounded map context (relation_count/entities) when available",
             "pipeline_routing_rule": "pipeline routing derives suitability matrix + ordered recommendation and explicit manual override precedence",
+            "domain_logic_structural_rule": "structural signals derive deterministic bounded counts from pipeline/runtime/ers/review surfaces only",
+            "domain_logic_detector_rule": "pressure/friction detector uses explicit threshold ladder over missing/degraded/blocked/imbalance/transition signals",
+            "domain_logic_export_rule": "detector signal export emits bounded artifact with run_id/pipeline_id/provenance and explicit linkage placeholders",
+            "domain_logic_motif_rule": "motif signals derive bounded recurrence counts from repeated tokens/entities/relations/blockers/transitions/routing patterns",
+            "domain_logic_motif_detector_rule": "motif detector uses explicit sparse/present/dominant and none/recurring/persistent threshold ladder",
+            "domain_logic_instability_drift_rule": "instability/drift signals derive deterministic counts from status/queue/transition/result/quality/review changes",
+            "domain_logic_instability_drift_detector_rule": "instability/drift detector uses explicit stable/shifting/unstable and none/minor/significant thresholds",
+            "domain_logic_anomaly_gap_rule": "anomaly/gap signals derive deterministic counts from missing artifacts/linkage/required fields/step pattern/export mismatch",
+            "domain_logic_anomaly_gap_detector_rule": "anomaly/gap detector uses explicit none/minor/major and complete/incomplete/broken thresholds",
+            "domain_logic_fusion_input_rule": "fusion input surface only projects existing detector-family outputs and structural summary without new extraction",
+            "domain_logic_fusion_rule": "fusion output follows deterministic precedence ladder broken>incomplete>unstable>active>stable>default",
+            "domain_logic_interpretation_rule": "interpretation summary is bounded template text from fused label plus detector family labels and fused reasons",
+            "abraxas_synthesis_input_rule": "synthesis input projects bounded pipeline/routing/governance/runtime/fusion/session surfaces without duplicating raw internals",
+            "abraxas_synthesis_label_rule": "synthesis label follows explicit deterministic precedence not_computable>blocked>incomplete>unstable>friction>ready>active",
+            "abraxas_synthesis_summary_rule": "synthesis summary exposes label/reasons/blockers/next-step through bounded deterministic templates",
+            "binding_restoration_rule": "binding restoration derives run context, ledger bridge, and not-computable subcodes from local artifact/ledger surfaces with explicit precedence",
         },
     )
 

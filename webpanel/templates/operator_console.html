@@ -417,6 +417,234 @@
 </div>
 
 <div class="card">
+  <h2>Structural Signals (v4.2)</h2>
+  <p><b>entity_count:</b> {{ view.domain_logic.structural_signals.entity_count }}</p>
+  <p><b>relation_count:</b> {{ view.domain_logic.structural_signals.relation_count }}</p>
+  <p><b>repeated_token_count:</b> {{ view.domain_logic.structural_signals.repeated_token_count }}</p>
+  <p><b>missing_field_count:</b> {{ view.domain_logic.structural_signals.missing_field_count }}</p>
+  <p><b>blocked/not-computable:</b> {{ view.domain_logic.structural_signals.blocked_or_not_computable_count }}</p>
+  <p><b>degraded_step_count:</b> {{ view.domain_logic.structural_signals.degraded_step_count }}</p>
+  <p><b>transition_count:</b> {{ view.domain_logic.structural_signals.transition_count }}</p>
+  <p><b>anomaly_markers:</b> {{ view.domain_logic.structural_signals.anomaly_markers }}</p>
+</div>
+
+<div class="card">
+  <h2>Pressure / Friction Detector (v4.2)</h2>
+  <p><b>detector_id:</b> {{ view.domain_logic.pressure_friction_detector.detector_id }}</p>
+  <p><b>status:</b> {{ view.domain_logic.pressure_friction_detector.detector_status }}</p>
+  <p><b>pressure:</b> <span class="badge">{{ view.domain_logic.pressure_friction_detector.pressure_label }}</span></p>
+  <p><b>friction:</b> <span class="badge">{{ view.domain_logic.pressure_friction_detector.friction_label }}</span></p>
+  <p><b>pressure_reasons:</b> {{ view.domain_logic.pressure_friction_detector.pressure_reasons }}</p>
+  <p><b>friction_reasons:</b> {{ view.domain_logic.pressure_friction_detector.friction_reasons }}</p>
+  <p><b>summary:</b> {{ view.domain_logic.pressure_friction_detector.detector_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Detector Review / Export (v4.2)</h2>
+  <p><b>status:</b> {{ view.domain_logic.detector_export_status }}</p>
+  <p><b>path:</b> {{ view.domain_logic.detector_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_detector_signal=1" style="text-decoration:none;">Export detector signal</a>
+</div>
+
+<div class="card">
+  <h2>Domain Logic Workspace (v4.2)</h2>
+  <p><b>mode:</b> {{ view.domain_logic.domain_logic_workspace_payload.mode }}</p>
+  <p><b>detector_status:</b> {{ view.domain_logic.domain_logic_workspace_payload.detector_status }}</p>
+  <p><b>pressure_label:</b> {{ view.domain_logic.domain_logic_workspace_payload.pressure_label }}</p>
+  <p><b>friction_label:</b> {{ view.domain_logic.domain_logic_workspace_payload.friction_label }}</p>
+  <p><b>export_status:</b> {{ view.domain_logic.domain_logic_workspace_payload.detector_export_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Motif / Recurrence Signals (v4.3)</h2>
+  <p><b>repeated_token_count:</b> {{ view.domain_logic.motif_recurrence_signals.repeated_token_count }}</p>
+  <p><b>repeated_entity_count:</b> {{ view.domain_logic.motif_recurrence_signals.repeated_entity_count }}</p>
+  <p><b>repeated_relation_form_count:</b> {{ view.domain_logic.motif_recurrence_signals.repeated_relation_form_count }}</p>
+  <p><b>repeated_blocker_reason_count:</b> {{ view.domain_logic.motif_recurrence_signals.repeated_blocker_reason_count }}</p>
+  <p><b>repeated_transition_pattern_count:</b> {{ view.domain_logic.motif_recurrence_signals.repeated_transition_pattern_count }}</p>
+  <p><b>repeated_pipeline_or_routing_pattern_count:</b> {{ view.domain_logic.motif_recurrence_signals.repeated_pipeline_or_routing_pattern_count }}</p>
+  <p><b>motif candidates:</b> {{ view.domain_logic.motif_recurrence_signals.motif_candidate_summaries }}</p>
+</div>
+
+<div class="card">
+  <h2>Motif / Recurrence Detector (v4.3)</h2>
+  <p><b>detector_id:</b> {{ view.domain_logic.motif_recurrence_detector.detector_id }}</p>
+  <p><b>status:</b> {{ view.domain_logic.motif_recurrence_detector.detector_status }}</p>
+  <p><b>motif:</b> <span class="badge">{{ view.domain_logic.motif_recurrence_detector.motif_label }}</span></p>
+  <p><b>recurrence:</b> <span class="badge">{{ view.domain_logic.motif_recurrence_detector.recurrence_label }}</span></p>
+  <p><b>motif_reasons:</b> {{ view.domain_logic.motif_recurrence_detector.motif_reasons }}</p>
+  <p><b>recurrence_reasons:</b> {{ view.domain_logic.motif_recurrence_detector.recurrence_reasons }}</p>
+  <p><b>summary:</b> {{ view.domain_logic.motif_recurrence_detector.detector_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Motif Export (v4.3)</h2>
+  <p><b>status:</b> {{ view.domain_logic.motif_export_status }}</p>
+  <p><b>path:</b> {{ view.domain_logic.motif_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_motif_signal=1" style="text-decoration:none;">Export motif signal</a>
+</div>
+
+<div class="card">
+  <h2>Instability / Drift Signals (v4.4)</h2>
+  <p><b>status_change_count:</b> {{ view.domain_logic.instability_drift_signals.status_change_count }}</p>
+  <p><b>queue_change_count:</b> {{ view.domain_logic.instability_drift_signals.queue_change_count }}</p>
+  <p><b>blocked_to_runnable_transition_count:</b> {{ view.domain_logic.instability_drift_signals.blocked_to_runnable_transition_count }}</p>
+  <p><b>runnable_to_blocked_transition_count:</b> {{ view.domain_logic.instability_drift_signals.runnable_to_blocked_transition_count }}</p>
+  <p><b>latest_vs_prior_result_change_count:</b> {{ view.domain_logic.instability_drift_signals.latest_vs_prior_result_change_count }}</p>
+  <p><b>pipeline_quality_shift_count:</b> {{ view.domain_logic.instability_drift_signals.pipeline_quality_shift_count }}</p>
+  <p><b>review_decision_change_count:</b> {{ view.domain_logic.instability_drift_signals.review_decision_change_count }}</p>
+</div>
+
+<div class="card">
+  <h2>Instability / Drift Detector (v4.4)</h2>
+  <p><b>detector_id:</b> {{ view.domain_logic.instability_drift_detector.detector_id }}</p>
+  <p><b>status:</b> {{ view.domain_logic.instability_drift_detector.detector_status }}</p>
+  <p><b>instability:</b> <span class="badge">{{ view.domain_logic.instability_drift_detector.instability_label }}</span></p>
+  <p><b>drift:</b> <span class="badge">{{ view.domain_logic.instability_drift_detector.drift_label }}</span></p>
+  <p><b>summary:</b> {{ view.domain_logic.instability_drift_detector.detector_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Drift Export (v4.4)</h2>
+  <p><b>status:</b> {{ view.domain_logic.drift_export_status }}</p>
+  <p><b>path:</b> {{ view.domain_logic.drift_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_drift_signal=1" style="text-decoration:none;">Export drift signal</a>
+</div>
+
+<div class="card">
+  <h2>Anomaly / Gap Signals (v4.4)</h2>
+  <p><b>missing_artifact_count:</b> {{ view.domain_logic.anomaly_gap_signals.missing_artifact_count }}</p>
+  <p><b>missing_linkage_count:</b> {{ view.domain_logic.anomaly_gap_signals.missing_linkage_count }}</p>
+  <p><b>empty_required_field_count:</b> {{ view.domain_logic.anomaly_gap_signals.empty_required_field_count }}</p>
+  <p><b>broken_expected_step_pattern_count:</b> {{ view.domain_logic.anomaly_gap_signals.broken_expected_step_pattern_count }}</p>
+  <p><b>review_export_mismatch_count:</b> {{ view.domain_logic.anomaly_gap_signals.review_export_mismatch_count }}</p>
+  <p><b>unexpected_not_computable_count:</b> {{ view.domain_logic.anomaly_gap_signals.unexpected_not_computable_count }}</p>
+</div>
+
+<div class="card">
+  <h2>Anomaly / Gap Detector (v4.4)</h2>
+  <p><b>detector_id:</b> {{ view.domain_logic.anomaly_gap_detector.detector_id }}</p>
+  <p><b>status:</b> {{ view.domain_logic.anomaly_gap_detector.detector_status }}</p>
+  <p><b>anomaly:</b> <span class="badge">{{ view.domain_logic.anomaly_gap_detector.anomaly_label }}</span></p>
+  <p><b>gap:</b> <span class="badge">{{ view.domain_logic.anomaly_gap_detector.gap_label }}</span></p>
+  <p><b>summary:</b> {{ view.domain_logic.anomaly_gap_detector.detector_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Anomaly Export (v4.4)</h2>
+  <p><b>status:</b> {{ view.domain_logic.anomaly_export_status }}</p>
+  <p><b>path:</b> {{ view.domain_logic.anomaly_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_anomaly_signal=1" style="text-decoration:none;">Export anomaly signal</a>
+</div>
+
+<div class="card">
+  <h2>Detector Fusion (v4.5)</h2>
+  <p><b>fused_label:</b> <span class="badge">{{ view.domain_logic.detector_fusion_output.fused_label }}</span></p>
+  <p><b>fused_status:</b> {{ view.domain_logic.detector_fusion_output.fused_status }}</p>
+  <p><b>fused_reasons:</b> {{ view.domain_logic.detector_fusion_output.fused_reasons }}</p>
+</div>
+
+<div class="card">
+  <h2>Interpretation Summary (v4.5)</h2>
+  <p>{{ view.domain_logic.interpretation_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Fusion Export (v4.5)</h2>
+  <p><b>status:</b> {{ view.domain_logic.fusion_export_status }}</p>
+  <p><b>path:</b> {{ view.domain_logic.fusion_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_fusion_signal=1" style="text-decoration:none;">Export fusion signal</a>
+</div>
+
+<div class="card">
+  <h2>Upgraded Domain Logic Workspace (v4.5)</h2>
+  <p><b>mode:</b> {{ view.domain_logic.domain_logic_workspace_payload.mode }}</p>
+  <p><b>pressure/friction:</b> {{ view.domain_logic.domain_logic_workspace_payload.pressure_label }} / {{ view.domain_logic.domain_logic_workspace_payload.friction_label }}</p>
+  <p><b>motif/recurrence:</b> {{ view.domain_logic.domain_logic_workspace_payload.motif_label }} / {{ view.domain_logic.domain_logic_workspace_payload.recurrence_label }}</p>
+  <p><b>instability/drift:</b> {{ view.domain_logic.domain_logic_workspace_payload.instability_label }} / {{ view.domain_logic.domain_logic_workspace_payload.drift_label }}</p>
+  <p><b>anomaly/gap:</b> {{ view.domain_logic.domain_logic_workspace_payload.anomaly_label }} / {{ view.domain_logic.domain_logic_workspace_payload.gap_label }}</p>
+  <p><b>fusion:</b> {{ view.domain_logic.domain_logic_workspace_payload.fusion_label }} / {{ view.domain_logic.domain_logic_workspace_payload.fusion_status }}</p>
+  <p><b>fusion summary:</b> {{ view.domain_logic.domain_logic_workspace_payload.fusion_interpretation_summary }}</p>
+  <p><b>structural export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.detector_export_status }}</p>
+  <p><b>motif export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.motif_export_status }}</p>
+  <p><b>drift export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.drift_export_status }}</p>
+  <p><b>anomaly export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.anomaly_export_status }}</p>
+  <p><b>fusion export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.fusion_export_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Synthesis Input (v4.6)</h2>
+  <p><b>pipeline_id:</b> {{ view.abraxas_synthesis.synthesis_input_surface.pipeline_id }}</p>
+  <p><b>pipeline_status:</b> {{ view.abraxas_synthesis.synthesis_input_surface.pipeline_status }}</p>
+  <p><b>routing_effective_pipeline_id:</b> {{ view.abraxas_synthesis.synthesis_input_surface.routing_effective_pipeline_id }}</p>
+  <p><b>governance_policy_mode:</b> {{ view.abraxas_synthesis.synthesis_input_surface.governance_policy_mode }}</p>
+  <p><b>runtime_outcome_status:</b> {{ view.abraxas_synthesis.synthesis_input_surface.runtime_outcome_status }}</p>
+  <p><b>fusion_label:</b> {{ view.abraxas_synthesis.synthesis_input_surface.fusion_label }}</p>
+</div>
+
+<div class="card">
+  <h2>Synthesis Classification (v4.6)</h2>
+  <p><b>synthesis_label:</b> <span class="badge">{{ view.abraxas_synthesis.synthesis_label }}</span></p>
+  <p><b>reasons:</b> {{ view.abraxas_synthesis.synthesis_reasons }}</p>
+</div>
+
+<div class="card">
+  <h2>Synthesis Summary (v4.6)</h2>
+  <p><b>blockers:</b> {{ view.abraxas_synthesis.synthesis_blockers }}</p>
+  <p><b>next_step:</b> {{ view.abraxas_synthesis.synthesis_next_step }}</p>
+  <p><b>interpretation:</b> {{ view.abraxas_synthesis.interpretation_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Synthesis Export (v4.6)</h2>
+  <p><b>status:</b> {{ view.abraxas_synthesis.synthesis_export_status }}</p>
+  <p><b>path:</b> {{ view.abraxas_synthesis.synthesis_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_synthesis_output=1" style="text-decoration:none;">Export synthesis output</a>
+</div>
+
+<div class="card">
+  <h2>Final Abraxas Output Card (v4.6)</h2>
+  <p><b>label:</b> <span class="badge">{{ view.abraxas_synthesis.final_abraxas_output_card.synthesis_label }}</span></p>
+  <p><b>short_reasons:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.short_reasons }}</p>
+  <p><b>blockers:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.blockers }}</p>
+  <p><b>next_step:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.next_step }}</p>
+  <p><b>pipeline/runtime:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.pipeline_id }} / {{ view.abraxas_synthesis.final_abraxas_output_card.runtime_status }}</p>
+  <p><b>fused_detector:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.fused_detector_label }}</p>
+</div>
+
+<div class="card">
+  <h2>Run Binding (v4.7)</h2>
+  <p><b>bound_run_id:</b> {{ view.binding_restoration.bound_run_context.bound_run_id }}</p>
+  <p><b>binding_status:</b> {{ view.binding_restoration.bound_run_context.binding_status }}</p>
+  <p><b>binding_reason:</b> {{ view.binding_restoration.bound_run_context.binding_reason }}</p>
+  <p><b>bound_artifact_paths:</b> {{ view.binding_restoration.bound_run_context.bound_artifact_paths }}</p>
+</div>
+
+<div class="card">
+  <h2>Ledger Bridge (v4.7)</h2>
+  <p><b>status:</b> {{ view.binding_restoration.ledger_bridge.ledger_bridge_status }}</p>
+  <p><b>reason:</b> {{ view.binding_restoration.ledger_bridge.ledger_bridge_reason }}</p>
+  <p><b>summary:</b> {{ view.binding_restoration.ledger_bridge.ledger_context_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Binding Health (v4.7)</h2>
+  <p><b>run_binding:</b> {{ view.binding_restoration.binding_health_surface.run_binding_state }}</p>
+  <p><b>artifact_linkage:</b> {{ view.binding_restoration.binding_health_surface.artifact_linkage_state }}</p>
+  <p><b>ledger_bridge:</b> {{ view.binding_restoration.binding_health_surface.ledger_bridge_state }}</p>
+  <p><b>detector_ready:</b> {{ view.binding_restoration.binding_health_surface.detector_ready_state }}</p>
+  <p><b>subcodes:</b> {{ view.binding_restoration.not_computable_subcodes }}</p>
+  <p><b>summary:</b> {{ view.binding_restoration.binding_health_surface.summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Binding Export (v4.7)</h2>
+  <p><b>status:</b> {{ view.binding_restoration.binding_export_status }}</p>
+  <p><b>path:</b> {{ view.binding_restoration.binding_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_binding_health=1" style="text-decoration:none;">Export binding health</a>
+</div>
+
+<div class="card">
   <h2>Per-Action Safety Notes (v2.0.2)</h2>
   <ul>
   {% for row in view.runtime_safety_notes %}
