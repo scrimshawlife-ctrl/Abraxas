@@ -12,6 +12,10 @@ from webpanel.operator_console import (
     execute_runtime_adapter,
     resolve_compare_run_id_for_apply,
     run_compliance_probe_command,
+    write_pipeline_artifact,
+    write_pipeline_routing_artifact,
+    write_pipeline_review_artifact,
+    write_runtime_corridor_artifact,
     write_operator_ers_review_artifact,
     write_operator_ers_snapshot_artifact,
 )
@@ -747,6 +751,8 @@ def test_evidence_delta_and_workbench_surfaces_are_deterministic(tmp_path: Path)
     assert view.baseline_run_id is None
     assert view.baseline_reason == "no_baseline_candidate"
     assert view.action_safety_envelope["allowed_actions"] == [
+        "run_abraxas_pipeline",
+        "run_abraxas_pipeline_review_path",
         "run_compliance_probe",
         "run_generalized_coverage_probe",
         "run_execution_validator",
@@ -758,6 +764,8 @@ def test_evidence_delta_and_workbench_surfaces_are_deterministic(tmp_path: Path)
     assert view.workbench_mode == "overview"
     assert view.attention_actions_enabled is True
     assert view.control_plane["allowed_actions"] == [
+        "run_abraxas_pipeline",
+        "run_abraxas_pipeline_review_path",
         "run_compliance_probe",
         "run_generalized_coverage_probe",
         "run_execution_validator",
@@ -854,6 +862,8 @@ def test_action_presets_and_selected_preset_are_deterministic(tmp_path: Path) ->
     _seed_scopepass(tmp_path)
     view = build_view_state(base_dir=tmp_path, selected_preset_id="preset.export.snapshot")
     assert [item["preset_id"] for item in view.action_presets] == [
+        "preset.abraxas.pipeline.canonical",
+        "preset.abraxas.pipeline.review_path",
         "preset.compliance_probe.default",
         "preset.generalized_coverage.probe",
         "preset.execution_validator.selected",
@@ -968,6 +978,8 @@ def test_reporting_runbook_handoff_checkpoint_and_quick_actions_are_deterministi
     assert view.runbook_card["selected_run_id"] == "run.generalized_coverage.scopepass.v1"
     assert view.handoff_bundle_preview["selected_preset_id"] == "preset.compliance_probe.default"
     assert set(view.quick_actions["allowed_actions"]) == {
+        "run_abraxas_pipeline",
+        "run_abraxas_pipeline_review_path",
         "run_compliance_probe",
         "run_generalized_coverage_probe",
         "run_execution_validator",
@@ -1536,3 +1548,316 @@ def test_reporting_workspace_and_publication_artifacts_are_deterministic(tmp_pat
     assert "## Session Summary" in markdown_text
     assert "## Decision Summary" in markdown_text
     assert "## Viz Summary" in markdown_text
+
+
+def test_runtime_corridor_registry_and_gating_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    assert view.workbench_mode == "runtime"
+    registry = view.runtime_corridor["runtime_entry_registry"]
+    assert len(registry) >= 3
+    assert registry[0]["entry_id"] == "entry.runtime.pipeline.abraxas_canonical"
+    assert any(row["entry_id"] == "entry.runtime.pipeline.abraxas_review_path" for row in registry)
+    gating = view.runtime_corridor["runtime_gating"]
+    blocked = [row for row in gating if row["invokable"] == "false"]
+    assert len(blocked) >= 1
+    assert all(row["gating_reason"] in {"required_context_missing", "ers_context_blocks_entry", "adapter_not_supported"} for row in blocked)
+    invokable = [row for row in gating if row["invokable"] == "true"]
+    assert any(row["entry_id"] == "entry.runtime.ingest.compliance_probe" for row in invokable)
+
+
+def test_abraxas_pipeline_surface_is_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    pipeline = view.abraxas_pipeline
+    assert pipeline["pipeline_registry_entry"]["entry_id"] == "entry.runtime.pipeline.abraxas_canonical"
+    assert len(pipeline["pipeline_registry_entries"]) >= 2
+    assert len(pipeline["comparative_pipeline_readiness"]) >= 2
+    envelope = pipeline["latest_pipeline_envelope"]
+    assert envelope["pipeline_id"] == "PIPELINE.ABRAXAS.CANONICAL.V3_4"
+    assert envelope["overall_status"] == "NOT_COMPUTABLE"
+    assert envelope["final_classification"] == "NOT_COMPUTABLE"
+    assert envelope["overall_status_rule"] == "rollup.pipeline_not_invoked"
+    assert "final_summary_block" in envelope
+    steps = pipeline["pipeline_step_records"]
+    assert len(steps) == 5
+    assert [row["step_name"] for row in steps] == ["ingest", "parse", "map", "diff_validate", "review_audit"]
+
+
+def test_abraxas_pipeline_override_shapes_envelope_and_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    steps = [
+        {"step_index": 1, "step_name": "ingest", "rune_id": "RUNE.INGEST", "input_summary": {}, "output_summary": "ok", "artifact_ref": "a", "status": "SUCCESS", "reason": "", "provenance": "t"},
+        {"step_index": 2, "step_name": "parse", "rune_id": "RUNE.PARSE", "input_summary": {}, "output_summary": "nc", "artifact_ref": "", "status": "NOT_COMPUTABLE", "reason": "missing", "provenance": "t"},
+        {"step_index": 3, "step_name": "map", "rune_id": "RUNE.MAP", "input_summary": {}, "output_summary": "nc", "artifact_ref": "", "status": "NOT_COMPUTABLE", "reason": "missing", "provenance": "t"},
+        {"step_index": 4, "step_name": "diff_validate", "rune_id": "RUNE.DIFF", "input_summary": {}, "output_summary": "ok", "artifact_ref": "b", "status": "SUCCESS", "reason": "", "provenance": "t"},
+        {"step_index": 5, "step_name": "review_audit", "rune_id": "RUNE.AUDIT", "input_summary": {}, "output_summary": "ok", "artifact_ref": "c", "status": "SUCCESS", "reason": "", "provenance": "t"},
+    ]
+    view = build_view_state(
+        base_dir=tmp_path,
+        workbench_mode="runtime",
+        pipeline_envelope_override={
+            "pipeline_id": "PIPELINE.ABRAXAS.CANONICAL.V3_4",
+            "run_id": "run.pipeline.v1",
+            "overall_status": "SUCCESS",
+            "final_classification": "SUCCESS",
+            "overall_status_rule": "classification.required_steps_satisfied",
+            "overall_status_reason": "required_steps_success_and_linkage_present",
+            "final_summary_block": {
+                "final_classification": "SUCCESS",
+                "overall_status_rule": "classification.required_steps_satisfied",
+                "overall_status_reason": "required_steps_success_and_linkage_present",
+                "blocking_steps": [],
+                "successful_steps": ["ingest", "diff_validate", "review_audit"],
+                "artifact_summary": {"artifact_count": 3},
+            },
+            "final_result_summary": "SUCCESS|steps=5|artifacts=3",
+            "artifact_paths": ["a", "b", "c"],
+        },
+        pipeline_step_records_override=steps,
+    )
+    pipeline = view.abraxas_pipeline
+    assert pipeline["latest_pipeline_envelope"]["overall_status"] == "SUCCESS"
+    assert pipeline["latest_pipeline_envelope"]["final_classification"] == "SUCCESS"
+    assert pipeline["pipeline_state_surface"]["pipeline_status"] == "SUCCESS"
+    assert pipeline["pipeline_state_surface"]["pipeline_failure_point"] == ""
+
+
+def test_pipeline_artifact_writer_creates_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    path, status = write_pipeline_artifact(payload=view.abraxas_pipeline["pipeline_export_preview"], root=out_root)
+    assert status == "written"
+    assert path is not None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["pipeline_id"] == "PIPELINE.ABRAXAS.CANONICAL.V3_4"
+    assert "pipeline_execution_envelope" in payload
+    assert "pipeline_step_records" in payload
+    assert "final_classification" in payload
+    assert "overall_status_rule" in payload
+    assert "final_summary_block" in payload
+
+
+def test_pipeline_runtime_adapter_allowed_vs_blocked(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    allowed = execute_runtime_adapter(
+        action_name="run_abraxas_pipeline",
+        payload={"selected_run_id": "run.generalized_coverage.scopepass.v1"},
+        allowed_actions=["run_abraxas_pipeline"],
+    )
+    assert allowed["outcome_status"] in {"SUCCESS", "PARTIAL", "FAILED", "NOT_COMPUTABLE"}
+    assert "pipeline_envelope" in allowed
+    blocked = execute_runtime_adapter(
+        action_name="run_abraxas_pipeline",
+        payload={"selected_run_id": "run.generalized_coverage.scopepass.v1"},
+        allowed_actions=[],
+    )
+    assert blocked["outcome_status"] == "FAILED"
+    assert blocked["error_info"] == "action_not_allowed"
+    parse_step = next((row for row in allowed.get("pipeline_step_records", []) if row.get("step_name") == "parse"), {})
+    map_step = next((row for row in allowed.get("pipeline_step_records", []) if row.get("step_name") == "map"), {})
+    diff_step = next((row for row in allowed.get("pipeline_step_records", []) if row.get("step_name") == "diff_validate"), {})
+    assert parse_step.get("status") in {"SUCCESS", "NOT_COMPUTABLE"}
+    assert map_step.get("status") in {"SUCCESS", "NOT_COMPUTABLE"}
+    if map_step.get("status") == "SUCCESS":
+        assert "mapped_entities=" in str(map_step.get("output_summary", ""))
+    assert "map_relations=" in str(diff_step.get("output_summary", ""))
+    assert "map_context" in dict(diff_step.get("input_summary", {}))
+    envelope = dict(allowed.get("pipeline_envelope", {}))
+    assert envelope.get("overall_status") in {"SUCCESS", "PARTIAL", "FAILED", "NOT_COMPUTABLE"}
+    assert envelope.get("final_classification") in {"SUCCESS", "PARTIAL", "FAILED", "NOT_COMPUTABLE"}
+    assert str(envelope.get("overall_status_rule", "")).startswith("classification.")
+    assert "final_summary_block" in envelope
+
+
+def test_second_pipeline_runtime_adapter_runs_with_bounded_envelope(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    allowed = execute_runtime_adapter(
+        action_name="run_abraxas_pipeline_review_path",
+        payload={"selected_run_id": "run.generalized_coverage.scopepass.v1"},
+        allowed_actions=["run_abraxas_pipeline_review_path"],
+    )
+    assert allowed["pipeline_id"] == "PIPELINE.ABRAXAS.CANONICAL.V4_0.REVIEW_PATH"
+    envelope = dict(allowed.get("pipeline_envelope", {}))
+    assert envelope.get("pipeline_id") == "PIPELINE.ABRAXAS.CANONICAL.V4_0.REVIEW_PATH"
+    assert envelope.get("overall_status") in {"SUCCESS", "PARTIAL", "FAILED", "NOT_COMPUTABLE"}
+    assert envelope.get("final_classification") in {"SUCCESS", "PARTIAL", "FAILED", "NOT_COMPUTABLE"}
+    steps = list(allowed.get("pipeline_step_records", []))
+    assert [row.get("step_name") for row in steps] == ["ingest", "parse", "map", "review_audit"]
+
+
+def test_pipeline_hardening_surfaces_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        workbench_mode="runtime",
+        pipeline_envelope_override={
+            "pipeline_id": "PIPELINE.ABRAXAS.CANONICAL.V3_4",
+            "run_id": "run.generalized_coverage.scopepass.v1",
+            "overall_status": "SUCCESS",
+            "final_classification": "SUCCESS",
+            "overall_status_rule": "classification.required_steps_satisfied",
+            "overall_status_reason": "required_steps_success_and_linkage_present",
+            "final_summary_block": {
+                "final_classification": "SUCCESS",
+                "overall_status_rule": "classification.required_steps_satisfied",
+                "overall_status_reason": "required_steps_success_and_linkage_present",
+                "blocking_steps": [],
+                "successful_steps": ["ingest", "diff_validate", "review_audit"],
+                "artifact_summary": {"artifact_count": 3},
+            },
+            "final_result_summary": "SUCCESS|steps=5|artifacts=3",
+        },
+        pipeline_step_records_override=[
+            {"step_index": 1, "step_name": "ingest", "rune_id": "RUNE.INGEST", "input_summary": {}, "output_summary": "ok", "artifact_ref": "a", "status": "SUCCESS", "reason": "", "provenance": "t"},
+            {"step_index": 2, "step_name": "parse", "rune_id": "RUNE.PARSE", "input_summary": {}, "output_summary": "parsed", "artifact_ref": "a", "status": "SUCCESS", "reason": "", "provenance": "t"},
+            {"step_index": 3, "step_name": "map", "rune_id": "RUNE.MAP", "input_summary": {}, "output_summary": "mapped_entities=['status']", "artifact_ref": "a", "status": "SUCCESS", "reason": "", "provenance": "t"},
+            {"step_index": 4, "step_name": "diff_validate", "rune_id": "RUNE.DIFF", "input_summary": {}, "output_summary": "ok", "artifact_ref": "b", "status": "SUCCESS", "reason": "", "provenance": "t"},
+            {"step_index": 5, "step_name": "review_audit", "rune_id": "RUNE.AUDIT", "input_summary": {}, "output_summary": "ok", "artifact_ref": "c", "status": "SUCCESS", "reason": "", "provenance": "t"},
+        ],
+    )
+    hardening = view.pipeline_hardening
+    assert len(hardening["pipeline_step_audit"]) == 5
+    parse_audit = next((row for row in hardening["pipeline_step_audit"] if row["step_name"] == "parse"), {})
+    map_audit = next((row for row in hardening["pipeline_step_audit"] if row["step_name"] == "map"), {})
+    assert parse_audit["callable_exposed"] == "true"
+    assert map_audit["callable_exposed"] == "true"
+    matrix = {row["step_name"]: row["quality_label"] for row in hardening["pipeline_quality_matrix"]}
+    assert matrix["parse"] == "EXECUTABLE"
+    assert matrix["map"] == "EXECUTABLE"
+    assert hardening["primary_upgrade_target"] in {"diff_validate", "review_audit", "ingest", "none"}
+    assert "upgrade_reason" in hardening
+    workspace = hardening["pipeline_hardening_workspace_payload"]
+    assert workspace["final_classification"] == "SUCCESS"
+    assert "overall_status_reasoning" in workspace
+    assert "blocking_steps" in workspace
+    assert "successful_steps" in workspace
+
+
+def test_pipeline_review_export_artifact_is_written(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    path, status = write_pipeline_review_artifact(
+        payload=view.pipeline_hardening["pipeline_review_export_preview"],
+        root=out_root,
+    )
+    assert status == "written"
+    assert path is not None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["pipeline_id"] == "PIPELINE.ABRAXAS.CANONICAL.V3_4"
+    assert "step_exposure_audit" in payload
+    assert "quality_matrix" in payload
+    assert "upgrade_target_selection" in payload
+    assert "final_summary_block" in payload
+    assert "map_realization_state" in payload
+    assert "diff_input_quality_state" in payload
+
+
+def test_pipeline_routing_surface_and_override_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    routing = view.pipeline_routing
+    assert len(routing["pipeline_suitability_matrix"]) >= 2
+    assert routing["recommended_pipeline_id"] in {
+        "PIPELINE.ABRAXAS.CANONICAL.V3_4",
+        "PIPELINE.ABRAXAS.CANONICAL.V4_0.REVIEW_PATH",
+    }
+    assert routing["effective_pipeline_id"] == routing["recommended_pipeline_id"]
+    assert routing["pipeline_routing_workspace_payload"]["effective_pipeline_id"] == routing["effective_pipeline_id"]
+    with_override = build_view_state(
+        base_dir=tmp_path,
+        workbench_mode="runtime",
+        manual_pipeline_override="PIPELINE.ABRAXAS.CANONICAL.V3_4",
+    )
+    routing_override = with_override.pipeline_routing
+    assert routing_override["manual_pipeline_override"] == "PIPELINE.ABRAXAS.CANONICAL.V3_4"
+    assert routing_override["effective_pipeline_id"] == "PIPELINE.ABRAXAS.CANONICAL.V3_4"
+    assert routing_override["recommended_pipeline_id"] in {
+        "PIPELINE.ABRAXAS.CANONICAL.V3_4",
+        "PIPELINE.ABRAXAS.CANONICAL.V4_0.REVIEW_PATH",
+    }
+    cleared_override = build_view_state(
+        base_dir=tmp_path,
+        workbench_mode="runtime",
+        manual_pipeline_override="",
+    )
+    assert cleared_override.pipeline_routing["manual_pipeline_override"] == ""
+    assert cleared_override.pipeline_routing["effective_pipeline_id"] == cleared_override.pipeline_routing["recommended_pipeline_id"]
+
+
+def test_pipeline_routing_export_artifact_is_written(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    path, status = write_pipeline_routing_artifact(
+        payload=view.pipeline_routing["routing_export_preview"],
+        root=out_root,
+    )
+    assert status == "written"
+    assert path is not None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert "pipeline_suitability_matrix" in payload
+    assert "recommended_pipeline_id" in payload
+    assert "routing_rule_id" in payload
+    assert "manual_pipeline_override" in payload
+    assert "rule_strings" in payload
+
+
+def test_runtime_corridor_invocation_envelope_and_state_surface(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    last_action = {
+        "action_name": "run_compliance_probe",
+        "entry_id": "entry.runtime.ingest.compliance_probe",
+        "rune_id": "RUNE.INGEST",
+        "adapter_name": "adapter.run_compliance_probe",
+        "attempted_at": "2026-03-29T00:00:00Z",
+        "triggered_run_id": "run.compliance_probe.v1",
+        "artifact_path": "artifacts_seal/runs/compliance_probe/run.compliance_probe.v1.artifact.json",
+        "outcome_status": "SUCCESS",
+    }
+    view = build_view_state(base_dir=tmp_path, last_action=last_action, workbench_mode="runtime")
+    envelope = view.runtime_corridor["runtime_invocation_envelope"]
+    assert envelope["entry_id"] == "entry.runtime.ingest.compliance_probe"
+    assert envelope["rune_id"] == "RUNE.INGEST"
+    assert envelope["outcome_status"] == "SUCCESS"
+    state = view.runtime_corridor["runtime_state_surface"]
+    assert state["latest_runtime_status"] == "SUCCESS"
+    assert "runtime_state_summary" in state
+
+
+def test_runtime_corridor_export_artifact_is_written(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_runtime"
+    path, status = write_runtime_corridor_artifact(
+        payload=view.runtime_corridor["runtime_export_preview"],
+        root=out_root,
+    )
+    assert status == "written"
+    assert path is not None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert "runtime_entry_registry" in payload
+    assert "runtime_state_surface" in payload
+    assert "runtime_gating_summary" in payload
+    assert payload["source"] == "operator_console"
+
+
+def test_runtime_workspace_uses_invocation_override(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        workbench_mode="runtime",
+        runtime_invocation_override={
+            "entry_id": "entry.runtime.parse_diff.validator",
+            "action_name": "run_execution_validator",
+            "rune_id": "RUNE.VALIDATOR",
+            "outcome_status": "BLOCKED",
+            "gating_snapshot": {"gating_reason": "ers_context_blocks_entry"},
+        },
+    )
+    envelope = view.runtime_corridor["runtime_invocation_envelope"]
+    assert envelope["entry_id"] == "entry.runtime.parse_diff.validator"
+    assert envelope["outcome_status"] == "BLOCKED"
+    assert view.runtime_corridor["runtime_workspace_payload"]["mode"] == "runtime"

@@ -225,6 +225,198 @@
 </div>
 
 <div class="card">
+  <h2>Runtime Entry Registry (v3.3)</h2>
+  <ul>
+  {% for row in view.runtime_corridor.runtime_entry_registry %}
+    <li>{{ row.entry_id }} | action={{ row.action_name }} | rune={{ row.rune_id }} | adapter={{ row.adapter_name }} | allowlisted={{ row.allowlisted }}
+      <a href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&invoke_runtime_entry={{ row.entry_id }}">invoke</a>
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Invocation Envelope (v3.3)</h2>
+  <p><b>entry:</b> {{ view.runtime_corridor.runtime_invocation_envelope.entry_id }}</p>
+  <p><b>action:</b> {{ view.runtime_corridor.runtime_invocation_envelope.action_name }}</p>
+  <p><b>rune:</b> {{ view.runtime_corridor.runtime_invocation_envelope.rune_id }}</p>
+  <p><b>status:</b> <span class="badge">{{ view.runtime_corridor.runtime_invocation_envelope.outcome_status }}</span></p>
+  <p><b>run_id:</b> {{ view.runtime_corridor.runtime_invocation_envelope.run_id }}</p>
+  <p><b>attempted_at:</b> {{ view.runtime_corridor.runtime_invocation_envelope.attempted_at }}</p>
+</div>
+
+<div class="card">
+  <h2>Runtime State (v3.3)</h2>
+  <p><b>latest status:</b> {{ view.runtime_corridor.runtime_state_surface.latest_runtime_status }}</p>
+  <p><b>latest run_id:</b> {{ view.runtime_corridor.runtime_state_surface.latest_runtime_run_id }}</p>
+  <p><b>summary:</b> {{ view.runtime_corridor.runtime_state_surface.runtime_state_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Runtime Gating (v3.3)</h2>
+  <ul>
+  {% for row in view.runtime_corridor.runtime_gating %}
+    <li>{{ row.entry_id }} | invokable={{ row.invokable }} | reason={{ row.gating_reason }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Runtime Corridor Export (v3.3)</h2>
+  <p><b>status:</b> {{ view.runtime_corridor.runtime_export_status }}</p>
+  <p><b>path:</b> {{ view.runtime_corridor.runtime_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_runtime_corridor=1" style="text-decoration:none;">Export runtime corridor</a>
+</div>
+
+<div class="card">
+  <h2>Runtime Workspace (v3.3)</h2>
+  <p><b>mode:</b> {{ view.runtime_corridor.runtime_workspace_payload.mode }}</p>
+  <p><b>focus run:</b> {{ view.runtime_corridor.runtime_workspace_payload.focus_run_id or "UNAVAILABLE" }}</p>
+  <p><b>focus link:</b> {{ view.runtime_corridor.runtime_workspace_payload.focus_run_link or "UNAVAILABLE" }}</p>
+  <p><b>latest outcome:</b> {{ view.runtime_corridor.runtime_workspace_payload.latest_outcome_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Entry (v3.4)</h2>
+  <p><b>entry_id:</b> {{ view.abraxas_pipeline.pipeline_registry_entry.entry_id }}</p>
+  <p><b>action:</b> {{ view.abraxas_pipeline.pipeline_registry_entry.action_name }}</p>
+  <p><b>rune:</b> {{ view.abraxas_pipeline.pipeline_registry_entry.rune_id }}</p>
+  <p><b>allowlisted:</b> {{ view.abraxas_pipeline.pipeline_registry_entry.allowlisted }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Envelope (v3.4)</h2>
+  <p><b>pipeline_id:</b> {{ view.abraxas_pipeline.latest_pipeline_envelope.pipeline_id }}</p>
+  <p><b>run_id:</b> {{ view.abraxas_pipeline.latest_pipeline_envelope.run_id }}</p>
+  <p><b>status:</b> <span class="badge">{{ view.abraxas_pipeline.latest_pipeline_envelope.overall_status }}</span></p>
+  <p><b>started_at:</b> {{ view.abraxas_pipeline.latest_pipeline_envelope.started_at }}</p>
+  <p><b>completed_at:</b> {{ view.abraxas_pipeline.latest_pipeline_envelope.completed_at }}</p>
+  <p><b>last_completed_step:</b> {{ view.abraxas_pipeline.latest_pipeline_envelope.last_completed_step }}</p>
+  <p><b>summary:</b> {{ view.abraxas_pipeline.latest_pipeline_envelope.final_result_summary }}</p>
+</div>
+
+<div class="card">
+  <h2>Step Progression (v3.4)</h2>
+  <ul>
+  {% for row in view.abraxas_pipeline.pipeline_state_surface.step_progression %}
+    <li>{{ row }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Step Records (v3.4)</h2>
+  <ul>
+  {% for row in view.abraxas_pipeline.pipeline_step_records %}
+    <li>{{ row.step_index }} | {{ row.step_name }} | rune={{ row.rune_id }} | status={{ row.status }} | artifact={{ row.artifact_ref or "none" }} | reason={{ row.reason or "none" }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Pipeline Export (v3.4)</h2>
+  <p><b>status:</b> {{ view.abraxas_pipeline.pipeline_export_status }}</p>
+  <p><b>path:</b> {{ view.abraxas_pipeline.pipeline_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_pipeline_artifact=1" style="text-decoration:none;">Export pipeline artifact</a>
+</div>
+
+<div class="card">
+  <h2>Pipeline Workspace (v3.4)</h2>
+  <p><b>pipeline_id:</b> {{ view.abraxas_pipeline.pipeline_workspace_payload.pipeline_id }}</p>
+  <p><b>status:</b> {{ view.abraxas_pipeline.pipeline_workspace_payload.pipeline_status }}</p>
+  <p><b>latest run:</b> {{ view.abraxas_pipeline.pipeline_workspace_payload.latest_pipeline_run }}</p>
+  <p><b>export status:</b> {{ view.abraxas_pipeline.pipeline_workspace_payload.pipeline_export_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Suitability Matrix (v4.1)</h2>
+  <ul>
+  {% for row in view.pipeline_routing.pipeline_suitability_matrix %}
+    <li>{{ row.pipeline_id }} | allowlisted={{ row.allowlisted }} | invokable={{ row.invokable }} | context={{ row.required_context_present }} | classification={{ row.final_classification }} | blocking={{ row.blocking_reason }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Recommended Pipeline (v4.1)</h2>
+  <p><b>recommended:</b> {{ view.pipeline_routing.recommended_pipeline_id }}</p>
+  <p><b>reason:</b> {{ view.pipeline_routing.recommendation_reason }}</p>
+  <p><b>rule:</b> {{ view.pipeline_routing.routing_rule_id }}</p>
+  <p><b>effective:</b> {{ view.pipeline_routing.effective_pipeline_id }} ({{ view.pipeline_routing.selection_source }})</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Override Selection (v4.1)</h2>
+  <p><b>manual override:</b> {{ view.pipeline_routing.manual_pipeline_override or "none" }}</p>
+  <ul>
+  {% for row in view.abraxas_pipeline.pipeline_registry_entries %}
+    <li>{{ row.pipeline_id }}
+      <a href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&select_pipeline={{ row.pipeline_id }}">select</a>
+    </li>
+  {% endfor %}
+  </ul>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&clear_pipeline_override=1" style="text-decoration:none;">Clear override</a>
+</div>
+
+<div class="card">
+  <h2>Pipeline Routing Export (v4.1)</h2>
+  <p><b>status:</b> {{ view.pipeline_routing.routing_export_status }}</p>
+  <p><b>path:</b> {{ view.pipeline_routing.routing_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_pipeline_routing=1" style="text-decoration:none;">Export pipeline routing</a>
+</div>
+
+<div class="card">
+  <h2>Pipeline Routing Workspace (v4.1)</h2>
+  <p><b>recommended:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.recommended_pipeline_id }}</p>
+  <p><b>effective:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.effective_pipeline_id }}</p>
+  <p><b>source:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.selection_source }}</p>
+  <p><b>rule:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.routing_rule_id }}</p>
+  <p><b>export:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.routing_export_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Step Audit (v3.5)</h2>
+  <ul>
+  {% for row in view.pipeline_hardening.pipeline_step_audit %}
+    <li>{{ row.step_name }} | rune={{ row.rune_id }} | callable={{ row.callable_exposed }} | artifact={{ row.artifact_emitted }} | status={{ row.current_status_quality }} | blocking={{ row.blocking_reason or "none" }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Step Quality Matrix (v3.5)</h2>
+  <ul>
+  {% for row in view.pipeline_hardening.pipeline_quality_matrix %}
+    <li>{{ row.step_name }} | quality={{ row.quality_label }} | reason={{ row.quality_reason }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Upgrade Target (v3.5)</h2>
+  <p><b>primary:</b> {{ view.pipeline_hardening.primary_upgrade_target }}</p>
+  <p><b>secondary:</b> {{ view.pipeline_hardening.secondary_upgrade_target or "none" }}</p>
+  <p><b>reason:</b> {{ view.pipeline_hardening.upgrade_reason }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Review Export (v3.5)</h2>
+  <p><b>status:</b> {{ view.pipeline_hardening.pipeline_review_export_status }}</p>
+  <p><b>path:</b> {{ view.pipeline_hardening.pipeline_review_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_pipeline_review=1" style="text-decoration:none;">Export pipeline review</a>
+</div>
+
+<div class="card">
+  <h2>Pipeline Hardening Workspace (v3.5)</h2>
+  <p><b>status:</b> {{ view.pipeline_hardening.pipeline_hardening_workspace_payload.pipeline_status }}</p>
+  <p><b>primary target:</b> {{ view.pipeline_hardening.pipeline_hardening_workspace_payload.primary_upgrade_target }}</p>
+  <p><b>blockers:</b> {{ view.pipeline_hardening.pipeline_hardening_workspace_payload.blocker_count }}</p>
+  <p><b>map quality:</b> {{ view.pipeline_hardening.pipeline_hardening_workspace_payload.map_quality_label }} (status={{ view.pipeline_hardening.pipeline_hardening_workspace_payload.map_status }})</p>
+  <p><b>diff quality:</b> {{ view.pipeline_hardening.pipeline_hardening_workspace_payload.diff_quality_label }} (status={{ view.pipeline_hardening.pipeline_hardening_workspace_payload.diff_status }})</p>
+  <p><b>review export:</b> {{ view.pipeline_hardening.pipeline_hardening_workspace_payload.pipeline_review_export_status }}</p>
+</div>
+
+<div class="card">
   <h2>Per-Action Safety Notes (v2.0.2)</h2>
   <ul>
   {% for row in view.runtime_safety_notes %}

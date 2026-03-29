@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+from ast import literal_eval
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -110,6 +111,10 @@ class ViewState:
     runflow_workspace: Dict[str, Any]
     ers_integration: Dict[str, Any]
     ers_review: Dict[str, Any]
+    runtime_corridor: Dict[str, Any]
+    abraxas_pipeline: Dict[str, Any]
+    pipeline_hardening: Dict[str, Any]
+    pipeline_routing: Dict[str, Any]
     session_context: Dict[str, str]
     data_provenance: Dict[str, Any]
 
@@ -238,6 +243,95 @@ def write_operator_ers_review_artifact(
         "ledger_record_ids": [],
         "ledger_artifact_ids": [],
         "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_runtime_corridor_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_runtime",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.runtime_corridor.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.runtime_corridor.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v3.3.0",
+        "source": "operator_console",
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_pipeline_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_pipeline",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    pipeline_id = str(payload.get("pipeline_id", "PIPELINE.ABRAXAS.CANONICAL.V3_4")).replace(".", "_").lower()
+    path = root / f"{stamp}.{pipeline_id}.pipeline.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{pipeline_id}.{index}.pipeline.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v3.4.0",
+        "source": "operator_console",
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_pipeline_review_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_pipeline",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_review.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_review.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v3.5.0",
+        "source": "operator_console",
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_pipeline_routing_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_pipeline",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_routing.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_routing.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.1.0",
+        "source": "operator_console",
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -922,6 +1016,8 @@ def _select_baseline_run(
 def _build_action_safety_envelope() -> Dict[str, Any]:
     return {
         "allowed_actions": [
+            "run_abraxas_pipeline",
+            "run_abraxas_pipeline_review_path",
             "run_compliance_probe",
             "run_generalized_coverage_probe",
             "run_execution_validator",
@@ -929,6 +1025,8 @@ def _build_action_safety_envelope() -> Dict[str, Any]:
             "export_operator_snapshot",
         ],
         "command_preview": {
+            "run_abraxas_pipeline": "run canonical static abraxas pipeline envelope",
+            "run_abraxas_pipeline_review_path": "run canonical static abraxas review-path pipeline envelope",
             "run_compliance_probe": "python -m aal_core.runes.compliance_probe",
             "run_generalized_coverage_probe": "python -m aal_core.runes.compliance_probe",
             "run_execution_validator": "python -c 'from abx.execution_validator import validate_run, emit_validation_result'",
@@ -941,7 +1039,7 @@ def _build_action_safety_envelope() -> Dict[str, Any]:
 
 
 def _sanitize_workbench_mode(value: Optional[str]) -> str:
-    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers"]
+    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers", "runtime"]
     return str(value) if value in allowed else "overview"
 
 
@@ -962,6 +1060,18 @@ def _build_control_plane(action_history: List[Dict[str, str]], safety: Dict[str,
 
 def _build_action_presets() -> List[Dict[str, Any]]:
     return [
+        {
+            "preset_id": "preset.abraxas.pipeline.canonical",
+            "action_name": "run_abraxas_pipeline",
+            "default_args": {"pipeline_id": "PIPELINE.ABRAXAS.CANONICAL.V3_4"},
+            "scope_note": "Run canonical deterministic Abraxas execution pipeline.",
+        },
+        {
+            "preset_id": "preset.abraxas.pipeline.review_path",
+            "action_name": "run_abraxas_pipeline_review_path",
+            "default_args": {"pipeline_id": "PIPELINE.ABRAXAS.CANONICAL.V4_0.REVIEW_PATH"},
+            "scope_note": "Run second canonical deterministic Abraxas review-path pipeline.",
+        },
         {
             "preset_id": "preset.compliance_probe.default",
             "action_name": "run_compliance_probe",
@@ -1018,12 +1128,16 @@ def _build_dry_run_preview(
         "artifacts_seal/operator_snapshots/operator_snapshot.*.json"
         if preset["action_name"] == "export_operator_snapshot"
         else (
+            "artifacts_seal/abraxas_pipeline/*.pipeline.json"
+            if preset["action_name"] in {"run_abraxas_pipeline", "run_abraxas_pipeline_review_path"}
+            else (
             "out/validators/execution-validation-*.json"
             if preset["action_name"] == "run_execution_validator"
             else (
                 "artifacts_seal/audits/operator_closure_audit/closure_audit.*.json"
                 if preset["action_name"] == "run_closure_audit"
                 else "artifacts_seal/runs/compliance_probe/*.artifact.json"
+            )
             )
         )
     )
@@ -1033,12 +1147,20 @@ def _build_dry_run_preview(
         "preset_id": preset["preset_id"],
         "action_name": preset["action_name"],
         "resolved_command_preview": (
+            "run canonical static abraxas pipeline envelope"
+            if preset["action_name"] == "run_abraxas_pipeline"
+            else (
+            "run canonical static abraxas review-path pipeline envelope"
+            if preset["action_name"] == "run_abraxas_pipeline_review_path"
+            else (
             "python -m aal_core.runes.compliance_probe"
             if preset["action_name"] in {"run_compliance_probe", "run_generalized_coverage_probe"}
             else (
                 "python -c 'from abx.execution_validator import validate_run, emit_validation_result'"
                 if preset["action_name"] == "run_execution_validator"
                 else ("python scripts/run_system_closure_audit.py" if preset["action_name"] == "run_closure_audit" else "write operator snapshot artifact")
+            )
+            )
             )
         ),
         "expected_result_path": expected_path,
@@ -1105,7 +1227,615 @@ def _adapter_run_closure_audit(payload: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+_ABRAXAS_PIPELINE_ID = "PIPELINE.ABRAXAS.CANONICAL.V3_4"
+_ABRAXAS_PIPELINE_REVIEW_PATH_ID = "PIPELINE.ABRAXAS.CANONICAL.V4_0.REVIEW_PATH"
+_ABRAXAS_PIPELINE_STEP_CATALOG: List[Dict[str, str]] = [
+    {"step_name": "ingest", "rune_id": "RUNE.INGEST", "action_name": "run_compliance_probe"},
+    {"step_name": "parse", "rune_id": "RUNE.PARSE", "action_name": "pipeline_parse_projection"},
+    {"step_name": "map", "rune_id": "RUNE.MAP", "action_name": "pipeline_map_projection"},
+    {"step_name": "diff_validate", "rune_id": "RUNE.DIFF", "action_name": "run_execution_validator"},
+    {"step_name": "review_audit", "rune_id": "RUNE.AUDIT", "action_name": "run_closure_audit"},
+]
+_ABRAXAS_PIPELINE_REVIEW_PATH_STEP_CATALOG: List[Dict[str, str]] = [
+    {"step_name": "ingest", "rune_id": "RUNE.INGEST"},
+    {"step_name": "parse", "rune_id": "RUNE.PARSE"},
+    {"step_name": "map", "rune_id": "RUNE.MAP"},
+    {"step_name": "review_audit", "rune_id": "RUNE.AUDIT"},
+]
+
+
+def _pipeline_parse_projection(*, selected_run_id: str) -> Dict[str, Any]:
+    if not selected_run_id:
+        return {
+            "status": "NOT_COMPUTABLE",
+            "output_summary": "selected_run_id_missing_for_parse_projection",
+            "artifact_ref": "",
+            "reason": "missing_selected_run_id",
+        }
+    matches = sorted(Path("artifacts_seal/runs").rglob(f"{selected_run_id}.artifact.json"))
+    if not matches:
+        return {
+            "status": "NOT_COMPUTABLE",
+            "output_summary": "run_artifact_not_found_for_parse_projection",
+            "artifact_ref": "",
+            "reason": "run_artifact_missing",
+        }
+    payload = _load_json(matches[0]) or {}
+    keys = sorted([str(k) for k in payload.keys()])[:8]
+    return {
+        "status": "SUCCESS",
+        "output_summary": f"parsed_keys={keys};status={str(payload.get('status', 'UNKNOWN'))}",
+        "artifact_ref": matches[0].as_posix(),
+        "reason": "",
+    }
+
+
+def _pipeline_map_projection(*, parse_projection: Mapping[str, Any], selected_run_id: str) -> Dict[str, Any]:
+    if str(parse_projection.get("status", "")) != "SUCCESS":
+        return {
+            "status": "NOT_COMPUTABLE",
+            "output_summary": "map_projection_unavailable_without_parse_success",
+            "artifact_ref": "",
+            "reason": "parse_projection_unavailable",
+            "map_context": {"relation_count": 0, "entities": []},
+        }
+    summary = str(parse_projection.get("output_summary", ""))
+    match = re.search(r"parsed_keys=(\[.*\]);status=", summary)
+    parsed_keys: List[str] = []
+    if match:
+        try:
+            keys = literal_eval(match.group(1))
+            if isinstance(keys, list):
+                parsed_keys = [str(x) for x in keys][:8]
+        except (ValueError, SyntaxError):
+            parsed_keys = []
+    if not parsed_keys:
+        return {
+            "status": "NOT_COMPUTABLE",
+            "output_summary": "map_projection_missing_parse_keys",
+            "artifact_ref": "",
+            "reason": "parse_keys_unavailable",
+            "map_context": {"relation_count": 0, "entities": []},
+        }
+    run_tokens = [token for token in selected_run_id.split(".") if token][:4]
+    relation_pairs = [f"{key}->{run_tokens[idx % len(run_tokens)] if run_tokens else 'run'}" for idx, key in enumerate(parsed_keys[:4])]
+    map_context = {
+        "relation_count": len(relation_pairs),
+        "entities": parsed_keys[:4],
+        "run_tokens": run_tokens,
+    }
+    return {
+        "status": "SUCCESS",
+        "output_summary": f"mapped_entities={map_context['entities']};relations={relation_pairs}",
+        "artifact_ref": str(parse_projection.get("artifact_ref", "")),
+        "reason": "",
+        "map_context": map_context,
+    }
+
+
+def _pipeline_diff_projection(*, parse_projection: Mapping[str, Any], map_projection: Mapping[str, Any]) -> Dict[str, Any]:
+    parse_ok = str(parse_projection.get("status", "")) == "SUCCESS"
+    map_ok = str(map_projection.get("status", "")) == "SUCCESS"
+    if not parse_ok or not map_ok:
+        return {
+            "status": "NOT_COMPUTABLE",
+            "summary": "diff_projection_unavailable_without_parse_and_map_success",
+            "reason": "parse_or_map_unavailable",
+            "categories": {"entities": 0, "relations": 0, "status_alignment": "unknown"},
+        }
+    map_context = map_projection.get("map_context", {}) if isinstance(map_projection.get("map_context", {}), Mapping) else {}
+    entities = [str(x) for x in map_context.get("entities", []) if isinstance(x, str)]
+    relation_count = int(map_context.get("relation_count", 0))
+    delta_entities = len(set(entities))
+    categories = {
+        "entities": delta_entities,
+        "relations": relation_count,
+        "status_alignment": "aligned" if relation_count >= delta_entities else "partial",
+    }
+    return {
+        "status": "SUCCESS",
+        "summary": f"diff_categories={categories};entity_delta={delta_entities};relation_delta={relation_count}",
+        "reason": "",
+        "categories": categories,
+    }
+
+
+def _classify_pipeline_final_result(
+    *,
+    step_records: Sequence[Mapping[str, Any]],
+    artifact_paths: Sequence[str],
+    linkage: Mapping[str, Sequence[Any]],
+    required_steps: Sequence[str] = ("ingest", "diff_validate", "review_audit"),
+) -> Dict[str, Any]:
+    required_step_names = tuple(str(x) for x in required_steps if isinstance(x, str) and str(x))
+    normalized_steps = [row for row in step_records if isinstance(row, Mapping)]
+    step_status_by_name = {str(row.get("step_name", "")): str(row.get("status", "NOT_COMPUTABLE")) for row in normalized_steps}
+    failed_steps = [name for name in required_step_names if step_status_by_name.get(name) == "FAILED"]
+    not_computable_steps = [name for name in required_step_names if step_status_by_name.get(name) == "NOT_COMPUTABLE"]
+    incomplete_steps = [
+        name
+        for name in required_step_names
+        if step_status_by_name.get(name) in {"SKIPPED", ""}
+        or name not in step_status_by_name
+    ]
+    successful_steps = [name for name in required_step_names if step_status_by_name.get(name) in {"SUCCESS", "VALID"}]
+    artifact_count = len([x for x in artifact_paths if isinstance(x, str) and x])
+    ledger_count = len([x for x in linkage.get("ledger_record_ids", []) if x])
+    ledger_artifact_count = len([x for x in linkage.get("ledger_artifact_ids", []) if x])
+    correlation_count = len([x for x in linkage.get("correlation_pointers", []) if x])
+    linkage_observed = any(key in linkage for key in ("ledger_record_ids", "ledger_artifact_ids", "correlation_pointers"))
+    linkage_complete = ledger_count > 0 or ledger_artifact_count > 0 or correlation_count > 0
+    if failed_steps:
+        classification = "FAILED"
+        rule = "classification.required_step_failed"
+        reason = f"failed_steps={failed_steps[:3]}"
+    elif not_computable_steps:
+        classification = "NOT_COMPUTABLE"
+        rule = "classification.required_step_not_computable"
+        reason = f"not_computable_steps={not_computable_steps[:3]}"
+    elif incomplete_steps:
+        classification = "PARTIAL"
+        rule = "classification.required_step_incomplete"
+        reason = f"incomplete_steps={incomplete_steps[:3]}"
+    elif artifact_count < len(required_step_names):
+        classification = "PARTIAL"
+        rule = "classification.artifact_presence_incomplete"
+        reason = f"artifact_count={artifact_count}"
+    elif linkage_observed and not linkage_complete and artifact_count > 0 and artifact_count < len(required_steps):
+        classification = "PARTIAL"
+        rule = "classification.linkage_incomplete"
+        reason = "linkage_fields_present_but_empty"
+    else:
+        classification = "SUCCESS"
+        rule = "classification.required_steps_satisfied"
+        reason = "required_steps_success_and_linkage_present"
+    return {
+        "final_classification": classification,
+        "overall_status": classification,
+        "overall_status_rule": rule,
+        "overall_status_reason": reason[:180],
+        "blocking_steps": (failed_steps or not_computable_steps or incomplete_steps)[:5],
+        "successful_steps": successful_steps[:5],
+        "artifact_summary": {
+            "artifact_count": artifact_count,
+            "ledger_record_count": ledger_count,
+            "ledger_artifact_count": ledger_artifact_count,
+            "correlation_pointer_count": correlation_count,
+            "linkage_complete": "true" if linkage_complete else "false",
+        },
+    }
+
+
+def _adapter_run_abraxas_pipeline(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    selected_run_id = str(payload.get("selected_run_id", "")).strip()
+    started_at = _utc_now()
+    step_records: List[Dict[str, Any]] = []
+    artifact_paths: List[str] = []
+    has_failure = False
+    last_completed_step = "NOT_STARTED"
+
+    ingest_result = _adapter_run_compliance_probe(payload)
+    ingest_status = str(ingest_result.get("outcome_status", "FAILED"))
+    ingest_artifact = next((str(x) for x in ingest_result.get("artifact_paths", []) if isinstance(x, str)), "")
+    if ingest_artifact:
+        artifact_paths.append(ingest_artifact)
+    step_records.append(
+        {
+            "step_index": 1,
+            "step_name": "ingest",
+            "rune_id": "RUNE.INGEST",
+            "input_summary": {"selected_run_id": selected_run_id},
+            "output_summary": str(ingest_result.get("summary", ""))[:180],
+            "artifact_ref": ingest_artifact,
+            "status": ingest_status,
+            "reason": "" if ingest_status == "SUCCESS" else str(ingest_result.get("error_info", "ingest_failed")),
+            "provenance": "pipeline.step.ingest.v3.4.adapter.run_compliance_probe",
+        }
+    )
+    if ingest_status == "SUCCESS":
+        last_completed_step = "ingest"
+    else:
+        has_failure = True
+
+    parse_projection = _pipeline_parse_projection(selected_run_id=selected_run_id)
+    step_records.append(
+        {
+            "step_index": 2,
+            "step_name": "parse",
+            "rune_id": "RUNE.PARSE",
+            "input_summary": {"selected_run_id": selected_run_id},
+            "output_summary": str(parse_projection.get("output_summary", ""))[:220],
+            "artifact_ref": str(parse_projection.get("artifact_ref", "")),
+            "status": str(parse_projection.get("status", "NOT_COMPUTABLE")),
+            "reason": str(parse_projection.get("reason", "")),
+            "provenance": "pipeline.step.parse.v3.5.projection",
+        }
+    )
+    if str(parse_projection.get("status", "")) == "SUCCESS":
+        last_completed_step = "parse"
+    map_projection = _pipeline_map_projection(parse_projection=parse_projection, selected_run_id=selected_run_id)
+    map_context = map_projection.get("map_context", {}) if isinstance(map_projection.get("map_context", {}), Mapping) else {}
+    step_records.append(
+        {
+            "step_index": 3,
+            "step_name": "map",
+            "rune_id": "RUNE.MAP",
+            "input_summary": {"selected_run_id": selected_run_id, "parse_status": str(parse_projection.get("status", "NOT_COMPUTABLE"))},
+            "output_summary": str(map_projection.get("output_summary", ""))[:220],
+            "artifact_ref": str(map_projection.get("artifact_ref", "")),
+            "status": str(map_projection.get("status", "NOT_COMPUTABLE")),
+            "reason": str(map_projection.get("reason", "")),
+            "provenance": "pipeline.step.map.v3.6.projection",
+        }
+    )
+    if str(map_projection.get("status", "")) == "SUCCESS":
+        last_completed_step = "map"
+
+    if has_failure:
+        step_records.extend(
+            [
+                {
+                    "step_index": 4,
+                    "step_name": "diff_validate",
+                    "rune_id": "RUNE.DIFF",
+                    "input_summary": {"selected_run_id": selected_run_id},
+                    "output_summary": "skipped_due_to_prior_failure",
+                    "artifact_ref": "",
+                    "status": "SKIPPED",
+                    "reason": "prior_required_step_failed",
+                    "provenance": "pipeline.step.diff_validate.v3.4.skip_rule",
+                },
+                {
+                    "step_index": 5,
+                    "step_name": "review_audit",
+                    "rune_id": "RUNE.AUDIT",
+                    "input_summary": {"selected_run_id": selected_run_id},
+                    "output_summary": "skipped_due_to_prior_failure",
+                    "artifact_ref": "",
+                    "status": "SKIPPED",
+                    "reason": "prior_required_step_failed",
+                    "provenance": "pipeline.step.review_audit.v3.4.skip_rule",
+                },
+            ]
+        )
+    else:
+        diff_projection = _pipeline_diff_projection(parse_projection=parse_projection, map_projection=map_projection)
+        diff_result = _adapter_run_execution_validator({"selected_run_id": selected_run_id})
+        diff_status = str(diff_result.get("outcome_status", "FAILED"))
+        diff_artifact = next((str(x) for x in diff_result.get("artifact_paths", []) if isinstance(x, str)), "")
+        if diff_artifact:
+            artifact_paths.append(diff_artifact)
+        diff_projection_status = str(diff_projection.get("status", "NOT_COMPUTABLE"))
+        resolved_diff_status = diff_status if diff_projection_status == "SUCCESS" else ("NOT_COMPUTABLE" if diff_status in {"SUCCESS", "VALID"} else diff_status)
+        step_records.append(
+            {
+                "step_index": 4,
+                "step_name": "diff_validate",
+                "rune_id": "RUNE.DIFF",
+                "input_summary": {
+                    "selected_run_id": selected_run_id,
+                    "map_context": {
+                        "relation_count": int(map_context.get("relation_count", 0)),
+                        "entities": [str(x) for x in map_context.get("entities", [])[:4]],
+                    },
+                    "diff_projection_status": diff_projection_status,
+                },
+                "output_summary": (
+                    f"{str(diff_result.get('summary', ''))[:140]}"
+                    f"|map_relations={int(map_context.get('relation_count', 0))}"
+                    f"|map_entities={[str(x) for x in map_context.get('entities', [])[:4]]}"
+                    f"|{str(diff_projection.get('summary', ''))[:180]}"
+                ),
+                "artifact_ref": diff_artifact,
+                "status": resolved_diff_status,
+                "reason": (
+                    ""
+                    if resolved_diff_status in {"SUCCESS", "VALID"}
+                    else (str(diff_projection.get("reason", "")) or str(diff_result.get("error_info", "diff_validation_failed")))
+                ),
+                "provenance": "pipeline.step.diff_validate.v3.4.adapter.run_execution_validator",
+            }
+        )
+        if resolved_diff_status in {"SUCCESS", "VALID"}:
+            last_completed_step = "diff_validate"
+            audit_result = _adapter_run_closure_audit({"selected_run_id": selected_run_id})
+            audit_status = str(audit_result.get("outcome_status", "FAILED"))
+            audit_artifact = next((str(x) for x in audit_result.get("artifact_paths", []) if isinstance(x, str)), "")
+            if audit_artifact:
+                artifact_paths.append(audit_artifact)
+            step_records.append(
+                {
+                    "step_index": 5,
+                    "step_name": "review_audit",
+                    "rune_id": "RUNE.AUDIT",
+                    "input_summary": {
+                        "selected_run_id": selected_run_id,
+                        "diff_projection_status": diff_projection_status,
+                        "diff_categories": dict(diff_projection.get("categories", {})) if isinstance(diff_projection.get("categories", {}), Mapping) else {},
+                    },
+                    "output_summary": str(audit_result.get("summary", ""))[:180],
+                    "artifact_ref": audit_artifact,
+                    "status": audit_status,
+                    "reason": "" if audit_status == "SUCCESS" else str(audit_result.get("error_info", "audit_failed")),
+                    "provenance": "pipeline.step.review_audit.v3.4.adapter.run_closure_audit",
+                }
+            )
+            if audit_status == "SUCCESS":
+                last_completed_step = "review_audit"
+            else:
+                has_failure = True
+        else:
+            has_failure = True
+            step_records.append(
+                {
+                    "step_index": 5,
+                    "step_name": "review_audit",
+                    "rune_id": "RUNE.AUDIT",
+                    "input_summary": {"selected_run_id": selected_run_id},
+                    "output_summary": "skipped_due_to_prior_failure",
+                    "artifact_ref": "",
+                    "status": "SKIPPED",
+                    "reason": "prior_required_step_failed",
+                    "provenance": "pipeline.step.review_audit.v3.4.skip_rule",
+                }
+            )
+
+    completed_at = _utc_now()
+    latest_run_id = selected_run_id or "NOT_COMPUTABLE"
+    diff_row = next((step for step in step_records if step["step_name"] == "diff_validate"), {})
+    review_row = next((step for step in step_records if step["step_name"] == "review_audit"), {})
+    linkage = {
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+    }
+    result_rollup = _classify_pipeline_final_result(step_records=step_records, artifact_paths=artifact_paths, linkage=linkage)
+    final_classification = str(result_rollup.get("final_classification", "NOT_COMPUTABLE"))
+    overall_status = str(result_rollup.get("overall_status", final_classification))
+    final_summary_block = {
+        "final_classification": final_classification,
+        "overall_status_rule": str(result_rollup.get("overall_status_rule", "")),
+        "overall_status_reason": str(result_rollup.get("overall_status_reason", "")),
+        "blocking_steps": [str(x) for x in result_rollup.get("blocking_steps", []) if isinstance(x, str)][:5],
+        "successful_steps": [str(x) for x in result_rollup.get("successful_steps", []) if isinstance(x, str)][:5],
+        "artifact_summary": dict(result_rollup.get("artifact_summary", {})) if isinstance(result_rollup.get("artifact_summary", {}), Mapping) else {},
+    }
+    review_input = review_row.get("input_summary", {}) if isinstance(review_row.get("input_summary", {}), Mapping) else {}
+    review_base = str(review_row.get("output_summary", ""))
+    review_summary = (
+        f"{review_base[:110]}"
+        f"|final_classification={final_classification}"
+        f"|blockers={final_summary_block['blocking_steps']}"
+        f"|successes={final_summary_block['successful_steps']}"
+        f"|artifact_count={int(final_summary_block['artifact_summary'].get('artifact_count', 0))}"
+    )[:220]
+    if review_row:
+        review_row["input_summary"] = {
+            **dict(review_input),
+            "final_classification": final_classification,
+            "overall_status_rule": final_summary_block["overall_status_rule"],
+        }
+        review_row["output_summary"] = review_summary
+    pipeline_envelope = {
+        "pipeline_id": _ABRAXAS_PIPELINE_ID,
+        "run_id": latest_run_id,
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "overall_status": overall_status,
+        "step_count": len(step_records),
+        "current_step": "completed",
+        "last_completed_step": last_completed_step,
+        "final_classification": final_classification,
+        "overall_status_rule": final_summary_block["overall_status_rule"],
+        "overall_status_reason": final_summary_block["overall_status_reason"],
+        "final_summary_block": final_summary_block,
+        "final_result_summary": (
+            f"{overall_status}|steps={len(step_records)}|artifacts={len(artifact_paths)}"
+            f"|diff_status={str(diff_row.get('status', 'NOT_COMPUTABLE'))}"
+            f"|review_status={str(review_row.get('status', 'NOT_COMPUTABLE'))}"
+            f"|classification={final_classification}"
+        ),
+        "artifact_paths": artifact_paths[:8],
+        "provenance": "operator_console.pipeline.v3.4.canonical_static_path",
+        "ledger_record_ids": list(linkage["ledger_record_ids"])[:8],
+        "ledger_artifact_ids": list(linkage["ledger_artifact_ids"])[:8],
+        "correlation_pointers": list(linkage["correlation_pointers"])[:8],
+    }
+    pipeline_state_surface = {
+        "latest_pipeline_run": latest_run_id,
+        "pipeline_status": overall_status,
+        "step_progression": [f"{step['step_index']}:{step['step_name']}={step['status']}" for step in step_records][:10],
+        "latest_step_outputs": [{"step_name": step["step_name"], "output_summary": step["output_summary"]} for step in step_records if step["status"] in {"SUCCESS", "NOT_COMPUTABLE"}][:5],
+        "pipeline_failure_point": next((step["step_name"] for step in step_records if step["status"] == "FAILED"), ""),
+        "pipeline_state_summary": pipeline_envelope["final_result_summary"],
+    }
+    return {
+        "adapter_name": "adapter.run_abraxas_pipeline",
+        "attempted_at": started_at,
+        "outcome_status": overall_status,
+        "run_id": latest_run_id,
+        "artifact_paths": artifact_paths[:8],
+        "summary": pipeline_envelope["final_result_summary"],
+        "error_info": "" if overall_status == "SUCCESS" else str(pipeline_state_surface.get("pipeline_failure_point", "pipeline_failed")),
+        "pipeline_id": _ABRAXAS_PIPELINE_ID,
+        "pipeline_envelope": pipeline_envelope,
+        "pipeline_step_records": step_records[:10],
+        "pipeline_state_surface": pipeline_state_surface,
+    }
+
+
+def _adapter_run_abraxas_pipeline_review_path(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    selected_run_id = str(payload.get("selected_run_id", "")).strip()
+    started_at = _utc_now()
+    step_records: List[Dict[str, Any]] = []
+    artifact_paths: List[str] = []
+    has_failure = False
+    last_completed_step = "NOT_STARTED"
+    ingest_result = _adapter_run_compliance_probe(payload)
+    ingest_status = str(ingest_result.get("outcome_status", "FAILED"))
+    ingest_artifact = next((str(x) for x in ingest_result.get("artifact_paths", []) if isinstance(x, str)), "")
+    if ingest_artifact:
+        artifact_paths.append(ingest_artifact)
+    step_records.append(
+        {
+            "step_index": 1,
+            "step_name": "ingest",
+            "rune_id": "RUNE.INGEST",
+            "input_summary": {"selected_run_id": selected_run_id},
+            "output_summary": str(ingest_result.get("summary", ""))[:180],
+            "artifact_ref": ingest_artifact,
+            "status": ingest_status,
+            "reason": "" if ingest_status == "SUCCESS" else str(ingest_result.get("error_info", "ingest_failed")),
+            "provenance": "pipeline.review_path.step.ingest.v4.0.adapter.run_compliance_probe",
+        }
+    )
+    if ingest_status == "SUCCESS":
+        last_completed_step = "ingest"
+    else:
+        has_failure = True
+    parse_projection = _pipeline_parse_projection(selected_run_id=selected_run_id)
+    step_records.append(
+        {
+            "step_index": 2,
+            "step_name": "parse",
+            "rune_id": "RUNE.PARSE",
+            "input_summary": {"selected_run_id": selected_run_id},
+            "output_summary": str(parse_projection.get("output_summary", ""))[:220],
+            "artifact_ref": str(parse_projection.get("artifact_ref", "")),
+            "status": str(parse_projection.get("status", "NOT_COMPUTABLE")),
+            "reason": str(parse_projection.get("reason", "")),
+            "provenance": "pipeline.review_path.step.parse.v4.0.projection",
+        }
+    )
+    if str(parse_projection.get("status", "")) == "SUCCESS":
+        last_completed_step = "parse"
+    map_projection = _pipeline_map_projection(parse_projection=parse_projection, selected_run_id=selected_run_id)
+    map_context = map_projection.get("map_context", {}) if isinstance(map_projection.get("map_context", {}), Mapping) else {}
+    step_records.append(
+        {
+            "step_index": 3,
+            "step_name": "map",
+            "rune_id": "RUNE.MAP",
+            "input_summary": {"selected_run_id": selected_run_id, "parse_status": str(parse_projection.get("status", "NOT_COMPUTABLE"))},
+            "output_summary": str(map_projection.get("output_summary", ""))[:220],
+            "artifact_ref": str(map_projection.get("artifact_ref", "")),
+            "status": str(map_projection.get("status", "NOT_COMPUTABLE")),
+            "reason": str(map_projection.get("reason", "")),
+            "provenance": "pipeline.review_path.step.map.v4.0.projection",
+        }
+    )
+    if str(map_projection.get("status", "")) == "SUCCESS":
+        last_completed_step = "map"
+    if has_failure:
+        step_records.append(
+            {
+                "step_index": 4,
+                "step_name": "review_audit",
+                "rune_id": "RUNE.AUDIT",
+                "input_summary": {"selected_run_id": selected_run_id},
+                "output_summary": "skipped_due_to_prior_failure",
+                "artifact_ref": "",
+                "status": "SKIPPED",
+                "reason": "prior_required_step_failed",
+                "provenance": "pipeline.review_path.step.review_audit.v4.0.skip_rule",
+            }
+        )
+    else:
+        audit_result = _adapter_run_closure_audit({"selected_run_id": selected_run_id})
+        audit_status = str(audit_result.get("outcome_status", "FAILED"))
+        audit_artifact = next((str(x) for x in audit_result.get("artifact_paths", []) if isinstance(x, str)), "")
+        if audit_artifact:
+            artifact_paths.append(audit_artifact)
+        step_records.append(
+            {
+                "step_index": 4,
+                "step_name": "review_audit",
+                "rune_id": "RUNE.AUDIT",
+                "input_summary": {
+                    "selected_run_id": selected_run_id,
+                    "map_context": {
+                        "relation_count": int(map_context.get("relation_count", 0)),
+                        "entities": [str(x) for x in map_context.get("entities", [])[:4]],
+                    },
+                },
+                "output_summary": str(audit_result.get("summary", ""))[:180],
+                "artifact_ref": audit_artifact,
+                "status": audit_status,
+                "reason": "" if audit_status == "SUCCESS" else str(audit_result.get("error_info", "audit_failed")),
+                "provenance": "pipeline.review_path.step.review_audit.v4.0.adapter.run_closure_audit",
+            }
+        )
+        if audit_status == "SUCCESS":
+            last_completed_step = "review_audit"
+    completed_at = _utc_now()
+    linkage = {"ledger_record_ids": [], "ledger_artifact_ids": [], "correlation_pointers": []}
+    result_rollup = _classify_pipeline_final_result(
+        step_records=step_records,
+        artifact_paths=artifact_paths,
+        linkage=linkage,
+        required_steps=("ingest", "map", "review_audit"),
+    )
+    final_classification = str(result_rollup.get("final_classification", "NOT_COMPUTABLE"))
+    overall_status = str(result_rollup.get("overall_status", final_classification))
+    final_summary_block = {
+        "final_classification": final_classification,
+        "overall_status_rule": str(result_rollup.get("overall_status_rule", "")),
+        "overall_status_reason": str(result_rollup.get("overall_status_reason", "")),
+        "blocking_steps": [str(x) for x in result_rollup.get("blocking_steps", []) if isinstance(x, str)][:5],
+        "successful_steps": [str(x) for x in result_rollup.get("successful_steps", []) if isinstance(x, str)][:5],
+        "artifact_summary": dict(result_rollup.get("artifact_summary", {})) if isinstance(result_rollup.get("artifact_summary", {}), Mapping) else {},
+    }
+    pipeline_envelope = {
+        "pipeline_id": _ABRAXAS_PIPELINE_REVIEW_PATH_ID,
+        "run_id": selected_run_id or "NOT_COMPUTABLE",
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "overall_status": overall_status,
+        "final_classification": final_classification,
+        "overall_status_rule": final_summary_block["overall_status_rule"],
+        "overall_status_reason": final_summary_block["overall_status_reason"],
+        "step_count": len(step_records),
+        "current_step": "completed",
+        "last_completed_step": last_completed_step,
+        "final_summary_block": final_summary_block,
+        "final_result_summary": (
+            f"{overall_status}|steps={len(step_records)}|artifacts={len(artifact_paths)}"
+            f"|map_status={str(next((step.get('status') for step in step_records if step.get('step_name') == 'map'), 'NOT_COMPUTABLE'))}"
+            f"|review_status={str(next((step.get('status') for step in step_records if step.get('step_name') == 'review_audit'), 'NOT_COMPUTABLE'))}"
+            f"|classification={final_classification}"
+        ),
+        "artifact_paths": artifact_paths[:8],
+        "provenance": "operator_console.pipeline.review_path.v4.0.canonical_static_path",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+    }
+    pipeline_state_surface = {
+        "latest_pipeline_run": selected_run_id or "NOT_COMPUTABLE",
+        "pipeline_status": overall_status,
+        "step_progression": [f"{step['step_index']}:{step['step_name']}={step['status']}" for step in step_records][:10],
+        "latest_step_outputs": [{"step_name": step["step_name"], "output_summary": step["output_summary"]} for step in step_records if step["status"] in {"SUCCESS", "NOT_COMPUTABLE"}][:5],
+        "pipeline_failure_point": next((step["step_name"] for step in step_records if step["status"] == "FAILED"), ""),
+        "pipeline_state_summary": pipeline_envelope["final_result_summary"],
+    }
+    return {
+        "adapter_name": "adapter.run_abraxas_pipeline_review_path",
+        "attempted_at": started_at,
+        "outcome_status": overall_status,
+        "run_id": selected_run_id or "NOT_COMPUTABLE",
+        "artifact_paths": artifact_paths[:8],
+        "summary": pipeline_envelope["final_result_summary"],
+        "error_info": "" if overall_status == "SUCCESS" else str(pipeline_state_surface.get("pipeline_failure_point", "pipeline_failed")),
+        "pipeline_id": _ABRAXAS_PIPELINE_REVIEW_PATH_ID,
+        "pipeline_envelope": pipeline_envelope,
+        "pipeline_step_records": step_records[:10],
+        "pipeline_state_surface": pipeline_state_surface,
+    }
+
+
 _RUNTIME_ADAPTERS: Dict[str, Any] = {
+    "run_abraxas_pipeline": _adapter_run_abraxas_pipeline,
+    "run_abraxas_pipeline_review_path": _adapter_run_abraxas_pipeline_review_path,
     "run_compliance_probe": _adapter_run_compliance_probe,
     "run_generalized_coverage_probe": _adapter_run_compliance_probe,
     "run_execution_validator": _adapter_run_execution_validator,
@@ -1114,6 +1844,8 @@ _RUNTIME_ADAPTERS: Dict[str, Any] = {
 
 _RUNTIME_ADAPTER_META: Dict[str, Dict[str, str]] = {
     "export_operator_snapshot": {"adapter_name": "adapter.export_operator_snapshot", "invocation_mode": "direct_callable"},
+    "run_abraxas_pipeline": {"adapter_name": "adapter.run_abraxas_pipeline", "invocation_mode": "direct_callable"},
+    "run_abraxas_pipeline_review_path": {"adapter_name": "adapter.run_abraxas_pipeline_review_path", "invocation_mode": "direct_callable"},
     "run_closure_audit": {"adapter_name": "adapter.run_closure_audit", "invocation_mode": "subprocess_wrapper"},
     "run_compliance_probe": {"adapter_name": "adapter.run_compliance_probe", "invocation_mode": "subprocess_wrapper"},
     "run_execution_validator": {"adapter_name": "adapter.run_execution_validator", "invocation_mode": "direct_callable"},
@@ -1126,6 +1858,18 @@ _RUNTIME_SAFETY_NOTES: Dict[str, Dict[str, str]] = {
         "expected_outputs": "artifacts_seal/operator_snapshots/operator_snapshot.*.json",
         "scope_note": "Exports deterministic operator snapshot payload.",
         "does_not_do": "Does not execute runtime adapters or arbitrary commands.",
+    },
+    "run_abraxas_pipeline": {
+        "runs": "canonical static pipeline: ingest -> parse(not_computable) -> map(not_computable) -> diff_validate -> review_audit",
+        "expected_outputs": "artifacts_seal/abraxas_pipeline/*.pipeline.json + validator/audit artifacts",
+        "scope_note": "Executes one deterministic bounded canonical Abraxas pipeline path only.",
+        "does_not_do": "Does not author dynamic pipelines, call external APIs, or bypass runtime allowlist.",
+    },
+    "run_abraxas_pipeline_review_path": {
+        "runs": "canonical static pipeline review path: ingest -> parse(not_computable) -> map(not_computable) -> review_audit",
+        "expected_outputs": "artifacts_seal/abraxas_pipeline/*.pipeline.json + audit artifacts",
+        "scope_note": "Executes second deterministic bounded canonical Abraxas pipeline path only.",
+        "does_not_do": "Does not author dynamic pipelines, call external APIs, or bypass runtime allowlist.",
     },
     "run_closure_audit": {
         "runs": "python scripts/run_system_closure_audit.py",
@@ -1162,6 +1906,318 @@ _ERS_CANDIDATE_CATALOG: List[Dict[str, Any]] = [
 
 _ERS_QUEUE_LIMIT = 5
 _ERS_REVIEW_LIMIT = 10
+_RUNTIME_CORRIDOR_OUTPUT_LIMIT = 5
+_RUNTIME_CORRIDOR_FAILURE_LIMIT = 5
+
+_RUNTIME_CORRIDOR_REGISTRY: List[Dict[str, Any]] = [
+    {
+        "entry_id": "entry.runtime.pipeline.abraxas_canonical",
+        "action_name": "run_abraxas_pipeline",
+        "pipeline_id": _ABRAXAS_PIPELINE_ID,
+        "rune_id": "RUNE.INGEST",
+        "adapter_name": "adapter.run_abraxas_pipeline",
+        "required_context": ["selected_run_id"],
+        "expected_outputs": ["artifacts_seal/abraxas_pipeline/*.pipeline.json"],
+        "allowlisted": True,
+    },
+    {
+        "entry_id": "entry.runtime.pipeline.abraxas_review_path",
+        "action_name": "run_abraxas_pipeline_review_path",
+        "pipeline_id": _ABRAXAS_PIPELINE_REVIEW_PATH_ID,
+        "rune_id": "RUNE.INGEST",
+        "adapter_name": "adapter.run_abraxas_pipeline_review_path",
+        "required_context": ["selected_run_id"],
+        "expected_outputs": ["artifacts_seal/abraxas_pipeline/*.pipeline.json"],
+        "allowlisted": True,
+    },
+    {
+        "entry_id": "entry.runtime.ingest.compliance_probe",
+        "action_name": "run_compliance_probe",
+        "rune_id": "RUNE.INGEST",
+        "adapter_name": "adapter.run_compliance_probe",
+        "required_context": [],
+        "expected_outputs": ["artifacts_seal/runs/compliance_probe/*.artifact.json"],
+        "allowlisted": True,
+    },
+    {
+        "entry_id": "entry.runtime.parse_diff.validator",
+        "action_name": "run_execution_validator",
+        "rune_id": "RUNE.VALIDATOR",
+        "adapter_name": "adapter.run_execution_validator",
+        "required_context": ["selected_run_id"],
+        "expected_outputs": ["out/validators/execution-validation-*.json"],
+        "allowlisted": True,
+    },
+    {
+        "entry_id": "entry.runtime.audit.closure",
+        "action_name": "run_closure_audit",
+        "rune_id": "RUNE.AUDIT",
+        "adapter_name": "adapter.run_closure_audit",
+        "required_context": ["selected_run_id"],
+        "expected_outputs": ["artifacts_seal/audits/operator_closure_audit/closure_audit.*.json"],
+        "allowlisted": True,
+    },
+]
+
+
+def _derive_runtime_entry_registry(*, allowed_actions: List[str]) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    for item in _RUNTIME_CORRIDOR_REGISTRY:
+        action_name = str(item.get("action_name", ""))
+        rows.append(
+            {
+                "entry_id": str(item.get("entry_id", "")),
+                "action_name": action_name,
+                "rune_id": str(item.get("rune_id", "NOT_COMPUTABLE")),
+                "pipeline_id": str(item.get("pipeline_id", "")),
+                "adapter_name": str(item.get("adapter_name", "")),
+                "required_context": [str(x) for x in item.get("required_context", []) if isinstance(x, str)][:5],
+                "expected_outputs": [str(x) for x in item.get("expected_outputs", []) if isinstance(x, str)][:5],
+                "allowlisted": "true" if action_name in allowed_actions and bool(item.get("allowlisted", False)) else "false",
+                "provenance": "operator_console.runtime_corridor.registry.v3.3.static_allowlisted",
+            }
+        )
+    return rows[:10]
+
+
+def _derive_runtime_gating(
+    *,
+    runtime_entry_registry: List[Dict[str, Any]],
+    selected_run_id: Optional[str],
+    policy_mode: str,
+    preview_map: Mapping[str, Any],
+    ers_queue: Mapping[str, Any],
+) -> List[Dict[str, Any]]:
+    runnable_items = ers_queue.get("runnable_items", []) if isinstance(ers_queue, Mapping) else []
+    runnable_actions = {
+        str(item.get("action_name", ""))
+        for item in runnable_items
+        if isinstance(item, Mapping) and str(item.get("action_name", ""))
+    }
+    rows: List[Dict[str, Any]] = []
+    for entry in runtime_entry_registry:
+        action_name = str(entry.get("action_name", ""))
+        required_context = [str(x) for x in entry.get("required_context", []) if isinstance(x, str)]
+        policy_permits = policy_mode in {"bounded_runtime", "decision_review", "review_only"}
+        allowlisted = str(entry.get("allowlisted", "false")) == "true"
+        context_ok = all(bool(selected_run_id) if field == "selected_run_id" else True for field in required_context)
+        adapter_supported = action_name in _RUNTIME_ADAPTER_META and action_name in _RUNTIME_ADAPTERS
+        preview_supported = action_name in preview_map
+        ers_required = action_name in {"run_execution_validator", "run_closure_audit"}
+        ers_ready = (action_name in runnable_actions) if ers_required else True
+        if not policy_permits:
+            gating_reason = "policy_mode_blocks_entry"
+            invokable = False
+        elif not allowlisted:
+            gating_reason = "entry_not_allowlisted"
+            invokable = False
+        elif not context_ok:
+            gating_reason = "required_context_missing"
+            invokable = False
+        elif not adapter_supported:
+            gating_reason = "adapter_not_supported"
+            invokable = False
+        elif not preview_supported:
+            gating_reason = "preview_not_supported"
+            invokable = False
+        elif not ers_ready:
+            gating_reason = "ers_context_blocks_entry"
+            invokable = False
+        else:
+            gating_reason = "all_conditions_pass"
+            invokable = True
+        rows.append(
+            {
+                "entry_id": str(entry.get("entry_id", "")),
+                "action_name": action_name,
+                "invokable": "true" if invokable else "false",
+                "blocked": "false" if invokable else "true",
+                "gating_reason": gating_reason,
+                "required_conditions": [
+                    "policy_mode_permits_entry",
+                    "entry_allowlisted",
+                    "required_context_present",
+                    "adapter_supported",
+                    "preview_supported",
+                    "ers_context_ready_if_required",
+                ],
+                "policy_context": {"policy_mode": policy_mode},
+                "ers_context": {"required": "true" if ers_required else "false", "ready": "true" if ers_ready else "false"},
+                "provenance": "operator_console.runtime_corridor.gating.v3.3.ordered_rules",
+            }
+        )
+    return rows[:10]
+
+
+def _derive_runtime_invocation_envelope(
+    *,
+    last_action: Mapping[str, Any] | None,
+    selected_run_id: Optional[str],
+) -> Dict[str, Any]:
+    source = dict(last_action or {})
+    artifact_path = str(source.get("artifact_path", ""))
+    return {
+        "action_name": str(source.get("action_name", "")) or "NOT_COMPUTABLE",
+        "entry_id": str(source.get("entry_id", "")) or "NOT_COMPUTABLE",
+        "rune_id": str(source.get("rune_id", "")) or "NOT_COMPUTABLE",
+        "adapter_name": str(source.get("adapter_name", "")) or "NOT_COMPUTABLE",
+        "attempted_at": str(source.get("attempted_at", "")) or "NOT_COMPUTABLE",
+        "run_id": str(source.get("triggered_run_id", "") or source.get("run_id", "") or selected_run_id or "NOT_COMPUTABLE"),
+        "payload_summary": {
+            "selected_run_id": str(selected_run_id or ""),
+            "preset_id": str(source.get("preset_id", "")),
+        },
+        "artifact_paths": [artifact_path] if artifact_path else [],
+        "result_path": artifact_path or "",
+        "outcome_status": str(source.get("outcome_status", source.get("status", "NOT_COMPUTABLE"))),
+        "provenance": "operator_console.runtime_corridor.invocation.v3.3.action_history_projection",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+    }
+
+
+def _derive_runtime_state_surface(
+    *,
+    invocation_envelope: Mapping[str, Any],
+    execution_ledger: List[Dict[str, str]],
+) -> Dict[str, Any]:
+    outputs: List[Dict[str, str]] = []
+    failures: List[Dict[str, str]] = []
+    for row in execution_ledger:
+        status = str(row.get("outcome_status", ""))
+        summary = {
+            "timestamp": str(row.get("timestamp", "NOT_COMPUTABLE")),
+            "action_name": str(row.get("action_name", "")),
+            "run_id": str(row.get("run_id", "")),
+            "outcome_status": status,
+            "artifact_ref": str(row.get("artifact_ref", "")),
+        }
+        if status == "SUCCESS":
+            outputs.append(summary)
+        elif status:
+            failures.append(summary)
+    latest_status = str(invocation_envelope.get("outcome_status", "NOT_COMPUTABLE"))
+    latest_run_id = str(invocation_envelope.get("run_id", "NOT_COMPUTABLE"))
+    return {
+        "latest_runtime_invocation": dict(invocation_envelope),
+        "latest_runtime_run_id": latest_run_id,
+        "latest_runtime_status": latest_status,
+        "recent_runtime_outputs": outputs[:_RUNTIME_CORRIDOR_OUTPUT_LIMIT],
+        "recent_runtime_failures": failures[:_RUNTIME_CORRIDOR_FAILURE_LIMIT],
+        "runtime_state_summary": f"status={latest_status}|run_id={latest_run_id}|outputs={len(outputs)}|failures={len(failures)}",
+        "provenance": "operator_console.runtime_corridor.state.v3.3.execution_ledger_projection",
+    }
+
+
+def _derive_runtime_workspace_payload(
+    *,
+    selected_run_id: Optional[str],
+    invocation_envelope: Mapping[str, Any],
+    export_status: str,
+    export_path: Optional[str],
+) -> Dict[str, Any]:
+    run_id = str(invocation_envelope.get("run_id", "") or selected_run_id or "")
+    return {
+        "mode": "runtime",
+        "focus_run_id": run_id,
+        "focus_run_link": f"/operator?run_id={run_id}" if run_id else "",
+        "latest_outcome_status": str(invocation_envelope.get("outcome_status", "NOT_COMPUTABLE")),
+        "runtime_export_status": export_status,
+        "runtime_export_path": export_path or "",
+    }
+
+
+def _derive_pipeline_step_audit(
+    *,
+    step_records: List[Mapping[str, Any]],
+) -> List[Dict[str, str]]:
+    callable_actions = {
+        str(step.get("step_name", "")): str(step.get("action_name", ""))
+        for step in _ABRAXAS_PIPELINE_STEP_CATALOG
+    }
+    rows: List[Dict[str, str]] = []
+    for step in step_records[:10]:
+        step_name = str(step.get("step_name", ""))
+        status = str(step.get("status", "NOT_COMPUTABLE"))
+        action_name = callable_actions.get(step_name, "NOT_COMPUTABLE")
+        callable_exposed = action_name in _RUNTIME_ADAPTERS or action_name in {"pipeline_parse_projection", "pipeline_map_projection"}
+        artifact_emitted = bool(str(step.get("artifact_ref", "")))
+        if not callable_exposed:
+            blocking_reason = "adapter_not_exposed_in_runtime_corridor"
+        elif status in {"FAILED", "SKIPPED"}:
+            blocking_reason = "execution_degraded_or_blocked"
+        elif not artifact_emitted and status == "SUCCESS":
+            blocking_reason = "artifact_missing_for_success_state"
+        elif status == "NOT_COMPUTABLE":
+            blocking_reason = "step_not_computable_in_current_context"
+        else:
+            blocking_reason = ""
+        rows.append(
+            {
+                "step_name": step_name,
+                "rune_id": str(step.get("rune_id", "NOT_COMPUTABLE")),
+                "callable_exposed": "true" if callable_exposed else "false",
+                "artifact_emitted": "true" if artifact_emitted else "false",
+                "current_status_quality": status,
+                "blocking_reason": blocking_reason,
+                "provenance": "pipeline_hardening.step_audit.v3.5.callable_and_execution_derived",
+            }
+        )
+    return rows[:10]
+
+
+def _derive_pipeline_quality_matrix(*, pipeline_step_audit: List[Mapping[str, Any]]) -> List[Dict[str, str]]:
+    rows: List[Dict[str, str]] = []
+    for step in pipeline_step_audit[:10]:
+        callable_exposed = str(step.get("callable_exposed", "false")) == "true"
+        artifact_emitted = str(step.get("artifact_emitted", "false")) == "true"
+        status = str(step.get("current_status_quality", "NOT_COMPUTABLE"))
+        if callable_exposed and status in {"SUCCESS", "VALID"} and (artifact_emitted or str(step.get("step_name", "")) == "ingest"):
+            label = "EXECUTABLE"
+        elif callable_exposed and status in {"FAILED", "SKIPPED"}:
+            label = "DEGRADED"
+        elif status == "NOT_COMPUTABLE":
+            label = "NOT_COMPUTABLE"
+        elif not callable_exposed:
+            label = "STRUCTURAL_ONLY"
+        else:
+            label = "DEGRADED"
+        rows.append(
+            {
+                "step_name": str(step.get("step_name", "")),
+                "quality_label": label,
+                "quality_reason": f"callable={step.get('callable_exposed','false')}|status={status}|artifact={step.get('artifact_emitted','false')}",
+                "provenance": "pipeline_hardening.quality_matrix.v3.5.explicit_rules",
+            }
+        )
+    return rows[:10]
+
+
+def _select_pipeline_upgrade_targets(
+    *,
+    pipeline_quality_matrix: List[Mapping[str, Any]],
+    pipeline_step_audit: List[Mapping[str, Any]],
+) -> Dict[str, str]:
+    quality_by_step = {str(row.get("step_name", "")): str(row.get("quality_label", "")) for row in pipeline_quality_matrix}
+    callable_by_step = {str(row.get("step_name", "")): str(row.get("callable_exposed", "false")) == "true" for row in pipeline_step_audit}
+    ordered_candidates = ["parse", "map", "diff_validate", "review_audit", "ingest"]
+    priority_pool = [name for name in ordered_candidates if quality_by_step.get(name, "") in {"STRUCTURAL_ONLY", "DEGRADED", "NOT_COMPUTABLE"}]
+    callable_pool = [name for name in priority_pool if callable_by_step.get(name, False)]
+    primary = callable_pool[0] if callable_pool else (priority_pool[0] if priority_pool else "none")
+    secondary = ""
+    if primary == "parse" and "map" in priority_pool:
+        secondary = "map"
+    reason = (
+        "prefer semantic-central degraded/not-computable steps with immediate callable upgrade path"
+        if primary != "none"
+        else "all steps are healthy or non-actionable under bounded rules"
+    )
+    return {
+        "primary_upgrade_target": primary,
+        "secondary_upgrade_target": secondary,
+        "upgrade_reason": reason,
+    }
 
 
 def _derive_ers_integration(
@@ -1479,7 +2535,7 @@ def execute_runtime_adapter(*, action_name: str, payload: Mapping[str, Any], all
             "summary": f"adapter execution failed for {action_name}",
             "error_info": str(exc),
         }
-    return {
+    response_packet = {
         "adapter_name": str(response.get("adapter_name", getattr(adapter, "__name__", ""))),
         "attempted_at": str(response.get("attempted_at", attempted_at)),
         "outcome_status": str(response.get("outcome_status", "FAILED")),
@@ -1488,6 +2544,10 @@ def execute_runtime_adapter(*, action_name: str, payload: Mapping[str, Any], all
         "summary": str(response.get("summary", "")),
         "error_info": str(response.get("error_info", "")),
     }
+    for key in ["pipeline_id", "pipeline_envelope", "pipeline_step_records", "pipeline_state_surface"]:
+        if key in response:
+            response_packet[key] = response[key]
+    return response_packet
 
 
 def _build_run_health_summaries(*, run_ids: List[str], artifacts: List[Dict[str, Any]], validators: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -2270,7 +3330,7 @@ def _derive_guard_conditions(
         },
         {
             "guard_name": "policy_mode_valid",
-            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "ers"} else "fail",
+            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "ers", "runtime"} else "fail",
             "explanation": "Workbench mode must match an approved governance mode.",
         },
     ]
@@ -2532,6 +3592,18 @@ def build_view_state(
     latest_ers_snapshot_status: str = "not_requested",
     latest_ers_review_export_path: Optional[str] = None,
     latest_ers_review_export_status: str = "not_requested",
+    latest_runtime_corridor_export_path: Optional[str] = None,
+    latest_runtime_corridor_export_status: str = "not_requested",
+    runtime_invocation_override: Optional[Mapping[str, Any]] = None,
+    latest_pipeline_export_path: Optional[str] = None,
+    latest_pipeline_export_status: str = "not_requested",
+    pipeline_envelope_override: Optional[Mapping[str, Any]] = None,
+    pipeline_step_records_override: Optional[List[Mapping[str, Any]]] = None,
+    latest_pipeline_review_export_path: Optional[str] = None,
+    latest_pipeline_review_export_status: str = "not_requested",
+    manual_pipeline_override: Optional[str] = None,
+    latest_pipeline_routing_export_path: Optional[str] = None,
+    latest_pipeline_routing_export_status: str = "not_requested",
 ) -> ViewState:
     artifacts = _collect_run_artifacts(base_dir)
     validators = _collect_validator_outputs(base_dir)
@@ -3332,6 +4404,412 @@ def build_view_state(
         "ers_review_export_path": latest_ers_review_export_path,
         "ers_review_workspace_payload": ers_review_workspace_payload,
     }
+    runtime_entry_registry = _derive_runtime_entry_registry(
+        allowed_actions=[str(x) for x in control_plane.get("allowed_actions", []) if isinstance(x, str)]
+    )
+    runtime_gating = _derive_runtime_gating(
+        runtime_entry_registry=runtime_entry_registry,
+        selected_run_id=chosen,
+        policy_mode=str(policy_surface.get("policy_mode", "review_only")),
+        preview_map=control_plane.get("command_preview", {}) if isinstance(control_plane.get("command_preview", {}), Mapping) else {},
+        ers_queue=ers_integration.get("ers_queue", {}) if isinstance(ers_integration, Mapping) else {},
+    )
+    runtime_invocation_envelope = _derive_runtime_invocation_envelope(last_action=last_action, selected_run_id=chosen)
+    if runtime_invocation_override is not None:
+        runtime_invocation_envelope = {
+            **runtime_invocation_envelope,
+            **dict(runtime_invocation_override),
+        }
+    runtime_state_surface = _derive_runtime_state_surface(
+        invocation_envelope=runtime_invocation_envelope,
+        execution_ledger=execution_ledger,
+    )
+    runtime_export_preview = {
+        "runtime_entry_registry": runtime_entry_registry,
+        "runtime_state_surface": runtime_state_surface,
+        "latest_runtime_invocation_envelope": runtime_invocation_envelope,
+        "runtime_gating_summary": runtime_gating,
+        "governance_context": {
+            "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+            "workbench_mode": applied_mode,
+        },
+        "ers_context": {
+            "queue_summary": dict((ers_integration.get("ers_queue", {}) if isinstance(ers_integration, Mapping) else {})),
+            "trigger_status": str((ers_integration.get("ers_runtime_handoff", {}) if isinstance(ers_integration, Mapping) else {}).get("status", "NOT_COMPUTABLE")),
+        },
+        "timestamp": _utc_now(),
+        "status": "SUCCESS",
+        "run_id": str(runtime_invocation_envelope.get("run_id", "NOT_COMPUTABLE")),
+        "rune_id": str(runtime_invocation_envelope.get("rune_id", "NOT_COMPUTABLE")),
+        "artifact_id": f"runtime_corridor.{datetime.now(timezone.utc).strftime('%Y%m%dt%H%M%SZ').lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        "provenance": "operator_console.runtime_corridor.export.v3.3.bounded_snapshot",
+        "rule_strings": [
+            "registry_rule=static_allowlisted_entries_only",
+            "gating_rule=policy+allowlist+context+adapter+preview+ers",
+            "invocation_rule=explicit_invoke_only_or_not_computable",
+        ],
+    }
+    runtime_workspace_payload = _derive_runtime_workspace_payload(
+        selected_run_id=chosen,
+        invocation_envelope=runtime_invocation_envelope,
+        export_status=latest_runtime_corridor_export_status,
+        export_path=latest_runtime_corridor_export_path,
+    )
+    runtime_corridor = {
+        "runtime_entry_registry": runtime_entry_registry,
+        "runtime_invocation_envelope": runtime_invocation_envelope,
+        "runtime_state_surface": runtime_state_surface,
+        "runtime_gating": runtime_gating,
+        "runtime_export_preview": runtime_export_preview,
+        "runtime_export_status": latest_runtime_corridor_export_status,
+        "runtime_export_path": latest_runtime_corridor_export_path,
+        "runtime_workspace_payload": runtime_workspace_payload,
+    }
+    default_pipeline_step_records: List[Dict[str, Any]] = [
+        {
+            "step_index": index + 1,
+            "step_name": step["step_name"],
+            "rune_id": step["rune_id"],
+            "input_summary": {"selected_run_id": chosen or ""},
+            "output_summary": "not_executed",
+            "artifact_ref": "",
+            "status": "NOT_COMPUTABLE",
+            "reason": "pipeline_not_invoked",
+            "provenance": "operator_console.pipeline.state.v3.4.default_not_invoked",
+        }
+        for index, step in enumerate(_ABRAXAS_PIPELINE_STEP_CATALOG)
+    ]
+    normalized_pipeline_steps = [
+        {
+            "step_index": int(step.get("step_index", idx + 1)),
+            "step_name": str(step.get("step_name", "")),
+            "rune_id": str(step.get("rune_id", "NOT_COMPUTABLE")),
+            "input_summary": dict(step.get("input_summary", {})) if isinstance(step.get("input_summary", {}), Mapping) else {},
+            "output_summary": str(step.get("output_summary", "")),
+            "artifact_ref": str(step.get("artifact_ref", "")),
+            "status": str(step.get("status", "NOT_COMPUTABLE")),
+            "reason": str(step.get("reason", "")),
+            "provenance": str(step.get("provenance", "")),
+        }
+        for idx, step in enumerate(pipeline_step_records_override or default_pipeline_step_records)
+        if isinstance(step, Mapping)
+    ][:10]
+    latest_pipeline_envelope: Dict[str, Any] = {
+        "pipeline_id": _ABRAXAS_PIPELINE_ID,
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "started_at": "NOT_COMPUTABLE",
+        "completed_at": "NOT_COMPUTABLE",
+        "overall_status": "NOT_COMPUTABLE",
+        "final_classification": "NOT_COMPUTABLE",
+        "overall_status_rule": "rollup.pipeline_not_invoked",
+        "overall_status_reason": "pipeline_not_invoked",
+        "step_count": len(normalized_pipeline_steps),
+        "current_step": "not_invoked",
+        "last_completed_step": "NOT_STARTED",
+        "final_summary_block": {
+            "final_classification": "NOT_COMPUTABLE",
+            "overall_status_rule": "rollup.pipeline_not_invoked",
+            "overall_status_reason": "pipeline_not_invoked",
+            "blocking_steps": ["ingest", "diff_validate", "review_audit"],
+            "successful_steps": [],
+            "artifact_summary": {
+                "artifact_count": 0,
+                "ledger_record_count": 0,
+                "ledger_artifact_count": 0,
+                "correlation_pointer_count": 0,
+                "linkage_complete": "false",
+            },
+        },
+        "final_result_summary": "NOT_COMPUTABLE|pipeline_not_invoked",
+        "artifact_paths": [],
+        "provenance": "operator_console.pipeline.envelope.v3.4.default_not_invoked",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+    }
+    if pipeline_envelope_override is not None:
+        latest_pipeline_envelope = {
+            **latest_pipeline_envelope,
+            **dict(pipeline_envelope_override),
+            "artifact_paths": [str(x) for x in (pipeline_envelope_override.get("artifact_paths", []) if isinstance(pipeline_envelope_override, Mapping) else []) if isinstance(x, str)][:8],
+        }
+    pipeline_state_surface = {
+        "latest_pipeline_run": str(latest_pipeline_envelope.get("run_id", "NOT_COMPUTABLE")),
+        "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+        "step_progression": [f"{step['step_index']}:{step['step_name']}={step['status']}" for step in normalized_pipeline_steps][:10],
+        "latest_step_outputs": [{"step_name": step["step_name"], "output_summary": step["output_summary"]} for step in normalized_pipeline_steps if step["status"] in {"SUCCESS", "NOT_COMPUTABLE"}][:5],
+        "pipeline_failure_point": next((step["step_name"] for step in normalized_pipeline_steps if step["status"] == "FAILED"), ""),
+        "pipeline_state_summary": str(latest_pipeline_envelope.get("final_result_summary", "NOT_COMPUTABLE")),
+    }
+    pipeline_registry_entries = [
+        row for row in runtime_entry_registry if str(row.get("entry_id", "")).startswith("entry.runtime.pipeline.")
+    ][:5]
+    active_pipeline_id = str(latest_pipeline_envelope.get("pipeline_id", _ABRAXAS_PIPELINE_ID))
+    pipeline_registry_entry = next(
+        (row for row in pipeline_registry_entries if str(row.get("pipeline_id", "")) == active_pipeline_id),
+        (
+            pipeline_registry_entries[0]
+            if pipeline_registry_entries
+            else {
+                "entry_id": "entry.runtime.pipeline.abraxas_canonical",
+                "action_name": "run_abraxas_pipeline",
+                "pipeline_id": _ABRAXAS_PIPELINE_ID,
+                "rune_id": "RUNE.INGEST",
+                "allowlisted": "false",
+            }
+        ),
+    )
+    pipeline_export_preview = {
+        "pipeline_id": active_pipeline_id,
+        "pipeline_execution_envelope": latest_pipeline_envelope,
+        "pipeline_step_records": normalized_pipeline_steps,
+        "final_classification": str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")),
+        "overall_status_rule": str(latest_pipeline_envelope.get("overall_status_rule", "rollup.unknown")),
+        "overall_status_reason": str(latest_pipeline_envelope.get("overall_status_reason", "unknown")),
+        "final_summary_block": dict(latest_pipeline_envelope.get("final_summary_block", {})) if isinstance(latest_pipeline_envelope.get("final_summary_block", {}), Mapping) else {},
+        "final_result_summary": str(latest_pipeline_envelope.get("final_result_summary", "NOT_COMPUTABLE")),
+        "lineage_provenance": {
+            "path_rule": "canonical_static_path.ingest_parse_map_diff_review",
+            "step_rule": "step_records_are_ordered_and_bounded",
+            "status_rule": "explicit_rollup_failed_notcomputable_partial_success",
+        },
+        "governance_context": {"policy_mode": str(policy_surface.get("policy_mode", "review_only")), "workbench_mode": applied_mode},
+        "runtime_context": {"selected_run_id": chosen or "", "result_packet_status": str(result_packet.get("status", "NOT_COMPUTABLE"))},
+        "timestamp": _utc_now(),
+    }
+    pipeline_workspace_payload = {
+        "mode": "runtime",
+        "pipeline_id": active_pipeline_id,
+        "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+        "latest_pipeline_run": str(latest_pipeline_envelope.get("run_id", "NOT_COMPUTABLE")),
+        "pipeline_export_status": latest_pipeline_export_status,
+        "pipeline_export_path": latest_pipeline_export_path or "",
+    }
+    comparative_pipeline_readiness = []
+    for pipeline_id in (_ABRAXAS_PIPELINE_ID, _ABRAXAS_PIPELINE_REVIEW_PATH_ID):
+        is_active = pipeline_id == active_pipeline_id
+        comparative_pipeline_readiness.append(
+            {
+                "pipeline_id": pipeline_id,
+                "active": "true" if is_active else "false",
+                "final_classification": str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")) if is_active else "NOT_COMPUTABLE",
+                "quality_state": (
+                    f"status={str(latest_pipeline_envelope.get('overall_status', 'NOT_COMPUTABLE'))}|classification={str(latest_pipeline_envelope.get('final_classification', 'NOT_COMPUTABLE'))}"
+                    if is_active
+                    else "NOT_COMPUTABLE"
+                )[:140],
+                "readiness_summary": (
+                    str(latest_pipeline_envelope.get("final_result_summary", "NOT_COMPUTABLE"))[:140]
+                    if is_active
+                    else "NOT_COMPUTABLE|inactive_pipeline"
+                ),
+            }
+        )
+    readiness_rank = {"SUCCESS": 4, "PARTIAL": 3, "NOT_COMPUTABLE": 2, "FAILED": 1}
+    gating_by_entry = {str(row.get("entry_id", "")): row for row in runtime_gating}
+    pipeline_suitability_matrix: List[Dict[str, Any]] = []
+    for entry in pipeline_registry_entries:
+        entry_id = str(entry.get("entry_id", ""))
+        pipeline_id = str(entry.get("pipeline_id", ""))
+        gate_row = gating_by_entry.get(entry_id, {})
+        required_context = [str(x) for x in entry.get("required_context", []) if isinstance(x, str)]
+        required_context_present = all(bool(chosen) if field == "selected_run_id" else True for field in required_context)
+        active_match = pipeline_id == active_pipeline_id
+        final_classification = str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")) if active_match else "NOT_COMPUTABLE"
+        blocking_reason = str(gate_row.get("gating_reason", "entry_unavailable")) if str(gate_row.get("invokable", "false")) != "true" else "none"
+        suitability_summary = (
+            f"allowlisted={str(entry.get('allowlisted', 'false'))}"
+            f"|invokable={str(gate_row.get('invokable', 'false'))}"
+            f"|context_ok={'true' if required_context_present else 'false'}"
+            f"|classification={final_classification}"
+        )[:180]
+        pipeline_suitability_matrix.append(
+            {
+                "pipeline_id": pipeline_id,
+                "entry_id": entry_id,
+                "readiness_summary": next((row.get("readiness_summary", "NOT_COMPUTABLE") for row in comparative_pipeline_readiness if str(row.get("pipeline_id", "")) == pipeline_id), "NOT_COMPUTABLE"),
+                "allowlisted": str(entry.get("allowlisted", "false")),
+                "invokable": str(gate_row.get("invokable", "false")),
+                "required_context_present": "true" if required_context_present else "false",
+                "final_classification": final_classification,
+                "blocking_reason": blocking_reason,
+                "suitability_summary": suitability_summary,
+            }
+        )
+    eligible_rows = [
+        row for row in pipeline_suitability_matrix
+        if row["allowlisted"] == "true" and row["invokable"] == "true" and row["required_context_present"] == "true"
+    ]
+    manual_override_value = str(manual_pipeline_override or "").strip()
+    canonical_pipeline_ids = [str(row.get("pipeline_id", "")) for row in pipeline_registry_entries if str(row.get("pipeline_id", ""))]
+    manual_override_applied = manual_override_value if manual_override_value in canonical_pipeline_ids else ""
+    recommended_pipeline_id = _ABRAXAS_PIPELINE_ID
+    recommendation_reason = "fallback_to_primary_canonical_pipeline"
+    routing_rule_id = "rule.fallback_primary_canonical"
+    if eligible_rows:
+        review_context = applied_mode in {"runtime", "ers", "governance"}
+        review_candidate = next((row for row in eligible_rows if str(row.get("pipeline_id", "")) == _ABRAXAS_PIPELINE_REVIEW_PATH_ID), None)
+        if review_context and review_candidate is not None:
+            recommended_pipeline_id = _ABRAXAS_PIPELINE_REVIEW_PATH_ID
+            recommendation_reason = "review_context_prefers_review_path_when_eligible"
+            routing_rule_id = "rule.prefer_review_context"
+        else:
+            eligible_rows_sorted = sorted(
+                eligible_rows,
+                key=lambda row: (
+                    readiness_rank.get(str(row.get("final_classification", "NOT_COMPUTABLE")), 0),
+                    0 if str(row.get("blocking_reason", "none")) == "none" else 1,
+                    1 if str(row.get("pipeline_id", "")) == _ABRAXAS_PIPELINE_ID else 0,
+                ),
+                reverse=True,
+            )
+            recommended_pipeline_id = str(eligible_rows_sorted[0].get("pipeline_id", _ABRAXAS_PIPELINE_ID))
+            recommendation_reason = "preferred_eligible_pipeline_with_highest_readiness"
+            routing_rule_id = "rule.prefer_invokable_with_context"
+    elif any(row["allowlisted"] == "true" for row in pipeline_suitability_matrix):
+        recommendation_reason = "no_invokable_pipeline_context_or_gating_blocked"
+        routing_rule_id = "rule.prefer_allowlisted_fallback"
+    effective_pipeline_id = manual_override_applied or recommended_pipeline_id
+    selection_source = "manual_override" if manual_override_applied else "recommended"
+    pipeline_routing_export_preview = {
+        "pipeline_suitability_matrix": pipeline_suitability_matrix[:5],
+        "recommended_pipeline_id": recommended_pipeline_id,
+        "recommendation_reason": recommendation_reason,
+        "routing_rule_id": routing_rule_id,
+        "manual_pipeline_override": manual_override_applied,
+        "effective_pipeline_id": effective_pipeline_id,
+        "selection_source": selection_source,
+        "context": {
+            "selected_run_id": chosen or "",
+            "workbench_mode": applied_mode,
+            "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+        },
+        "timestamp": _utc_now(),
+        "provenance": "operator_console.pipeline_routing.v4.1.deterministic_rulepath",
+        "rule_strings": [
+            "suitability_rule=allowlist+gating+required_context+classification",
+            "routing_rule=manual_override_else_ordered_recommendation",
+            "selection_rule=explicit_override_no_silent_autoswitch",
+        ],
+    }
+    pipeline_routing_workspace_payload = {
+        "mode": "runtime",
+        "recommended_pipeline_id": recommended_pipeline_id,
+        "effective_pipeline_id": effective_pipeline_id,
+        "selection_source": selection_source,
+        "routing_rule_id": routing_rule_id,
+        "routing_export_status": latest_pipeline_routing_export_status,
+        "routing_export_path": latest_pipeline_routing_export_path or "",
+    }
+    pipeline_routing = {
+        "pipeline_suitability_matrix": pipeline_suitability_matrix[:5],
+        "recommended_pipeline_id": recommended_pipeline_id,
+        "recommendation_reason": recommendation_reason,
+        "routing_rule_id": routing_rule_id,
+        "manual_pipeline_override": manual_override_applied,
+        "effective_pipeline_id": effective_pipeline_id,
+        "selection_source": selection_source,
+        "routing_export_preview": pipeline_routing_export_preview,
+        "routing_export_status": latest_pipeline_routing_export_status,
+        "routing_export_path": latest_pipeline_routing_export_path,
+        "pipeline_routing_workspace_payload": pipeline_routing_workspace_payload,
+    }
+    abraxas_pipeline = {
+        "pipeline_registry_entry": pipeline_registry_entry,
+        "pipeline_registry_entries": pipeline_registry_entries,
+        "latest_pipeline_envelope": latest_pipeline_envelope,
+        "pipeline_step_records": normalized_pipeline_steps,
+        "pipeline_state_surface": pipeline_state_surface,
+        "comparative_pipeline_readiness": comparative_pipeline_readiness[:5],
+        "pipeline_export_preview": pipeline_export_preview,
+        "pipeline_export_status": latest_pipeline_export_status,
+        "pipeline_export_path": latest_pipeline_export_path,
+        "pipeline_workspace_payload": pipeline_workspace_payload,
+    }
+    pipeline_step_audit = _derive_pipeline_step_audit(step_records=normalized_pipeline_steps)
+    pipeline_quality_matrix = _derive_pipeline_quality_matrix(pipeline_step_audit=pipeline_step_audit)
+    upgrade_targets = _select_pipeline_upgrade_targets(
+        pipeline_quality_matrix=pipeline_quality_matrix,
+        pipeline_step_audit=pipeline_step_audit,
+    )
+    blockers_summary = [row["blocking_reason"] for row in pipeline_step_audit if str(row.get("blocking_reason", ""))]
+    matrix_by_step = {str(row.get("step_name", "")): str(row.get("quality_label", "")) for row in pipeline_quality_matrix}
+    map_step = next((row for row in normalized_pipeline_steps if str(row.get("step_name", "")) == "map"), {})
+    diff_step = next((row for row in normalized_pipeline_steps if str(row.get("step_name", "")) == "diff_validate"), {})
+    pipeline_review_export_preview = {
+        "pipeline_id": active_pipeline_id,
+        "latest_pipeline_envelope_summary": {
+            "run_id": str(latest_pipeline_envelope.get("run_id", "NOT_COMPUTABLE")),
+            "overall_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+            "final_classification": str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")),
+            "overall_status_rule": str(latest_pipeline_envelope.get("overall_status_rule", "rollup.unknown")),
+            "overall_status_reason": str(latest_pipeline_envelope.get("overall_status_reason", "unknown")),
+            "final_result_summary": str(latest_pipeline_envelope.get("final_result_summary", "NOT_COMPUTABLE")),
+        },
+        "final_summary_block": dict(latest_pipeline_envelope.get("final_summary_block", {})) if isinstance(latest_pipeline_envelope.get("final_summary_block", {}), Mapping) else {},
+        "step_exposure_audit": pipeline_step_audit,
+        "quality_matrix": pipeline_quality_matrix,
+        "upgrade_target_selection": upgrade_targets,
+        "blockers_summary": blockers_summary[:8],
+        "map_realization_state": {
+            "status": str(map_step.get("status", "NOT_COMPUTABLE")),
+            "quality_label": matrix_by_step.get("map", "NOT_COMPUTABLE"),
+            "output_summary": str(map_step.get("output_summary", ""))[:220],
+        },
+        "diff_input_quality_state": {
+            "status": str(diff_step.get("status", "NOT_COMPUTABLE")),
+            "quality_label": matrix_by_step.get("diff_validate", "NOT_COMPUTABLE"),
+            "input_context_summary": str((diff_step.get("input_summary", {}) if isinstance(diff_step.get("input_summary", {}), Mapping) else {})).replace("'", "\"")[:220],
+        },
+        "timestamp": _utc_now(),
+        "provenance": "pipeline_hardening.review_export.v3.8.deterministic_bounded",
+        "rule_strings": [
+            "audit_rule=callable_exposure+step_execution+artifact_presence",
+            "quality_rule=explicit_label_matrix_executable_structural_notcomputable_degraded",
+            "selection_rule=semantic_priority_then_callable_upgrade_path",
+            "rollup_rule=failed_then_notcomputable_then_partial_then_success",
+        ],
+        "run_id": str(latest_pipeline_envelope.get("run_id", "NOT_COMPUTABLE")),
+        "rune_id": "RUNE.PARSE",
+        "artifact_id": f"pipeline_review.{datetime.now(timezone.utc).strftime('%Y%m%dt%H%M%SZ').lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+    }
+    pipeline_hardening_workspace_payload = {
+        "mode": "runtime",
+        "pipeline_status": str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")),
+        "final_classification": str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")),
+        "overall_status_reasoning": (
+            f"{str(latest_pipeline_envelope.get('overall_status_rule', 'rollup.unknown'))}"
+            f"|{str(latest_pipeline_envelope.get('overall_status_reason', 'unknown'))}"
+        )[:220],
+        "blocking_steps": [str(x) for x in ((latest_pipeline_envelope.get("final_summary_block", {}) if isinstance(latest_pipeline_envelope.get("final_summary_block", {}), Mapping) else {}).get("blocking_steps", [])) if isinstance(x, str)][:5],
+        "successful_steps": [str(x) for x in ((latest_pipeline_envelope.get("final_summary_block", {}) if isinstance(latest_pipeline_envelope.get("final_summary_block", {}), Mapping) else {}).get("successful_steps", [])) if isinstance(x, str)][:5],
+        "primary_upgrade_target": str(upgrade_targets.get("primary_upgrade_target", "none")),
+        "blocker_count": len(blockers_summary),
+        "map_quality_label": matrix_by_step.get("map", "NOT_COMPUTABLE"),
+        "diff_quality_label": matrix_by_step.get("diff_validate", "NOT_COMPUTABLE"),
+        "map_status": str(map_step.get("status", "NOT_COMPUTABLE")),
+        "diff_status": str(diff_step.get("status", "NOT_COMPUTABLE")),
+        "next_upgrade_target_after_v3_8": str(upgrade_targets.get("secondary_upgrade_target", "")),
+        "pipeline_review_export_status": latest_pipeline_review_export_status,
+        "pipeline_review_export_path": latest_pipeline_review_export_path or "",
+    }
+    pipeline_hardening = {
+        "pipeline_step_audit": pipeline_step_audit,
+        "pipeline_quality_matrix": pipeline_quality_matrix,
+        "primary_upgrade_target": str(upgrade_targets.get("primary_upgrade_target", "none")),
+        "secondary_upgrade_target": str(upgrade_targets.get("secondary_upgrade_target", "")),
+        "upgrade_reason": str(upgrade_targets.get("upgrade_reason", "")),
+        "pipeline_review_export_preview": pipeline_review_export_preview,
+        "pipeline_review_export_status": latest_pipeline_review_export_status,
+        "pipeline_review_export_path": latest_pipeline_review_export_path,
+        "pipeline_hardening_workspace_payload": pipeline_hardening_workspace_payload,
+    }
     resolved_viz_mode = _sanitize_viz_mode(viz_mode)
     viz_payloads = _derive_viz_payloads(
         closure_status=closure_status,
@@ -3565,7 +5043,7 @@ def build_view_state(
         loaded_snapshot_path=loaded_snapshot_path,
         loaded_snapshot_status=loaded_snapshot_status,
         workbench_mode=applied_mode,
-        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers"],
+        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers", "runtime"],
         attention_actions_enabled=attention_actions_enabled,
         attention_action_hint=attention_action_hint,
         baseline_locked=baseline_locked,
@@ -3614,6 +5092,10 @@ def build_view_state(
         runflow_workspace=runflow_workspace,
         ers_integration=ers_integration,
         ers_review=ers_review,
+        runtime_corridor=runtime_corridor,
+        abraxas_pipeline=abraxas_pipeline,
+        pipeline_hardening=pipeline_hardening,
+        pipeline_routing=pipeline_routing,
         session_context=resolved_session_context,
         data_provenance={
             "artifacts_runs_scanned": len(artifacts),
@@ -3643,6 +5125,16 @@ def build_view_state(
             "ers_diff_rule": "ERS review diff compares current state to most recent prior ERS snapshot with deterministic changed/unchanged counters and bounded item transition list",
             "ers_drift_rule": "ERS drift labels: NOT_COMPUTABLE(no prior), DEGRADED(blocked up or runnable down or next regressed), STABLE(no changes), SHIFTED(otherwise)",
             "ers_transition_rule": "ERS transition log combines diff-derived transitions and explicit ERS trigger history, sorted newest-first with bounded size",
+            "runtime_corridor_registry_rule": "runtime corridor registry is static bounded allowlisted entries mapped to existing adapters only",
+            "runtime_corridor_gating_rule": "runtime entry invokable only when policy+allowlist+required context+adapter+preview+ers conditions pass",
+            "runtime_corridor_export_rule": "runtime corridor export emits bounded deterministic snapshot artifact with governance+ERS context and linkage placeholders",
+            "pipeline_path_rule": "pipeline path is static ingest->parse->map->diff_validate->review_audit; parse is hardened via deterministic projection while map remains explicit NOT_COMPUTABLE unless callable exposure exists",
+            "pipeline_export_rule": "pipeline export artifact contains bounded envelope + step records + lineage/governance/runtime context",
+            "pipeline_hardening_audit_rule": "step audit derives callable exposure + artifact presence + current step status with explicit blocking reason",
+            "pipeline_hardening_selection_rule": "upgrade target selection uses deterministic semantic priority and callable-upgrade-path preference",
+            "pipeline_map_rule": "map projection deterministically derives bounded entity-relation associations from parse projection keys and selected_run_id tokens",
+            "pipeline_diff_input_rule": "diff input summary explicitly includes bounded map context (relation_count/entities) when available",
+            "pipeline_routing_rule": "pipeline routing derives suitability matrix + ordered recommendation and explicit manual override precedence",
         },
     )
 

@@ -15,6 +15,10 @@ from ..operator_console import (
     write_operator_ers_review_artifact,
     write_operator_markdown_report,
     write_operator_report_artifact,
+    write_pipeline_artifact,
+    write_pipeline_routing_artifact,
+    write_pipeline_review_artifact,
+    write_runtime_corridor_artifact,
     write_viz_render_artifact,
 )
 from ..panel_context import templates, require_token, _panel_host, _panel_port, _panel_token, _token_enabled
@@ -434,6 +438,13 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
     export_ers_snapshot = request.query_params.get("export_ers_snapshot") == "1"
     export_ers_review = request.query_params.get("export_ers_review") == "1"
     trigger_ers_item = request.query_params.get("trigger_ers_item")
+    export_runtime_corridor = request.query_params.get("export_runtime_corridor") == "1"
+    invoke_runtime_entry = request.query_params.get("invoke_runtime_entry")
+    export_pipeline_artifact = request.query_params.get("export_pipeline_artifact") == "1"
+    export_pipeline_review = request.query_params.get("export_pipeline_review") == "1"
+    export_pipeline_routing = request.query_params.get("export_pipeline_routing") == "1"
+    select_pipeline = request.query_params.get("select_pipeline")
+    clear_pipeline_override = request.query_params.get("clear_pipeline_override") == "1"
 
     pin_run_id = request.query_params.get("pin_run_id")
     unpin_run_id = request.query_params.get("unpin_run_id")
@@ -448,6 +459,10 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
         bucket["baseline_locked_run_id"] = ""
     if lock_baseline:
         bucket["baseline_locked_run_id"] = lock_baseline
+    if clear_pipeline_override:
+        bucket["manual_pipeline_override"] = ""
+    elif select_pipeline:
+        bucket["manual_pipeline_override"] = str(select_pipeline)
 
     loaded_snapshot_path = None
     loaded_snapshot_status = "not_requested"
@@ -577,6 +592,18 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
             latest_ers_snapshot_status=str(bucket.get("latest_ers_snapshot_status", "not_requested")),
             latest_ers_review_export_path=str(bucket.get("latest_ers_review_export_path", "")) or None,
             latest_ers_review_export_status=str(bucket.get("latest_ers_review_export_status", "not_requested")),
+            latest_runtime_corridor_export_path=str(bucket.get("latest_runtime_corridor_export_path", "")) or None,
+            latest_runtime_corridor_export_status=str(bucket.get("latest_runtime_corridor_export_status", "not_requested")),
+            runtime_invocation_override=bucket.get("runtime_invocation_override") if isinstance(bucket.get("runtime_invocation_override"), dict) else None,
+            latest_pipeline_export_path=str(bucket.get("latest_pipeline_export_path", "")) or None,
+            latest_pipeline_export_status=str(bucket.get("latest_pipeline_export_status", "not_requested")),
+            pipeline_envelope_override=bucket.get("pipeline_envelope_override") if isinstance(bucket.get("pipeline_envelope_override"), dict) else None,
+            pipeline_step_records_override=bucket.get("pipeline_step_records_override") if isinstance(bucket.get("pipeline_step_records_override"), list) else None,
+            latest_pipeline_review_export_path=str(bucket.get("latest_pipeline_review_export_path", "")) or None,
+            latest_pipeline_review_export_status=str(bucket.get("latest_pipeline_review_export_status", "not_requested")),
+            manual_pipeline_override=str(bucket.get("manual_pipeline_override", "")) or None,
+            latest_pipeline_routing_export_path=str(bucket.get("latest_pipeline_routing_export_path", "")) or None,
+            latest_pipeline_routing_export_status=str(bucket.get("latest_pipeline_routing_export_status", "not_requested")),
         )
 
     view = _build_current_view(run_id=selected, compare_id=compare_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
@@ -652,6 +679,144 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
                 error_info="ers_item_not_runnable_or_not_allowlisted",
                 summary="ERS trigger rejected: item is blocked, missing, or not allowlisted.",
             )
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if invoke_runtime_entry:
+        registry = (view.runtime_corridor.get("runtime_entry_registry", []) if isinstance(view.runtime_corridor, dict) else [])
+        gating = (view.runtime_corridor.get("runtime_gating", []) if isinstance(view.runtime_corridor, dict) else [])
+        registry_by_id = {
+            str(item.get("entry_id", "")): item for item in registry if isinstance(item, dict) and str(item.get("entry_id", ""))
+        }
+        gating_by_id = {
+            str(item.get("entry_id", "")): item for item in gating if isinstance(item, dict) and str(item.get("entry_id", ""))
+        }
+        entry = registry_by_id.get(invoke_runtime_entry)
+        gate = gating_by_id.get(invoke_runtime_entry, {})
+        attempted_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        if entry is None:
+            invocation_envelope = {
+                "action_name": "NOT_COMPUTABLE",
+                "entry_id": invoke_runtime_entry,
+                "rune_id": "NOT_COMPUTABLE",
+                "adapter_name": "NOT_COMPUTABLE",
+                "attempted_at": attempted_at,
+                "run_id": str(view.selected_run_id or "NOT_COMPUTABLE"),
+                "payload_summary": {"selected_run_id": str(view.selected_run_id or "")},
+                "artifact_paths": [],
+                "result_path": "",
+                "outcome_status": "NOT_COMPUTABLE",
+                "provenance": "operator_routes.runtime_corridor.invoke.v3.3.entry_lookup",
+                "gating_snapshot": {"gating_reason": "entry_not_found"},
+                "ledger_record_ids": [],
+                "ledger_artifact_ids": [],
+                "correlation_pointers": [],
+            }
+        elif str(gate.get("invokable", "false")) != "true":
+            invocation_envelope = {
+                "action_name": str(entry.get("action_name", "")),
+                "entry_id": str(entry.get("entry_id", "")),
+                "rune_id": str(entry.get("rune_id", "NOT_COMPUTABLE")),
+                "adapter_name": str(entry.get("adapter_name", "NOT_COMPUTABLE")),
+                "attempted_at": attempted_at,
+                "run_id": str(view.selected_run_id or "NOT_COMPUTABLE"),
+                "payload_summary": {"selected_run_id": str(view.selected_run_id or "")},
+                "artifact_paths": [],
+                "result_path": "",
+                "outcome_status": "BLOCKED",
+                "provenance": "operator_routes.runtime_corridor.invoke.v3.3.gating_block",
+                "gating_snapshot": {
+                    "gating_reason": str(gate.get("gating_reason", "entry_blocked")),
+                    "required_conditions": list(gate.get("required_conditions", []))[:8],
+                },
+                "ledger_record_ids": [],
+                "ledger_artifact_ids": [],
+                "correlation_pointers": [],
+            }
+        else:
+            action_name = str(entry.get("action_name", ""))
+            adapter_output = execute_runtime_adapter(
+                action_name=action_name,
+                payload={"selected_run_id": view.selected_run_id or "", "entry_id": invoke_runtime_entry},
+                allowed_actions=list(view.control_plane.get("allowed_actions", [])),
+            )
+            artifact_paths = [str(x) for x in adapter_output.get("artifact_paths", []) if isinstance(x, str)][:5]
+            invocation_envelope = {
+                "action_name": action_name,
+                "entry_id": str(entry.get("entry_id", "")),
+                "rune_id": str(entry.get("rune_id", "NOT_COMPUTABLE")),
+                "adapter_name": str(adapter_output.get("adapter_name", entry.get("adapter_name", "NOT_COMPUTABLE"))),
+                "attempted_at": str(adapter_output.get("attempted_at", attempted_at)),
+                "run_id": str(adapter_output.get("run_id", "") or view.selected_run_id or "NOT_COMPUTABLE"),
+                "payload_summary": {"selected_run_id": str(view.selected_run_id or "")},
+                "artifact_paths": artifact_paths,
+                "result_path": artifact_paths[0] if artifact_paths else "",
+                "outcome_status": str(adapter_output.get("outcome_status", "NOT_COMPUTABLE")),
+                "provenance": "operator_routes.runtime_corridor.invoke.v3.3.adapter_execute",
+                "gating_snapshot": {
+                    "gating_reason": str(gate.get("gating_reason", "all_conditions_pass")),
+                    "required_conditions": list(gate.get("required_conditions", []))[:8],
+                },
+                "ledger_record_ids": [],
+                "ledger_artifact_ids": [],
+                "correlation_pointers": [],
+            }
+            if action_name in {"run_abraxas_pipeline", "run_abraxas_pipeline_review_path"}:
+                if isinstance(adapter_output.get("pipeline_envelope"), dict):
+                    bucket["pipeline_envelope_override"] = dict(adapter_output.get("pipeline_envelope", {}))
+                if isinstance(adapter_output.get("pipeline_step_records"), list):
+                    bucket["pipeline_step_records_override"] = list(adapter_output.get("pipeline_step_records", []))
+        bucket["runtime_invocation_override"] = invocation_envelope
+        _append_action_history(
+            bucket,
+            {
+                "attempted_at": str(invocation_envelope.get("attempted_at", attempted_at)),
+                "action_name": str(invocation_envelope.get("action_name", "")),
+                "preset_id": f"runtime.{invoke_runtime_entry}",
+                "adapter_name": str(invocation_envelope.get("adapter_name", "")),
+                "triggered_run_id": str(invocation_envelope.get("run_id", "")),
+                "outcome_status": str(invocation_envelope.get("outcome_status", "NOT_COMPUTABLE")),
+                "artifact_path": str((invocation_envelope.get("artifact_paths", [""]) or [""])[0]),
+                "message": str((invocation_envelope.get("gating_snapshot", {}) if isinstance(invocation_envelope.get("gating_snapshot", {}), dict) else {}).get("gating_reason", "runtime_invocation")),
+            },
+        )
+        bucket["result_packet"] = _result_packet(
+            status=str(invocation_envelope.get("outcome_status", "NOT_COMPUTABLE")),
+            preset_id=f"runtime.{invoke_runtime_entry}",
+            action_name=str(invocation_envelope.get("action_name", "")),
+            adapter_name=str(invocation_envelope.get("adapter_name", "")),
+            attempted_at=str(invocation_envelope.get("attempted_at", "")),
+            run_id=str(invocation_envelope.get("run_id", "")),
+            artifact_paths=[str(x) for x in invocation_envelope.get("artifact_paths", []) if isinstance(x, str)],
+            summary=f"runtime corridor invoke {str(invocation_envelope.get('outcome_status', 'NOT_COMPUTABLE')).lower()}",
+        )
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_runtime_corridor:
+        export_payload = dict((view.runtime_corridor or {}).get("runtime_export_preview", {}))
+        corridor_path, corridor_status = write_runtime_corridor_artifact(payload=export_payload)
+        bucket["latest_runtime_corridor_export_path"] = corridor_path or ""
+        bucket["latest_runtime_corridor_export_status"] = corridor_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_pipeline_artifact:
+        pipeline_payload = dict((view.abraxas_pipeline or {}).get("pipeline_export_preview", {}))
+        pipeline_path, pipeline_status = write_pipeline_artifact(payload=pipeline_payload)
+        bucket["latest_pipeline_export_path"] = pipeline_path or ""
+        bucket["latest_pipeline_export_status"] = pipeline_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_pipeline_review:
+        review_payload = dict((view.pipeline_hardening or {}).get("pipeline_review_export_preview", {}))
+        review_path, review_status = write_pipeline_review_artifact(payload=review_payload)
+        bucket["latest_pipeline_review_export_path"] = review_path or ""
+        bucket["latest_pipeline_review_export_status"] = review_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_pipeline_routing:
+        routing_payload = dict((view.pipeline_routing or {}).get("routing_export_preview", {}))
+        routing_path, routing_status = write_pipeline_routing_artifact(payload=routing_payload)
+        bucket["latest_pipeline_routing_export_path"] = routing_path or ""
+        bucket["latest_pipeline_routing_export_status"] = routing_status
         view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
 
     if export_ers_snapshot:
@@ -873,6 +1038,15 @@ async def ui_run_compliance_probe(request: Request):
         viz_render_export_path=str(bucket.get("viz_render_export_path", "")) or None,
         report_export_status=str(bucket.get("report_export_status", "not_requested")),
         report_export_paths=bucket.get("report_export_paths") if isinstance(bucket.get("report_export_paths"), dict) else {},
+        latest_runtime_corridor_export_path=str(bucket.get("latest_runtime_corridor_export_path", "")) or None,
+        latest_runtime_corridor_export_status=str(bucket.get("latest_runtime_corridor_export_status", "not_requested")),
+        runtime_invocation_override=bucket.get("runtime_invocation_override") if isinstance(bucket.get("runtime_invocation_override"), dict) else None,
+        latest_pipeline_export_path=str(bucket.get("latest_pipeline_export_path", "")) or None,
+        latest_pipeline_export_status=str(bucket.get("latest_pipeline_export_status", "not_requested")),
+        pipeline_envelope_override=bucket.get("pipeline_envelope_override") if isinstance(bucket.get("pipeline_envelope_override"), dict) else None,
+        pipeline_step_records_override=bucket.get("pipeline_step_records_override") if isinstance(bucket.get("pipeline_step_records_override"), list) else None,
+        latest_pipeline_review_export_path=str(bucket.get("latest_pipeline_review_export_path", "")) or None,
+        latest_pipeline_review_export_status=str(bucket.get("latest_pipeline_review_export_status", "not_requested")),
     )
     action_result: dict[str, object] | None = None
     last_action: dict[str, object] | None = None
@@ -964,6 +1138,11 @@ async def ui_run_compliance_probe(request: Request):
                     },
                     allowed_actions=[str(x) for x in view.control_plane.get("allowed_actions", []) if isinstance(x, str)],
                 )
+                if action_name in {"run_abraxas_pipeline", "run_abraxas_pipeline_review_path"}:
+                    if isinstance(adapter_output.get("pipeline_envelope"), dict):
+                        bucket["pipeline_envelope_override"] = dict(adapter_output.get("pipeline_envelope", {}))
+                    if isinstance(adapter_output.get("pipeline_step_records"), list):
+                        bucket["pipeline_step_records_override"] = list(adapter_output.get("pipeline_step_records", []))
                 last_action = {
                     "action_name": action_name,
                     "preset_id": preset_id,
