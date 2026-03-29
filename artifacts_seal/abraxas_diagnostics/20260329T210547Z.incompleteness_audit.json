@@ -1,0 +1,238 @@
+{
+  "audit_meta": {
+    "audit_id": "abraxas-incompleteness-20260329t210547z",
+    "determinism_notes": "Evidence-only audit using repository-visible code, contracts, and deterministic command outputs.",
+    "mode": "incompleteness_audit_pass",
+    "scope_version": "2026-03-29.task.A",
+    "timestamp": "2026-03-29T21:13:23Z"
+  },
+  "constraints_assertion": {
+    "fixes_applied": false,
+    "new_subsystems_introduced": false,
+    "speculation_beyond_evidence": false
+  },
+  "cross_system_summary": {
+    "single_most_important_closure_target": "binding / linkage / context restoration",
+    "top_3_dead_weight_or_drift": [
+      "demo/report artifacts / contract surfaces",
+      "viz/render surfaces",
+      "operator / governance / ERS"
+    ],
+    "top_3_misleadingly_complete": [
+      "pipeline review / hardening / final-state resolution",
+      "fusion / synthesis",
+      "reporting / export / markdown"
+    ],
+    "top_5_high_value_incomplete": [
+      "binding / linkage / context restoration",
+      "pipeline execution paths",
+      "runtime corridor / invocation / routing",
+      "pipeline review / hardening / final-state resolution",
+      "operator / governance / ERS"
+    ],
+    "totals": {
+      "CLOSURE_INCOMPLETE": 2,
+      "COMPLETE": 0,
+      "DEPRECATED / DRIFTING": 1,
+      "PARTIAL": 6,
+      "SCAFFOLDED": 1,
+      "SHADOW_ONLY": 0
+    }
+  },
+  "provenance": {
+    "commands": [
+      {
+        "command": "pytest -q tests/test_training_runner_determinism.py tests/test_oracle_rune_provenance.py tests/test_stub_audit.py",
+        "status": "PASS"
+      },
+      {
+        "command": "pytest -q webpanel/test_operator_console_refinement.py webpanel/test_runplan_steps.py webpanel/test_continuity_linking.py",
+        "reason": "ImportError: local pydantic package shadows FastAPI dependency expectation during collection",
+        "status": "ENV_LIMITATION"
+      },
+      {
+        "command": "python -m json.tool artifacts_seal/abraxas_diagnostics/20260329T210547Z.incompleteness_audit.json",
+        "status": "PASS"
+      }
+    ],
+    "commit_sha": "2fb23323079643b06a134adf543d757a5191faa2",
+    "inspected_paths": [
+      "AGENTS.md",
+      "PLANS.md",
+      "aal_core/runes/catalog.v0.yaml",
+      "aal_core/schemas/rune_execution_artifact.v1.json",
+      "aal_core/runes/executor.py",
+      "webpanel/core_bridge.py",
+      "webpanel/routes/governance_routes.py",
+      "webpanel/routes/export_routes.py",
+      "webpanel/operator_console.py",
+      "tests/test_viz_resolve.py"
+    ],
+    "repo_path": "/workspace/Abraxas",
+    "rules_applied": [
+      "PLAN_WAIT_EXECUTE_VALIDATE",
+      "no_fix_pass",
+      "deterministic_only",
+      "evidence_over_speculation"
+    ]
+  },
+  "ranked_priorities": [
+    {
+      "rank": 1,
+      "reason": "Highest lineage break risk across downstream validator and synthesis surfaces.",
+      "subsystem_name": "binding / linkage / context restoration"
+    },
+    {
+      "rank": 2,
+      "reason": "Execution spine is available but remains projection-heavy and weakly linked.",
+      "subsystem_name": "pipeline execution paths"
+    },
+    {
+      "rank": 3,
+      "reason": "Rune-id drift weakens contract authority.",
+      "subsystem_name": "demo/report artifacts / contract surfaces"
+    },
+    {
+      "rank": 4,
+      "reason": "Static allowlist + fallback core binding caps runtime closure.",
+      "subsystem_name": "runtime corridor / invocation / routing"
+    },
+    {
+      "rank": 5,
+      "reason": "Deterministic review can overstate certainty when upstream is synthetic.",
+      "subsystem_name": "pipeline review / hardening / final-state resolution"
+    }
+  ],
+  "subsystems": [
+    {
+      "classification": "PARTIAL",
+      "missing_closure_element": "Downstream consumption + non-placeholder linkage propagation for ERS artifacts.",
+      "recommended_action": "finish",
+      "short_reason": "Governance APIs are live, but ERS remains static and operator-triggered with placeholder linkage fields.",
+      "strongest_evidence": [
+        "webpanel/routes/governance_routes.py:166-182 registers ingest/ack/defer/session routes",
+        "webpanel/operator_console.py:8100-8102 constrains ERS to static catalog + explicit operator trigger",
+        "webpanel/operator_console.py:219-221 ERS artifact export writes empty linkage arrays"
+      ],
+      "subsystem_name": "operator / governance / ERS",
+      "user_impact": "Control surface is usable; ERS closure confidence is still manual and shallow."
+    },
+    {
+      "classification": "PARTIAL",
+      "missing_closure_element": "Removal of MVP fallback path or explicit promotion criteria for core bridge binding.",
+      "recommended_action": "finish",
+      "short_reason": "Runtime invocation is deterministic and gated, but built around fallback core wiring and static allowlists.",
+      "strongest_evidence": [
+        "webpanel/core_bridge.py:11-16 and 102-109 external core fallback behavior",
+        "webpanel/core_bridge.py:143 mvp risk-note explicitly marks structural interim state",
+        "webpanel/operator_console.py:8106 static allowlisted runtime corridor registry"
+      ],
+      "subsystem_name": "runtime corridor / invocation / routing",
+      "user_impact": "Unsupported runtime paths collapse to fallback semantics, reducing predictability of edge behavior."
+    },
+    {
+      "classification": "CLOSURE_INCOMPLETE",
+      "missing_closure_element": "Callable map stage + populated ledger/correlation linkage in pipeline envelope.",
+      "recommended_action": "finish",
+      "short_reason": "Pipeline runs end-to-end, but parse/map/diff are projection-driven and linkage remains empty in produced envelope.",
+      "strongest_evidence": [
+        "webpanel/operator_console.py:8109 pipeline path rule states map can remain NOT_COMPUTABLE",
+        "webpanel/operator_console.py:2268-2308 map projection synthesizes relation pairs from parsed keys/run tokens",
+        "webpanel/operator_console.py:2582-2586 and 2637-2639 linkage arrays are emitted empty"
+      ],
+      "subsystem_name": "pipeline execution paths",
+      "user_impact": "Pipeline status appears complete while lineage and semantic mapping remain weak."
+    },
+    {
+      "classification": "PARTIAL",
+      "missing_closure_element": "Final-state confidence binding to non-projection parse/map evidence.",
+      "recommended_action": "finish",
+      "short_reason": "Review/final-state logic is deterministic, but inherits projection constraints from upstream pipeline stages.",
+      "strongest_evidence": [
+        "webpanel/operator_console.py:2338-2401 deterministic final-result classifier",
+        "webpanel/operator_console.py:8111-8112 hardening audit + selection rules are deterministic",
+        "webpanel/operator_console.py:2435-2464 parse/map step records sourced from projection functions"
+      ],
+      "subsystem_name": "pipeline review / hardening / final-state resolution",
+      "user_impact": "Review surfaces can look closure-grade when upstream evidence is synthetic."
+    },
+    {
+      "classification": "CLOSURE_INCOMPLETE",
+      "missing_closure_element": "Uniform linkage completeness across binding/context artifacts instead of selective repair behavior.",
+      "recommended_action": "finish",
+      "short_reason": "Binding/context repair exists, but broader artifact ecosystem still depends on empty linkage and fallback materialization.",
+      "strongest_evidence": [
+        "webpanel/operator_console.py:773-805 resultspack fallback used when canonical artifact files are absent",
+        "webpanel/operator_console.py:797 uses RUNE.AUDIT for fallback binding surface",
+        "webpanel/operator_console.py:8133-8137 binding/context restoration rules remain projection-driven"
+      ],
+      "subsystem_name": "binding / linkage / context restoration",
+      "user_impact": "Some runs restore context, but lineage consistency is not guaranteed across surfaces."
+    },
+    {
+      "classification": "PARTIAL",
+      "missing_closure_element": "Detector feed from authoritative telemetry and richer linkage context.",
+      "recommended_action": "finish",
+      "short_reason": "Detector logic is deterministic but bounded to derived counts from operator surfaces with explicit placeholder linkage.",
+      "strongest_evidence": [
+        "webpanel/operator_console.py:8119-8126 detector ladder rules are deterministic",
+        "webpanel/operator_console.py:8120 detector export rule keeps explicit linkage placeholders",
+        "webpanel/operator_console.py:2458-2462 upstream map stage can produce NOT_COMPUTABLE"
+      ],
+      "subsystem_name": "detector families",
+      "user_impact": "Detector outputs are stable for triage but not closure-grade for deep confidence decisions."
+    },
+    {
+      "classification": "PARTIAL",
+      "missing_closure_element": "Upstream closure of detector and pipeline linkage quality feeding fusion/synthesis.",
+      "recommended_action": "finish",
+      "short_reason": "Fusion/synthesis precedence ladders are deterministic, yet they compose upstream partial detector/pipeline evidence.",
+      "strongest_evidence": [
+        "webpanel/operator_console.py:8127-8132 fusion/synthesis deterministic rules",
+        "webpanel/operator_console.py:8127 fusion input constrained to projected detector outputs",
+        "webpanel/operator_console.py:8099 reporting/viz stack consumes summaries rather than raw execution chains"
+      ],
+      "subsystem_name": "fusion / synthesis",
+      "user_impact": "Synthesis guidance is legible but can understate hidden uncertainty."
+    },
+    {
+      "classification": "PARTIAL",
+      "missing_closure_element": "Validator/ledger consumption contract for generated reporting artifacts.",
+      "recommended_action": "keep",
+      "short_reason": "Reporting/export routes and writers are operational, but generated artifacts are mostly terminal summaries, not enforced inputs.",
+      "strongest_evidence": [
+        "webpanel/routes/export_routes.py:14-36 bundle export is executable and deterministic",
+        "webpanel/operator_console.py:8099 reporting_rule defines bounded summary behavior",
+        "webpanel/operator_console.py:293-299 and 192-197 write bounded report artifacts"
+      ],
+      "subsystem_name": "reporting / export / markdown",
+      "user_impact": "Exports are useful and reproducible, but not guaranteed to close feedback loops."
+    },
+    {
+      "classification": "SCAFFOLDED",
+      "missing_closure_element": "Unified render contract consuming full run artifacts and returning richer bound visual state.",
+      "recommended_action": "finish",
+      "short_reason": "Viz render is deterministic and mode-routed but explicitly lightweight (non-heavy-chart) text projection.",
+      "strongest_evidence": [
+        "webpanel/operator_console.py:8098 viz_render_rule explicitly says no heavy charting",
+        "webpanel/operator_console.py:131-156 render artifact captures routed preview payload",
+        "tests/test_viz_resolve.py:1-14 indicates richer viz resolution lives in separate runtime path"
+      ],
+      "subsystem_name": "viz/render surfaces",
+      "user_impact": "Good orientation layer; insufficient for closure-grade visual diagnostics."
+    },
+    {
+      "classification": "DEPRECATED / DRIFTING",
+      "missing_closure_element": "Registry alignment for emitted rune_ids (or explicit deprecation path).",
+      "recommended_action": "merge",
+      "short_reason": "Artifact rune IDs and registry are out of alignment, creating contract-authority drift.",
+      "strongest_evidence": [
+        "aal_core/runes/catalog.v0.yaml:4-69 registers only INGEST/SCAN/PARSE/MAP/DIFF/ERS",
+        "webpanel/operator_console.py:2228-2232 pipeline catalog uses RUNE.AUDIT",
+        "webpanel/operator_console.py:797 and 2232 and 2570 references emit/use RUNE.AUDIT outside registry"
+      ],
+      "subsystem_name": "demo/report artifacts / contract surfaces",
+      "user_impact": "Governance and validator surfaces cannot treat rune identity as single-source-of-truth."
+    }
+  ]
+}

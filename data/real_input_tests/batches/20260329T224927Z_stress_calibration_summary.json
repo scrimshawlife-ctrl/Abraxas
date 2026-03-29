@@ -1,0 +1,209 @@
+{
+  "analysis_type_degradation": {
+    "contradictory_context": {
+      "anomaly_gap_analysis": -6.0,
+      "fusion_interpretation_analysis": -1.0,
+      "instability_drift_analysis": -6.0,
+      "motif_recurrence_analysis": -1.0,
+      "pressure_friction_analysis": -6.0,
+      "routing_selection_analysis": -6.0,
+      "structural_analysis": -6.0,
+      "synthesis_output_analysis": -5.5
+    },
+    "noisy_context": {
+      "anomaly_gap_analysis": -6.0,
+      "fusion_interpretation_analysis": -1.0,
+      "instability_drift_analysis": -6.0,
+      "motif_recurrence_analysis": -1.0,
+      "pressure_friction_analysis": -6.0,
+      "routing_selection_analysis": -6.0,
+      "structural_analysis": -6.0,
+      "synthesis_output_analysis": -5.5
+    },
+    "thin_context": {
+      "anomaly_gap_analysis": -6.0,
+      "fusion_interpretation_analysis": -1.0,
+      "instability_drift_analysis": -6.0,
+      "motif_recurrence_analysis": -1.0,
+      "pressure_friction_analysis": -6.0,
+      "routing_selection_analysis": -6.0,
+      "structural_analysis": -6.0,
+      "synthesis_output_analysis": -5.5
+    }
+  },
+  "batch_ids": {
+    "baseline": "batch_20260329T224927Z_ba4a1e7a7d",
+    "contradictory_context": "batch_20260329T224927Z_d2401bfdc3",
+    "noisy_context": "batch_20260329T224927Z_0144f42a2d",
+    "thin_context": "batch_20260329T224927Z_2388c6f7e9"
+  },
+  "cross_mode_suspicion_heuristics": {
+    "contradictory_context_no_degradation": {
+      "delta": -4.95,
+      "flag": false
+    },
+    "fusion_equally_strong_across_modes": {
+      "flag": false
+    },
+    "stress_mode_score_not_below_baseline": {
+      "deltas": {
+        "contradictory_context": -4.95,
+        "noisy_context": -4.7,
+        "thin_context": -4.7
+      },
+      "flag": false
+    },
+    "stress_mode_zero_failures": {
+      "by_mode": {
+        "contradictory_context": false,
+        "noisy_context": false,
+        "thin_context": false
+      },
+      "flag": false
+    },
+    "synthesis_equally_strong_across_modes": {
+      "flag": false
+    }
+  },
+  "delta_from_baseline": {
+    "contradictory_context": -4.95,
+    "noisy_context": -4.7,
+    "thin_context": -4.7
+  },
+  "final_calibration_verdict": "HARNESS_OVERPENALIZING",
+  "fusion_degrades_under_stress": true,
+  "per_mode": {
+    "baseline": {
+      "average_total_score": 13.95,
+      "failure_frequency": {
+        "F4_REDUNDANCY": 8
+      },
+      "most_common_failure_type": "F4_REDUNDANCY",
+      "strongest_analysis_type": "structural_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 1,
+          "flag": true
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 13.95,
+          "flag": true
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.4,
+          "flag": false
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 0.5,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "synthesis_output_analysis"
+    },
+    "contradictory_context": {
+      "average_total_score": 9.0,
+      "failure_frequency": {
+        "F4_REDUNDANCY": 1,
+        "F8_CONTEXT_INSENSITIVITY": 16
+      },
+      "most_common_failure_type": "F8_CONTEXT_INSENSITIVITY",
+      "strongest_analysis_type": "motif_recurrence_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 2,
+          "flag": false
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 9.0,
+          "flag": false
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.85,
+          "flag": false
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 5.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "anomaly_gap_analysis"
+    },
+    "noisy_context": {
+      "average_total_score": 9.25,
+      "failure_frequency": {
+        "F4_REDUNDANCY": 1,
+        "F8_CONTEXT_INSENSITIVITY": 15
+      },
+      "most_common_failure_type": "F8_CONTEXT_INSENSITIVITY",
+      "strongest_analysis_type": "motif_recurrence_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 2,
+          "flag": false
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 9.25,
+          "flag": false
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.8,
+          "flag": false
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 5.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "anomaly_gap_analysis"
+    },
+    "thin_context": {
+      "average_total_score": 9.25,
+      "failure_frequency": {
+        "F4_REDUNDANCY": 2,
+        "F8_CONTEXT_INSENSITIVITY": 15
+      },
+      "most_common_failure_type": "F8_CONTEXT_INSENSITIVITY",
+      "strongest_analysis_type": "motif_recurrence_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 2,
+          "flag": false
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 9.25,
+          "flag": false
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.85,
+          "flag": false
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 5.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "anomaly_gap_analysis"
+    }
+  },
+  "provenance": {
+    "harness_version": "real_input_test.v2_stress",
+    "rules": [
+      "stress_modes:bounded_predefined",
+      "failure_rules:tightened_f1_f2_f4_f7_f8",
+      "suspicion_heuristics:deterministic_thresholds"
+    ]
+  },
+  "recommended_next_adjustments": [
+    "Relax specificity threshold for abstract_symbolic topics.",
+    "Reduce overreach penalty when uncertainty markers are present.",
+    "Permit manual_review next-step for non-actionable analyses."
+  ],
+  "stress_modes": [
+    "baseline",
+    "thin_context",
+    "noisy_context",
+    "contradictory_context"
+  ],
+  "synthesis_degrades_under_stress": true,
+  "timestamp": "2026-03-29T22:49:27Z"
+}

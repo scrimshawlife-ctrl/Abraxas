@@ -1,0 +1,98 @@
+{
+  "average_score_by_analysis_type": {
+    "fusion_interpretation_analysis": 14.0
+  },
+  "average_score_by_topic_category": {
+    "abstract_symbolic": 14.0,
+    "business_markets": 14.0,
+    "culture_media": 14.0,
+    "history": 14.0,
+    "personal_everyday": 14.0,
+    "science_health": 14.0,
+    "technology": 14.0
+  },
+  "average_total_score": 14.0,
+  "batch_id": "batch_20260329T231457Z_aeeca94d2f",
+  "failure_frequency": {
+    "F4_REDUNDANCY": 20
+  },
+  "mode": "batch",
+  "most_common_failure_type": "F4_REDUNDANCY",
+  "provenance": {
+    "harness_version": "real_input_test.v2_stress",
+    "rules": [
+      "deterministic_selection:seed+mode+override",
+      "stress_context:bounded_predefined_modifiers",
+      "fixed_rubric:0_to_2_integer_dimensions",
+      "fixed_failure_taxonomy:F1_to_F8"
+    ]
+  },
+  "run_artifact_paths": [
+    "data/real_input_tests/runs/rit.6b476a5b3a39d469.json",
+    "data/real_input_tests/runs/rit.74919bd1f49410a0.json",
+    "data/real_input_tests/runs/rit.39c74ba95f2b7aad.json",
+    "data/real_input_tests/runs/rit.ee73ba1b25ca7b06.json",
+    "data/real_input_tests/runs/rit.3c07ad3d44c07356.json",
+    "data/real_input_tests/runs/rit.ba645b91e6c97f4f.json",
+    "data/real_input_tests/runs/rit.a96e90f975e5652a.json",
+    "data/real_input_tests/runs/rit.3fded36495e9cdd6.json",
+    "data/real_input_tests/runs/rit.08eaa24f19ab55c4.json",
+    "data/real_input_tests/runs/rit.ca5ae4d9a200f383.json",
+    "data/real_input_tests/runs/rit.c568e17d9fe1430e.json",
+    "data/real_input_tests/runs/rit.b63caadd896f341c.json",
+    "data/real_input_tests/runs/rit.8c0422dd60e61858.json",
+    "data/real_input_tests/runs/rit.b9f4bab9e2ce2323.json",
+    "data/real_input_tests/runs/rit.a05a6c3b51cb468c.json",
+    "data/real_input_tests/runs/rit.e479f99ce67b8dfb.json",
+    "data/real_input_tests/runs/rit.e6986476e972a680.json",
+    "data/real_input_tests/runs/rit.6dbbf9cc88fec59a.json",
+    "data/real_input_tests/runs/rit.536126a24d89f10d.json",
+    "data/real_input_tests/runs/rit.a9c33ae38226ac9e.json"
+  ],
+  "run_ids": [
+    "rit.6b476a5b3a39d469",
+    "rit.74919bd1f49410a0",
+    "rit.39c74ba95f2b7aad",
+    "rit.ee73ba1b25ca7b06",
+    "rit.3c07ad3d44c07356",
+    "rit.ba645b91e6c97f4f",
+    "rit.a96e90f975e5652a",
+    "rit.3fded36495e9cdd6",
+    "rit.08eaa24f19ab55c4",
+    "rit.ca5ae4d9a200f383",
+    "rit.c568e17d9fe1430e",
+    "rit.b63caadd896f341c",
+    "rit.8c0422dd60e61858",
+    "rit.b9f4bab9e2ce2323",
+    "rit.a05a6c3b51cb468c",
+    "rit.e479f99ce67b8dfb",
+    "rit.e6986476e972a680",
+    "rit.6dbbf9cc88fec59a",
+    "rit.536126a24d89f10d",
+    "rit.a9c33ae38226ac9e"
+  ],
+  "seed": 20260331,
+  "stress_mode": "noisy_context",
+  "strongest_analysis_type": "fusion_interpretation_analysis",
+  "suspicion_heuristics": {
+    "no_failure_type_diversity": {
+      "failure_diversity_count": 1,
+      "flag": true
+    },
+    "score_cluster_too_high": {
+      "average_total_score": 14.0,
+      "flag": true
+    },
+    "suspiciously_low_failure_rate": {
+      "failure_rate": 1.0,
+      "flag": false
+    },
+    "weak_analysis_type_gap_too_small": {
+      "analysis_gap": 0.0,
+      "flag": true
+    }
+  },
+  "timestamp": "2026-03-29T23:14:57Z",
+  "top_recommendation": "Enforce non-redundant clause templates.",
+  "weakest_analysis_type": "fusion_interpretation_analysis"
+}

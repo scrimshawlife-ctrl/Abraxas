@@ -1,0 +1,10 @@
+[
+  {"analysis_type_id":"structural_analysis","label":"Structural Analysis","expected_focus":"structure_and_constraints","actionability_expected":true},
+  {"analysis_type_id":"pressure_friction_analysis","label":"Pressure/Friction Analysis","expected_focus":"pressure_vs_friction_signals","actionability_expected":true},
+  {"analysis_type_id":"motif_recurrence_analysis","label":"Motif Recurrence Analysis","expected_focus":"motif_recurrence_patterns","actionability_expected":false},
+  {"analysis_type_id":"instability_drift_analysis","label":"Instability/Drift Analysis","expected_focus":"instability_and_drift_markers","actionability_expected":true},
+  {"analysis_type_id":"anomaly_gap_analysis","label":"Anomaly/Gap Analysis","expected_focus":"anomaly_and_gap_detection","actionability_expected":true},
+  {"analysis_type_id":"fusion_interpretation_analysis","label":"Fusion Interpretation Analysis","expected_focus":"cross_signal_fusion_interpretation","actionability_expected":false},
+  {"analysis_type_id":"synthesis_output_analysis","label":"Synthesis Output Analysis","expected_focus":"synthesis_summary_and_next_step","actionability_expected":true},
+  {"analysis_type_id":"routing_selection_analysis","label":"Routing Selection Analysis","expected_focus":"routing_choice_and_rationale","actionability_expected":true}
+]

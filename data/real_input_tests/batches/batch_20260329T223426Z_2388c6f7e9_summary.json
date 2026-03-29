@@ -1,0 +1,103 @@
+{
+  "average_score_by_analysis_type": {
+    "anomaly_gap_analysis": 14.0,
+    "fusion_interpretation_analysis": 13.0,
+    "instability_drift_analysis": 14.0,
+    "motif_recurrence_analysis": 13.0,
+    "pressure_friction_analysis": 14.0,
+    "routing_selection_analysis": 14.0,
+    "structural_analysis": 14.0,
+    "synthesis_output_analysis": 14.0
+  },
+  "average_score_by_topic_category": {
+    "abstract_symbolic": 13.5,
+    "business_markets": 14.0,
+    "culture_media": 14.0,
+    "history": 13.5,
+    "personal_everyday": 13.8,
+    "science_health": 14.0,
+    "technology": 13.714
+  },
+  "average_total_score": 13.75,
+  "batch_id": "batch_20260329T223426Z_2388c6f7e9",
+  "failure_frequency": {},
+  "mode": "batch",
+  "most_common_failure_type": "NONE",
+  "provenance": {
+    "harness_version": "real_input_test.v2_stress",
+    "rules": [
+      "deterministic_selection:seed+mode+override",
+      "stress_context:bounded_predefined_modifiers",
+      "fixed_rubric:0_to_2_integer_dimensions",
+      "fixed_failure_taxonomy:F1_to_F8"
+    ]
+  },
+  "run_artifact_paths": [
+    "data/real_input_tests/runs/rit.b7b60946e38e3a90.json",
+    "data/real_input_tests/runs/rit.f49eedd9d5173661.json",
+    "data/real_input_tests/runs/rit.5b06f47ba167ba6a.json",
+    "data/real_input_tests/runs/rit.b813998b154e4138.json",
+    "data/real_input_tests/runs/rit.b90a8e91180f80bf.json",
+    "data/real_input_tests/runs/rit.11aa3b1769e060e7.json",
+    "data/real_input_tests/runs/rit.ac4890ce1c71eaff.json",
+    "data/real_input_tests/runs/rit.6adece97aa36dcce.json",
+    "data/real_input_tests/runs/rit.1c0e052467f3c5e7.json",
+    "data/real_input_tests/runs/rit.d28cacd64a7fa41b.json",
+    "data/real_input_tests/runs/rit.acc303296f1b93f7.json",
+    "data/real_input_tests/runs/rit.230dfb23fb4c0e8d.json",
+    "data/real_input_tests/runs/rit.8220ff4d392a6ddf.json",
+    "data/real_input_tests/runs/rit.626927907a2c2134.json",
+    "data/real_input_tests/runs/rit.2bdc9e9fb62691c7.json",
+    "data/real_input_tests/runs/rit.97992012d7fbe529.json",
+    "data/real_input_tests/runs/rit.a7fab05c357caf36.json",
+    "data/real_input_tests/runs/rit.107f766d0e29afe4.json",
+    "data/real_input_tests/runs/rit.8b79084210eb0f30.json",
+    "data/real_input_tests/runs/rit.dad204a2f1641b51.json"
+  ],
+  "run_ids": [
+    "rit.b7b60946e38e3a90",
+    "rit.f49eedd9d5173661",
+    "rit.5b06f47ba167ba6a",
+    "rit.b813998b154e4138",
+    "rit.b90a8e91180f80bf",
+    "rit.11aa3b1769e060e7",
+    "rit.ac4890ce1c71eaff",
+    "rit.6adece97aa36dcce",
+    "rit.1c0e052467f3c5e7",
+    "rit.d28cacd64a7fa41b",
+    "rit.acc303296f1b93f7",
+    "rit.230dfb23fb4c0e8d",
+    "rit.8220ff4d392a6ddf",
+    "rit.626927907a2c2134",
+    "rit.2bdc9e9fb62691c7",
+    "rit.97992012d7fbe529",
+    "rit.a7fab05c357caf36",
+    "rit.107f766d0e29afe4",
+    "rit.8b79084210eb0f30",
+    "rit.dad204a2f1641b51"
+  ],
+  "seed": 20260331,
+  "stress_mode": "thin_context",
+  "strongest_analysis_type": "synthesis_output_analysis",
+  "suspicion_heuristics": {
+    "no_failure_type_diversity": {
+      "failure_diversity_count": 0,
+      "flag": true
+    },
+    "score_cluster_too_high": {
+      "average_total_score": 13.75,
+      "flag": true
+    },
+    "suspiciously_low_failure_rate": {
+      "failure_rate": 0.0,
+      "flag": true
+    },
+    "weak_analysis_type_gap_too_small": {
+      "analysis_gap": 1.0,
+      "flag": false
+    }
+  },
+  "timestamp": "2026-03-29T22:34:26Z",
+  "top_recommendation": "Maintain harness and expand topic coverage incrementally.",
+  "weakest_analysis_type": "fusion_interpretation_analysis"
+}

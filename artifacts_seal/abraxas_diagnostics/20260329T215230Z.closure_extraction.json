@@ -1,0 +1,158 @@
+{
+  "buckets": {
+    "ignore_for_now": [
+      {
+        "promote_when": "Promote once reporting artifacts become required validator or ledger inputs for decision gating.",
+        "reason_safe_to_defer": "Operational and deterministic; current gap is downstream consumption contract, not immediate execution correctness.",
+        "subsystem_name": "reporting / export / markdown"
+      },
+      {
+        "promote_when": "Promote when detector outputs are used as hard decision gates rather than advisory labels.",
+        "reason_safe_to_defer": "Deterministic triage value exists; biggest risk is upstream evidence quality, already addressed by must-finish pipeline/binding items.",
+        "subsystem_name": "detector families"
+      },
+      {
+        "promote_when": "Promote after binding + pipeline closure surfaces stabilize and synthesis is promoted to blocking governance signal.",
+        "reason_safe_to_defer": "Downstream of detector/pipeline closure; improving upstream closures yields higher leverage first.",
+        "subsystem_name": "fusion / synthesis"
+      },
+      {
+        "promote_when": "Promote when ERS outputs are required to auto-advance runtime corridor or policy enforcement.",
+        "reason_safe_to_defer": "Governance/ERS remains functional and manually controlled; automated consumption can wait until core linkage closes.",
+        "subsystem_name": "operator / governance / ERS"
+      },
+      {
+        "promote_when": "Promote when visual outputs are used as primary operator evidence for closure decisions.",
+        "reason_safe_to_defer": "Known scaffolded orientation layer; low closure leverage versus core lineage/runtime surfaces.",
+        "subsystem_name": "viz/render surfaces"
+      }
+    ],
+    "must_finish": [
+      {
+        "current_classification": "CLOSURE_INCOMPLETE",
+        "expected_impact_if_fixed": "Stabilizes run lineage, improves validator traceability, and reduces false closure states.",
+        "missing_closure_element": "Uniform linkage completeness across binding/context artifacts instead of selective repair behavior.",
+        "smallest_possible_fix": "Require non-empty linkage propagation gate in binding/context artifact writers; fail to NOT_COMPUTABLE when linkage prerequisites missing.",
+        "subsystem_name": "binding / linkage / context restoration",
+        "why_it_matters": "Lineage integrity gate for validator trust and downstream synthesis reliability."
+      },
+      {
+        "current_classification": "CLOSURE_INCOMPLETE",
+        "expected_impact_if_fixed": "Raises reliability of pipeline outputs and lowers synthetic-signal leakage.",
+        "missing_closure_element": "Callable map stage + populated ledger/correlation linkage in pipeline envelope.",
+        "smallest_possible_fix": "Replace map projection fallback with callable-check gate; keep step NOT_COMPUTABLE unless callable map output exists and is linked.",
+        "subsystem_name": "pipeline execution paths",
+        "why_it_matters": "Primary execution spine; weak mapping/linkage propagates uncertainty everywhere."
+      },
+      {
+        "current_classification": "PARTIAL",
+        "expected_impact_if_fixed": "Improves predictability of operator actions and runtime state interpretation.",
+        "missing_closure_element": "Removal of MVP fallback path or explicit promotion criteria for core bridge binding.",
+        "smallest_possible_fix": "Promote one authoritative invocation path by forcing explicit external-core availability status in runtime corridor packet.",
+        "subsystem_name": "runtime corridor / invocation / routing",
+        "why_it_matters": "High-touch operator path; fallback ambiguity can mislead runtime confidence."
+      },
+      {
+        "current_classification": "PARTIAL",
+        "expected_impact_if_fixed": "Makes final-state labels trustworthy and audit-grade.",
+        "missing_closure_element": "Final-state confidence binding to non-projection parse/map evidence.",
+        "smallest_possible_fix": "Gate final-state confidence to upstream parse/map evidence quality and tag synthetic-only paths as PARTIAL.",
+        "subsystem_name": "pipeline review / hardening / final-state resolution",
+        "why_it_matters": "Produces closure labels that can look stronger than evidence quality."
+      },
+      {
+        "current_classification": "DEPRECATED / DRIFTING",
+        "expected_impact_if_fixed": "Restores single-source contract authority for rune identity.",
+        "missing_closure_element": "Registry alignment for emitted rune_ids (or explicit deprecation path).",
+        "smallest_possible_fix": "Align emitted rune_id values with catalog entries or mark non-catalog IDs explicitly deprecated in artifact metadata.",
+        "subsystem_name": "demo/report artifacts / contract surfaces",
+        "why_it_matters": "Registry drift creates contract confusion and governance entropy."
+      }
+    ],
+    "remove_or_demote_later": []
+  },
+  "consistency_checks": {
+    "bucket_overlap_allowed": false,
+    "note": "Each subsystem appears in at most one bucket.",
+    "overlap_detected": false
+  },
+  "meta": {
+    "mode": "closure_extraction",
+    "source_audit_paths": [
+      "artifacts_seal/abraxas_diagnostics/20260329T210547Z.incompleteness_audit.json",
+      "artifacts_seal/abraxas_diagnostics/20260329T210547Z.incompleteness_audit.md"
+    ],
+    "timestamp": "2026-03-29T21:54:21Z"
+  },
+  "ranked_extracted_subsystems": [
+    {
+      "current_classification": "CLOSURE_INCOMPLETE",
+      "missing_closure_element": "Uniform linkage completeness across binding/context artifacts instead of selective repair behavior.",
+      "rank": 1,
+      "rank_rationale": "Highest lineage/dependency unlock across validator-facing surfaces.",
+      "subsystem_name": "binding / linkage / context restoration",
+      "user_impact": "Some runs restore context, but lineage consistency is not guaranteed across surfaces."
+    },
+    {
+      "current_classification": "CLOSURE_INCOMPLETE",
+      "missing_closure_element": "Callable map stage + populated ledger/correlation linkage in pipeline envelope.",
+      "rank": 2,
+      "rank_rationale": "High dependency execution spine with synthetic risk and frequent use.",
+      "subsystem_name": "pipeline execution paths",
+      "user_impact": "Pipeline status appears complete while lineage and semantic mapping remain weak."
+    },
+    {
+      "current_classification": "PARTIAL",
+      "missing_closure_element": "Removal of MVP fallback path or explicit promotion criteria for core bridge binding.",
+      "rank": 3,
+      "rank_rationale": "High-frequency operator path with fallback ambiguity.",
+      "subsystem_name": "runtime corridor / invocation / routing",
+      "user_impact": "Unsupported runtime paths collapse to fallback semantics, reducing predictability of edge behavior."
+    },
+    {
+      "current_classification": "PARTIAL",
+      "missing_closure_element": "Final-state confidence binding to non-projection parse/map evidence.",
+      "rank": 4,
+      "rank_rationale": "Closure label quality depends on upstream evidence integrity.",
+      "subsystem_name": "pipeline review / hardening / final-state resolution",
+      "user_impact": "Review surfaces can look closure-grade when upstream evidence is synthetic."
+    },
+    {
+      "current_classification": "DEPRECATED / DRIFTING",
+      "missing_closure_element": "Registry alignment for emitted rune_ids (or explicit deprecation path).",
+      "rank": 5,
+      "rank_rationale": "Contract drift creates cross-surface governance confusion.",
+      "subsystem_name": "demo/report artifacts / contract surfaces",
+      "user_impact": "Governance and validator surfaces cannot treat rune identity as single-source-of-truth."
+    }
+  ],
+  "rules": {
+    "extraction": "include CLOSURE_INCOMPLETE; include PARTIAL only when high-impact; include DEPRECATED/DRIFTING when entropy-producing",
+    "ranking": "user_impact -> dependency impact -> likely use frequency -> misleading completeness risk -> smallest fix to highest value ratio",
+    "scope": "no new subsystem ideas, no redesign, source-audit-only"
+  },
+  "scope_assertion": {
+    "new_subsystems_introduced": false,
+    "redesign_proposed": false,
+    "source_truth_only": true
+  },
+  "single_next_closure_target": {
+    "subsystem_name": "binding / linkage / context restoration",
+    "what_it_unblocks": [
+      "Reliable pipeline final-state trust signals",
+      "Higher-confidence detector/fusion/synthesis interpretation",
+      "Cleaner governance and ERS consumption paths"
+    ],
+    "why_others_wait": "Other high-impact items depend on linkage integrity or become safer to tune once run-linkage consistency is stable.",
+    "why_this_unlocks_most_value": "It sits at the lineage junction between artifacts, validators, and downstream synthesis confidence."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "python -m json.tool artifacts_seal/abraxas_diagnostics/20260329T215230Z.closure_extraction.json",
+        "status": "PASS"
+      }
+    ],
+    "source_truth_assertion": "Derived only from 20260329T210547Z incompleteness audit artifacts."
+  }
+}
