@@ -93,6 +93,19 @@ class ViewState:
     runtime_safety_notes: List[Dict[str, str]]
     runflow_cards: List[Dict[str, str]]
     runtime_result_drilldown: Dict[str, Any]
+    outcome_classification: Dict[str, str]
+    prior_result_diff: Dict[str, Any]
+    action_stability: Dict[str, Any]
+    failure_triage: Dict[str, Any]
+    result_provenance_panel: Dict[str, Any]
+    runtime_outcome_review_workspace: Dict[str, Any]
+    decision_layer: Dict[str, Any]
+    decision_workspace_payload: Dict[str, Any]
+    session_continuity: Dict[str, Any]
+    governance: Dict[str, Any]
+    viz_integration: Dict[str, Any]
+    viz_render: Dict[str, Any]
+    reporting: Dict[str, Any]
     adapter_health_checks: Dict[str, Any]
     runflow_workspace: Dict[str, Any]
     session_context: Dict[str, str]
@@ -101,6 +114,74 @@ class ViewState:
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def write_viz_render_artifact(
+    *,
+    preview: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "operator_viz_render",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    mode = _sanitize_viz_mode(str(preview.get("viz_mode", "weather")))
+    path = root / f"{stamp}.{mode}.render.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{mode}.{index}.render.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v2.7.1",
+        "source": "operator_console",
+        "viz_mode": mode,
+        "render_output": dict(preview.get("render_output", {})),
+        "source_viz_payload": dict(preview.get("source_viz_payload", {})),
+        "selected_context": dict(preview.get("selected_context", {})),
+        "status": str(preview.get("status", "ready")),
+        "provenance": str(preview.get("provenance", "operator_console.viz_render.v2.7.1.mode_routed")),
+        "timestamp": str(preview.get("timestamp", _utc_now())),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_operator_report_artifact(
+    *,
+    suffix: str,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "operator_reports",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.{suffix}.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{suffix}.{index}.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v2.8.0",
+        "source": "operator_console",
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_operator_markdown_report(
+    *,
+    markdown: str,
+    root: Path = Path("artifacts_seal") / "operator_reports",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.report.md"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.report.{index}.md"
+        index += 1
+    path.write_text(markdown, encoding="utf-8")
+    return path.as_posix(), "written"
 
 
 def _load_json(path: Path) -> Optional[Dict[str, Any]]:
@@ -800,7 +881,7 @@ def _build_action_safety_envelope() -> Dict[str, Any]:
 
 
 def _sanitize_workbench_mode(value: Optional[str]) -> str:
-    allowed = ["overview", "runs", "compare", "watch", "export", "runflow"]
+    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report"]
     return str(value) if value in allowed else "overview"
 
 
@@ -1266,6 +1347,785 @@ def _compute_suggested_focus(visible_summaries: List[Dict[str, Any]], visible_ru
     return (visible_run_ids[0] if visible_run_ids else None), "fallback_first_visible_run"
 
 
+def _result_packet_artifact_paths(packet: Mapping[str, Any]) -> List[str]:
+    paths = [str(x) for x in packet.get("artifact_paths", []) if isinstance(x, str) and str(x)]
+    if not paths and str(packet.get("artifact_path", "")):
+        paths = [str(packet.get("artifact_path", ""))]
+    return paths[:5]
+
+
+def _classify_outcome(packet: Mapping[str, Any]) -> Dict[str, str]:
+    status = str(packet.get("status", "")).upper()
+    run_id = str(packet.get("run_id", "")).strip()
+    artifact_paths = _result_packet_artifact_paths(packet)
+    error_info = str(packet.get("error_info", "")).strip()
+
+    if status in {"NOT_COMPUTABLE", "NOT_REQUESTED", "PREVIEW_ONLY"}:
+        return {"label": "NOT_COMPUTABLE", "reason_code": "status_not_computable_or_preview"}
+    if status in {"FAILED", "ERROR"}:
+        return {"label": "FAILED", "reason_code": "explicit_failed_status"}
+    if error_info and not artifact_paths:
+        return {"label": "FAILED", "reason_code": "error_info_without_artifact"}
+    if status in {"SUCCESS", "VALID"} and run_id and artifact_paths:
+        return {"label": "SUCCESS", "reason_code": "success_with_run_and_artifact"}
+    if status in {"SUCCESS", "VALID", "PARTIAL"}:
+        return {"label": "PARTIAL", "reason_code": "incomplete_success_surfaces"}
+    if not run_id and not artifact_paths:
+        return {"label": "NOT_COMPUTABLE", "reason_code": "missing_run_and_artifact"}
+    return {"label": "NOT_COMPUTABLE", "reason_code": "fallback_not_computable"}
+
+
+def _find_prior_result(
+    *,
+    packet: Mapping[str, Any],
+    normalized_action_history_all: List[Dict[str, str]],
+) -> Optional[Dict[str, str]]:
+    action_name = str(packet.get("action_name", ""))
+    preset_id = str(packet.get("preset_id", ""))
+    packet_timestamp = str(packet.get("attempted_at", ""))
+    packet_run_id = str(packet.get("run_id", ""))
+    packet_status = str(packet.get("status", ""))
+    packet_artifact_primary = _result_packet_artifact_paths(packet)[0] if _result_packet_artifact_paths(packet) else ""
+    for item in normalized_action_history_all:
+        if str(item.get("action_name", "")) != action_name:
+            continue
+        if str(item.get("preset_id", "")) != preset_id:
+            continue
+        same_identity = (
+            str(item.get("timestamp", "")) == packet_timestamp
+            and str(item.get("run_id", "")) == packet_run_id
+            and str(item.get("outcome_status", "")) == packet_status
+            and str(item.get("artifact_ref", "")) == packet_artifact_primary
+        )
+        if same_identity:
+            continue
+        return item
+    return None
+
+
+def _derive_prior_result_diff(
+    *,
+    packet: Mapping[str, Any],
+    outcome_classification: Mapping[str, str],
+    prior_result: Optional[Mapping[str, str]],
+) -> Dict[str, Any]:
+    if prior_result is None:
+        return {
+            "has_prior": False,
+            "prior_timestamp": "NOT_COMPUTABLE",
+            "outcome_change": "unchanged",
+            "run_id_change": "unchanged",
+            "artifact_path_change": "unchanged",
+            "output_count_delta": "not_available",
+            "error_change": "unchanged",
+        }
+
+    current_label = str(outcome_classification.get("label", "NOT_COMPUTABLE"))
+    prior_label = _classify_outcome(
+        {
+            "status": str(prior_result.get("outcome_status", "")),
+            "run_id": str(prior_result.get("run_id", "")),
+            "artifact_paths": [str(prior_result.get("artifact_ref", ""))] if str(prior_result.get("artifact_ref", "")) else [],
+            "error_info": "",
+        }
+    )["label"]
+    current_run_id = str(packet.get("run_id", ""))
+    prior_run_id = str(prior_result.get("run_id", ""))
+    current_primary = _result_packet_artifact_paths(packet)[0] if _result_packet_artifact_paths(packet) else ""
+    prior_primary = str(prior_result.get("artifact_ref", ""))
+    current_error = str(packet.get("error_info", "")).strip()
+    prior_error = ""
+    current_count = len(_result_packet_artifact_paths(packet))
+    prior_count = 1 if prior_primary else 0
+    output_delta = f"{current_count - prior_count:+d}" if (current_count > 0 or prior_count > 0) else "not_available"
+    if output_delta == "+0":
+        output_delta = "no_change"
+
+    if current_error and not prior_error:
+        error_change = "introduced"
+    elif not current_error and prior_error:
+        error_change = "resolved"
+    else:
+        error_change = "unchanged"
+
+    return {
+        "has_prior": True,
+        "prior_timestamp": str(prior_result.get("timestamp", "NOT_COMPUTABLE")) or "NOT_COMPUTABLE",
+        "outcome_change": "changed" if current_label != prior_label else "unchanged",
+        "run_id_change": "changed" if current_run_id != prior_run_id else "unchanged",
+        "artifact_path_change": "changed" if current_primary != prior_primary else "unchanged",
+        "output_count_delta": output_delta,
+        "error_change": error_change,
+    }
+
+
+def _derive_action_stability(
+    *,
+    packet: Mapping[str, Any],
+    normalized_action_history_all: List[Dict[str, str]],
+    window_size: int = 5,
+) -> Dict[str, Any]:
+    action_name = str(packet.get("action_name", ""))
+    if not action_name:
+        return {
+            "window_size": window_size,
+            "evaluated_count": 0,
+            "label": "not_available",
+            "success_like_count": 0,
+            "failure_like_count": 0,
+            "not_computable_count": 0,
+            "recent_outcomes": [],
+        }
+    recent = [row for row in normalized_action_history_all if str(row.get("action_name", "")) == action_name][:window_size]
+    mapped: List[str] = []
+    for row in recent:
+        label = _classify_outcome({"status": str(row.get("outcome_status", "")), "run_id": str(row.get("run_id", "")), "artifact_paths": [str(row.get("artifact_ref", ""))]}).get("label", "NOT_COMPUTABLE")
+        mapped.append(label)
+    success_count = sum(1 for label in mapped if label == "SUCCESS")
+    failure_count = sum(1 for label in mapped if label == "FAILED")
+    not_computable_count = sum(1 for label in mapped if label == "NOT_COMPUTABLE")
+
+    if not mapped:
+        label = "not_available"
+    elif failure_count >= ((len(mapped) + 1) // 2) or mapped[0] == "FAILED":
+        label = "degraded"
+    elif success_count == len(mapped):
+        label = "stable"
+    else:
+        label = "mixed"
+
+    return {
+        "window_size": window_size,
+        "evaluated_count": len(mapped),
+        "label": label,
+        "success_like_count": success_count,
+        "failure_like_count": failure_count,
+        "not_computable_count": not_computable_count,
+        "recent_outcomes": mapped,
+    }
+
+
+def _derive_failure_triage(
+    *,
+    packet: Mapping[str, Any],
+    outcome_classification: Mapping[str, str],
+) -> Dict[str, Any]:
+    label = str(outcome_classification.get("label", "NOT_COMPUTABLE"))
+    status = str(packet.get("status", ""))
+    reasons: List[str] = []
+    missing_fields: List[str] = []
+    run_id = str(packet.get("run_id", "")).strip()
+    artifact_paths = _result_packet_artifact_paths(packet)
+    error_info = str(packet.get("error_info", "")).strip()
+
+    if not run_id:
+        missing_fields.append("run_id")
+        reasons.append("missing_run_id")
+    if not artifact_paths:
+        missing_fields.append("artifact_paths")
+        reasons.append("missing_artifact_paths")
+    if error_info:
+        reasons.append("error_info_present")
+    if status.upper() in {"FAILED", "ERROR"}:
+        reasons.append("failed_status")
+    if status.upper() in {"NOT_COMPUTABLE", "NOT_REQUESTED", "PREVIEW_ONLY"}:
+        reasons.append("not_computable_or_preview_status")
+
+    enabled = label in {"FAILED", "PARTIAL", "NOT_COMPUTABLE"}
+    if not enabled:
+        return {"enabled": False, "reasons": [], "missing_fields": [], "suggested_next_step": "No triage required"}
+
+    if "run_id" in missing_fields:
+        next_step = "Re-run action and verify run_id emission."
+    elif "artifact_paths" in missing_fields:
+        next_step = "Re-run action and verify artifact path emission."
+    elif "error_info_present" in reasons:
+        next_step = "Inspect adapter stderr/error_info and correct input contract."
+    elif label == "NOT_COMPUTABLE":
+        next_step = "Provide required inputs or keep explicit NOT_COMPUTABLE status."
+    else:
+        next_step = "Re-run preset in preview-first mode and compare output surfaces."
+
+    return {
+        "enabled": True,
+        "reasons": reasons[:5],
+        "missing_fields": missing_fields[:5],
+        "suggested_next_step": next_step,
+    }
+
+
+def _derive_result_provenance_panel(
+    *,
+    packet: Mapping[str, Any],
+    selected_run_id: Optional[str],
+    comparison_run_id: Optional[str],
+    session_context: Mapping[str, str],
+) -> Dict[str, Any]:
+    payload_args_summary = {
+        "selected_run_id": selected_run_id or "",
+        "compare_run_id": comparison_run_id or "",
+        "health": str(session_context.get("health", "all")),
+        "run_query": str(session_context.get("run_query", ""))[:80],
+        "sort_mode": str(session_context.get("sort_mode", "latest_first")),
+    }
+    return {
+        "action_name": str(packet.get("action_name", "")),
+        "preset_id": str(packet.get("preset_id", "")),
+        "adapter_name": str(packet.get("adapter_name", "")),
+        "attempted_at": str(packet.get("attempted_at", "")),
+        "run_id": str(packet.get("run_id", "")),
+        "artifact_paths": _result_packet_artifact_paths(packet),
+        "payload_args_summary": payload_args_summary,
+    }
+
+
+def _has_packet_quality(packet: Mapping[str, Any]) -> Dict[str, bool]:
+    run_id_present = bool(str(packet.get("run_id", "")).strip())
+    artifacts_present = len(_result_packet_artifact_paths(packet)) > 0
+    error_present = bool(str(packet.get("error_info", "")).strip())
+    return {
+        "run_id_present": run_id_present,
+        "artifacts_present": artifacts_present,
+        "error_present": error_present,
+    }
+
+
+def _derive_decision_layer(
+    *,
+    packet: Mapping[str, Any],
+    outcome_classification: Mapping[str, str],
+    failure_triage: Mapping[str, Any],
+    action_stability: Mapping[str, Any],
+    suggested_next_step: str,
+    runflow_workspace: Mapping[str, Any],
+    prior_result_diff: Mapping[str, Any],
+    compare_to_baseline_ready: bool,
+) -> Dict[str, Any]:
+    outcome_label = str(outcome_classification.get("label", "NOT_COMPUTABLE"))
+    stability_label = str(action_stability.get("label", "not_available"))
+    triage_enabled = bool(failure_triage.get("enabled", False))
+    triage_missing = [str(x) for x in failure_triage.get("missing_fields", []) if isinstance(x, str)]
+    triage_reasons = [str(x) for x in failure_triage.get("reasons", []) if isinstance(x, str)]
+    quality = _has_packet_quality(packet)
+
+    if (
+        outcome_label == "SUCCESS"
+        and stability_label == "stable"
+        and not triage_enabled
+        and quality["run_id_present"]
+        and quality["artifacts_present"]
+    ):
+        decision_label = "ACCEPT"
+        decision_reason = "success_stable_complete"
+    elif (
+        outcome_label == "SUCCESS"
+        and stability_label == "mixed"
+        and quality["run_id_present"]
+        and quality["artifacts_present"]
+    ):
+        decision_label = "WATCH"
+        decision_reason = "success_mixed_watch"
+    elif (
+        outcome_label in {"FAILED", "PARTIAL"}
+        and triage_enabled
+        and any(item in {"run_id", "artifact_paths"} for item in triage_missing)
+        and not quality["error_present"]
+    ):
+        decision_label = "RETRY"
+        decision_reason = "retry_missing_required_surfaces"
+    else:
+        decision_label = "INVESTIGATE"
+        decision_reason = (
+            "investigate_not_computable"
+            if outcome_label == "NOT_COMPUTABLE"
+            else "investigate_failure_unclear_or_repeated"
+        )
+
+    if decision_label == "RETRY":
+        action_hint = "retry"
+    elif decision_label == "WATCH":
+        action_hint = "compare"
+    elif decision_label == "ACCEPT":
+        action_hint = "close"
+    else:
+        action_hint = "inspect"
+
+    handoff = {
+        "suggested_next_step": str(failure_triage.get("suggested_next_step", "")) or suggested_next_step,
+        "action_hint": action_hint,
+        "focus_target_run_id": str(packet.get("run_id", "")),
+        "focus_run_link": str(runflow_workspace.get("focus_run_link", "")),
+        "compare_suggestion": "compare_with_prior" if bool(prior_result_diff.get("has_prior", False)) else "no_prior_result",
+        "baseline_suggestion": "compare_with_baseline" if compare_to_baseline_ready else "baseline_unavailable",
+    }
+
+    return {
+        "decision_label": decision_label,
+        "decision_reason": decision_reason,
+        "inputs_summary": {
+            "outcome_label": outcome_label,
+            "stability_label": stability_label,
+            "triage_enabled": triage_enabled,
+            "triage_reasons": triage_reasons[:5],
+            "packet_quality": quality,
+        },
+        "handoff": handoff,
+    }
+
+
+def _derive_review_history_strip(
+    *,
+    normalized_action_history_all: List[Dict[str, str]],
+    limit: int,
+) -> List[Dict[str, str]]:
+    def _ts_key(value: str) -> tuple[int, str]:
+        if value and value != "NOT_COMPUTABLE":
+            return (0, value)
+        return (1, "")
+
+    rows: List[Dict[str, str]] = []
+    for row in normalized_action_history_all:
+        action_name = str(row.get("action_name", ""))
+        if not action_name:
+            continue
+        packet = {
+            "status": str(row.get("outcome_status", "")),
+            "run_id": str(row.get("run_id", "")),
+            "artifact_paths": [str(row.get("artifact_ref", ""))] if str(row.get("artifact_ref", "")) else [],
+            "error_info": "",
+        }
+        outcome = _classify_outcome(packet)
+        stability_stub = {"label": "mixed"}
+        triage_stub = {
+            "enabled": outcome["label"] in {"FAILED", "PARTIAL", "NOT_COMPUTABLE"},
+            "missing_fields": [x for x in ["run_id", "artifact_paths"] if not packet.get(x if x != "artifact_paths" else "artifact_paths")],
+            "reasons": [],
+            "suggested_next_step": "Inspect reviewed outcome.",
+        }
+        decision = _derive_decision_layer(
+            packet=packet,
+            outcome_classification=outcome,
+            failure_triage=triage_stub,
+            action_stability=stability_stub,
+            suggested_next_step="Inspect reviewed outcome.",
+            runflow_workspace={"focus_run_link": ""},
+            prior_result_diff={"has_prior": False},
+            compare_to_baseline_ready=False,
+        )
+        rows.append(
+            {
+                "timestamp": str(row.get("timestamp", "NOT_COMPUTABLE")),
+                "action_name": action_name,
+                "run_id": str(row.get("run_id", "")),
+                "outcome_classification": str(outcome.get("label", "NOT_COMPUTABLE")),
+                "decision": str(decision.get("decision_label", "INVESTIGATE")),
+            }
+        )
+
+    rows.sort(
+        key=lambda item: (
+            _ts_key(str(item.get("timestamp", ""))),
+            str(item.get("timestamp", "")),
+            str(item.get("action_name", "")),
+            str(item.get("run_id", "")),
+            str(item.get("outcome_classification", "")),
+        )
+    )
+    rows.reverse()
+    return rows[:limit]
+
+
+def _list_recent_artifacts(
+    *,
+    root: Path,
+    glob_pattern: str,
+    limit: int,
+    parser,
+) -> List[Dict[str, str]]:
+    if not root.exists():
+        return []
+    items: List[Dict[str, str]] = []
+    for path in sorted(root.glob(glob_pattern), reverse=True):
+        parsed = parser(path)
+        if parsed is not None:
+            items.append(parsed)
+    return items[:limit]
+
+
+def _timeline_from_sources(
+    *,
+    current_decision: Mapping[str, Any],
+    decision_artifacts: List[Dict[str, str]],
+    review_history: List[Dict[str, str]],
+    limit: int,
+) -> List[Dict[str, str]]:
+    rows: List[Dict[str, str]] = []
+    for row in review_history:
+        rows.append(
+            {
+                "timestamp": str(row.get("timestamp", "NOT_COMPUTABLE")),
+                "action_name": str(row.get("action_name", "")),
+                "run_id": str(row.get("run_id", "")),
+                "outcome_classification": str(row.get("outcome_classification", "NOT_COMPUTABLE")),
+                "decision_label": str(row.get("decision", "INVESTIGATE")),
+                "summary": f"{row.get('action_name','')}|{row.get('decision','')}",
+            }
+        )
+    for item in decision_artifacts:
+        rows.append(
+            {
+                "timestamp": str(item.get("timestamp", "NOT_COMPUTABLE")),
+                "action_name": str(item.get("action_name", "")),
+                "run_id": str(item.get("run_id", "")),
+                "outcome_classification": str(item.get("outcome_classification", "NOT_COMPUTABLE")),
+                "decision_label": str(item.get("decision_label", "INVESTIGATE")),
+                "summary": str(item.get("summary", ""))[:120],
+            }
+        )
+    current_ts = _utc_now()
+    rows.insert(
+        0,
+        {
+            "timestamp": current_ts,
+            "action_name": str(current_decision.get("action_name", "")),
+            "run_id": str(current_decision.get("run_id", "")),
+            "outcome_classification": str(current_decision.get("outcome_classification", "NOT_COMPUTABLE")),
+            "decision_label": str(current_decision.get("decision_label", "INVESTIGATE")),
+            "summary": str(current_decision.get("summary", ""))[:120],
+        },
+    )
+    unique_rows: List[Dict[str, str]] = []
+    seen: set[str] = set()
+    for row in rows:
+        key = "|".join(
+            [
+                str(row.get("timestamp", "")),
+                str(row.get("action_name", "")),
+                str(row.get("run_id", "")),
+                str(row.get("decision_label", "")),
+            ]
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rows.append(row)
+    unique_rows.sort(
+        key=lambda item: (
+            str(item.get("timestamp", "")) == "NOT_COMPUTABLE",
+            str(item.get("timestamp", "")),
+            str(item.get("action_name", "")),
+            str(item.get("run_id", "")),
+            str(item.get("decision_label", "")),
+        ),
+        reverse=True,
+    )
+    return unique_rows[:limit]
+
+
+def _derive_decision_diff(
+    *,
+    current: Mapping[str, str],
+    timeline: List[Dict[str, str]],
+) -> Dict[str, str]:
+    current_run_id = str(current.get("run_id", ""))
+    current_action_name = str(current.get("action_name", ""))
+    prior = None
+    if current_run_id:
+        prior = next((row for row in timeline[1:] if str(row.get("run_id", "")) == current_run_id), None)
+    if prior is None and current_action_name:
+        prior = next((row for row in timeline[1:] if str(row.get("action_name", "")) == current_action_name), None)
+    if prior is None:
+        return {
+            "enabled": "false",
+            "reason": "no_prior_decision",
+            "decision_label_changed": "unchanged",
+            "outcome_changed": "unchanged",
+            "next_step_changed": "unchanged",
+            "run_id_changed": "unchanged",
+            "timestamp_ordering": "unavailable",
+        }
+    return {
+        "enabled": "true",
+        "reason": "prior_found",
+        "decision_label_changed": "changed" if str(current.get("decision_label", "")) != str(prior.get("decision_label", "")) else "unchanged",
+        "outcome_changed": "changed" if str(current.get("outcome_classification", "")) != str(prior.get("outcome_classification", "")) else "unchanged",
+        "next_step_changed": "changed" if str(current.get("suggested_next_step", "")) != str(prior.get("suggested_next_step", "")) else "unchanged",
+        "run_id_changed": "changed" if str(current.get("run_id", "")) != str(prior.get("run_id", "")) else "unchanged",
+        "timestamp_ordering": "current_newer" if str(current.get("timestamp", "")) >= str(prior.get("timestamp", "")) else "prior_newer",
+    }
+
+
+def _derive_policy_surface(*, workbench_mode: str, control_plane: Mapping[str, Any]) -> Dict[str, Any]:
+    if workbench_mode in {"decision", "session"}:
+        policy_mode = "decision_review"
+        policy_label = "Decision Review Policy"
+        policy_summary = "Decision and session review allowed; runtime execution remains bounded."
+    elif bool(control_plane.get("allowed_actions", [])):
+        policy_mode = "bounded_runtime"
+        policy_label = "Bounded Runtime Policy"
+        policy_summary = "Allowlisted runtime actions available with deterministic guardrails."
+    else:
+        policy_mode = "review_only"
+        policy_label = "Review Only Policy"
+        policy_summary = "Inspection and reporting only; execution actions constrained."
+    return {
+        "policy_mode": policy_mode,
+        "policy_label": policy_label,
+        "policy_summary": policy_summary,
+        "allowed_action_classes": ["compliance_probe", "validator", "closure_audit", "snapshot_export"],
+        "constrained_action_classes": ["non_allowlisted_runtime", "arbitrary_command", "background_automation"],
+        "policy_notes": [
+            "Execution is restricted to allowlisted adapters.",
+            "Preview-first posture is preserved.",
+            "No autonomous orchestration is enabled.",
+        ],
+    }
+
+
+def _derive_guard_conditions(
+    *,
+    selected_run_id: Optional[str],
+    control_plane: Mapping[str, Any],
+    retry_reapply: Mapping[str, Any],
+    latest_review_checkpoint_path: Optional[str],
+    workbench_mode: str,
+) -> List[Dict[str, str]]:
+    allowlisted_count = len([x for x in control_plane.get("allowed_actions", []) if isinstance(x, str)])
+    preview_count = len([k for k in control_plane.get("command_preview", {}).keys()]) if isinstance(control_plane.get("command_preview", {}), Mapping) else 0
+    guards = [
+        {
+            "guard_name": "selected_run_present",
+            "status": "pass" if bool(selected_run_id) else "fail",
+            "explanation": "A selected run is required for run-scoped execution surfaces.",
+        },
+        {
+            "guard_name": "adapter_allowlisted",
+            "status": "pass" if allowlisted_count > 0 else "fail",
+            "explanation": "At least one action must be allowlisted in control plane.",
+        },
+        {
+            "guard_name": "preview_supported",
+            "status": "pass" if preview_count > 0 else "fail",
+            "explanation": "Command preview entries are required for preview-first governance.",
+        },
+        {
+            "guard_name": "retry_context_available",
+            "status": "pass" if bool(retry_reapply.get("enabled", False)) else "fail",
+            "explanation": "Retry requires an existing reapply context.",
+        },
+        {
+            "guard_name": "checkpoint_restore_available",
+            "status": "pass" if bool(latest_review_checkpoint_path) else "fail",
+            "explanation": "Review checkpoint restore requires a checkpoint artifact path.",
+        },
+        {
+            "guard_name": "policy_mode_valid",
+            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance"} else "fail",
+            "explanation": "Workbench mode must match an approved governance mode.",
+        },
+    ]
+    return guards
+
+
+def _derive_action_gating(
+    *,
+    action_presets: List[Dict[str, Any]],
+    selected_run_id: Optional[str],
+    control_plane: Mapping[str, Any],
+    retry_reapply: Mapping[str, Any],
+    policy_mode: str,
+) -> List[Dict[str, Any]]:
+    allowed_actions = [str(x) for x in control_plane.get("allowed_actions", []) if isinstance(x, str)]
+    preview_map = control_plane.get("command_preview", {})
+    rows: List[Dict[str, Any]] = []
+    for preset in action_presets:
+        action_name = str(preset.get("action_name", ""))
+        preset_id = str(preset.get("preset_id", ""))
+        required_conditions = ["policy_mode_permits_action", "adapter_allowlisted", "preview_supported"]
+        if action_name != "export_operator_snapshot":
+            required_conditions.append("selected_run_present")
+        policy_permits = policy_mode in {"bounded_runtime", "decision_review", "review_only"}
+        allowlisted = action_name in allowed_actions
+        preview_supported = action_name in preview_map
+        selected_run_present = bool(selected_run_id) if action_name != "export_operator_snapshot" else True
+        retry_context = bool(retry_reapply.get("enabled", False))
+        if not policy_permits:
+            enabled = False
+            gating_reason = "policy_mode_blocks_action"
+        elif not allowlisted:
+            enabled = False
+            gating_reason = "action_not_allowlisted"
+        elif not preview_supported:
+            enabled = False
+            gating_reason = "preview_not_supported"
+        elif not selected_run_present:
+            enabled = False
+            gating_reason = "selected_run_missing"
+        elif action_name == str(retry_reapply.get("last_action_name", "")) and not retry_context:
+            enabled = False
+            gating_reason = "retry_context_missing"
+        else:
+            enabled = True
+            gating_reason = "all_conditions_pass"
+        rows.append(
+            {
+                "preset_id": preset_id,
+                "action_name": action_name,
+                "enabled": "true" if enabled else "false",
+                "gating_reason": gating_reason,
+                "required_conditions": required_conditions,
+            }
+        )
+    return rows[:20]
+
+
+def _sanitize_viz_mode(value: Optional[str]) -> str:
+    allowed = {"weather", "trace", "compare"}
+    return str(value) if value in allowed else "weather"
+
+
+def _derive_viz_payloads(
+    *,
+    closure_status: str,
+    snapshot_header: Mapping[str, Any],
+    governance: Mapping[str, Any],
+    selected_run_detail: Mapping[str, Any],
+    compare_strip: Mapping[str, Any],
+    compare_delta_summary: Mapping[str, Any],
+    evidence_delta_preview: Mapping[str, Any],
+    attention_queue: List[Dict[str, str]],
+    highlights: List[Dict[str, str]],
+    recent_activity: List[Dict[str, Any]],
+    execution_ledger: List[Dict[str, str]],
+    decision_layer: Mapping[str, Any],
+) -> Dict[str, Dict[str, Any]]:
+    weather = {
+        "closure_status": closure_status,
+        "policy_mode": str(((governance.get("policy_surface", {}) or {}).get("policy_mode", "review_only"))),
+        "health_distribution": dict(snapshot_header.get("health_counts", {"strong": 0, "partial": 0, "weak": 0})),
+        "attention_count": len(attention_queue),
+        "highlight_count": len(highlights),
+        "summary_status": f"{closure_status}|policy={((governance.get('policy_surface', {}) or {}).get('policy_mode', 'review_only'))}",
+    }
+    trace = {
+        "recent_activity": [
+            {
+                "timestamp": str(item.get("timestamp", "NOT_COMPUTABLE")),
+                "activity_type": str(item.get("activity_type", "")),
+                "run_id": str(item.get("run_id", "")),
+                "summary": str(item.get("summary", ""))[:120],
+            }
+            for item in recent_activity[:10]
+        ],
+        "recent_decisions": [
+            {
+                "timestamp": str(item.get("timestamp", "NOT_COMPUTABLE")),
+                "action_name": str(item.get("action_name", "")),
+                "decision": str(item.get("decision", "")),
+            }
+            for item in (decision_layer.get("review_history", []) if isinstance(decision_layer.get("review_history", []), list) else [])[:10]
+        ],
+        "execution_ledger_slice": execution_ledger[:10],
+    }
+    compare_enabled = bool(compare_strip.get("enabled", False))
+    compare = {
+        "enabled": compare_enabled,
+        "reason": "comparison_available" if compare_enabled else "no_comparison_context",
+        "selected_run_summary": dict(selected_run_detail),
+        "comparison_run_summary": dict(compare_strip.get("comparison", {})) if compare_enabled else {},
+        "compare_delta_summary": dict(compare_delta_summary),
+        "evidence_delta_summary": dict(evidence_delta_preview),
+    }
+    return {"weather": weather, "trace": trace, "compare": compare}
+
+
+def _render_weather(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    health_distribution = payload.get("health_distribution", {})
+    if not isinstance(health_distribution, Mapping):
+        health_distribution = {}
+    normalized_health: Dict[str, int] = {}
+    for key, value in dict(health_distribution).items():
+        try:
+            normalized_health[str(key)] = int(value)
+        except (TypeError, ValueError):
+            normalized_health[str(key)] = 0
+    return {
+        "title": "Weather View",
+        "closure_status": str(payload.get("closure_status", "NOT_COMPUTABLE")),
+        "policy_mode": str(payload.get("policy_mode", "review_only")),
+        "run_health_distribution": normalized_health,
+        "attention_count": int(payload.get("attention_count", 0)),
+        "alert_highlight_count": int(payload.get("highlight_count", 0)),
+        "status": "ready",
+    }
+
+
+def _render_trace(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    activity_items = payload.get("recent_activity", [])
+    decision_items = payload.get("recent_decisions", [])
+    ledger_items = payload.get("execution_ledger_slice", [])
+    activity = list(activity_items)[:10] if isinstance(activity_items, list) else []
+    decisions = list(decision_items)[:10] if isinstance(decision_items, list) else []
+    ledger = list(ledger_items)[:10] if isinstance(ledger_items, list) else []
+    return {
+        "title": "Trace View",
+        "recent_activity_events": [dict(item) for item in activity if isinstance(item, Mapping)],
+        "recent_decisions": [dict(item) for item in decisions if isinstance(item, Mapping)],
+        "recent_execution_ledger_slice": [dict(item) for item in ledger if isinstance(item, Mapping)],
+        "summary_line": f"activity={len(activity)} decisions={len(decisions)} ledger={len(ledger)}",
+        "status": "ready",
+    }
+
+
+def _render_compare(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    enabled = bool(payload.get("enabled", False))
+    if not enabled:
+        return {
+            "title": "Compare View",
+            "enabled": False,
+            "status": "not_computable",
+            "reason": str(payload.get("reason", "no_comparison_context")),
+            "selected_run_summary": {},
+            "comparison_run_summary": {},
+            "compare_delta_summary": {},
+            "evidence_delta_summary": {},
+        }
+    return {
+        "title": "Compare View",
+        "enabled": True,
+        "status": "ready",
+        "reason": str(payload.get("reason", "comparison_available")),
+        "selected_run_summary": dict(payload.get("selected_run_summary", {})),
+        "comparison_run_summary": dict(payload.get("comparison_run_summary", {})),
+        "compare_delta_summary": dict(payload.get("compare_delta_summary", {})),
+        "evidence_delta_summary": dict(payload.get("evidence_delta_summary", {})),
+    }
+
+
+def _route_viz_render(*, viz_mode: str, viz_payloads: Mapping[str, Any]) -> Dict[str, Any]:
+    mode = _sanitize_viz_mode(viz_mode)
+    payload = viz_payloads.get(mode, {})
+    if not payload:
+        return {
+            "viz_render_mode": mode,
+            "viz_render_payload": {},
+            "viz_render_output": {"title": f"{mode} render", "status": "unavailable", "reason": "payload_missing"},
+        }
+    if mode == "compare" and not bool((payload if isinstance(payload, Mapping) else {}).get("enabled", False)):
+        rendered = _render_compare(payload if isinstance(payload, Mapping) else {})
+    elif mode == "weather":
+        rendered = _render_weather(payload)
+    elif mode == "trace":
+        rendered = _render_trace(payload)
+    else:
+        rendered = _render_compare(payload)
+    return {
+        "viz_render_mode": mode,
+        "viz_render_payload": dict(payload),
+        "viz_render_output": rendered,
+    }
+
+
 def build_view_state(
     *,
     base_dir: Path = Path("."),
@@ -1297,6 +2157,27 @@ def build_view_state(
     latest_checkpoint_status: str = "not_requested",
     restored_checkpoint_path: Optional[str] = None,
     restored_checkpoint_status: str = "not_requested",
+    latest_decision_export_path: Optional[str] = None,
+    latest_decision_export_status: str = "not_requested",
+    latest_review_checkpoint_path: Optional[str] = None,
+    latest_review_checkpoint_status: str = "not_requested",
+    restored_review_checkpoint_path: Optional[str] = None,
+    restored_review_checkpoint_status: str = "not_requested",
+    session_closeout_path: Optional[str] = None,
+    session_closeout_status: str = "not_requested",
+    recall_status: str = "not_requested",
+    recall_path: Optional[str] = None,
+    policy_snapshot_path: Optional[str] = None,
+    policy_snapshot_status: str = "not_requested",
+    policy_recall_status: str = "not_requested",
+    policy_recall_path: Optional[str] = None,
+    viz_mode: Optional[str] = None,
+    viz_export_status: str = "not_requested",
+    viz_export_path: Optional[str] = None,
+    viz_render_export_status: str = "not_requested",
+    viz_render_export_path: Optional[str] = None,
+    report_export_status: str = "not_requested",
+    report_export_paths: Optional[Mapping[str, str]] = None,
 ) -> ViewState:
     artifacts = _collect_run_artifacts(base_dir)
     validators = _collect_validator_outputs(base_dir)
@@ -1691,6 +2572,21 @@ def build_view_state(
         "adapter_name": str(result_packet.get("adapter_name", "")),
         "outcome_status": str(result_packet.get("status", "")),
     }
+    outcome_classification = _classify_outcome(result_packet)
+    prior_result = _find_prior_result(packet=result_packet, normalized_action_history_all=normalized_action_history_all)
+    prior_result_diff = _derive_prior_result_diff(
+        packet=result_packet,
+        outcome_classification=outcome_classification,
+        prior_result=prior_result,
+    )
+    action_stability = _derive_action_stability(
+        packet=result_packet,
+        normalized_action_history_all=normalized_action_history_all,
+    )
+    failure_triage = _derive_failure_triage(
+        packet=result_packet,
+        outcome_classification=outcome_classification,
+    )
     packet_required = {"status", "action_name", "preset_id", "run_id", "summary"}
     packet_shape_valid = packet_required.issubset(set(result_packet.keys()))
     adapter_checks: List[Dict[str, str]] = []
@@ -1717,7 +2613,7 @@ def build_view_state(
         "selected_preset_id": resolved_selected_preset_id or "",
         "current_step": (
             "inspect_result"
-            if str(result_packet.get("status", "")) in {"SUCCESS", "FAILED", "NOT_COMPUTABLE", "preview_only"}
+            if str(result_packet.get("status", "")).upper() in {"SUCCESS", "FAILED", "NOT_COMPUTABLE", "PREVIEW_ONLY"}
             else "select_action"
         ),
         "preview_state": str(dry_run_preview.get("status", "not_requested")),
@@ -1732,6 +2628,469 @@ def build_view_state(
         "run_query": applied_run_query,
         "sort_mode": applied_sort_mode,
         "source": str((session_context or {}).get("source", "default")),
+    }
+    result_provenance_panel = _derive_result_provenance_panel(
+        packet=result_packet,
+        selected_run_id=chosen,
+        comparison_run_id=selected_comparison_run_id,
+        session_context=resolved_session_context,
+    )
+    runtime_outcome_review_workspace = {
+        "enabled": True,
+        "review_mode": "runtime_review",
+        "packet_status": str(result_packet.get("status", "")),
+        "classification_label": str(outcome_classification.get("label", "NOT_COMPUTABLE")),
+        "prior_diff_enabled": bool(prior_result_diff.get("has_prior", False)),
+        "stability_label": str(action_stability.get("label", "not_available")),
+        "triage_enabled": bool(failure_triage.get("enabled", False)),
+        "provenance_run_id": str(result_provenance_panel.get("run_id", "")),
+    }
+    decision_layer_payload = _derive_decision_layer(
+        packet=result_packet,
+        outcome_classification=outcome_classification,
+        failure_triage=failure_triage,
+        action_stability=action_stability,
+        suggested_next_step=suggested_next_step,
+        runflow_workspace=runflow_workspace,
+        prior_result_diff=prior_result_diff,
+        compare_to_baseline_ready=compare_to_baseline_ready,
+    )
+    review_history_limit = 15
+    review_history = _derive_review_history_strip(
+        normalized_action_history_all=normalized_action_history_all,
+        limit=review_history_limit,
+    )
+    decision_export_preview = {
+        "action_name": str(result_packet.get("action_name", "")),
+        "run_id": str(result_packet.get("run_id", "")),
+        "outcome_classification": dict(outcome_classification),
+        "prior_result_diff_summary": dict(prior_result_diff),
+        "stability_label": str(action_stability.get("label", "not_available")),
+        "failure_triage": dict(failure_triage),
+        "provenance_summary": dict(result_provenance_panel),
+        "decision": {
+            "label": str(decision_layer_payload.get("decision_label", "INVESTIGATE")),
+            "reason": str(decision_layer_payload.get("decision_reason", "fallback")),
+        },
+        "suggested_next_step": str((decision_layer_payload.get("handoff", {}) or {}).get("suggested_next_step", "")),
+        "timestamp": _utc_now(),
+    }
+    review_checkpoint_preview = {
+        "selected_run_id": chosen or "",
+        "compare_run_id": selected_comparison_run_id or "",
+        "baseline_run_id": baseline_run_id or "",
+        "classification": str(outcome_classification.get("label", "NOT_COMPUTABLE")),
+        "decision": str(decision_layer_payload.get("decision_label", "INVESTIGATE")),
+        "health": applied_health_filter,
+        "run_query": applied_run_query,
+        "sort_mode": applied_sort_mode,
+        "selected_preset_id": resolved_selected_preset_id or "",
+    }
+    decision_layer = {
+        "decision_label": str(decision_layer_payload.get("decision_label", "INVESTIGATE")),
+        "decision_reason": str(decision_layer_payload.get("decision_reason", "fallback")),
+        "handoff": dict(decision_layer_payload.get("handoff", {})),
+        "review_history": review_history,
+        "review_history_limit": review_history_limit,
+        "decision_export_preview": decision_export_preview,
+        "latest_decision_export_path": latest_decision_export_path,
+        "latest_decision_export_status": latest_decision_export_status,
+        "checkpoint_preview": review_checkpoint_preview,
+        "latest_review_checkpoint_path": latest_review_checkpoint_path,
+        "latest_review_checkpoint_status": latest_review_checkpoint_status,
+        "restored_review_checkpoint_path": restored_review_checkpoint_path,
+        "restored_review_checkpoint_status": restored_review_checkpoint_status,
+    }
+    decision_workspace_payload = {
+        "mode": "decision",
+        "runtime_outcome_review_workspace": runtime_outcome_review_workspace,
+        "decision_label": decision_layer["decision_label"],
+        "decision_reason": decision_layer["decision_reason"],
+        "handoff": decision_layer["handoff"],
+        "review_history_count": len(review_history),
+        "latest_decision_export_status": latest_decision_export_status,
+        "latest_review_checkpoint_status": latest_review_checkpoint_status,
+    }
+    def _parse_decision_artifact(path: Path) -> Optional[Dict[str, str]]:
+        payload = _load_json(path)
+        if not payload:
+            return None
+        outcome = payload.get("outcome_classification", {})
+        decision = payload.get("decision", {})
+        return {
+            "path": path.as_posix(),
+            "timestamp": str(payload.get("timestamp", payload.get("generated_at", "NOT_COMPUTABLE"))),
+            "action_name": str(payload.get("action_name", "")),
+            "run_id": str(payload.get("run_id", "")),
+            "outcome_classification": str((outcome or {}).get("label", "NOT_COMPUTABLE")) if isinstance(outcome, Mapping) else "NOT_COMPUTABLE",
+            "decision_label": str((decision or {}).get("label", "INVESTIGATE")) if isinstance(decision, Mapping) else "INVESTIGATE",
+            "summary": str(payload.get("suggested_next_step", "")),
+        }
+
+    def _parse_review_checkpoint(path: Path) -> Optional[Dict[str, str]]:
+        payload = _load_json(path)
+        if not payload:
+            return None
+        return {
+            "path": path.as_posix(),
+            "timestamp": str(payload.get("generated_at", "NOT_COMPUTABLE")),
+            "run_id": str(payload.get("selected_run_id", "")),
+            "artifact_type": "review_checkpoint",
+            "summary": str(payload.get("decision", "")),
+        }
+
+    decision_artifacts = _list_recent_artifacts(
+        root=base_dir / "artifacts_seal" / "operator_decisions",
+        glob_pattern="*.decision.json",
+        limit=15,
+        parser=_parse_decision_artifact,
+    )
+    checkpoint_artifacts = _list_recent_artifacts(
+        root=base_dir / "artifacts_seal" / "operator_checkpoints",
+        glob_pattern="*.review_checkpoint.json",
+        limit=15,
+        parser=_parse_review_checkpoint,
+    )
+    decision_timeline_limit = 15
+    current_timeline_seed = {
+        "action_name": str(result_packet.get("action_name", "")),
+        "run_id": str(result_packet.get("run_id", "")),
+        "outcome_classification": str(outcome_classification.get("label", "NOT_COMPUTABLE")),
+        "decision_label": str(decision_layer.get("decision_label", "INVESTIGATE")),
+        "summary": str((decision_layer.get("handoff", {}) or {}).get("suggested_next_step", "")),
+    }
+    decision_timeline = _timeline_from_sources(
+        current_decision=current_timeline_seed,
+        decision_artifacts=decision_artifacts,
+        review_history=review_history,
+        limit=decision_timeline_limit,
+    )
+    current_diff_seed = {
+        "timestamp": decision_timeline[0]["timestamp"] if decision_timeline else "NOT_COMPUTABLE",
+        "action_name": str(result_packet.get("action_name", "")),
+        "run_id": str(result_packet.get("run_id", "")),
+        "outcome_classification": str(outcome_classification.get("label", "NOT_COMPUTABLE")),
+        "decision_label": str(decision_layer.get("decision_label", "INVESTIGATE")),
+        "suggested_next_step": str((decision_layer.get("handoff", {}) or {}).get("suggested_next_step", "")),
+    }
+    decision_diff = _derive_decision_diff(current=current_diff_seed, timeline=decision_timeline)
+    runs_touched_count = len({str(x.get("run_id", "")) for x in normalized_action_history_all if str(x.get("run_id", ""))})
+    actions_executed_count = len([x for x in normalized_action_history_all if str(x.get("action_name", ""))])
+    decisions_made_count = len(decision_timeline)
+    exports_created_count = len(
+        [
+            x
+            for x in [
+                latest_snapshot_report_path,
+                latest_execution_report_path,
+                latest_handoff_bundle_path,
+                latest_decision_export_path,
+                session_closeout_path,
+            ]
+            if x
+        ]
+    )
+    checkpoints_created_count = len([x for x in [latest_checkpoint_path, latest_review_checkpoint_path] if x])
+    session_summary = {
+        "session_start_marker": decision_timeline[-1]["timestamp"] if decision_timeline else "NOT_COMPUTABLE",
+        "runs_touched_count": runs_touched_count,
+        "actions_executed_count": actions_executed_count,
+        "decisions_made_count": decisions_made_count,
+        "exports_created_count": exports_created_count,
+        "checkpoints_created_count": checkpoints_created_count,
+        "latest_decision": str(decision_layer.get("decision_label", "INVESTIGATE")),
+        "latest_action_outcome": str(result_packet.get("status", "NOT_COMPUTABLE")),
+    }
+    session_closeout_preview = {
+        "session_summary": session_summary,
+        "decision_timeline": decision_timeline[:10],
+        "latest_decision": str(decision_layer.get("decision_label", "INVESTIGATE")),
+        "latest_result_packet_summary": {
+            "status": str(result_packet.get("status", "")),
+            "action_name": str(result_packet.get("action_name", "")),
+            "run_id": str(result_packet.get("run_id", "")),
+            "summary": str(result_packet.get("summary", ""))[:160],
+        },
+        "exports_checkpoints": {
+            "decision_export_path": latest_decision_export_path or "",
+            "session_closeout_path": session_closeout_path or "",
+            "checkpoint_path": latest_checkpoint_path or "",
+            "review_checkpoint_path": latest_review_checkpoint_path or "",
+        },
+        "active_context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+            "baseline_run_id": baseline_run_id or "",
+        },
+    }
+    session_workspace_payload = {
+        "mode": "session",
+        "timeline_count": len(decision_timeline),
+        "decision_diff_enabled": decision_diff.get("enabled", "false"),
+        "latest_decision": session_summary["latest_decision"],
+        "session_closeout_status": session_closeout_status,
+        "recall_status": recall_status,
+    }
+    session_continuity = {
+        "decision_timeline": decision_timeline,
+        "decision_timeline_limit": decision_timeline_limit,
+        "decision_diff": decision_diff,
+        "session_summary": session_summary,
+        "session_closeout_preview": session_closeout_preview,
+        "session_closeout_status": session_closeout_status,
+        "session_closeout_path": session_closeout_path,
+        "recent_decision_artifacts": decision_artifacts,
+        "recent_checkpoint_artifacts": checkpoint_artifacts,
+        "recall_status": recall_status,
+        "recall_path": recall_path,
+        "session_workspace_payload": session_workspace_payload,
+    }
+    policy_surface = _derive_policy_surface(workbench_mode=applied_mode, control_plane=control_plane)
+    guard_conditions = _derive_guard_conditions(
+        selected_run_id=chosen,
+        control_plane=control_plane,
+        retry_reapply=retry_reapply,
+        latest_review_checkpoint_path=latest_review_checkpoint_path,
+        workbench_mode=applied_mode,
+    )
+    action_gating = _derive_action_gating(
+        action_presets=action_presets,
+        selected_run_id=chosen,
+        control_plane=control_plane,
+        retry_reapply=retry_reapply,
+        policy_mode=str(policy_surface.get("policy_mode", "review_only")),
+    )
+    recent_policy_artifacts = _list_recent_artifacts(
+        root=base_dir / "artifacts_seal" / "operator_policy",
+        glob_pattern="*.policy_snapshot.json",
+        limit=10,
+        parser=lambda path: (
+            {
+                "path": path.as_posix(),
+                "timestamp": str((_load_json(path) or {}).get("generated_at", "NOT_COMPUTABLE")),
+                "policy_mode": str(((_load_json(path) or {}).get("policy_surface", {}) or {}).get("policy_mode", "unknown")),
+                "summary": str(((_load_json(path) or {}).get("policy_surface", {}) or {}).get("policy_summary", ""))[:140],
+            }
+            if _load_json(path)
+            else None
+        ),
+    )
+    policy_snapshot_preview = {
+        "policy_surface": policy_surface,
+        "action_gating": action_gating,
+        "guard_conditions": guard_conditions,
+        "enabled_actions": [row["action_name"] for row in action_gating if row.get("enabled") == "true"][:20],
+        "disabled_actions": [row["action_name"] for row in action_gating if row.get("enabled") == "false"][:20],
+        "context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+            "baseline_run_id": baseline_run_id or "",
+            "selected_preset_id": resolved_selected_preset_id or "",
+            "workbench_mode": applied_mode,
+        },
+        "timestamp": _utc_now(),
+    }
+    governance_workspace_payload = {
+        "mode": "governance",
+        "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+        "enabled_actions_count": len([row for row in action_gating if row.get("enabled") == "true"]),
+        "guard_fail_count": len([row for row in guard_conditions if row.get("status") == "fail"]),
+        "policy_snapshot_status": policy_snapshot_status,
+        "policy_recall_status": policy_recall_status,
+    }
+    governance = {
+        "policy_surface": policy_surface,
+        "action_gating": action_gating,
+        "guard_conditions": guard_conditions,
+        "policy_snapshot_preview": policy_snapshot_preview,
+        "policy_snapshot_status": policy_snapshot_status,
+        "policy_snapshot_path": policy_snapshot_path,
+        "recent_policy_artifacts": recent_policy_artifacts,
+        "policy_recall_status": policy_recall_status,
+        "policy_recall_path": policy_recall_path,
+        "governance_workspace_payload": governance_workspace_payload,
+    }
+    resolved_viz_mode = _sanitize_viz_mode(viz_mode)
+    viz_payloads = _derive_viz_payloads(
+        closure_status=closure_status,
+        snapshot_header=snapshot_header,
+        governance=governance,
+        selected_run_detail=selected_detail,
+        compare_strip=compare_strip,
+        compare_delta_summary=compare_delta_summary,
+        evidence_delta_preview=evidence_delta_preview,
+        attention_queue=attention_queue,
+        highlights=highlights,
+        recent_activity=recent_activity,
+        execution_ledger=execution_ledger,
+        decision_layer=decision_layer,
+    )
+    viz_export_preview = {
+        "viz_mode": resolved_viz_mode,
+        "viz_payloads": viz_payloads,
+        "selected_context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+            "baseline_run_id": baseline_run_id or "",
+            "workbench_mode": applied_mode,
+        },
+        "summary_status": {
+            "closure_status": closure_status,
+            "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+            "attention_count": len(attention_queue),
+            "execution_ledger_count": len(execution_ledger),
+        },
+        "timestamp": _utc_now(),
+    }
+    viz_workspace_payload = {
+        "mode": "viz",
+        "current_viz_mode": resolved_viz_mode,
+        "payload_ready": resolved_viz_mode in viz_payloads,
+        "compare_enabled": bool(viz_payloads.get("compare", {}).get("enabled", False)),
+        "viz_export_status": viz_export_status,
+    }
+    viz_integration = {
+        "viz_mode": resolved_viz_mode,
+        "viz_modes_allowed": ["weather", "trace", "compare"],
+        "viz_payloads": viz_payloads,
+        "viz_export_preview": viz_export_preview,
+        "viz_export_status": viz_export_status,
+        "viz_export_path": viz_export_path,
+        "viz_workspace_payload": viz_workspace_payload,
+    }
+    routed_render = _route_viz_render(viz_mode=resolved_viz_mode, viz_payloads=viz_payloads)
+    viz_render_export_preview = {
+        "viz_mode": str(routed_render.get("viz_render_mode", resolved_viz_mode)),
+        "source_viz_payload": dict(routed_render.get("viz_render_payload", {})),
+        "render_output": dict(routed_render.get("viz_render_output", {})),
+        "selected_context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+            "baseline_run_id": baseline_run_id or "",
+        },
+        "status": str((routed_render.get("viz_render_output", {}) or {}).get("status", "ready")),
+        "provenance": "operator_console.viz_render.v2.7.1.mode_routed",
+        "timestamp": _utc_now(),
+    }
+    viz_render_workspace_payload = {
+        "mode": "viz",
+        "viz_render_mode": str(routed_render.get("viz_render_mode", resolved_viz_mode)),
+        "has_render_output": bool(routed_render.get("viz_render_output", {})),
+        "viz_render_export_status": viz_render_export_status,
+    }
+    viz_render = {
+        "viz_render_mode": str(routed_render.get("viz_render_mode", resolved_viz_mode)),
+        "viz_render_payload": dict(routed_render.get("viz_render_payload", {})),
+        "viz_render_output": dict(routed_render.get("viz_render_output", {})),
+        "viz_render_export_preview": viz_render_export_preview,
+        "viz_render_export_status": viz_render_export_status,
+        "viz_render_export_path": viz_render_export_path,
+        "viz_render_workspace_payload": viz_render_workspace_payload,
+    }
+    resolved_report_export_paths = {
+        "session_report": str((report_export_paths or {}).get("session_report", "")),
+        "decision_summary": str((report_export_paths or {}).get("decision_summary", "")),
+        "viz_summary": str((report_export_paths or {}).get("viz_summary", "")),
+        "closeout_bundle": str((report_export_paths or {}).get("closeout_bundle", "")),
+        "markdown_report": str((report_export_paths or {}).get("markdown_report", "")),
+    }
+    session_report_preview = {
+        "session_summary": dict(session_continuity.get("session_summary", {})),
+        "decision_timeline": list(session_continuity.get("decision_timeline", []))[:15],
+        "execution_summary": {
+            "visible_run_count": len(visible_run_ids),
+            "actions_recorded_count": len(normalized_action_history),
+        },
+        "governance_summary": {
+            "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+            "gating_snapshot": list(governance.get("action_gating", []))[:5],
+        },
+        "latest_result_packet_summary": {
+            "status": str(result_packet.get("status", "not_requested")),
+            "action_name": str(result_packet.get("action_name", "")),
+            "run_id": str(result_packet.get("run_id", "")),
+        },
+        "provenance": "operator_console.reporting.session.v2.8.0",
+        "timestamp": _utc_now(),
+    }
+    decision_summary_preview = {
+        "action_name": str(result_packet.get("action_name", "")),
+        "run_id": chosen or "",
+        "outcome_classification": dict(outcome_classification),
+        "decision_label": str(decision_layer.get("decision_label", "INVESTIGATE")),
+        "failure_triage": dict(failure_triage),
+        "provenance_summary": dict(result_provenance_panel),
+        "suggested_next_step": str(suggested_next_step),
+        "timestamp": _utc_now(),
+    }
+    viz_summary_preview = {
+        "viz_mode": str(viz_render.get("viz_render_mode", resolved_viz_mode)),
+        "render_output": dict(viz_render.get("viz_render_output", {})),
+        "source_payload_summary": dict(viz_render.get("viz_render_payload", {})),
+        "selected_context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+        },
+        "timestamp": _utc_now(),
+    }
+    closeout_bundle_preview = {
+        "session_report": session_report_preview,
+        "latest_decision_summary": decision_summary_preview,
+        "latest_viz_summary": viz_summary_preview,
+        "governance_snapshot": {
+            "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
+            "guard_conditions": list(governance.get("guard_conditions", []))[:5],
+        },
+        "selected_context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+            "workbench_mode": applied_mode,
+        },
+        "timestamp": _utc_now(),
+        "provenance": "operator_console.reporting.closeout.v2.8.0",
+    }
+    markdown_preview = "\n".join(
+        [
+            "# Operator Report",
+            "",
+            "## Session Summary",
+            f"- actions_executed_count: {session_report_preview['session_summary'].get('actions_executed_count', 0)}",
+            f"- decisions_recorded_count: {session_report_preview['session_summary'].get('decisions_recorded_count', 0)}",
+            "",
+            "## Decision Summary",
+            f"- decision_label: {decision_summary_preview['decision_label']}",
+            f"- suggested_next_step: {decision_summary_preview['suggested_next_step']}",
+            "",
+            "## Viz Summary",
+            f"- viz_mode: {viz_summary_preview['viz_mode']}",
+            f"- render_status: {str((viz_summary_preview.get('render_output', {}) or {}).get('status', 'ready'))}",
+            "",
+            "## Governance Snapshot",
+            f"- policy_mode: {session_report_preview['governance_summary']['policy_mode']}",
+            "",
+            "## Context",
+            f"- selected_run_id: {chosen or ''}",
+            f"- compare_run_id: {selected_comparison_run_id or ''}",
+            "",
+            "## Provenance",
+            "- operator_console.reporting.v2.8.0",
+        ]
+    )
+    reporting_workspace_payload = {
+        "mode": "report",
+        "report_export_status": report_export_status,
+        "report_paths_written_count": len([x for x in resolved_report_export_paths.values() if x]),
+        "selected_run_id": chosen or "",
+    }
+    reporting = {
+        "session_report_preview": session_report_preview,
+        "decision_summary_preview": decision_summary_preview,
+        "viz_summary_preview": viz_summary_preview,
+        "closeout_bundle_preview": closeout_bundle_preview,
+        "markdown_preview": markdown_preview,
+        "report_export_status": report_export_status,
+        "report_export_paths": resolved_report_export_paths,
+        "reporting_workspace_payload": reporting_workspace_payload,
     }
 
     return ViewState(
@@ -1784,7 +3143,7 @@ def build_view_state(
         loaded_snapshot_path=loaded_snapshot_path,
         loaded_snapshot_status=loaded_snapshot_status,
         workbench_mode=applied_mode,
-        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow"],
+        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report"],
         attention_actions_enabled=attention_actions_enabled,
         attention_action_hint=attention_action_hint,
         baseline_locked=baseline_locked,
@@ -1816,6 +3175,19 @@ def build_view_state(
         runtime_safety_notes=runtime_safety_notes,
         runflow_cards=runflow_cards,
         runtime_result_drilldown=runtime_result_drilldown,
+        outcome_classification=outcome_classification,
+        prior_result_diff=prior_result_diff,
+        action_stability=action_stability,
+        failure_triage=failure_triage,
+        result_provenance_panel=result_provenance_panel,
+        runtime_outcome_review_workspace=runtime_outcome_review_workspace,
+        decision_layer=decision_layer,
+        decision_workspace_payload=decision_workspace_payload,
+        session_continuity=session_continuity,
+        governance=governance,
+        viz_integration=viz_integration,
+        viz_render=viz_render,
+        reporting=reporting,
         adapter_health_checks=adapter_health_checks,
         runflow_workspace=runflow_workspace,
         session_context=resolved_session_context,
@@ -1828,6 +3200,19 @@ def build_view_state(
             "focus_sort_rule": "latest_first=timestamp desc with NOT_COMPUTABLE last; run_id_asc=lexicographic run_id",
             "action_feedback_rule": "status from exit_code/env markers; run_id parsed from *.artifact.json path in output tails",
             "suggestion_rule": "prefer validator status SUCCESS|VALID with pointers>0, tie latest timestamp then run_id, else first visible",
+            "outcome_classification_rule": "SUCCESS=status success-like + run_id + artifact; PARTIAL=incomplete success surfaces; FAILED=failed/error or error_info_without_artifact; NOT_COMPUTABLE=not_requested/preview/missing execution identity",
+            "stability_rule": "window=5 same action outcomes; stable=all success; degraded=majority failed or latest failed; mixed=otherwise",
+            "prior_diff_rule": "prior=previous same action+preset excluding same identity; compare outcome/run/artifact/output_count/error_state",
+            "decision_rule": "ACCEPT=success+stable+complete; WATCH=success+mixed; RETRY=failed_or_partial+missing_required_surfaces_without_error; INVESTIGATE=otherwise",
+            "review_history_rule": "bounded recent action history sorted timestamp desc with stable tie-breakers; each row derives outcome+decision deterministically",
+            "session_timeline_rule": "timeline combines current decision + recent decision artifacts + review history; bounded newest-first deterministic sorting",
+            "session_diff_rule": "compare current decision against prior same run_id else same action_name else inert",
+            "policy_mode_rule": "review_only when no bounded action context; bounded_runtime when allowlisted runtime actions available; decision_review when decision/session modes active",
+            "action_gating_rule": "enabled only when policy permits + action allowlisted + preview supported + required run/retry conditions pass",
+            "viz_adapter_rule": "viz payloads are deterministic projections of operator/runtime/review/decision/governance state with bounded slices",
+            "viz_mode_rule": "allowed viz modes are weather|trace|compare; invalid mode defaults to weather",
+            "viz_render_rule": "viz render output is mode-routed deterministic text structure from sanitized viz payload without heavy charting",
+            "reporting_rule": "reporting artifacts are bounded deterministic summaries derived from existing session/decision/viz/governance state",
         },
     )
 

@@ -257,6 +257,53 @@
 </div>
 
 <div class="card">
+  <h2>Outcome Classification (v2.1.1)</h2>
+  <p><b>label:</b> <span class="badge">{{ view.outcome_classification.label }}</span></p>
+  <p><b>reason:</b> {{ view.outcome_classification.reason_code }}</p>
+</div>
+
+<div class="card">
+  <h2>Execution Diff / Prior Result Compare (v2.1.2)</h2>
+  <p><b>has prior:</b> {{ view.prior_result_diff.has_prior }}</p>
+  <p><b>prior timestamp:</b> {{ view.prior_result_diff.prior_timestamp }}</p>
+  <p><b>outcome:</b> {{ view.prior_result_diff.outcome_change }}</p>
+  <p><b>run_id:</b> {{ view.prior_result_diff.run_id_change }}</p>
+  <p><b>artifact path:</b> {{ view.prior_result_diff.artifact_path_change }}</p>
+  <p><b>output count delta:</b> {{ view.prior_result_diff.output_count_delta }}</p>
+  <p><b>error state:</b> {{ view.prior_result_diff.error_change }}</p>
+</div>
+
+<div class="card">
+  <h2>Action Stability Surface (v2.1.3)</h2>
+  <p><b>label:</b> <span class="badge">{{ view.action_stability.label }}</span></p>
+  <p><b>window:</b> {{ view.action_stability.evaluated_count }} / {{ view.action_stability.window_size }}</p>
+  <p><b>success:</b> {{ view.action_stability.success_like_count }} | <b>failed:</b> {{ view.action_stability.failure_like_count }} | <b>not-computable:</b> {{ view.action_stability.not_computable_count }}</p>
+  {% if view.action_stability.recent_outcomes|length > 0 %}
+  <p><b>recent outcomes:</b> {{ view.action_stability.recent_outcomes }}</p>
+  {% endif %}
+</div>
+
+{% if view.failure_triage.enabled %}
+<div class="card warn">
+  <h2>Failure Triage Card (v2.1.4)</h2>
+  <p><b>reasons:</b> {{ view.failure_triage.reasons }}</p>
+  <p><b>missing:</b> {{ view.failure_triage.missing_fields }}</p>
+  <p><b>next step:</b> {{ view.failure_triage.suggested_next_step }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Result Provenance Panel (v2.1.5)</h2>
+  <p><b>action:</b> {{ view.result_provenance_panel.action_name or "UNAVAILABLE" }}</p>
+  <p><b>preset:</b> {{ view.result_provenance_panel.preset_id or "UNAVAILABLE" }}</p>
+  <p><b>adapter:</b> {{ view.result_provenance_panel.adapter_name or "UNAVAILABLE" }}</p>
+  <p><b>attempted_at:</b> {{ view.result_provenance_panel.attempted_at or "UNAVAILABLE" }}</p>
+  <p><b>run_id:</b> {{ view.result_provenance_panel.run_id or "UNAVAILABLE" }}</p>
+  <p><b>artifact paths:</b> {{ view.result_provenance_panel.artifact_paths }}</p>
+  <p><b>payload args:</b> {{ view.result_provenance_panel.payload_args_summary }}</p>
+</div>
+
+<div class="card">
   <h2>Adapter Health / Integrity (v2.0.5)</h2>
   <p><b>overall:</b> {{ view.adapter_health_checks.overall_status }}</p>
   <ul>
@@ -264,6 +311,343 @@
     <li>{{ row.action_name }} | exists={{ row.adapter_exists }} | allowlisted={{ row.allowlisted }} | preview={{ row.preview_renderable }} | packet_shape={{ row.packet_shape_valid }} | status={{ row.status }}</li>
   {% endfor %}
   </ul>
+</div>
+
+<div class="card">
+  <h2>Runtime Outcome Review Workspace (v2.2)</h2>
+  <p><b>enabled:</b> {{ view.runtime_outcome_review_workspace.enabled }}</p>
+  <p><b>mode:</b> {{ view.runtime_outcome_review_workspace.review_mode }}</p>
+  <p><b>packet status:</b> {{ view.runtime_outcome_review_workspace.packet_status }}</p>
+  <p><b>classification:</b> {{ view.runtime_outcome_review_workspace.classification_label }}</p>
+  <p><b>prior diff enabled:</b> {{ view.runtime_outcome_review_workspace.prior_diff_enabled }}</p>
+  <p><b>stability:</b> {{ view.runtime_outcome_review_workspace.stability_label }}</p>
+  <p><b>triage enabled:</b> {{ view.runtime_outcome_review_workspace.triage_enabled }}</p>
+  <p><b>provenance run:</b> {{ view.runtime_outcome_review_workspace.provenance_run_id or "UNAVAILABLE" }}</p>
+</div>
+
+<div class="card">
+  <h2>Outcome Decision Card (v2.2.1)</h2>
+  <p><b>decision:</b> <span class="badge">{{ view.decision_layer.decision_label }}</span></p>
+  <p><b>reason:</b> {{ view.decision_layer.decision_reason }}</p>
+  <p><b>inputs:</b> {{ view.decision_layer.inputs_summary if view.decision_layer.inputs_summary is defined else "UNAVAILABLE" }}</p>
+</div>
+
+<div class="card">
+  <h2>Review-to-Action Handoff (v2.2.2)</h2>
+  <p><b>next step:</b> {{ view.decision_layer.handoff.suggested_next_step }}</p>
+  <p><b>action hint:</b> {{ view.decision_layer.handoff.action_hint }}</p>
+  <p><b>focus run:</b> {{ view.decision_layer.handoff.focus_target_run_id or "UNAVAILABLE" }}</p>
+  <p><b>compare suggestion:</b> {{ view.decision_layer.handoff.compare_suggestion }}</p>
+  <p><b>baseline suggestion:</b> {{ view.decision_layer.handoff.baseline_suggestion }}</p>
+  {% if view.decision_layer.handoff.focus_run_link %}
+    <p><a href="{{ view.decision_layer.handoff.focus_run_link }}">focus handoff run</a></p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Review History Strip (v2.2.3)</h2>
+  <p><small>showing {{ view.decision_layer.review_history|length }} / {{ view.decision_layer.review_history_limit }}</small></p>
+  {% if view.decision_layer.review_history|length == 0 %}
+    <p>No review history available.</p>
+  {% else %}
+    <ul>
+    {% for row in view.decision_layer.review_history %}
+      <li>{{ row.timestamp }} | {{ row.action_name }} | run={{ row.run_id or "UNAVAILABLE" }} | outcome={{ row.outcome_classification }} | decision={{ row.decision }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Decision Export (v2.2.4)</h2>
+  <p><b>status:</b> {{ view.decision_layer.latest_decision_export_status }}</p>
+  <p><b>path:</b> {{ view.decision_layer.latest_decision_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode={{ view.workbench_mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&export_decision=1" style="text-decoration:none;">Export decision artifact</a>
+</div>
+
+<div class="card">
+  <h2>Review Checkpoint / Restore (v2.2.5)</h2>
+  <p><b>save status:</b> {{ view.decision_layer.latest_review_checkpoint_status }}</p>
+  <p><b>save path:</b> {{ view.decision_layer.latest_review_checkpoint_path or "UNAVAILABLE" }}</p>
+  <p><b>restore status:</b> {{ view.decision_layer.restored_review_checkpoint_status }}</p>
+  <p><b>restore path:</b> {{ view.decision_layer.restored_review_checkpoint_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode={{ view.workbench_mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&save_review_checkpoint=1" style="text-decoration:none;">Save review checkpoint</a>
+  {% if view.decision_layer.latest_review_checkpoint_path %}
+  <a class="btn" href="/operator?restore_review_checkpoint={{ view.decision_layer.latest_review_checkpoint_path }}" style="text-decoration:none;">Restore latest review checkpoint</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Operator Decision Workspace (v2.3)</h2>
+  <p><b>mode:</b> {{ view.decision_workspace_payload.mode }}</p>
+  <p><b>decision:</b> {{ view.decision_workspace_payload.decision_label }}</p>
+  <p><b>reason:</b> {{ view.decision_workspace_payload.decision_reason }}</p>
+  <p><b>review history count:</b> {{ view.decision_workspace_payload.review_history_count }}</p>
+  <p><b>export status:</b> {{ view.decision_workspace_payload.latest_decision_export_status }}</p>
+  <p><b>checkpoint status:</b> {{ view.decision_workspace_payload.latest_review_checkpoint_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Decision Timeline (v2.3.1)</h2>
+  <p><small>showing {{ view.session_continuity.decision_timeline|length }} / {{ view.session_continuity.decision_timeline_limit }}</small></p>
+  {% if view.session_continuity.decision_timeline|length == 0 %}
+    <p>No timeline entries.</p>
+  {% else %}
+    <ul>
+    {% for row in view.session_continuity.decision_timeline %}
+      <li>{{ row.timestamp }} | {{ row.action_name }} | run={{ row.run_id or "UNAVAILABLE" }} | outcome={{ row.outcome_classification }} | decision={{ row.decision_label }} | {{ row.summary }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Decision Diff (v2.3.2)</h2>
+  <p><b>enabled:</b> {{ view.session_continuity.decision_diff.enabled }}</p>
+  <p><b>reason:</b> {{ view.session_continuity.decision_diff.reason }}</p>
+  <p><b>decision label:</b> {{ view.session_continuity.decision_diff.decision_label_changed }}</p>
+  <p><b>outcome:</b> {{ view.session_continuity.decision_diff.outcome_changed }}</p>
+  <p><b>next step:</b> {{ view.session_continuity.decision_diff.next_step_changed }}</p>
+  <p><b>run_id:</b> {{ view.session_continuity.decision_diff.run_id_changed }}</p>
+  <p><b>timestamp ordering:</b> {{ view.session_continuity.decision_diff.timestamp_ordering }}</p>
+</div>
+
+<div class="card">
+  <h2>Session Summary (v2.3.3)</h2>
+  <p><b>session start:</b> {{ view.session_continuity.session_summary.session_start_marker }}</p>
+  <p><b>runs touched:</b> {{ view.session_continuity.session_summary.runs_touched_count }}</p>
+  <p><b>actions executed:</b> {{ view.session_continuity.session_summary.actions_executed_count }}</p>
+  <p><b>decisions made:</b> {{ view.session_continuity.session_summary.decisions_made_count }}</p>
+  <p><b>exports created:</b> {{ view.session_continuity.session_summary.exports_created_count }}</p>
+  <p><b>checkpoints created:</b> {{ view.session_continuity.session_summary.checkpoints_created_count }}</p>
+  <p><b>latest decision:</b> {{ view.session_continuity.session_summary.latest_decision }}</p>
+  <p><b>latest action outcome:</b> {{ view.session_continuity.session_summary.latest_action_outcome }}</p>
+</div>
+
+<div class="card">
+  <h2>Session Closeout Export (v2.3.4)</h2>
+  <p><b>status:</b> {{ view.session_continuity.session_closeout_status }}</p>
+  <p><b>path:</b> {{ view.session_continuity.session_closeout_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode={{ view.workbench_mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&export_session_closeout=1" style="text-decoration:none;">Export session closeout</a>
+</div>
+
+<div class="card">
+  <h2>Decision / Checkpoint Recall (v2.3.5)</h2>
+  <p><b>recall status:</b> {{ view.session_continuity.recall_status }}</p>
+  <p><b>recall path:</b> {{ view.session_continuity.recall_path or "UNAVAILABLE" }}</p>
+  <p><b>recent decisions:</b></p>
+  <ul>
+  {% for item in view.session_continuity.recent_decision_artifacts %}
+    <li>{{ item.timestamp }} | run={{ item.run_id or "UNAVAILABLE" }} | {{ item.decision_label }} | <a href="/operator?load_decision_artifact={{ item.path }}">load</a></li>
+  {% endfor %}
+  </ul>
+  <p><b>recent checkpoints:</b></p>
+  <ul>
+  {% for item in view.session_continuity.recent_checkpoint_artifacts %}
+    <li>{{ item.timestamp }} | run={{ item.run_id or "UNAVAILABLE" }} | {{ item.summary or "none" }} | <a href="/operator?load_review_checkpoint={{ item.path }}">load</a></li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Session Continuity Workspace (v2.4)</h2>
+  <p><b>mode:</b> {{ view.session_continuity.session_workspace_payload.mode }}</p>
+  <p><b>timeline count:</b> {{ view.session_continuity.session_workspace_payload.timeline_count }}</p>
+  <p><b>decision diff enabled:</b> {{ view.session_continuity.session_workspace_payload.decision_diff_enabled }}</p>
+  <p><b>latest decision:</b> {{ view.session_continuity.session_workspace_payload.latest_decision }}</p>
+  <p><b>closeout status:</b> {{ view.session_continuity.session_workspace_payload.session_closeout_status }}</p>
+  <p><b>recall status:</b> {{ view.session_continuity.session_workspace_payload.recall_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Policy Surface (v2.4.1)</h2>
+  <p><b>mode:</b> {{ view.governance.policy_surface.policy_mode }}</p>
+  <p><b>label:</b> {{ view.governance.policy_surface.policy_label }}</p>
+  <p><b>summary:</b> {{ view.governance.policy_surface.policy_summary }}</p>
+  <p><b>allowed classes:</b> {{ view.governance.policy_surface.allowed_action_classes }}</p>
+  <p><b>constrained classes:</b> {{ view.governance.policy_surface.constrained_action_classes }}</p>
+</div>
+
+<div class="card">
+  <h2>Action Gating (v2.4.2)</h2>
+  <ul>
+  {% for row in view.governance.action_gating %}
+    <li>{{ row.preset_id }} | {{ row.action_name }} | enabled={{ row.enabled }} | reason={{ row.gating_reason }} | required={{ row.required_conditions }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Guard Conditions (v2.4.3)</h2>
+  <ul>
+  {% for row in view.governance.guard_conditions %}
+    <li>{{ row.guard_name }} | {{ row.status }} | {{ row.explanation }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Policy Snapshot Export (v2.4.4)</h2>
+  <p><b>status:</b> {{ view.governance.policy_snapshot_status }}</p>
+  <p><b>path:</b> {{ view.governance.policy_snapshot_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode={{ view.workbench_mode }}&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&preset_id={{ view.selected_preset_id or '' }}&export_policy_snapshot=1" style="text-decoration:none;">Export policy snapshot</a>
+</div>
+
+<div class="card">
+  <h2>Policy Recall (v2.4.5)</h2>
+  <p><b>status:</b> {{ view.governance.policy_recall_status }}</p>
+  <p><b>path:</b> {{ view.governance.policy_recall_path or "UNAVAILABLE" }}</p>
+  <ul>
+  {% for item in view.governance.recent_policy_artifacts %}
+    <li>{{ item.timestamp }} | {{ item.policy_mode }} | {{ item.summary }} | <a href="/operator?load_policy_snapshot={{ item.path }}">load</a></li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Governance Workspace (v2.5)</h2>
+  <p><b>mode:</b> {{ view.governance.governance_workspace_payload.mode }}</p>
+  <p><b>policy mode:</b> {{ view.governance.governance_workspace_payload.policy_mode }}</p>
+  <p><b>enabled actions:</b> {{ view.governance.governance_workspace_payload.enabled_actions_count }}</p>
+  <p><b>guard fails:</b> {{ view.governance.governance_workspace_payload.guard_fail_count }}</p>
+  <p><b>snapshot status:</b> {{ view.governance.governance_workspace_payload.policy_snapshot_status }}</p>
+  <p><b>recall status:</b> {{ view.governance.governance_workspace_payload.policy_recall_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Viz Mode Selector (v2.5.3)</h2>
+  <p>
+    {% for mode in view.viz_integration.viz_modes_allowed %}
+      {% if mode == view.viz_integration.viz_mode %}<b>{{ mode }}</b>{% else %}<a href="/operator?mode=viz&viz_mode={{ mode }}&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}">{{ mode }}</a>{% endif %}
+      {% if not loop.last %} | {% endif %}
+    {% endfor %}
+  </p>
+</div>
+
+<div class="card">
+  <h2>Weather Payload Preview (v2.5.2)</h2>
+  <p>{{ view.viz_integration.viz_payloads.weather }}</p>
+</div>
+
+<div class="card">
+  <h2>Trace Payload Preview (v2.5.2)</h2>
+  <p>{{ view.viz_integration.viz_payloads.trace }}</p>
+</div>
+
+<div class="card">
+  <h2>Compare Payload Preview (v2.5.2)</h2>
+  <p>{{ view.viz_integration.viz_payloads.compare }}</p>
+</div>
+
+<div class="card">
+  <h2>Viz Export (v2.5.4)</h2>
+  <p><b>status:</b> {{ view.viz_integration.viz_export_status }}</p>
+  <p><b>path:</b> {{ view.viz_integration.viz_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=viz&viz_mode={{ view.viz_integration.viz_mode }}&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_viz_state=1" style="text-decoration:none;">Export viz state</a>
+</div>
+
+<div class="card">
+  <h2>Viz Workspace (v2.5.5 / v2.6)</h2>
+  <p><b>mode:</b> {{ view.viz_integration.viz_workspace_payload.mode }}</p>
+  <p><b>current viz mode:</b> {{ view.viz_integration.viz_workspace_payload.current_viz_mode }}</p>
+  <p><b>payload ready:</b> {{ view.viz_integration.viz_workspace_payload.payload_ready }}</p>
+  <p><b>compare enabled:</b> {{ view.viz_integration.viz_workspace_payload.compare_enabled }}</p>
+  <p><b>export status:</b> {{ view.viz_integration.viz_workspace_payload.viz_export_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Weather Render (v2.6.1)</h2>
+  {% if view.viz_render.viz_render_mode == "weather" %}
+    <p><b>status:</b> {{ view.viz_render.viz_render_output.status }}</p>
+    <p><b>closure status:</b> {{ view.viz_render.viz_render_output.closure_status }}</p>
+    <p><b>policy mode:</b> {{ view.viz_render.viz_render_output.policy_mode }}</p>
+    <p><b>run health distribution:</b> {{ view.viz_render.viz_render_output.run_health_distribution }}</p>
+    <p><b>attention count:</b> {{ view.viz_render.viz_render_output.attention_count }}</p>
+    <p><b>alert/highlight count:</b> {{ view.viz_render.viz_render_output.alert_highlight_count }}</p>
+  {% else %}
+    <p>Renderer inactive for current mode.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Trace Render (v2.6.2)</h2>
+  {% if view.viz_render.viz_render_mode == "trace" %}
+    <p><b>status:</b> {{ view.viz_render.viz_render_output.status }}</p>
+    <p><b>summary:</b> {{ view.viz_render.viz_render_output.summary_line }}</p>
+    <p><b>recent activity/events:</b> {{ view.viz_render.viz_render_output.recent_activity_events }}</p>
+    <p><b>recent decisions:</b> {{ view.viz_render.viz_render_output.recent_decisions }}</p>
+    <p><b>recent execution ledger slice:</b> {{ view.viz_render.viz_render_output.recent_execution_ledger_slice }}</p>
+  {% else %}
+    <p>Renderer inactive for current mode.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Compare Render (v2.6.3)</h2>
+  {% if view.viz_render.viz_render_mode == "compare" %}
+    <p><b>status:</b> {{ view.viz_render.viz_render_output.status }}</p>
+    <p><b>enabled:</b> {{ view.viz_render.viz_render_output.enabled }}</p>
+    <p><b>reason:</b> {{ view.viz_render.viz_render_output.reason }}</p>
+    <p><b>selected run summary:</b> {{ view.viz_render.viz_render_output.selected_run_summary }}</p>
+    <p><b>comparison run summary:</b> {{ view.viz_render.viz_render_output.comparison_run_summary }}</p>
+    <p><b>compare delta summary:</b> {{ view.viz_render.viz_render_output.compare_delta_summary }}</p>
+    <p><b>evidence delta summary:</b> {{ view.viz_render.viz_render_output.evidence_delta_summary }}</p>
+  {% else %}
+    <p>Renderer inactive for current mode.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Render Export (v2.6.5)</h2>
+  <p><b>status:</b> {{ view.viz_render.viz_render_export_status }}</p>
+  <p><b>path:</b> {{ view.viz_render.viz_render_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=viz&viz_mode={{ view.viz_integration.viz_mode }}&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_viz_render=1" style="text-decoration:none;">Export viz render</a>
+</div>
+
+<div class="card">
+  <h2>Viz Render Workspace (v2.7)</h2>
+  <p><b>mode:</b> {{ view.viz_render.viz_render_workspace_payload.mode }}</p>
+  <p><b>render mode:</b> {{ view.viz_render.viz_render_workspace_payload.viz_render_mode }}</p>
+  <p><b>has output:</b> {{ view.viz_render.viz_render_workspace_payload.has_render_output }}</p>
+  <p><b>render export status:</b> {{ view.viz_render.viz_render_workspace_payload.viz_render_export_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Session Report (v2.7.1)</h2>
+  <p>{{ view.reporting.session_report_preview }}</p>
+  <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_session_report=1" style="text-decoration:none;">Export session report</a>
+</div>
+
+<div class="card">
+  <h2>Decision Summary (v2.7.2)</h2>
+  <p>{{ view.reporting.decision_summary_preview }}</p>
+  <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_decision_summary=1" style="text-decoration:none;">Export decision summary</a>
+</div>
+
+<div class="card">
+  <h2>Viz Summary (v2.7.3)</h2>
+  <p>{{ view.reporting.viz_summary_preview }}</p>
+  <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_viz_summary=1" style="text-decoration:none;">Export viz summary</a>
+</div>
+
+<div class="card">
+  <h2>Closeout Bundle (v2.7.4)</h2>
+  <p>{{ view.reporting.closeout_bundle_preview }}</p>
+  <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_closeout_bundle=1" style="text-decoration:none;">Export closeout bundle</a>
+</div>
+
+<div class="card">
+  <h2>Markdown Preview (v2.7.5)</h2>
+  <pre style="white-space:pre-wrap;">{{ view.reporting.markdown_preview }}</pre>
+  <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_markdown_report=1" style="text-decoration:none;">Export markdown report</a>
+</div>
+
+<div class="card">
+  <h2>Reporting Workspace (v2.8)</h2>
+  <p><b>mode:</b> {{ view.reporting.reporting_workspace_payload.mode }}</p>
+  <p><b>export status:</b> {{ view.reporting.report_export_status }}</p>
+  <p><b>paths:</b> {{ view.reporting.report_export_paths }}</p>
+  <p><b>written count:</b> {{ view.reporting.reporting_workspace_payload.report_paths_written_count }}</p>
 </div>
 
 <div class="card">

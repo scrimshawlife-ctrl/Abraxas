@@ -918,3 +918,473 @@ def test_runtime_audit_safety_runflow_and_health_surfaces_are_deterministic(tmp_
     assert view.adapter_health_checks["overall_status"] == "healthy"
     assert view.runflow_workspace["current_step"] == "inspect_result"
     assert view.runflow_workspace["focus_run_link"].startswith("/operator?run_id=")
+    assert view.outcome_classification == {
+        "label": "FAILED",
+        "reason_code": "explicit_failed_status",
+    }
+    assert view.prior_result_diff["has_prior"] is False
+    assert view.action_stability["label"] == "degraded"
+    assert view.failure_triage["enabled"] is True
+    assert view.result_provenance_panel["run_id"] == "run.generalized_coverage.scopepass.v1"
+    assert view.runtime_outcome_review_workspace["review_mode"] == "runtime_review"
+
+
+def test_runtime_outcome_review_classification_diff_stability_and_triage_rules(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    history = [
+        {
+            "timestamp": "2026-03-29T00:00:00Z",
+            "action_name": "run_execution_validator",
+            "preset_id": "preset.execution_validator.selected",
+            "adapter_name": "adapter.run_execution_validator",
+            "run_id": "run.generalized_coverage.scopepass.v0",
+            "outcome_status": "SUCCESS",
+            "artifact_ref": "out/validators/execution-validation-run.generalized_coverage.scopepass.v0.json",
+            "summary": "execution validator passed",
+        },
+        {
+            "timestamp": "2026-03-28T00:00:00Z",
+            "action_name": "run_execution_validator",
+            "preset_id": "preset.execution_validator.selected",
+            "adapter_name": "adapter.run_execution_validator",
+            "run_id": "run.generalized_coverage.scopepass.vx",
+            "outcome_status": "FAILED",
+            "artifact_ref": "",
+            "summary": "execution validator failed",
+        },
+    ]
+
+    success_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        action_history=history,
+        result_packet_override={
+            "status": "SUCCESS",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "adapter_name": "adapter.run_execution_validator",
+            "attempted_at": "2026-03-29T01:00:00Z",
+            "run_id": "run.generalized_coverage.scopepass.v1",
+            "artifact_path": "out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json",
+            "artifact_paths": ["out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json"],
+            "error_info": "",
+            "summary": "execution validator passed for run.generalized_coverage.scopepass.v1",
+        },
+    )
+    assert success_view.outcome_classification == {
+        "label": "SUCCESS",
+        "reason_code": "success_with_run_and_artifact",
+    }
+    assert success_view.prior_result_diff == {
+        "has_prior": True,
+        "prior_timestamp": "2026-03-29T00:00:00Z",
+        "outcome_change": "unchanged",
+        "run_id_change": "changed",
+        "artifact_path_change": "changed",
+        "output_count_delta": "no_change",
+        "error_change": "unchanged",
+    }
+    assert success_view.action_stability["label"] == "degraded"
+    assert success_view.failure_triage["enabled"] is False
+
+    partial_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        result_packet_override={
+            "status": "SUCCESS",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "adapter_name": "adapter.run_execution_validator",
+            "attempted_at": "2026-03-29T02:00:00Z",
+            "run_id": "",
+            "artifact_path": "",
+            "artifact_paths": [],
+            "error_info": "",
+            "summary": "missing surfaces",
+        },
+    )
+    assert partial_view.outcome_classification == {
+        "label": "PARTIAL",
+        "reason_code": "incomplete_success_surfaces",
+    }
+    assert partial_view.failure_triage["enabled"] is True
+    assert partial_view.failure_triage["missing_fields"] == ["run_id", "artifact_paths"]
+    assert partial_view.failure_triage["suggested_next_step"] == "Re-run action and verify run_id emission."
+
+    not_computable_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        result_packet_override={
+            "status": "not_requested",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "adapter_name": "adapter.run_execution_validator",
+            "attempted_at": "",
+            "run_id": "",
+            "artifact_path": "",
+            "artifact_paths": [],
+            "error_info": "",
+            "summary": "not requested",
+        },
+    )
+    assert not_computable_view.outcome_classification == {
+        "label": "NOT_COMPUTABLE",
+        "reason_code": "status_not_computable_or_preview",
+    }
+    assert not_computable_view.runtime_outcome_review_workspace == {
+        "enabled": True,
+        "review_mode": "runtime_review",
+        "packet_status": "not_requested",
+        "classification_label": "NOT_COMPUTABLE",
+        "prior_diff_enabled": False,
+        "stability_label": "not_available",
+        "triage_enabled": True,
+        "provenance_run_id": "",
+    }
+
+
+def test_decision_layer_classification_branches_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    accept_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        action_history=[
+            {
+                "timestamp": "2026-03-29T00:00:00Z",
+                "action_name": "run_execution_validator",
+                "preset_id": "preset.execution_validator.selected",
+                "run_id": "run.generalized_coverage.scopepass.v1",
+                "outcome_status": "SUCCESS",
+                "artifact_ref": "out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json",
+            }
+        ],
+        result_packet_override={
+            "status": "SUCCESS",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "run_id": "run.generalized_coverage.scopepass.v1",
+            "artifact_paths": ["out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json"],
+            "summary": "ok",
+        },
+    )
+    assert accept_view.decision_layer["decision_label"] == "ACCEPT"
+    assert accept_view.decision_layer["decision_reason"] == "success_stable_complete"
+
+    watch_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        action_history=[
+            {
+                "timestamp": "2026-03-29T00:00:00Z",
+                "action_name": "run_execution_validator",
+                "preset_id": "preset.execution_validator.selected",
+                "run_id": "run.a",
+                "outcome_status": "SUCCESS",
+                "artifact_ref": "out/validators/a.json",
+            },
+            {
+                "timestamp": "2026-03-28T12:00:00Z",
+                "action_name": "run_execution_validator",
+                "preset_id": "preset.execution_validator.selected",
+                "run_id": "run.c",
+                "outcome_status": "SUCCESS",
+                "artifact_ref": "out/validators/c.json",
+            },
+            {
+                "timestamp": "2026-03-28T00:00:00Z",
+                "action_name": "run_execution_validator",
+                "preset_id": "preset.execution_validator.selected",
+                "run_id": "run.b",
+                "outcome_status": "FAILED",
+                "artifact_ref": "",
+            },
+        ],
+        result_packet_override={
+            "status": "SUCCESS",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "run_id": "run.generalized_coverage.scopepass.v1",
+            "artifact_paths": ["out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json"],
+            "summary": "ok",
+        },
+    )
+    assert watch_view.decision_layer["decision_label"] == "WATCH"
+
+    retry_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        result_packet_override={
+            "status": "FAILED",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "run_id": "",
+            "artifact_paths": [],
+            "error_info": "",
+            "summary": "missing outputs",
+        },
+    )
+    assert retry_view.decision_layer["decision_label"] == "RETRY"
+
+    investigate_view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        result_packet_override={
+            "status": "FAILED",
+            "preset_id": "preset.execution_validator.selected",
+            "action_name": "run_execution_validator",
+            "run_id": "run.x",
+            "artifact_paths": [],
+            "error_info": "traceback",
+            "summary": "failed",
+        },
+    )
+    assert investigate_view.decision_layer["decision_label"] == "INVESTIGATE"
+
+
+def test_decision_layer_history_is_bounded_and_workspace_integrated(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    history = []
+    for idx in range(25):
+        history.append(
+            {
+                "timestamp": f"2026-03-29T00:00:{idx:02d}Z",
+                "action_name": "run_execution_validator",
+                "preset_id": "preset.execution_validator.selected",
+                "run_id": f"run.{idx}",
+                "outcome_status": "SUCCESS" if idx % 2 == 0 else "FAILED",
+                "artifact_ref": f"out/validators/run.{idx}.json" if idx % 2 == 0 else "",
+            }
+        )
+    view = build_view_state(base_dir=tmp_path, action_history=history, workbench_mode="decision")
+    assert view.workbench_mode == "decision"
+    assert view.decision_layer["review_history_limit"] == 15
+    assert len(view.decision_layer["review_history"]) == 15
+    assert view.decision_workspace_payload["mode"] == "decision"
+    assert view.decision_workspace_payload["review_history_count"] == 15
+
+
+def test_session_continuity_timeline_diff_and_summary_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    history = [
+        {
+            "timestamp": "2026-03-29T00:00:02Z",
+            "action_name": "run_execution_validator",
+            "preset_id": "preset.execution_validator.selected",
+            "run_id": "run.alpha",
+            "outcome_status": "SUCCESS",
+            "artifact_ref": "out/validators/run.alpha.json",
+        },
+        {
+            "timestamp": "2026-03-29T00:00:01Z",
+            "action_name": "run_execution_validator",
+            "preset_id": "preset.execution_validator.selected",
+            "run_id": "run.alpha",
+            "outcome_status": "FAILED",
+            "artifact_ref": "",
+        },
+    ]
+    view = build_view_state(
+        base_dir=tmp_path,
+        action_history=history,
+        workbench_mode="session",
+        session_closeout_status="written",
+        session_closeout_path="artifacts_seal/operator_sessions/20260329T000003Z.session_closeout.json",
+        recall_status="loaded",
+        recall_path="artifacts_seal/operator_decisions/20260329T000001Z.run.alpha.decision.json",
+    )
+    assert view.workbench_mode == "session"
+    assert view.session_continuity["decision_timeline_limit"] == 15
+    assert len(view.session_continuity["decision_timeline"]) >= 2
+    assert view.session_continuity["decision_diff"]["enabled"] in {"true", "false"}
+    assert view.session_continuity["session_summary"]["actions_executed_count"] == 2
+    assert view.session_continuity["session_closeout_status"] == "written"
+    assert view.session_continuity["session_workspace_payload"]["mode"] == "session"
+    assert view.session_continuity["recall_status"] == "loaded"
+
+
+def test_governance_surface_gating_guards_and_workspace_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_preset_id="preset.execution_validator.selected",
+        workbench_mode="governance",
+        action_history=[
+            {
+                "timestamp": "2026-03-29T00:00:00Z",
+                "action_name": "run_execution_validator",
+                "preset_id": "preset.execution_validator.selected",
+                "run_id": "run.generalized_coverage.scopepass.v1",
+                "outcome_status": "SUCCESS",
+                "artifact_ref": "out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json",
+            }
+        ],
+        policy_snapshot_status="written",
+        policy_snapshot_path="artifacts_seal/operator_policy/20260329T000000Z.policy_snapshot.json",
+        policy_recall_status="loaded",
+        policy_recall_path="artifacts_seal/operator_policy/20260329T000000Z.policy_snapshot.json",
+    )
+    assert view.workbench_mode == "governance"
+    assert view.governance["policy_surface"]["policy_mode"] in {"review_only", "bounded_runtime", "decision_review"}
+    assert len(view.governance["action_gating"]) >= 1
+    assert any(row["guard_name"] == "selected_run_present" for row in view.governance["guard_conditions"])
+    assert view.governance["policy_snapshot_status"] == "written"
+    assert view.governance["policy_recall_status"] == "loaded"
+    assert view.governance["governance_workspace_payload"]["mode"] == "governance"
+
+
+def test_viz_integration_payloads_mode_and_workspace_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        compare_run_id="run.generalized_coverage.scopepass.v1",
+        viz_mode="invalid_mode",
+        viz_export_status="written",
+        viz_export_path="artifacts_seal/operator_viz/20260329T000000Z.viz_state.json",
+    )
+    assert view.viz_integration["viz_mode"] == "weather"
+    assert set(view.viz_integration["viz_modes_allowed"]) == {"weather", "trace", "compare"}
+    assert "weather" in view.viz_integration["viz_payloads"]
+    assert "trace" in view.viz_integration["viz_payloads"]
+    assert "compare" in view.viz_integration["viz_payloads"]
+    assert view.viz_integration["viz_payloads"]["compare"]["enabled"] is False
+    assert view.viz_integration["viz_workspace_payload"]["mode"] == "viz"
+    assert view.viz_integration["viz_export_status"] == "written"
+
+
+def test_viz_render_routing_and_export_preview_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    weather_view = build_view_state(base_dir=tmp_path, viz_mode="weather")
+    assert weather_view.viz_render["viz_render_mode"] == "weather"
+    assert weather_view.viz_render["viz_render_output"]["title"] == "Weather View"
+    assert weather_view.viz_render["viz_render_output"]["closure_status"] in {"GENERALIZED_CLOSURE_CONFIRMED", "NOT_COMPUTABLE"}
+    assert weather_view.viz_render["viz_render_output"]["policy_mode"] in {"review_only", "bounded_runtime", "decision_review"}
+    assert "run_health_distribution" in weather_view.viz_render["viz_render_output"]
+    assert "attention_count" in weather_view.viz_render["viz_render_output"]
+    assert "alert_highlight_count" in weather_view.viz_render["viz_render_output"]
+
+    trace_view = build_view_state(
+        base_dir=tmp_path,
+        viz_mode="trace",
+        viz_render_export_status="written",
+        viz_render_export_path="artifacts_seal/operator_viz_render/20260329T000000Z.trace.render.json",
+    )
+    assert trace_view.viz_render["viz_render_mode"] == "trace"
+    assert trace_view.viz_render["viz_render_output"]["title"] == "Trace View"
+    assert "recent_activity_events" in trace_view.viz_render["viz_render_output"]
+    assert "recent_decisions" in trace_view.viz_render["viz_render_output"]
+    assert "recent_execution_ledger_slice" in trace_view.viz_render["viz_render_output"]
+    assert trace_view.viz_render["viz_render_workspace_payload"]["mode"] == "viz"
+    assert trace_view.viz_render["viz_render_export_status"] == "written"
+    assert trace_view.viz_render["viz_render_export_preview"]["provenance"] == "operator_console.viz_render.v2.7.1.mode_routed"
+
+    compare_view = build_view_state(base_dir=tmp_path, viz_mode="compare")
+    assert compare_view.viz_render["viz_render_mode"] == "compare"
+    assert compare_view.viz_render["viz_render_output"]["enabled"] is False
+    assert compare_view.viz_render["viz_render_output"]["status"] == "not_computable"
+    assert compare_view.viz_render["viz_render_workspace_payload"]["viz_render_mode"] == "compare"
+    assert compare_view.viz_render["viz_render_workspace_payload"]["has_render_output"] is True
+
+
+def test_viz_render_mode_default_and_unrelated_state_integrity(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, viz_mode="weather")
+    fallback_view = build_view_state(base_dir=tmp_path, viz_mode="unsupported")
+    assert fallback_view.viz_render["viz_render_mode"] == "weather"
+    assert fallback_view.focus_filters == base_view.focus_filters
+    assert fallback_view.selected_run_id == base_view.selected_run_id
+    assert fallback_view.available_runs == base_view.available_runs
+
+
+def test_viz_render_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, viz_mode="trace")
+    out_root = tmp_path / "artifacts_seal" / "operator_viz_render"
+    path, status = operator_console.write_viz_render_artifact(
+        preview=view.viz_render["viz_render_export_preview"],
+        root=out_root,
+    )
+    assert status == "written"
+    assert path is not None
+    output_path = Path(path)
+    assert output_path.exists()
+    assert output_path.parent == out_root
+    assert output_path.name.endswith(".trace.render.json")
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["viz_mode"] == "trace"
+    assert "render_output" in payload
+    assert "source_viz_payload" in payload
+    assert "selected_context" in payload
+    assert "timestamp" in payload
+    assert "provenance" in payload
+    assert "status" in payload
+
+
+def test_reporting_workspace_and_publication_artifacts_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="report", viz_mode="trace")
+    assert view.workbench_mode == "report"
+    assert view.reporting["reporting_workspace_payload"]["mode"] == "report"
+    assert "session_report_preview" in view.reporting
+    assert "decision_summary_preview" in view.reporting
+    assert "viz_summary_preview" in view.reporting
+    assert "closeout_bundle_preview" in view.reporting
+    assert "# Operator Report" in view.reporting["markdown_preview"]
+
+    out_root = tmp_path / "artifacts_seal" / "operator_reports"
+    session_path, session_status = operator_console.write_operator_report_artifact(
+        suffix="session_report",
+        payload=view.reporting["session_report_preview"],
+        root=out_root,
+    )
+    decision_run = str(view.reporting["decision_summary_preview"].get("run_id", "")) or "unselected"
+    decision_path, decision_status = operator_console.write_operator_report_artifact(
+        suffix=f"{decision_run}.decision_summary",
+        payload=view.reporting["decision_summary_preview"],
+        root=out_root,
+    )
+    viz_mode = str(view.reporting["viz_summary_preview"].get("viz_mode", "weather"))
+    viz_path, viz_status = operator_console.write_operator_report_artifact(
+        suffix=f"{viz_mode}.viz_summary",
+        payload=view.reporting["viz_summary_preview"],
+        root=out_root,
+    )
+    closeout_path, closeout_status = operator_console.write_operator_report_artifact(
+        suffix="operator_closeout",
+        payload=view.reporting["closeout_bundle_preview"],
+        root=out_root,
+    )
+    markdown_path, markdown_status = operator_console.write_operator_markdown_report(
+        markdown=view.reporting["markdown_preview"],
+        root=out_root,
+    )
+
+    assert session_status == "written"
+    assert decision_status == "written"
+    assert viz_status == "written"
+    assert closeout_status == "written"
+    assert markdown_status == "written"
+    assert session_path and Path(session_path).exists()
+    assert decision_path and Path(decision_path).exists()
+    assert viz_path and Path(viz_path).exists()
+    assert closeout_path and Path(closeout_path).exists()
+    assert markdown_path and Path(markdown_path).exists()
+
+    session_payload = json.loads(Path(session_path).read_text(encoding="utf-8"))
+    assert "session_summary" in session_payload
+    assert "decision_timeline" in session_payload
+    assert "governance_summary" in session_payload
+    decision_payload = json.loads(Path(decision_path).read_text(encoding="utf-8"))
+    assert "outcome_classification" in decision_payload
+    assert "decision_label" in decision_payload
+    viz_payload = json.loads(Path(viz_path).read_text(encoding="utf-8"))
+    assert viz_payload["viz_mode"] == "trace"
+    assert "render_output" in viz_payload
+    closeout_payload = json.loads(Path(closeout_path).read_text(encoding="utf-8"))
+    assert "session_report" in closeout_payload
+    assert "latest_decision_summary" in closeout_payload
+    assert "latest_viz_summary" in closeout_payload
+    markdown_text = Path(markdown_path).read_text(encoding="utf-8")
+    assert "## Session Summary" in markdown_text
+    assert "## Decision Summary" in markdown_text
+    assert "## Viz Summary" in markdown_text
