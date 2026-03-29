@@ -1,0 +1,128 @@
+{
+  "run_id": "demo.20260329t203413z",
+  "artifact_id": "demo_artifact_pack.20260329t203413z",
+  "timestamp": "2026-03-29T20:34:13.758665+00:00",
+  "source_artifact": "data/diagnostics/20260329t202641z.weakness_exposure_fix.json",
+  "case_count": 3,
+  "cases": [
+    {
+      "case_id": "CASE_MINIMAL_SIGNAL",
+      "input_context_summary": "minimal_signal | minimal signal",
+      "selected_pipeline": "ABRAXAS.PIPELINE.v1",
+      "routing_choice": {
+        "recommendation_reason": "ready_preferred_due_to_higher_readiness",
+        "routing_reason_detail": "rule.prefer_invokable_with_context:ready_preferred_due_to_higher_readiness",
+        "routing_rule_id": "rule.prefer_invokable_with_context"
+      },
+      "detector_summaries": {
+        "pressure_friction": "condition=healthy; pressure=LOW; friction=CLEAR; missing=0; blocked_or_not_computable=0; degraded=0; transitions=0",
+        "motif_recurrence": "motif=SPARSE; recurrence=NONE; blocker=0; transition=0; token=0; entity=0; relation=0",
+        "instability_drift": "drift_state=stable; instability=STABLE; drift=NONE; status_changes=0; queue_changes=0; quality_shifts=0",
+        "anomaly_gap": "gap_state=healthy; anomaly=NONE; gap=COMPLETE; missing_artifact=0; missing_linkage=0; broken_steps=0"
+      },
+      "fusion_summary": {
+        "fused_label": "INCOMPLETE_CONTEXT",
+        "compressed_fusion_reason": "signal_sufficiency_below_interpretive_threshold",
+        "interpretation_summary": "fusion=INCOMPLETE_CONTEXT; sufficiency=THIN; pressure/friction=LOW/CLEAR; motif/recurrence=SPARSE/NONE; instability/drift=STABLE/NONE; anomaly/gap=NONE/COMPLETE; compressed_reason=signal_sufficiency_below_interpretive_threshold; drivers=sig"
+      },
+      "final_abraxas_output_card_summary": {
+        "synthesis_label": "INCOMPLETE",
+        "short_reasons": [
+          "signal_sufficiency_below_ready_threshold"
+        ],
+        "blockers": [
+          "signal_sufficiency_below_ready_threshold"
+        ],
+        "fused_detector_label": "INCOMPLETE_CONTEXT",
+        "runtime_status": "SUCCESS"
+      },
+      "synthesis_next_step": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+      "linked_artifacts": {
+        "source_before_after_artifact": "data/diagnostics/20260329t202641z.weakness_exposure_fix.json",
+        "source_case_path_hint": "cases[0]",
+        "additional_report_paths": "NOT_COMPUTABLE"
+      },
+      "value_demonstration": "Shows graceful degradation under thin signal: sufficiency gate prevents false confidence."
+    },
+    {
+      "case_id": "CASE_CONTRADICTORY_SIGNAL",
+      "input_context_summary": "contradictory_signal | contradictory signal",
+      "selected_pipeline": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+      "routing_choice": {
+        "recommendation_reason": "review_context_active_but_fallback_selected_due_to_availability_or_gating",
+        "routing_reason_detail": "rule.prefer_review_context:review_context_active_but_fallback_selected_due_to_availability_or_gating",
+        "routing_rule_id": "rule.prefer_review_context"
+      },
+      "detector_summaries": {
+        "pressure_friction": "condition=healthy; pressure=LOW; friction=CLEAR; missing=0; blocked_or_not_computable=0; degraded=0; transitions=0",
+        "motif_recurrence": "motif=PRESENT; recurrence=RECURRING; blocker=0; transition=0; token=1; entity=0; relation=0",
+        "instability_drift": "drift_state=unstable; instability=UNSTABLE; drift=SIGNIFICANT; status_changes=3; queue_changes=0; quality_shifts=1",
+        "anomaly_gap": "gap_state=broken_gap; anomaly=MAJOR; gap=BROKEN; missing_artifact=1; missing_linkage=1; broken_steps=2"
+      },
+      "fusion_summary": {
+        "fused_label": "BROKEN_SIGNAL",
+        "compressed_fusion_reason": "blocked_by_major_context_gaps",
+        "interpretation_summary": "fusion=BROKEN_SIGNAL; sufficiency=INSUFFICIENT; pressure/friction=LOW/CLEAR; motif/recurrence=PRESENT/RECURRING; instability/drift=UNSTABLE/SIGNIFICANT; anomaly/gap=MAJOR/BROKEN; compressed_reason=blocked_by_major_context_gaps; drivers=anom"
+      },
+      "final_abraxas_output_card_summary": {
+        "synthesis_label": "INCOMPLETE",
+        "short_reasons": [
+          "pipeline_final_status_partial"
+        ],
+        "blockers": [
+          "pipeline_partial_completion"
+        ],
+        "fused_detector_label": "BROKEN_SIGNAL",
+        "runtime_status": "PARTIAL"
+      },
+      "synthesis_next_step": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+      "linked_artifacts": {
+        "source_before_after_artifact": "data/diagnostics/20260329t202641z.weakness_exposure_fix.json",
+        "source_case_path_hint": "cases[1]",
+        "additional_report_paths": "NOT_COMPUTABLE"
+      },
+      "value_demonstration": "Shows conflict resolution where major anomalies dominate fusion and synthesis stays honest."
+    },
+    {
+      "case_id": "CASE_EDGE_BINDING",
+      "input_context_summary": "edge_case_binding | edge case binding",
+      "selected_pipeline": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+      "routing_choice": {
+        "recommendation_reason": "fallback_selected_due_to_best_available_context",
+        "routing_reason_detail": "rule.prefer_allowlisted_fallback:fallback_selected_due_to_best_available_context",
+        "routing_rule_id": "rule.prefer_allowlisted_fallback"
+      },
+      "detector_summaries": {
+        "pressure_friction": "condition=blocked; pressure=HIGH; friction=BLOCKED; missing=2; blocked_or_not_computable=1; degraded=1; transitions=2",
+        "motif_recurrence": "motif=DOMINANT; recurrence=PERSISTENT; blocker=2; transition=1; token=0; entity=1; relation=0",
+        "instability_drift": "drift_state=unstable; instability=UNSTABLE; drift=SIGNIFICANT; status_changes=2; queue_changes=2; quality_shifts=2",
+        "anomaly_gap": "gap_state=broken_gap; anomaly=MAJOR; gap=BROKEN; missing_artifact=1; missing_linkage=2; broken_steps=1"
+      },
+      "fusion_summary": {
+        "fused_label": "BROKEN_SIGNAL",
+        "compressed_fusion_reason": "blocked_by_major_context_gaps",
+        "interpretation_summary": "fusion=BROKEN_SIGNAL; sufficiency=INSUFFICIENT; pressure/friction=HIGH/BLOCKED; motif/recurrence=DOMINANT/PERSISTENT; instability/drift=UNSTABLE/SIGNIFICANT; anomaly/gap=MAJOR/BROKEN; compressed_reason=blocked_by_major_context_gaps; drivers"
+      },
+      "final_abraxas_output_card_summary": {
+        "synthesis_label": "BLOCKED",
+        "short_reasons": [
+          "pipeline_final_status_failed"
+        ],
+        "blockers": [
+          "pipeline_failed"
+        ],
+        "fused_detector_label": "BROKEN_SIGNAL",
+        "runtime_status": "FAILED"
+      },
+      "synthesis_next_step": "Resolve the first runtime blocker, then rerun synthesis for the same run context.",
+      "linked_artifacts": {
+        "source_before_after_artifact": "data/diagnostics/20260329t202641z.weakness_exposure_fix.json",
+        "source_case_path_hint": "cases[2]",
+        "additional_report_paths": "NOT_COMPUTABLE"
+      },
+      "value_demonstration": "Shows explicit blocker-centric handling under binding/linkage stress with deterministic next-step guidance."
+    }
+  ],
+  "what_abraxas_does": "Abraxas deterministically translates structural runtime signals into fused interpretation, synthesis state, and actionable routing with explicit provenance and bounded next steps.",
+  "provenance": "abraxas.demo_artifact_pack.v1.compact"
+}

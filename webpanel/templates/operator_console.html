@@ -356,7 +356,7 @@
   <h2>Pipeline Suitability Matrix (v4.1)</h2>
   <ul>
   {% for row in view.pipeline_routing.pipeline_suitability_matrix %}
-    <li>{{ row.pipeline_id }} | allowlisted={{ row.allowlisted }} | invokable={{ row.invokable }} | context={{ row.required_context_present }} | classification={{ row.final_classification }} | blocking={{ row.blocking_reason }}</li>
+    <li>{{ row.pipeline_id }} | {{ row.suitability_summary }}</li>
   {% endfor %}
   </ul>
 </div>
@@ -365,8 +365,12 @@
   <h2>Recommended Pipeline (v4.1)</h2>
   <p><b>recommended:</b> {{ view.pipeline_routing.recommended_pipeline_id }}</p>
   <p><b>reason:</b> {{ view.pipeline_routing.recommendation_reason }}</p>
+  <p><b>reason detail:</b> {{ view.pipeline_routing.routing_reason_detail }}</p>
   <p><b>rule:</b> {{ view.pipeline_routing.routing_rule_id }}</p>
   <p><b>effective:</b> {{ view.pipeline_routing.effective_pipeline_id }} ({{ view.pipeline_routing.selection_source }})</p>
+  <p><b>override status:</b> {{ view.pipeline_routing.manual_override_status }}</p>
+  <p><b>override attempted:</b> {{ view.pipeline_routing.attempted_pipeline_override or "none" }}</p>
+  <p><b>override message:</b> {{ view.pipeline_routing.manual_override_message }}</p>
 </div>
 
 <div class="card">
@@ -394,6 +398,8 @@
   <p><b>recommended:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.recommended_pipeline_id }}</p>
   <p><b>effective:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.effective_pipeline_id }}</p>
   <p><b>source:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.selection_source }}</p>
+  <p><b>override status:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.manual_override_status }}</p>
+  <p><b>override attempted:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.attempted_pipeline_override or "none" }}</p>
   <p><b>rule:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.routing_rule_id }}</p>
   <p><b>export:</b> {{ view.pipeline_routing.pipeline_routing_workspace_payload.routing_export_status }}</p>
 </div>
@@ -565,6 +571,7 @@
   <h2>Detector Fusion (v4.5)</h2>
   <p><b>fused_label:</b> <span class="badge">{{ view.domain_logic.detector_fusion_output.fused_label }}</span></p>
   <p><b>fused_status:</b> {{ view.domain_logic.detector_fusion_output.fused_status }}</p>
+  <p><b>compressed_reason:</b> {{ view.domain_logic.detector_fusion_output.compressed_fusion_reason }}</p>
   <p><b>fused_reasons:</b> {{ view.domain_logic.detector_fusion_output.fused_reasons }}</p>
 </div>
 
@@ -588,6 +595,9 @@
   <p><b>instability/drift:</b> {{ view.domain_logic.domain_logic_workspace_payload.instability_label }} / {{ view.domain_logic.domain_logic_workspace_payload.drift_label }}</p>
   <p><b>anomaly/gap:</b> {{ view.domain_logic.domain_logic_workspace_payload.anomaly_label }} / {{ view.domain_logic.domain_logic_workspace_payload.gap_label }}</p>
   <p><b>fusion:</b> {{ view.domain_logic.domain_logic_workspace_payload.fusion_label }} / {{ view.domain_logic.domain_logic_workspace_payload.fusion_status }}</p>
+  <p><b>signal_sufficiency:</b> {{ view.domain_logic.domain_logic_workspace_payload.signal_sufficiency_status }}</p>
+  <p><b>signal_sufficiency_reasons:</b> {{ view.domain_logic.domain_logic_workspace_payload.signal_sufficiency_reasons }}</p>
+  <p><b>compressed_fusion_reason:</b> {{ view.domain_logic.domain_logic_workspace_payload.compressed_fusion_reason }}</p>
   <p><b>fusion summary:</b> {{ view.domain_logic.domain_logic_workspace_payload.fusion_interpretation_summary }}</p>
   <p><b>structural export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.detector_export_status }}</p>
   <p><b>motif export status:</b> {{ view.domain_logic.domain_logic_workspace_payload.motif_export_status }}</p>
@@ -615,6 +625,7 @@
 <div class="card">
   <h2>Synthesis Summary (v4.6)</h2>
   <p><b>blockers:</b> {{ view.abraxas_synthesis.synthesis_blockers }}</p>
+  <p><b>precedence:</b> {{ view.abraxas_synthesis.synthesis_rule_precedence_note }}</p>
   <p><b>next_step:</b> {{ view.abraxas_synthesis.synthesis_next_step }}</p>
   <p><b>interpretation:</b> {{ view.abraxas_synthesis.interpretation_summary }}</p>
 </div>
@@ -629,11 +640,13 @@
 <div class="card">
   <h2>Final Abraxas Output Card (v4.6)</h2>
   <p><b>label:</b> <span class="badge">{{ view.abraxas_synthesis.final_abraxas_output_card.synthesis_label }}</span></p>
-  <p><b>short_reasons:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.short_reasons }}</p>
+  <p><b>signal sufficiency:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.signal_sufficiency_status }}</p>
+  <p><b>status line:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.status_line }}</p>
+  <p><b>reasons:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.reason_line }}</p>
   <p><b>blockers:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.blockers }}</p>
+  <p><b>blocker summary:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.blocker_line }}</p>
   <p><b>next_step:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.next_step }}</p>
-  <p><b>pipeline/runtime:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.pipeline_id }} / {{ view.abraxas_synthesis.final_abraxas_output_card.runtime_status }}</p>
-  <p><b>fused_detector:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.fused_detector_label }}</p>
+  <p><b>pipeline/runtime:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.pipeline_id }} / {{ view.abraxas_synthesis.final_abraxas_output_card.runtime_status }} | <b>fused:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.fused_detector_label }}</p>
 </div>
 
 <div class="card">
@@ -1131,6 +1144,7 @@
   <h2>Compare Render (v2.6.3)</h2>
   {% if view.viz_render.viz_render_mode == "compare" %}
     <p><b>status:</b> {{ view.viz_render.viz_render_output.status }}</p>
+    <p><b>summary:</b> {{ view.viz_render.viz_render_output.summary_line }}</p>
     <p><b>enabled:</b> {{ view.viz_render.viz_render_output.enabled }}</p>
     <p><b>reason:</b> {{ view.viz_render.viz_render_output.reason }}</p>
     <p><b>selected run summary:</b> {{ view.viz_render.viz_render_output.selected_run_summary }}</p>
@@ -1159,24 +1173,28 @@
 
 <div class="card">
   <h2>Session Report (v2.7.1)</h2>
+  <p><b>summary:</b> {{ view.reporting.session_summary_line }}</p>
   <p>{{ view.reporting.session_report_preview }}</p>
   <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_session_report=1" style="text-decoration:none;">Export session report</a>
 </div>
 
 <div class="card">
   <h2>Decision Summary (v2.7.2)</h2>
+  <p><b>summary:</b> {{ view.reporting.decision_summary_line }}</p>
   <p>{{ view.reporting.decision_summary_preview }}</p>
   <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_decision_summary=1" style="text-decoration:none;">Export decision summary</a>
 </div>
 
 <div class="card">
   <h2>Viz Summary (v2.7.3)</h2>
+  <p><b>summary:</b> {{ view.reporting.viz_summary_line }}</p>
   <p>{{ view.reporting.viz_summary_preview }}</p>
   <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_viz_summary=1" style="text-decoration:none;">Export viz summary</a>
 </div>
 
 <div class="card">
   <h2>Closeout Bundle (v2.7.4)</h2>
+  <p><b>summary:</b> {{ view.reporting.closeout_summary_line }}</p>
   <p>{{ view.reporting.closeout_bundle_preview }}</p>
   <a class="btn" href="/operator?mode=report&run_id={{ view.selected_run_id or '' }}&compare_run_id={{ view.comparison_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&export_closeout_bundle=1" style="text-decoration:none;">Export closeout bundle</a>
 </div>

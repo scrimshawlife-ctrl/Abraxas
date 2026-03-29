@@ -1,0 +1,1142 @@
+{
+  "run_id": "diag.20260329t194454z",
+  "rune_id": "RUNE.DIAGNOSTIC.WEAKNESS_EXPOSURE",
+  "artifact_id": "weakness_exposure.20260329t194454z",
+  "timestamp": "2026-03-29T19:44:54.195044+00:00",
+  "phase": "WEAKNESS_EXPOSURE",
+  "status": "SUCCESS",
+  "cases": [
+    {
+      "case_id": "CASE_MINIMAL_SIGNAL",
+      "stress_type": "minimal_signal",
+      "notes": "Almost empty observable surfaces.",
+      "captured_outputs": {
+        "detectors": {
+          "pressure_friction": {
+            "detector_id": "ABX.STRUCTURAL_PRESSURE.V4_2",
+            "detector_status": "SUCCESS",
+            "pressure_label": "LOW",
+            "friction_label": "CLEAR",
+            "pressure_reasons": [],
+            "friction_reasons": [],
+            "detector_summary": "condition=healthy; pressure=LOW; friction=CLEAR; missing=0; blocked_or_not_computable=0; degraded=0; transitions=0",
+            "rule_ids": [
+              "detector.blocked_implies_friction_blocked",
+              "detector.high_pressure_on_missing_degraded_transition_thresholds",
+              "detector.moderate_pressure_on_single_surface_drift",
+              "detector.low_pressure_when_no_explicit_drift_markers"
+            ],
+            "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder"
+          },
+          "motif_recurrence": {
+            "detector_id": "ABX.MOTIF_RECURRENCE.V4_3",
+            "detector_status": "SUCCESS",
+            "motif_label": "SPARSE",
+            "recurrence_label": "NONE",
+            "motif_reasons": [],
+            "recurrence_reasons": [],
+            "detector_summary": "motif=SPARSE; recurrence=NONE; blocker=0; transition=0; token=0; entity=0; relation=0",
+            "rule_ids": [
+              "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+              "motif_detector.recurring_when_repetition_signals_present",
+              "motif_detector.sparse_when_repetition_signals_absent"
+            ],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder"
+          },
+          "instability_drift": {
+            "detector_id": "ABX.INSTABILITY_DRIFT.V4_4",
+            "detector_status": "SUCCESS",
+            "instability_label": "STABLE",
+            "drift_label": "NONE",
+            "instability_reasons": [],
+            "drift_reasons": [],
+            "detector_summary": "drift_state=stable; instability=STABLE; drift=NONE; status_changes=0; queue_changes=0; quality_shifts=0",
+            "rule_ids": [
+              "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+              "drift_detector.shifting_minor_on_partial_shift",
+              "drift_detector.stable_none_on_no_shift"
+            ],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder"
+          },
+          "anomaly_gap": {
+            "detector_id": "ABX.ANOMALY_GAP.V4_4",
+            "detector_status": "SUCCESS",
+            "anomaly_label": "NONE",
+            "gap_label": "COMPLETE",
+            "anomaly_reasons": [],
+            "gap_reasons": [],
+            "detector_summary": "gap_state=healthy; anomaly=NONE; gap=COMPLETE; missing_artifact=0; missing_linkage=0; broken_steps=0",
+            "rule_ids": [
+              "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+              "anomaly_detector.minor_incomplete_on_partial_gap",
+              "anomaly_detector.none_complete_on_no_gap"
+            ],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder"
+          }
+        },
+        "fusion": {
+          "fused_label": "STABLE_PATTERN",
+          "fused_status": "SUCCESS",
+          "fused_reasons": [
+            "all_detector_families_stable_or_clear",
+            "pressure_label=LOW",
+            "friction_label=CLEAR",
+            "instability_label=STABLE",
+            "anomaly_label=NONE"
+          ],
+          "interpretation_summary": "fusion=STABLE_PATTERN; pressure/friction=LOW/CLEAR; motif/recurrence=SPARSE/NONE; instability/drift=STABLE/NONE; anomaly/gap=NONE/COMPLETE; drivers=all_detector_families_stable_or_clear,pressure_label=LOW,friction_label=CLEAR,instability_label=STABLE",
+          "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket"
+          ],
+          "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder"
+        },
+        "synthesis": {
+          "synthesis_label": "READY",
+          "synthesis_status": "SUCCESS",
+          "synthesis_reasons": [
+            "pipeline_final_status_success"
+          ],
+          "synthesis_blockers": [],
+          "synthesis_next_step": "Proceed with bounded export/handoff using the effective routed pipeline.",
+          "interpretation_summary": "synthesis=READY; pipeline=SUCCESS; fusion=STABLE_PATTERN; runtime=SUCCESS; policy=decision_review; blockers=none",
+          "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state"
+          ],
+          "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder"
+        },
+        "routing": {
+          "recommended_pipeline_id": "ABRAXAS.PIPELINE.v1",
+          "recommendation_reason": "preferred_ready_pipeline_due_to_higher_readiness",
+          "routing_rule_id": "rule.prefer_invokable_with_context"
+        },
+        "final_output_card": {
+          "synthesis_label": "READY",
+          "short_reasons": [
+            "pipeline_final_status_success"
+          ],
+          "blockers": [],
+          "next_step": "Proceed with bounded export/handoff using the effective routed pipeline.",
+          "pipeline_id": "ABRAXAS.PIPELINE.v1",
+          "runtime_status": "SUCCESS",
+          "fused_detector_label": "STABLE_PATTERN"
+        }
+      },
+      "weaknesses": [
+        {
+          "subsystem": "fusion",
+          "title": "fusion_reason_restates_raw_labels",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "fused reasons include direct label echoes",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "structure",
+          "title": "minimal_signal_generates_strong_state",
+          "type": "D",
+          "severity": "high",
+          "evidence": "minimal signal still returns non-degraded synthesis label",
+          "recommendation": "patch"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_CONTRADICTORY_SIGNAL",
+      "stress_type": "contradictory_signal",
+      "notes": "Low pressure with major anomaly and drift shifts.",
+      "captured_outputs": {
+        "detectors": {
+          "pressure_friction": {
+            "detector_id": "ABX.STRUCTURAL_PRESSURE.V4_2",
+            "detector_status": "SUCCESS",
+            "pressure_label": "LOW",
+            "friction_label": "CLEAR",
+            "pressure_reasons": [],
+            "friction_reasons": [],
+            "detector_summary": "condition=healthy; pressure=LOW; friction=CLEAR; missing=0; blocked_or_not_computable=0; degraded=0; transitions=0",
+            "rule_ids": [
+              "detector.blocked_implies_friction_blocked",
+              "detector.high_pressure_on_missing_degraded_transition_thresholds",
+              "detector.moderate_pressure_on_single_surface_drift",
+              "detector.low_pressure_when_no_explicit_drift_markers"
+            ],
+            "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder"
+          },
+          "motif_recurrence": {
+            "detector_id": "ABX.MOTIF_RECURRENCE.V4_3",
+            "detector_status": "SUCCESS",
+            "motif_label": "PRESENT",
+            "recurrence_label": "RECURRING",
+            "motif_reasons": [
+              "repeated_tokens"
+            ],
+            "recurrence_reasons": [
+              "repeated_pipeline_routing_pattern"
+            ],
+            "detector_summary": "motif=PRESENT; recurrence=RECURRING; blocker=0; transition=0; token=1; entity=0; relation=0",
+            "rule_ids": [
+              "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+              "motif_detector.recurring_when_repetition_signals_present",
+              "motif_detector.sparse_when_repetition_signals_absent"
+            ],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder"
+          },
+          "instability_drift": {
+            "detector_id": "ABX.INSTABILITY_DRIFT.V4_4",
+            "detector_status": "SUCCESS",
+            "instability_label": "UNSTABLE",
+            "drift_label": "SIGNIFICANT",
+            "instability_reasons": [
+              "runnable_to_blocked_transitions_present"
+            ],
+            "drift_reasons": [
+              "runnable_to_blocked_transitions_present",
+              "result_change_present",
+              "pipeline_quality_shift_present",
+              "review_decision_change_present"
+            ],
+            "detector_summary": "drift_state=unstable; instability=UNSTABLE; drift=SIGNIFICANT; status_changes=3; queue_changes=0; quality_shifts=1",
+            "rule_ids": [
+              "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+              "drift_detector.shifting_minor_on_partial_shift",
+              "drift_detector.stable_none_on_no_shift"
+            ],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder"
+          },
+          "anomaly_gap": {
+            "detector_id": "ABX.ANOMALY_GAP.V4_4",
+            "detector_status": "SUCCESS",
+            "anomaly_label": "MAJOR",
+            "gap_label": "BROKEN",
+            "anomaly_reasons": [
+              "missing_artifacts_present",
+              "missing_linkage_present",
+              "broken_step_pattern_present"
+            ],
+            "gap_reasons": [
+              "missing_artifacts_present",
+              "missing_linkage_present",
+              "broken_step_pattern_present",
+              "empty_required_fields_present"
+            ],
+            "detector_summary": "gap_state=broken_gap; anomaly=MAJOR; gap=BROKEN; missing_artifact=1; missing_linkage=1; broken_steps=2",
+            "rule_ids": [
+              "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+              "anomaly_detector.minor_incomplete_on_partial_gap",
+              "anomaly_detector.none_complete_on_no_gap"
+            ],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder"
+          }
+        },
+        "fusion": {
+          "fused_label": "BROKEN_SIGNAL",
+          "fused_status": "SUCCESS",
+          "fused_reasons": [
+            "anomaly_or_gap_broken",
+            "anomaly_label=MAJOR",
+            "gap_label=BROKEN"
+          ],
+          "interpretation_summary": "fusion=BROKEN_SIGNAL; pressure/friction=LOW/CLEAR; motif/recurrence=PRESENT/RECURRING; instability/drift=UNSTABLE/SIGNIFICANT; anomaly/gap=MAJOR/BROKEN; drivers=anomaly_or_gap_broken,anomaly_label=MAJOR,gap_label=BROKEN",
+          "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket"
+          ],
+          "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder"
+        },
+        "synthesis": {
+          "synthesis_label": "INCOMPLETE",
+          "synthesis_status": "SUCCESS",
+          "synthesis_reasons": [
+            "pipeline_final_status_partial"
+          ],
+          "synthesis_blockers": [
+            "pipeline_partial_completion"
+          ],
+          "synthesis_next_step": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+          "interpretation_summary": "synthesis=INCOMPLETE; pipeline=PARTIAL; fusion=BROKEN_SIGNAL; runtime=PARTIAL; policy=review_only; blockers=pipeline_partial_completion",
+          "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state"
+          ],
+          "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder"
+        },
+        "routing": {
+          "recommended_pipeline_id": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+          "recommendation_reason": "preferred_ready_pipeline_due_to_higher_readiness",
+          "routing_rule_id": "rule.prefer_review_context"
+        },
+        "final_output_card": {
+          "synthesis_label": "INCOMPLETE",
+          "short_reasons": [
+            "pipeline_final_status_partial"
+          ],
+          "blockers": [
+            "pipeline_partial_completion"
+          ],
+          "next_step": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+          "pipeline_id": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+          "runtime_status": "PARTIAL",
+          "fused_detector_label": "BROKEN_SIGNAL"
+        }
+      },
+      "weaknesses": [
+        {
+          "subsystem": "fusion",
+          "title": "fusion_reason_restates_raw_labels",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "fused reasons include direct label echoes",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "routing",
+          "title": "review_context_not_reflected_in_reason",
+          "type": "B",
+          "severity": "medium",
+          "evidence": "review context active without review-specific reason",
+          "recommendation": "patch"
+        },
+        {
+          "subsystem": "language",
+          "title": "operator_facing_tokens_are_code_like",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "underscored blocker tokens visible",
+          "recommendation": "refine"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_HIGH_NOISE",
+      "stress_type": "high_noise",
+      "notes": "Many weak repetitive motifs and mixed blockers.",
+      "captured_outputs": {
+        "detectors": {
+          "pressure_friction": {
+            "detector_id": "ABX.STRUCTURAL_PRESSURE.V4_2",
+            "detector_status": "SUCCESS",
+            "pressure_label": "HIGH",
+            "friction_label": "FRICTION",
+            "pressure_reasons": [
+              "missing_fields_present",
+              "degraded_steps_present",
+              "transition_instability"
+            ],
+            "friction_reasons": [
+              "degraded_steps_present",
+              "transition_instability"
+            ],
+            "detector_summary": "condition=degraded; pressure=HIGH; friction=FRICTION; missing=1; blocked_or_not_computable=0; degraded=1; transitions=3",
+            "rule_ids": [
+              "detector.blocked_implies_friction_blocked",
+              "detector.high_pressure_on_missing_degraded_transition_thresholds",
+              "detector.moderate_pressure_on_single_surface_drift",
+              "detector.low_pressure_when_no_explicit_drift_markers"
+            ],
+            "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder"
+          },
+          "motif_recurrence": {
+            "detector_id": "ABX.MOTIF_RECURRENCE.V4_3",
+            "detector_status": "SUCCESS",
+            "motif_label": "DOMINANT",
+            "recurrence_label": "PERSISTENT",
+            "motif_reasons": [
+              "repeated_blocker_reasons",
+              "repeated_transition_patterns",
+              "repeated_entity_relation_forms",
+              "repeated_tokens"
+            ],
+            "recurrence_reasons": [
+              "repeated_blocker_reasons",
+              "repeated_transition_patterns",
+              "repeated_pipeline_routing_pattern"
+            ],
+            "detector_summary": "motif=DOMINANT; recurrence=PERSISTENT; blocker=2; transition=2; token=4; entity=3; relation=2",
+            "rule_ids": [
+              "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+              "motif_detector.recurring_when_repetition_signals_present",
+              "motif_detector.sparse_when_repetition_signals_absent"
+            ],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder"
+          },
+          "instability_drift": {
+            "detector_id": "ABX.INSTABILITY_DRIFT.V4_4",
+            "detector_status": "SUCCESS",
+            "instability_label": "UNSTABLE",
+            "drift_label": "SIGNIFICANT",
+            "instability_reasons": [
+              "queue_changes_present",
+              "runnable_to_blocked_transitions_present"
+            ],
+            "drift_reasons": [
+              "runnable_to_blocked_transitions_present",
+              "result_change_present",
+              "pipeline_quality_shift_present"
+            ],
+            "detector_summary": "drift_state=unstable; instability=UNSTABLE; drift=SIGNIFICANT; status_changes=2; queue_changes=3; quality_shifts=2",
+            "rule_ids": [
+              "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+              "drift_detector.shifting_minor_on_partial_shift",
+              "drift_detector.stable_none_on_no_shift"
+            ],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder"
+          },
+          "anomaly_gap": {
+            "detector_id": "ABX.ANOMALY_GAP.V4_4",
+            "detector_status": "SUCCESS",
+            "anomaly_label": "MINOR",
+            "gap_label": "INCOMPLETE",
+            "anomaly_reasons": [
+              "missing_linkage_present",
+              "broken_step_pattern_present"
+            ],
+            "gap_reasons": [
+              "missing_linkage_present",
+              "broken_step_pattern_present",
+              "empty_required_fields_present",
+              "review_export_mismatch_present"
+            ],
+            "detector_summary": "gap_state=minor_anomaly; anomaly=MINOR; gap=INCOMPLETE; missing_artifact=0; missing_linkage=1; broken_steps=1",
+            "rule_ids": [
+              "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+              "anomaly_detector.minor_incomplete_on_partial_gap",
+              "anomaly_detector.none_complete_on_no_gap"
+            ],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder"
+          }
+        },
+        "fusion": {
+          "fused_label": "INCOMPLETE_CONTEXT",
+          "fused_status": "SUCCESS",
+          "fused_reasons": [
+            "anomaly_or_gap_incomplete",
+            "anomaly_label=MINOR",
+            "gap_label=INCOMPLETE"
+          ],
+          "interpretation_summary": "fusion=INCOMPLETE_CONTEXT; pressure/friction=HIGH/FRICTION; motif/recurrence=DOMINANT/PERSISTENT; instability/drift=UNSTABLE/SIGNIFICANT; anomaly/gap=MINOR/INCOMPLETE; drivers=anomaly_or_gap_incomplete,anomaly_label=MINOR,gap_label=INCOMPLETE",
+          "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket"
+          ],
+          "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder"
+        },
+        "synthesis": {
+          "synthesis_label": "ACTIVE",
+          "synthesis_status": "SUCCESS",
+          "synthesis_reasons": [
+            "pipeline_success_with_runtime_blockers"
+          ],
+          "synthesis_blockers": [
+            "queue:high_noise",
+            "drift:mixed"
+          ],
+          "synthesis_next_step": "Continue one bounded action, then recompute synthesis and routing surfaces.",
+          "interpretation_summary": "synthesis=ACTIVE; pipeline=SUCCESS; fusion=INCOMPLETE_CONTEXT; runtime=PARTIAL; policy=decision_review; blockers=queue:high_noise,drift:mixed",
+          "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state"
+          ],
+          "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder"
+        },
+        "routing": {
+          "recommended_pipeline_id": "ABRAXAS.PIPELINE.v1",
+          "recommendation_reason": "preferred_less_blocked_pipeline_due_to_clear_gating",
+          "routing_rule_id": "rule.prefer_invokable_with_context"
+        },
+        "final_output_card": {
+          "synthesis_label": "ACTIVE",
+          "short_reasons": [
+            "pipeline_success_with_runtime_blockers"
+          ],
+          "blockers": [
+            "queue:high_noise",
+            "drift:mixed"
+          ],
+          "next_step": "Continue one bounded action, then recompute synthesis and routing surfaces.",
+          "pipeline_id": "ABRAXAS.PIPELINE.v1",
+          "runtime_status": "PARTIAL",
+          "fused_detector_label": "INCOMPLETE_CONTEXT"
+        }
+      },
+      "weaknesses": [
+        {
+          "subsystem": "fusion",
+          "title": "fusion_reason_restates_raw_labels",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "fused reasons include direct label echoes",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "synthesis",
+          "title": "active_or_ready_with_explicit_blockers",
+          "type": "B",
+          "severity": "high",
+          "evidence": "non-empty blockers under non-blocked synthesis labels",
+          "recommendation": "patch"
+        },
+        {
+          "subsystem": "language",
+          "title": "operator_facing_tokens_are_code_like",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "underscored blocker tokens visible",
+          "recommendation": "refine"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_AMBIGUOUS_CONTEXT",
+      "stress_type": "ambiguous_context",
+      "notes": "Partial context with two plausible paths.",
+      "captured_outputs": {
+        "detectors": {
+          "pressure_friction": {
+            "detector_id": "ABX.STRUCTURAL_PRESSURE.V4_2",
+            "detector_status": "SUCCESS",
+            "pressure_label": "HIGH",
+            "friction_label": "BLOCKED",
+            "pressure_reasons": [
+              "missing_fields_present",
+              "blocked_or_not_computable_surfaces_present"
+            ],
+            "friction_reasons": [
+              "blocked_or_not_computable_surfaces_present"
+            ],
+            "detector_summary": "condition=blocked; pressure=HIGH; friction=BLOCKED; missing=1; blocked_or_not_computable=1; degraded=0; transitions=1",
+            "rule_ids": [
+              "detector.blocked_implies_friction_blocked",
+              "detector.high_pressure_on_missing_degraded_transition_thresholds",
+              "detector.moderate_pressure_on_single_surface_drift",
+              "detector.low_pressure_when_no_explicit_drift_markers"
+            ],
+            "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder"
+          },
+          "motif_recurrence": {
+            "detector_id": "ABX.MOTIF_RECURRENCE.V4_3",
+            "detector_status": "SUCCESS",
+            "motif_label": "PRESENT",
+            "recurrence_label": "RECURRING",
+            "motif_reasons": [
+              "repeated_transition_patterns",
+              "repeated_entity_relation_forms",
+              "repeated_tokens"
+            ],
+            "recurrence_reasons": [
+              "repeated_transition_patterns"
+            ],
+            "detector_summary": "motif=PRESENT; recurrence=RECURRING; blocker=0; transition=1; token=1; entity=1; relation=1",
+            "rule_ids": [
+              "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+              "motif_detector.recurring_when_repetition_signals_present",
+              "motif_detector.sparse_when_repetition_signals_absent"
+            ],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder"
+          },
+          "instability_drift": {
+            "detector_id": "ABX.INSTABILITY_DRIFT.V4_4",
+            "detector_status": "SUCCESS",
+            "instability_label": "SHIFTING",
+            "drift_label": "MINOR",
+            "instability_reasons": [
+              "queue_changes_present"
+            ],
+            "drift_reasons": [
+              "result_change_present",
+              "review_decision_change_present"
+            ],
+            "detector_summary": "drift_state=shifting; instability=SHIFTING; drift=MINOR; status_changes=1; queue_changes=1; quality_shifts=0",
+            "rule_ids": [
+              "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+              "drift_detector.shifting_minor_on_partial_shift",
+              "drift_detector.stable_none_on_no_shift"
+            ],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder"
+          },
+          "anomaly_gap": {
+            "detector_id": "ABX.ANOMALY_GAP.V4_4",
+            "detector_status": "SUCCESS",
+            "anomaly_label": "MINOR",
+            "gap_label": "INCOMPLETE",
+            "anomaly_reasons": [
+              "missing_linkage_present"
+            ],
+            "gap_reasons": [
+              "missing_linkage_present",
+              "review_export_mismatch_present"
+            ],
+            "detector_summary": "gap_state=minor_anomaly; anomaly=MINOR; gap=INCOMPLETE; missing_artifact=0; missing_linkage=1; broken_steps=0",
+            "rule_ids": [
+              "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+              "anomaly_detector.minor_incomplete_on_partial_gap",
+              "anomaly_detector.none_complete_on_no_gap"
+            ],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder"
+          }
+        },
+        "fusion": {
+          "fused_label": "INCOMPLETE_CONTEXT",
+          "fused_status": "SUCCESS",
+          "fused_reasons": [
+            "anomaly_or_gap_incomplete",
+            "anomaly_label=MINOR",
+            "gap_label=INCOMPLETE"
+          ],
+          "interpretation_summary": "fusion=INCOMPLETE_CONTEXT; pressure/friction=HIGH/BLOCKED; motif/recurrence=PRESENT/RECURRING; instability/drift=SHIFTING/MINOR; anomaly/gap=MINOR/INCOMPLETE; drivers=anomaly_or_gap_incomplete,anomaly_label=MINOR,gap_label=INCOMPLETE",
+          "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket"
+          ],
+          "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder"
+        },
+        "synthesis": {
+          "synthesis_label": "NOT_COMPUTABLE",
+          "synthesis_status": "SUCCESS",
+          "synthesis_reasons": [
+            "fusion_or_pipeline_not_computable"
+          ],
+          "synthesis_blockers": [
+            "NC_CONTEXT_AMBIGUOUS"
+          ],
+          "synthesis_next_step": "Establish run, pipeline, and fusion context so synthesis can bind deterministically.",
+          "interpretation_summary": "synthesis=NOT_COMPUTABLE; pipeline=NOT_COMPUTABLE; fusion=INCOMPLETE_CONTEXT; runtime=NOT_COMPUTABLE; policy=review_only; blockers=NC_CONTEXT_AMBIGUOUS",
+          "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state"
+          ],
+          "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder"
+        },
+        "routing": {
+          "recommended_pipeline_id": "ABRAXAS.PIPELINE.v1",
+          "recommendation_reason": "preferred_eligible_pipeline_with_best_available_context",
+          "routing_rule_id": "rule.prefer_allowlisted_fallback"
+        },
+        "final_output_card": {
+          "synthesis_label": "NOT_COMPUTABLE",
+          "short_reasons": [
+            "fusion_or_pipeline_not_computable"
+          ],
+          "blockers": [
+            "NC_CONTEXT_AMBIGUOUS"
+          ],
+          "next_step": "Establish run, pipeline, and fusion context so synthesis can bind deterministically.",
+          "pipeline_id": "ABRAXAS.PIPELINE.v1",
+          "runtime_status": "NOT_COMPUTABLE",
+          "fused_detector_label": "INCOMPLETE_CONTEXT"
+        }
+      },
+      "weaknesses": [
+        {
+          "subsystem": "fusion",
+          "title": "fusion_reason_restates_raw_labels",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "fused reasons include direct label echoes",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "routing",
+          "title": "generic_routing_reason_bucket",
+          "type": "B",
+          "severity": "medium",
+          "evidence": "fallback generic reason emitted",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "routing",
+          "title": "review_context_not_reflected_in_reason",
+          "type": "B",
+          "severity": "medium",
+          "evidence": "review context active without review-specific reason",
+          "recommendation": "patch"
+        },
+        {
+          "subsystem": "language",
+          "title": "operator_facing_tokens_are_code_like",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "underscored blocker tokens visible",
+          "recommendation": "refine"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_EDGE_BINDING",
+      "stress_type": "edge_case_binding",
+      "notes": "Partially bound run context and linkage drift.",
+      "captured_outputs": {
+        "detectors": {
+          "pressure_friction": {
+            "detector_id": "ABX.STRUCTURAL_PRESSURE.V4_2",
+            "detector_status": "SUCCESS",
+            "pressure_label": "HIGH",
+            "friction_label": "BLOCKED",
+            "pressure_reasons": [
+              "missing_fields_present",
+              "degraded_steps_present",
+              "blocked_or_not_computable_surfaces_present"
+            ],
+            "friction_reasons": [
+              "degraded_steps_present",
+              "blocked_or_not_computable_surfaces_present"
+            ],
+            "detector_summary": "condition=blocked; pressure=HIGH; friction=BLOCKED; missing=2; blocked_or_not_computable=1; degraded=1; transitions=2",
+            "rule_ids": [
+              "detector.blocked_implies_friction_blocked",
+              "detector.high_pressure_on_missing_degraded_transition_thresholds",
+              "detector.moderate_pressure_on_single_surface_drift",
+              "detector.low_pressure_when_no_explicit_drift_markers"
+            ],
+            "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder"
+          },
+          "motif_recurrence": {
+            "detector_id": "ABX.MOTIF_RECURRENCE.V4_3",
+            "detector_status": "SUCCESS",
+            "motif_label": "DOMINANT",
+            "recurrence_label": "PERSISTENT",
+            "motif_reasons": [
+              "repeated_blocker_reasons",
+              "repeated_transition_patterns",
+              "repeated_entity_relation_forms"
+            ],
+            "recurrence_reasons": [
+              "repeated_blocker_reasons",
+              "repeated_transition_patterns",
+              "repeated_pipeline_routing_pattern"
+            ],
+            "detector_summary": "motif=DOMINANT; recurrence=PERSISTENT; blocker=2; transition=1; token=0; entity=1; relation=0",
+            "rule_ids": [
+              "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+              "motif_detector.recurring_when_repetition_signals_present",
+              "motif_detector.sparse_when_repetition_signals_absent"
+            ],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder"
+          },
+          "instability_drift": {
+            "detector_id": "ABX.INSTABILITY_DRIFT.V4_4",
+            "detector_status": "SUCCESS",
+            "instability_label": "UNSTABLE",
+            "drift_label": "SIGNIFICANT",
+            "instability_reasons": [
+              "queue_changes_present",
+              "runnable_to_blocked_transitions_present"
+            ],
+            "drift_reasons": [
+              "runnable_to_blocked_transitions_present",
+              "result_change_present",
+              "pipeline_quality_shift_present"
+            ],
+            "detector_summary": "drift_state=unstable; instability=UNSTABLE; drift=SIGNIFICANT; status_changes=2; queue_changes=2; quality_shifts=2",
+            "rule_ids": [
+              "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+              "drift_detector.shifting_minor_on_partial_shift",
+              "drift_detector.stable_none_on_no_shift"
+            ],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder"
+          },
+          "anomaly_gap": {
+            "detector_id": "ABX.ANOMALY_GAP.V4_4",
+            "detector_status": "SUCCESS",
+            "anomaly_label": "MAJOR",
+            "gap_label": "BROKEN",
+            "anomaly_reasons": [
+              "missing_artifacts_present",
+              "missing_linkage_present",
+              "broken_step_pattern_present",
+              "unexpected_not_computable_present"
+            ],
+            "gap_reasons": [
+              "missing_artifacts_present",
+              "missing_linkage_present",
+              "broken_step_pattern_present",
+              "empty_required_fields_present",
+              "review_export_mismatch_present"
+            ],
+            "detector_summary": "gap_state=broken_gap; anomaly=MAJOR; gap=BROKEN; missing_artifact=1; missing_linkage=2; broken_steps=1",
+            "rule_ids": [
+              "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+              "anomaly_detector.minor_incomplete_on_partial_gap",
+              "anomaly_detector.none_complete_on_no_gap"
+            ],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder"
+          }
+        },
+        "fusion": {
+          "fused_label": "BROKEN_SIGNAL",
+          "fused_status": "SUCCESS",
+          "fused_reasons": [
+            "anomaly_or_gap_broken",
+            "anomaly_label=MAJOR",
+            "gap_label=BROKEN"
+          ],
+          "interpretation_summary": "fusion=BROKEN_SIGNAL; pressure/friction=HIGH/BLOCKED; motif/recurrence=DOMINANT/PERSISTENT; instability/drift=UNSTABLE/SIGNIFICANT; anomaly/gap=MAJOR/BROKEN; drivers=anomaly_or_gap_broken,anomaly_label=MAJOR,gap_label=BROKEN",
+          "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket"
+          ],
+          "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder"
+        },
+        "synthesis": {
+          "synthesis_label": "BLOCKED",
+          "synthesis_status": "SUCCESS",
+          "synthesis_reasons": [
+            "pipeline_final_status_failed"
+          ],
+          "synthesis_blockers": [
+            "pipeline_failed"
+          ],
+          "synthesis_next_step": "Resolve the first runtime blocker, then rerun synthesis for the same run context.",
+          "interpretation_summary": "synthesis=BLOCKED; pipeline=FAILED; fusion=BROKEN_SIGNAL; runtime=FAILED; policy=bounded_runtime; blockers=pipeline_failed",
+          "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state"
+          ],
+          "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder"
+        },
+        "routing": {
+          "recommended_pipeline_id": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+          "recommendation_reason": "preferred_eligible_pipeline_with_best_available_context",
+          "routing_rule_id": "rule.prefer_allowlisted_fallback"
+        },
+        "final_output_card": {
+          "synthesis_label": "BLOCKED",
+          "short_reasons": [
+            "pipeline_final_status_failed"
+          ],
+          "blockers": [
+            "pipeline_failed"
+          ],
+          "next_step": "Resolve the first runtime blocker, then rerun synthesis for the same run context.",
+          "pipeline_id": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+          "runtime_status": "FAILED",
+          "fused_detector_label": "BROKEN_SIGNAL"
+        }
+      },
+      "weaknesses": [
+        {
+          "subsystem": "fusion",
+          "title": "fusion_reason_restates_raw_labels",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "fused reasons include direct label echoes",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "routing",
+          "title": "generic_routing_reason_bucket",
+          "type": "B",
+          "severity": "medium",
+          "evidence": "fallback generic reason emitted",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "language",
+          "title": "operator_facing_tokens_are_code_like",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "underscored blocker tokens visible",
+          "recommendation": "refine"
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_OVERDETERMINED",
+      "stress_type": "overdetermined",
+      "notes": "Strong simultaneous signals across contradictory directions.",
+      "captured_outputs": {
+        "detectors": {
+          "pressure_friction": {
+            "detector_id": "ABX.STRUCTURAL_PRESSURE.V4_2",
+            "detector_status": "SUCCESS",
+            "pressure_label": "HIGH",
+            "friction_label": "BLOCKED",
+            "pressure_reasons": [
+              "missing_fields_present",
+              "degraded_steps_present",
+              "blocked_or_not_computable_surfaces_present",
+              "transition_instability"
+            ],
+            "friction_reasons": [
+              "degraded_steps_present",
+              "blocked_or_not_computable_surfaces_present",
+              "transition_instability"
+            ],
+            "detector_summary": "condition=blocked; pressure=HIGH; friction=BLOCKED; missing=2; blocked_or_not_computable=1; degraded=2; transitions=4",
+            "rule_ids": [
+              "detector.blocked_implies_friction_blocked",
+              "detector.high_pressure_on_missing_degraded_transition_thresholds",
+              "detector.moderate_pressure_on_single_surface_drift",
+              "detector.low_pressure_when_no_explicit_drift_markers"
+            ],
+            "provenance": "operator_console.domain_logic.detector.v4.2.explicit_rule_ladder"
+          },
+          "motif_recurrence": {
+            "detector_id": "ABX.MOTIF_RECURRENCE.V4_3",
+            "detector_status": "SUCCESS",
+            "motif_label": "DOMINANT",
+            "recurrence_label": "PERSISTENT",
+            "motif_reasons": [
+              "repeated_blocker_reasons",
+              "repeated_transition_patterns",
+              "repeated_entity_relation_forms",
+              "repeated_tokens"
+            ],
+            "recurrence_reasons": [
+              "repeated_blocker_reasons",
+              "repeated_transition_patterns",
+              "repeated_pipeline_routing_pattern"
+            ],
+            "detector_summary": "motif=DOMINANT; recurrence=PERSISTENT; blocker=3; transition=3; token=5; entity=4; relation=3",
+            "rule_ids": [
+              "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
+              "motif_detector.recurring_when_repetition_signals_present",
+              "motif_detector.sparse_when_repetition_signals_absent"
+            ],
+            "provenance": "operator_console.domain_logic.motif_detector.v4.3.explicit_rule_ladder"
+          },
+          "instability_drift": {
+            "detector_id": "ABX.INSTABILITY_DRIFT.V4_4",
+            "detector_status": "SUCCESS",
+            "instability_label": "UNSTABLE",
+            "drift_label": "SIGNIFICANT",
+            "instability_reasons": [
+              "queue_changes_present",
+              "runnable_to_blocked_transitions_present"
+            ],
+            "drift_reasons": [
+              "runnable_to_blocked_transitions_present",
+              "result_change_present",
+              "pipeline_quality_shift_present",
+              "review_decision_change_present"
+            ],
+            "detector_summary": "drift_state=unstable; instability=UNSTABLE; drift=SIGNIFICANT; status_changes=4; queue_changes=3; quality_shifts=3",
+            "rule_ids": [
+              "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
+              "drift_detector.shifting_minor_on_partial_shift",
+              "drift_detector.stable_none_on_no_shift"
+            ],
+            "provenance": "operator_console.domain_logic.instability_drift_detector.v4.4.explicit_rule_ladder"
+          },
+          "anomaly_gap": {
+            "detector_id": "ABX.ANOMALY_GAP.V4_4",
+            "detector_status": "SUCCESS",
+            "anomaly_label": "MAJOR",
+            "gap_label": "BROKEN",
+            "anomaly_reasons": [
+              "missing_artifacts_present",
+              "missing_linkage_present",
+              "broken_step_pattern_present"
+            ],
+            "gap_reasons": [
+              "missing_artifacts_present",
+              "missing_linkage_present",
+              "broken_step_pattern_present",
+              "empty_required_fields_present",
+              "review_export_mismatch_present"
+            ],
+            "detector_summary": "gap_state=broken_gap; anomaly=MAJOR; gap=BROKEN; missing_artifact=2; missing_linkage=2; broken_steps=3",
+            "rule_ids": [
+              "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
+              "anomaly_detector.minor_incomplete_on_partial_gap",
+              "anomaly_detector.none_complete_on_no_gap"
+            ],
+            "provenance": "operator_console.domain_logic.anomaly_gap_detector.v4.4.explicit_rule_ladder"
+          }
+        },
+        "fusion": {
+          "fused_label": "BROKEN_SIGNAL",
+          "fused_status": "SUCCESS",
+          "fused_reasons": [
+            "anomaly_or_gap_broken",
+            "anomaly_label=MAJOR",
+            "gap_label=BROKEN"
+          ],
+          "interpretation_summary": "fusion=BROKEN_SIGNAL; pressure/friction=HIGH/BLOCKED; motif/recurrence=DOMINANT/PERSISTENT; instability/drift=UNSTABLE/SIGNIFICANT; anomaly/gap=MAJOR/BROKEN; drivers=anomaly_or_gap_broken,anomaly_label=MAJOR,gap_label=BROKEN",
+          "rule_ids": [
+            "fusion.broken_signal_when_gap_broken_or_anomaly_major",
+            "fusion.incomplete_context_when_gap_incomplete_or_anomaly_minor",
+            "fusion.unstable_transition_when_instability_unstable_or_drift_significant",
+            "fusion.active_friction_when_pressure_or_recurrence_active",
+            "fusion.stable_pattern_when_all_families_clear_stable_complete",
+            "fusion.default_active_friction_bucket"
+          ],
+          "provenance": "operator_console.domain_logic.fusion_output.v4.5.explicit_rule_ladder"
+        },
+        "synthesis": {
+          "synthesis_label": "INCOMPLETE",
+          "synthesis_status": "SUCCESS",
+          "synthesis_reasons": [
+            "pipeline_final_status_partial"
+          ],
+          "synthesis_blockers": [
+            "pipeline_partial_completion"
+          ],
+          "synthesis_next_step": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+          "interpretation_summary": "synthesis=INCOMPLETE; pipeline=PARTIAL; fusion=BROKEN_SIGNAL; runtime=FAILED; policy=decision_review; blockers=pipeline_partial_completion",
+          "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
+            "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
+            "synthesis.incomplete_when_context_or_runtime_partial",
+            "synthesis.unstable_when_fusion_unstable_transition",
+            "synthesis.friction_when_fusion_active_friction",
+            "synthesis.ready_when_stable_pipeline_runtime_policy_alignment",
+            "synthesis.active_default_progress_state"
+          ],
+          "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder"
+        },
+        "routing": {
+          "recommended_pipeline_id": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+          "recommendation_reason": "preferred_ready_pipeline_due_to_higher_readiness",
+          "routing_rule_id": "rule.prefer_review_context"
+        },
+        "final_output_card": {
+          "synthesis_label": "INCOMPLETE",
+          "short_reasons": [
+            "pipeline_final_status_partial"
+          ],
+          "blockers": [
+            "pipeline_partial_completion"
+          ],
+          "next_step": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+          "pipeline_id": "ABRAXAS.PIPELINE.REVIEW_PATH.v1",
+          "runtime_status": "FAILED",
+          "fused_detector_label": "BROKEN_SIGNAL"
+        }
+      },
+      "weaknesses": [
+        {
+          "subsystem": "fusion",
+          "title": "fusion_reason_restates_raw_labels",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "fused reasons include direct label echoes",
+          "recommendation": "refine"
+        },
+        {
+          "subsystem": "routing",
+          "title": "review_context_not_reflected_in_reason",
+          "type": "B",
+          "severity": "medium",
+          "evidence": "review context active without review-specific reason",
+          "recommendation": "patch"
+        },
+        {
+          "subsystem": "language",
+          "title": "operator_facing_tokens_are_code_like",
+          "type": "A",
+          "severity": "medium",
+          "evidence": "underscored blocker tokens visible",
+          "recommendation": "refine"
+        }
+      ]
+    }
+  ],
+  "cross_case_summary": {
+    "most_common_failure_type": "A",
+    "most_severe_failure_type": "D",
+    "weakest_subsystem": "fusion",
+    "strongest_subsystem": "detector",
+    "top_5_weaknesses": [
+      {
+        "subsystem": "structure",
+        "title": "minimal_signal_generates_strong_state",
+        "type": "D",
+        "severity": "high",
+        "evidence": "minimal signal still returns non-degraded synthesis label",
+        "recommendation": "patch",
+        "case_id": "CASE_MINIMAL_SIGNAL"
+      },
+      {
+        "subsystem": "synthesis",
+        "title": "active_or_ready_with_explicit_blockers",
+        "type": "B",
+        "severity": "high",
+        "evidence": "non-empty blockers under non-blocked synthesis labels",
+        "recommendation": "patch",
+        "case_id": "CASE_HIGH_NOISE"
+      },
+      {
+        "subsystem": "fusion",
+        "title": "fusion_reason_restates_raw_labels",
+        "type": "A",
+        "severity": "medium",
+        "evidence": "fused reasons include direct label echoes",
+        "recommendation": "refine",
+        "case_id": "CASE_MINIMAL_SIGNAL"
+      },
+      {
+        "subsystem": "fusion",
+        "title": "fusion_reason_restates_raw_labels",
+        "type": "A",
+        "severity": "medium",
+        "evidence": "fused reasons include direct label echoes",
+        "recommendation": "refine",
+        "case_id": "CASE_CONTRADICTORY_SIGNAL"
+      },
+      {
+        "subsystem": "routing",
+        "title": "review_context_not_reflected_in_reason",
+        "type": "B",
+        "severity": "medium",
+        "evidence": "review context active without review-specific reason",
+        "recommendation": "patch",
+        "case_id": "CASE_CONTRADICTORY_SIGNAL"
+      }
+    ]
+  },
+  "recommendations": [
+    "patch",
+    "refine"
+  ],
+  "provenance": "operator_console.weakness_exposure.v5.2.adversarial_casepack",
+  "correlation_pointers": [],
+  "ledger_record_ids": [],
+  "ledger_artifact_ids": []
+}
