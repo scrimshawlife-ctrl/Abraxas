@@ -11,6 +11,8 @@ from ..operator_console import (
     build_view_state,
     execute_runtime_adapter,
     resolve_compare_run_id_for_apply,
+    write_operator_ers_snapshot_artifact,
+    write_operator_ers_review_artifact,
     write_operator_markdown_report,
     write_operator_report_artifact,
     write_viz_render_artifact,
@@ -18,6 +20,12 @@ from ..operator_console import (
 from ..panel_context import templates, require_token, _panel_host, _panel_port, _panel_token, _token_enabled
 
 _OPERATOR_LOCAL_STATE: dict[str, dict[str, object]] = {}
+_ERS_TRIGGER_ALLOWLIST: dict[str, str] = {
+    "ers.item.compliance_probe": "run_compliance_probe",
+    "ers.item.generalized_coverage_probe": "run_generalized_coverage_probe",
+    "ers.item.execution_validator": "run_execution_validator",
+    "ers.item.closure_audit": "run_closure_audit",
+}
 
 
 def _state_bucket(request: Request) -> dict[str, object]:
@@ -423,6 +431,9 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
     export_viz_summary = request.query_params.get("export_viz_summary") == "1"
     export_closeout_bundle = request.query_params.get("export_closeout_bundle") == "1"
     export_markdown_report = request.query_params.get("export_markdown_report") == "1"
+    export_ers_snapshot = request.query_params.get("export_ers_snapshot") == "1"
+    export_ers_review = request.query_params.get("export_ers_review") == "1"
+    trigger_ers_item = request.query_params.get("trigger_ers_item")
 
     pin_run_id = request.query_params.get("pin_run_id")
     unpin_run_id = request.query_params.get("unpin_run_id")
@@ -562,6 +573,10 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
             viz_render_export_path=str(bucket.get("viz_render_export_path", "")) or None,
             report_export_status=str(bucket.get("report_export_status", "not_requested")),
             report_export_paths=bucket.get("report_export_paths") if isinstance(bucket.get("report_export_paths"), dict) else {},
+            latest_ers_snapshot_path=str(bucket.get("latest_ers_snapshot_path", "")) or None,
+            latest_ers_snapshot_status=str(bucket.get("latest_ers_snapshot_status", "not_requested")),
+            latest_ers_review_export_path=str(bucket.get("latest_ers_review_export_path", "")) or None,
+            latest_ers_review_export_status=str(bucket.get("latest_ers_review_export_status", "not_requested")),
         )
 
     view = _build_current_view(run_id=selected, compare_id=compare_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
@@ -581,6 +596,82 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
     )
     if applied_compare_run_id != view.comparison_run_id:
         view = _build_current_view(run_id=selected, compare_id=applied_compare_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if trigger_ers_item:
+        ers_queue = (view.ers_integration.get("ers_queue", {}) if isinstance(view.ers_integration, dict) else {})
+        runnable_items = ers_queue.get("runnable_items", []) if isinstance(ers_queue, dict) else []
+        runnable_by_id = {
+            str(item.get("item_id", "")): item
+            for item in runnable_items
+            if isinstance(item, dict) and str(item.get("item_id", ""))
+        }
+        action_name = _ERS_TRIGGER_ALLOWLIST.get(trigger_ers_item, "")
+        queue_item = runnable_by_id.get(trigger_ers_item)
+        if action_name and queue_item is not None:
+            adapter_output = execute_runtime_adapter(
+                action_name=action_name,
+                payload={"selected_run_id": view.selected_run_id or ""},
+                allowed_actions=list(view.control_plane.get("allowed_actions", [])),
+            )
+            result_packet = _result_packet(
+                status=str(adapter_output.get("outcome_status", "FAILED")),
+                preset_id=f"ers.{trigger_ers_item}",
+                action_name=action_name,
+                adapter_name=str(adapter_output.get("adapter_name", "")),
+                attempted_at=str(adapter_output.get("attempted_at", "")),
+                run_id=str(adapter_output.get("run_id", "")),
+                artifact_paths=[str(x) for x in adapter_output.get("artifact_paths", []) if isinstance(x, str)],
+                error_info=str(adapter_output.get("error_info", "")),
+                summary=str(adapter_output.get("summary", "")),
+            )
+            bucket["result_packet"] = result_packet
+            action_feedback = {
+                "attempted_at": str(adapter_output.get("attempted_at", "")),
+                "action_name": action_name,
+                "preset_id": f"ers.{trigger_ers_item}",
+                "adapter_name": str(adapter_output.get("adapter_name", "")),
+                "triggered_run_id": str(adapter_output.get("run_id", "")),
+                "outcome_status": str(adapter_output.get("outcome_status", "FAILED")),
+                "artifact_path": next(
+                    (str(x) for x in adapter_output.get("artifact_paths", []) if isinstance(x, str)),
+                    "",
+                ),
+                "message": str(adapter_output.get("summary", "")),
+            }
+            _append_action_history(bucket, action_feedback)
+            bucket["ers_trigger_status"] = "triggered"
+            bucket["ers_trigger_item"] = trigger_ers_item
+        else:
+            bucket["ers_trigger_status"] = "blocked"
+            bucket["ers_trigger_item"] = trigger_ers_item
+            bucket["result_packet"] = _result_packet(
+                status="FAILED",
+                preset_id=f"ers.{trigger_ers_item}",
+                action_name="ers_trigger",
+                attempted_at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                error_info="ers_item_not_runnable_or_not_allowlisted",
+                summary="ERS trigger rejected: item is blocked, missing, or not allowlisted.",
+            )
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_ers_snapshot:
+        ers_payload = dict((view.ers_integration or {}).get("ers_snapshot_preview", {}))
+        ers_payload["runtime_context"] = {
+            "selected_run_id": view.selected_run_id or "",
+            "compare_run_id": view.comparison_run_id or "",
+            "workbench_mode": view.workbench_mode,
+        }
+        ers_path, ers_status = write_operator_ers_snapshot_artifact(payload=ers_payload)
+        bucket["latest_ers_snapshot_path"] = ers_path or ""
+        bucket["latest_ers_snapshot_status"] = ers_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_ers_review:
+        review_payload = dict((view.ers_review or {}).get("ers_review_export_preview", {}))
+        review_path, review_status = write_operator_ers_review_artifact(payload=review_payload)
+        bucket["latest_ers_review_export_path"] = review_path or ""
+        bucket["latest_ers_review_export_status"] = review_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
 
     if export_snapshot:
         report_path, report_status = _write_operator_snapshot_report(dict(view.export_preview))

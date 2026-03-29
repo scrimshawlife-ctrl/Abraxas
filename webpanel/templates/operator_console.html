@@ -966,5 +966,119 @@
     {% endif %}
   </div>
   {% endif %}
+
+  <div class="card">
+    <h2>ERS State</h2>
+    <p><b>ers_mode:</b> {{ view.ers_integration.ers_state_surface.ers_mode }}</p>
+    <p><b>queue_length:</b> {{ view.ers_integration.ers_state_surface.queue_length }} | <b>runnable:</b> {{ view.ers_integration.ers_state_surface.runnable_count }} | <b>blocked:</b> {{ view.ers_integration.ers_state_surface.blocked_count }}</p>
+    <p><b>recently_completed:</b> {{ view.ers_integration.ers_state_surface.recently_completed_count }}</p>
+    <p><b>scheduler:</b> {{ view.ers_integration.ers_state_surface.scheduler_summary }}</p>
+  </div>
+
+  <div class="card">
+    <h2>Triggerable Queue</h2>
+    <p><b>next runnable:</b> {{ view.ers_integration.ers_queue.next_runnable_item.item_id or "NOT_COMPUTABLE" }}</p>
+    {% if view.ers_integration.ers_queue.runnable_items|length == 0 %}
+      <p>No runnable ERS items.</p>
+    {% else %}
+      <ul>
+      {% for item in view.ers_integration.ers_queue.runnable_items %}
+        <li>{{ item.item_id }} | {{ item.item_type }} | gate={{ item.gating_reason }} | <a href="/operator?mode=ers&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&trigger_ers_item={{ item.item_id }}">trigger</a></li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+    <p><small>{{ view.ers_integration.ers_queue.trigger_rule }}</small></p>
+  </div>
+
+  <div class="card">
+    <h2>Blocked Items</h2>
+    {% if view.ers_integration.ers_blocked_items|length == 0 %}
+      <p>No blocked ERS items.</p>
+    {% else %}
+      <ul>
+      {% for item in view.ers_integration.ers_blocked_items %}
+        <li>{{ item.item_id }} | gate={{ item.gating_reason }} | policy={{ item.policy_context.policy_mode }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Scheduling Reasoning</h2>
+    <ul>
+    {% for row in view.ers_integration.ers_reasoning %}
+      <li>{{ row.item_id }} | next={{ row.why_next }} | blocked={{ row.why_blocked }} | rule={{ row.rule_or_policy }} | {{ row.priority_explanation }}</li>
+    {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>ERS Snapshot Export</h2>
+    <p><b>status:</b> {{ view.ers_integration.ers_snapshot_status }}</p>
+    <p><b>path:</b> {{ view.ers_integration.ers_snapshot_path or "UNAVAILABLE" }}</p>
+    <a class="btn" href="/operator?mode=ers&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&export_ers_snapshot=1" style="text-decoration:none;">Export ERS snapshot</a>
+  </div>
+
+  <div class="card">
+    <h2>ERS Workspace</h2>
+    <p><b>mode:</b> {{ view.ers_integration.ers_workspace_payload.mode }}</p>
+    <p><b>next:</b> {{ view.ers_integration.ers_workspace_payload.next_runnable_item_id }}</p>
+    <p><b>snapshot_status:</b> {{ view.ers_integration.ers_workspace_payload.snapshot_status }}</p>
+  </div>
+
+  <div class="card">
+    <h2>ERS Snapshot Diff</h2>
+    <p><b>status:</b> {{ view.ers_review.ers_snapshot_diff.status }}</p>
+    <p><b>prior snapshot:</b> {{ view.ers_review.ers_snapshot_diff.prior_snapshot_path or "UNAVAILABLE" }}</p>
+    <p><b>queue:</b> {{ view.ers_review.ers_snapshot_diff.queue_length_change }} | <b>runnable:</b> {{ view.ers_review.ers_snapshot_diff.runnable_count_change }} | <b>blocked:</b> {{ view.ers_review.ers_snapshot_diff.blocked_count_change }}</p>
+    <p><b>next item:</b> {{ view.ers_review.ers_snapshot_diff.next_runnable_item_change }}</p>
+  </div>
+
+  <div class="card">
+    <h2>ERS Drift / Stability</h2>
+    <p><b>label:</b> <span class="badge">{{ view.ers_review.ers_drift_summary.label }}</span></p>
+    <p><b>reasons:</b> {{ view.ers_review.ers_drift_summary.reason_codes }}</p>
+    <p><small>{{ view.ers_review.ers_drift_summary.rule_source }}</small></p>
+  </div>
+
+  <div class="card">
+    <h2>Queue Transition Log</h2>
+    {% if view.ers_review.ers_transition_log|length == 0 %}
+      <p>No transitions.</p>
+    {% else %}
+      <ul>
+      {% for row in view.ers_review.ers_transition_log %}
+        <li>{{ row.timestamp }} | {{ row.item_id }} | {{ row.transition_type }} | {{ row.summary }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>ERS Runtime Handoff</h2>
+    <p><b>status:</b> {{ view.ers_review.ers_runtime_handoff.status }}</p>
+    <p><b>ers_item:</b> {{ view.ers_review.ers_runtime_handoff.triggered_ers_item_id or "UNAVAILABLE" }}</p>
+    <p><b>action:</b> {{ view.ers_review.ers_runtime_handoff.action_name or "UNAVAILABLE" }} | <b>run:</b> {{ view.ers_review.ers_runtime_handoff.run_id or "UNAVAILABLE" }}</p>
+    <p><b>result:</b> {{ view.ers_review.ers_runtime_handoff.result_status }}</p>
+    <p><a href="{{ view.ers_review.ers_runtime_handoff.focus_target }}">focus runtime review</a></p>
+    <p><small>{{ view.ers_review.ers_runtime_handoff.summary }}</small></p>
+  </div>
+
+  <div class="card">
+    <h2>ERS Review Export</h2>
+    <p><b>status:</b> {{ view.ers_review.ers_review_export_status }}</p>
+    <p><b>path:</b> {{ view.ers_review.ers_review_export_path or "UNAVAILABLE" }}</p>
+    <a class="btn" href="/operator?mode=ers&run_id={{ view.selected_run_id or '' }}&health={{ view.focus_filters.health }}&run_query={{ view.focus_filters.run_query }}&sort_mode={{ view.focus_filters.sort_mode }}&compare_run_id={{ view.comparison_run_id or '' }}&export_ers_review=1" style="text-decoration:none;">Export ERS review</a>
+  </div>
+
+  <div class="card">
+    <h2>ERS Review Workspace</h2>
+    <p><b>mode:</b> {{ view.ers_review.ers_review_workspace_payload.mode }}</p>
+    <p><b>diff:</b> {{ view.ers_review.ers_review_workspace_payload.diff_status }}</p>
+    <p><b>drift:</b> {{ view.ers_review.ers_review_workspace_payload.drift_label }}</p>
+    <p><b>transitions:</b> {{ view.ers_review.ers_review_workspace_payload.transition_count }}</p>
+    <p><b>handoff:</b> {{ view.ers_review.ers_review_workspace_payload.handoff_status }}</p>
+    <p><b>export status:</b> {{ view.ers_review.ers_review_workspace_payload.ers_review_export_status }}</p>
+  </div>
 </div>
 {% endblock %}
