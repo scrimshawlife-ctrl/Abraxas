@@ -4,6 +4,7 @@ from .compare_routes import register as register_compare
 from .export_routes import register as register_export
 from .governance_routes import register as register_governance
 from .index_routes import register as register_index
+from .operator_routes import register as register_operator
 from .runs_routes import register as register_runs
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "register_export",
     "register_governance",
     "register_index",
+    "register_operator",
     "register_runs",
 ]

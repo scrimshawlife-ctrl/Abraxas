@@ -1,0 +1,37 @@
+{
+  "confirming_artifact_paths": [
+    "artifacts_seal/audits/closure_readiness/closure_scope_classification.v1.json",
+    "artifacts_seal/audits/closure_readiness/closure_generalized_attestation.v1.json",
+    "out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json",
+    "artifacts_seal/runs/generalized_coverage/run.generalized_coverage.scopepass.v1.artifact.json",
+    "artifacts_seal/runs/generalized_coverage/run.generalized_coverage.scopepass.v1.validator_surface.json",
+    "out/ledger/generalized_coverage_linkage.jsonl"
+  ],
+  "confirming_run_ids": [
+    "run.generalized_coverage.guard.v1"
+  ],
+  "determinism_notes": [
+    "This note is a canonical repository artifact and contains no runtime-generated randomness.",
+    "Evidence surfaces are listed as explicit paths; missing files must be represented at runtime as missing, not inferred."
+  ],
+  "guarding_test_paths": [
+    "tests/test_closure_generalized_regression_guard.py"
+  ],
+  "milestone_name": "CLOSURE.GENERALIZED.FINALIZATION",
+  "non_blocking_future_work": [
+    "Keep closure evidence artifacts reproducible during routine release cycles.",
+    "Monitor future CI changes to preserve explicit closure regression guard execution."
+  ],
+  "normal_validation_surfaces": {
+    "ci_step": "Run generalized closure regression guard",
+    "ci_workflow": ".github/workflows/abx_familiar_canary.yml",
+    "local_test_entry": "make test"
+  },
+  "provenance": {
+    "date_utc": "2026-03-28",
+    "generated_by": "codex"
+  },
+  "schema_version": "aal.closure_generalized_milestone_note.v1",
+  "status": "GENERALIZED_CLOSURE_CONFIRMED",
+  "summary": "Generalized closure is achieved and regression-guarded; closure is no longer an active remediation track."
+}
