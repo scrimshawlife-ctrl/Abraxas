@@ -7,7 +7,7 @@ from ast import literal_eval
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Set
 
 from abx.execution_validator import emit_validation_result, validate_run
 
@@ -4444,25 +4444,29 @@ def _derive_pressure_friction_detector(*, structural_signals: Mapping[str, Any],
     if blocked > 0:
         pressure_label = "HIGH"
         friction_label = "BLOCKED"
+        condition_band = "blocked"
     elif missing >= 2 or degraded >= 2 or transition_count >= 3:
         pressure_label = "HIGH"
         friction_label = "FRICTION"
+        condition_band = "degraded"
     elif missing == 1 or degraded == 1 or (entity_count > 0 and relation_count == 0):
         pressure_label = "MODERATE"
         friction_label = "FRICTION"
+        condition_band = "mildly_degraded"
     else:
         pressure_label = "LOW"
         friction_label = "CLEAR"
+        condition_band = "healthy"
     return {
         "detector_id": detector_id,
         "detector_status": "SUCCESS",
         "pressure_label": pressure_label,
         "friction_label": friction_label,
-        "pressure_reasons": pressure_reasons[:6],
-        "friction_reasons": friction_reasons[:6],
+        "pressure_reasons": _dedupe_preserve_order(pressure_reasons),
+        "friction_reasons": _dedupe_preserve_order(friction_reasons),
         "detector_summary": (
-            f"pressure={pressure_label} friction={friction_label} "
-            f"missing={missing} blocked_or_not_computable={blocked} degraded={degraded} transitions={transition_count}"
+            f"condition={condition_band}; pressure={pressure_label}; friction={friction_label}; "
+            f"missing={missing}; blocked_or_not_computable={blocked}; degraded={degraded}; transitions={transition_count}"
         ),
         "rule_ids": [
             "detector.blocked_implies_friction_blocked",
@@ -4483,6 +4487,86 @@ def _count_repeats(values: List[str]) -> int:
     if not counts:
         return 0
     return sum(max(0, count - 1) for count in counts.values())
+
+
+def _dedupe_preserve_order(values: List[str], *, limit: int = 6) -> List[str]:
+    deduped: List[str] = []
+    seen: Set[str] = set()
+    for value in values:
+        token = str(value).strip()
+        if not token or token in seen:
+            continue
+        seen.add(token)
+        deduped.append(token)
+        if len(deduped) >= limit:
+            break
+    return deduped
+
+
+def _bounded_list_or_none(values: List[str], *, limit: int = 3, none_token: str = "none") -> List[str]:
+    bounded = [str(value).strip() for value in values if str(value).strip()][:limit]
+    return bounded if bounded else [none_token]
+
+
+def _derive_signal_sufficiency_surface(
+    *,
+    selected_run_id: Optional[str],
+    structural_signals: Mapping[str, Any],
+    pressure_friction_detector: Mapping[str, Any],
+    motif_recurrence_detector: Mapping[str, Any],
+    instability_drift_detector: Mapping[str, Any],
+    anomaly_gap_detector: Mapping[str, Any],
+    not_computable_subcodes: List[str],
+    binding_health_surface: Mapping[str, Any],
+) -> Dict[str, Any]:
+    if not selected_run_id:
+        return {
+            "signal_sufficiency_status": "INSUFFICIENT",
+            "signal_sufficiency_reasons": ["selected_run_id_missing"],
+            "provenance": "operator_console.domain_logic.signal_sufficiency.v5.3.not_computable",
+        }
+    entity_count = int(structural_signals.get("entity_count", 0))
+    relation_count = int(structural_signals.get("relation_count", 0))
+    transition_count = int(structural_signals.get("transition_count", 0))
+    richness = entity_count + relation_count + transition_count
+    detector_statuses = [
+        str(pressure_friction_detector.get("detector_status", "NOT_COMPUTABLE")),
+        str(motif_recurrence_detector.get("detector_status", "NOT_COMPUTABLE")),
+        str(instability_drift_detector.get("detector_status", "NOT_COMPUTABLE")),
+        str(anomaly_gap_detector.get("detector_status", "NOT_COMPUTABLE")),
+    ]
+    usable_detector_count = len([status for status in detector_statuses if status == "SUCCESS"])
+    gap_label = str(anomaly_gap_detector.get("gap_label", "NOT_COMPUTABLE"))
+    anomaly_label = str(anomaly_gap_detector.get("anomaly_label", "NOT_COMPUTABLE"))
+    detector_ready_state = str(binding_health_surface.get("detector_ready_state", "NOT_READY"))
+    reasons: List[str] = []
+    if usable_detector_count < 3:
+        reasons.append("insufficient_detector_coverage")
+    if richness <= 1:
+        reasons.append("minimal_structural_richness")
+    if gap_label == "BROKEN" or anomaly_label == "MAJOR":
+        reasons.append("major_context_gap_burden")
+    if not_computable_subcodes:
+        reasons.append("not_computable_subcodes_present")
+    if detector_ready_state != "READY":
+        reasons.append("binding_detector_context_not_ready")
+    if (
+        "insufficient_detector_coverage" in reasons
+        or "major_context_gap_burden" in reasons
+        or "binding_detector_context_not_ready" in reasons
+    ):
+        status = "INSUFFICIENT"
+    elif "minimal_structural_richness" in reasons or "not_computable_subcodes_present" in reasons:
+        status = "THIN"
+    else:
+        status = "SUFFICIENT"
+    return {
+        "signal_sufficiency_status": status,
+        "signal_sufficiency_reasons": _dedupe_preserve_order(reasons, limit=5),
+        "usable_detector_count": usable_detector_count,
+        "structural_richness": richness,
+        "provenance": "operator_console.domain_logic.signal_sufficiency.v5.3.explicit_rule_ladder",
+    }
 
 
 def _derive_motif_recurrence_signals(
@@ -4587,10 +4671,10 @@ def _derive_motif_recurrence_detector(
     if transition > 0:
         motif_reasons.append("repeated_transition_patterns")
         recurrence_reasons.append("repeated_transition_patterns")
-    if token > 0:
-        motif_reasons.append("repeated_tokens")
     if entity > 0 or relation > 0:
         motif_reasons.append("repeated_entity_relation_forms")
+    if token > 0:
+        motif_reasons.append("repeated_tokens")
     if routing > 0:
         recurrence_reasons.append("repeated_pipeline_routing_pattern")
     if intensity >= 6 or blocker >= 2 or transition >= 2:
@@ -4607,11 +4691,11 @@ def _derive_motif_recurrence_detector(
         "detector_status": "SUCCESS",
         "motif_label": motif_label,
         "recurrence_label": recurrence_label,
-        "motif_reasons": motif_reasons[:6],
-        "recurrence_reasons": recurrence_reasons[:6],
+        "motif_reasons": _dedupe_preserve_order(motif_reasons),
+        "recurrence_reasons": _dedupe_preserve_order(recurrence_reasons),
         "detector_summary": (
-            f"motif={motif_label} recurrence={recurrence_label} "
-            f"token={token} entity={entity} relation={relation} blocker={blocker} transition={transition}"
+            f"motif={motif_label}; recurrence={recurrence_label}; "
+            f"blocker={blocker}; transition={transition}; token={token}; entity={entity}; relation={relation}"
         ),
         "rule_ids": [
             "motif_detector.persistent_when_multi_surface_or_blocker_transition_high",
@@ -4728,22 +4812,25 @@ def _derive_instability_drift_detector(
     if intensity >= 5 or runnable_to_blocked >= 2:
         instability_label = "UNSTABLE"
         drift_label = "SIGNIFICANT"
+        drift_band = "unstable"
     elif intensity >= 2 or blocked_to_runnable > 0 or runnable_to_blocked > 0:
         instability_label = "SHIFTING"
         drift_label = "MINOR"
+        drift_band = "shifting"
     else:
         instability_label = "STABLE"
         drift_label = "NONE"
+        drift_band = "stable"
     return {
         "detector_id": detector_id,
         "detector_status": "SUCCESS",
         "instability_label": instability_label,
         "drift_label": drift_label,
-        "instability_reasons": instability_reasons[:6],
-        "drift_reasons": drift_reasons[:6],
+        "instability_reasons": _dedupe_preserve_order(instability_reasons),
+        "drift_reasons": _dedupe_preserve_order(drift_reasons),
         "detector_summary": (
-            f"instability={instability_label} drift={drift_label} "
-            f"status_changes={status_change_count} queue_changes={queue_change_count} quality_shifts={quality_shifts}"
+            f"drift_state={drift_band}; instability={instability_label}; drift={drift_label}; "
+            f"status_changes={status_change_count}; queue_changes={queue_change_count}; quality_shifts={quality_shifts}"
         ),
         "rule_ids": [
             "drift_detector.unstable_significant_on_multi_shift_or_blocking_transitions",
@@ -4864,22 +4951,25 @@ def _derive_anomaly_gap_detector(
     if severity >= 4 or broken_expected_step_pattern_count >= 2:
         anomaly_label = "MAJOR"
         gap_label = "BROKEN"
+        gap_band = "broken_gap"
     elif severity >= 1 or empty_required_field_count > 0:
         anomaly_label = "MINOR"
         gap_label = "INCOMPLETE"
+        gap_band = "minor_anomaly"
     else:
         anomaly_label = "NONE"
         gap_label = "COMPLETE"
+        gap_band = "healthy"
     return {
         "detector_id": detector_id,
         "detector_status": "SUCCESS",
         "anomaly_label": anomaly_label,
         "gap_label": gap_label,
-        "anomaly_reasons": anomaly_reasons[:6],
-        "gap_reasons": gap_reasons[:6],
+        "anomaly_reasons": _dedupe_preserve_order(anomaly_reasons),
+        "gap_reasons": _dedupe_preserve_order(gap_reasons),
         "detector_summary": (
-            f"anomaly={anomaly_label} gap={gap_label} "
-            f"missing_artifact={missing_artifact_count} missing_linkage={missing_linkage_count} broken_steps={broken_expected_step_pattern_count}"
+            f"gap_state={gap_band}; anomaly={anomaly_label}; gap={gap_label}; "
+            f"missing_artifact={missing_artifact_count}; missing_linkage={missing_linkage_count}; broken_steps={broken_expected_step_pattern_count}"
         ),
         "rule_ids": [
             "anomaly_detector.major_broken_on_multi_gap_or_broken_steps",
@@ -4932,12 +5022,14 @@ def _derive_detector_fusion_output(
     motif_recurrence_detector: Mapping[str, Any],
     instability_drift_detector: Mapping[str, Any],
     anomaly_gap_detector: Mapping[str, Any],
+    signal_sufficiency_surface: Mapping[str, Any],
 ) -> Dict[str, Any]:
     if not selected_run_id:
         return {
             "fused_label": "NOT_COMPUTABLE",
             "fused_status": "NOT_COMPUTABLE",
             "fused_reasons": ["selected_run_id_missing"],
+            "compressed_fusion_reason": "selected_run_id_missing",
             "interpretation_summary": "fusion=NOT_COMPUTABLE; reason=selected_run_id_missing",
             "rule_ids": ["fusion.not_computable_when_selected_run_missing"],
             "provenance": "operator_console.domain_logic.fusion_output.v4.5.not_computable",
@@ -4953,6 +5045,7 @@ def _derive_detector_fusion_output(
             "fused_label": "NOT_COMPUTABLE",
             "fused_status": "NOT_COMPUTABLE",
             "fused_reasons": ["detector_input_not_computable"],
+            "compressed_fusion_reason": "detector_input_not_computable",
             "interpretation_summary": "fusion=NOT_COMPUTABLE; reason=detector_input_not_computable",
             "rule_ids": ["fusion.not_computable_when_any_detector_not_computable"],
             "provenance": "operator_console.domain_logic.fusion_output.v4.5.not_computable",
@@ -4964,44 +5057,25 @@ def _derive_detector_fusion_output(
     drift_label = str(fusion_input_surface.get("drift_label", "NOT_COMPUTABLE"))
     anomaly_label = str(fusion_input_surface.get("anomaly_label", "NOT_COMPUTABLE"))
     gap_label = str(fusion_input_surface.get("gap_label", "NOT_COMPUTABLE"))
+    sufficiency_status = str(signal_sufficiency_surface.get("signal_sufficiency_status", "INSUFFICIENT"))
     fused_reasons: List[str] = []
+    compressed_fusion_reason = "pattern_not_resolved"
     if gap_label == "BROKEN" or anomaly_label == "MAJOR":
         fused_label = "BROKEN_SIGNAL"
-        fused_reasons.extend(
-            [
-                "anomaly_or_gap_broken",
-                f"anomaly_label={anomaly_label}",
-                f"gap_label={gap_label}",
-            ]
-        )
+        compressed_fusion_reason = "blocked_by_major_context_gaps"
+        fused_reasons.extend(["anomaly_or_gap_broken", "major_context_gap_burden"])
     elif gap_label == "INCOMPLETE" or anomaly_label == "MINOR":
         fused_label = "INCOMPLETE_CONTEXT"
-        fused_reasons.extend(
-            [
-                "anomaly_or_gap_incomplete",
-                f"anomaly_label={anomaly_label}",
-                f"gap_label={gap_label}",
-            ]
-        )
+        compressed_fusion_reason = "incomplete_context_limits_interpretation"
+        fused_reasons.extend(["anomaly_or_gap_incomplete", "context_completion_required"])
     elif instability_label == "UNSTABLE" or drift_label == "SIGNIFICANT":
         fused_label = "UNSTABLE_TRANSITION"
-        fused_reasons.extend(
-            [
-                "instability_or_drift_significant",
-                f"instability_label={instability_label}",
-                f"drift_label={drift_label}",
-            ]
-        )
+        compressed_fusion_reason = "transition_instability_dominates_signal"
+        fused_reasons.extend(["instability_or_drift_significant", "stability_revalidation_required"])
     elif pressure_label == "HIGH" or friction_label in {"FRICTION", "BLOCKED"} or recurrence_label == "PERSISTENT":
         fused_label = "ACTIVE_FRICTION"
-        fused_reasons.extend(
-            [
-                "pressure_friction_or_recurrence_active",
-                f"pressure_label={pressure_label}",
-                f"friction_label={friction_label}",
-                f"recurrence_label={recurrence_label}",
-            ]
-        )
+        compressed_fusion_reason = "active_execution_friction_with_recurrence"
+        fused_reasons.extend(["pressure_friction_or_recurrence_active", "execution_hardening_required"])
     elif (
         pressure_label == "LOW"
         and friction_label == "CLEAR"
@@ -5010,28 +5084,28 @@ def _derive_detector_fusion_output(
         and anomaly_label == "NONE"
     ):
         fused_label = "STABLE_PATTERN"
-        fused_reasons.extend(
-            [
-                "all_detector_families_stable_or_clear",
-                f"pressure_label={pressure_label}",
-                f"friction_label={friction_label}",
-                f"instability_label={instability_label}",
-                f"anomaly_label={anomaly_label}",
-            ]
-        )
+        compressed_fusion_reason = "stable_pattern_across_detector_families"
+        fused_reasons.extend(["all_detector_families_stable_or_clear"])
     else:
         fused_label = "ACTIVE_FRICTION"
+        compressed_fusion_reason = "mixed_signals_default_to_active_friction"
         fused_reasons.extend(["default_active_friction_bucket"])
+    if sufficiency_status in {"THIN", "INSUFFICIENT"} and fused_label in {"STABLE_PATTERN", "ACTIVE_FRICTION"}:
+        fused_label = "INCOMPLETE_CONTEXT"
+        compressed_fusion_reason = "signal_sufficiency_below_interpretive_threshold"
+        fused_reasons = ["signal_sufficiency_below_interpretive_threshold"]
+    fused_reason_tokens = _dedupe_preserve_order(fused_reasons)
     interpretation_summary = (
-        f"fusion={fused_label}; pressure/friction={pressure_label}/{friction_label}; "
+        f"fusion={fused_label}; sufficiency={sufficiency_status}; pressure/friction={pressure_label}/{friction_label}; "
         f"motif/recurrence={str(fusion_input_surface.get('motif_label', 'NOT_COMPUTABLE'))}/{recurrence_label}; "
         f"instability/drift={instability_label}/{drift_label}; anomaly/gap={anomaly_label}/{gap_label}; "
-        f"drivers={','.join(fused_reasons[:4])}"
+        f"compressed_reason={compressed_fusion_reason}; drivers={','.join(fused_reason_tokens[:3])}"
     )
     return {
         "fused_label": fused_label,
         "fused_status": "SUCCESS",
-        "fused_reasons": fused_reasons[:6],
+        "fused_reasons": fused_reason_tokens,
+        "compressed_fusion_reason": compressed_fusion_reason,
         "interpretation_summary": interpretation_summary[:320],
         "rule_ids": [
             "fusion.broken_signal_when_gap_broken_or_anomaly_major",
@@ -5059,6 +5133,7 @@ def _derive_abraxas_synthesis_input_surface(
     not_computable_subcodes: List[str],
     attention_queue: List[Mapping[str, Any]],
     suggested_next_step: str,
+    signal_sufficiency_surface: Mapping[str, Any],
 ) -> Dict[str, Any]:
     policy_surface = governance.get("policy_surface", {}) if isinstance(governance.get("policy_surface", {}), Mapping) else {}
     runtime_workspace = runtime_corridor.get("runtime_workspace_payload", {}) if isinstance(runtime_corridor.get("runtime_workspace_payload", {}), Mapping) else {}
@@ -5083,6 +5158,8 @@ def _derive_abraxas_synthesis_input_surface(
         "runtime_blocker_summary": blocker_summary[:5],
         "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
         "fusion_status": str(detector_fusion_output.get("fused_status", "NOT_COMPUTABLE")),
+        "signal_sufficiency_status": str(signal_sufficiency_surface.get("signal_sufficiency_status", "INSUFFICIENT")),
+        "signal_sufficiency_reasons": [str(x) for x in signal_sufficiency_surface.get("signal_sufficiency_reasons", []) if isinstance(x, str)][:5],
         "pipeline_final_state": dict(pipeline_final_state),
         "pipeline_unresolved_subcode": pipeline_unresolved_subcode,
         "not_computable_subcodes": not_computable_subcodes[:5],
@@ -5198,6 +5275,7 @@ def _derive_abraxas_synthesis_output(
             "synthesis_reasons": ["selected_run_id_missing"],
             "synthesis_blockers": ["selected_run_id_missing"],
             "synthesis_next_step": "Select run to compute synthesis output.",
+            "synthesis_rule_precedence_note": "precedence=not_computable>blocked>incomplete>unstable>friction>ready>active",
             "interpretation_summary": "synthesis=NOT_COMPUTABLE; reason=selected_run_id_missing",
             "rule_ids": ["synthesis.not_computable_when_selected_run_missing"],
             "provenance": "operator_console.abraxas_synthesis.output.v4.6.not_computable",
@@ -5208,9 +5286,11 @@ def _derive_abraxas_synthesis_output(
     pipeline_status_resolved = bool(pipeline_final_state.get("pipeline_status_resolved", False))
     fusion_label = str(synthesis_input_surface.get("fusion_label", "NOT_COMPUTABLE"))
     fusion_status = str(synthesis_input_surface.get("fusion_status", "NOT_COMPUTABLE"))
+    sufficiency_status = str(synthesis_input_surface.get("signal_sufficiency_status", "INSUFFICIENT"))
     policy_mode = str(synthesis_input_surface.get("governance_policy_mode", "review_only"))
     runtime_outcome = str(synthesis_input_surface.get("runtime_outcome_status", "NOT_COMPUTABLE"))
     blockers = [str(x) for x in synthesis_input_surface.get("runtime_blocker_summary", []) if isinstance(x, str)]
+    blockers = _dedupe_preserve_order(blockers, limit=4)
     reasons: List[str] = []
     synthesis_blockers: List[str] = []
     if pipeline_status_resolved and pipeline_final_status == "FAILED":
@@ -5223,23 +5303,38 @@ def _derive_abraxas_synthesis_output(
         synthesis_blockers.append("pipeline_partial_completion")
     elif pipeline_status_resolved and pipeline_final_status == "SUCCESS":
         if blockers:
-            label = "ACTIVE"
-            reasons.append("pipeline_success_with_runtime_blockers")
-            synthesis_blockers.extend(blockers[:4])
+            label = "BLOCKED"
+            reasons.append("runtime_blockers_dominate_pipeline_success")
+            synthesis_blockers.extend(blockers)
         else:
-            label = "READY"
-            reasons.append("pipeline_final_status_success")
+            if sufficiency_status in {"THIN", "INSUFFICIENT"}:
+                label = "INCOMPLETE"
+                reasons.append("signal_sufficiency_below_ready_threshold")
+                synthesis_blockers.append("signal_sufficiency_below_ready_threshold")
+            else:
+                label = "READY"
+                reasons.append("pipeline_final_status_success")
     elif fusion_status == "NOT_COMPUTABLE" or pipeline_status == "NOT_COMPUTABLE":
         label = "NOT_COMPUTABLE"
         reasons.append("fusion_or_pipeline_not_computable")
         synthesis_blockers.append(str(synthesis_input_surface.get("pipeline_unresolved_subcode", "NC_PIPELINE_STATUS_UNRESOLVED")))
     elif blockers or fusion_label == "BROKEN_SIGNAL" or pipeline_status in {"FAILED", "BLOCKED"}:
         label = "BLOCKED"
-        reasons.append("active_blocker_or_broken_signal")
-        synthesis_blockers.extend(blockers[:4] or ["fusion_or_pipeline_blocked"])
+        if blockers:
+            reasons.append("runtime_blockers_present")
+            synthesis_blockers.extend(blockers)
+        if fusion_label == "BROKEN_SIGNAL":
+            reasons.append("fused_signal_broken")
+            synthesis_blockers.append("fused_signal_broken")
+        if pipeline_status in {"FAILED", "BLOCKED"}:
+            reasons.append("pipeline_status_blocked_or_failed")
+            synthesis_blockers.append("pipeline_status_blocked_or_failed")
     elif fusion_label == "INCOMPLETE_CONTEXT" or runtime_outcome in {"PARTIAL", "NOT_COMPUTABLE"}:
         label = "INCOMPLETE"
-        reasons.append("context_or_runtime_incomplete")
+        if fusion_label == "INCOMPLETE_CONTEXT":
+            reasons.append("fused_context_incomplete")
+        if runtime_outcome in {"PARTIAL", "NOT_COMPUTABLE"}:
+            reasons.append("runtime_outcome_incomplete")
         synthesis_blockers.append("context_completion_required")
     elif fusion_label == "UNSTABLE_TRANSITION":
         label = "UNSTABLE"
@@ -5256,21 +5351,31 @@ def _derive_abraxas_synthesis_output(
         label = "READY"
         reasons.append("stable_pipeline_runtime_governance_alignment")
     else:
-        label = "ACTIVE"
-        reasons.append("active_progress_state")
+        if sufficiency_status in {"THIN", "INSUFFICIENT"}:
+            label = "INCOMPLETE"
+            reasons.append("signal_sufficiency_below_active_threshold")
+            synthesis_blockers.append("signal_sufficiency_below_active_threshold")
+        else:
+            label = "ACTIVE"
+            reasons.append("active_progress_state")
+    reasons = _dedupe_preserve_order(reasons)
+    synthesis_blockers = _dedupe_preserve_order(synthesis_blockers)
+    synthesis_rule_precedence_note = (
+        "precedence=not_computable>blocked>incomplete>unstable>friction>ready>active"
+    )
     next_step_map = {
-        "BLOCKED": "Investigate runtime blockers and broken signal sources before next execution.",
-        "INCOMPLETE": "Complete missing context/linkage surfaces and re-evaluate synthesis state.",
-        "UNSTABLE": "Run review and drift checks before advancing pipeline execution.",
-        "FRICTION": "Apply hardening or routing adjustment to reduce active friction.",
-        "READY": "Proceed with bounded handoff/export for current stable run context.",
-        "ACTIVE": "Continue monitored execution and re-check synthesis after next action.",
-        "NOT_COMPUTABLE": "Establish required run/pipeline/fusion context first.",
+        "BLOCKED": "Resolve the first runtime blocker, then rerun synthesis for the same run context.",
+        "INCOMPLETE": "Fill missing context/linkage fields and recompute synthesis before routing handoff.",
+        "UNSTABLE": "Run review + drift validation, then confirm transition stability before execution.",
+        "FRICTION": "Use hardening or route-to-review path to reduce friction before next runtime action.",
+        "READY": "Proceed with bounded export/handoff using the effective routed pipeline.",
+        "ACTIVE": "Continue one bounded action, then recompute synthesis and routing surfaces.",
+        "NOT_COMPUTABLE": "Establish run, pipeline, and fusion context so synthesis can bind deterministically.",
     }
     synthesis_next_step = next_step_map[label]
     interpretation_summary = (
         f"synthesis={label}; pipeline={pipeline_status}; fusion={fusion_label}; "
-        f"runtime={runtime_outcome}; policy={policy_mode}; blockers={','.join(synthesis_blockers[:3]) or 'none'}"
+        f"sufficiency={sufficiency_status}; runtime={runtime_outcome}; policy={policy_mode}; blockers={','.join(synthesis_blockers[:3]) or 'none'}"
     )
     return {
         "synthesis_label": label,
@@ -5278,6 +5383,7 @@ def _derive_abraxas_synthesis_output(
         "synthesis_reasons": reasons[:6],
         "synthesis_blockers": synthesis_blockers[:6],
         "synthesis_next_step": synthesis_next_step,
+        "synthesis_rule_precedence_note": synthesis_rule_precedence_note,
         "interpretation_summary": interpretation_summary[:320],
         "rule_ids": [
             "synthesis.pipeline_final_state_primary_when_resolved",
@@ -5335,6 +5441,92 @@ def _derive_guard_conditions(
         },
     ]
     return guards
+
+
+def _build_pipeline_suitability_summary(
+    *,
+    allowlisted: str,
+    invokable: str,
+    required_context_present: bool,
+    final_classification: str,
+    blocking_reason: str,
+) -> str:
+    blocked_state = "clear" if blocking_reason == "none" else f"blocked:{blocking_reason}"
+    return (
+        f"eligibility allowlisted={allowlisted}; invokable={invokable}; "
+        f"context={'ok' if required_context_present else 'missing'}; "
+        f"classification={final_classification}; {blocked_state}"
+    )[:180]
+
+
+def _derive_routing_recommendation_reason(
+    *,
+    review_context: bool,
+    recommended_pipeline_id: str,
+    top_classification: str,
+    top_blocking_reason: str,
+) -> str:
+    if review_context and recommended_pipeline_id == _ABRAXAS_PIPELINE_REVIEW_PATH_ID:
+        return "review_preferred_due_to_review_context_and_eligibility"
+    if review_context and recommended_pipeline_id != _ABRAXAS_PIPELINE_REVIEW_PATH_ID:
+        return "review_context_active_but_fallback_selected_due_to_availability_or_gating"
+    if top_classification in {"SUCCESS", "PARTIAL"}:
+        return "ready_preferred_due_to_higher_readiness"
+    if top_blocking_reason == "none":
+        return "less_blocked_preferred_due_to_clear_gating"
+    return "fallback_selected_due_to_best_available_context"
+
+
+def _resolve_manual_pipeline_override(
+    *,
+    manual_pipeline_override: Optional[str],
+    canonical_pipeline_ids: List[str],
+) -> Dict[str, str]:
+    attempted_override = str(manual_pipeline_override or "").strip()
+    if not attempted_override:
+        return {
+            "attempted_override": "",
+            "manual_override_applied": "",
+            "manual_override_status": "not_requested",
+            "manual_override_message": "manual override not requested: using deterministic recommendation",
+        }
+    if attempted_override in canonical_pipeline_ids:
+        return {
+            "attempted_override": attempted_override,
+            "manual_override_applied": attempted_override,
+            "manual_override_status": "applied",
+            "manual_override_message": f"manual override applied: effective pipeline set to {attempted_override}",
+        }
+    return {
+        "attempted_override": attempted_override,
+        "manual_override_applied": "",
+        "manual_override_status": "rejected_unknown_pipeline",
+        "manual_override_message": (
+            f"manual override rejected: '{attempted_override}' is not in pipeline registry; "
+            "using deterministic recommendation"
+        ),
+    }
+
+
+def _compose_manual_override_surface(
+    *,
+    manual_override_resolution: Mapping[str, str],
+) -> Dict[str, str]:
+    attempted_override = str(manual_override_resolution.get("attempted_override", "")).strip()
+    manual_override_applied = str(manual_override_resolution.get("manual_override_applied", "")).strip()
+    manual_override_status = str(manual_override_resolution.get("manual_override_status", "not_requested")).strip() or "not_requested"
+    manual_override_message = str(
+        manual_override_resolution.get(
+            "manual_override_message",
+            "manual override not requested: using deterministic recommendation",
+        )
+    ).strip() or "manual override not requested: using deterministic recommendation"
+    return {
+        "attempted_pipeline_override": attempted_override,
+        "manual_pipeline_override": manual_override_applied,
+        "manual_override_status": manual_override_status,
+        "manual_override_message": manual_override_message,
+    }
 
 
 def _derive_action_gating(
@@ -5482,7 +5674,7 @@ def _render_trace(payload: Mapping[str, Any]) -> Dict[str, Any]:
         "recent_activity_events": [dict(item) for item in activity if isinstance(item, Mapping)],
         "recent_decisions": [dict(item) for item in decisions if isinstance(item, Mapping)],
         "recent_execution_ledger_slice": [dict(item) for item in ledger if isinstance(item, Mapping)],
-        "summary_line": f"activity={len(activity)} decisions={len(decisions)} ledger={len(ledger)}",
+        "summary_line": f"Trace density: activity={len(activity)}; decisions={len(decisions)}; ledger={len(ledger)}",
         "status": "ready",
     }
 
@@ -5495,6 +5687,7 @@ def _render_compare(payload: Mapping[str, Any]) -> Dict[str, Any]:
             "enabled": False,
             "status": "not_computable",
             "reason": str(payload.get("reason", "no_comparison_context")),
+            "summary_line": "Compare unavailable: no comparison context.",
             "selected_run_summary": {},
             "comparison_run_summary": {},
             "compare_delta_summary": {},
@@ -5505,6 +5698,7 @@ def _render_compare(payload: Mapping[str, Any]) -> Dict[str, Any]:
         "enabled": True,
         "status": "ready",
         "reason": str(payload.get("reason", "comparison_available")),
+        "summary_line": "Compare ready: selected and comparison runs are available.",
         "selected_run_summary": dict(payload.get("selected_run_summary", {})),
         "comparison_run_summary": dict(payload.get("comparison_run_summary", {})),
         "compare_delta_summary": dict(payload.get("compare_delta_summary", {})),
@@ -6688,12 +6882,13 @@ def build_view_state(
         active_match = pipeline_id == active_pipeline_id
         final_classification = str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")) if active_match else "NOT_COMPUTABLE"
         blocking_reason = str(gate_row.get("gating_reason", "entry_unavailable")) if str(gate_row.get("invokable", "false")) != "true" else "none"
-        suitability_summary = (
-            f"allowlisted={str(entry.get('allowlisted', 'false'))}"
-            f"|invokable={str(gate_row.get('invokable', 'false'))}"
-            f"|context_ok={'true' if required_context_present else 'false'}"
-            f"|classification={final_classification}"
-        )[:180]
+        suitability_summary = _build_pipeline_suitability_summary(
+            allowlisted=str(entry.get("allowlisted", "false")),
+            invokable=str(gate_row.get("invokable", "false")),
+            required_context_present=required_context_present,
+            final_classification=final_classification,
+            blocking_reason=blocking_reason,
+        )
         pipeline_suitability_matrix.append(
             {
                 "pipeline_id": pipeline_id,
@@ -6711,9 +6906,15 @@ def build_view_state(
         row for row in pipeline_suitability_matrix
         if row["allowlisted"] == "true" and row["invokable"] == "true" and row["required_context_present"] == "true"
     ]
-    manual_override_value = str(manual_pipeline_override or "").strip()
     canonical_pipeline_ids = [str(row.get("pipeline_id", "")) for row in pipeline_registry_entries if str(row.get("pipeline_id", ""))]
-    manual_override_applied = manual_override_value if manual_override_value in canonical_pipeline_ids else ""
+    manual_override_resolution = _resolve_manual_pipeline_override(
+        manual_pipeline_override=manual_pipeline_override,
+        canonical_pipeline_ids=canonical_pipeline_ids,
+    )
+    manual_override_surface = _compose_manual_override_surface(
+        manual_override_resolution=manual_override_resolution
+    )
+    manual_override_applied = manual_override_surface["manual_pipeline_override"]
     recommended_pipeline_id = _ABRAXAS_PIPELINE_ID
     recommendation_reason = "fallback_to_primary_canonical_pipeline"
     routing_rule_id = "rule.fallback_primary_canonical"
@@ -6722,7 +6923,12 @@ def build_view_state(
         review_candidate = next((row for row in eligible_rows if str(row.get("pipeline_id", "")) == _ABRAXAS_PIPELINE_REVIEW_PATH_ID), None)
         if review_context and review_candidate is not None:
             recommended_pipeline_id = _ABRAXAS_PIPELINE_REVIEW_PATH_ID
-            recommendation_reason = "review_context_prefers_review_path_when_eligible"
+            recommendation_reason = _derive_routing_recommendation_reason(
+                review_context=True,
+                recommended_pipeline_id=recommended_pipeline_id,
+                top_classification=str(review_candidate.get("final_classification", "NOT_COMPUTABLE")),
+                top_blocking_reason=str(review_candidate.get("blocking_reason", "none")),
+            )
             routing_rule_id = "rule.prefer_review_context"
         else:
             eligible_rows_sorted = sorted(
@@ -6734,20 +6940,28 @@ def build_view_state(
                 ),
                 reverse=True,
             )
-            recommended_pipeline_id = str(eligible_rows_sorted[0].get("pipeline_id", _ABRAXAS_PIPELINE_ID))
-            recommendation_reason = "preferred_eligible_pipeline_with_highest_readiness"
+            best_row = eligible_rows_sorted[0]
+            recommended_pipeline_id = str(best_row.get("pipeline_id", _ABRAXAS_PIPELINE_ID))
+            recommendation_reason = _derive_routing_recommendation_reason(
+                review_context=False,
+                recommended_pipeline_id=recommended_pipeline_id,
+                top_classification=str(best_row.get("final_classification", "NOT_COMPUTABLE")),
+                top_blocking_reason=str(best_row.get("blocking_reason", "none")),
+            )
             routing_rule_id = "rule.prefer_invokable_with_context"
     elif any(row["allowlisted"] == "true" for row in pipeline_suitability_matrix):
-        recommendation_reason = "no_invokable_pipeline_context_or_gating_blocked"
+        recommendation_reason = "allowlisted_present_but_blocked_by_gating_or_context"
         routing_rule_id = "rule.prefer_allowlisted_fallback"
     effective_pipeline_id = manual_override_applied or recommended_pipeline_id
     selection_source = "manual_override" if manual_override_applied else "recommended"
+    routing_reason_detail = f"{routing_rule_id}:{recommendation_reason}"
     pipeline_routing_export_preview = {
         "pipeline_suitability_matrix": pipeline_suitability_matrix[:5],
         "recommended_pipeline_id": recommended_pipeline_id,
         "recommendation_reason": recommendation_reason,
+        "routing_reason_detail": routing_reason_detail,
         "routing_rule_id": routing_rule_id,
-        "manual_pipeline_override": manual_override_applied,
+        **manual_override_surface,
         "effective_pipeline_id": effective_pipeline_id,
         "selection_source": selection_source,
         "context": {
@@ -6768,7 +6982,9 @@ def build_view_state(
         "recommended_pipeline_id": recommended_pipeline_id,
         "effective_pipeline_id": effective_pipeline_id,
         "selection_source": selection_source,
+        **manual_override_surface,
         "routing_rule_id": routing_rule_id,
+        "routing_reason_detail": routing_reason_detail,
         "routing_export_status": latest_pipeline_routing_export_status,
         "routing_export_path": latest_pipeline_routing_export_path or "",
     }
@@ -6776,8 +6992,9 @@ def build_view_state(
         "pipeline_suitability_matrix": pipeline_suitability_matrix[:5],
         "recommended_pipeline_id": recommended_pipeline_id,
         "recommendation_reason": recommendation_reason,
+        "routing_reason_detail": routing_reason_detail,
         "routing_rule_id": routing_rule_id,
-        "manual_pipeline_override": manual_override_applied,
+        **manual_override_surface,
         "effective_pipeline_id": effective_pipeline_id,
         "selection_source": selection_source,
         "routing_export_preview": pipeline_routing_export_preview,
@@ -6957,6 +7174,16 @@ def build_view_state(
         instability_drift_detector=instability_drift_detector,
         anomaly_gap_detector=anomaly_gap_detector,
     )
+    signal_sufficiency_surface = _derive_signal_sufficiency_surface(
+        selected_run_id=chosen,
+        structural_signals=structural_signals,
+        pressure_friction_detector=pressure_friction_detector,
+        motif_recurrence_detector=motif_recurrence_detector,
+        instability_drift_detector=instability_drift_detector,
+        anomaly_gap_detector=anomaly_gap_detector,
+        not_computable_subcodes=not_computable_subcodes,
+        binding_health_surface=binding_health_surface,
+    )
     detector_fusion_output = _derive_detector_fusion_output(
         selected_run_id=chosen,
         fusion_input_surface=fusion_input_surface,
@@ -6964,6 +7191,7 @@ def build_view_state(
         motif_recurrence_detector=motif_recurrence_detector,
         instability_drift_detector=instability_drift_detector,
         anomaly_gap_detector=anomaly_gap_detector,
+        signal_sufficiency_surface=signal_sufficiency_surface,
     )
     if str(detector_fusion_output.get("fused_status", "")) == "NOT_COMPUTABLE":
         detector_fusion_output["not_computable_subcode"] = (
@@ -7014,7 +7242,10 @@ def build_view_state(
         "anomaly_export_path": latest_anomaly_export_path or "",
         "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
         "fusion_status": str(detector_fusion_output.get("fused_status", "NOT_COMPUTABLE")),
+        "compressed_fusion_reason": str(detector_fusion_output.get("compressed_fusion_reason", "pattern_not_resolved")),
         "fusion_interpretation_summary": interpretation_summary,
+        "signal_sufficiency_status": str(signal_sufficiency_surface.get("signal_sufficiency_status", "INSUFFICIENT")),
+        "signal_sufficiency_reasons": [str(x) for x in signal_sufficiency_surface.get("signal_sufficiency_reasons", []) if isinstance(x, str)][:5],
         "fusion_export_status": latest_fusion_export_status,
         "fusion_export_path": latest_fusion_export_path or "",
     }
@@ -7108,6 +7339,7 @@ def build_view_state(
             },
         },
         "fusion_input_surface": fusion_input_surface,
+        "signal_sufficiency_surface": signal_sufficiency_surface,
         "fused_output": detector_fusion_output,
         "interpretation_summary": interpretation_summary,
         "provenance": "operator_console.domain_logic.fusion_export.v4.5.bounded_signal_surface",
@@ -7142,6 +7374,7 @@ def build_view_state(
         "anomaly_export_status": latest_anomaly_export_status,
         "anomaly_export_path": latest_anomaly_export_path,
         "fusion_input_surface": fusion_input_surface,
+        "signal_sufficiency_surface": signal_sufficiency_surface,
         "detector_fusion_output": detector_fusion_output,
         "interpretation_summary": interpretation_summary,
         "fusion_export_preview": fusion_export_preview,
@@ -7205,6 +7438,7 @@ def build_view_state(
         not_computable_subcodes=not_computable_subcodes,
         attention_queue=attention_queue,
         suggested_next_step=suggested_next_step,
+        signal_sufficiency_surface=signal_sufficiency_surface,
     )
     synthesis_output = _derive_abraxas_synthesis_output(
         synthesis_input_surface=synthesis_input_surface,
@@ -7223,6 +7457,7 @@ def build_view_state(
         "synthesis_reasons": list(synthesis_output.get("synthesis_reasons", []))[:6],
         "synthesis_blockers": list(synthesis_output.get("synthesis_blockers", []))[:6],
         "synthesis_next_step": str(synthesis_output.get("synthesis_next_step", "")),
+        "synthesis_rule_precedence_note": str(synthesis_output.get("synthesis_rule_precedence_note", "")),
         "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
         "selected_context": {
             "workbench_mode": applied_mode,
@@ -7251,14 +7486,29 @@ def build_view_state(
         "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
         "pipeline_final_status": str(pipeline_final_state_surface.get("pipeline_final_status", "NOT_COMPUTABLE")),
     }
+    final_card_reasons = _bounded_list_or_none([str(x) for x in synthesis_output.get("synthesis_reasons", []) if isinstance(x, str)])
+    final_card_blockers = _bounded_list_or_none([str(x) for x in synthesis_output.get("synthesis_blockers", []) if isinstance(x, str)])
+    final_card_pipeline_id = str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE"))
+    final_card_runtime_status = str(
+        (runtime_corridor.get("runtime_workspace_payload", {}) if isinstance(runtime_corridor.get("runtime_workspace_payload", {}), Mapping) else {}).get(
+            "outcome_status", "NOT_COMPUTABLE"
+        )
+    )
+    final_card_fused_label = str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE"))
     final_abraxas_output_card = {
         "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
-        "short_reasons": list(synthesis_output.get("synthesis_reasons", []))[:3],
-        "blockers": list(synthesis_output.get("synthesis_blockers", []))[:3],
+        "short_reasons": final_card_reasons,
+        "blockers": final_card_blockers,
         "next_step": str(synthesis_output.get("synthesis_next_step", "")),
-        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
-        "runtime_status": str((runtime_corridor.get("runtime_workspace_payload", {}) if isinstance(runtime_corridor.get("runtime_workspace_payload", {}), Mapping) else {}).get("outcome_status", "NOT_COMPUTABLE")),
-        "fused_detector_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
+        "pipeline_id": final_card_pipeline_id,
+        "runtime_status": final_card_runtime_status,
+        "fused_detector_label": final_card_fused_label,
+        "signal_sufficiency_status": str(signal_sufficiency_surface.get("signal_sufficiency_status", "INSUFFICIENT")),
+        "status_line": (
+            f"pipeline={final_card_pipeline_id}; runtime={final_card_runtime_status}; fused={final_card_fused_label}"
+        )[:220],
+        "reason_line": ", ".join(final_card_reasons[:3])[:180],
+        "blocker_line": ", ".join(final_card_blockers[:3])[:180],
         "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
     }
     abraxas_synthesis = {
@@ -7267,6 +7517,7 @@ def build_view_state(
         "synthesis_reasons": list(synthesis_output.get("synthesis_reasons", []))[:6],
         "synthesis_blockers": list(synthesis_output.get("synthesis_blockers", []))[:6],
         "synthesis_next_step": str(synthesis_output.get("synthesis_next_step", "")),
+        "synthesis_rule_precedence_note": str(synthesis_output.get("synthesis_rule_precedence_note", "")),
         "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
         "synthesis_export_preview": synthesis_export_preview,
         "synthesis_export_status": latest_synthesis_export_status,
@@ -7642,13 +7893,37 @@ def build_view_state(
         "timestamp": _utc_now(),
         "provenance": "operator_console.reporting.closeout.v2.8.0",
     }
+    session_summary_line = (
+        f"session actions={session_report_preview['session_summary'].get('actions_executed_count', 0)}; "
+        f"decisions={session_report_preview['session_summary'].get('decisions_recorded_count', 0)}; "
+        f"policy={session_report_preview['governance_summary']['policy_mode']}"
+    )[:220]
+    decision_summary_line = (
+        f"decision={decision_summary_preview['decision_label']}; "
+        f"next={decision_summary_preview['suggested_next_step']}"
+    )[:220]
+    viz_summary_line = (
+        f"viz_mode={viz_summary_preview['viz_mode']}; "
+        f"render_status={str((viz_summary_preview.get('render_output', {}) or {}).get('status', 'ready'))}"
+    )[:220]
+    closeout_summary_line = (
+        f"closeout policy={str((closeout_bundle_preview.get('governance_snapshot', {}) or {}).get('policy_mode', 'review_only'))}; "
+        f"run={chosen or 'NOT_COMPUTABLE'}; compare={selected_comparison_run_id or 'none'}"
+    )[:220]
     markdown_preview = "\n".join(
         [
-            "# Operator Report",
+            "# Abraxas Operator Report",
+            "",
+            "## Executive Summary",
+            f"- synthesis_label: {str(synthesis_output.get('synthesis_label', 'NOT_COMPUTABLE'))}",
+            f"- fused_detector_label: {str(detector_fusion_output.get('fused_label', 'NOT_COMPUTABLE'))}",
+            f"- pipeline_final_status: {str(pipeline_final_state_surface.get('pipeline_final_status', 'NOT_COMPUTABLE'))}",
+            f"- routing_effective_pipeline_id: {str(pipeline_routing.get('effective_pipeline_id', 'NOT_COMPUTABLE'))}",
             "",
             "## Session Summary",
             f"- actions_executed_count: {session_report_preview['session_summary'].get('actions_executed_count', 0)}",
             f"- decisions_recorded_count: {session_report_preview['session_summary'].get('decisions_recorded_count', 0)}",
+            f"- latest_action_outcome: {session_report_preview['session_summary'].get('latest_action_outcome', 'unknown')}",
             "",
             "## Decision Summary",
             f"- decision_label: {decision_summary_preview['decision_label']}",
@@ -7664,6 +7939,7 @@ def build_view_state(
             "## Context",
             f"- selected_run_id: {chosen or ''}",
             f"- compare_run_id: {selected_comparison_run_id or ''}",
+            f"- workbench_mode: {applied_mode}",
             "",
             "## Provenance",
             "- operator_console.reporting.v2.8.0",
@@ -7680,6 +7956,10 @@ def build_view_state(
         "decision_summary_preview": decision_summary_preview,
         "viz_summary_preview": viz_summary_preview,
         "closeout_bundle_preview": closeout_bundle_preview,
+        "session_summary_line": session_summary_line,
+        "decision_summary_line": decision_summary_line,
+        "viz_summary_line": viz_summary_line,
+        "closeout_summary_line": closeout_summary_line,
         "markdown_preview": markdown_preview,
         "report_export_status": report_export_status,
         "report_export_paths": resolved_report_export_paths,
