@@ -108,6 +108,8 @@ class ViewState:
     reporting: Dict[str, Any]
     adapter_health_checks: Dict[str, Any]
     runflow_workspace: Dict[str, Any]
+    ers_integration: Dict[str, Any]
+    ers_review: Dict[str, Any]
     session_context: Dict[str, str]
     data_provenance: Dict[str, Any]
 
@@ -181,6 +183,64 @@ def write_operator_markdown_report(
         path = root / f"{stamp}.report.{index}.md"
         index += 1
     path.write_text(markdown, encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_operator_ers_snapshot_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "operator_ers",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.ers_snapshot.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.ers_snapshot.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v3.1.0",
+        "source": "operator_console",
+        "run_id": str((payload.get("runtime_context", {}) or {}).get("selected_run_id", "") or "NOT_COMPUTABLE"),
+        "rune_id": "RUNE.ERS",
+        "artifact_id": f"operator_ers.{stamp.lower()}",
+        "provenance": {"source_refs": ["webpanel.operator_console"], "notes": "ERS snapshot export"},
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_operator_ers_review_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "operator_ers",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.ers_review.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.ers_review.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v3.2.0",
+        "source": "operator_console",
+        "run_id": str((payload.get("runtime_context", {}) or {}).get("selected_run_id", "") or "NOT_COMPUTABLE"),
+        "rune_id": "RUNE.ERS",
+        "artifact_id": f"operator_ers_review.{stamp.lower()}",
+        "provenance": {"source_refs": ["webpanel.operator_console"], "notes": "ERS review export"},
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
     return path.as_posix(), "written"
 
 
@@ -881,7 +941,7 @@ def _build_action_safety_envelope() -> Dict[str, Any]:
 
 
 def _sanitize_workbench_mode(value: Optional[str]) -> str:
-    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report"]
+    allowed = ["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers"]
     return str(value) if value in allowed else "overview"
 
 
@@ -1092,6 +1152,296 @@ _RUNTIME_SAFETY_NOTES: Dict[str, Dict[str, str]] = {
         "does_not_do": "Does not broaden authority beyond compliance-probe command family.",
     },
 }
+
+_ERS_CANDIDATE_CATALOG: List[Dict[str, Any]] = [
+    {"item_id": "ers.item.compliance_probe", "item_type": "task", "action_name": "run_compliance_probe", "priority": 10},
+    {"item_id": "ers.item.generalized_coverage_probe", "item_type": "task", "action_name": "run_generalized_coverage_probe", "priority": 20},
+    {"item_id": "ers.item.execution_validator", "item_type": "rune", "action_name": "run_execution_validator", "priority": 30},
+    {"item_id": "ers.item.closure_audit", "item_type": "action", "action_name": "run_closure_audit", "priority": 40},
+]
+
+_ERS_QUEUE_LIMIT = 5
+_ERS_REVIEW_LIMIT = 10
+
+
+def _derive_ers_integration(
+    *,
+    workbench_mode: str,
+    selected_run_id: Optional[str],
+    policy_mode: str,
+    control_plane: Mapping[str, Any],
+    action_gating: List[Dict[str, Any]],
+    action_history: List[Dict[str, Any]],
+    latest_result_packet: Mapping[str, Any],
+    latest_snapshot_path: Optional[str],
+    latest_snapshot_status: str,
+) -> Dict[str, Any]:
+    allowed_actions = {str(x) for x in control_plane.get("allowed_actions", []) if isinstance(x, str)}
+    gating_index = {str(row.get("action_name", "")): row for row in action_gating}
+    recently_completed_ids: List[str] = []
+    for row in action_history[:20]:
+        action_name = str(row.get("action_name", ""))
+        status = str(row.get("outcome_status", "")).upper()
+        item = next((candidate for candidate in _ERS_CANDIDATE_CATALOG if candidate["action_name"] == action_name), None)
+        if item and status in {"SUCCESS", "VALID"}:
+            recently_completed_ids.append(str(item["item_id"]))
+
+    items: List[Dict[str, Any]] = []
+    for candidate in _ERS_CANDIDATE_CATALOG:
+        action_name = str(candidate["action_name"])
+        gate = gating_index.get(action_name, {})
+        required_conditions = [
+            {"condition": "item_allowlisted", "passed": action_name in allowed_actions},
+            {"condition": "policy_permits_trigger", "passed": str(gate.get("policy_permits", "false")) == "true"},
+            {"condition": "selected_run_required", "passed": bool(selected_run_id) if action_name == "run_execution_validator" else True},
+            {"condition": "preview_supported_or_not_required", "passed": str(gate.get("preview_supported", "false")) == "true"},
+        ]
+        first_failed = next((row["condition"] for row in required_conditions if not bool(row["passed"])), "")
+        eligible = first_failed == "" and str(gate.get("enabled", "false")) == "true"
+        gating_reason = "eligible" if eligible else (first_failed or str(gate.get("reason_code", "blocked_by_policy")))
+        item = {
+            "item_id": str(candidate["item_id"]),
+            "item_type": str(candidate["item_type"]),
+            "action_name": action_name,
+            "priority": int(candidate["priority"]),
+            "eligible": eligible,
+            "blocked": not eligible,
+            "gating_reason": gating_reason,
+            "required_conditions": required_conditions,
+            "policy_context": {
+                "policy_mode": policy_mode,
+                "policy_permits": str(gate.get("policy_permits", "false")),
+                "rule_source": "ERS.GATE.v3.1",
+            },
+        }
+        items.append(item)
+
+    ordered = sorted(items, key=lambda row: (int(row.get("priority", 999)), str(row.get("item_id", ""))))
+    runnable = [row for row in ordered if bool(row.get("eligible", False))]
+    blocked = [row for row in ordered if not bool(row.get("eligible", False))]
+    next_runnable = dict(runnable[0]) if runnable else {
+        "item_id": "NOT_COMPUTABLE",
+        "gating_reason": "no_eligible_items",
+        "rule_source": "ERS.ORDER.v1",
+    }
+    reasoning = [
+        {
+            "item_id": str(row["item_id"]),
+            "why_next": (
+                f"next by priority={row['priority']} then item_id asc"
+                if runnable and str(runnable[0]["item_id"]) == str(row["item_id"])
+                else "not_selected_for_next"
+            ),
+            "why_blocked": "not_blocked" if bool(row.get("eligible", False)) else str(row.get("gating_reason", "blocked")),
+            "rule_or_policy": "ERS.ORDER.v1 + ERS.GATE.v3.1",
+            "priority_explanation": f"priority={row['priority']}; tie_break=item_id_asc",
+        }
+        for row in ordered[: (_ERS_QUEUE_LIMIT * 2)]
+    ]
+    ers_state_surface = {
+        "ers_mode": "manual_explicit_trigger_only",
+        "queue_length": len(ordered),
+        "runnable_count": len(runnable),
+        "blocked_count": len(blocked),
+        "recently_completed_count": len(recently_completed_ids[:_ERS_QUEUE_LIMIT]),
+        "scheduler_summary": "deterministic_priority_then_item_id; explicit_trigger_only; no_auto_advance",
+    }
+    ers_queue = {
+        "next_runnable_item": next_runnable,
+        "runnable_items": runnable[:_ERS_QUEUE_LIMIT],
+        "blocked_items": blocked[:_ERS_QUEUE_LIMIT],
+        "trigger_rule": "operator_explicit_trigger_only; eligible_only; no_background_progression",
+    }
+    ers_snapshot_preview = {
+        "ers_state_surface": ers_state_surface,
+        "next_runnable_item": next_runnable,
+        "runnable_items": runnable[:_ERS_QUEUE_LIMIT],
+        "blocked_items": blocked[:_ERS_QUEUE_LIMIT],
+        "eligibility_summary": [{"item_id": row["item_id"], "eligible": row["eligible"], "gating_reason": row["gating_reason"]} for row in ordered],
+        "scheduling_reasoning": reasoning,
+        "governance_context": {"policy_mode": policy_mode, "workbench_mode": workbench_mode},
+        "timestamp": _utc_now(),
+    }
+    ers_workspace_payload = {
+        "mode": "ers",
+        "next_runnable_item_id": str(next_runnable.get("item_id", "NOT_COMPUTABLE")),
+        "runnable_count": len(runnable),
+        "blocked_count": len(blocked),
+        "snapshot_status": latest_snapshot_status,
+    }
+    return {
+        "ers_state_surface": ers_state_surface,
+        "ers_queue": ers_queue,
+        "ers_blocked_items": blocked[:_ERS_QUEUE_LIMIT],
+        "ers_reasoning": reasoning,
+        "ers_snapshot_preview": ers_snapshot_preview,
+        "ers_snapshot_status": latest_snapshot_status,
+        "ers_snapshot_path": latest_snapshot_path,
+        "ers_workspace_payload": ers_workspace_payload,
+        "latest_result_packet": dict(latest_result_packet),
+        "catalog_rule": "static_catalog.v1.small_safe_set",
+    }
+
+
+def _load_prior_ers_snapshot(*, base_dir: Path) -> Optional[Dict[str, Any]]:
+    root = base_dir / "artifacts_seal" / "operator_ers"
+    if not root.exists():
+        return None
+    paths = sorted(root.glob("*.ers_snapshot.json"), key=lambda p: p.name, reverse=True)
+    for path in paths:
+        payload = _load_json(path)
+        if isinstance(payload, dict):
+            payload["_path"] = path.as_posix()
+            return payload
+    return None
+
+
+def _derive_ers_snapshot_diff(
+    *,
+    current_snapshot: Mapping[str, Any],
+    prior_snapshot: Optional[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    if not isinstance(prior_snapshot, Mapping):
+        return {
+            "status": "NOT_COMPUTABLE",
+            "reason": "prior_snapshot_unavailable",
+            "prior_snapshot_path": "",
+            "queue_length_change": "unavailable",
+            "runnable_count_change": "unavailable",
+            "blocked_count_change": "unavailable",
+            "next_runnable_item_change": "unavailable",
+            "item_diffs": [],
+            "changed_items": [],
+        }
+
+    current_state = dict(current_snapshot.get("ers_state_surface", {}))
+    prior_state = dict(prior_snapshot.get("ers_state_surface", {}))
+    current_next = str((((current_snapshot.get("ers_queue", {}) or {}).get("next_runnable_item", {}) or {}).get("item_id", "NOT_COMPUTABLE")))
+    prior_next = str(prior_snapshot.get("next_runnable_item", "") or (((prior_snapshot.get("ers_queue", {}) or {}).get("next_runnable_item", {}) or {}).get("item_id", "NOT_COMPUTABLE"))
+                     or "NOT_COMPUTABLE")
+
+    current_runnable = {str(row.get("item_id", "")) for row in current_snapshot.get("runnable_items", []) if isinstance(row, Mapping)}
+    current_blocked = {str(row.get("item_id", "")) for row in current_snapshot.get("blocked_items", []) if isinstance(row, Mapping)}
+    prior_runnable = {str(row.get("item_id", "")) for row in prior_snapshot.get("runnable_items", []) if isinstance(row, Mapping)}
+    prior_blocked = {str(row.get("item_id", "")) for row in prior_snapshot.get("blocked_items", []) if isinstance(row, Mapping)}
+
+    all_items = sorted((current_runnable | current_blocked | prior_runnable | prior_blocked))
+    diffs: List[Dict[str, str]] = []
+    for item_id in all_items:
+        if item_id in current_runnable and item_id in prior_blocked:
+            transition_type = "entered_runnable"
+        elif item_id in current_blocked and item_id in prior_runnable:
+            transition_type = "entered_blocked"
+        elif item_id not in current_runnable and item_id not in current_blocked and (item_id in prior_runnable or item_id in prior_blocked):
+            transition_type = "removed_from_queue"
+        elif item_id in current_runnable and item_id not in prior_runnable and item_id not in prior_blocked:
+            transition_type = "entered_runnable"
+        elif item_id in current_blocked and item_id not in prior_runnable and item_id not in prior_blocked:
+            transition_type = "entered_blocked"
+        else:
+            transition_type = "unchanged"
+        diffs.append({"item_id": item_id, "transition_type": transition_type})
+
+    precedence = {"entered_runnable": 0, "entered_blocked": 1, "removed_from_queue": 2, "unchanged": 3}
+    diffs = sorted(diffs, key=lambda row: (precedence.get(str(row.get("transition_type", "")), 9), str(row.get("item_id", ""))))[:_ERS_REVIEW_LIMIT]
+    changed = [row for row in diffs if str(row.get("transition_type", "")) != "unchanged"]
+
+    queue_changed = "changed" if int(current_state.get("queue_length", -1)) != int(prior_state.get("queue_length", -1)) else "unchanged"
+    runnable_changed = "changed" if int(current_state.get("runnable_count", -1)) != int(prior_state.get("runnable_count", -1)) else "unchanged"
+    blocked_changed = "changed" if int(current_state.get("blocked_count", -1)) != int(prior_state.get("blocked_count", -1)) else "unchanged"
+    next_changed = "changed" if current_next != prior_next else "unchanged"
+    return {
+        "status": "available",
+        "reason": "compared_with_latest_prior_snapshot",
+        "prior_snapshot_path": str(prior_snapshot.get("_path", "")),
+        "queue_length_change": queue_changed,
+        "runnable_count_change": runnable_changed,
+        "blocked_count_change": blocked_changed,
+        "next_runnable_item_change": next_changed,
+        "current_next_runnable_item": current_next,
+        "prior_next_runnable_item": prior_next,
+        "item_diffs": diffs,
+        "changed_items": changed,
+    }
+
+
+def _derive_ers_drift_summary(*, diff: Mapping[str, Any], current_snapshot: Mapping[str, Any], prior_snapshot: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
+    if str(diff.get("status", "")) != "available" or not isinstance(prior_snapshot, Mapping):
+        return {"label": "NOT_COMPUTABLE", "reason_codes": ["prior_snapshot_unavailable"], "rule_source": "ERS.DRIFT.v1"}
+    current_state = dict(current_snapshot.get("ers_state_surface", {}))
+    prior_state = dict(prior_snapshot.get("ers_state_surface", {}))
+    blocked_delta = int(current_state.get("blocked_count", 0)) - int(prior_state.get("blocked_count", 0))
+    runnable_delta = int(current_state.get("runnable_count", 0)) - int(prior_state.get("runnable_count", 0))
+    next_changed = str(diff.get("next_runnable_item_change", "unchanged")) == "changed"
+    if blocked_delta > 0 or runnable_delta < 0 or (next_changed and str(diff.get("current_next_runnable_item", "")) == "NOT_COMPUTABLE"):
+        return {"label": "DEGRADED", "reason_codes": ["blocked_up_or_runnable_down_or_next_regressed"], "rule_source": "ERS.DRIFT.v1"}
+    if str(diff.get("queue_length_change", "unchanged")) == "unchanged" and str(diff.get("runnable_count_change", "unchanged")) == "unchanged" and str(diff.get("blocked_count_change", "unchanged")) == "unchanged" and not bool(diff.get("changed_items", [])):
+        return {"label": "STABLE", "reason_codes": ["composition_and_balance_unchanged"], "rule_source": "ERS.DRIFT.v1"}
+    return {"label": "SHIFTED", "reason_codes": ["queue_membership_or_order_changed"], "rule_source": "ERS.DRIFT.v1"}
+
+
+def _derive_ers_runtime_handoff(*, action_history: List[Dict[str, Any]], result_packet: Mapping[str, Any]) -> Dict[str, Any]:
+    latest = next((row for row in action_history if str(row.get("preset_id", "")).startswith("ers.")), None)
+    if latest is None:
+        return {
+            "status": "NOT_COMPUTABLE",
+            "triggered_ers_item_id": "",
+            "action_name": "",
+            "run_id": "",
+            "result_status": "NOT_COMPUTABLE",
+            "focus_target": "",
+            "summary": "No ERS-triggered action in local history.",
+        }
+    ers_item_id = str(latest.get("preset_id", "")).replace("ers.", "", 1)
+    run_id = str(latest.get("run_id", "") or result_packet.get("run_id", ""))
+    return {
+        "status": "available",
+        "triggered_ers_item_id": ers_item_id,
+        "action_name": str(latest.get("action_name", "")),
+        "run_id": run_id,
+        "result_status": str(latest.get("outcome_status", result_packet.get("status", "NOT_COMPUTABLE"))),
+        "focus_target": f"/operator?mode=runflow&run_id={run_id}" if run_id else "/operator?mode=runflow",
+        "summary": f"{latest.get('action_name','')} -> run={run_id or 'UNAVAILABLE'} status={latest.get('outcome_status','UNKNOWN')}",
+    }
+
+
+def _derive_ers_transition_log(
+    *,
+    diff: Mapping[str, Any],
+    action_history: List[Dict[str, Any]],
+) -> List[Dict[str, str]]:
+    entries: List[Dict[str, str]] = []
+    now = _utc_now()
+    for row in diff.get("changed_items", []):
+        if not isinstance(row, Mapping):
+            continue
+        transition_type = str(row.get("transition_type", ""))
+        if transition_type not in {"entered_runnable", "entered_blocked", "removed_from_queue"}:
+            continue
+        entries.append(
+            {
+                "timestamp": now,
+                "item_id": str(row.get("item_id", "")),
+                "transition_type": transition_type,
+                "summary": f"{row.get('item_id','')} {transition_type.replace('_', ' ')} via snapshot diff",
+                "source": "diff",
+            }
+        )
+    for row in action_history[:20]:
+        preset_id = str(row.get("preset_id", ""))
+        if not preset_id.startswith("ers."):
+            continue
+        entries.append(
+            {
+                "timestamp": str(row.get("timestamp", "NOT_COMPUTABLE")),
+                "item_id": preset_id.replace("ers.", "", 1),
+                "transition_type": "triggered",
+                "summary": str(row.get("summary", "")) or "triggered by operator",
+                "source": "trigger_history",
+            }
+        )
+    entries.sort(key=lambda row: (str(row.get("timestamp", "")), str(row.get("item_id", "")), str(row.get("transition_type", ""))), reverse=True)
+    return entries[:_ERS_REVIEW_LIMIT]
 
 
 def execute_runtime_adapter(*, action_name: str, payload: Mapping[str, Any], allowed_actions: List[str]) -> Dict[str, Any]:
@@ -1920,7 +2270,7 @@ def _derive_guard_conditions(
         },
         {
             "guard_name": "policy_mode_valid",
-            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance"} else "fail",
+            "status": "pass" if workbench_mode in {"overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "ers"} else "fail",
             "explanation": "Workbench mode must match an approved governance mode.",
         },
     ]
@@ -2178,6 +2528,10 @@ def build_view_state(
     viz_render_export_path: Optional[str] = None,
     report_export_status: str = "not_requested",
     report_export_paths: Optional[Mapping[str, str]] = None,
+    latest_ers_snapshot_path: Optional[str] = None,
+    latest_ers_snapshot_status: str = "not_requested",
+    latest_ers_review_export_path: Optional[str] = None,
+    latest_ers_review_export_status: str = "not_requested",
 ) -> ViewState:
     artifacts = _collect_run_artifacts(base_dir)
     validators = _collect_validator_outputs(base_dir)
@@ -2910,6 +3264,74 @@ def build_view_state(
         "policy_recall_path": policy_recall_path,
         "governance_workspace_payload": governance_workspace_payload,
     }
+    ers_integration = _derive_ers_integration(
+        workbench_mode=applied_mode,
+        selected_run_id=chosen,
+        policy_mode=str(policy_surface.get("policy_mode", "review_only")),
+        control_plane=control_plane,
+        action_gating=action_gating,
+        action_history=normalized_action_history,
+        latest_result_packet=result_packet,
+        latest_snapshot_path=latest_ers_snapshot_path,
+        latest_snapshot_status=latest_ers_snapshot_status,
+    )
+    current_ers_snapshot = {
+        "ers_state_surface": dict(ers_integration.get("ers_state_surface", {})),
+        "ers_queue": dict(ers_integration.get("ers_queue", {})),
+        "runnable_items": list((ers_integration.get("ers_queue", {}) or {}).get("runnable_items", [])),
+        "blocked_items": list((ers_integration.get("ers_queue", {}) or {}).get("blocked_items", [])),
+        "timestamp": _utc_now(),
+    }
+    prior_ers_snapshot = _load_prior_ers_snapshot(base_dir=base_dir)
+    ers_snapshot_diff = _derive_ers_snapshot_diff(current_snapshot=current_ers_snapshot, prior_snapshot=prior_ers_snapshot)
+    ers_drift_summary = _derive_ers_drift_summary(
+        diff=ers_snapshot_diff,
+        current_snapshot=current_ers_snapshot,
+        prior_snapshot=prior_ers_snapshot,
+    )
+    ers_runtime_handoff = _derive_ers_runtime_handoff(action_history=normalized_action_history, result_packet=result_packet)
+    ers_transition_log = _derive_ers_transition_log(diff=ers_snapshot_diff, action_history=normalized_action_history)
+    ers_review_export_preview = {
+        "ers_state_surface": dict(ers_integration.get("ers_state_surface", {})),
+        "ers_snapshot_diff": ers_snapshot_diff,
+        "ers_drift_summary": ers_drift_summary,
+        "ers_transition_log": ers_transition_log,
+        "ers_runtime_handoff": ers_runtime_handoff,
+        "governance_context": {
+            "policy_mode": str((governance.get("policy_surface", {}) or {}).get("policy_mode", "review_only")),
+            "workbench_mode": applied_mode,
+        },
+        "runtime_context": {
+            "selected_run_id": chosen or "",
+            "compare_run_id": selected_comparison_run_id or "",
+            "result_status": str(result_packet.get("status", "NOT_COMPUTABLE")),
+        },
+        "provenance": {
+            "diff_rule": "ERS.DIFF.v1.latest_prior_snapshot",
+            "drift_rule": "ERS.DRIFT.v1.rule_table",
+            "transition_rule": "ERS.TRANSITION.v1.diff_plus_trigger_history",
+            "handoff_rule": "ERS.HANDOFF.v1.latest_ers_trigger_linkage",
+        },
+        "timestamp": _utc_now(),
+    }
+    ers_review_workspace_payload = {
+        "mode": "ers",
+        "diff_status": str(ers_snapshot_diff.get("status", "NOT_COMPUTABLE")),
+        "drift_label": str(ers_drift_summary.get("label", "NOT_COMPUTABLE")),
+        "transition_count": len(ers_transition_log),
+        "handoff_status": str(ers_runtime_handoff.get("status", "NOT_COMPUTABLE")),
+        "ers_review_export_status": latest_ers_review_export_status,
+    }
+    ers_review = {
+        "ers_snapshot_diff": ers_snapshot_diff,
+        "ers_drift_summary": ers_drift_summary,
+        "ers_transition_log": ers_transition_log,
+        "ers_runtime_handoff": ers_runtime_handoff,
+        "ers_review_export_preview": ers_review_export_preview,
+        "ers_review_export_status": latest_ers_review_export_status,
+        "ers_review_export_path": latest_ers_review_export_path,
+        "ers_review_workspace_payload": ers_review_workspace_payload,
+    }
     resolved_viz_mode = _sanitize_viz_mode(viz_mode)
     viz_payloads = _derive_viz_payloads(
         closure_status=closure_status,
@@ -3143,7 +3565,7 @@ def build_view_state(
         loaded_snapshot_path=loaded_snapshot_path,
         loaded_snapshot_status=loaded_snapshot_status,
         workbench_mode=applied_mode,
-        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report"],
+        workbench_modes_allowed=["overview", "runs", "compare", "watch", "export", "runflow", "decision", "session", "governance", "viz", "report", "ers"],
         attention_actions_enabled=attention_actions_enabled,
         attention_action_hint=attention_action_hint,
         baseline_locked=baseline_locked,
@@ -3190,6 +3612,8 @@ def build_view_state(
         reporting=reporting,
         adapter_health_checks=adapter_health_checks,
         runflow_workspace=runflow_workspace,
+        ers_integration=ers_integration,
+        ers_review=ers_review,
         session_context=resolved_session_context,
         data_provenance={
             "artifacts_runs_scanned": len(artifacts),
@@ -3213,6 +3637,12 @@ def build_view_state(
             "viz_mode_rule": "allowed viz modes are weather|trace|compare; invalid mode defaults to weather",
             "viz_render_rule": "viz render output is mode-routed deterministic text structure from sanitized viz payload without heavy charting",
             "reporting_rule": "reporting artifacts are bounded deterministic summaries derived from existing session/decision/viz/governance state",
+            "ers_catalog_rule": "ERS uses bounded static candidate catalog (compliance/generalized_coverage/validator/closure_audit) with no hidden scheduler expansion",
+            "ers_queue_rule": "ERS queue partitions candidates into runnable vs blocked via ordered deterministic gating checks and fixed list limits",
+            "ers_trigger_rule": "ERS trigger is explicit operator action only; no background processing or automatic queue advancement",
+            "ers_diff_rule": "ERS review diff compares current state to most recent prior ERS snapshot with deterministic changed/unchanged counters and bounded item transition list",
+            "ers_drift_rule": "ERS drift labels: NOT_COMPUTABLE(no prior), DEGRADED(blocked up or runnable down or next regressed), STABLE(no changes), SHIFTED(otherwise)",
+            "ers_transition_rule": "ERS transition log combines diff-derived transitions and explicit ERS trigger history, sorted newest-first with bounded size",
         },
     )
 

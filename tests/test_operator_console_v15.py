@@ -12,6 +12,8 @@ from webpanel.operator_console import (
     execute_runtime_adapter,
     resolve_compare_run_id_for_apply,
     run_compliance_probe_command,
+    write_operator_ers_review_artifact,
+    write_operator_ers_snapshot_artifact,
 )
 
 
@@ -258,6 +260,152 @@ def test_recent_activity_is_deterministic(tmp_path: Path) -> None:
     assert view.snapshot_header["newest_activity_summary"].startswith(
         "2026-03-28T03:00:01Z action run=run.compliance_probe.v1"
     )
+
+
+def test_ers_state_and_queue_surfaces_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="ers")
+
+    assert view.workbench_mode == "ers"
+    assert "ers" in view.workbench_modes_allowed
+    ers = view.ers_integration
+    assert ers["ers_state_surface"]["ers_mode"] == "manual_explicit_trigger_only"
+    assert ers["ers_state_surface"]["queue_length"] == 4
+    assert ers["ers_state_surface"]["runnable_count"] + ers["ers_state_surface"]["blocked_count"] == 4
+    assert ers["ers_queue"]["trigger_rule"].startswith("operator_explicit_trigger_only")
+    assert len(ers["ers_queue"]["runnable_items"]) <= 5
+    assert len(ers["ers_queue"]["blocked_items"]) <= 5
+    assert ers["ers_workspace_payload"]["mode"] == "ers"
+
+
+def test_ers_eligibility_blocks_execution_validator_without_selected_run(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None)
+
+    blocked = {row["item_id"]: row for row in view.ers_integration["ers_blocked_items"]}
+    validator = blocked["ers.item.execution_validator"]
+    assert validator["blocked"] is True
+    assert validator["gating_reason"] in {"selected_run_required", "policy_permits_trigger"}
+    assert any(row["condition"] == "selected_run_required" and row["passed"] is False for row in validator["required_conditions"])
+
+
+def test_ers_scheduling_reasoning_matches_next_runnable(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    queue = view.ers_integration["ers_queue"]
+    reasoning = view.ers_integration["ers_reasoning"]
+    next_id = queue["next_runnable_item"]["item_id"]
+    if next_id == "NOT_COMPUTABLE":
+        assert queue["next_runnable_item"]["gating_reason"] == "no_eligible_items"
+        return
+    first = next((row for row in reasoning if row["item_id"] == next_id), None)
+    assert first is not None
+    assert "priority=" in first["priority_explanation"]
+    assert first["why_next"].startswith("next by priority=")
+
+
+def test_ers_snapshot_export_artifact_is_bounded_and_structured(tmp_path: Path, monkeypatch) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    monkeypatch.chdir(tmp_path)
+    path, status = write_operator_ers_snapshot_artifact(
+        payload={
+            **view.ers_integration["ers_snapshot_preview"],
+            "runtime_context": {"selected_run_id": view.selected_run_id or ""},
+        }
+    )
+    assert status == "written"
+    assert path is not None
+    payload = json.loads((tmp_path / path).read_text(encoding="utf-8"))
+    assert payload["rune_id"] == "RUNE.ERS"
+    assert "ers_state_surface" in payload
+    assert len(payload["runnable_items"]) <= 5
+    assert len(payload["blocked_items"]) <= 5
+
+
+def test_ers_mode_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base = build_view_state(base_dir=tmp_path, workbench_mode="overview")
+    ers = build_view_state(base_dir=tmp_path, workbench_mode="ers")
+    assert base.available_runs == ers.available_runs
+    assert base.visible_run_ids == ers.visible_run_ids
+    assert base.snapshot_header["closure_status"] == ers.snapshot_header["closure_status"]
+
+
+def test_ers_review_is_inert_without_prior_snapshot(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="ers")
+    review = view.ers_review
+    assert review["ers_snapshot_diff"]["status"] == "NOT_COMPUTABLE"
+    assert review["ers_drift_summary"]["label"] == "NOT_COMPUTABLE"
+
+
+def test_ers_review_diff_and_drift_with_prior_snapshot(tmp_path: Path, monkeypatch) -> None:
+    _seed_scopepass(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    first_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="ers")
+    write_operator_ers_snapshot_artifact(
+        payload={
+            **first_view.ers_integration["ers_snapshot_preview"],
+            "runtime_context": {"selected_run_id": first_view.selected_run_id or ""},
+            "next_runnable_item": (first_view.ers_integration.get("ers_queue", {}) or {}).get("next_runnable_item", {}),
+        }
+    )
+    _write_json(
+        tmp_path / "artifacts_seal/runs/new/run.synthetic.extra.artifact.json",
+        {
+            "run_id": "run.synthetic.extra",
+            "status": "SUCCESS",
+            "timestamp": "2026-03-29T09:00:00Z",
+            "ledger_record_ids": [],
+            "ledger_artifact_ids": [],
+            "correlation_pointers": [],
+        },
+    )
+    second_view = build_view_state(base_dir=tmp_path, selected_run_id="run.synthetic.extra", workbench_mode="ers")
+    assert second_view.ers_review["ers_snapshot_diff"]["status"] == "available"
+    assert second_view.ers_review["ers_drift_summary"]["label"] in {"STABLE", "SHIFTED", "DEGRADED"}
+
+
+def test_ers_review_transition_and_handoff_are_deterministic(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    action_history = [
+        {
+            "timestamp": "2026-03-29T10:00:00Z",
+            "action_name": "run_execution_validator",
+            "preset_id": "ers.ers.item.execution_validator",
+            "adapter_name": "adapter.run_execution_validator",
+            "run_id": "run.generalized_coverage.scopepass.v1",
+            "outcome_status": "SUCCESS",
+            "artifact_ref": "out/validators/execution-validation-run.generalized_coverage.scopepass.v1.json",
+            "summary": "validator completed",
+        }
+    ]
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        workbench_mode="ers",
+        action_history=action_history,
+    )
+    handoff = view.ers_review["ers_runtime_handoff"]
+    assert handoff["status"] == "available"
+    assert handoff["triggered_ers_item_id"] == "ers.item.execution_validator"
+    transitions = view.ers_review["ers_transition_log"]
+    assert any(row["transition_type"] == "triggered" for row in transitions)
+    assert len(transitions) <= 10
+
+
+def test_ers_review_export_artifact_is_bounded_and_structured(tmp_path: Path, monkeypatch) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="ers")
+    monkeypatch.chdir(tmp_path)
+    path, status = write_operator_ers_review_artifact(payload=view.ers_review["ers_review_export_preview"])
+    assert status == "written"
+    assert path is not None
+    payload = json.loads((tmp_path / path).read_text(encoding="utf-8"))
+    assert payload["rune_id"] == "RUNE.ERS"
+    assert payload["ers_drift_summary"]["label"] in {"STABLE", "SHIFTED", "DEGRADED", "NOT_COMPUTABLE"}
+    assert len(payload["ers_transition_log"]) <= 10
 
 
 def test_suggested_focus_fallback_and_manual_selection(tmp_path: Path) -> None:
