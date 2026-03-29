@@ -19,6 +19,13 @@ from ..operator_console import (
     write_pipeline_routing_artifact,
     write_pipeline_review_artifact,
     write_runtime_corridor_artifact,
+    write_detector_signal_artifact,
+    write_motif_signal_artifact,
+    write_drift_signal_artifact,
+    write_anomaly_signal_artifact,
+    write_fusion_signal_artifact,
+    write_synthesis_output_artifact,
+    write_binding_health_artifact,
     write_viz_render_artifact,
 )
 from ..panel_context import templates, require_token, _panel_host, _panel_port, _panel_token, _token_enabled
@@ -443,6 +450,13 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
     export_pipeline_artifact = request.query_params.get("export_pipeline_artifact") == "1"
     export_pipeline_review = request.query_params.get("export_pipeline_review") == "1"
     export_pipeline_routing = request.query_params.get("export_pipeline_routing") == "1"
+    export_detector_signal = request.query_params.get("export_detector_signal") == "1"
+    export_motif_signal = request.query_params.get("export_motif_signal") == "1"
+    export_drift_signal = request.query_params.get("export_drift_signal") == "1"
+    export_anomaly_signal = request.query_params.get("export_anomaly_signal") == "1"
+    export_fusion_signal = request.query_params.get("export_fusion_signal") == "1"
+    export_synthesis_output = request.query_params.get("export_synthesis_output") == "1"
+    export_binding_health = request.query_params.get("export_binding_health") == "1"
     select_pipeline = request.query_params.get("select_pipeline")
     clear_pipeline_override = request.query_params.get("clear_pipeline_override") == "1"
 
@@ -604,6 +618,20 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
             manual_pipeline_override=str(bucket.get("manual_pipeline_override", "")) or None,
             latest_pipeline_routing_export_path=str(bucket.get("latest_pipeline_routing_export_path", "")) or None,
             latest_pipeline_routing_export_status=str(bucket.get("latest_pipeline_routing_export_status", "not_requested")),
+            latest_detector_export_path=str(bucket.get("latest_detector_export_path", "")) or None,
+            latest_detector_export_status=str(bucket.get("latest_detector_export_status", "not_requested")),
+            latest_motif_export_path=str(bucket.get("latest_motif_export_path", "")) or None,
+            latest_motif_export_status=str(bucket.get("latest_motif_export_status", "not_requested")),
+            latest_drift_export_path=str(bucket.get("latest_drift_export_path", "")) or None,
+            latest_drift_export_status=str(bucket.get("latest_drift_export_status", "not_requested")),
+            latest_anomaly_export_path=str(bucket.get("latest_anomaly_export_path", "")) or None,
+            latest_anomaly_export_status=str(bucket.get("latest_anomaly_export_status", "not_requested")),
+            latest_fusion_export_path=str(bucket.get("latest_fusion_export_path", "")) or None,
+            latest_fusion_export_status=str(bucket.get("latest_fusion_export_status", "not_requested")),
+            latest_synthesis_export_path=str(bucket.get("latest_synthesis_export_path", "")) or None,
+            latest_synthesis_export_status=str(bucket.get("latest_synthesis_export_status", "not_requested")),
+            latest_binding_export_path=str(bucket.get("latest_binding_export_path", "")) or None,
+            latest_binding_export_status=str(bucket.get("latest_binding_export_status", "not_requested")),
         )
 
     view = _build_current_view(run_id=selected, compare_id=compare_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
@@ -817,6 +845,48 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
         routing_path, routing_status = write_pipeline_routing_artifact(payload=routing_payload)
         bucket["latest_pipeline_routing_export_path"] = routing_path or ""
         bucket["latest_pipeline_routing_export_status"] = routing_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_detector_signal:
+        detector_payload = dict((view.domain_logic or {}).get("detector_export_preview", {}))
+        detector_path, detector_status = write_detector_signal_artifact(payload=detector_payload)
+        bucket["latest_detector_export_path"] = detector_path or ""
+        bucket["latest_detector_export_status"] = detector_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_motif_signal:
+        motif_payload = dict((view.domain_logic or {}).get("motif_export_preview", {}))
+        motif_path, motif_status = write_motif_signal_artifact(payload=motif_payload)
+        bucket["latest_motif_export_path"] = motif_path or ""
+        bucket["latest_motif_export_status"] = motif_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_drift_signal:
+        drift_payload = dict((view.domain_logic or {}).get("drift_export_preview", {}))
+        drift_path, drift_status = write_drift_signal_artifact(payload=drift_payload)
+        bucket["latest_drift_export_path"] = drift_path or ""
+        bucket["latest_drift_export_status"] = drift_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_anomaly_signal:
+        anomaly_payload = dict((view.domain_logic or {}).get("anomaly_export_preview", {}))
+        anomaly_path, anomaly_status = write_anomaly_signal_artifact(payload=anomaly_payload)
+        bucket["latest_anomaly_export_path"] = anomaly_path or ""
+        bucket["latest_anomaly_export_status"] = anomaly_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_fusion_signal:
+        fusion_payload = dict((view.domain_logic or {}).get("fusion_export_preview", {}))
+        fusion_path, fusion_status = write_fusion_signal_artifact(payload=fusion_payload)
+        bucket["latest_fusion_export_path"] = fusion_path or ""
+        bucket["latest_fusion_export_status"] = fusion_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_synthesis_output:
+        synthesis_payload = dict((view.abraxas_synthesis or {}).get("synthesis_export_preview", {}))
+        synthesis_path, synthesis_status = write_synthesis_output_artifact(payload=synthesis_payload)
+        bucket["latest_synthesis_export_path"] = synthesis_path or ""
+        bucket["latest_synthesis_export_status"] = synthesis_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_binding_health:
+        binding_payload = dict((view.binding_restoration or {}).get("binding_export_preview", {}))
+        binding_path, binding_status = write_binding_health_artifact(payload=binding_payload)
+        bucket["latest_binding_export_path"] = binding_path or ""
+        bucket["latest_binding_export_status"] = binding_status
         view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
 
     if export_ers_snapshot:
@@ -1047,6 +1117,20 @@ async def ui_run_compliance_probe(request: Request):
         pipeline_step_records_override=bucket.get("pipeline_step_records_override") if isinstance(bucket.get("pipeline_step_records_override"), list) else None,
         latest_pipeline_review_export_path=str(bucket.get("latest_pipeline_review_export_path", "")) or None,
         latest_pipeline_review_export_status=str(bucket.get("latest_pipeline_review_export_status", "not_requested")),
+        latest_detector_export_path=str(bucket.get("latest_detector_export_path", "")) or None,
+        latest_detector_export_status=str(bucket.get("latest_detector_export_status", "not_requested")),
+        latest_motif_export_path=str(bucket.get("latest_motif_export_path", "")) or None,
+        latest_motif_export_status=str(bucket.get("latest_motif_export_status", "not_requested")),
+        latest_drift_export_path=str(bucket.get("latest_drift_export_path", "")) or None,
+        latest_drift_export_status=str(bucket.get("latest_drift_export_status", "not_requested")),
+        latest_anomaly_export_path=str(bucket.get("latest_anomaly_export_path", "")) or None,
+        latest_anomaly_export_status=str(bucket.get("latest_anomaly_export_status", "not_requested")),
+        latest_fusion_export_path=str(bucket.get("latest_fusion_export_path", "")) or None,
+        latest_fusion_export_status=str(bucket.get("latest_fusion_export_status", "not_requested")),
+        latest_synthesis_export_path=str(bucket.get("latest_synthesis_export_path", "")) or None,
+        latest_synthesis_export_status=str(bucket.get("latest_synthesis_export_status", "not_requested")),
+        latest_binding_export_path=str(bucket.get("latest_binding_export_path", "")) or None,
+        latest_binding_export_status=str(bucket.get("latest_binding_export_status", "not_requested")),
     )
     action_result: dict[str, object] | None = None
     last_action: dict[str, object] | None = None
@@ -1239,6 +1323,20 @@ async def ui_run_compliance_probe(request: Request):
         viz_render_export_path=str(bucket.get("viz_render_export_path", "")) or None,
         report_export_status=str(bucket.get("report_export_status", "not_requested")),
         report_export_paths=bucket.get("report_export_paths") if isinstance(bucket.get("report_export_paths"), dict) else {},
+        latest_detector_export_path=str(bucket.get("latest_detector_export_path", "")) or None,
+        latest_detector_export_status=str(bucket.get("latest_detector_export_status", "not_requested")),
+        latest_motif_export_path=str(bucket.get("latest_motif_export_path", "")) or None,
+        latest_motif_export_status=str(bucket.get("latest_motif_export_status", "not_requested")),
+        latest_drift_export_path=str(bucket.get("latest_drift_export_path", "")) or None,
+        latest_drift_export_status=str(bucket.get("latest_drift_export_status", "not_requested")),
+        latest_anomaly_export_path=str(bucket.get("latest_anomaly_export_path", "")) or None,
+        latest_anomaly_export_status=str(bucket.get("latest_anomaly_export_status", "not_requested")),
+        latest_fusion_export_path=str(bucket.get("latest_fusion_export_path", "")) or None,
+        latest_fusion_export_status=str(bucket.get("latest_fusion_export_status", "not_requested")),
+        latest_synthesis_export_path=str(bucket.get("latest_synthesis_export_path", "")) or None,
+        latest_synthesis_export_status=str(bucket.get("latest_synthesis_export_status", "not_requested")),
+        latest_binding_export_path=str(bucket.get("latest_binding_export_path", "")) or None,
+        latest_binding_export_status=str(bucket.get("latest_binding_export_status", "not_requested")),
     )
     bucket["context"] = {
         "selected_run_id": view_after.selected_run_id or "",
