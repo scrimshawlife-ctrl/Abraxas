@@ -67,3 +67,36 @@ runes:
       - policy_version
       - evaluator_id
       - evaluated_at
+  - rune_id: RUNE.AUDIT
+    name: Audit
+    description: Deterministic audit and review summaries over execution-linked artifacts.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Audit classifiers must remain rule-driven and side-effect free.
+    provenance_requirements:
+      - audit_policy_version
+      - evaluator_id
+      - audited_at
+  - rune_id: RUNE.BINDING
+    name: Binding
+    description: Deterministic run/artifact linkage restoration and propagation checks.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Linkage repair and propagation must use explicit source surfaces only.
+    provenance_requirements:
+      - linkage_source
+      - binding_policy_version
+      - validated_at
+  - rune_id: RUNE.CONTEXT_RESTORE
+    name: Context Restore
+    description: Deterministic restoration of required execution context across pipeline layers.
+    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+    status: SHADOW
+    determinism_notes: Context readiness must be explicit with NOT_COMPUTABLE reasons when incomplete.
+    provenance_requirements:
+      - context_source
+      - restoration_policy_version
+      - restored_at

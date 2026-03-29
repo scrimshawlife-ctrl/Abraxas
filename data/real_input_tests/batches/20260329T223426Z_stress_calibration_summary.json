@@ -1,0 +1,170 @@
+{
+  "analysis_type_degradation": {
+    "contradictory_context": {
+      "anomaly_gap_analysis": 0.0,
+      "fusion_interpretation_analysis": 0.0,
+      "instability_drift_analysis": 0.0,
+      "motif_recurrence_analysis": 0.0,
+      "pressure_friction_analysis": 0.0,
+      "routing_selection_analysis": 0.0,
+      "structural_analysis": 0.0,
+      "synthesis_output_analysis": 0.0
+    },
+    "noisy_context": {
+      "anomaly_gap_analysis": 0.0,
+      "fusion_interpretation_analysis": 0.0,
+      "instability_drift_analysis": 0.0,
+      "motif_recurrence_analysis": 0.0,
+      "pressure_friction_analysis": 0.0,
+      "routing_selection_analysis": 0.0,
+      "structural_analysis": 0.0,
+      "synthesis_output_analysis": 0.0
+    },
+    "thin_context": {
+      "anomaly_gap_analysis": 0.0,
+      "fusion_interpretation_analysis": 0.0,
+      "instability_drift_analysis": 0.0,
+      "motif_recurrence_analysis": 0.0,
+      "pressure_friction_analysis": 0.0,
+      "routing_selection_analysis": 0.0,
+      "structural_analysis": 0.0,
+      "synthesis_output_analysis": 0.0
+    }
+  },
+  "batch_ids": {
+    "baseline": "batch_20260329T223426Z_ba4a1e7a7d",
+    "contradictory_context": "batch_20260329T223426Z_d2401bfdc3",
+    "noisy_context": "batch_20260329T223426Z_0144f42a2d",
+    "thin_context": "batch_20260329T223426Z_2388c6f7e9"
+  },
+  "delta_from_baseline": {
+    "contradictory_context": 0.3,
+    "noisy_context": 0.25,
+    "thin_context": 0.25
+  },
+  "final_calibration_verdict": "HARNESS_TOO_LENIENT",
+  "fusion_degrades_under_stress": false,
+  "per_mode": {
+    "baseline": {
+      "average_total_score": 13.5,
+      "failure_frequency": {},
+      "most_common_failure_type": "NONE",
+      "strongest_analysis_type": "synthesis_output_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 0,
+          "flag": true
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 13.5,
+          "flag": true
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.0,
+          "flag": true
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 1.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "fusion_interpretation_analysis"
+    },
+    "contradictory_context": {
+      "average_total_score": 13.8,
+      "failure_frequency": {},
+      "most_common_failure_type": "NONE",
+      "strongest_analysis_type": "synthesis_output_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 0,
+          "flag": true
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 13.8,
+          "flag": true
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.0,
+          "flag": true
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 1.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "fusion_interpretation_analysis"
+    },
+    "noisy_context": {
+      "average_total_score": 13.75,
+      "failure_frequency": {},
+      "most_common_failure_type": "NONE",
+      "strongest_analysis_type": "synthesis_output_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 0,
+          "flag": true
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 13.75,
+          "flag": true
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.0,
+          "flag": true
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 1.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "fusion_interpretation_analysis"
+    },
+    "thin_context": {
+      "average_total_score": 13.75,
+      "failure_frequency": {},
+      "most_common_failure_type": "NONE",
+      "strongest_analysis_type": "synthesis_output_analysis",
+      "suspicion_heuristics": {
+        "no_failure_type_diversity": {
+          "failure_diversity_count": 0,
+          "flag": true
+        },
+        "score_cluster_too_high": {
+          "average_total_score": 13.75,
+          "flag": true
+        },
+        "suspiciously_low_failure_rate": {
+          "failure_rate": 0.0,
+          "flag": true
+        },
+        "weak_analysis_type_gap_too_small": {
+          "analysis_gap": 1.0,
+          "flag": false
+        }
+      },
+      "weakest_analysis_type": "fusion_interpretation_analysis"
+    }
+  },
+  "provenance": {
+    "harness_version": "real_input_test.v2_stress",
+    "rules": [
+      "stress_modes:bounded_predefined",
+      "failure_rules:tightened_f1_f2_f4_f7_f8",
+      "suspicion_heuristics:deterministic_thresholds"
+    ]
+  },
+  "recommended_next_adjustments": [
+    "Lower genericity tolerance by requiring >=2 topic-token hits for specificity=2.",
+    "Raise overreach penalty when contradictory_context and actionability=2.",
+    "Force weak-next-step for manual_review under actionability_expected=true."
+  ],
+  "stress_modes": [
+    "baseline",
+    "thin_context",
+    "noisy_context",
+    "contradictory_context"
+  ],
+  "synthesis_degrades_under_stress": false,
+  "timestamp": "2026-03-29T22:34:26Z"
+}

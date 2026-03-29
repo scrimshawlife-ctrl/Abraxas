@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-from ast import literal_eval
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -128,6 +127,27 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _extract_linkage_fields(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    ledger_record_ids = [str(x) for x in payload.get("ledger_record_ids", []) if isinstance(x, str)]
+    ledger_artifact_ids = [str(x) for x in payload.get("ledger_artifact_ids", []) if isinstance(x, str)]
+    pointers = payload.get("correlation_pointers", [])
+    correlation_pointers = [x for x in pointers if isinstance(x, Mapping)]
+    if not (ledger_record_ids or ledger_artifact_ids or correlation_pointers):
+        correlation_pointers = [
+            {
+                "type": "linkage_state",
+                "value": "UNRESOLVED",
+                "status": "UNRESOLVED",
+                "reason": "LINKAGE_NOT_COMPUTABLE",
+            }
+        ]
+    return {
+        "ledger_record_ids": ledger_record_ids,
+        "ledger_artifact_ids": ledger_artifact_ids,
+        "correlation_pointers": correlation_pointers,
+    }
+
+
 def write_viz_render_artifact(
     *,
     preview: Mapping[str, Any],
@@ -208,6 +228,7 @@ def write_operator_ers_snapshot_artifact(
     while path.exists():
         path = root / f"{stamp}.{index}.ers_snapshot.json"
         index += 1
+    linkage = _extract_linkage_fields(payload)
     artifact = {
         "generated_at": _utc_now(),
         "ruleset_version": "v3.1.0",
@@ -216,9 +237,9 @@ def write_operator_ers_snapshot_artifact(
         "rune_id": "RUNE.ERS",
         "artifact_id": f"operator_ers.{stamp.lower()}",
         "provenance": {"source_refs": ["webpanel.operator_console"], "notes": "ERS snapshot export"},
-        "ledger_record_ids": [],
-        "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "ledger_record_ids": linkage["ledger_record_ids"],
+        "ledger_artifact_ids": linkage["ledger_artifact_ids"],
+        "correlation_pointers": linkage["correlation_pointers"],
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -237,6 +258,7 @@ def write_operator_ers_review_artifact(
     while path.exists():
         path = root / f"{stamp}.{index}.ers_review.json"
         index += 1
+    linkage = _extract_linkage_fields(payload)
     artifact = {
         "generated_at": _utc_now(),
         "ruleset_version": "v3.2.0",
@@ -245,9 +267,9 @@ def write_operator_ers_review_artifact(
         "rune_id": "RUNE.ERS",
         "artifact_id": f"operator_ers_review.{stamp.lower()}",
         "provenance": {"source_refs": ["webpanel.operator_console"], "notes": "ERS review export"},
-        "ledger_record_ids": [],
-        "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "ledger_record_ids": linkage["ledger_record_ids"],
+        "ledger_artifact_ids": linkage["ledger_artifact_ids"],
+        "correlation_pointers": linkage["correlation_pointers"],
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -543,15 +565,16 @@ def write_binding_health_artifact(
     while path.exists():
         path = root / f"{stamp}.{index}.binding_health.json"
         index += 1
+    linkage = _extract_linkage_fields(payload)
     artifact = {
         "generated_at": _utc_now(),
         "ruleset_version": "v4.7.0",
         "source": "operator_console",
         "rune_id": "RUNE.AUDIT",
         "artifact_id": f"binding_health.{stamp.lower()}",
-        "ledger_record_ids": [],
-        "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "ledger_record_ids": linkage["ledger_record_ids"],
+        "ledger_artifact_ids": linkage["ledger_artifact_ids"],
+        "correlation_pointers": linkage["correlation_pointers"],
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -570,15 +593,16 @@ def write_pipeline_envelope_binding_artifact(
     while path.exists():
         path = root / f"{stamp}.{index}.pipeline_envelope_binding.json"
         index += 1
+    linkage = _extract_linkage_fields(payload)
     artifact = {
         "generated_at": _utc_now(),
         "ruleset_version": "v5.0.0",
         "source": "operator_console",
         "rune_id": "RUNE.BINDING",
         "artifact_id": f"pipeline_envelope_binding.{stamp.lower()}",
-        "ledger_record_ids": [],
-        "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "ledger_record_ids": linkage["ledger_record_ids"],
+        "ledger_artifact_ids": linkage["ledger_artifact_ids"],
+        "correlation_pointers": linkage["correlation_pointers"],
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -597,15 +621,16 @@ def write_run_id_propagation_artifact(
     while path.exists():
         path = root / f"{stamp}.{index}.run_id_propagation.json"
         index += 1
+    linkage = _extract_linkage_fields(payload)
     artifact = {
         "generated_at": _utc_now(),
         "ruleset_version": "v5.0.1",
         "source": "operator_console",
         "rune_id": "RUNE.BINDING",
         "artifact_id": f"run_id_propagation.{stamp.lower()}",
-        "ledger_record_ids": [],
-        "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "ledger_record_ids": linkage["ledger_record_ids"],
+        "ledger_artifact_ids": linkage["ledger_artifact_ids"],
+        "correlation_pointers": linkage["correlation_pointers"],
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -687,15 +712,16 @@ def write_context_restoration_artifact(
     while path.exists():
         path = root / f"{stamp}.{index}.context_restoration.json"
         index += 1
+    linkage = _extract_linkage_fields(payload)
     artifact = {
         "generated_at": _utc_now(),
         "ruleset_version": "v4.8.0",
         "source": "operator_console",
         "rune_id": "RUNE.CONTEXT_RESTORE",
         "artifact_id": f"context_restoration.{stamp.lower()}",
-        "ledger_record_ids": [],
-        "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "ledger_record_ids": linkage["ledger_record_ids"],
+        "ledger_artifact_ids": linkage["ledger_artifact_ids"],
+        "correlation_pointers": linkage["correlation_pointers"],
         **dict(payload),
     }
     path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
@@ -2265,7 +2291,12 @@ def _pipeline_parse_projection(*, selected_run_id: str) -> Dict[str, Any]:
     }
 
 
-def _pipeline_map_projection(*, parse_projection: Mapping[str, Any], selected_run_id: str) -> Dict[str, Any]:
+def _pipeline_map_projection(
+    *,
+    parse_projection: Mapping[str, Any],
+    selected_run_id: str,
+    map_callable_payload: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
     if str(parse_projection.get("status", "")) != "SUCCESS":
         return {
             "status": "NOT_COMPUTABLE",
@@ -2274,37 +2305,31 @@ def _pipeline_map_projection(*, parse_projection: Mapping[str, Any], selected_ru
             "reason": "parse_projection_unavailable",
             "map_context": {"relation_count": 0, "entities": []},
         }
-    summary = str(parse_projection.get("output_summary", ""))
-    match = re.search(r"parsed_keys=(\[.*\]);status=", summary)
-    parsed_keys: List[str] = []
-    if match:
-        try:
-            keys = literal_eval(match.group(1))
-            if isinstance(keys, list):
-                parsed_keys = [str(x) for x in keys][:8]
-        except (ValueError, SyntaxError):
-            parsed_keys = []
-    if not parsed_keys:
-        return {
-            "status": "NOT_COMPUTABLE",
-            "output_summary": "map_projection_missing_parse_keys",
-            "artifact_ref": "",
-            "reason": "parse_keys_unavailable",
-            "map_context": {"relation_count": 0, "entities": []},
-        }
-    run_tokens = [token for token in selected_run_id.split(".") if token][:4]
-    relation_pairs = [f"{key}->{run_tokens[idx % len(run_tokens)] if run_tokens else 'run'}" for idx, key in enumerate(parsed_keys[:4])]
-    map_context = {
-        "relation_count": len(relation_pairs),
-        "entities": parsed_keys[:4],
-        "run_tokens": run_tokens,
-    }
+    if isinstance(map_callable_payload, Mapping):
+        entities = [str(x) for x in map_callable_payload.get("entities", []) if isinstance(x, str)]
+        relations = [str(x) for x in map_callable_payload.get("relations", []) if isinstance(x, str)]
+        if entities or relations:
+            map_context = {
+                "relation_count": len(relations),
+                "entities": entities[:8],
+                "run_tokens": [token for token in selected_run_id.split(".") if token][:4],
+            }
+            return {
+                "status": "SUCCESS",
+                "output_summary": (
+                    f"map_callable_entities={map_context['entities']};"
+                    f"map_callable_relation_count={map_context['relation_count']}"
+                ),
+                "artifact_ref": str(map_callable_payload.get("artifact_ref", "")),
+                "reason": "",
+                "map_context": map_context,
+            }
     return {
-        "status": "SUCCESS",
-        "output_summary": f"mapped_entities={map_context['entities']};relations={relation_pairs}",
-        "artifact_ref": str(parse_projection.get("artifact_ref", "")),
-        "reason": "",
-        "map_context": map_context,
+        "status": "NOT_COMPUTABLE",
+        "output_summary": "map_projection_callable_not_exposed",
+        "artifact_ref": "",
+        "reason": "map_callable_not_exposed",
+        "map_context": {"relation_count": 0, "entities": [], "run_tokens": [token for token in selected_run_id.split(".") if token][:4]},
     }
 
 
@@ -2360,6 +2385,11 @@ def _classify_pipeline_final_result(
     correlation_count = len([x for x in linkage.get("correlation_pointers", []) if x])
     linkage_observed = any(key in linkage for key in ("ledger_record_ids", "ledger_artifact_ids", "correlation_pointers"))
     linkage_complete = ledger_count > 0 or ledger_artifact_count > 0 or correlation_count > 0
+    synthetic_projection_steps = [
+        str(row.get("step_name", ""))
+        for row in normalized_steps
+        if isinstance(row.get("provenance"), str) and ".projection" in str(row.get("provenance", ""))
+    ]
     if failed_steps:
         classification = "FAILED"
         rule = "classification.required_step_failed"
@@ -2372,6 +2402,10 @@ def _classify_pipeline_final_result(
         classification = "PARTIAL"
         rule = "classification.required_step_incomplete"
         reason = f"incomplete_steps={incomplete_steps[:3]}"
+    elif synthetic_projection_steps:
+        classification = "PARTIAL"
+        rule = "classification.synthetic_projection_detected"
+        reason = f"projection_steps={synthetic_projection_steps[:3]}"
     elif artifact_count < len(required_step_names):
         classification = "PARTIAL"
         rule = "classification.artifact_presence_incomplete"
@@ -2448,7 +2482,13 @@ def _adapter_run_abraxas_pipeline(payload: Mapping[str, Any]) -> Dict[str, Any]:
     )
     if str(parse_projection.get("status", "")) == "SUCCESS":
         last_completed_step = "parse"
-    map_projection = _pipeline_map_projection(parse_projection=parse_projection, selected_run_id=selected_run_id)
+    map_projection = _pipeline_map_projection(
+        parse_projection=parse_projection,
+        selected_run_id=selected_run_id,
+        map_callable_payload=payload.get("map_projection_payload")
+        if isinstance(payload.get("map_projection_payload"), Mapping)
+        else None,
+    )
     map_context = map_projection.get("map_context", {}) if isinstance(map_projection.get("map_context", {}), Mapping) else {}
     step_records.append(
         {
@@ -2582,7 +2622,14 @@ def _adapter_run_abraxas_pipeline(payload: Mapping[str, Any]) -> Dict[str, Any]:
     linkage = {
         "ledger_record_ids": [],
         "ledger_artifact_ids": [],
-        "correlation_pointers": [],
+        "correlation_pointers": [
+            {
+                "type": "linkage_state",
+                "value": "UNRESOLVED",
+                "status": "UNRESOLVED",
+                "reason": "LINKAGE_NOT_COMPUTABLE",
+            }
+        ],
     }
     result_rollup = _classify_pipeline_final_result(step_records=step_records, artifact_paths=artifact_paths, linkage=linkage)
     final_classification = str(result_rollup.get("final_classification", "NOT_COMPUTABLE"))
@@ -2706,7 +2753,13 @@ def _adapter_run_abraxas_pipeline_review_path(payload: Mapping[str, Any]) -> Dic
     )
     if str(parse_projection.get("status", "")) == "SUCCESS":
         last_completed_step = "parse"
-    map_projection = _pipeline_map_projection(parse_projection=parse_projection, selected_run_id=selected_run_id)
+    map_projection = _pipeline_map_projection(
+        parse_projection=parse_projection,
+        selected_run_id=selected_run_id,
+        map_callable_payload=payload.get("map_projection_payload")
+        if isinstance(payload.get("map_projection_payload"), Mapping)
+        else None,
+    )
     map_context = map_projection.get("map_context", {}) if isinstance(map_projection.get("map_context", {}), Mapping) else {}
     step_records.append(
         {
@@ -2765,7 +2818,18 @@ def _adapter_run_abraxas_pipeline_review_path(payload: Mapping[str, Any]) -> Dic
         if audit_status == "SUCCESS":
             last_completed_step = "review_audit"
     completed_at = _utc_now()
-    linkage = {"ledger_record_ids": [], "ledger_artifact_ids": [], "correlation_pointers": []}
+    linkage = {
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [
+            {
+                "type": "linkage_state",
+                "value": "UNRESOLVED",
+                "status": "UNRESOLVED",
+                "reason": "LINKAGE_NOT_COMPUTABLE",
+            }
+        ],
+    }
     result_rollup = _classify_pipeline_final_result(
         step_records=step_records,
         artifact_paths=artifact_paths,

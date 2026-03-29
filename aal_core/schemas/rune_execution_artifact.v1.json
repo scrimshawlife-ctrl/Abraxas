@@ -49,7 +49,10 @@
         "PARSE",
         "MAP",
         "DIFF",
-        "ERS"
+        "ERS",
+        "AUDIT",
+        "BINDING",
+        "CONTEXT_RESTORE"
       ]
     },
     "status": {

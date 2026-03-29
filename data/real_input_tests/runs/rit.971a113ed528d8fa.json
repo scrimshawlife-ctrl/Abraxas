@@ -1,0 +1,67 @@
+{
+  "failure_classification": {
+    "primary_failure_type": "F7_WEAK_NEXT_STEP",
+    "secondary_failure_types": [
+      "F2_OVERREACH"
+    ]
+  },
+  "metadata": {
+    "analysis_type": "synthesis_output_analysis",
+    "harness_version": "real_input_test.v2_stress",
+    "mode": "batch",
+    "run_id": "rit.971a113ed528d8fa",
+    "seed": 20260333,
+    "stress_mode": "contradictory_context",
+    "timestamp": "2026-03-29T23:38:56Z",
+    "topic_category": "culture_media",
+    "topic_id": "culture_03"
+  },
+  "outputs": {
+    "artifact_paths": [],
+    "context_quality": "low",
+    "detector_summary": "detector=not_primary",
+    "fusion_summary": "fusion=active",
+    "mapped_surface": "webpanel.operator_console.abraxas_synthesis_summary_rule",
+    "output_summary": "analysis=synthesis_output_analysis;topic=Memetic trend half-life;category=culture_media;focus=synthesis_summary_and_next_step;deterministic=true;stress_mode=contradictory_context;context_hints=attention_cycle,context_stable,context_volatile;next_step=review_synthesis_output_analysis",
+    "partial_mapping_note": "local_surface_projection_only",
+    "synthesis_summary": "synthesis=next_step_ready:memetic"
+  },
+  "provenance": {
+    "rule_refs": [
+      "selection:deterministic",
+      "stress_context:deterministic_modifiers",
+      "scoring:bounded_integer_rubric",
+      "classification:fixed_failure_taxonomy"
+    ]
+  },
+  "scores": {
+    "actionability": 1,
+    "coherence": 2,
+    "constraint_obedience": 2,
+    "honesty_under_uncertainty": 1,
+    "manual_review_required": false,
+    "relevance": 2,
+    "signal_usefulness": 2,
+    "specificity": 2,
+    "total_score": 12
+  },
+  "selected_inputs": {
+    "analysis_entry": {
+      "actionability_expected": true,
+      "analysis_type_id": "synthesis_output_analysis",
+      "expected_focus": "synthesis_summary_and_next_step",
+      "label": "Synthesis Output Analysis"
+    },
+    "context_hints": [
+      "attention_cycle",
+      "context_stable",
+      "context_volatile"
+    ],
+    "topic_entry": {
+      "category": "culture_media",
+      "enabled": true,
+      "label": "Memetic trend half-life",
+      "topic_id": "culture_03"
+    }
+  }
+}

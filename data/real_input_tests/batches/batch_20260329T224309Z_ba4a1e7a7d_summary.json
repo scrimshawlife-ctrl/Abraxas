@@ -1,0 +1,107 @@
+{
+  "average_score_by_analysis_type": {
+    "anomaly_gap_analysis": 14.0,
+    "fusion_interpretation_analysis": 14.0,
+    "instability_drift_analysis": 14.0,
+    "motif_recurrence_analysis": 14.0,
+    "pressure_friction_analysis": 14.0,
+    "routing_selection_analysis": 14.0,
+    "structural_analysis": 14.0,
+    "synthesis_output_analysis": 13.5
+  },
+  "average_score_by_topic_category": {
+    "abstract_symbolic": 14.0,
+    "business_markets": 14.0,
+    "culture_media": 14.0,
+    "history": 14.0,
+    "personal_everyday": 14.0,
+    "politics_institutions": 14.0,
+    "science_health": 14.0,
+    "technology": 13.667
+  },
+  "average_total_score": 13.95,
+  "batch_id": "batch_20260329T224309Z_ba4a1e7a7d",
+  "failure_frequency": {
+    "F1_GENERICITY": 1,
+    "F4_REDUNDANCY": 7
+  },
+  "mode": "batch",
+  "most_common_failure_type": "F4_REDUNDANCY",
+  "provenance": {
+    "harness_version": "real_input_test.v2_stress",
+    "rules": [
+      "deterministic_selection:seed+mode+override",
+      "stress_context:bounded_predefined_modifiers",
+      "fixed_rubric:0_to_2_integer_dimensions",
+      "fixed_failure_taxonomy:F1_to_F8"
+    ]
+  },
+  "run_artifact_paths": [
+    "data/real_input_tests/runs/rit.9bc23a67c06f5a41.json",
+    "data/real_input_tests/runs/rit.01187efaef6ab6dc.json",
+    "data/real_input_tests/runs/rit.bf49672bb79c918d.json",
+    "data/real_input_tests/runs/rit.b19b7471a764e854.json",
+    "data/real_input_tests/runs/rit.c199113544e5ea89.json",
+    "data/real_input_tests/runs/rit.3d639131a81be96b.json",
+    "data/real_input_tests/runs/rit.2771e8812e9dd66e.json",
+    "data/real_input_tests/runs/rit.3effe18a4d887a2f.json",
+    "data/real_input_tests/runs/rit.abe7905b81b24d59.json",
+    "data/real_input_tests/runs/rit.7d25e528dc01e0b6.json",
+    "data/real_input_tests/runs/rit.ea255a11b3058aa6.json",
+    "data/real_input_tests/runs/rit.b6c3cd7c57d0f5d6.json",
+    "data/real_input_tests/runs/rit.ea2225f13c234bdb.json",
+    "data/real_input_tests/runs/rit.68aa2189a0b361ef.json",
+    "data/real_input_tests/runs/rit.5dbe795bcd31cb2b.json",
+    "data/real_input_tests/runs/rit.0611ef87441c1889.json",
+    "data/real_input_tests/runs/rit.38a0dfe99d593459.json",
+    "data/real_input_tests/runs/rit.1da2db5ffd85b88e.json",
+    "data/real_input_tests/runs/rit.cde37a3ea0fea08b.json",
+    "data/real_input_tests/runs/rit.7c0a375b55fc790c.json"
+  ],
+  "run_ids": [
+    "rit.9bc23a67c06f5a41",
+    "rit.01187efaef6ab6dc",
+    "rit.bf49672bb79c918d",
+    "rit.b19b7471a764e854",
+    "rit.c199113544e5ea89",
+    "rit.3d639131a81be96b",
+    "rit.2771e8812e9dd66e",
+    "rit.3effe18a4d887a2f",
+    "rit.abe7905b81b24d59",
+    "rit.7d25e528dc01e0b6",
+    "rit.ea255a11b3058aa6",
+    "rit.b6c3cd7c57d0f5d6",
+    "rit.ea2225f13c234bdb",
+    "rit.68aa2189a0b361ef",
+    "rit.5dbe795bcd31cb2b",
+    "rit.0611ef87441c1889",
+    "rit.38a0dfe99d593459",
+    "rit.1da2db5ffd85b88e",
+    "rit.cde37a3ea0fea08b",
+    "rit.7c0a375b55fc790c"
+  ],
+  "seed": 20260330,
+  "stress_mode": "baseline",
+  "strongest_analysis_type": "structural_analysis",
+  "suspicion_heuristics": {
+    "no_failure_type_diversity": {
+      "failure_diversity_count": 2,
+      "flag": false
+    },
+    "score_cluster_too_high": {
+      "average_total_score": 13.95,
+      "flag": true
+    },
+    "suspiciously_low_failure_rate": {
+      "failure_rate": 0.4,
+      "flag": false
+    },
+    "weak_analysis_type_gap_too_small": {
+      "analysis_gap": 0.5,
+      "flag": false
+    }
+  },
+  "timestamp": "2026-03-29T22:43:09Z",
+  "top_recommendation": "Enforce non-redundant clause templates.",
+  "weakest_analysis_type": "synthesis_output_analysis"
+}

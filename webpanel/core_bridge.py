@@ -100,6 +100,7 @@ def _try_kernel_result(packet: Dict[str, Any], run_id: str) -> Optional[Dict[str
 
 
 def core_ingest(packet_dict: Dict[str, Any]) -> Dict[str, Any]:
+    external_core_available = _EXTERNAL_CORE_INGEST is not None
     if _EXTERNAL_CORE_INGEST is not None:
         try:
             result = _EXTERNAL_CORE_INGEST(packet_dict)
@@ -113,7 +114,11 @@ def core_ingest(packet_dict: Dict[str, Any]) -> Dict[str, Any]:
     requires_ack = _requires_ack(packet_dict)
     mode = _interaction_mode(packet_dict, requires_ack)
 
-    policy_basis = {"mvp": True}
+    policy_basis = {
+        "mvp": True,
+        "external_core_status": "AVAILABLE" if external_core_available else "UNAVAILABLE",
+        "fallback_path_used": True,
+    }
     core_result = _try_kernel_result(packet_dict, run_id)
     if isinstance(core_result, dict):
         run_result = core_result.get("run_result") or {}

@@ -1,0 +1,64 @@
+{
+  "failure_classification": {
+    "primary_failure_type": "NONE",
+    "secondary_failure_types": []
+  },
+  "metadata": {
+    "analysis_type": "fusion_interpretation_analysis",
+    "harness_version": "real_input_test.v2_stress",
+    "mode": "batch",
+    "run_id": "rit.3267b878cf441394",
+    "seed": 20260331,
+    "stress_mode": "baseline",
+    "timestamp": "2026-03-29T23:15:41Z",
+    "topic_category": "personal_everyday",
+    "topic_id": "personal_03"
+  },
+  "outputs": {
+    "artifact_paths": [],
+    "context_quality": "high",
+    "detector_summary": "detector=not_primary",
+    "fusion_summary": "fusion=active",
+    "mapped_surface": "webpanel.operator_console.domain_logic_fusion_rule",
+    "output_summary": "analysis=fusion_interpretation_analysis;topic=Daily focus fragmentation;category=personal_everyday;focus=cross_signal_fusion_interpretation;deterministic=true;stress_mode=baseline;context_hints=decision_fatigue,habit_instability;next_step=manual_review",
+    "partial_mapping_note": "local_surface_projection_only",
+    "synthesis_summary": "synthesis=advisory"
+  },
+  "provenance": {
+    "rule_refs": [
+      "selection:deterministic",
+      "stress_context:deterministic_modifiers",
+      "scoring:bounded_integer_rubric",
+      "classification:fixed_failure_taxonomy"
+    ]
+  },
+  "scores": {
+    "actionability": 2,
+    "coherence": 2,
+    "constraint_obedience": 2,
+    "honesty_under_uncertainty": 2,
+    "manual_review_required": false,
+    "relevance": 2,
+    "signal_usefulness": 2,
+    "specificity": 2,
+    "total_score": 14
+  },
+  "selected_inputs": {
+    "analysis_entry": {
+      "actionability_expected": false,
+      "analysis_type_id": "fusion_interpretation_analysis",
+      "expected_focus": "cross_signal_fusion_interpretation",
+      "label": "Fusion Interpretation Analysis"
+    },
+    "context_hints": [
+      "decision_fatigue",
+      "habit_instability"
+    ],
+    "topic_entry": {
+      "category": "personal_everyday",
+      "enabled": true,
+      "label": "Daily focus fragmentation",
+      "topic_id": "personal_03"
+    }
+  }
+}
