@@ -36,6 +36,7 @@ This file is the append-first execution queue for implementation runs.
 
 ## Completed
 - *(append completed items here; do not delete historical record)*
+- 2026-03-29 — Governance surface verification run completed: confirmed required enforcement files (`/AGENTS.md`, `/PLANS.md`, `/aal_core/runes/catalog.v0.yaml`, `/aal_core/schemas/rune_execution_artifact.v1.json`, `/aal_core/runes/executor.py`) exist and are repository-visible for deterministic plan-gated execution.
 - 2026-03-28 — ABX-Rune compliance probe path added (`aal_core/runes/compliance_probe.py`) with deterministic `RUNE.INGEST` artifact emission to `artifacts_seal/runs/compliance_probe/<run_id>.artifact.json`.
 - 2026-03-28 — Correlation-linkage compliance probe added via `--linkage-mode` (`absent|present|not_computable`) with deterministic local test linkage provenance and explicit structural handling for empty/non-computable linkage.
 - 2026-03-28 — Real linkage resolution probe pass added via `--linkage-mode resolve` in `aal_core/runes/compliance_probe.py`; deterministic repo-visible scan over `artifacts_seal` and `out/ledger` now attempts evidence-backed population of `ledger_record_ids`, `ledger_artifact_ids`, and `correlation_pointers` with explicit unresolved handling when no match is found.
