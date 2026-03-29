@@ -329,6 +329,30 @@
 </div>
 
 <div class="card">
+  <h2>Pipeline Final State (v4.9)</h2>
+  <p><b>pipeline_final_status:</b> {{ view.pipeline_final_state.pipeline_final_status }}</p>
+  <p><b>pipeline_completion_state:</b> {{ view.pipeline_final_state.pipeline_completion_state }}</p>
+  <p><b>pipeline_resolution_reason:</b> {{ view.pipeline_final_state.pipeline_resolution_reason }}</p>
+  <p><b>pipeline_success_flags:</b> {{ view.pipeline_final_state.pipeline_success_flags }}</p>
+  <p><b>pipeline_failure_flags:</b> {{ view.pipeline_final_state.pipeline_failure_flags }}</p>
+</div>
+
+<div class="card">
+  <h2>Final-State Health (v4.9)</h2>
+  <p><b>pipeline_status_resolved:</b> {{ view.pipeline_final_state.final_state_health_surface.pipeline_status_resolved }}</p>
+  <p><b>synthesis_ready:</b> {{ view.pipeline_final_state.final_state_health_surface.synthesis_ready }}</p>
+  <p><b>blocking_reason:</b> {{ view.pipeline_final_state.final_state_health_surface.blocking_reason }}</p>
+  <p><b>resolution_source:</b> {{ view.pipeline_final_state.final_state_health_surface.resolution_source }}</p>
+</div>
+
+<div class="card">
+  <h2>Final-State Export (v4.9)</h2>
+  <p><b>status:</b> {{ view.pipeline_final_state.final_state_export_status }}</p>
+  <p><b>path:</b> {{ view.pipeline_final_state.final_state_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_pipeline_final_state=1" style="text-decoration:none;">Export pipeline final state</a>
+</div>
+
+<div class="card">
   <h2>Pipeline Suitability Matrix (v4.1)</h2>
   <ul>
   {% for row in view.pipeline_routing.pipeline_suitability_matrix %}
@@ -621,6 +645,71 @@
 </div>
 
 <div class="card">
+  <h2>Operator Run Binding (v5.0)</h2>
+  <p><b>operator_bound_run_id:</b> {{ view.binding_restoration.operator_bound_run_context.operator_bound_run_id }}</p>
+  <p><b>operator_bound_pipeline_id:</b> {{ view.binding_restoration.operator_bound_run_context.operator_bound_pipeline_id }}</p>
+  <p><b>operator_binding_source:</b> {{ view.binding_restoration.operator_bound_run_context.operator_binding_source }}</p>
+  <p><b>operator_binding_status:</b> {{ view.binding_restoration.operator_bound_run_context.operator_binding_status }}</p>
+  <p><b>operator_binding_reason:</b> {{ view.binding_restoration.operator_bound_run_context.operator_binding_reason }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Envelope Linkage (v5.0)</h2>
+  <p><b>envelope_binding_status:</b> {{ view.binding_restoration.pipeline_envelope_linkage.envelope_binding_status }}</p>
+  <p><b>envelope_binding_reason:</b> {{ view.binding_restoration.pipeline_envelope_linkage.envelope_binding_reason }}</p>
+  <p><b>final_state_source_available:</b> {{ view.binding_restoration.pipeline_envelope_linkage.final_state_source_available }}</p>
+  <p><b>resolution_source:</b> {{ view.binding_restoration.pipeline_envelope_linkage.resolution_source }}</p>
+  <p><b>bound_pipeline_envelope:</b> {{ view.binding_restoration.pipeline_envelope_linkage.bound_pipeline_envelope }}</p>
+</div>
+
+<div class="card">
+  <h2>Binding / Envelope Health (v5.0)</h2>
+  <p><b>operator_run_bound:</b> {{ view.binding_restoration.binding_envelope_health_surface.operator_run_bound }}</p>
+  <p><b>pipeline_envelope_bound:</b> {{ view.binding_restoration.binding_envelope_health_surface.pipeline_envelope_bound }}</p>
+  <p><b>final_state_derivable:</b> {{ view.binding_restoration.binding_envelope_health_surface.final_state_derivable }}</p>
+  <p><b>synthesis_blocked_by_binding:</b> {{ view.binding_restoration.binding_envelope_health_surface.synthesis_blocked_by_binding }}</p>
+  <p><b>blocking_reason:</b> {{ view.binding_restoration.binding_envelope_health_surface.blocking_reason }}</p>
+  <p><b>refined_binding_nc_subcodes:</b> {{ view.binding_restoration.refined_binding_nc_subcodes }}</p>
+</div>
+
+<div class="card">
+  <h2>Invocation run_id (v5.0.1)</h2>
+  <p><b>invocation_run_id:</b> {{ view.binding_restoration.invocation_run_id_state.invocation_run_id }}</p>
+  <p><b>source:</b> {{ view.binding_restoration.invocation_run_id_state.invocation_run_id_source }}</p>
+  <p><b>status:</b> {{ view.binding_restoration.invocation_run_id_state.invocation_run_id_status }}</p>
+</div>
+
+<div class="card">
+  <h2>Pipeline Envelope run_id (v5.0.1)</h2>
+  <p><b>pipeline_envelope_run_id:</b> {{ view.binding_restoration.pipeline_envelope_run_id_state.pipeline_envelope_run_id }}</p>
+  <p><b>pipeline_envelope_run_id_status:</b> {{ view.binding_restoration.pipeline_envelope_run_id_state.pipeline_envelope_run_id_status }}</p>
+</div>
+
+<div class="card">
+  <h2>run_id Match Status (v5.0.1)</h2>
+  <p><b>run_id_match_status:</b> {{ view.binding_restoration.run_id_match_status }}</p>
+  <p><b>final_state_bindable:</b> {{ view.binding_restoration.final_state_bindable }}</p>
+  <p><b>propagation_nc_subcodes:</b> {{ view.binding_restoration.propagation_nc_subcodes }}</p>
+</div>
+
+<div class="card">
+  <h2>Binding / Envelope Export (v5.0)</h2>
+  <p><b>status:</b> {{ view.binding_restoration.binding_envelope_export_status }}</p>
+  <p><b>path:</b> {{ view.binding_restoration.binding_envelope_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_pipeline_envelope_binding=1" style="text-decoration:none;">Export pipeline envelope binding</a>
+</div>
+
+<div class="card">
+  <h2>Propagation Export (v5.0.1)</h2>
+  <p><b>status:</b> {{ view.binding_restoration.run_id_propagation_export_status }}</p>
+  <p><b>path:</b> {{ view.binding_restoration.run_id_propagation_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_run_id_propagation=1" style="text-decoration:none;">Export run_id propagation</a>
+  <p><b>run_id_repair_status:</b> {{ view.binding_restoration.pipeline_envelope_run_id_repair_export_status }}</p>
+  <p><b>run_id_repair_path:</b> {{ view.binding_restoration.pipeline_envelope_run_id_repair_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_pipeline_envelope_run_id_repair=1" style="text-decoration:none;">Export envelope run_id repair</a>
+</div>
+
+<div class="card">
   <h2>Ledger Bridge (v4.7)</h2>
   <p><b>status:</b> {{ view.binding_restoration.ledger_bridge.ledger_bridge_status }}</p>
   <p><b>reason:</b> {{ view.binding_restoration.ledger_bridge.ledger_bridge_reason }}</p>
@@ -642,6 +731,42 @@
   <p><b>status:</b> {{ view.binding_restoration.binding_export_status }}</p>
   <p><b>path:</b> {{ view.binding_restoration.binding_export_path or "UNAVAILABLE" }}</p>
   <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_binding_health=1" style="text-decoration:none;">Export binding health</a>
+</div>
+
+<div class="card">
+  <h2>Required Context Matrix (v4.8)</h2>
+  <p><b>detector ready:</b> {{ view.context_restoration.required_context_matrix.detector_layer.ready }}</p>
+  <p><b>detector missing:</b> {{ view.context_restoration.required_context_matrix.detector_layer.missing_fields }}</p>
+  <p><b>fusion ready:</b> {{ view.context_restoration.required_context_matrix.fusion_layer.ready }}</p>
+  <p><b>fusion missing:</b> {{ view.context_restoration.required_context_matrix.fusion_layer.missing_fields }}</p>
+  <p><b>synthesis ready:</b> {{ view.context_restoration.required_context_matrix.synthesis_layer.ready }}</p>
+  <p><b>synthesis missing:</b> {{ view.context_restoration.required_context_matrix.synthesis_layer.missing_fields }}</p>
+</div>
+
+<div class="card">
+  <h2>Context Readiness (v4.8)</h2>
+  <p><b>detector_context_ready:</b> {{ view.context_restoration.context_readiness_surface.detector_context_ready }}</p>
+  <p><b>fusion_context_ready:</b> {{ view.context_restoration.context_readiness_surface.fusion_context_ready }}</p>
+  <p><b>synthesis_context_ready:</b> {{ view.context_restoration.context_readiness_surface.synthesis_context_ready }}</p>
+  <p><b>reasons_when_false:</b> {{ view.context_restoration.context_readiness_surface.reasons_when_false }}</p>
+  <p><b>projection_notes_when_true:</b> {{ view.context_restoration.context_readiness_surface.projection_notes_when_true }}</p>
+</div>
+
+<div class="card">
+  <h2>Projected / Restored Context (v4.8)</h2>
+  <p><b>pipeline:</b> {{ view.context_restoration.projected_context.normalized_pipeline_summary }}</p>
+  <p><b>step_rollup:</b> {{ view.context_restoration.projected_context.normalized_step_rollup_summary }}</p>
+  <p><b>artifact:</b> {{ view.context_restoration.projected_context.compact_artifact_summary }}</p>
+  <p><b>runtime:</b> {{ view.context_restoration.projected_context.bounded_runtime_result_summary }}</p>
+  <p><b>comparison:</b> {{ view.context_restoration.projected_context.bounded_comparison_summary }}</p>
+  <p><b>refined_subcodes:</b> {{ view.context_restoration.refined_not_computable_subcodes }}</p>
+</div>
+
+<div class="card">
+  <h2>Context Export (v4.8)</h2>
+  <p><b>status:</b> {{ view.context_restoration.context_export_status }}</p>
+  <p><b>path:</b> {{ view.context_restoration.context_export_path or "UNAVAILABLE" }}</p>
+  <a class="btn" href="/operator?mode=runtime&run_id={{ view.selected_run_id or '' }}&export_context_restoration=1" style="text-decoration:none;">Export context restoration</a>
 </div>
 
 <div class="card">

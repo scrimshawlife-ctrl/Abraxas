@@ -113,11 +113,13 @@ class ViewState:
     ers_review: Dict[str, Any]
     runtime_corridor: Dict[str, Any]
     abraxas_pipeline: Dict[str, Any]
+    pipeline_final_state: Dict[str, Any]
     pipeline_hardening: Dict[str, Any]
     pipeline_routing: Dict[str, Any]
     domain_logic: Dict[str, Any]
     abraxas_synthesis: Dict[str, Any]
     binding_restoration: Dict[str, Any]
+    context_restoration: Dict[str, Any]
     session_context: Dict[str, str]
     data_provenance: Dict[str, Any]
 
@@ -341,6 +343,28 @@ def write_pipeline_routing_artifact(
     return path.as_posix(), "written"
 
 
+def write_pipeline_final_state_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_pipeline",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_final_state.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_final_state.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.9.0",
+        "source": "operator_console",
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
 def write_detector_signal_artifact(
     *,
     payload: Mapping[str, Any],
@@ -525,6 +549,150 @@ def write_binding_health_artifact(
         "source": "operator_console",
         "rune_id": "RUNE.AUDIT",
         "artifact_id": f"binding_health.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_pipeline_envelope_binding_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_envelope_binding.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_envelope_binding.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v5.0.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.BINDING",
+        "artifact_id": f"pipeline_envelope_binding.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_run_id_propagation_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.run_id_propagation.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.run_id_propagation.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v5.0.1",
+        "source": "operator_console",
+        "rune_id": "RUNE.BINDING",
+        "artifact_id": f"run_id_propagation.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_pipeline_envelope_run_id_repair_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_envelope_run_id_repair.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_envelope_run_id_repair.json"
+        index += 1
+    run_id = str(payload.get("run_id", "NOT_COMPUTABLE")) or "NOT_COMPUTABLE"
+    match_status = str(payload.get("run_id_match_status", "INVOCATION_MISSING"))
+    final_state_bindable = bool(payload.get("final_state_bindable", False))
+    status = "SUCCESS" if final_state_bindable and match_status in {"EXACT_MATCH", "FALLBACK_MATCH"} else "NOT_COMPUTABLE"
+    invocation_state_raw = payload.get("invocation_run_id_state", "MISSING")
+    envelope_state_raw = payload.get("emitted_envelope_run_id_state", "MISSING")
+    if isinstance(invocation_state_raw, Mapping):
+        invocation_state = str(invocation_state_raw.get("invocation_run_id_status", "MISSING"))
+    else:
+        invocation_state = str(invocation_state_raw)
+    if isinstance(envelope_state_raw, Mapping):
+        envelope_state = str(envelope_state_raw.get("pipeline_envelope_run_id_status", "MISSING"))
+    else:
+        envelope_state = str(envelope_state_raw)
+    artifact = {
+        "schema_version": "aal.runes.execution_artifact.v1",
+        "run_id": run_id,
+        "artifact_id": f"pipeline_envelope_run_id_repair.{stamp.lower()}",
+        "rune_id": "RUNE.BINDING",
+        "timestamp": _utc_now(),
+        "phase": "VALIDATE",
+        "status": status,
+        "inputs": {
+            "payload": {
+                "invocation_run_id_state": invocation_state,
+                "emitted_envelope_run_id_state": envelope_state,
+                "run_id_match_status": match_status,
+            },
+            "meta": {"source": "operator_console"},
+        },
+        "outputs": {
+            "payload": dict(payload),
+            "summary": "pipeline_envelope_run_id_repair",
+            "metrics": {"final_state_bindable": final_state_bindable},
+            "errors": [] if status == "SUCCESS" else ["NC_PIPELINE_ENVELOPE_RUN_ID_MISSING_OR_MISMATCH"],
+        },
+        "provenance": {
+            "source_refs": ["operator_console.binding_restoration.pipeline_envelope_run_id_repair.export.v5.0.2"],
+            "notes": "Canonical invocation run_id propagation and envelope binding repair snapshot.",
+        },
+        "ledger_record_ids": [str(x) for x in payload.get("ledger_record_ids", []) if isinstance(x, str)],
+        "ledger_artifact_ids": [str(x) for x in payload.get("ledger_artifact_ids", []) if isinstance(x, str)],
+        "correlation_pointers": [
+            {"type": "invocation_run_id_state", "value": invocation_state, "status": "PRESENT" if invocation_state == "PRESENT" else "MISSING"},
+            {"type": "envelope_run_id_state", "value": envelope_state, "status": "PRESENT" if envelope_state == "PRESENT" else "MISSING"},
+        ],
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_context_restoration_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_context",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.context_restoration.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.context_restoration.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.8.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.CONTEXT_RESTORE",
+        "artifact_id": f"context_restoration.{stamp.lower()}",
         "ledger_record_ids": [],
         "ledger_artifact_ids": [],
         "correlation_pointers": [],
@@ -822,6 +990,271 @@ def _derive_bound_run_context(
     }
 
 
+def _load_latest_pipeline_binding_snapshot(base_dir: Path, *, preferred_run_id: Optional[str] = None) -> Dict[str, Any]:
+    root = base_dir / "artifacts_seal" / "abraxas_pipeline"
+    if not root.exists():
+        return {"source": "none", "payload": {}, "reason": "pipeline_artifact_root_missing"}
+    candidates = sorted(root.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)[:20]
+    fallback: Optional[Dict[str, Any]] = None
+    for path in candidates:
+        payload = _load_json(path)
+        if not payload:
+            continue
+        envelope = payload.get("pipeline_execution_envelope")
+        if not isinstance(envelope, Mapping) or not envelope:
+            envelope = payload.get("pipeline_envelope")
+        if not isinstance(envelope, Mapping):
+            continue
+        normalized_payload = dict(payload)
+        if not isinstance(normalized_payload.get("pipeline_execution_envelope"), Mapping):
+            normalized_payload["pipeline_execution_envelope"] = dict(envelope)
+        snapshot = {
+            "source": "pipeline_artifact",
+            "payload": normalized_payload,
+            "reason": f"latest_pipeline_artifact:{path.as_posix()}",
+        }
+        envelope_run_id = str(envelope.get("run_id", "NOT_COMPUTABLE"))
+        if preferred_run_id and preferred_run_id not in {"", "NOT_COMPUTABLE"} and envelope_run_id == preferred_run_id:
+            return snapshot
+        if fallback is None:
+            fallback = snapshot
+    if fallback is not None:
+        return fallback
+    return {"source": "none", "payload": {}, "reason": "no_valid_pipeline_artifact"}
+
+
+def _derive_operator_bound_run_context(
+    *,
+    selected_run_id: Optional[str],
+    runtime_invocation_envelope: Mapping[str, Any],
+    latest_pipeline_envelope: Mapping[str, Any],
+    latest_pipeline_export_path: Optional[str],
+    latest_pipeline_export_status: str,
+    pipeline_binding_snapshot: Mapping[str, Any],
+) -> Dict[str, Any]:
+    invocation_run_id = str(runtime_invocation_envelope.get("invocation_run_id", runtime_invocation_envelope.get("run_id", "NOT_COMPUTABLE")))
+    invocation_run_id_source = str(runtime_invocation_envelope.get("invocation_run_id_source", "none"))
+    invocation_run_id_status = str(runtime_invocation_envelope.get("invocation_run_id_status", "MISSING"))
+    invocation_pipeline_id = str(runtime_invocation_envelope.get("pipeline_id", "NOT_COMPUTABLE"))
+    envelope_run_id = str(latest_pipeline_envelope.get("run_id", "NOT_COMPUTABLE"))
+    envelope_pipeline_id = str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE"))
+    snapshot_payload = pipeline_binding_snapshot.get("payload", {}) if isinstance(pipeline_binding_snapshot.get("payload", {}), Mapping) else {}
+    snapshot_envelope = snapshot_payload.get("pipeline_execution_envelope", {}) if isinstance(snapshot_payload.get("pipeline_execution_envelope", {}), Mapping) else {}
+    snapshot_run_id = str(snapshot_envelope.get("run_id", "NOT_COMPUTABLE"))
+    snapshot_pipeline_id = str(snapshot_envelope.get("pipeline_id", "NOT_COMPUTABLE"))
+    export_bound = bool(latest_pipeline_export_path) and latest_pipeline_export_status == "written"
+    if invocation_run_id not in {"", "NOT_COMPUTABLE"} and invocation_pipeline_id not in {"", "NOT_COMPUTABLE"}:
+        return {
+            "operator_bound_run_id": invocation_run_id,
+            "operator_bound_pipeline_id": invocation_pipeline_id,
+            "operator_binding_source": "runtime_invocation",
+            "operator_binding_status": "BOUND",
+            "operator_binding_reason": "runtime_invocation_envelope_present",
+            "invocation_run_id": invocation_run_id,
+            "invocation_run_id_source": invocation_run_id_source,
+            "invocation_run_id_status": invocation_run_id_status,
+            "provenance": "operator_console.binding_restoration.operator_bound_run_context.v5.0",
+        }
+    if envelope_run_id not in {"", "NOT_COMPUTABLE"} and envelope_pipeline_id not in {"", "NOT_COMPUTABLE"}:
+        return {
+            "operator_bound_run_id": envelope_run_id,
+            "operator_bound_pipeline_id": envelope_pipeline_id,
+            "operator_binding_source": "latest_pipeline_envelope",
+            "operator_binding_status": "BOUND",
+            "operator_binding_reason": "latest_pipeline_envelope_present",
+            "invocation_run_id": invocation_run_id,
+            "invocation_run_id_source": invocation_run_id_source,
+            "invocation_run_id_status": invocation_run_id_status,
+            "provenance": "operator_console.binding_restoration.operator_bound_run_context.v5.0",
+        }
+    if snapshot_run_id not in {"", "NOT_COMPUTABLE"} and snapshot_pipeline_id not in {"", "NOT_COMPUTABLE"}:
+        return {
+            "operator_bound_run_id": snapshot_run_id,
+            "operator_bound_pipeline_id": snapshot_pipeline_id,
+            "operator_binding_source": "pipeline_envelope_artifact",
+            "operator_binding_status": "BOUND",
+            "operator_binding_reason": str(pipeline_binding_snapshot.get("reason", "pipeline_artifact_present")),
+            "invocation_run_id": invocation_run_id,
+            "invocation_run_id_source": invocation_run_id_source,
+            "invocation_run_id_status": invocation_run_id_status,
+            "provenance": "operator_console.binding_restoration.operator_bound_run_context.v5.0",
+        }
+    if export_bound and selected_run_id:
+        return {
+            "operator_bound_run_id": selected_run_id,
+            "operator_bound_pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", _ABRAXAS_PIPELINE_ID)),
+            "operator_binding_source": "pipeline_export_artifact",
+            "operator_binding_status": "PARTIAL_BOUND",
+            "operator_binding_reason": "latest_pipeline_export_written_without_resolved_envelope",
+            "invocation_run_id": invocation_run_id,
+            "invocation_run_id_source": invocation_run_id_source,
+            "invocation_run_id_status": invocation_run_id_status,
+            "provenance": "operator_console.binding_restoration.operator_bound_run_context.v5.0",
+        }
+    return {
+        "operator_bound_run_id": "NOT_COMPUTABLE",
+        "operator_bound_pipeline_id": "NOT_COMPUTABLE",
+        "operator_binding_source": "none",
+        "operator_binding_status": "UNBOUND",
+        "operator_binding_reason": "operator_run_binding_not_found",
+        "invocation_run_id": invocation_run_id,
+        "invocation_run_id_source": invocation_run_id_source,
+        "invocation_run_id_status": invocation_run_id_status,
+        "provenance": "operator_console.binding_restoration.operator_bound_run_context.v5.0",
+    }
+
+
+def _derive_pipeline_envelope_linkage(
+    *,
+    latest_pipeline_envelope: Mapping[str, Any],
+    latest_pipeline_steps: List[Mapping[str, Any]],
+    pipeline_binding_snapshot: Mapping[str, Any],
+    operator_bound_run_context: Mapping[str, Any],
+) -> Dict[str, Any]:
+    bound_status = str(operator_bound_run_context.get("operator_binding_status", "UNBOUND"))
+    invocation_run_id = str(operator_bound_run_context.get("invocation_run_id", "NOT_COMPUTABLE"))
+    if bound_status not in {"BOUND", "PARTIAL_BOUND"}:
+        return {
+            "bound_pipeline_envelope": {},
+            "bound_pipeline_step_records": [],
+            "envelope_binding_status": "UNBOUND",
+            "envelope_binding_reason": "operator_run_unbound",
+            "final_state_source_available": False,
+            "pipeline_envelope_run_id": "NOT_COMPUTABLE",
+            "pipeline_envelope_run_id_status": "MISSING",
+            "run_id_match_status": "INVOCATION_MISSING",
+            "resolution_source": "none",
+            "provenance": "operator_console.binding_restoration.pipeline_envelope_linkage.v5.0",
+        }
+    latest_envelope_run_id = str(latest_pipeline_envelope.get("run_id", "NOT_COMPUTABLE"))
+    exact_match = invocation_run_id not in {"", "NOT_COMPUTABLE"} and latest_envelope_run_id == invocation_run_id
+    if str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE")) != "NOT_COMPUTABLE" or str(
+        latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE")
+    ) != "NOT_COMPUTABLE":
+        run_id_status = "PRESENT" if latest_envelope_run_id not in {"", "NOT_COMPUTABLE"} else "MISSING"
+        match_status = "EXACT_MATCH" if exact_match else ("INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH" if invocation_run_id not in {"", "NOT_COMPUTABLE"} else "INVOCATION_MISSING")
+        return {
+            "bound_pipeline_envelope": dict(latest_pipeline_envelope),
+            "bound_pipeline_step_records": [dict(row) for row in latest_pipeline_steps[:10] if isinstance(row, Mapping)],
+            "envelope_binding_status": "BOUND",
+            "envelope_binding_reason": "latest_pipeline_envelope_has_final_state_fields",
+            "final_state_source_available": True,
+            "pipeline_envelope_run_id": latest_envelope_run_id,
+            "pipeline_envelope_run_id_status": run_id_status,
+            "run_id_match_status": match_status,
+            "resolution_source": "latest_pipeline_envelope",
+            "provenance": "operator_console.binding_restoration.pipeline_envelope_linkage.v5.0",
+        }
+    snapshot_payload = pipeline_binding_snapshot.get("payload", {}) if isinstance(pipeline_binding_snapshot.get("payload", {}), Mapping) else {}
+    snapshot_envelope = snapshot_payload.get("pipeline_execution_envelope", {}) if isinstance(snapshot_payload.get("pipeline_execution_envelope", {}), Mapping) else {}
+    snapshot_steps = snapshot_payload.get("pipeline_step_records", []) if isinstance(snapshot_payload.get("pipeline_step_records", []), list) else []
+    snapshot_run_id = str(snapshot_envelope.get("run_id", "NOT_COMPUTABLE")) if isinstance(snapshot_envelope, Mapping) else "NOT_COMPUTABLE"
+    if snapshot_envelope:
+        has_source = str(snapshot_envelope.get("overall_status", "NOT_COMPUTABLE")) != "NOT_COMPUTABLE" or str(
+            snapshot_envelope.get("final_classification", "NOT_COMPUTABLE")
+        ) != "NOT_COMPUTABLE"
+        return {
+            "bound_pipeline_envelope": dict(snapshot_envelope),
+            "bound_pipeline_step_records": [dict(row) for row in snapshot_steps[:10] if isinstance(row, Mapping)],
+            "envelope_binding_status": "BOUND" if has_source else "UNBOUND",
+            "envelope_binding_reason": "pipeline_artifact_snapshot_loaded" if has_source else "pipeline_artifact_missing_final_state_fields",
+            "final_state_source_available": has_source,
+            "pipeline_envelope_run_id": snapshot_run_id,
+            "pipeline_envelope_run_id_status": "PRESENT" if snapshot_run_id not in {"", "NOT_COMPUTABLE"} else "MISSING",
+            "run_id_match_status": (
+                "EXACT_MATCH"
+                if invocation_run_id not in {"", "NOT_COMPUTABLE"} and snapshot_run_id == invocation_run_id
+                else ("FALLBACK_MATCH" if has_source and snapshot_run_id not in {"", "NOT_COMPUTABLE"} else "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH")
+            ),
+            "resolution_source": "pipeline_envelope_artifact" if has_source else "none",
+            "provenance": "operator_console.binding_restoration.pipeline_envelope_linkage.v5.0",
+        }
+    return {
+        "bound_pipeline_envelope": {},
+        "bound_pipeline_step_records": [],
+        "envelope_binding_status": "UNBOUND",
+        "envelope_binding_reason": "pipeline_envelope_not_found",
+        "final_state_source_available": False,
+        "pipeline_envelope_run_id": "NOT_COMPUTABLE",
+        "pipeline_envelope_run_id_status": "MISSING",
+        "run_id_match_status": "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH" if invocation_run_id not in {"", "NOT_COMPUTABLE"} else "INVOCATION_MISSING",
+        "resolution_source": "none",
+        "provenance": "operator_console.binding_restoration.pipeline_envelope_linkage.v5.0",
+    }
+
+
+def _derive_refined_binding_nc_subcodes(
+    *,
+    operator_bound_run_context: Mapping[str, Any],
+    pipeline_envelope_linkage: Mapping[str, Any],
+) -> List[str]:
+    subcodes: List[str] = []
+    if str(operator_bound_run_context.get("operator_binding_status", "UNBOUND")) == "UNBOUND":
+        subcodes.append("NC_OPERATOR_RUN_UNBOUND")
+    if str(pipeline_envelope_linkage.get("envelope_binding_status", "UNBOUND")) == "UNBOUND":
+        subcodes.append("NC_PIPELINE_ENVELOPE_UNBOUND")
+    if bool(operator_bound_run_context.get("operator_binding_status", "UNBOUND") in {"BOUND", "PARTIAL_BOUND"}) and not bool(
+        pipeline_envelope_linkage.get("final_state_source_available", False)
+    ):
+        subcodes.append("NC_FINAL_STATE_SOURCE_MISSING")
+    if (
+        str(operator_bound_run_context.get("invocation_run_id_status", "MISSING")) == "PRESENT"
+        and str(pipeline_envelope_linkage.get("run_id_match_status", "")) == "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH"
+        and str(pipeline_envelope_linkage.get("envelope_binding_status", "UNBOUND")) == "UNBOUND"
+    ):
+        subcodes.append("NC_INVOCATION_RUN_ID_UNPROPAGATED")
+    if (
+        str(pipeline_envelope_linkage.get("envelope_binding_status", "UNBOUND")) == "BOUND"
+        and str(pipeline_envelope_linkage.get("pipeline_envelope_run_id_status", "MISSING")) == "MISSING"
+    ):
+        subcodes.append("NC_PIPELINE_ENVELOPE_RUN_ID_MISSING")
+    deduped: List[str] = []
+    for code in subcodes:
+        if code not in deduped:
+            deduped.append(code)
+    return deduped[:5]
+
+
+def _derive_binding_envelope_health_surface(
+    *,
+    operator_bound_run_context: Mapping[str, Any],
+    pipeline_envelope_linkage: Mapping[str, Any],
+) -> Dict[str, Any]:
+    invocation_run_id_present = str(operator_bound_run_context.get("invocation_run_id_status", "MISSING")) == "PRESENT"
+    pipeline_envelope_run_id_present = str(pipeline_envelope_linkage.get("pipeline_envelope_run_id_status", "MISSING")) == "PRESENT"
+    run_id_match_status = str(pipeline_envelope_linkage.get("run_id_match_status", "INVOCATION_MISSING"))
+    operator_run_bound = str(operator_bound_run_context.get("operator_binding_status", "UNBOUND")) in {"BOUND", "PARTIAL_BOUND"}
+    pipeline_envelope_bound = str(pipeline_envelope_linkage.get("envelope_binding_status", "UNBOUND")) == "BOUND"
+    final_state_derivable = bool(pipeline_envelope_linkage.get("final_state_source_available", False))
+    final_state_bindable = final_state_derivable and run_id_match_status in {"EXACT_MATCH", "FALLBACK_MATCH", "INVOCATION_MISSING"}
+    synthesis_blocked_by_binding = not final_state_bindable
+    if not operator_run_bound:
+        blocking_reason = "NC_OPERATOR_RUN_UNBOUND"
+    elif invocation_run_id_present and not pipeline_envelope_run_id_present:
+        blocking_reason = "NC_INVOCATION_RUN_ID_UNPROPAGATED"
+    elif pipeline_envelope_bound and not pipeline_envelope_run_id_present:
+        blocking_reason = "NC_PIPELINE_ENVELOPE_RUN_ID_MISSING"
+    elif not pipeline_envelope_bound:
+        blocking_reason = "NC_PIPELINE_ENVELOPE_UNBOUND"
+    elif not final_state_bindable:
+        blocking_reason = "NC_FINAL_STATE_SOURCE_MISSING"
+    else:
+        blocking_reason = "none"
+    return {
+        "invocation_run_id_present": invocation_run_id_present,
+        "pipeline_envelope_run_id_present": pipeline_envelope_run_id_present,
+        "run_id_match_status": run_id_match_status,
+        "operator_run_bound": operator_run_bound,
+        "pipeline_envelope_bound": pipeline_envelope_bound,
+        "final_state_derivable": final_state_derivable,
+        "final_state_bindable": final_state_bindable,
+        "synthesis_blocked_by_binding": synthesis_blocked_by_binding,
+        "blocking_reason": blocking_reason,
+        "resolution_source": str(pipeline_envelope_linkage.get("resolution_source", "none")),
+        "provenance": "operator_console.binding_restoration.binding_envelope_health.v5.0",
+    }
+
+
 def _derive_ledger_bridge(
     *,
     base_dir: Path,
@@ -918,6 +1351,196 @@ def _derive_binding_health_surface(
         ),
         "provenance": "operator_console.binding_restoration.binding_health.v4.7",
     }
+
+
+def _derive_required_context_matrix(
+    *,
+    selected_run_id: Optional[str],
+    bound_run_context: Mapping[str, Any],
+    pipeline_workspace_payload: Mapping[str, Any],
+    detector_fusion_output: Mapping[str, Any],
+    synthesis_input_surface: Mapping[str, Any],
+) -> Dict[str, Dict[str, Any]]:
+    has_selected_run = bool(selected_run_id)
+    binding_status = str(bound_run_context.get("binding_status", "MISSING"))
+    has_artifacts = bool(bound_run_context.get("bound_artifact_paths", []))
+    detector_missing: List[str] = []
+    detector_available: List[str] = []
+    if has_selected_run:
+        detector_available.append("selected_run_id")
+    else:
+        detector_missing.append("selected_run_id")
+    if binding_status in {"BOUND", "PARTIAL_BOUND"}:
+        detector_available.append("bound_run_context")
+    else:
+        detector_missing.append("bound_run_context")
+    if has_artifacts:
+        detector_available.append("bound_artifact_paths")
+    else:
+        detector_missing.append("bound_artifact_paths")
+    detector_ready = not detector_missing
+
+    fusion_missing: List[str] = []
+    fusion_available: List[str] = []
+    detector_status = str(detector_fusion_output.get("fused_status", "NOT_COMPUTABLE"))
+    if detector_ready:
+        fusion_available.append("detector_layer_context")
+    else:
+        fusion_missing.append("detector_layer_context")
+    if detector_status != "NOT_COMPUTABLE":
+        fusion_available.append("fusion_input_surface")
+    else:
+        fusion_missing.append("fusion_input_surface")
+    fusion_ready = not fusion_missing
+
+    synthesis_missing: List[str] = []
+    synthesis_available: List[str] = []
+    if fusion_ready:
+        synthesis_available.append("fusion_context")
+    else:
+        synthesis_missing.append("fusion_context")
+    pipeline_status = str(pipeline_workspace_payload.get("pipeline_status", "NOT_COMPUTABLE"))
+    if pipeline_status != "NOT_COMPUTABLE":
+        synthesis_available.append("pipeline_status")
+    else:
+        synthesis_missing.append("pipeline_status")
+    runtime_outcome = str(synthesis_input_surface.get("runtime_outcome_status", "NOT_COMPUTABLE"))
+    if runtime_outcome != "NOT_COMPUTABLE":
+        synthesis_available.append("runtime_outcome_status")
+    else:
+        synthesis_missing.append("runtime_outcome_status")
+    synthesis_ready = not synthesis_missing
+
+    return {
+        "detector_layer": {
+            "ready": detector_ready,
+            "missing_fields": detector_missing[:6],
+            "available_fields": detector_available[:6],
+            "blocking_reason": "none" if detector_ready else f"missing:{detector_missing[0]}",
+            "rule_string": "detector requires selected_run_id + bound_run_context + bound_artifact_paths",
+            "provenance": "operator_console.context_restoration.required_context.v4.8.detector",
+        },
+        "fusion_layer": {
+            "ready": fusion_ready,
+            "missing_fields": fusion_missing[:6],
+            "available_fields": fusion_available[:6],
+            "blocking_reason": "none" if fusion_ready else f"missing:{fusion_missing[0]}",
+            "rule_string": "fusion requires detector_layer_context + fusion_input_surface",
+            "provenance": "operator_console.context_restoration.required_context.v4.8.fusion",
+        },
+        "synthesis_layer": {
+            "ready": synthesis_ready,
+            "missing_fields": synthesis_missing[:6],
+            "available_fields": synthesis_available[:6],
+            "blocking_reason": "none" if synthesis_ready else f"missing:{synthesis_missing[0]}",
+            "rule_string": "synthesis requires fusion_context + pipeline_status + runtime_outcome_status",
+            "provenance": "operator_console.context_restoration.required_context.v4.8.synthesis",
+        },
+    }
+
+
+def _derive_projected_context(
+    *,
+    bound_run_context: Mapping[str, Any],
+    pipeline_workspace_payload: Mapping[str, Any],
+    latest_pipeline_envelope: Mapping[str, Any],
+    latest_pipeline_records: List[Mapping[str, Any]],
+    runtime_workspace_payload: Mapping[str, Any],
+    compare_delta_summary: Mapping[str, Any],
+) -> Dict[str, Any]:
+    status_counts: Dict[str, int] = {}
+    for row in latest_pipeline_records[:12]:
+        label = str(row.get("step_status", "UNKNOWN"))
+        status_counts[label] = status_counts.get(label, 0) + 1
+    step_rollup = [f"{key}:{status_counts[key]}" for key in sorted(status_counts.keys())]
+    comparison_keys = sorted(str(k) for k in compare_delta_summary.keys())[:5]
+    comparison_summary = (
+        f"keys={comparison_keys}"
+        if comparison_keys
+        else "NOT_COMPUTABLE:comparison_delta_unavailable"
+    )
+    return {
+        "normalized_pipeline_summary": {
+            "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+            "pipeline_status": str(pipeline_workspace_payload.get("pipeline_status", "NOT_COMPUTABLE")),
+            "pipeline_quality_label": str(pipeline_workspace_payload.get("pipeline_quality_label", "NOT_COMPUTABLE")),
+            "provenance": "operator_console.context_restoration.projection.v4.8.pipeline_summary",
+        },
+        "normalized_step_rollup_summary": {
+            "step_status_rollup": step_rollup[:8],
+            "total_steps_considered": min(len(latest_pipeline_records), 12),
+            "provenance": "operator_console.context_restoration.projection.v4.8.step_rollup",
+        },
+        "compact_artifact_summary": {
+            "bound_run_id": str(bound_run_context.get("bound_run_id", "NOT_COMPUTABLE")),
+            "bound_artifact_count": len([x for x in bound_run_context.get("bound_artifact_paths", []) if isinstance(x, str)]),
+            "binding_status": str(bound_run_context.get("binding_status", "MISSING")),
+            "provenance": "operator_console.context_restoration.projection.v4.8.artifact_summary",
+        },
+        "bounded_runtime_result_summary": {
+            "runtime_outcome_status": str(runtime_workspace_payload.get("outcome_status", "NOT_COMPUTABLE")),
+            "runtime_outcome_label": str(runtime_workspace_payload.get("outcome_label", "NOT_COMPUTABLE")),
+            "runtime_blockers": [str(x) for x in runtime_workspace_payload.get("outcome_reasons", []) if isinstance(x, str)][:4],
+            "provenance": "operator_console.context_restoration.projection.v4.8.runtime_summary",
+        },
+        "bounded_comparison_summary": {
+            "summary": comparison_summary,
+            "provenance": "operator_console.context_restoration.projection.v4.8.comparison_summary",
+        },
+    }
+
+
+def _derive_context_readiness_surface(
+    *,
+    required_context_matrix: Mapping[str, Mapping[str, Any]],
+) -> Dict[str, Any]:
+    detector = required_context_matrix.get("detector_layer", {})
+    fusion = required_context_matrix.get("fusion_layer", {})
+    synthesis = required_context_matrix.get("synthesis_layer", {})
+    detector_ready = bool(detector.get("ready", False))
+    fusion_ready = bool(fusion.get("ready", False))
+    synthesis_ready = bool(synthesis.get("ready", False))
+    return {
+        "detector_context_ready": detector_ready,
+        "fusion_context_ready": fusion_ready,
+        "synthesis_context_ready": synthesis_ready,
+        "reasons_when_false": {
+            "detector": [] if detector_ready else [str(detector.get("blocking_reason", "missing_detector_context"))],
+            "fusion": [] if fusion_ready else [str(fusion.get("blocking_reason", "missing_fusion_context"))],
+            "synthesis": [] if synthesis_ready else [str(synthesis.get("blocking_reason", "missing_synthesis_context"))],
+        },
+        "projection_notes_when_true": {
+            "detector": "restored via bounded local projection" if detector_ready else "",
+            "fusion": "restored via bounded local projection" if fusion_ready else "",
+            "synthesis": "restored via bounded local projection" if synthesis_ready else "",
+        },
+        "provenance": "operator_console.context_restoration.readiness_surface.v4.8",
+    }
+
+
+def _derive_refined_not_computable_subcodes(
+    *,
+    observed_subcodes: List[str],
+    required_context_matrix: Mapping[str, Mapping[str, Any]],
+    compare_delta_summary: Mapping[str, Any],
+) -> List[str]:
+    subcodes = list(observed_subcodes)
+    detector_ready = bool((required_context_matrix.get("detector_layer", {}) or {}).get("ready", False))
+    fusion_ready = bool((required_context_matrix.get("fusion_layer", {}) or {}).get("ready", False))
+    synthesis_ready = bool((required_context_matrix.get("synthesis_layer", {}) or {}).get("ready", False))
+    if not detector_ready:
+        subcodes.append("NC_MISSING_DETECTOR_CONTEXT")
+    if detector_ready and not fusion_ready:
+        subcodes.append("NC_MISSING_FUSION_CONTEXT")
+    if fusion_ready and not synthesis_ready:
+        subcodes.append("NC_MISSING_SYNTHESIS_CONTEXT")
+    if not compare_delta_summary:
+        subcodes.append("NC_MISSING_COMPARISON_CONTEXT")
+    deduped: List[str] = []
+    for code in subcodes:
+        if code not in deduped:
+            deduped.append(code)
+    return deduped[:8]
 
 
 def _build_evidence_drilldown(
@@ -1779,7 +2402,7 @@ def _classify_pipeline_final_result(
 
 
 def _adapter_run_abraxas_pipeline(payload: Mapping[str, Any]) -> Dict[str, Any]:
-    selected_run_id = str(payload.get("selected_run_id", "")).strip()
+    selected_run_id = str(payload.get("invocation_run_id", "") or payload.get("selected_run_id", "")).strip()
     started_at = _utc_now()
     step_records: List[Dict[str, Any]] = []
     artifact_paths: List[str] = []
@@ -1991,6 +2614,8 @@ def _adapter_run_abraxas_pipeline(payload: Mapping[str, Any]) -> Dict[str, Any]:
     pipeline_envelope = {
         "pipeline_id": _ABRAXAS_PIPELINE_ID,
         "run_id": latest_run_id,
+        "artifact_id": f"pipeline_envelope.{datetime.now(timezone.utc).strftime('%Y%m%dt%H%M%SZ').lower()}",
+        "run_id_propagation_status": "PRESENT" if latest_run_id != "NOT_COMPUTABLE" else "MISSING",
         "started_at": started_at,
         "completed_at": completed_at,
         "overall_status": overall_status,
@@ -2037,7 +2662,7 @@ def _adapter_run_abraxas_pipeline(payload: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def _adapter_run_abraxas_pipeline_review_path(payload: Mapping[str, Any]) -> Dict[str, Any]:
-    selected_run_id = str(payload.get("selected_run_id", "")).strip()
+    selected_run_id = str(payload.get("invocation_run_id", "") or payload.get("selected_run_id", "")).strip()
     started_at = _utc_now()
     step_records: List[Dict[str, Any]] = []
     artifact_paths: List[str] = []
@@ -2160,6 +2785,8 @@ def _adapter_run_abraxas_pipeline_review_path(payload: Mapping[str, Any]) -> Dic
     pipeline_envelope = {
         "pipeline_id": _ABRAXAS_PIPELINE_REVIEW_PATH_ID,
         "run_id": selected_run_id or "NOT_COMPUTABLE",
+        "artifact_id": f"pipeline_envelope.{datetime.now(timezone.utc).strftime('%Y%m%dt%H%M%SZ').lower()}",
+        "run_id_propagation_status": "PRESENT" if selected_run_id else "MISSING",
         "started_at": started_at,
         "completed_at": completed_at,
         "overall_status": overall_status,
@@ -2428,13 +3055,36 @@ def _derive_runtime_invocation_envelope(
 ) -> Dict[str, Any]:
     source = dict(last_action or {})
     artifact_path = str(source.get("artifact_path", ""))
+    action_name = str(source.get("action_name", "")) or "NOT_COMPUTABLE"
+    explicit_run_id = str(source.get("triggered_run_id", "") or source.get("run_id", "")).strip()
+    selected_id = str(selected_run_id or "").strip()
+    invocation_run_id = explicit_run_id or selected_id or "NOT_COMPUTABLE"
+    if explicit_run_id:
+        run_id_source = "action_history"
+    elif selected_id:
+        run_id_source = "selected_run_id"
+    else:
+        run_id_source = "none"
+    run_id_status = "PRESENT" if invocation_run_id != "NOT_COMPUTABLE" else "MISSING"
+    inferred_pipeline_id = str(source.get("pipeline_id", "")).strip()
+    if not inferred_pipeline_id:
+        if action_name == "run_abraxas_pipeline":
+            inferred_pipeline_id = _ABRAXAS_PIPELINE_ID
+        elif action_name == "run_abraxas_pipeline_review_path":
+            inferred_pipeline_id = _ABRAXAS_PIPELINE_REVIEW_PATH_ID
+    if not inferred_pipeline_id:
+        inferred_pipeline_id = "NOT_COMPUTABLE"
     return {
-        "action_name": str(source.get("action_name", "")) or "NOT_COMPUTABLE",
+        "action_name": action_name,
         "entry_id": str(source.get("entry_id", "")) or "NOT_COMPUTABLE",
         "rune_id": str(source.get("rune_id", "")) or "NOT_COMPUTABLE",
         "adapter_name": str(source.get("adapter_name", "")) or "NOT_COMPUTABLE",
         "attempted_at": str(source.get("attempted_at", "")) or "NOT_COMPUTABLE",
-        "run_id": str(source.get("triggered_run_id", "") or source.get("run_id", "") or selected_run_id or "NOT_COMPUTABLE"),
+        "run_id": invocation_run_id,
+        "pipeline_id": inferred_pipeline_id,
+        "invocation_run_id": invocation_run_id,
+        "invocation_run_id_source": run_id_source,
+        "invocation_run_id_status": run_id_status,
         "payload_summary": {
             "selected_run_id": str(selected_run_id or ""),
             "preset_id": str(source.get("preset_id", "")),
@@ -4404,6 +5054,8 @@ def _derive_abraxas_synthesis_input_surface(
     runtime_corridor: Mapping[str, Any],
     decision_workspace_payload: Mapping[str, Any],
     detector_fusion_output: Mapping[str, Any],
+    pipeline_final_state: Mapping[str, Any],
+    pipeline_unresolved_subcode: str,
     not_computable_subcodes: List[str],
     attention_queue: List[Mapping[str, Any]],
     suggested_next_step: str,
@@ -4431,6 +5083,8 @@ def _derive_abraxas_synthesis_input_surface(
         "runtime_blocker_summary": blocker_summary[:5],
         "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
         "fusion_status": str(detector_fusion_output.get("fused_status", "NOT_COMPUTABLE")),
+        "pipeline_final_state": dict(pipeline_final_state),
+        "pipeline_unresolved_subcode": pipeline_unresolved_subcode,
         "not_computable_subcodes": not_computable_subcodes[:5],
         "session_attention_count": len(attention_queue),
         "next_step_hint": suggested_next_step,
@@ -4440,6 +5094,95 @@ def _derive_abraxas_synthesis_input_surface(
             "synthesis_input.next_step_from_existing_suggestion_surface",
         ],
         "provenance": "operator_console.abraxas_synthesis.input.v4.6.local_state_projection",
+    }
+
+
+def _derive_pipeline_final_state(
+    *,
+    latest_pipeline_envelope: Mapping[str, Any],
+    pipeline_step_records: List[Mapping[str, Any]],
+    pipeline_review_workspace_payload: Mapping[str, Any],
+) -> Dict[str, Any]:
+    envelope_status = str(latest_pipeline_envelope.get("overall_status", "NOT_COMPUTABLE"))
+    envelope_classification = str(latest_pipeline_envelope.get("final_classification", "NOT_COMPUTABLE"))
+    completion_state = "UNKNOWN"
+    success_flags: List[str] = []
+    failure_flags: List[str] = []
+    terminal_steps = {"diff_validate", "review_audit"}
+    terminal = [row for row in pipeline_step_records if str(row.get("step_name", "")) in terminal_steps]
+    terminal_statuses = [str(row.get("status", "NOT_COMPUTABLE")) for row in terminal]
+    if terminal_statuses and all(x in {"SUCCESS", "FAILED", "PARTIAL"} for x in terminal_statuses):
+        completion_state = "COMPLETE"
+    elif terminal_statuses:
+        completion_state = "INCOMPLETE"
+    if envelope_status == "SUCCESS":
+        success_flags.append("envelope_success")
+    if envelope_status == "FAILED":
+        failure_flags.append("envelope_failed")
+    if envelope_status == "PARTIAL":
+        failure_flags.append("envelope_partial")
+    if any(x == "FAILED" for x in terminal_statuses):
+        failure_flags.append("terminal_step_failed")
+    if any(x == "NOT_COMPUTABLE" for x in terminal_statuses):
+        failure_flags.append("terminal_step_not_computable")
+    review_diff = str(pipeline_review_workspace_payload.get("final_classification", "NOT_COMPUTABLE"))
+    if review_diff in {"SUCCESS", "FAILED", "PARTIAL"}:
+        if review_diff == "SUCCESS":
+            success_flags.append("review_success")
+        else:
+            failure_flags.append(f"review_{review_diff.lower()}")
+    if envelope_status in {"SUCCESS", "FAILED", "PARTIAL"}:
+        final_status = envelope_status
+        resolution_source = "pipeline"
+        reason = f"envelope_overall_status={envelope_status}"
+    elif envelope_classification in {"SUCCESS", "FAILED", "PARTIAL"}:
+        final_status = envelope_classification
+        resolution_source = "pipeline_classification"
+        reason = f"envelope_final_classification={envelope_classification}"
+    elif completion_state == "COMPLETE" and failure_flags:
+        final_status = "PARTIAL"
+        resolution_source = "fallback"
+        reason = "terminal_complete_with_failure_flags"
+    elif completion_state == "COMPLETE" and success_flags:
+        final_status = "SUCCESS"
+        resolution_source = "fallback"
+        reason = "terminal_complete_with_success_flags"
+    else:
+        final_status = "NOT_COMPUTABLE"
+        resolution_source = "none"
+        reason = "pipeline_status_not_resolved"
+    return {
+        "pipeline_final_status": final_status,
+        "pipeline_completion_state": completion_state,
+        "pipeline_success_flags": success_flags[:8],
+        "pipeline_failure_flags": failure_flags[:8],
+        "pipeline_resolution_reason": reason,
+        "pipeline_status_resolved": final_status in {"SUCCESS", "PARTIAL", "FAILED"},
+        "resolution_source": resolution_source,
+        "provenance": "operator_console.pipeline_final_state.v4.9.deterministic_ladder",
+    }
+
+
+def _derive_pipeline_final_state_health_surface(
+    *,
+    pipeline_final_state: Mapping[str, Any],
+    ledger_bridge: Mapping[str, Any],
+) -> Dict[str, Any]:
+    resolved = bool(pipeline_final_state.get("pipeline_status_resolved", False))
+    status = str(pipeline_final_state.get("pipeline_final_status", "NOT_COMPUTABLE"))
+    ledger_status = str(ledger_bridge.get("ledger_bridge_status", "MISSING"))
+    if resolved:
+        blocking_reason = "none"
+    elif ledger_status == "MISSING":
+        blocking_reason = "NC_PIPELINE_STATUS_UNRESOLVED"
+    else:
+        blocking_reason = "NC_PIPELINE_STATUS_UNRESOLVED"
+    return {
+        "pipeline_status_resolved": resolved,
+        "synthesis_ready": resolved and status in {"SUCCESS", "PARTIAL", "FAILED"},
+        "blocking_reason": blocking_reason,
+        "resolution_source": str(pipeline_final_state.get("resolution_source", "none")),
+        "provenance": "operator_console.pipeline_final_state.health.v4.9",
     }
 
 
@@ -4460,6 +5203,9 @@ def _derive_abraxas_synthesis_output(
             "provenance": "operator_console.abraxas_synthesis.output.v4.6.not_computable",
         }
     pipeline_status = str(synthesis_input_surface.get("pipeline_status", "NOT_COMPUTABLE"))
+    pipeline_final_state = synthesis_input_surface.get("pipeline_final_state", {}) if isinstance(synthesis_input_surface.get("pipeline_final_state", {}), Mapping) else {}
+    pipeline_final_status = str(pipeline_final_state.get("pipeline_final_status", "NOT_COMPUTABLE"))
+    pipeline_status_resolved = bool(pipeline_final_state.get("pipeline_status_resolved", False))
     fusion_label = str(synthesis_input_surface.get("fusion_label", "NOT_COMPUTABLE"))
     fusion_status = str(synthesis_input_surface.get("fusion_status", "NOT_COMPUTABLE"))
     policy_mode = str(synthesis_input_surface.get("governance_policy_mode", "review_only"))
@@ -4467,10 +5213,26 @@ def _derive_abraxas_synthesis_output(
     blockers = [str(x) for x in synthesis_input_surface.get("runtime_blocker_summary", []) if isinstance(x, str)]
     reasons: List[str] = []
     synthesis_blockers: List[str] = []
-    if fusion_status == "NOT_COMPUTABLE" or pipeline_status == "NOT_COMPUTABLE":
+    if pipeline_status_resolved and pipeline_final_status == "FAILED":
+        label = "BLOCKED"
+        reasons.append("pipeline_final_status_failed")
+        synthesis_blockers.append("pipeline_failed")
+    elif pipeline_status_resolved and pipeline_final_status == "PARTIAL":
+        label = "INCOMPLETE"
+        reasons.append("pipeline_final_status_partial")
+        synthesis_blockers.append("pipeline_partial_completion")
+    elif pipeline_status_resolved and pipeline_final_status == "SUCCESS":
+        if blockers:
+            label = "ACTIVE"
+            reasons.append("pipeline_success_with_runtime_blockers")
+            synthesis_blockers.extend(blockers[:4])
+        else:
+            label = "READY"
+            reasons.append("pipeline_final_status_success")
+    elif fusion_status == "NOT_COMPUTABLE" or pipeline_status == "NOT_COMPUTABLE":
         label = "NOT_COMPUTABLE"
         reasons.append("fusion_or_pipeline_not_computable")
-        synthesis_blockers.append("missing_required_computation_surfaces")
+        synthesis_blockers.append(str(synthesis_input_surface.get("pipeline_unresolved_subcode", "NC_PIPELINE_STATUS_UNRESOLVED")))
     elif blockers or fusion_label == "BROKEN_SIGNAL" or pipeline_status in {"FAILED", "BLOCKED"}:
         label = "BLOCKED"
         reasons.append("active_blocker_or_broken_signal")
@@ -4518,6 +5280,7 @@ def _derive_abraxas_synthesis_output(
         "synthesis_next_step": synthesis_next_step,
         "interpretation_summary": interpretation_summary[:320],
         "rule_ids": [
+            "synthesis.pipeline_final_state_primary_when_resolved",
             "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
             "synthesis.incomplete_when_context_or_runtime_partial",
             "synthesis.unstable_when_fusion_unstable_transition",
@@ -4841,6 +5604,8 @@ def build_view_state(
     manual_pipeline_override: Optional[str] = None,
     latest_pipeline_routing_export_path: Optional[str] = None,
     latest_pipeline_routing_export_status: str = "not_requested",
+    latest_pipeline_final_state_export_path: Optional[str] = None,
+    latest_pipeline_final_state_export_status: str = "not_requested",
     latest_detector_export_path: Optional[str] = None,
     latest_detector_export_status: str = "not_requested",
     latest_motif_export_path: Optional[str] = None,
@@ -4855,6 +5620,14 @@ def build_view_state(
     latest_synthesis_export_status: str = "not_requested",
     latest_binding_export_path: Optional[str] = None,
     latest_binding_export_status: str = "not_requested",
+    latest_binding_envelope_export_path: Optional[str] = None,
+    latest_binding_envelope_export_status: str = "not_requested",
+    latest_run_id_propagation_export_path: Optional[str] = None,
+    latest_run_id_propagation_export_status: str = "not_requested",
+    latest_pipeline_envelope_run_id_repair_export_path: Optional[str] = None,
+    latest_pipeline_envelope_run_id_repair_export_status: str = "not_requested",
+    latest_context_export_path: Optional[str] = None,
+    latest_context_export_status: str = "not_requested",
 ) -> ViewState:
     artifacts = _collect_run_artifacts(base_dir)
     validators = _collect_validator_outputs(base_dir)
@@ -5845,6 +6618,29 @@ def build_view_state(
         artifacts=artifacts,
         pipeline_workspace_payload=pipeline_workspace_payload,
     )
+    pipeline_binding_snapshot = _load_latest_pipeline_binding_snapshot(base_dir=base_dir, preferred_run_id=chosen)
+    operator_bound_run_context = _derive_operator_bound_run_context(
+        selected_run_id=chosen,
+        runtime_invocation_envelope=runtime_invocation_envelope,
+        latest_pipeline_envelope=latest_pipeline_envelope,
+        latest_pipeline_export_path=latest_pipeline_export_path,
+        latest_pipeline_export_status=latest_pipeline_export_status,
+        pipeline_binding_snapshot=pipeline_binding_snapshot,
+    )
+    pipeline_envelope_linkage = _derive_pipeline_envelope_linkage(
+        latest_pipeline_envelope=latest_pipeline_envelope,
+        latest_pipeline_steps=normalized_pipeline_steps,
+        pipeline_binding_snapshot=pipeline_binding_snapshot,
+        operator_bound_run_context=operator_bound_run_context,
+    )
+    refined_binding_nc_subcodes = _derive_refined_binding_nc_subcodes(
+        operator_bound_run_context=operator_bound_run_context,
+        pipeline_envelope_linkage=pipeline_envelope_linkage,
+    )
+    binding_envelope_health_surface = _derive_binding_envelope_health_surface(
+        operator_bound_run_context=operator_bound_run_context,
+        pipeline_envelope_linkage=pipeline_envelope_linkage,
+    )
     ledger_bridge = _derive_ledger_bridge(
         base_dir=base_dir,
         bound_run_context=bound_run_context,
@@ -6354,6 +7150,48 @@ def build_view_state(
         "domain_logic_workspace_payload": domain_logic_workspace_payload,
         "updated_domain_logic_workspace_payload": domain_logic_workspace_payload,
     }
+    linked_envelope = (
+        pipeline_envelope_linkage.get("bound_pipeline_envelope", {})
+        if isinstance(pipeline_envelope_linkage.get("bound_pipeline_envelope", {}), Mapping)
+        else {}
+    )
+    linked_steps = (
+        pipeline_envelope_linkage.get("bound_pipeline_step_records", [])
+        if isinstance(pipeline_envelope_linkage.get("bound_pipeline_step_records", []), list)
+        else []
+    )
+    final_state_source_envelope = linked_envelope or latest_pipeline_envelope
+    final_state_source_steps = linked_steps or normalized_pipeline_steps
+    pipeline_final_state_surface = _derive_pipeline_final_state(
+        latest_pipeline_envelope=final_state_source_envelope,
+        pipeline_step_records=final_state_source_steps,
+        pipeline_review_workspace_payload=pipeline_hardening_workspace_payload,
+    )
+    pipeline_final_state_health_surface = _derive_pipeline_final_state_health_surface(
+        pipeline_final_state=pipeline_final_state_surface,
+        ledger_bridge=ledger_bridge,
+    )
+    pipeline_final_state_surface["final_state_derivable"] = bool(binding_envelope_health_surface.get("final_state_derivable", False))
+    pipeline_final_state_surface["synthesis_blocked_by_binding"] = bool(
+        binding_envelope_health_surface.get("synthesis_blocked_by_binding", True)
+    )
+    pipeline_final_state_surface["final_state_source_available"] = bool(
+        pipeline_envelope_linkage.get("final_state_source_available", False)
+    )
+    pipeline_final_state_surface["final_state_bindable"] = bool(
+        binding_envelope_health_surface.get("final_state_bindable", False)
+    )
+    pipeline_final_state_surface["run_id_match_status"] = str(
+        binding_envelope_health_surface.get("run_id_match_status", "INVOCATION_MISSING")
+    )
+    pipeline_final_state_surface["binding_resolution_source"] = str(
+        pipeline_envelope_linkage.get("resolution_source", "none")
+    )
+    pipeline_unresolved_subcode = (
+        (refined_binding_nc_subcodes[0] if refined_binding_nc_subcodes else "NC_PIPELINE_STATUS_UNRESOLVED")
+        if not bool(pipeline_final_state_surface.get("pipeline_status_resolved", False))
+        else ""
+    )
     synthesis_input_surface = _derive_abraxas_synthesis_input_surface(
         selected_run_id=chosen,
         latest_pipeline_envelope=latest_pipeline_envelope,
@@ -6362,6 +7200,8 @@ def build_view_state(
         runtime_corridor=runtime_corridor if isinstance(runtime_corridor, Mapping) else {},
         decision_workspace_payload=decision_workspace_payload,
         detector_fusion_output=detector_fusion_output,
+        pipeline_final_state=pipeline_final_state_surface,
+        pipeline_unresolved_subcode=pipeline_unresolved_subcode,
         not_computable_subcodes=not_computable_subcodes,
         attention_queue=attention_queue,
         suggested_next_step=suggested_next_step,
@@ -6372,7 +7212,7 @@ def build_view_state(
     )
     if str(synthesis_output.get("synthesis_status", "")) == "NOT_COMPUTABLE":
         synthesis_output["not_computable_subcode"] = (
-            not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT"
+            pipeline_unresolved_subcode or (not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT")
         )
     synthesis_export_preview = {
         "run_id": chosen or "NOT_COMPUTABLE",
@@ -6409,6 +7249,7 @@ def build_view_state(
         "synthesis_export_path": latest_synthesis_export_path or "",
         "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
         "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "pipeline_final_status": str(pipeline_final_state_surface.get("pipeline_final_status", "NOT_COMPUTABLE")),
     }
     final_abraxas_output_card = {
         "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
@@ -6433,6 +7274,56 @@ def build_view_state(
         "synthesis_workspace_payload": synthesis_workspace_payload,
         "final_abraxas_output_card": final_abraxas_output_card,
     }
+    pipeline_final_state_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "timestamp": _utc_now(),
+        "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
+        "pipeline_final_state": pipeline_final_state_surface,
+        "final_state_health_surface": pipeline_final_state_health_surface,
+        "synthesis_ready": bool(pipeline_final_state_health_surface.get("synthesis_ready", False)),
+        "resolution_source": str(pipeline_final_state_health_surface.get("resolution_source", "none")),
+        "provenance": "operator_console.pipeline_final_state.export.v4.9.bounded_surface",
+        "rule_strings": [
+            "final_state_rule=envelope_then_terminal_steps_then_not_computable",
+            "health_rule=pipeline_status_resolved_drives_synthesis_readiness",
+            "subcode_rule=NC_PIPELINE_STATUS_UNRESOLVED_when_pipeline_final_state_missing",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    pipeline_final_state_workspace_payload = {
+        "mode": "runtime",
+        "pipeline_final_status": str(pipeline_final_state_surface.get("pipeline_final_status", "NOT_COMPUTABLE")),
+        "pipeline_completion_state": str(pipeline_final_state_surface.get("pipeline_completion_state", "UNKNOWN")),
+        "pipeline_status_resolved": bool(pipeline_final_state_surface.get("pipeline_status_resolved", False)),
+        "final_state_derivable": bool(pipeline_final_state_surface.get("final_state_derivable", False)),
+        "final_state_bindable": bool(pipeline_final_state_surface.get("final_state_bindable", False)),
+        "synthesis_blocked_by_binding": bool(pipeline_final_state_surface.get("synthesis_blocked_by_binding", True)),
+        "final_state_source_available": bool(pipeline_final_state_surface.get("final_state_source_available", False)),
+        "run_id_match_status": str(pipeline_final_state_surface.get("run_id_match_status", "INVOCATION_MISSING")),
+        "emitted_envelope_run_id": str(pipeline_envelope_linkage.get("pipeline_envelope_run_id", "NOT_COMPUTABLE")),
+        "synthesis_ready": bool(pipeline_final_state_health_surface.get("synthesis_ready", False)),
+        "blocking_reason": str(pipeline_final_state_health_surface.get("blocking_reason", "none")),
+        "final_state_export_status": latest_pipeline_final_state_export_status,
+        "final_state_export_path": latest_pipeline_final_state_export_path or "",
+    }
+    pipeline_final_state = {
+        "pipeline_final_status": str(pipeline_final_state_surface.get("pipeline_final_status", "NOT_COMPUTABLE")),
+        "pipeline_completion_state": str(pipeline_final_state_surface.get("pipeline_completion_state", "UNKNOWN")),
+        "pipeline_resolution_reason": str(pipeline_final_state_surface.get("pipeline_resolution_reason", "pipeline_status_not_resolved")),
+        "pipeline_status_resolved": bool(pipeline_final_state_surface.get("pipeline_status_resolved", False)),
+        "synthesis_ready": bool(pipeline_final_state_health_surface.get("synthesis_ready", False)),
+        "blocking_reason": str(pipeline_final_state_health_surface.get("blocking_reason", "none")),
+        "resolution_source": str(pipeline_final_state_health_surface.get("resolution_source", "none")),
+        "pipeline_success_flags": list(pipeline_final_state_surface.get("pipeline_success_flags", []))[:8],
+        "pipeline_failure_flags": list(pipeline_final_state_surface.get("pipeline_failure_flags", []))[:8],
+        "final_state_health_surface": pipeline_final_state_health_surface,
+        "final_state_export_preview": pipeline_final_state_export_preview,
+        "final_state_export_status": latest_pipeline_final_state_export_status,
+        "final_state_export_path": latest_pipeline_final_state_export_path,
+        "pipeline_final_state_workspace_payload": pipeline_final_state_workspace_payload,
+    }
     binding_export_preview = {
         "run_id": chosen or "NOT_COMPUTABLE",
         "timestamp": _utc_now(),
@@ -6451,14 +7342,166 @@ def build_view_state(
         "ledger_record_ids": [],
         "ledger_artifact_ids": [],
     }
+    binding_envelope_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "timestamp": _utc_now(),
+        "operator_bound_run_context": operator_bound_run_context,
+        "pipeline_envelope_linkage": pipeline_envelope_linkage,
+        "binding_envelope_health_surface": binding_envelope_health_surface,
+        "refined_binding_nc_subcodes": refined_binding_nc_subcodes[:5],
+        "blocker_summary": [
+            str(binding_envelope_health_surface.get("blocking_reason", "none")),
+            str(operator_bound_run_context.get("operator_binding_reason", "none")),
+            str(pipeline_envelope_linkage.get("envelope_binding_reason", "none")),
+        ][:5],
+        "provenance": "operator_console.binding_restoration.pipeline_envelope.export.v5.0.bounded_surface",
+        "rule_strings": [
+            "operator_binding_rule=invocation_then_envelope_then_artifact_then_export_then_unbound",
+            "envelope_binding_rule=latest_envelope_then_pipeline_artifact_then_unbound",
+            "subcode_rule=NC_OPERATOR_RUN_UNBOUND_then_NC_PIPELINE_ENVELOPE_UNBOUND_then_NC_FINAL_STATE_SOURCE_MISSING",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    invocation_run_id_state = {
+        "invocation_run_id": str(operator_bound_run_context.get("invocation_run_id", "NOT_COMPUTABLE")),
+        "invocation_run_id_source": str(operator_bound_run_context.get("invocation_run_id_source", "none")),
+        "invocation_run_id_status": str(operator_bound_run_context.get("invocation_run_id_status", "MISSING")),
+    }
+    pipeline_envelope_run_id_state = {
+        "pipeline_envelope_run_id": str(pipeline_envelope_linkage.get("pipeline_envelope_run_id", "NOT_COMPUTABLE")),
+        "pipeline_envelope_run_id_status": str(pipeline_envelope_linkage.get("pipeline_envelope_run_id_status", "MISSING")),
+    }
+    run_id_propagation_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "timestamp": _utc_now(),
+        "invocation_run_id_state": invocation_run_id_state,
+        "pipeline_envelope_run_id_state": pipeline_envelope_run_id_state,
+        "run_id_match_status": str(binding_envelope_health_surface.get("run_id_match_status", "INVOCATION_MISSING")),
+        "final_state_bindable": bool(binding_envelope_health_surface.get("final_state_bindable", False)),
+        "propagation_nc_subcodes": refined_binding_nc_subcodes[:5],
+        "blocker_summary": [
+            str(binding_envelope_health_surface.get("blocking_reason", "none")),
+            str(pipeline_envelope_linkage.get("envelope_binding_reason", "none")),
+        ][:5],
+        "provenance": "operator_console.binding_restoration.run_id_propagation.export.v5.0.1",
+        "rule_strings": [
+            "invocation_rule=single_canonical_invocation_run_id_with_explicit_source_status",
+            "match_rule=prefer_exact_invocation_run_id_to_envelope_run_id_match",
+            "subcode_rule=NC_INVOCATION_RUN_ID_UNPROPAGATED_only_when_invocation_present_and_envelope_unbound_mismatch",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
+    pipeline_envelope_run_id_repair_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "timestamp": _utc_now(),
+        "invocation_run_id_state": invocation_run_id_state,
+        "emitted_envelope_run_id_state": pipeline_envelope_run_id_state,
+        "run_id_match_status": str(binding_envelope_health_surface.get("run_id_match_status", "INVOCATION_MISSING")),
+        "final_state_bindable": bool(binding_envelope_health_surface.get("final_state_bindable", False)),
+        "propagation_nc_subcodes": refined_binding_nc_subcodes[:5],
+        "blocker_summary": [
+            str(binding_envelope_health_surface.get("blocking_reason", "none")),
+            str(pipeline_envelope_linkage.get("envelope_binding_reason", "none")),
+        ][:5],
+        "provenance": "operator_console.binding_restoration.pipeline_envelope_run_id_repair.export.v5.0.2",
+        "rule_strings": [
+            "emission_rule=pipeline envelope run_id persists canonical invocation_run_id",
+            "lookup_rule=operator linkage prefers exact invocation_run_id to emitted envelope run_id match",
+            "subcode_rule=NC_PIPELINE_ENVELOPE_RUN_ID_MISSING when envelope exists without canonical run_id",
+        ],
+        "correlation_pointers": [],
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+    }
     binding_restoration = {
         "bound_run_context": bound_run_context,
+        "operator_bound_run_context": operator_bound_run_context,
+        "pipeline_envelope_linkage": pipeline_envelope_linkage,
+        "invocation_run_id_state": invocation_run_id_state,
+        "pipeline_envelope_run_id_state": pipeline_envelope_run_id_state,
+        "run_id_match_status": str(binding_envelope_health_surface.get("run_id_match_status", "INVOCATION_MISSING")),
+        "final_state_bindable": bool(binding_envelope_health_surface.get("final_state_bindable", False)),
         "ledger_bridge": ledger_bridge,
         "not_computable_subcodes": not_computable_subcodes[:5],
         "binding_health_surface": binding_health_surface,
+        "binding_envelope_health_surface": binding_envelope_health_surface,
+        "refined_binding_nc_subcodes": refined_binding_nc_subcodes[:5],
+        "propagation_nc_subcodes": refined_binding_nc_subcodes[:5],
         "binding_export_preview": binding_export_preview,
         "binding_export_status": latest_binding_export_status,
         "binding_export_path": latest_binding_export_path,
+        "binding_envelope_export_preview": binding_envelope_export_preview,
+        "binding_envelope_export_status": latest_binding_envelope_export_status,
+        "binding_envelope_export_path": latest_binding_envelope_export_path,
+        "run_id_propagation_export_preview": run_id_propagation_export_preview,
+        "run_id_propagation_export_status": latest_run_id_propagation_export_status,
+        "run_id_propagation_export_path": latest_run_id_propagation_export_path,
+        "pipeline_envelope_run_id_repair_export_preview": pipeline_envelope_run_id_repair_export_preview,
+        "pipeline_envelope_run_id_repair_export_status": latest_pipeline_envelope_run_id_repair_export_status,
+        "pipeline_envelope_run_id_repair_export_path": latest_pipeline_envelope_run_id_repair_export_path,
+    }
+    required_context_matrix = _derive_required_context_matrix(
+        selected_run_id=chosen,
+        bound_run_context=bound_run_context,
+        pipeline_workspace_payload=pipeline_workspace_payload,
+        detector_fusion_output=detector_fusion_output,
+        synthesis_input_surface=synthesis_input_surface,
+    )
+    projected_context = _derive_projected_context(
+        bound_run_context=bound_run_context,
+        pipeline_workspace_payload=pipeline_workspace_payload,
+        latest_pipeline_envelope=latest_pipeline_envelope,
+        latest_pipeline_records=normalized_pipeline_steps,
+        runtime_workspace_payload=runtime_workspace_payload,
+        compare_delta_summary=compare_delta_summary,
+    )
+    context_readiness_surface = _derive_context_readiness_surface(required_context_matrix=required_context_matrix)
+    refined_not_computable_subcodes = _derive_refined_not_computable_subcodes(
+        observed_subcodes=not_computable_subcodes[:5],
+        required_context_matrix=required_context_matrix,
+        compare_delta_summary=compare_delta_summary,
+    )
+    context_export_preview = {
+        "run_id": chosen or "NOT_COMPUTABLE",
+        "timestamp": _utc_now(),
+        "required_context_matrix": required_context_matrix,
+        "projected_context": projected_context,
+        "context_readiness_surface": context_readiness_surface,
+        "observed_not_computable_subcodes": not_computable_subcodes[:5],
+        "refined_not_computable_subcodes": refined_not_computable_subcodes[:8],
+        "blockers_summary": [
+            str((required_context_matrix.get("detector_layer", {}) or {}).get("blocking_reason", "none")),
+            str((required_context_matrix.get("fusion_layer", {}) or {}).get("blocking_reason", "none")),
+            str((required_context_matrix.get("synthesis_layer", {}) or {}).get("blocking_reason", "none")),
+        ][:5],
+        "provenance": "operator_console.context_restoration.export.v4.8.bounded_surface",
+        "rule_strings": [
+            "required_context_rule=layer readiness derives only from selected local run/binding/pipeline/runtime/fusion surfaces",
+            "projection_rule=bounded summaries from local state without semantic fabrication",
+            "refined_nc_rule=only assign context-specific subcodes when layer-level cause is explicit",
+        ],
+    }
+    context_workspace_payload = {
+        "mode": "runtime",
+        "detector_context_ready": bool(context_readiness_surface.get("detector_context_ready", False)),
+        "fusion_context_ready": bool(context_readiness_surface.get("fusion_context_ready", False)),
+        "synthesis_context_ready": bool(context_readiness_surface.get("synthesis_context_ready", False)),
+        "context_export_status": latest_context_export_status,
+        "context_export_path": latest_context_export_path or "",
+    }
+    context_restoration = {
+        "required_context_matrix": required_context_matrix,
+        "projected_context": projected_context,
+        "context_readiness_surface": context_readiness_surface,
+        "refined_not_computable_subcodes": refined_not_computable_subcodes[:8],
+        "context_export_preview": context_export_preview,
+        "context_export_status": latest_context_export_status,
+        "context_export_path": latest_context_export_path,
+        "context_workspace_payload": context_workspace_payload,
     }
     resolved_viz_mode = _sanitize_viz_mode(viz_mode)
     viz_payloads = _derive_viz_payloads(
@@ -6744,11 +7787,13 @@ def build_view_state(
         ers_review=ers_review,
         runtime_corridor=runtime_corridor,
         abraxas_pipeline=abraxas_pipeline,
+        pipeline_final_state=pipeline_final_state,
         pipeline_hardening=pipeline_hardening,
         pipeline_routing=pipeline_routing,
         domain_logic=domain_logic,
         abraxas_synthesis=abraxas_synthesis,
         binding_restoration=binding_restoration,
+        context_restoration=context_restoration,
         session_context=resolved_session_context,
         data_provenance={
             "artifacts_runs_scanned": len(artifacts),
@@ -6788,6 +7833,8 @@ def build_view_state(
             "pipeline_map_rule": "map projection deterministically derives bounded entity-relation associations from parse projection keys and selected_run_id tokens",
             "pipeline_diff_input_rule": "diff input summary explicitly includes bounded map context (relation_count/entities) when available",
             "pipeline_routing_rule": "pipeline routing derives suitability matrix + ordered recommendation and explicit manual override precedence",
+            "pipeline_final_state_rule": "pipeline final-state resolution derives status/completion/flags from envelope+terminal steps+review with explicit fallback ladder",
+            "pipeline_final_state_health_rule": "final-state health exposes pipeline_status_resolved+synthesis_ready+blocking_reason with NC_PIPELINE_STATUS_UNRESOLVED when unresolved",
             "domain_logic_structural_rule": "structural signals derive deterministic bounded counts from pipeline/runtime/ers/review surfaces only",
             "domain_logic_detector_rule": "pressure/friction detector uses explicit threshold ladder over missing/degraded/blocked/imbalance/transition signals",
             "domain_logic_export_rule": "detector signal export emits bounded artifact with run_id/pipeline_id/provenance and explicit linkage placeholders",
@@ -6804,6 +7851,11 @@ def build_view_state(
             "abraxas_synthesis_label_rule": "synthesis label follows explicit deterministic precedence not_computable>blocked>incomplete>unstable>friction>ready>active",
             "abraxas_synthesis_summary_rule": "synthesis summary exposes label/reasons/blockers/next-step through bounded deterministic templates",
             "binding_restoration_rule": "binding restoration derives run context, ledger bridge, and not-computable subcodes from local artifact/ledger surfaces with explicit precedence",
+            "binding_envelope_linkage_rule": "operator binding resolves invocation->envelope->artifact->export and links envelope/steps before final-state synthesis projection",
+            "context_restoration_required_rule": "required context matrix explicitly reports ready/missing/available/blocking_reason for detector+fusion+synthesis layers",
+            "context_restoration_projection_rule": "projected context uses bounded deterministic pipeline/step/artifact/runtime/comparison summaries from local state only",
+            "context_restoration_readiness_rule": "readiness surface is derived directly from required context matrix with explicit reasons when false and projection notes when true",
+            "context_restoration_subcode_rule": "refined NC context subcodes are appended only for explicit known layer-context gaps",
         },
     )
 
