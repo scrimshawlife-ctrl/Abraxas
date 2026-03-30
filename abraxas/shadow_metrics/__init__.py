@@ -9,6 +9,7 @@ LOCKED: 2025-12-29
 """
 
 __version__ = "1.0.0"
+_ALLOW_CORE_IMPORT = False
 
 
 class AccessDeniedError(Exception):
@@ -64,9 +65,12 @@ def __getattr__(name: str):
         import inspect
         import importlib
 
+        module_file = __file__.replace("\\", "/")
         for frame_info in inspect.stack():
             filename = frame_info.filename.replace("\\", "/")
-            if "/shadow_metrics/" in filename:
+            if filename == module_file:
+                continue
+            if "/shadow_metrics/" in filename or filename.endswith("/runes/operators/sso.py"):
                 return importlib.import_module(f"{__name__}.{name}")
 
         raise AccessDeniedError(
@@ -107,6 +111,11 @@ def _internal_rune_access():
             )
 
     # Import and return engine (deferred import to prevent direct access)
-    from abraxas.shadow_metrics.core import SSMEngine
+    global _ALLOW_CORE_IMPORT
+    _ALLOW_CORE_IMPORT = True
+    try:
+        from abraxas.shadow_metrics.core import SSMEngine
 
-    return SSMEngine()
+        return SSMEngine()
+    finally:
+        _ALLOW_CORE_IMPORT = False
