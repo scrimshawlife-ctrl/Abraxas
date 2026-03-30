@@ -72,6 +72,7 @@ This file is the append-first execution queue for implementation runs.
 
 ## Completed
 - *(append completed items here; do not delete historical record)*
+- 2026-03-30 — PR conflict-resolution merge pass: verified repository merge state is clean (`git status --porcelain -b` and conflict marker scan), then recorded explicit NOT_COMPUTABLE merge outcome because no additional local/remote PR refs are present to merge in this environment.
 - 2026-03-30 — Large-run runtime contract enforcement pass: added `scripts/large_run_contracts.py` and wired envelope validation into all large-run builders so invalid artifacts fail fast before write, with focused contract-unit tests.
 - 2026-03-30 — Large-run contract schema pass: added shared envelope schema `aal_core/schemas/large_run_execution_artifact.v1.json` and focused contract test coverage to ensure large-run artifacts emit required run-linked fields (`run_id`, `rune_id`, `artifact_id`, `timestamp`, `phase`, `status`, `inputs/outputs`, `provenance`, `correlation_pointers`).
 - 2026-03-30 — Large-run convergence operationalization pass: wired canonical `make large-run-convergence BATCH_ID=<id> [MIN_POINTERS=1]` target to execute deterministic bundle orchestration through `scripts/run_large_run_convergence.py`.
