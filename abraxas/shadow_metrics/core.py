@@ -9,11 +9,24 @@ import hashlib
 import json
 import socket
 import subprocess
+import sys
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+
+class AccessDeniedError(ImportError):
+    """Raised when shadow metrics core is imported outside rune-gated path."""
+
+
+_shadow_metrics_module = sys.modules.get("abraxas.shadow_metrics")
+if not bool(getattr(_shadow_metrics_module, "_ALLOW_CORE_IMPORT", False)):
+    raise AccessDeniedError(
+        "Shadow Structural Metrics core can only be imported via ABX-Runes interface (ϟ₇). "
+        "Direct access is forbidden by design."
+    )
 
 
 class SSMProvenance(BaseModel):
