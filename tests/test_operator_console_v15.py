@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import webpanel.operator_console as operator_console
@@ -13,6 +14,7 @@ from webpanel.operator_console import (
     resolve_compare_run_id_for_apply,
     run_compliance_probe_command,
     write_pipeline_artifact,
+    write_pipeline_final_state_artifact,
     write_detector_signal_artifact,
     write_motif_signal_artifact,
     write_drift_signal_artifact,
@@ -20,6 +22,10 @@ from webpanel.operator_console import (
     write_fusion_signal_artifact,
     write_synthesis_output_artifact,
     write_binding_health_artifact,
+    write_pipeline_envelope_binding_artifact,
+    write_run_id_propagation_artifact,
+    write_pipeline_envelope_run_id_repair_artifact,
+    write_context_restoration_artifact,
     write_pipeline_routing_artifact,
     write_pipeline_review_artifact,
     write_runtime_corridor_artifact,
@@ -782,6 +788,467 @@ def test_not_computable_subcode_precision_when_run_binding_missing(tmp_path: Pat
     synthesis = view.abraxas_synthesis
     assert fusion.get("not_computable_subcode", "NC_MISSING_REQUIRED_CONTEXT").startswith("NC_")
     assert synthesis.get("synthesis_label", "NOT_COMPUTABLE") == "NOT_COMPUTABLE"
+
+
+def test_operator_bound_run_context_uses_runtime_invocation_priority() -> None:
+    ctx = operator_console._derive_operator_bound_run_context(
+        selected_run_id="run.v1",
+        runtime_invocation_envelope={"run_id": "run.v1", "pipeline_id": "PIPE.A"},
+        latest_pipeline_envelope={"run_id": "run.fallback", "pipeline_id": "PIPE.F"},
+        latest_pipeline_export_path="artifacts_seal/abraxas_pipeline/x.json",
+        latest_pipeline_export_status="written",
+        pipeline_binding_snapshot={"payload": {"pipeline_execution_envelope": {"run_id": "run.snap", "pipeline_id": "PIPE.S"}}},
+    )
+    assert ctx["operator_binding_source"] == "runtime_invocation"
+    assert ctx["operator_binding_status"] == "BOUND"
+    assert ctx["operator_bound_run_id"] == "run.v1"
+
+
+def test_pipeline_envelope_linkage_binds_from_artifact_snapshot_when_latest_missing() -> None:
+    linkage = operator_console._derive_pipeline_envelope_linkage(
+        latest_pipeline_envelope={"overall_status": "NOT_COMPUTABLE", "final_classification": "NOT_COMPUTABLE"},
+        latest_pipeline_steps=[],
+        pipeline_binding_snapshot={
+            "payload": {
+                "pipeline_execution_envelope": {"overall_status": "SUCCESS", "final_classification": "SUCCESS"},
+                "pipeline_step_records": [{"step_name": "review_audit", "status": "SUCCESS"}],
+            }
+        },
+        operator_bound_run_context={"operator_binding_status": "BOUND"},
+    )
+    assert linkage["envelope_binding_status"] == "BOUND"
+    assert linkage["final_state_source_available"] is True
+    assert linkage["resolution_source"] == "pipeline_envelope_artifact"
+
+
+def test_load_latest_pipeline_binding_snapshot_prefers_matching_run_id(tmp_path: Path) -> None:
+    root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    older = root / "20260328T010000Z.pipeline.json"
+    newer = root / "20260329T010000Z.pipeline.json"
+    _write_json(
+        older,
+        {
+            "pipeline_execution_envelope": {
+                "run_id": "run.selected.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "SUCCESS",
+                "final_classification": "SUCCESS",
+            }
+        },
+    )
+    _write_json(
+        newer,
+        {
+            "pipeline_execution_envelope": {
+                "run_id": "run.other.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "SUCCESS",
+                "final_classification": "SUCCESS",
+            }
+        },
+    )
+    os.utime(older, (1, 1))
+    os.utime(newer, (2, 2))
+    snapshot = operator_console._load_latest_pipeline_binding_snapshot(tmp_path, preferred_run_id="run.selected.v1")
+    envelope = snapshot["payload"]["pipeline_execution_envelope"]
+    assert envelope["run_id"] == "run.selected.v1"
+
+
+def test_load_latest_pipeline_binding_snapshot_normalizes_pipeline_envelope_key(tmp_path: Path) -> None:
+    root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    path = root / "20260329T010000Z.pipeline.json"
+    _write_json(
+        path,
+        {
+            "pipeline_envelope": {
+                "run_id": "run.selected.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "SUCCESS",
+                "final_classification": "SUCCESS",
+            },
+            "pipeline_step_records": [{"step_name": "review_audit", "status": "SUCCESS"}],
+        },
+    )
+    snapshot = operator_console._load_latest_pipeline_binding_snapshot(tmp_path, preferred_run_id="run.selected.v1")
+    envelope = snapshot["payload"]["pipeline_execution_envelope"]
+    assert envelope["run_id"] == "run.selected.v1"
+
+
+def test_selected_run_snapshot_exact_match_drives_bindable_final_state_and_synthesis(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    selected_path = root / "20260328T010000Z.pipeline.json"
+    newer_other_path = root / "20260329T010000Z.pipeline.json"
+    _write_json(
+        selected_path,
+        {
+            "pipeline_execution_envelope": {
+                "run_id": "run.generalized_coverage.scopepass.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "SUCCESS",
+                "final_classification": "SUCCESS",
+                "final_result_summary": "SUCCESS|scopepass",
+            },
+            "pipeline_step_records": [{"step_name": "review_audit", "status": "SUCCESS"}],
+        },
+    )
+    _write_json(
+        newer_other_path,
+        {
+            "pipeline_execution_envelope": {
+                "run_id": "run.other.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "FAILED",
+                "final_classification": "FAILED",
+            },
+            "pipeline_step_records": [{"step_name": "review_audit", "status": "FAILED"}],
+        },
+    )
+    os.utime(selected_path, (1, 1))
+    os.utime(newer_other_path, (2, 2))
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    linkage = view.binding_restoration["pipeline_envelope_linkage"]
+    assert linkage["resolution_source"] == "pipeline_envelope_artifact"
+    assert linkage["run_id_match_status"] == "EXACT_MATCH"
+    assert view.binding_restoration["final_state_bindable"] is True
+    synthesis_input = view.abraxas_synthesis["synthesis_input_surface"]
+    assert synthesis_input["pipeline_final_state"]["pipeline_final_status"] == "SUCCESS"
+    assert synthesis_input["pipeline_final_state"]["pipeline_status_resolved"] is True
+
+
+def test_binding_envelope_health_surface_true_false_branches() -> None:
+    pass_surface = operator_console._derive_binding_envelope_health_surface(
+        operator_bound_run_context={"operator_binding_status": "BOUND"},
+        pipeline_envelope_linkage={"envelope_binding_status": "BOUND", "final_state_source_available": True, "resolution_source": "latest_pipeline_envelope"},
+    )
+    fail_surface = operator_console._derive_binding_envelope_health_surface(
+        operator_bound_run_context={"operator_binding_status": "UNBOUND"},
+        pipeline_envelope_linkage={"envelope_binding_status": "UNBOUND", "final_state_source_available": False, "resolution_source": "none"},
+    )
+    assert pass_surface["final_state_derivable"] is True
+    assert pass_surface["synthesis_blocked_by_binding"] is False
+    assert fail_surface["final_state_derivable"] is False
+    assert fail_surface["blocking_reason"] == "NC_OPERATOR_RUN_UNBOUND"
+
+
+def test_refined_binding_nc_subcodes_are_precise() -> None:
+    subcodes = operator_console._derive_refined_binding_nc_subcodes(
+        operator_bound_run_context={"operator_binding_status": "UNBOUND"},
+        pipeline_envelope_linkage={"envelope_binding_status": "UNBOUND", "final_state_source_available": False},
+    )
+    assert "NC_OPERATOR_RUN_UNBOUND" in subcodes
+    assert "NC_PIPELINE_ENVELOPE_UNBOUND" in subcodes
+
+
+def test_binding_envelope_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_binding"
+    path, status = write_pipeline_envelope_binding_artifact(payload=view.binding_restoration["binding_envelope_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.BINDING"
+    assert "operator_bound_run_context" in payload
+    assert "pipeline_envelope_linkage" in payload
+    assert "binding_envelope_health_surface" in payload
+
+
+def test_synthesis_input_uses_binding_specific_subcode_when_final_state_unresolved(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None, workbench_mode="runtime")
+    synthesis_input = view.abraxas_synthesis["synthesis_input_surface"]
+    assert synthesis_input["pipeline_unresolved_subcode"] in {"NC_OPERATOR_RUN_UNBOUND", "NC_PIPELINE_ENVELOPE_UNBOUND", "NC_FINAL_STATE_SOURCE_MISSING", "NC_PIPELINE_STATUS_UNRESOLVED"}
+
+
+def test_binding_envelope_export_status_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    state_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_binding_envelope_export_status="written",
+        latest_binding_envelope_export_path="artifacts_seal/abraxas_binding/20260329T000000Z.pipeline_envelope_binding.json",
+    )
+    assert state_view.selected_run_detail == base_view.selected_run_detail
+    assert state_view.pipeline_routing == base_view.pipeline_routing
+
+
+def test_invocation_run_id_normalization_prefers_action_history_then_selected() -> None:
+    envelope = operator_console._derive_runtime_invocation_envelope(
+        last_action={"action_name": "run_abraxas_pipeline", "triggered_run_id": "run.action.v1"},
+        selected_run_id="run.selected.v1",
+    )
+    assert envelope["invocation_run_id"] == "run.action.v1"
+    assert envelope["invocation_run_id_source"] == "action_history"
+    assert envelope["invocation_run_id_status"] == "PRESENT"
+
+
+def test_pipeline_adapter_run_id_propagates_into_envelope_and_steps() -> None:
+    result = execute_runtime_adapter(
+        action_name="run_abraxas_pipeline",
+        payload={"selected_run_id": "run.generalized_coverage.scopepass.v1"},
+        allowed_actions=["run_abraxas_pipeline"],
+    )
+    envelope = dict(result.get("pipeline_envelope", {}))
+    step_records = [row for row in result.get("pipeline_step_records", []) if isinstance(row, dict)]
+    assert envelope.get("run_id") == "run.generalized_coverage.scopepass.v1"
+    assert all(
+        str((row.get("input_summary", {}) if isinstance(row.get("input_summary", {}), dict) else {}).get("selected_run_id", ""))
+        in {"", "run.generalized_coverage.scopepass.v1"}
+        for row in step_records
+    )
+
+
+def test_envelope_linkage_reports_run_id_match_status_exact() -> None:
+    linkage = operator_console._derive_pipeline_envelope_linkage(
+        latest_pipeline_envelope={"run_id": "run.v1", "overall_status": "SUCCESS", "final_classification": "SUCCESS"},
+        latest_pipeline_steps=[],
+        pipeline_binding_snapshot={},
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id": "run.v1"},
+    )
+    assert linkage["pipeline_envelope_run_id"] == "run.v1"
+    assert linkage["run_id_match_status"] == "EXACT_MATCH"
+
+
+def test_final_state_bindable_true_false_branches() -> None:
+    true_surface = operator_console._derive_binding_envelope_health_surface(
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id_status": "PRESENT"},
+        pipeline_envelope_linkage={
+            "envelope_binding_status": "BOUND",
+            "final_state_source_available": True,
+            "pipeline_envelope_run_id_status": "PRESENT",
+            "run_id_match_status": "EXACT_MATCH",
+            "resolution_source": "latest_pipeline_envelope",
+        },
+    )
+    false_surface = operator_console._derive_binding_envelope_health_surface(
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id_status": "PRESENT"},
+        pipeline_envelope_linkage={
+            "envelope_binding_status": "UNBOUND",
+            "final_state_source_available": False,
+            "pipeline_envelope_run_id_status": "MISSING",
+            "run_id_match_status": "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH",
+            "resolution_source": "none",
+        },
+    )
+    assert true_surface["final_state_bindable"] is True
+    assert false_surface["final_state_bindable"] is False
+
+
+def test_nc_invocation_run_id_unpropagated_is_emitted_when_supported() -> None:
+    subcodes = operator_console._derive_refined_binding_nc_subcodes(
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id_status": "PRESENT"},
+        pipeline_envelope_linkage={
+            "envelope_binding_status": "UNBOUND",
+            "final_state_source_available": False,
+            "run_id_match_status": "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH",
+        },
+    )
+    assert "NC_INVOCATION_RUN_ID_UNPROPAGATED" in subcodes
+
+
+def test_run_id_propagation_export_artifact_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_binding"
+    path, status = write_run_id_propagation_artifact(payload=view.binding_restoration["run_id_propagation_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["rune_id"] == "RUNE.BINDING"
+    assert "invocation_run_id_state" in payload
+    assert "pipeline_envelope_run_id_state" in payload
+    assert "run_id_match_status" in payload
+    assert "final_state_bindable" in payload
+
+
+def test_run_id_propagation_export_status_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    state_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_run_id_propagation_export_status="written",
+        latest_run_id_propagation_export_path="artifacts_seal/abraxas_binding/20260329T000000Z.run_id_propagation.json",
+    )
+    assert state_view.selected_run_detail == base_view.selected_run_detail
+    assert state_view.runtime_corridor == base_view.runtime_corridor
+
+
+def test_pipeline_envelope_persists_canonical_run_id_from_invocation_payload() -> None:
+    result = operator_console._adapter_run_abraxas_pipeline(
+        {
+            "selected_run_id": "run.selected.v1",
+            "invocation_run_id": "run.invocation.v1",
+        }
+    )
+    envelope = dict(result.get("pipeline_envelope", {}))
+    assert envelope.get("run_id") == "run.invocation.v1"
+    assert envelope.get("run_id_propagation_status") == "PRESENT"
+
+
+def test_pipeline_export_preview_preserves_same_envelope_run_id(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        pipeline_envelope_override={"run_id": "run.generalized_coverage.scopepass.v1", "overall_status": "SUCCESS", "final_classification": "SUCCESS"},
+    )
+    preview = view.abraxas_pipeline["pipeline_export_preview"]
+    envelope = preview["pipeline_execution_envelope"]
+    assert envelope["run_id"] == "run.generalized_coverage.scopepass.v1"
+
+
+def test_operator_exact_match_binding_succeeds_when_envelope_run_id_matches() -> None:
+    linkage = operator_console._derive_pipeline_envelope_linkage(
+        latest_pipeline_envelope={"run_id": "run.exact.v1", "overall_status": "SUCCESS", "final_classification": "SUCCESS"},
+        latest_pipeline_steps=[],
+        pipeline_binding_snapshot={},
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id": "run.exact.v1"},
+    )
+    health = operator_console._derive_binding_envelope_health_surface(
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id_status": "PRESENT"},
+        pipeline_envelope_linkage=linkage,
+    )
+    assert linkage["run_id_match_status"] == "EXACT_MATCH"
+    assert health["final_state_bindable"] is True
+
+
+def test_binding_restoration_exposes_final_state_derivable_flag(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    _write_json(
+        tmp_path / "artifacts_seal/abraxas_pipeline/20260329T010000Z.pipeline.json",
+        {
+            "pipeline_envelope": {
+                "run_id": "run.generalized_coverage.scopepass.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "SUCCESS",
+                "final_classification": "SUCCESS",
+            },
+            "pipeline_step_records": [{"step_name": "review_audit", "status": "SUCCESS"}],
+        },
+    )
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    assert view.binding_restoration["final_state_derivable"] is True
+    assert view.binding_restoration["final_state_bindable"] is True
+
+
+def test_nc_pipeline_envelope_run_id_missing_when_envelope_exists_without_run_id() -> None:
+    linkage = {
+        "envelope_binding_status": "BOUND",
+        "pipeline_envelope_run_id_status": "MISSING",
+        "run_id_match_status": "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH",
+        "final_state_source_available": True,
+    }
+    subcodes = operator_console._derive_refined_binding_nc_subcodes(
+        operator_bound_run_context={"operator_binding_status": "BOUND", "invocation_run_id_status": "PRESENT"},
+        pipeline_envelope_linkage=linkage,
+    )
+    assert "NC_PIPELINE_ENVELOPE_RUN_ID_MISSING" in subcodes
+
+
+def test_pipeline_envelope_run_id_repair_artifact_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_binding"
+    path, status = write_pipeline_envelope_run_id_repair_artifact(
+        payload=view.binding_restoration["pipeline_envelope_run_id_repair_export_preview"],
+        root=out_root,
+    )
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "aal.runes.execution_artifact.v1"
+    assert payload["rune_id"] == "RUNE.BINDING"
+    assert payload["phase"] == "VALIDATE"
+    assert payload["status"] in {"SUCCESS", "NOT_COMPUTABLE"}
+    assert payload["inputs"]["payload"]["invocation_run_id_state"] in {"PRESENT", "MISSING", "NOT_COMPUTABLE"}
+    assert payload["inputs"]["payload"]["emitted_envelope_run_id_state"] in {"PRESENT", "MISSING", "NOT_COMPUTABLE"}
+    assert payload["outputs"]["payload"]["run_id_match_status"] in {
+        "EXACT_MATCH",
+        "FALLBACK_MATCH",
+        "INVOCATION_MISSING",
+        "INVOCATION_PRESENT_ENVELOPE_MISSING_OR_MISMATCH",
+    }
+    assert isinstance(payload["outputs"]["payload"]["final_state_bindable"], bool)
+
+
+def test_pipeline_envelope_run_id_repair_export_status_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    state_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_pipeline_envelope_run_id_repair_export_status="written",
+        latest_pipeline_envelope_run_id_repair_export_path="artifacts_seal/abraxas_binding/20260329T000000Z.pipeline_envelope_run_id_repair.json",
+    )
+    assert state_view.selected_run_detail == base_view.selected_run_detail
+    assert state_view.pipeline_routing == base_view.pipeline_routing
+
+
+def test_context_restoration_required_context_matrix_is_explicit(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    matrix = view.context_restoration["required_context_matrix"]
+    assert set(matrix.keys()) == {"detector_layer", "fusion_layer", "synthesis_layer"}
+    assert isinstance(matrix["detector_layer"]["ready"], bool)
+    assert isinstance(matrix["detector_layer"]["missing_fields"], list)
+    assert isinstance(matrix["detector_layer"]["available_fields"], list)
+
+
+def test_context_restoration_projection_is_bounded_and_truthful(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    projected = view.context_restoration["projected_context"]
+    assert "normalized_pipeline_summary" in projected
+    assert "normalized_step_rollup_summary" in projected
+    assert "compact_artifact_summary" in projected
+    assert "bounded_runtime_result_summary" in projected
+    assert "bounded_comparison_summary" in projected
+
+
+def test_context_readiness_surface_true_false_branches(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    ready_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    missing_view = build_view_state(base_dir=tmp_path, selected_run_id=None, workbench_mode="runtime")
+    ready_surface = ready_view.context_restoration["context_readiness_surface"]
+    missing_surface = missing_view.context_restoration["context_readiness_surface"]
+    assert isinstance(ready_surface["detector_context_ready"], bool)
+    assert isinstance(missing_surface["detector_context_ready"], bool)
+    assert isinstance(missing_surface["reasons_when_false"], dict)
+
+
+def test_refined_not_computable_subcodes_are_specific_when_known(tmp_path: Path) -> None:
+    view = build_view_state(base_dir=tmp_path, selected_run_id=None, workbench_mode="runtime")
+    refined = view.context_restoration["refined_not_computable_subcodes"]
+    assert "NC_MISSING_DETECTOR_CONTEXT" in refined
+    assert any(code.startswith("NC_MISSING_") for code in refined)
+
+
+def test_context_restoration_export_artifact_is_written_with_bounded_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1", workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_context"
+    path, status = write_context_restoration_artifact(payload=view.context_restoration["context_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert payload["source"] == "operator_console"
+    assert payload["rune_id"] == "RUNE.CONTEXT_RESTORE"
+    assert "required_context_matrix" in payload
+    assert "projected_context" in payload
+    assert "context_readiness_surface" in payload
+    assert "refined_not_computable_subcodes" in payload
+
+
+def test_context_restoration_layer_does_not_mutate_unrelated_operator_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    context_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_context_export_status="written",
+        latest_context_export_path="artifacts_seal/abraxas_context/20260329T000000Z.context_restoration.json",
+    )
+    assert context_view.selected_run_detail == base_view.selected_run_detail
+    assert context_view.runtime_corridor == base_view.runtime_corridor
 
 
 def test_ers_state_and_queue_surfaces_are_deterministic(tmp_path: Path) -> None:
@@ -2155,6 +2622,111 @@ def test_pipeline_artifact_writer_creates_bounded_schema(tmp_path: Path) -> None
     assert "final_classification" in payload
     assert "overall_status_rule" in payload
     assert "final_summary_block" in payload
+
+
+def test_pipeline_final_state_surface_is_derived_and_bounded(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    surface = view.pipeline_final_state
+    assert surface["pipeline_final_status"] in {"SUCCESS", "PARTIAL", "FAILED", "NOT_COMPUTABLE"}
+    assert surface["pipeline_completion_state"] in {"COMPLETE", "INCOMPLETE", "UNKNOWN"}
+    assert isinstance(surface["pipeline_success_flags"], list)
+    assert isinstance(surface["pipeline_failure_flags"], list)
+    assert surface["resolution_source"] in {"pipeline", "pipeline_classification", "fallback", "none"}
+
+
+def test_pipeline_final_state_uses_envelope_final_classification_when_status_missing() -> None:
+    surface = operator_console._derive_pipeline_final_state(
+        latest_pipeline_envelope={
+            "overall_status": "NOT_COMPUTABLE",
+            "final_classification": "SUCCESS",
+        },
+        pipeline_step_records=[],
+        pipeline_review_workspace_payload={},
+    )
+    assert surface["pipeline_final_status"] == "SUCCESS"
+    assert surface["pipeline_status_resolved"] is True
+    assert surface["resolution_source"] == "pipeline_classification"
+
+
+def test_synthesis_uses_pipeline_final_state_when_resolved() -> None:
+    output = operator_console._derive_abraxas_synthesis_output(
+        selected_run_id="run.v1",
+        synthesis_input_surface={
+            "pipeline_status": "NOT_COMPUTABLE",
+            "fusion_label": "BROKEN_SIGNAL",
+            "fusion_status": "SUCCESS",
+            "governance_policy_mode": "bounded_runtime",
+            "runtime_outcome_status": "NOT_COMPUTABLE",
+            "runtime_blocker_summary": [],
+            "pipeline_final_state": {
+                "pipeline_final_status": "SUCCESS",
+                "pipeline_status_resolved": True,
+            },
+            "pipeline_unresolved_subcode": "NC_PIPELINE_STATUS_UNRESOLVED",
+        },
+    )
+    assert output["synthesis_label"] == "READY"
+    assert "pipeline_final_status_success" in output["synthesis_reasons"]
+
+
+def test_synthesis_uses_nc_pipeline_status_unresolved_when_missing() -> None:
+    output = operator_console._derive_abraxas_synthesis_output(
+        selected_run_id="run.v1",
+        synthesis_input_surface={
+            "pipeline_status": "NOT_COMPUTABLE",
+            "fusion_label": "ACTIVE_FRICTION",
+            "fusion_status": "NOT_COMPUTABLE",
+            "governance_policy_mode": "bounded_runtime",
+            "runtime_outcome_status": "NOT_COMPUTABLE",
+            "runtime_blocker_summary": [],
+            "pipeline_final_state": {
+                "pipeline_final_status": "NOT_COMPUTABLE",
+                "pipeline_status_resolved": False,
+            },
+            "pipeline_unresolved_subcode": "NC_PIPELINE_STATUS_UNRESOLVED",
+        },
+    )
+    assert output["synthesis_label"] == "NOT_COMPUTABLE"
+    assert "NC_PIPELINE_STATUS_UNRESOLVED" in output["synthesis_blockers"]
+
+
+def test_pipeline_final_state_health_surface_uses_nc_blocker_when_unresolved() -> None:
+    health = operator_console._derive_pipeline_final_state_health_surface(
+        pipeline_final_state={
+            "pipeline_status_resolved": False,
+            "pipeline_final_status": "NOT_COMPUTABLE",
+            "resolution_source": "none",
+        },
+        ledger_bridge={"ledger_bridge_status": "READY"},
+    )
+    assert health["blocking_reason"] == "NC_PIPELINE_STATUS_UNRESOLVED"
+
+
+def test_pipeline_final_state_export_artifact_schema(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, workbench_mode="runtime")
+    out_root = tmp_path / "artifacts_seal" / "abraxas_pipeline"
+    path, status = write_pipeline_final_state_artifact(payload=view.pipeline_final_state["final_state_export_preview"], root=out_root)
+    assert status == "written"
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert "pipeline_final_state" in payload
+    assert "final_state_health_surface" in payload
+    assert "synthesis_ready" in payload
+    assert "resolution_source" in payload
+
+
+def test_pipeline_final_state_export_status_does_not_mutate_unrelated_state(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    state_view = build_view_state(
+        base_dir=tmp_path,
+        selected_run_id="run.generalized_coverage.scopepass.v1",
+        latest_pipeline_final_state_export_status="written",
+        latest_pipeline_final_state_export_path="artifacts_seal/abraxas_pipeline/20260329T000000Z.pipeline_final_state.json",
+    )
+    assert state_view.selected_run_detail == base_view.selected_run_detail
+    assert state_view.binding_restoration == base_view.binding_restoration
 
 
 def test_pipeline_runtime_adapter_allowed_vs_blocked(tmp_path: Path) -> None:

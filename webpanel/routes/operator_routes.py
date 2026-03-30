@@ -16,6 +16,7 @@ from ..operator_console import (
     write_operator_markdown_report,
     write_operator_report_artifact,
     write_pipeline_artifact,
+    write_pipeline_final_state_artifact,
     write_pipeline_routing_artifact,
     write_pipeline_review_artifact,
     write_runtime_corridor_artifact,
@@ -26,6 +27,10 @@ from ..operator_console import (
     write_fusion_signal_artifact,
     write_synthesis_output_artifact,
     write_binding_health_artifact,
+    write_pipeline_envelope_binding_artifact,
+    write_run_id_propagation_artifact,
+    write_pipeline_envelope_run_id_repair_artifact,
+    write_context_restoration_artifact,
     write_viz_render_artifact,
 )
 from ..panel_context import templates, require_token, _panel_host, _panel_port, _panel_token, _token_enabled
@@ -448,6 +453,10 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
     export_runtime_corridor = request.query_params.get("export_runtime_corridor") == "1"
     invoke_runtime_entry = request.query_params.get("invoke_runtime_entry")
     export_pipeline_artifact = request.query_params.get("export_pipeline_artifact") == "1"
+    export_pipeline_final_state = request.query_params.get("export_pipeline_final_state") == "1"
+    export_pipeline_envelope_binding = request.query_params.get("export_pipeline_envelope_binding") == "1"
+    export_run_id_propagation = request.query_params.get("export_run_id_propagation") == "1"
+    export_pipeline_envelope_run_id_repair = request.query_params.get("export_pipeline_envelope_run_id_repair") == "1"
     export_pipeline_review = request.query_params.get("export_pipeline_review") == "1"
     export_pipeline_routing = request.query_params.get("export_pipeline_routing") == "1"
     export_detector_signal = request.query_params.get("export_detector_signal") == "1"
@@ -457,6 +466,7 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
     export_fusion_signal = request.query_params.get("export_fusion_signal") == "1"
     export_synthesis_output = request.query_params.get("export_synthesis_output") == "1"
     export_binding_health = request.query_params.get("export_binding_health") == "1"
+    export_context_restoration = request.query_params.get("export_context_restoration") == "1"
     select_pipeline = request.query_params.get("select_pipeline")
     clear_pipeline_override = request.query_params.get("clear_pipeline_override") == "1"
 
@@ -611,6 +621,8 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
             runtime_invocation_override=bucket.get("runtime_invocation_override") if isinstance(bucket.get("runtime_invocation_override"), dict) else None,
             latest_pipeline_export_path=str(bucket.get("latest_pipeline_export_path", "")) or None,
             latest_pipeline_export_status=str(bucket.get("latest_pipeline_export_status", "not_requested")),
+            latest_pipeline_final_state_export_path=str(bucket.get("latest_pipeline_final_state_export_path", "")) or None,
+            latest_pipeline_final_state_export_status=str(bucket.get("latest_pipeline_final_state_export_status", "not_requested")),
             pipeline_envelope_override=bucket.get("pipeline_envelope_override") if isinstance(bucket.get("pipeline_envelope_override"), dict) else None,
             pipeline_step_records_override=bucket.get("pipeline_step_records_override") if isinstance(bucket.get("pipeline_step_records_override"), list) else None,
             latest_pipeline_review_export_path=str(bucket.get("latest_pipeline_review_export_path", "")) or None,
@@ -632,6 +644,14 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
             latest_synthesis_export_status=str(bucket.get("latest_synthesis_export_status", "not_requested")),
             latest_binding_export_path=str(bucket.get("latest_binding_export_path", "")) or None,
             latest_binding_export_status=str(bucket.get("latest_binding_export_status", "not_requested")),
+            latest_binding_envelope_export_path=str(bucket.get("latest_binding_envelope_export_path", "")) or None,
+            latest_binding_envelope_export_status=str(bucket.get("latest_binding_envelope_export_status", "not_requested")),
+            latest_run_id_propagation_export_path=str(bucket.get("latest_run_id_propagation_export_path", "")) or None,
+            latest_run_id_propagation_export_status=str(bucket.get("latest_run_id_propagation_export_status", "not_requested")),
+            latest_pipeline_envelope_run_id_repair_export_path=str(bucket.get("latest_pipeline_envelope_run_id_repair_export_path", "")) or None,
+            latest_pipeline_envelope_run_id_repair_export_status=str(bucket.get("latest_pipeline_envelope_run_id_repair_export_status", "not_requested")),
+            latest_context_export_path=str(bucket.get("latest_context_export_path", "")) or None,
+            latest_context_export_status=str(bucket.get("latest_context_export_status", "not_requested")),
         )
 
     view = _build_current_view(run_id=selected, compare_id=compare_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
@@ -764,7 +784,11 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
             action_name = str(entry.get("action_name", ""))
             adapter_output = execute_runtime_adapter(
                 action_name=action_name,
-                payload={"selected_run_id": view.selected_run_id or "", "entry_id": invoke_runtime_entry},
+                payload={
+                    "selected_run_id": view.selected_run_id or "",
+                    "invocation_run_id": view.selected_run_id or "",
+                    "entry_id": invoke_runtime_entry,
+                },
                 allowed_actions=list(view.control_plane.get("allowed_actions", [])),
             )
             artifact_paths = [str(x) for x in adapter_output.get("artifact_paths", []) if isinstance(x, str)][:5]
@@ -775,6 +799,10 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
                 "adapter_name": str(adapter_output.get("adapter_name", entry.get("adapter_name", "NOT_COMPUTABLE"))),
                 "attempted_at": str(adapter_output.get("attempted_at", attempted_at)),
                 "run_id": str(adapter_output.get("run_id", "") or view.selected_run_id or "NOT_COMPUTABLE"),
+                "pipeline_id": str(adapter_output.get("pipeline_id", entry.get("pipeline_id", "NOT_COMPUTABLE"))),
+                "invocation_run_id": str(adapter_output.get("run_id", "") or view.selected_run_id or "NOT_COMPUTABLE"),
+                "invocation_run_id_source": "adapter_output" if str(adapter_output.get("run_id", "")).strip() else ("selected_run_id" if str(view.selected_run_id or "").strip() else "none"),
+                "invocation_run_id_status": "PRESENT" if str(adapter_output.get("run_id", "") or view.selected_run_id or "").strip() else "MISSING",
                 "payload_summary": {"selected_run_id": str(view.selected_run_id or "")},
                 "artifact_paths": artifact_paths,
                 "result_path": artifact_paths[0] if artifact_paths else "",
@@ -833,6 +861,34 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
         bucket["latest_pipeline_export_status"] = pipeline_status
         view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
 
+    if export_pipeline_final_state:
+        final_state_payload = dict((view.pipeline_final_state or {}).get("final_state_export_preview", {}))
+        final_state_path, final_state_status = write_pipeline_final_state_artifact(payload=final_state_payload)
+        bucket["latest_pipeline_final_state_export_path"] = final_state_path or ""
+        bucket["latest_pipeline_final_state_export_status"] = final_state_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_pipeline_envelope_binding:
+        binding_payload = dict((view.binding_restoration or {}).get("binding_envelope_export_preview", {}))
+        binding_path, binding_status = write_pipeline_envelope_binding_artifact(payload=binding_payload)
+        bucket["latest_binding_envelope_export_path"] = binding_path or ""
+        bucket["latest_binding_envelope_export_status"] = binding_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_run_id_propagation:
+        propagation_payload = dict((view.binding_restoration or {}).get("run_id_propagation_export_preview", {}))
+        propagation_path, propagation_status = write_run_id_propagation_artifact(payload=propagation_payload)
+        bucket["latest_run_id_propagation_export_path"] = propagation_path or ""
+        bucket["latest_run_id_propagation_export_status"] = propagation_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
+    if export_pipeline_envelope_run_id_repair:
+        repair_payload = dict((view.binding_restoration or {}).get("pipeline_envelope_run_id_repair_export_preview", {}))
+        repair_path, repair_status = write_pipeline_envelope_run_id_repair_artifact(payload=repair_payload)
+        bucket["latest_pipeline_envelope_run_id_repair_export_path"] = repair_path or ""
+        bucket["latest_pipeline_envelope_run_id_repair_export_status"] = repair_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+
     if export_pipeline_review:
         review_payload = dict((view.pipeline_hardening or {}).get("pipeline_review_export_preview", {}))
         review_path, review_status = write_pipeline_review_artifact(payload=review_payload)
@@ -887,6 +943,12 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
         binding_path, binding_status = write_binding_health_artifact(payload=binding_payload)
         bucket["latest_binding_export_path"] = binding_path or ""
         bucket["latest_binding_export_status"] = binding_status
+        view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
+    if export_context_restoration:
+        context_payload = dict((view.context_restoration or {}).get("context_export_preview", {}))
+        context_path, context_status = write_context_restoration_artifact(payload=context_payload)
+        bucket["latest_context_export_path"] = context_path or ""
+        bucket["latest_context_export_status"] = context_status
         view = _build_current_view(run_id=view.selected_run_id, compare_id=view.comparison_run_id, ls_path=loaded_snapshot_path, ls_status=loaded_snapshot_status)
 
     if export_ers_snapshot:
@@ -1113,6 +1175,8 @@ async def ui_run_compliance_probe(request: Request):
         runtime_invocation_override=bucket.get("runtime_invocation_override") if isinstance(bucket.get("runtime_invocation_override"), dict) else None,
         latest_pipeline_export_path=str(bucket.get("latest_pipeline_export_path", "")) or None,
         latest_pipeline_export_status=str(bucket.get("latest_pipeline_export_status", "not_requested")),
+        latest_pipeline_final_state_export_path=str(bucket.get("latest_pipeline_final_state_export_path", "")) or None,
+        latest_pipeline_final_state_export_status=str(bucket.get("latest_pipeline_final_state_export_status", "not_requested")),
         pipeline_envelope_override=bucket.get("pipeline_envelope_override") if isinstance(bucket.get("pipeline_envelope_override"), dict) else None,
         pipeline_step_records_override=bucket.get("pipeline_step_records_override") if isinstance(bucket.get("pipeline_step_records_override"), list) else None,
         latest_pipeline_review_export_path=str(bucket.get("latest_pipeline_review_export_path", "")) or None,
@@ -1131,6 +1195,14 @@ async def ui_run_compliance_probe(request: Request):
         latest_synthesis_export_status=str(bucket.get("latest_synthesis_export_status", "not_requested")),
         latest_binding_export_path=str(bucket.get("latest_binding_export_path", "")) or None,
         latest_binding_export_status=str(bucket.get("latest_binding_export_status", "not_requested")),
+        latest_binding_envelope_export_path=str(bucket.get("latest_binding_envelope_export_path", "")) or None,
+        latest_binding_envelope_export_status=str(bucket.get("latest_binding_envelope_export_status", "not_requested")),
+        latest_run_id_propagation_export_path=str(bucket.get("latest_run_id_propagation_export_path", "")) or None,
+        latest_run_id_propagation_export_status=str(bucket.get("latest_run_id_propagation_export_status", "not_requested")),
+        latest_pipeline_envelope_run_id_repair_export_path=str(bucket.get("latest_pipeline_envelope_run_id_repair_export_path", "")) or None,
+        latest_pipeline_envelope_run_id_repair_export_status=str(bucket.get("latest_pipeline_envelope_run_id_repair_export_status", "not_requested")),
+        latest_context_export_path=str(bucket.get("latest_context_export_path", "")) or None,
+        latest_context_export_status=str(bucket.get("latest_context_export_status", "not_requested")),
     )
     action_result: dict[str, object] | None = None
     last_action: dict[str, object] | None = None
@@ -1337,6 +1409,14 @@ async def ui_run_compliance_probe(request: Request):
         latest_synthesis_export_status=str(bucket.get("latest_synthesis_export_status", "not_requested")),
         latest_binding_export_path=str(bucket.get("latest_binding_export_path", "")) or None,
         latest_binding_export_status=str(bucket.get("latest_binding_export_status", "not_requested")),
+        latest_binding_envelope_export_path=str(bucket.get("latest_binding_envelope_export_path", "")) or None,
+        latest_binding_envelope_export_status=str(bucket.get("latest_binding_envelope_export_status", "not_requested")),
+        latest_run_id_propagation_export_path=str(bucket.get("latest_run_id_propagation_export_path", "")) or None,
+        latest_run_id_propagation_export_status=str(bucket.get("latest_run_id_propagation_export_status", "not_requested")),
+        latest_pipeline_envelope_run_id_repair_export_path=str(bucket.get("latest_pipeline_envelope_run_id_repair_export_path", "")) or None,
+        latest_pipeline_envelope_run_id_repair_export_status=str(bucket.get("latest_pipeline_envelope_run_id_repair_export_status", "not_requested")),
+        latest_context_export_path=str(bucket.get("latest_context_export_path", "")) or None,
+        latest_context_export_status=str(bucket.get("latest_context_export_status", "not_requested")),
     )
     bucket["context"] = {
         "selected_run_id": view_after.selected_run_id or "",
