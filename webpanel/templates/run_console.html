@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Run Console — {{ run_id }}</h1>
+<section>
+  <h2>Summary Card</h2>
+  <p><strong>Policy:</strong> {{ summary.policy_state }}</p>
+  <p><strong>Readiness:</strong> {{ summary.readiness_state.status }} / {{ summary.readiness_state.federated_readiness_state }}</p>
+  <p><strong>Federated:</strong> {{ summary.federated_summary.federated_evidence_state_summary }} (packets={{ summary.federated_summary.remote_evidence_packet_count }})</p>
+  <p><strong>Execution:</strong> {{ summary.execution_status.overall_status }}</p>
+</section>
+<section>
+  <h2>Tier Ladder</h2>
+  <ol>
+    <li>Tier 1 — {{ summary.projection_summary.tier1_local_closure }}</li>
+    <li>Tier 2 — {{ summary.projection_summary.tier2_local_promotion_state }}</li>
+    <li>Tier 2.5 — {{ summary.projection_summary.tier25_federated_readiness_state }}</li>
+    <li>Tier 2.75 — {{ summary.projection_summary.promotion_policy_state }}</li>
+    <li>Tier 3 — {{ summary.execution_status.overall_status }}</li>
+  </ol>
+</section>
+<section>
+  <h2>Blockers</h2>
+  <ul>
+    {% for blocker in summary.blockers %}<li>{{ blocker }}</li>{% endfor %}
+  </ul>
+</section>
+<section>
+  <h2>Artifact refs</h2>
+  <ul>
+    {% for ref in summary.artifact_refs %}<li>{{ ref }}</li>{% endfor %}
+  </ul>
+</section>
+<section>
+  <h2>JSON export</h2>
+  <pre>{{ summary | tojson(indent=2) }}</pre>
+</section>
+{% endblock %}

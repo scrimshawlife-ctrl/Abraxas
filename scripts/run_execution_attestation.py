@@ -10,6 +10,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from abx.promotion_policy import (
+    PromotionPolicyDecision,
+    PromotionPolicyState,
+    emit_promotion_policy,
+    evaluate_promotion_policy,
+)
+
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -31,14 +42,21 @@ class StepResult:
     ok: bool
 
 
+def policy_allows_tier3_execution(decision_state: str | None) -> bool:
+    return decision_state in {PromotionPolicyState.ALLOWED.value, PromotionPolicyState.WAIVED.value}
+
+
 def compute_overall_status(
     *,
     validator_status: str | None,
     acceptance_verdict: str | None,
     seal_ok: bool | None,
     require_seal: bool,
+    policy_decision_state: str | None,
 ) -> tuple[str, list[str]]:
     reasons: list[str] = []
+    if not policy_allows_tier3_execution(policy_decision_state):
+        reasons.append(f"policy_decision_state={policy_decision_state or 'missing'}")
     if validator_status != "VALID":
         reasons.append(f"validator_status={validator_status or 'missing'}")
     if acceptance_verdict != "PASS":
@@ -69,6 +87,8 @@ def build_attestation_payload(
     acceptance_status: Path,
     seal_report: Path | None,
     require_seal: bool,
+    policy_decision: PromotionPolicyDecision,
+    policy_artifact: Path,
 ) -> dict[str, Any]:
     validator_payload = _safe_read_json(validator_artifact)
     acceptance_payload = _safe_read_json(acceptance_result)
@@ -91,6 +111,7 @@ def build_attestation_payload(
         acceptance_verdict=acceptance_verdict,
         seal_ok=seal_ok,
         require_seal=require_seal,
+        policy_decision_state=policy_decision.decision_state.value,
     )
 
     return {
@@ -110,6 +131,10 @@ def build_attestation_payload(
             for step in step_results
         ],
         "artifacts": {
+            "policy": {
+                "path": policy_artifact.as_posix(),
+                "exists": policy_artifact.exists(),
+            },
             "validator": {
                 "path": validator_artifact.as_posix(),
                 "exists": validator_artifact.exists(),
@@ -131,9 +156,18 @@ def build_attestation_payload(
                 "required": require_seal,
             },
         },
+        "policy_gate": {
+            "decision_state": policy_decision.decision_state.value,
+            "reason_codes": policy_decision.reason_codes[:8],
+            "blockers": policy_decision.blockers[:8],
+            "waived": policy_decision.waived,
+            "requires_federation": policy_decision.requires_federation,
+            "federated_evidence": policy_decision.federated_evidence_summary,
+        },
         "provenance": {
             "runner": "scripts.run_execution_attestation",
-            "version": "v0.1",
+            "version": "v0.3",
+            "policy_checker": policy_decision.provenance.get("checker", "unknown"),
         },
     }
 
@@ -159,6 +193,41 @@ def main() -> int:
     started_at = _utc_now_iso()
     steps: list[StepResult] = []
 
+    policy_decision = evaluate_promotion_policy(args.run_id, base_dir=base_dir)
+    policy_artifact = emit_promotion_policy(policy_decision, base_dir / "out" / "policy")
+
+    validator_artifact = base_dir / args.validators_out / f"execution-validation-{args.run_id}.json"
+    acceptance_result = base_dir / args.acceptance_output / "acceptance_result.json"
+    acceptance_status = base_dir / args.acceptance_output / "acceptance_status_v1.json"
+    seal_report: Path | None = None
+
+    if not policy_allows_tier3_execution(policy_decision.decision_state.value):
+        finished_at = _utc_now_iso()
+        payload = build_attestation_payload(
+            run_id=args.run_id,
+            started_at=started_at,
+            finished_at=finished_at,
+            step_results=steps,
+            validator_artifact=validator_artifact,
+            acceptance_result=acceptance_result,
+            acceptance_status=acceptance_status,
+            seal_report=seal_report,
+            require_seal=args.with_seal,
+            policy_decision=policy_decision,
+            policy_artifact=policy_artifact,
+        )
+
+        out_dir = base_dir / args.attestation_out
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"execution-attestation-{args.run_id}.json"
+        out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+        print(f"attestation={out_path}")
+        print(f"overall_status={payload['overall_status']}")
+        if payload["fail_reasons"]:
+            print("fail_reasons=" + ",".join(payload["fail_reasons"]))
+        return 1
+
     validator_cmd = [
         sys.executable,
         "scripts/run_execution_validator.py",
@@ -182,7 +251,6 @@ def main() -> int:
     ]
     steps.append(_run_step("acceptance_suite", acceptance_cmd, base_dir))
 
-    seal_report: Path | None = None
     if args.with_seal:
         seal_cmd = [
             sys.executable,
@@ -196,10 +264,6 @@ def main() -> int:
 
     finished_at = _utc_now_iso()
 
-    validator_artifact = base_dir / args.validators_out / f"execution-validation-{args.run_id}.json"
-    acceptance_result = base_dir / args.acceptance_output / "acceptance_result.json"
-    acceptance_status = base_dir / args.acceptance_output / "acceptance_status_v1.json"
-
     payload = build_attestation_payload(
         run_id=args.run_id,
         started_at=started_at,
@@ -210,6 +274,8 @@ def main() -> int:
         acceptance_status=acceptance_status,
         seal_report=seal_report,
         require_seal=args.with_seal,
+        policy_decision=policy_decision,
+        policy_artifact=policy_artifact,
     )
 
     out_dir = base_dir / args.attestation_out
@@ -226,4 +292,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

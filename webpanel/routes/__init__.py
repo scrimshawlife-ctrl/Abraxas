@@ -5,6 +5,7 @@ from .export_routes import register as register_export
 from .governance_routes import register as register_governance
 from .index_routes import register as register_index
 from .operator_routes import register as register_operator
+from .operator_surfaces_routes import register as register_operator_surfaces
 from .runs_routes import register as register_runs
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "register_governance",
     "register_index",
     "register_operator",
+    "register_operator_surfaces",
     "register_runs",
 ]

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -14,6 +15,15 @@ from abx.promotion_pack import build_promotion_pack
 
 
 def main() -> int:
+    if os.environ.get("ABX_ALLOW_SHADOW_PROMOTION_PACK", "0") != "1":
+        print(
+            "run_promotion_pack is SHADOW_DIAGNOSTIC and deprecated for canonical promotion execution. "
+            "Use: proof-run -> promotion-check -> promotion-policy -> run_execution_attestation. "
+            "Set ABX_ALLOW_SHADOW_PROMOTION_PACK=1 to run this legacy utility.",
+            file=sys.stderr,
+        )
+        return 2
+
     ap = argparse.ArgumentParser(description="Build deterministic promotion/closure evidence pack")
     ap.add_argument("scenario_json")
     args = ap.parse_args()

@@ -15,6 +15,7 @@ from .routes import (
     register_governance,
     register_index,
     register_operator,
+    register_operator_surfaces,
     register_runs,
 )
 from .routes.governance_routes import (
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     register_index(app)
     register_operator(app)
     register_runs(app)
+    register_operator_surfaces(app)
     register_compare(app)
     register_export(app)
     register_governance(app)

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Federated Evidence — {{ run_id }}</h1>
+<p><strong>State:</strong> {{ evidence.federated_evidence_state_summary }}</p>
+<p><strong>Manifest outcome:</strong> {{ evidence.manifest_validation_outcome }}</p>
+<p><strong>Packet count:</strong> {{ evidence.remote_evidence_packet_count }}</p>
+<p><strong>Inconsistency:</strong> {{ evidence.inconsistency_flag }}</p>
+<section>
+  <h2>Blockers</h2>
+  <ul>{% for blocker in evidence.blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
+</section>
+<section>
+  <h2>Packets</h2>
+  <ul>
+  {% for p in evidence.packet_list %}
+    <li>{{ p.packet_id }} | {{ p.status }} | {{ p.observed_at }} | {{ p.source }}</li>
+  {% endfor %}
+  </ul>
+</section>
+<section>
+  <h2>JSON export</h2>
+  <pre>{{ evidence | tojson(indent=2) }}</pre>
+</section>
+{% endblock %}

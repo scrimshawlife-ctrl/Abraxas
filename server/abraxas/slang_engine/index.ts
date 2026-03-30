@@ -21,7 +21,8 @@ import type {
   DriftAlert,
   SlangClass,
 } from "./schema";
-import { DEFAULT_DECAY_PROFILES, getDefaultHalfLife } from "./schema";
+import { DEFAULT_DECAY_PROFILES } from "./schema";
+import { getDefaultHalfLife } from "./decay";
 import {
   enrichSignal,
   computeSignalFields,
@@ -56,7 +57,15 @@ import {
 // Re-export types for external use
 export * from "./schema";
 export * from "./signal-processor";
-export * from "./decay";
+export {
+  applyDecay,
+  processDecayBatch,
+  archiveSignal,
+  shouldResurrect,
+  resurrectSignal,
+  applySurvivalBoost,
+};
+export type { SurvivalFactors } from "./decay";
 export * from "./gates";
 export * from "./kernel-hooks";
 

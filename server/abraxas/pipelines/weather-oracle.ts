@@ -12,7 +12,7 @@
 
 import type { RitualInput } from "../models/ritual";
 import type { DailyOracleOutput } from "../models/oracle";
-import { generateDailyCiphergram } from "./daily-oracle";
+import { generateDailyOracle } from "./daily-oracle";
 import {
   generateSemioticWeather,
   weatherToJSON,
@@ -42,7 +42,29 @@ export async function generateWeatherOracle(
   ritual: RitualInput
 ): Promise<WeatherOracleOutput> {
   // Step 1: Generate daily oracle
-  const oracle = await generateDailyCiphergram(ritual);
+  const oracleResult = generateDailyOracle(ritual, {
+    sources: 0,
+    signals: 0,
+    predictions: 0,
+    accuracy: null,
+  });
+  const oracle: DailyOracleOutput = {
+    ciphergram: oracleResult.ciphergram,
+    note: oracleResult.litany,
+    tone: oracleResult.tone,
+    confidence: oracleResult.analysis.confidence,
+    symbolicMetrics: {
+      SDR: oracleResult.provenance.metrics.SDR,
+      MSI: oracleResult.provenance.metrics.MSI,
+      ARF: oracleResult.provenance.metrics.ARF,
+      NMC: 0,
+      RFR: 0,
+      Hσ: oracleResult.provenance.metrics.Hσ,
+      λN: 0,
+      ITC: 0,
+    },
+    timestamp: oracleResult.timestamp,
+  };
 
   // Step 2: Prepare Weather Engine input using Oracle's output
   const context = ritualToContext(ritual);
