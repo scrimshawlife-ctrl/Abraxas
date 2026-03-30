@@ -1,0 +1,45 @@
+{% macro render_signal_sections(payload, namespace='signal') -%}
+  {% set section_payload = payload if payload is mapping else {} %}
+  {% set ordered_sections = [
+    ('raw_signal', 'Raw Signal'),
+    ('structural_model', 'Structural Model'),
+    ('optional_lenses', 'Optional Lenses'),
+    ('claim_status', 'Claim Status'),
+    ('omissions', 'Omissions'),
+  ] %}
+  {% for key, label in ordered_sections %}
+    <section class="signal-section" data-ui-signal-namespace="{{ namespace }}" data-ui-signal-section="{{ key }}">
+      <h3>{{ label }}</h3>
+      {% if key == 'omissions' %}
+        {% set rows = section_payload.get('omissions', []) if section_payload.get('omissions', []) is iterable else [] %}
+        {% if rows %}
+          <ul>
+            {% for row in rows %}
+              {% if row is mapping %}
+                <li>
+                  <code>omitted_by={{ row.get('omitted_by', '') }}</code>
+                  <code>omitted_reason={{ row.get('omitted_reason', '') }}</code>
+                  <code>boundary_type={{ row.get('boundary_type', '') }}</code>
+                  <code>source_pointer={{ row.get('source_pointer', '') }}</code>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p><small>none</small></p>
+        {% endif %}
+      {% else %}
+        {% set block = section_payload.get(key, {}) if section_payload.get(key, {}) is mapping else {} %}
+        {% if block %}
+          <ul>
+            {% for item_key, item_value in block.items() %}
+              <li><code>{{ item_key }}</code> = {{ item_value }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p><small>none</small></p>
+        {% endif %}
+      {% endif %}
+    </section>
+  {% endfor %}
+{%- endmacro %}

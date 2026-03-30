@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_signal_sections.html" import render_signal_sections %}
 {% block content %}
 <h1>Run: {{ run.run_id }}</h1>
 <p><a href="/"><- back</a> · <a href="/runs/{{ run.run_id }}/ledger">ledger view</a></p>
@@ -257,8 +258,8 @@
 {% if oracle_view and show_sections.oracle %}
   <div class="card" style="margin-top:16px;">
     <h2>Oracle (OSLv2)</h2>
+    {{ render_signal_sections(oracle_view.structured_signal_payload, "oracle_card") }}
     <p><b>Tier:</b> {{ oracle_view.tier }} · <b>Lane:</b> {{ oracle_view.lane }}</p>
-    <p><b>Summary:</b> {{ oracle_view.summary }}</p>
     {% if not oracle_validation.valid %}
       <p class="badge warn"><b>Warning:</b> OracleOutput.v2 validation failed</p>
       {% if oracle_validation.errors %}

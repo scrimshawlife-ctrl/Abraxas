@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set
 
 from abx.execution_validator import emit_validation_result, validate_run
+from webpanel.ui_signal_sections import normalize_signal_sections
 
 @dataclass(frozen=True)
 class ViewState:
@@ -5332,7 +5333,49 @@ def _derive_abraxas_synthesis_output(
     synthesis_input_surface: Mapping[str, Any],
     selected_run_id: Optional[str],
 ) -> Dict[str, Any]:
+    def _structured_payload(
+        *,
+        raw_signal: Mapping[str, Any],
+        structural_model: Mapping[str, Any],
+        optional_lenses: Mapping[str, Any],
+        claim_status: Mapping[str, Any],
+        omissions: List[Mapping[str, Any]],
+    ) -> Dict[str, Any]:
+        normalized_omissions: List[Dict[str, str]] = []
+        for row in omissions:
+            if not isinstance(row, Mapping):
+                continue
+            normalized_omissions.append(
+                {
+                    "omitted_by": str(row.get("omitted_by", "")),
+                    "omitted_reason": str(row.get("omitted_reason", "")),
+                    "source_pointer": str(row.get("source_pointer", "")),
+                    "boundary_type": str(row.get("boundary_type", "")),
+                }
+            )
+        return {
+            "raw_signal": dict(raw_signal),
+            "structural_model": dict(structural_model),
+            "optional_lenses": dict(optional_lenses),
+            "claim_status": dict(claim_status),
+            "omissions": normalized_omissions,
+        }
+
     if not selected_run_id:
+        structured_signal_payload = _structured_payload(
+            raw_signal={"run_id": "NOT_COMPUTABLE"},
+            structural_model={"pipeline_status": "NOT_COMPUTABLE"},
+            optional_lenses={},
+            claim_status={"label": "NOT_COMPUTABLE", "status": "NOT_COMPUTABLE"},
+            omissions=[
+                {
+                    "omitted_by": "operator_console.abraxas_synthesis",
+                    "omitted_reason": "selected_run_id_missing",
+                    "source_pointer": "synthesis_input_surface.run_id",
+                    "boundary_type": "hard_boundary",
+                }
+            ],
+        )
         return {
             "synthesis_label": "NOT_COMPUTABLE",
             "synthesis_status": "NOT_COMPUTABLE",
@@ -5341,6 +5384,7 @@ def _derive_abraxas_synthesis_output(
             "synthesis_next_step": "Select run to compute synthesis output.",
             "synthesis_rule_precedence_note": "precedence=not_computable>blocked>incomplete>unstable>friction>ready>active",
             "interpretation_summary": "synthesis=NOT_COMPUTABLE; reason=selected_run_id_missing",
+            "structured_signal_payload": structured_signal_payload,
             "rule_ids": ["synthesis.not_computable_when_selected_run_missing"],
             "provenance": "operator_console.abraxas_synthesis.output.v4.6.not_computable",
         }
@@ -5437,9 +5481,56 @@ def _derive_abraxas_synthesis_output(
         "NOT_COMPUTABLE": "Establish run, pipeline, and fusion context so synthesis can bind deterministically.",
     }
     synthesis_next_step = next_step_map[label]
+    omissions: List[Dict[str, str]] = []
+    if label == "NOT_COMPUTABLE":
+        omissions.append(
+            {
+                "omitted_by": "operator_console.abraxas_synthesis",
+                "omitted_reason": "pipeline_or_fusion_not_computable",
+                "source_pointer": "synthesis_input_surface.pipeline_unresolved_subcode",
+                "boundary_type": "hard_boundary",
+            }
+        )
+    for blocker in synthesis_blockers[:3]:
+        omissions.append(
+            {
+                "omitted_by": "operator_console.abraxas_synthesis",
+                "omitted_reason": blocker,
+                "source_pointer": "synthesis_input_surface.runtime_blocker_summary",
+                "boundary_type": "hard_boundary",
+            }
+        )
+    structured_signal_payload = _structured_payload(
+        raw_signal={
+            "run_id": selected_run_id,
+            "pipeline_status": pipeline_status,
+            "runtime_outcome": runtime_outcome,
+        },
+        structural_model={
+            "pipeline_final_status": pipeline_final_status,
+            "pipeline_status_resolved": pipeline_status_resolved,
+            "fusion_status": fusion_status,
+        },
+        optional_lenses={
+            "fusion_label": fusion_label,
+            "signal_sufficiency_status": sufficiency_status,
+            "governance_policy_mode": policy_mode,
+        },
+        claim_status={
+            "label": label,
+            "status": "SUCCESS",
+            "reasons": reasons[:6],
+        },
+        omissions=omissions,
+    )
     interpretation_summary = (
-        f"synthesis={label}; pipeline={pipeline_status}; fusion={fusion_label}; "
-        f"sufficiency={sufficiency_status}; runtime={runtime_outcome}; policy={policy_mode}; blockers={','.join(synthesis_blockers[:3]) or 'none'}"
+        f"synthesis={structured_signal_payload['claim_status'].get('label', label)}; "
+        f"pipeline={structured_signal_payload['raw_signal'].get('pipeline_status', pipeline_status)}; "
+        f"fusion={structured_signal_payload['optional_lenses'].get('fusion_label', fusion_label)}; "
+        f"sufficiency={structured_signal_payload['optional_lenses'].get('signal_sufficiency_status', sufficiency_status)}; "
+        f"runtime={structured_signal_payload['raw_signal'].get('runtime_outcome', runtime_outcome)}; "
+        f"policy={structured_signal_payload['optional_lenses'].get('governance_policy_mode', policy_mode)}; "
+        f"blockers={','.join(synthesis_blockers[:3]) or 'none'}"
     )
     return {
         "synthesis_label": label,
@@ -5449,6 +5540,7 @@ def _derive_abraxas_synthesis_output(
         "synthesis_next_step": synthesis_next_step,
         "synthesis_rule_precedence_note": synthesis_rule_precedence_note,
         "interpretation_summary": interpretation_summary[:320],
+        "structured_signal_payload": structured_signal_payload,
         "rule_ids": [
             "synthesis.pipeline_final_state_primary_when_resolved",
             "synthesis.blocked_when_blockers_or_broken_signal_or_pipeline_blocked",
@@ -5460,6 +5552,42 @@ def _derive_abraxas_synthesis_output(
         ],
         "provenance": "operator_console.abraxas_synthesis.output.v4.6.explicit_rule_ladder",
     }
+
+
+def _legacy_synthesis_structured_payload_adapter(
+    *,
+    synthesis_output: Mapping[str, Any],
+    synthesis_input_surface: Mapping[str, Any],
+) -> Dict[str, Any]:
+    existing = synthesis_output.get("structured_signal_payload", {})
+    if isinstance(existing, Mapping) and existing:
+        return dict(existing)
+    return normalize_signal_sections(
+        {
+            "raw_signal": {
+                "run_id": str(synthesis_input_surface.get("run_id", "NOT_COMPUTABLE")),
+                "pipeline_status": str(synthesis_input_surface.get("pipeline_status", "NOT_COMPUTABLE")),
+                "runtime_outcome": str(synthesis_input_surface.get("runtime_outcome_status", "NOT_COMPUTABLE")),
+            },
+            "structural_model": {
+                "legacy_summary": str(synthesis_output.get("interpretation_summary", "")),
+                "pipeline_final_state": dict(synthesis_input_surface.get("pipeline_final_state", {}))
+                if isinstance(synthesis_input_surface.get("pipeline_final_state", {}), Mapping)
+                else {},
+            },
+            "optional_lenses": {
+                "fusion_label": str(synthesis_input_surface.get("fusion_label", "NOT_COMPUTABLE")),
+                "signal_sufficiency_status": str(synthesis_input_surface.get("signal_sufficiency_status", "INSUFFICIENT")),
+                "governance_policy_mode": str(synthesis_input_surface.get("governance_policy_mode", "review_only")),
+            },
+            "claim_status": {
+                "label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
+                "status": str(synthesis_output.get("synthesis_status", "NOT_COMPUTABLE")),
+                "reasons": [str(x) for x in synthesis_output.get("synthesis_reasons", []) if isinstance(x, str)][:6],
+            },
+            "omissions": [],
+        }
+    )
 
 
 def _derive_guard_conditions(
@@ -7512,11 +7640,16 @@ def build_view_state(
         synthesis_output["not_computable_subcode"] = (
             pipeline_unresolved_subcode or (not_computable_subcodes[0] if not_computable_subcodes else "NC_MISSING_REQUIRED_CONTEXT")
         )
+    synthesis_structured_payload = _legacy_synthesis_structured_payload_adapter(
+        synthesis_output=synthesis_output,
+        synthesis_input_surface=synthesis_input_surface,
+    )
     synthesis_export_preview = {
         "run_id": chosen or "NOT_COMPUTABLE",
         "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
         "timestamp": _utc_now(),
         "synthesis_input_surface": synthesis_input_surface,
+        "structured_signal_payload": synthesis_structured_payload,
         "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
         "synthesis_reasons": list(synthesis_output.get("synthesis_reasons", []))[:6],
         "synthesis_blockers": list(synthesis_output.get("synthesis_blockers", []))[:6],
@@ -7546,6 +7679,7 @@ def build_view_state(
         "synthesis_next_step": str(synthesis_output.get("synthesis_next_step", "")),
         "synthesis_export_status": latest_synthesis_export_status,
         "synthesis_export_path": latest_synthesis_export_path or "",
+        "structured_signal_payload": synthesis_structured_payload,
         "fusion_label": str(detector_fusion_output.get("fused_label", "NOT_COMPUTABLE")),
         "pipeline_id": str(latest_pipeline_envelope.get("pipeline_id", "NOT_COMPUTABLE")),
         "pipeline_final_status": str(pipeline_final_state_surface.get("pipeline_final_status", "NOT_COMPUTABLE")),
@@ -7574,9 +7708,11 @@ def build_view_state(
         "reason_line": ", ".join(final_card_reasons[:3])[:180],
         "blocker_line": ", ".join(final_card_blockers[:3])[:180],
         "interpretation_summary": str(synthesis_output.get("interpretation_summary", "")),
+        "structured_signal_payload": synthesis_structured_payload,
     }
     abraxas_synthesis = {
         "synthesis_input_surface": synthesis_input_surface,
+        "structured_signal_payload": synthesis_structured_payload,
         "synthesis_label": str(synthesis_output.get("synthesis_label", "NOT_COMPUTABLE")),
         "synthesis_reasons": list(synthesis_output.get("synthesis_reasons", []))[:6],
         "synthesis_blockers": list(synthesis_output.get("synthesis_blockers", []))[:6],
@@ -7775,6 +7911,27 @@ def build_view_state(
         compare_delta_summary=compare_delta_summary,
     )
     context_readiness_surface = _derive_context_readiness_surface(required_context_matrix=required_context_matrix)
+    projected_context_structured_payload = {
+        "raw_signal": {
+            "run_id": str(bound_run_context.get("bound_run_id", "NOT_COMPUTABLE")),
+            "pipeline_status": str(pipeline_workspace_payload.get("pipeline_status", "NOT_COMPUTABLE")),
+            "runtime_outcome_status": str(runtime_workspace_payload.get("outcome_status", "NOT_COMPUTABLE")),
+        },
+        "structural_model": {
+            "pipeline_summary": str(projected_context.get("normalized_pipeline_summary", "")),
+            "step_rollup_summary": str(projected_context.get("normalized_step_rollup_summary", "")),
+            "artifact_summary": str(projected_context.get("compact_artifact_summary", "")),
+        },
+        "optional_lenses": {
+            "runtime_summary": str(projected_context.get("bounded_runtime_result_summary", "")),
+            "comparison_summary": str(projected_context.get("bounded_comparison_summary", "")),
+        },
+        "claim_status": {
+            "label": "READY" if bool(context_readiness_surface.get("synthesis_context_ready", False)) else "INCOMPLETE",
+            "status": "SUCCESS",
+        },
+        "omissions": [],
+    }
     refined_not_computable_subcodes = _derive_refined_not_computable_subcodes(
         observed_subcodes=not_computable_subcodes[:5],
         required_context_matrix=required_context_matrix,
@@ -7785,6 +7942,7 @@ def build_view_state(
         "timestamp": _utc_now(),
         "required_context_matrix": required_context_matrix,
         "projected_context": projected_context,
+        "structured_signal_payload": projected_context_structured_payload,
         "context_readiness_surface": context_readiness_surface,
         "observed_not_computable_subcodes": not_computable_subcodes[:5],
         "refined_not_computable_subcodes": refined_not_computable_subcodes[:8],
@@ -7805,12 +7963,14 @@ def build_view_state(
         "detector_context_ready": bool(context_readiness_surface.get("detector_context_ready", False)),
         "fusion_context_ready": bool(context_readiness_surface.get("fusion_context_ready", False)),
         "synthesis_context_ready": bool(context_readiness_surface.get("synthesis_context_ready", False)),
+        "structured_signal_payload": projected_context_structured_payload,
         "context_export_status": latest_context_export_status,
         "context_export_path": latest_context_export_path or "",
     }
     context_restoration = {
         "required_context_matrix": required_context_matrix,
         "projected_context": projected_context,
+        "structured_signal_payload": projected_context_structured_payload,
         "context_readiness_surface": context_readiness_surface,
         "refined_not_computable_subcodes": refined_not_computable_subcodes[:8],
         "context_export_preview": context_export_preview,
