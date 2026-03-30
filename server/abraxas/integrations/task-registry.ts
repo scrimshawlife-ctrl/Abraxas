@@ -337,7 +337,6 @@ export const weatherOracleTask: SymbolicTask = {
         metrics: {
           duration,
           quality: result.weather.metadata.qualityScore,
-          processingTime: result.weather.metadata.processingTime,
         },
         provenance: {
           taskId: context.taskId,

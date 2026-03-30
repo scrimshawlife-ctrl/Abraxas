@@ -13,6 +13,9 @@ Subcommands:
 - ui: Start chat-like UI server
 - admin: Print admin handshake (module discovery)
 - log: Deterministic logging operations (append/compact/vacuum/verify)
+- proof-run: Execute canonical local proof closure path
+- promotion-check: Classify local closure vs promotion readiness
+- promotion-policy: Enforce promotion/seal permission gate
 """
 
 from __future__ import annotations
@@ -42,6 +45,9 @@ from abx.ui.server import build_ui_app
 from abx.ui.admin_handshake import admin_prompt
 from abx.store.sqlite_store import connect
 from abx.log import ledger, compactor, policy
+from abx.proof_closure import run_canonical_proof_closure
+from abx.promotion_readiness import evaluate_promotion_readiness, emit_promotion_readiness
+from abx.promotion_policy import evaluate_promotion_policy, emit_promotion_policy
 
 def _cmd_ok(msg: str) -> None:
     """Print success message."""
@@ -140,7 +146,14 @@ def smoke() -> int:
 
 
 def acceptance_cmd() -> int:
-    """Run acceptance suite (artifact-only) via shellable script."""
+    """Run legacy acceptance harness (shadow-only unless explicitly allowed)."""
+    if os.environ.get("ABX_ALLOW_SHADOW_ACCEPTANCE", "0") != "1":
+        _cmd_err(
+            "acceptance command is SHADOW_DIAGNOSTIC and not canonical Tier 3. "
+            "Use: python scripts/run_execution_attestation.py <RUN_ID> [--with-seal]. "
+            "Set ABX_ALLOW_SHADOW_ACCEPTANCE=1 to run legacy acceptance directly."
+        )
+        return 2
     repo_root = Path(__file__).resolve().parent.parent
     script = repo_root / "scripts" / "abx_acceptance.sh"
     if not script.exists():
@@ -344,6 +357,50 @@ def log_cmd(args: argparse.Namespace) -> int:
 
     raise RuntimeError("unknown log action")
 
+def proof_run_cmd(args: argparse.Namespace) -> int:
+    """Run canonical proof-bearing closure path."""
+    result = run_canonical_proof_closure(run_id=args.run_id, base_dir=Path(args.base_dir))
+    print(dumps_stable({
+        "run_id": result.run_id,
+        "status": result.status,
+        "rune_artifact_path": result.rune_artifact_path,
+        "validator_artifact_path": result.validator_artifact_path,
+        "operator_summary_path": result.operator_summary_path,
+        "attestation_path": result.attestation_path,
+    }))
+    return 0 if result.status == "PASS" else 1
+
+
+
+def promotion_check_cmd(args: argparse.Namespace) -> int:
+    """Check whether a run is local-closure complete or promotion-ready."""
+    result = evaluate_promotion_readiness(
+        args.run_id,
+        base_dir=Path(args.base_dir),
+    )
+    out_path = emit_promotion_readiness(result, Path(args.base_dir) / "out" / "promotion")
+    print(dumps_stable({
+        **result.to_dict(),
+        "artifact_path": out_path.as_posix(),
+    }))
+    return 0 if result.status.value in {"LOCAL_CLOSURE_COMPLETE", "PROMOTION_READY"} else 1
+
+
+
+def promotion_policy_cmd(args: argparse.Namespace) -> int:
+    """Evaluate deterministic promotion policy gate."""
+    decision = evaluate_promotion_policy(
+        args.run_id,
+        base_dir=Path(args.base_dir),
+        require_federation=(not args.allow_local_only),
+    )
+    out_path = emit_promotion_policy(decision, Path(args.base_dir) / "out" / "policy")
+    print(dumps_stable({
+        **decision.to_dict(),
+        "artifact_path": out_path.as_posix(),
+    }))
+    return 0 if decision.decision_state.value in {"ALLOWED", "WAIVED"} else 1
+
 def overlay_cmd(args: argparse.Namespace) -> int:
     """Handle overlay subcommands."""
     cfg = load_config()
@@ -400,7 +457,7 @@ def main() -> None:
     p_doctor.add_argument("--seed", type=int, default=None, help="Deterministic seed")
     sub.add_parser("up", help="Start HTTP server")
     sub.add_parser("smoke", help="Run smoke test")
-    sub.add_parser("acceptance", help="Run acceptance suite (artifact-only)")
+    sub.add_parser("acceptance", help="Run legacy acceptance harness (shadow-only)")
 
     p_assets = sub.add_parser("assets", help="Asset management")
     sub_assets = p_assets.add_subparsers(dest="assets_cmd", required=True)
@@ -505,6 +562,23 @@ def main() -> None:
     p_apply.add_argument("--receipt", required=True, help="governance_receipt_id")
     p_apply.add_argument("--plan", required=True, help="Path to plan json")
 
+    p_proof = sub.add_parser("proof-run", help="Run canonical proof-bearing closure path")
+    p_proof.add_argument("--run-id", required=True, help="Run identifier to propagate")
+    p_proof.add_argument("--base-dir", default=".", help="Repository base path")
+
+    p_promotion = sub.add_parser("promotion-check", help="Check run promotion readiness")
+    p_promotion.add_argument("--run-id", required=True, help="Run identifier to inspect")
+    p_promotion.add_argument("--base-dir", default=".", help="Repository base path")
+
+    p_policy = sub.add_parser("promotion-policy", help="Evaluate promotion policy gate")
+    p_policy.add_argument("--run-id", required=True, help="Run identifier to inspect")
+    p_policy.add_argument("--base-dir", default=".", help="Repository base path")
+    p_policy.add_argument(
+        "--allow-local-only",
+        action="store_true",
+        help="Disable federated-readiness requirement (diagnostic use only)",
+    )
+
     p_log = sub.add_parser("log", help="Deterministic logging operations")
     p_log.add_argument("log_action", choices=["append", "compact", "vacuum", "verify", "stats"], help="Log action")
     p_log.add_argument("--kind", default="", help="Event kind (for append)")
@@ -554,6 +628,12 @@ def main() -> None:
         raise SystemExit(govern_cmd(args))
     if args.cmd == "apply":
         raise SystemExit(apply_cmd(args))
+    if args.cmd == "proof-run":
+        raise SystemExit(proof_run_cmd(args))
+    if args.cmd == "promotion-check":
+        raise SystemExit(promotion_check_cmd(args))
+    if args.cmd == "promotion-policy":
+        raise SystemExit(promotion_policy_cmd(args))
     if args.cmd == "log":
         raise SystemExit(log_cmd(args))
 

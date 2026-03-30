@@ -37,12 +37,12 @@ function assertRequiredCapabilities(): void {
  */
 export function initializeRitual(ctx: RuneInvocationContext): RitualInput {
   assertRequiredCapabilities();
-  const ritual = invokeRuneByCapability("runes:run_ritual", {}, ctx);
+  const ritual = invokeRuneByCapability("runes:run_ritual", {}, ctx) as Record<string, unknown>;
 
   return {
-    date: ritual.date,
-    seed: String(ritual.seed),
-    runes: ritual.runes as Rune[],
+    date: String(ritual.date ?? ""),
+    seed: String(ritual.seed ?? ""),
+    runes: (Array.isArray(ritual.runes) ? ritual.runes : []) as Rune[],
   };
 }
 

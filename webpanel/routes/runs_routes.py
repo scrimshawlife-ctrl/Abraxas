@@ -5,6 +5,7 @@ import json
 from fastapi import HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
+from abx.operator_projection import build_operator_projection_summary
 from ..consideration import build_considerations_for_run
 from ..continuity import build_continuity_report
 from ..delta_notifications import compute_delta_notifications
@@ -135,6 +136,7 @@ def ui_run(request: Request, run_id: str):
     execution_validation = load_execution_validation_for_run(run.run_id)
     if execution_validation:
         run.execution_validation = execution_validation
+    operator_projection_summary = build_operator_projection_summary(run.run_id).to_dict()
     return templates.TemplateResponse(
         "run.html",
         {
@@ -165,6 +167,7 @@ def ui_run(request: Request, run_id: str):
             "run_brief": run_brief,
             "delta_notifications": delta_notifications,
             "execution_validation": execution_validation,
+            "operator_projection_summary": operator_projection_summary,
         },
     )
 
@@ -178,6 +181,15 @@ def ui_oracle_json(run_id: str):
         raise HTTPException(status_code=404, detail="oracle output not found")
     return Response(content=payload, media_type="application/json")
 
+
+
+def ui_projection_json(run_id: str):
+    run = panel_context.store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    payload = build_operator_projection_summary(run_id).to_dict()
+    rendered = json.dumps(payload, sort_keys=True, ensure_ascii=True)
+    return Response(content=rendered, media_type="application/json")
 
 def ui_stability(request: Request, run_id: str):
     run = panel_context.store.get(run_id)
@@ -339,6 +351,7 @@ async def ui_stabilize(run_id: str, request: Request):
 def register(app):
     app.get("/runs/{run_id}", response_class=HTMLResponse)(ui_run)
     app.get("/runs/{run_id}/oracle.json")(ui_oracle_json)
+    app.get("/runs/{run_id}/projection.json")(ui_projection_json)
     app.get("/runs/{run_id}/stability")(ui_stability)
     app.get("/runs/{run_id}/stability.json")(ui_stability_json)
     app.post("/ui/runs/{run_id}/prefs")(ui_update_prefs)

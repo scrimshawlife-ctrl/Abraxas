@@ -19,6 +19,16 @@ import {
   insertWatchlistSchema,
   insertWatchlistItemSchema
 } from "@shared/schema";
+import type {
+  OperatorProjectionSummary,
+  LocalPromotionState,
+  FederatedReadinessState,
+  PromotionPolicyState,
+  RunSummaryView,
+  RunDiffSummary,
+  ReleaseReadinessView,
+  EvidenceView,
+} from "@shared/operatorProjection";
 import { sql } from "drizzle-orm";
 import { registerIndicator, discoverIndicators } from "./indicators";
 import { analyzeSymbolPool, updateWatchlistAnalysis } from "./market-analysis";
@@ -33,6 +43,273 @@ import {
 declare global {
   var rateLimitStore: Map<string, number[]>;
 }
+
+
+async function readJsonObject(pathValue: string): Promise<Record<string, unknown> | null> {
+  if (!existsSync(pathValue)) return null;
+  try {
+    const raw = await readFile(pathValue, { encoding: "utf-8" });
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : String(value ?? fallback);
+}
+
+function asStringArray(value: unknown, maxItems = 16): string[] {
+  return Array.isArray(value) ? value.slice(0, maxItems).map((v: unknown) => String(v)) : [];
+}
+
+function asObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? value as Record<string, unknown> : {};
+}
+
+async function buildOperatorProjectionSummary(runId: string): Promise<OperatorProjectionSummary> {
+  const validatorPath = path.resolve(process.cwd(), "out", "validators", `execution-validation-${runId}.json`);
+  const localAttestationPath = path.resolve(process.cwd(), "out", "attestation", `canonical_proof_${runId}.json`);
+  const promotionAttestationPath = path.resolve(process.cwd(), "out", "attestation", `execution-attestation-${runId}.json`);
+  const tier1ProjectionPath = path.resolve(process.cwd(), "out", "operator", `proof_projection_${runId}.json`);
+
+  const validator = await readJsonObject(validatorPath);
+  const localAttestation = await readJsonObject(localAttestationPath);
+  const promotionAttestation = await readJsonObject(promotionAttestationPath);
+  const tier1Projection = await readJsonObject(tier1ProjectionPath);
+
+  const validatorStatus = String(validator?.status ?? "MISSING");
+  const localAttestationStatus = String(localAttestation?.overall_status ?? "MISSING");
+  const promotionAttestationStatus = String(promotionAttestation?.overall_status ?? "MISSING");
+
+  const proofClosureStatus: "COMPLETE" | "INCOMPLETE" | "NOT_COMPUTABLE" =
+    validatorStatus === "VALID" && localAttestationStatus === "PASS"
+      ? "COMPLETE"
+      : (validatorStatus === "MISSING" || localAttestationStatus === "MISSING" ? "NOT_COMPUTABLE" : "INCOMPLETE");
+
+  const localPromotionState: LocalPromotionState =
+    proofClosureStatus !== "COMPLETE"
+      ? "NOT_COMPUTABLE"
+      : (promotionAttestationStatus === "PASS" ? "LOCAL_PROMOTION_READY" : "LOCAL_ONLY_COMPLETE");
+
+  const federated = asObject(asObject(promotionAttestation).federated);
+  const externalRefs = asStringArray(federated.external_attestation_refs);
+  const federatedLedgerIds = asStringArray(federated.federated_ledger_ids);
+  const remoteValidationStatus = asString(federated.remote_validation_status, "UNAVAILABLE").toUpperCase();
+  const remoteAttestationStatus = asString(federated.remote_attestation_status, "UNAVAILABLE").toUpperCase();
+  const remoteEvidenceStatus = asString(federated.remote_evidence_status, "NOT_DECLARED").toUpperCase();
+  const federatedEvidenceState = asString(federated.federated_evidence_state, "UNKNOWN").toUpperCase();
+  const remoteEvidencePacketCount = Number(federated.remote_evidence_packet_count ?? 0) || 0;
+  const federatedInconsistency = Boolean(federated.federated_inconsistency);
+
+  const federatedEvidencePresent = externalRefs.length > 0 || federatedLedgerIds.length > 0 || remoteEvidencePacketCount > 0;
+  const federatedBlockers: string[] = [];
+  if (!federatedEvidencePresent) federatedBlockers.push("missing_external_attestation_refs_and_federated_ledger_ids");
+  if (!["VALID", "PASS", "SUCCESS"].includes(remoteValidationStatus)) federatedBlockers.push("remote_validation_not_confirmed");
+  if (!["VALID", "PASS", "SUCCESS"].includes(remoteAttestationStatus)) federatedBlockers.push("remote_attestation_not_confirmed");
+  if (remoteEvidenceStatus === "MISSING") federatedBlockers.push("remote_evidence_manifest_missing");
+  if (remoteEvidenceStatus === "MALFORMED" || federatedEvidenceState === "MALFORMED") federatedBlockers.push("remote_evidence_manifest_malformed");
+  if (remoteEvidenceStatus === "INCONSISTENT" || federatedEvidenceState === "INCONSISTENT") federatedBlockers.push("remote_evidence_inconsistent");
+  if (remoteEvidenceStatus === "STALE" || federatedEvidenceState === "STALE") federatedBlockers.push("remote_evidence_stale");
+
+  const federatedReadinessState: FederatedReadinessState =
+    localPromotionState !== "LOCAL_PROMOTION_READY"
+      ? "NOT_COMPUTABLE"
+      : (federatedBlockers.length === 0 ? "FEDERATED_READY" : "FEDERATED_INCOMPLETE");
+
+
+  const promotionPolicyRequiresFederation = true;
+  const promotionPolicyReasonCodes: string[] = [];
+  let promotionPolicyState: PromotionPolicyState = "BLOCKED";
+  if (localPromotionState !== "LOCAL_PROMOTION_READY") {
+    promotionPolicyReasonCodes.push("local_promotion_not_ready");
+    promotionPolicyState = proofClosureStatus === "NOT_COMPUTABLE" ? "NOT_COMPUTABLE" : "BLOCKED";
+  } else if (promotionPolicyRequiresFederation && federatedReadinessState !== "FEDERATED_READY") {
+    if (remoteEvidenceStatus === "MISSING") {
+      promotionPolicyReasonCodes.push("federated_remote_evidence_missing");
+    } else if (remoteEvidenceStatus === "MALFORMED" || federatedEvidenceState === "MALFORMED") {
+      promotionPolicyReasonCodes.push("federated_remote_evidence_malformed");
+    } else if (remoteEvidenceStatus === "INCONSISTENT" || federatedEvidenceState === "INCONSISTENT") {
+      promotionPolicyReasonCodes.push("federated_remote_evidence_inconsistent");
+    } else if (remoteEvidenceStatus === "STALE" || federatedEvidenceState === "STALE") {
+      promotionPolicyReasonCodes.push("federated_remote_evidence_stale");
+    } else if (remoteEvidenceStatus === "PARTIAL" || federatedEvidenceState === "PARTIAL") {
+      promotionPolicyReasonCodes.push("federated_remote_evidence_partial");
+    } else {
+      promotionPolicyReasonCodes.push("federated_readiness_required");
+    }
+    promotionPolicyState = "BLOCKED";
+  } else {
+    promotionPolicyReasonCodes.push("policy_requirements_satisfied");
+    promotionPolicyState = "ALLOWED";
+  }
+
+  const validatorCorrelation = asObject(asObject(validator).correlation);
+  const pointers = asStringArray(validatorCorrelation.pointers, 20);
+
+  return {
+    schema: "OperatorProjectionSummary.v1",
+    run_id: runId,
+    generated_at: new Date().toISOString(),
+    tier1_local_closure: proofClosureStatus === "COMPLETE" ? "PASS" : proofClosureStatus,
+    tier2_local_promotion_state: localPromotionState,
+    tier25_federated_readiness_state: federatedReadinessState,
+    validator_status: validatorStatus,
+    local_attestation_status: localAttestationStatus,
+    promotion_attestation_status: promotionAttestationStatus,
+    proof_closure_status: proofClosureStatus,
+    federated_evidence_present: federatedEvidencePresent,
+    federated_evidence_state_summary: federatedEvidenceState as OperatorProjectionSummary["federated_evidence_state_summary"],
+    remote_evidence_packet_count: remoteEvidencePacketCount,
+    federated_inconsistency_flag: federatedInconsistency,
+    promotion_policy_state: promotionPolicyState,
+    promotion_policy_reason_codes: promotionPolicyReasonCodes.slice(0, 8),
+    promotion_policy_requires_federation: promotionPolicyRequiresFederation,
+    promotion_policy_waived: false,
+    federated_blockers: federatedBlockers.slice(0, 8),
+    linkage: {
+      has_validator: existsSync(validatorPath),
+      has_local_attestation: existsSync(localAttestationPath),
+      has_promotion_attestation: existsSync(promotionAttestationPath),
+      has_tier1_projection: existsSync(tier1ProjectionPath),
+      correlation_pointer_count: pointers.length,
+      correlation_pointers: pointers,
+      key_artifact_ids: {
+        validator_artifact_id: asString(asObject(validator).artifactId, "MISSING"),
+        tier1_projection_artifact_type: asString(asObject(tier1Projection).artifactType, "MISSING"),
+      },
+    },
+    artifacts: {
+      validator: validatorPath,
+      local_attestation: localAttestationPath,
+      promotion_attestation: promotionAttestationPath,
+      tier1_projection: tier1ProjectionPath,
+    },
+    provenance: {
+      source: "server.routes.buildOperatorProjectionSummary",
+      note: "TS secondary projection aligned to canonical OperatorProjectionSummary.v1 semantics",
+    },
+  };
+}
+
+function flattenBlockers(...values: unknown[]): string[] {
+  const merged = values.flatMap((value) => asStringArray(value, 24));
+  return Array.from(new Set(merged)).slice(0, 24);
+}
+
+async function buildEvidenceView(runId: string): Promise<EvidenceView> {
+  const promotionAttestationPath = path.resolve(process.cwd(), "out", "attestation", `execution-attestation-${runId}.json`);
+  const promotionAttestation = await readJsonObject(promotionAttestationPath);
+  const federated = asObject(asObject(promotionAttestation).federated);
+
+  return {
+    run_id: runId,
+    federated_evidence_state_summary: asString(federated.federated_evidence_state, "UNKNOWN") as EvidenceView["federated_evidence_state_summary"],
+    remote_evidence_packet_count: Number(federated.remote_evidence_packet_count ?? 0) || 0,
+    inconsistency_flag: Boolean(federated.federated_inconsistency),
+    manifest_validation_outcome: asString(federated.remote_evidence_status, "NOT_DECLARED"),
+    origin: asString(federated.remote_evidence_origin, ""),
+    packet_list: [],
+    blockers: asStringArray(federated.blockers, 16),
+  };
+}
+
+async function buildRunSummaryView(runId: string): Promise<RunSummaryView> {
+  const projection = await buildOperatorProjectionSummary(runId);
+  const policyPath = path.resolve(process.cwd(), "out", "policy", `promotion-policy-${runId}.json`);
+  const readinessPath = path.resolve(process.cwd(), "out", "promotion", `promotion-readiness-${runId}.json`);
+  const executionPath = path.resolve(process.cwd(), "out", "attestation", `execution-attestation-${runId}.json`);
+
+  const policy = await readJsonObject(policyPath);
+  const readiness = await readJsonObject(readinessPath);
+  const execution = await readJsonObject(executionPath);
+  const evidence = await buildEvidenceView(runId);
+
+  const executionStatus = {
+    status: execution ? "PRESENT" : "MISSING",
+    overall_status: asString(asObject(execution).overall_status, "MISSING"),
+    policy_decision_state: asString(asObject(asObject(execution).policy_gate).decision_state, "UNKNOWN"),
+    fail_reasons: asStringArray(asObject(execution).fail_reasons, 8),
+    artifact: executionPath,
+  };
+
+  return {
+    run_id: runId,
+    projection_summary: projection,
+    policy_state: asString(policy?.decision_state ?? projection.promotion_policy_state, "UNKNOWN"),
+    readiness_state: {
+      status: asString(readiness?.status, "UNKNOWN"),
+      local_promotion_state: asString(readiness?.local_promotion_state, "UNKNOWN"),
+      federated_readiness_state: asString(readiness?.federated_readiness_state, "UNKNOWN"),
+    },
+    federated_summary: {
+      federated_evidence_state_summary: evidence.federated_evidence_state_summary,
+      remote_evidence_packet_count: evidence.remote_evidence_packet_count,
+      inconsistency_flag: evidence.inconsistency_flag,
+      manifest_validation_outcome: evidence.manifest_validation_outcome,
+    },
+    execution_status: executionStatus,
+    blockers: flattenBlockers(
+      projection.federated_blockers,
+      asObject(policy).blockers,
+      asObject(asObject(readiness).federated_evidence).blockers,
+      executionStatus.fail_reasons,
+    ),
+    artifact_refs: Array.from(new Set([
+      projection.artifacts.validator,
+      projection.artifacts.local_attestation,
+      projection.artifacts.promotion_attestation,
+      asString(asObject(policy).artifacts ? asObject(asObject(policy).artifacts).waiver : "", ""),
+      executionPath,
+    ].filter((item) => String(item).trim().length > 0))).slice(0, 12).map((v) => String(v)),
+  };
+}
+
+async function buildRunDiffSummary(runA: string, runB: string): Promise<RunDiffSummary> {
+  const left = await buildRunSummaryView(runA);
+  const right = await buildRunSummaryView(runB);
+  const changedFields = ["policy_state", "readiness_state", "federated_summary", "execution_status", "blockers"]
+    .filter((key) => JSON.stringify(left[key as keyof RunSummaryView]) !== JSON.stringify(right[key as keyof RunSummaryView]));
+  const leftBlockers = new Set(left.blockers);
+  const rightBlockers = new Set(right.blockers);
+  return {
+    run_a: runA,
+    run_b: runB,
+    changed_fields: changedFields,
+    policy_delta: { from: String(left.policy_state), to: String(right.policy_state) },
+    readiness_delta: { from: left.readiness_state, to: right.readiness_state },
+    federated_delta: {
+      from: left.federated_summary as Record<string, unknown>,
+      to: right.federated_summary as Record<string, unknown>,
+      new_blockers: Array.from(rightBlockers).filter((item) => !leftBlockers.has(item)).sort(),
+      cleared_blockers: Array.from(leftBlockers).filter((item) => !rightBlockers.has(item)).sort(),
+    },
+    execution_delta: { from: left.execution_status, to: right.execution_status },
+  };
+}
+
+async function buildReleaseReadinessView(runId: string): Promise<ReleaseReadinessView> {
+  const releasePath = path.resolve(process.cwd(), "out", "release", `release-readiness-${runId}.json`);
+  const report = await readJsonObject(releasePath);
+  const checks = Array.isArray(report?.checks) ? report.checks : [];
+  return {
+    run_id: runId,
+    status: asString(report?.status, "NOT_READY"),
+    blocking_issues: asStringArray(report?.blocking_failures, 16),
+    non_blocking_issues: asStringArray(report?.known_non_blocking, 16),
+    checklist: checks.slice(0, 24).map((item: unknown) => {
+      const obj = asObject(item);
+      return {
+        name: asString(obj.name, "unknown"),
+        outcome: asString(obj.outcome, "UNKNOWN"),
+        ok: Boolean(obj.ok),
+        notes: asString(obj.notes, "").slice(0, 240),
+      };
+    }),
+  };
+}
+
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -77,6 +354,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health endpoints
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: Date.now(), service: "Abraxas Trading Oracle" });
+  });
+
+  // Secondary TS projection route aligned to canonical operator summary contract
+  app.get("/api/operator/projection/:runId", isAuthenticated, async (req, res) => {
+    try {
+      const summary = await buildOperatorProjectionSummary(String(req.params.runId));
+      res.json(summary);
+    } catch (error) {
+      console.error("Error building operator projection summary:", error);
+      res.status(500).json({ error: "projection_summary_failed" });
+    }
+  });
+
+  app.get("/api/operator/run/:runId", isAuthenticated, async (req, res) => {
+    try {
+      const payload = await buildRunSummaryView(String(req.params.runId));
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building run summary view:", error);
+      res.status(500).json({ error: "run_summary_failed" });
+    }
+  });
+
+  app.get("/api/operator/compare/:runA/:runB", isAuthenticated, async (req, res) => {
+    try {
+      const payload = await buildRunDiffSummary(String(req.params.runA), String(req.params.runB));
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building run diff summary:", error);
+      res.status(500).json({ error: "run_diff_failed" });
+    }
+  });
+
+  app.get("/api/operator/release-readiness/:runId", isAuthenticated, async (req, res) => {
+    try {
+      const payload = await buildReleaseReadinessView(String(req.params.runId));
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building release readiness view:", error);
+      res.status(500).json({ error: "release_readiness_failed" });
+    }
+  });
+
+  app.get("/api/operator/evidence/:runId", isAuthenticated, async (req, res) => {
+    try {
+      const payload = await buildEvidenceView(String(req.params.runId));
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building evidence view:", error);
+      res.status(500).json({ error: "evidence_view_failed" });
+    }
   });
 
   // Acceptance truth panel (artifact-only, read-only)
@@ -127,8 +455,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!decision || typeof decision !== "string") {
       return res.status(400).json({ error: "invalid_decision" });
     }
-    const allowedDecisions = ["approved", "needs-review", "rejected"];
-    if (!allowedDecisions.includes(decision)) {
+    const allowedDecisions = ["approved", "needs-review", "rejected"] as const;
+    if (!allowedDecisions.includes(decision as typeof allowedDecisions[number])) {
       return res.status(400).json({ error: "invalid_decision" });
     }
     const reviewer =
@@ -139,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const approvals = await recordComponentApproval({
         module,
-        decision,
+        decision: decision as typeof allowedDecisions[number],
         reviewer,
         reason: typeof reason === "string" ? reason : "",
       });

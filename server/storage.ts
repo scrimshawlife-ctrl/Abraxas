@@ -413,6 +413,7 @@ export class MemStorage implements IStorage {
       firstName: null,
       lastName: null,
       profileImageUrl: null,
+      tier: "free",
       themePreference: "dark",
       createdAt: new Date(),
       updatedAt: new Date()

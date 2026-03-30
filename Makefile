@@ -1,7 +1,7 @@
 # Abraxas Makefile
 # Provides targets for common development and release tasks
 
-.PHONY: help test seal validate clean lint attest large-chunk todo-scan
+.PHONY: help test seal validate clean lint attest proof promotion-check promotion-policy governance-lint release-readiness ts-canonical-check large-chunk todo-scan
 
 # Default target
 help:
@@ -9,9 +9,13 @@ help:
 	@echo "============================"
 	@echo ""
 	@echo "  make test      - Run pytest test suite"
-	@echo "  make seal      - Run seal release validation"
+	@echo "  make seal      - Run seal release diagnostics (shadow; archive-candidate for promotion workflows)"
 	@echo "  make validate  - Validate artifacts in ./artifacts_seal"
-	@echo "  make attest RUN_ID=<id> - Run unified execution attestation"
+	@echo "  make attest RUN_ID=<id> - Run unified execution attestation (policy-gated)"
+	@echo "  make proof RUN_ID=<id> - Run canonical proof-bearing closure path"
+	@echo "  make promotion-check RUN_ID=<id> - Classify local vs promotion readiness"
+	@echo "  make promotion-policy RUN_ID=<id> - Enforce promotion permission policy gate"
+	@echo "  make governance-lint - Run consolidated canonical/shadow drift guardrails"
 	@echo "  make large-chunk - Execute Wave 6 chunk plan + evidence report"
 	@echo "  make todo-scan - Emit deterministic TODO/FIXME marker artifact"
 	@echo "  make clean     - Remove seal/gate artifacts"
@@ -36,6 +40,30 @@ validate:
 # Run unified execution attestation (validator + acceptance; optional seal via WITH_SEAL=1)
 attest:
 	python3 scripts/run_execution_attestation.py $(RUN_ID) $(if $(WITH_SEAL),--with-seal,)
+
+# Run canonical proof-bearing closure spine
+proof:
+	python3 -m abx.cli proof-run --run-id $(RUN_ID)
+
+# Check local closure vs promotion readiness
+promotion-check:
+	python3 -m abx.cli promotion-check --run-id $(RUN_ID)
+
+# Evaluate promotion policy gate
+promotion-policy:
+	python3 -m abx.cli promotion-policy --run-id $(RUN_ID)
+
+# Run consolidated governance lint + anti-regrowth checks
+governance-lint:
+	python3 scripts/run_governance_lint.py
+
+# Narrow TS check for canonical semantic surfaces
+ts-canonical-check:
+	npx tsc -p tsconfig.canonical.json --pretty false
+
+# Run pre-feature release-readiness checklist
+release-readiness:
+	python3 scripts/run_release_readiness.py $(if $(RUN_ID),--run-id $(RUN_ID),) --base-dir .
 
 # Clean up seal/gate artifacts
 clean:

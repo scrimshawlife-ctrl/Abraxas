@@ -243,9 +243,9 @@ export async function getComponentRegistry(): Promise<ComponentRegistryResponse>
     .map((moduleName) => {
       const draft = runeDraftForModule(moduleName);
       if (runeCapabilities.has(draft.capability_id)) {
-        return { ...draft, status: "registered", draft: false };
+        return { ...draft, status: "registered" as const, draft: false };
       }
-      return draft;
+      return { ...draft, status: "pending" as const };
     })
     .sort((a, b) => a.module.localeCompare(b.module));
 

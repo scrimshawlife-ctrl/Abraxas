@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Release Readiness — {{ run_id }}</h1>
+<p><strong>Status:</strong> {{ release.status }}</p>
+<section>
+  <h2>Blocking issues</h2>
+  <ul>{% for issue in release.blocking_issues %}<li>{{ issue }}</li>{% endfor %}</ul>
+</section>
+<section>
+  <h2>Non-blocking issues</h2>
+  <ul>{% for issue in release.non_blocking_issues %}<li>{{ issue }}</li>{% endfor %}</ul>
+</section>
+<section>
+  <h2>Checklist</h2>
+  <ul>
+  {% for item in release.checklist %}
+    <li>{{ item.name }} — {{ item.outcome }}</li>
+  {% endfor %}
+  </ul>
+</section>
+<section>
+  <h2>JSON export</h2>
+  <pre>{{ release | tojson(indent=2) }}</pre>
+</section>
+{% endblock %}

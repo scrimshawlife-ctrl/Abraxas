@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Run Compare — {{ run_a }} vs {{ run_b }}</h1>
+<section>
+  <h2>Changed Fields</h2>
+  <ul>{% for field in diff.changed_fields %}<li>{{ field }}</li>{% endfor %}</ul>
+</section>
+<section>
+  <h2>Policy Delta</h2>
+  <pre>{{ diff.policy_delta | tojson(indent=2) }}</pre>
+</section>
+<section>
+  <h2>Readiness Delta</h2>
+  <pre>{{ diff.readiness_delta | tojson(indent=2) }}</pre>
+</section>
+<section>
+  <h2>Federated Delta</h2>
+  <pre>{{ diff.federated_delta | tojson(indent=2) }}</pre>
+</section>
+<section>
+  <h2>Execution Delta</h2>
+  <pre>{{ diff.execution_delta | tojson(indent=2) }}</pre>
+</section>
+{% endblock %}

@@ -56,7 +56,7 @@ function seriesFromAggregate(runs: AliveRunResult[], key: keyof AliveRunResult["
   const byDay = new Map<string, { sum: number; count: number; confSum: number }>();
 
   for (const run of runs) {
-    const agg = run.signature?.aggregates?.[key];
+    const agg = run.signature?.aggregates?.[key] as { value?: number; confidence?: number } | undefined;
     if (!agg) continue;
     const day = startOfDay(run.provenance.created_at);
     const entry = byDay.get(day) ?? { sum: 0, count: 0, confSum: 0 };
