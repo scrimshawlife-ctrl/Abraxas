@@ -23,6 +23,8 @@ class ExecutionValidationResult:
     ledger_record_ids: list[str] = field(default_factory=list)
     ledger_artifact_ids: list[str] = field(default_factory=list)
     correlation_pointers: list[str] = field(default_factory=list)
+    rune_ids: list[str] = field(default_factory=list)
+    phases: list[str] = field(default_factory=list)
     checked_at: str = ""
     provenance: dict[str, Any] = field(default_factory=dict)
 

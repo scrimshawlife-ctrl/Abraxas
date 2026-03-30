@@ -82,12 +82,22 @@ def build_operator_projection_summary(
         proof_closure_status = "NOT_COMPUTABLE"
 
     pointers = []
+    rune_ids: list[str] = []
+    phases: list[str] = []
     if isinstance(validator, dict):
         correlation = validator.get("correlation", {})
         if isinstance(correlation, dict):
             raw = correlation.get("pointers", [])
             if isinstance(raw, list):
                 pointers = [str(item) for item in raw[:20]]
+        rune_context = validator.get("runeContext", {})
+        if isinstance(rune_context, dict):
+            raw_runes = rune_context.get("runeIds", [])
+            if isinstance(raw_runes, list):
+                rune_ids = sorted({str(item) for item in raw_runes if str(item)})
+            raw_phases = rune_context.get("phases", [])
+            if isinstance(raw_phases, list):
+                phases = sorted({str(item) for item in raw_phases if str(item)})
 
     federated_evidence = readiness.federated_evidence if isinstance(readiness.federated_evidence, dict) else {}
     federated_blockers = [str(v) for v in federated_evidence.get("blockers", [])][:8] if isinstance(federated_evidence.get("blockers", []), list) else []
@@ -103,6 +113,10 @@ def build_operator_projection_summary(
         "has_tier1_projection": proof_projection_path.exists(),
         "correlation_pointer_count": len(pointers),
         "correlation_pointers": pointers,
+        "rune_id_count": len(rune_ids),
+        "rune_ids": rune_ids[:20],
+        "phase_count": len(phases),
+        "phases": phases[:20],
         "key_artifact_ids": {
             "validator_artifact_id": str((validator or {}).get("artifactId", "MISSING")),
             "tier1_projection_artifact_type": str((proof_projection or {}).get("artifactType", "MISSING")),
