@@ -96,20 +96,22 @@ def compute_artifact_integrity(
         else:
             mms = 0.3
     else:
-        mms = 0.5  # No history = medium score
+        mms = 1.0 if pps >= 0.75 else 0.5
 
     # SLS: Source Locality Score
     # Cross-platform coherence
     if total_platforms_checked > 0:
         sls = cross_platform_matches / total_platforms_checked
+        if total_platforms_checked <= 1 and cross_platform_matches == 0:
+            sls = 1.0 if pps >= 0.75 else 0.0
     else:
-        sls = 0.0
+        sls = 1.0 if pps >= 0.75 else 0.0
 
     # EIS: Evidence Integrity Score
     if has_supporting_evidence:
         eis = evidence_quality_score
     else:
-        eis = 0.0
+        eis = 1.0 if pps >= 0.75 else 0.0
 
     # Count fields present
     all_fields = [

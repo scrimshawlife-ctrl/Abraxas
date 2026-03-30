@@ -54,7 +54,7 @@ class SquareConstraintCartridge:
     def encode(self, item: dict) -> Dict[str, List[List[str]]]:
         blob = f"{item.get('title', '')}\n{item.get('text', '')}"
         letters = normalize_letters(blob)
-        digits = normalize_digits(blob)
+        digits = normalize_digits(blob) or "0"
         letter_grid = fill_grid(letters, self._letter_size)
         digit_grid = fill_grid(digits, self._digit_size)
         return {"letter_grid": letter_grid, "digit_grid": digit_grid}

@@ -29,6 +29,12 @@ def _utc_now_iso() -> str:
 def _read_json_if_exists(path: str) -> Optional[Dict[str, Any]]:
     if not path or not os.path.exists(path):
         return None
+    if path.endswith(".jsonl"):
+        with open(path, "r", encoding="utf-8") as f:
+            rows = [line.strip() for line in f if line.strip()]
+        if not rows:
+            return None
+        return json.loads(rows[-1])
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -57,6 +63,7 @@ def detect_gaps(run_id: str, ts: str, inputs: DapInputs) -> List[DataGap]:
     components = _read_json_if_exists(inputs.component_scores_path) or {}
     integrity = _read_json_if_exists(inputs.integrity_snapshot_path) or {}
     drift = _read_json_if_exists(inputs.drift_report_path) or {}
+    smv = _read_json_if_exists(inputs.smv_report_path) or {}
 
     coverage_rate = _safe_float(regime.get("coverage_rate"))
     coverage_target = 0.75
@@ -129,6 +136,30 @@ def detect_gaps(run_id: str, ts: str, inputs: DapInputs) -> List[DataGap]:
                 symptoms={"unknown_rate": unknown_rate, "target": unknown_target},
                 evidence=[{"artifact": inputs.component_scores_path, "key": "unknown_rate"}],
                 priority=float(0.55 + 0.45 * severity),
+                created_ts=ts,
+                provenance={"run_id": run_id, "detector": "dap_builder.v0.1"},
+            )
+        )
+
+    units = smv.get("units", []) if isinstance(smv, dict) else []
+    low_units = [
+        unit for unit in units
+        if isinstance(unit, dict) and _safe_float(unit.get("smv_overall"), 1.0) < 0.4
+    ]
+    if low_units:
+        gap_id = _sha(f"{run_id}:{ts}:smv:{len(low_units)}")[:16]
+        gaps.append(
+            DataGap(
+                gap_id=gap_id,
+                kind=GapKind.STRUCTURAL_GAP,
+                topic_key=smv.get("topic_key"),
+                horizon=smv.get("horizon") or "H5Y",
+                domain=smv.get("domain") or "FORECAST",
+                component_ids=[str(unit.get("unit_id")) for unit in low_units[:20]],
+                portfolio_ids=list(smv.get("portfolio_ids", ["long_horizon_integrity"])),
+                symptoms={"smv_low_count": len(low_units), "smv_threshold": 0.4},
+                evidence=[{"artifact": inputs.smv_report_path, "key": "units[*].smv_overall"}],
+                priority=0.7,
                 created_ts=ts,
                 provenance={"run_id": run_id, "detector": "dap_builder.v0.1"},
             )
@@ -214,7 +245,11 @@ def actions_for_gaps(
                 )
             )
 
-    actions.sort(key=lambda action: (action.kind.value, action.method, action.action_id))
+    kind_order = {
+        AcquisitionActionKind.ONLINE_FETCH: 0,
+        AcquisitionActionKind.OFFLINE_REQUEST: 1,
+    }
+    actions.sort(key=lambda action: (kind_order.get(action.kind, 99), action.method, action.action_id))
     return actions[:20]
 
 

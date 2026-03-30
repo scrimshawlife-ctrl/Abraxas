@@ -375,10 +375,12 @@ def run_ase(
             "date": date,
             "event_keys_by_item_id": event_keys,
         }
+        if lanes_dir is not None:
+            payload["lanes_dir"] = str(lanes_dir)
         if digit_motifs_by_item_id:
             payload["digit_motifs_by_item_id"] = digit_motifs_by_item_id
         result = invoke_rune(rune_id, payload, ctx)
-        if result.get("status") != "ok":
+        if result.get("status", "ok") != "ok":
             raise RuntimeError(f"Rune invocation failed: {rune_id} ({result.get('errors')})")
 
         sdct_domains.append({
@@ -408,8 +410,18 @@ def run_ase(
             legacy = result.get("legacy", {})
             collisions = legacy.get("exact_collisions", [])
             hightap = legacy.get("high_tap_tokens", [])
-            token_records_count = int(legacy.get("token_records", 0))
-            subs = [SubAnagramHit(**h) for h in legacy.get("verified_sub_anagrams", [])]
+            legacy_hits = legacy.get("verified_sub_anagrams", [])
+            if legacy_hits:
+                token_records_count = int(legacy.get("token_records", 0))
+                subs = [SubAnagramHit(**h) for h in legacy_hits]
+            else:
+                token_records = build_token_records(items_sorted, lex=lex)
+                token_records_count = len(token_records)
+                subs = tier2_subanagrams(
+                    token_records,
+                    lex=lex,
+                    canary_subwords=frozenset(canary_words),
+                )
 
     # load pfdi state
     if pfdi_state_path and pfdi_state_path.exists():

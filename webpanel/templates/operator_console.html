@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_signal_sections.html" import render_signal_sections %}
 {% block content %}
 <h1>Operator Console v1.5 — Minimal Control Spine</h1>
 <div class="card">
@@ -618,6 +619,7 @@
 
 <div class="card">
   <h2>Synthesis Classification (v4.6)</h2>
+  {{ render_signal_sections(view.abraxas_synthesis.structured_signal_payload, "synthesis_classification") }}
   <p><b>synthesis_label:</b> <span class="badge">{{ view.abraxas_synthesis.synthesis_label }}</span></p>
   <p><b>reasons:</b> {{ view.abraxas_synthesis.synthesis_reasons }}</p>
 </div>
@@ -627,7 +629,7 @@
   <p><b>blockers:</b> {{ view.abraxas_synthesis.synthesis_blockers }}</p>
   <p><b>precedence:</b> {{ view.abraxas_synthesis.synthesis_rule_precedence_note }}</p>
   <p><b>next_step:</b> {{ view.abraxas_synthesis.synthesis_next_step }}</p>
-  <p><b>interpretation:</b> {{ view.abraxas_synthesis.interpretation_summary }}</p>
+  <p><b>interpretation (legacy lens):</b> {{ view.abraxas_synthesis.interpretation_summary }}</p>
 </div>
 
 <div class="card">
@@ -639,6 +641,7 @@
 
 <div class="card">
   <h2>Final Abraxas Output Card (v4.6)</h2>
+  {{ render_signal_sections(view.abraxas_synthesis.final_abraxas_output_card.structured_signal_payload, "final_output_card") }}
   <p><b>label:</b> <span class="badge">{{ view.abraxas_synthesis.final_abraxas_output_card.synthesis_label }}</span></p>
   <p><b>signal sufficiency:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.signal_sufficiency_status }}</p>
   <p><b>status line:</b> {{ view.abraxas_synthesis.final_abraxas_output_card.status_line }}</p>
@@ -767,6 +770,7 @@
 
 <div class="card">
   <h2>Projected / Restored Context (v4.8)</h2>
+  {{ render_signal_sections(view.context_restoration.structured_signal_payload, "projection_view_state") }}
   <p><b>pipeline:</b> {{ view.context_restoration.projected_context.normalized_pipeline_summary }}</p>
   <p><b>step_rollup:</b> {{ view.context_restoration.projected_context.normalized_step_rollup_summary }}</p>
   <p><b>artifact:</b> {{ view.context_restoration.projected_context.compact_artifact_summary }}</p>

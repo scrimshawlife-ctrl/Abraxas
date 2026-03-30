@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
@@ -19,7 +20,12 @@ class PlaybookRule:
 
 
 def load_playbook_yaml(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
+    playbook_path = Path(path)
+    if not playbook_path.exists() and not playbook_path.is_absolute():
+        repo_candidate = Path(__file__).resolve().parents[2] / playbook_path
+        if repo_candidate.exists():
+            playbook_path = repo_candidate
+    with open(playbook_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
     if not isinstance(data, dict):
         raise ValueError("Playbook must be a YAML mapping at root.")

@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from webpanel.ui_signal_sections import normalize_signal_sections
+
 ORACLE_OUTPUT_KIND = "OracleOutput.v2"
 
 
@@ -129,6 +131,61 @@ def normalize_flags(flags: Any) -> List[str]:
     return items
 
 
+def _build_structured_signal_payload(
+    *,
+    raw_signal: Dict[str, Any],
+    structural_model: Dict[str, Any],
+    optional_lenses: Dict[str, Any],
+    claim_status: Dict[str, Any],
+    omissions: List[Dict[str, str]],
+) -> Dict[str, Any]:
+    return {
+        "raw_signal": raw_signal,
+        "structural_model": structural_model,
+        "optional_lenses": optional_lenses,
+        "claim_status": claim_status,
+        "omissions": omissions,
+    }
+
+
+def _legacy_oracle_payload_adapter(
+    *,
+    oracle_output: Dict[str, Any],
+    summary: str,
+    indicator_items: List[Dict[str, Any]],
+    operator_version_list: List[Dict[str, Any]],
+    flags_items: List[str],
+    omissions: List[Dict[str, str]],
+) -> Dict[str, Any]:
+    suppressed = bool(_safe_dict(oracle_output.get("flags")).get("suppressed"))
+    return normalize_signal_sections(
+        _build_structured_signal_payload(
+            raw_signal={
+                "signal_id": str(oracle_output.get("signal_id", "")),
+                "tier": str(oracle_output.get("tier", "")),
+                "lane": str(oracle_output.get("lane", "")),
+                "evidence": list(_safe_list(oracle_output.get("evidence"))),
+            },
+            structural_model={
+                "indicator_total": len(flatten_indicator_map(oracle_output.get("indicators"))),
+                "indicator_items": indicator_items,
+                "operator_versions": operator_version_list,
+                "legacy_summary": summary,
+            },
+            optional_lenses={
+                "flags_items": flags_items,
+                "stability_status": _safe_dict(oracle_output.get("provenance")).get("stability_status"),
+            },
+            claim_status={
+                "label": "SUPPRESSED" if suppressed else "VISIBLE",
+                "status": "SUCCESS",
+                "suppressed": suppressed,
+            },
+            omissions=omissions,
+        )
+    )
+
+
 def build_oracle_view(oracle_output: Dict[str, Any]) -> Dict[str, Any]:
     indicators = oracle_output.get("indicators")
     evidence = oracle_output.get("evidence")
@@ -150,11 +207,30 @@ def build_oracle_view(oracle_output: Dict[str, Any]) -> Dict[str, Any]:
         f"Evidence: {len(_safe_list(evidence))} · "
         f"Suppressed: {bool(_safe_dict(flags).get('suppressed'))}"
     )
+    omissions: List[Dict[str, str]] = []
+    if bool(_safe_dict(flags).get("suppressed")):
+        omissions.append(
+            {
+                "omitted_by": "oracle_output.flags.suppressed",
+                "omitted_reason": "hard_boundary_suppression",
+                "source_pointer": "oracle_output.flags.suppressed",
+                "boundary_type": "hard_boundary",
+            }
+        )
+    structured_signal_payload = _legacy_oracle_payload_adapter(
+        oracle_output=oracle_output,
+        summary=summary,
+        indicator_items=indicator_list,
+        operator_version_list=operator_version_list,
+        flags_items=flags_list,
+        omissions=omissions,
+    )
 
     return {
+        "structured_signal_payload": structured_signal_payload,
         "tier": oracle_output.get("tier"),
         "lane": oracle_output.get("lane"),
-        "summary": summary,
+        "summary": str(structured_signal_payload["structural_model"].get("legacy_summary", summary)),
         "indicator_items": indicator_list,
         "indicator_total": len(flatten_indicator_map(indicators)),
         "evidence_items": evidence_list,

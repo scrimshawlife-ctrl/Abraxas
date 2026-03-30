@@ -56,6 +56,7 @@ def classify_payload(risk_indices: CompositeRiskIndices) -> PayloadClassificatio
     mri = risk_indices.mri
     cus = risk_indices.network_campaign.cus
     mds = risk_indices.network_campaign.mds
+    pps = risk_indices.artifact_integrity.pps
 
     # Rule 1: Authentic
     if iri < 30 and mri < 30:
@@ -73,6 +74,15 @@ def classify_payload(risk_indices: CompositeRiskIndices) -> PayloadClassificatio
             payload_type=PayloadType.FABRICATED,
             confidence_score=confidence,
             reasoning=f"High integrity risk (IRI={iri:.1f}) and manipulation risk (MRI={mri:.1f})",
+        )
+
+    # Rule 2b: Fabricated with near-zero provenance but high manipulation
+    if pps < 0.25 and iri > 80:
+        confidence = iri / 100.0
+        return PayloadClassification(
+            payload_type=PayloadType.FABRICATED,
+            confidence_score=confidence,
+            reasoning=f"Near-zero provenance (PPS={pps:.2f}) with severe integrity risk (IRI={iri:.1f})",
         )
 
     # Rule 3: Coordinated
