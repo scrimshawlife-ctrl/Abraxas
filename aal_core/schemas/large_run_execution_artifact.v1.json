@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aal_core/schemas/large_run_execution_artifact.v1.json",
+  "title": "LargeRunExecutionArtifactEnvelope.v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "run_id",
+    "rune_id",
+    "artifact_id",
+    "timestamp",
+    "phase",
+    "status",
+    "batch_id",
+    "inputs",
+    "outputs",
+    "provenance",
+    "correlation_pointers"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^BATCH::.+"
+    },
+    "rune_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["AUDIT"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "BLOCKED", "NOT_COMPUTABLE"]
+    },
+    "batch_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputs": {
+      "type": "object"
+    },
+    "outputs": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["builder"],
+      "properties": {
+        "builder": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "correlation_pointers": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

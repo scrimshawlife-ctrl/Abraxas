@@ -17,6 +17,8 @@ def test_validation_artifact_traceability_fails_closed_on_missing_fields() -> No
     assert "missing-artifactId" in issues
     assert "missing-ledgerIds" in issues
     assert "missing-validatedArtifacts" in issues
+    assert "missing-runeContext.runeIds" in issues
+    assert "missing-runeContext.phases" in issues
 
 
 def test_validation_artifact_traceability_passes_when_linked() -> None:
@@ -26,6 +28,7 @@ def test_validation_artifact_traceability_passes_when_linked() -> None:
             "artifactId": "execution-validation-RUN-1",
             "validatedArtifacts": ["artifact-1"],
             "correlation": {"ledgerIds": ["record-1"]},
+            "runeContext": {"runeIds": [], "phases": []},
         }
     )
     assert issues == []

@@ -1,7 +1,7 @@
 # Abraxas Makefile
 # Provides targets for common development and release tasks
 
-.PHONY: help test seal validate clean lint attest proof promotion-check promotion-policy governance-lint release-readiness ts-canonical-check large-chunk todo-scan
+.PHONY: help test seal validate clean lint attest proof promotion-check promotion-policy governance-lint release-readiness ts-canonical-check large-chunk large-run-convergence todo-scan
 
 # Default target
 help:
@@ -16,6 +16,7 @@ help:
 	@echo "  make promotion-check RUN_ID=<id> - Classify local vs promotion readiness"
 	@echo "  make promotion-policy RUN_ID=<id> - Enforce promotion permission policy gate"
 	@echo "  make governance-lint - Run consolidated canonical/shadow drift guardrails"
+	@echo "  make large-run-convergence BATCH_ID=<id> [MIN_POINTERS=1] - Run deterministic large-run convergence bundle"
 	@echo "  make large-chunk - Execute Wave 6 chunk plan + evidence report"
 	@echo "  make todo-scan - Emit deterministic TODO/FIXME marker artifact"
 	@echo "  make clean     - Remove seal/gate artifacts"
@@ -64,6 +65,10 @@ ts-canonical-check:
 # Run pre-feature release-readiness checklist
 release-readiness:
 	python3 scripts/run_release_readiness.py $(if $(RUN_ID),--run-id $(RUN_ID),) --base-dir .
+
+# Run deterministic large-run convergence bundle (coverage + pointer + rune index + barrier)
+large-run-convergence:
+	python3 scripts/run_large_run_convergence.py --base-dir . --batch-id $(BATCH_ID) --min-pointers $(if $(MIN_POINTERS),$(MIN_POINTERS),1)
 
 # Clean up seal/gate artifacts
 clean:

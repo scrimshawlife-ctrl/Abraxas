@@ -24,6 +24,8 @@ def test_operator_projection_summary_local_only_complete(tmp_path: Path) -> None
     assert summary.tier2_local_promotion_state == "LOCAL_ONLY_COMPLETE"
     assert summary.tier25_federated_readiness_state == "NOT_COMPUTABLE"
     assert summary.promotion_policy_state == "BLOCKED"
+    assert summary.linkage["rune_id_count"] == 0
+    assert summary.linkage["phase_count"] == 0
 
 
 def test_operator_projection_summary_federated_ready(tmp_path: Path) -> None:
@@ -123,3 +125,25 @@ def test_operator_projection_summary_inconsistent_federated_state(tmp_path: Path
     assert summary.federated_evidence_state_summary == "INCONSISTENT"
     assert summary.federated_inconsistency_flag is True
     assert summary.remote_evidence_packet_count == 2
+
+
+def test_operator_projection_summary_surfaces_rune_context_linkage(tmp_path: Path) -> None:
+    run_id = "RUN-PROJ-RUNES"
+    _write(
+        tmp_path / "out" / "validators" / f"execution-validation-{run_id}.json",
+        {
+            "status": "VALID",
+            "runeContext": {
+                "runeIds": ["RUNE.DIFF", "RUNE.INGEST", "RUNE.DIFF"],
+                "phases": ["VALIDATE", "INGEST", "VALIDATE"],
+            },
+        },
+    )
+    _write(tmp_path / "out" / "attestation" / f"canonical_proof_{run_id}.json", {"overall_status": "PASS"})
+
+    summary = build_operator_projection_summary(run_id, base_dir=tmp_path, generated_at="2026-03-30T00:00:00+00:00")
+
+    assert summary.linkage["rune_id_count"] == 2
+    assert summary.linkage["rune_ids"] == ["RUNE.DIFF", "RUNE.INGEST"]
+    assert summary.linkage["phase_count"] == 2
+    assert summary.linkage["phases"] == ["INGEST", "VALIDATE"]

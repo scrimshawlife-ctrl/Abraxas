@@ -34,8 +34,55 @@ This file is the append-first execution queue for implementation runs.
 - **Intent:** only pursue if current roadmap still requires operator-facing execution trace surfaces.
 - **Definition of done:** explicit go/no-go decision and scoped UI task list.
 
+### P0 — Large-Run Deterministic Convergence Spine
+- **Status:** COMPLETE (2026-03-30)
+- **Intent:** scale proof/validator/policy/operator flow to large-run batches without losing deterministic artifact linkage.
+- **Definition of done:** large-run orchestration emits per-run + batch-level artifacts with explicit `run_id`, `rune_id`, `artifact_id`, `timestamp`, status, linkage pointers, and fail-closed `NOT_COMPUTABLE` handling when linkage is incomplete.
+- **Execution Steps (PLAN extension):**
+  1. **Batch run envelope audit**
+     - rune_id: `RUNE.DIFF`
+     - input contract: execution-validation + projection artifacts
+     - output contract: large-run coverage ledger (`out/ledger/large_run_coverage.jsonl`)
+     - determinism: sorted run-id traversal, stable hash ordering
+     - artifact/linkage: per-run evidence pointers + batch summary pointer
+  2. **Correlation-pointer density gate**
+     - rune_id: `RUNE.INGEST`
+     - input contract: validator correlation blocks
+     - output contract: pointer sufficiency report (`out/reports/large_run_pointer_sufficiency.json`)
+     - determinism: threshold policy from static config, no randomized sampling
+     - artifact/linkage: explicit unresolved reasons when any run lacks pointers
+  3. **Rune-aware operator index emission**
+     - rune_id: `RUNE.DIFF`
+     - input contract: validator `runeContext` + operator projection summaries
+     - output contract: rune/run matrix (`out/operator/rune_run_index.json`)
+     - determinism: canonical rune sort + run sort
+     - artifact/linkage: references validator artifact ids + projection artifact ids
+  4. **Promotion-policy batch barrier**
+     - rune_id: `RUNE.DIFF`
+     - input contract: readiness/policy artifacts for each run
+     - output contract: batch promotion barrier artifact (`out/policy/large_run_barrier.json`)
+     - determinism: fail-closed aggregate state computed from per-run policy states
+     - artifact/linkage: includes blocking run ids + policy artifact pointers
+ - **Closure evidence (implemented):**
+   - `scripts/run_large_run_coverage_audit.py` → `out/reports/large_run_coverage_<batch_id>.json` + `out/ledger/large_run_coverage.jsonl`
+   - `scripts/run_large_run_pointer_sufficiency.py` → `out/reports/large_run_pointer_sufficiency_<batch_id>.json`
+   - `scripts/run_large_run_rune_run_index.py` → `out/operator/rune_run_index.json`
+   - `scripts/run_large_run_promotion_barrier.py` → `out/policy/large_run_barrier_<batch_id>.json`
+   - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
+
 ## Completed
 - *(append completed items here; do not delete historical record)*
+- 2026-03-30 — Large-run runtime contract enforcement pass: added `scripts/large_run_contracts.py` and wired envelope validation into all large-run builders so invalid artifacts fail fast before write, with focused contract-unit tests.
+- 2026-03-30 — Large-run contract schema pass: added shared envelope schema `aal_core/schemas/large_run_execution_artifact.v1.json` and focused contract test coverage to ensure large-run artifacts emit required run-linked fields (`run_id`, `rune_id`, `artifact_id`, `timestamp`, `phase`, `status`, `inputs/outputs`, `provenance`, `correlation_pointers`).
+- 2026-03-30 — Large-run convergence operationalization pass: wired canonical `make large-run-convergence BATCH_ID=<id> [MIN_POINTERS=1]` target to execute deterministic bundle orchestration through `scripts/run_large_run_convergence.py`.
+- 2026-03-30 — Large-run convergence orchestration pass: added `scripts/run_large_run_convergence.py` to compose coverage, pointer sufficiency, rune-run indexing, and promotion barrier into deterministic `LargeRunConvergenceBundle.v1` outputs with fail-closed aggregate status (`SUCCESS|BLOCKED|NOT_COMPUTABLE`).
+- 2026-03-30 — Large-run convergence step-4 implementation pass: added `scripts/run_large_run_promotion_barrier.py` to emit deterministic `LargeRunPromotionBarrier.v1` batch artifacts that aggregate per-run promotion-policy decisions into fail-closed `SUCCESS|BLOCKED|NOT_COMPUTABLE` barrier states with blocking reason codes.
+- 2026-03-30 — Large-run convergence step-3 implementation pass: added `scripts/run_large_run_rune_run_index.py` to emit deterministic `RuneRunIndex.v1` artifacts mapping `rune_id -> run_id` rows with validator/projection status linkage for operator indexing surfaces.
+- 2026-03-30 — Large-run convergence step-2 implementation pass: added `scripts/run_large_run_pointer_sufficiency.py` to emit deterministic `LargeRunPointerSufficiency.v1` artifacts that classify per-run correlation pointer sufficiency with explicit threshold-based `SUFFICIENT|NOT_COMPUTABLE` states and reason codes.
+- 2026-03-30 — Large-run convergence step-1 implementation pass: added `scripts/run_large_run_coverage_audit.py` to emit deterministic `LargeRunCoverageAudit.v1` batch artifacts and run-linked ledger rows (`out/ledger/large_run_coverage.jsonl`) with explicit `COVERED|NOT_COMPUTABLE` states and reason codes.
+- 2026-03-30 — Validator traceability contract hardening pass: rune governance traceability checks now fail closed when `ExecutionValidationArtifact.v1` omits `runeContext.runeIds` or `runeContext.phases`, with focused tests covering missing and linked-complete states.
+- 2026-03-30 — Rune-context projection bridge pass: `abx.operator_projection` now surfaces validator `runeContext` into deterministic linkage summary fields (`rune_id_count`, `rune_ids`, `phase_count`, `phases`) so operator views can index rune-level execution context directly.
+- 2026-03-30 — Rune-aware validator surfacing pass: `abx.execution_validator` now extracts `rune_id` + `phase` from run-linked evidence and emits deterministic `runeContext` (`runeIds`, `phases`) in `ExecutionValidationArtifact.v1`, with focused type/validator coverage tests.
 - 2026-03-30 — Operator Surface v1 pass: added canonical operator view aggregation (`abx/operator_views.py`), webpanel run-console/compare/release/evidence routes, secondary operator APIs, shared TS view contracts, and focused operator-surface tests without forking core proof/readiness/policy semantics.
 - 2026-03-30 — Pre-feature stabilization/release pass: added `ReleaseReadinessReport.v1` surface (`scripts/run_release_readiness.py`, `docs/RELEASE_READINESS.md`, `make release-readiness`), introduced canonical TS sanity lane (`tsconfig.canonical.json`, `make ts-canonical-check`), and expanded federated transport/evidence semantics to `RemoteEvidenceManifest.v1` with bounded packet freshness/consistency aggregation propagated into readiness/policy/projection.
 - 2026-03-30 — Remaining-totality hardening pass: added federated transport/remote evidence spine v0 (`abx/federated_transport.py`), linked remote evidence verification into Tier 2.5/2.75 and Tier 3 policy provenance, expanded governance lint discovery to CLI/make heavy surfaces, and further contained shadow `run_promotion_pack` behind explicit override.

@@ -129,6 +129,25 @@ def _read_json_file(path: Path) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _extract_rune_id(payload: dict[str, Any]) -> str | None:
+    rune_id = payload.get("rune_id") or payload.get("runeId")
+    if isinstance(rune_id, str) and rune_id:
+        return rune_id
+    provenance = payload.get("provenance")
+    if isinstance(provenance, dict):
+        nested = provenance.get("rune_id") or provenance.get("runeId")
+        if isinstance(nested, str) and nested:
+            return nested
+    return None
+
+
+def _extract_phase(payload: dict[str, Any]) -> str | None:
+    phase = payload.get("phase")
+    if isinstance(phase, str) and phase:
+        return phase
+    return None
+
+
 def to_canon_artifact(
     result: ExecutionValidationResult,
     *,
@@ -150,6 +169,10 @@ def to_canon_artifact(
             "packetIds": [],
             "pointers": list(result.correlation_pointers),
         },
+        "runeContext": {
+            "runeIds": list(result.rune_ids),
+            "phases": list(result.phases),
+        },
         "provenance": {
             **result.provenance,
             "internalStatus": result.status.value,
@@ -168,6 +191,8 @@ def find_run_evidence(
     ledger_record_ids: list[str] = []
     ledger_artifact_ids: list[str] = []
     correlation_pointers: list[str] = []
+    rune_ids: list[str] = []
+    phases: list[str] = []
     errors: list[str] = []
 
     for pattern in ledger_globs:
@@ -182,6 +207,12 @@ def find_run_evidence(
                 for linked in _iter_linked_paths(row):
                     ledger_artifact_ids.append(Path(linked).name)
                 correlation_pointers.append(f"{ledger_path.as_posix()}:{line_no}")
+                rune_id = _extract_rune_id(row)
+                if rune_id:
+                    rune_ids.append(rune_id)
+                phase = _extract_phase(row)
+                if phase:
+                    phases.append(phase)
 
     for pattern in artifact_globs:
         for path in sorted(base_dir.glob(pattern)):
@@ -202,16 +233,26 @@ def find_run_evidence(
             if payload:
                 for linked in _iter_linked_paths(payload):
                     ledger_artifact_ids.append(Path(linked).name)
+                rune_id = _extract_rune_id(payload)
+                if rune_id:
+                    rune_ids.append(rune_id)
+                phase = _extract_phase(payload)
+                if phase:
+                    phases.append(phase)
 
     # Deduplicate deterministically.
     ledger_record_ids = sorted(set(ledger_record_ids))
     ledger_artifact_ids = sorted(set(ledger_artifact_ids))
     correlation_pointers = sorted(set(correlation_pointers))
+    rune_ids = sorted(set(rune_ids))
+    phases = sorted(set(phases))
 
     return {
         "ledger_record_ids": ledger_record_ids,
         "ledger_artifact_ids": ledger_artifact_ids,
         "correlation_pointers": correlation_pointers,
+        "rune_ids": rune_ids,
+        "phases": phases,
         "errors": errors,
     }
 
@@ -257,6 +298,8 @@ def validate_run(
         ledger_record_ids=evidence["ledger_record_ids"],
         ledger_artifact_ids=evidence["ledger_artifact_ids"],
         correlation_pointers=evidence["correlation_pointers"],
+        rune_ids=evidence["rune_ids"],
+        phases=evidence["phases"],
         checked_at=checked_at or _utc_now_iso(),
         provenance={
             "validator": "abx.execution_validator",

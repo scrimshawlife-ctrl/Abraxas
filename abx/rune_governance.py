@@ -87,6 +87,9 @@ def check_validation_artifact_traceability(payload: dict) -> list[str]:
     correlation = payload.get("correlation") if isinstance(payload.get("correlation"), dict) else {}
     ledger_ids = correlation.get("ledgerIds") if isinstance(correlation.get("ledgerIds"), list) else []
     validated = payload.get("validatedArtifacts") if isinstance(payload.get("validatedArtifacts"), list) else []
+    rune_context = payload.get("runeContext") if isinstance(payload.get("runeContext"), dict) else {}
+    rune_ids = rune_context.get("runeIds") if isinstance(rune_context.get("runeIds"), list) else None
+    phases = rune_context.get("phases") if isinstance(rune_context.get("phases"), list) else None
 
     if not run_id:
         issues.append("missing-runId")
@@ -96,5 +99,9 @@ def check_validation_artifact_traceability(payload: dict) -> list[str]:
         issues.append("missing-ledgerIds")
     if not validated:
         issues.append("missing-validatedArtifacts")
+    if rune_ids is None:
+        issues.append("missing-runeContext.runeIds")
+    if phases is None:
+        issues.append("missing-runeContext.phases")
 
     return sorted(issues)

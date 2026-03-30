@@ -60,6 +60,7 @@ def test_emit_validation_result_writes_expected_canon_shape(tmp_path: Path) -> N
     assert payload["correlation"]["ledgerIds"] == []
     assert payload["correlation"]["packetIds"] == []
     assert isinstance(payload["correlation"]["pointers"], list)
+    assert payload["runeContext"] == {"runeIds": [], "phases": []}
 
 
 def test_canon_status_mapping_matches_contract(tmp_path: Path) -> None:
@@ -154,3 +155,26 @@ def test_validate_run_collects_artifacts_from_runindex_refs(tmp_path: Path) -> N
     assert "000000.resultspack.json" in result.ledger_artifact_ids
     assert "000000.trendpack.json" in result.ledger_artifact_ids
     assert "seal.runheader.json" in result.ledger_artifact_ids
+
+
+def test_validate_run_surfaces_rune_context_from_json_artifacts(tmp_path: Path) -> None:
+    reports_dir = tmp_path / "out" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "rune_RUN-RUNE-0001.json").write_text(
+        json.dumps(
+            {
+                "run_id": "RUN-RUNE-0001",
+                "rune_id": "RUNE.DIFF",
+                "phase": "VALIDATE",
+                "provenance": {"rune_id": "RUNE.DIFF"},
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = validate_run("RUN-RUNE-0001", base_dir=tmp_path, checked_at="2026-03-27T00:00:00+00:00")
+    payload = to_canon_artifact(result)
+    assert result.rune_ids == ["RUNE.DIFF"]
+    assert result.phases == ["VALIDATE"]
+    assert payload["runeContext"] == {"runeIds": ["RUNE.DIFF"], "phases": ["VALIDATE"]}
