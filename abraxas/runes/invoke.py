@@ -122,18 +122,53 @@ def invoke_capability(
     ledger: RuneInvocationLedger | None = None,
     strict_execution: bool = True,
 ) -> dict[str, Any]:
+    legacy_aliases: dict[str, tuple[str, Any, Any]] = {
+        "evolve.non_truncation.enforce": (
+            "evolve.policy.enforce_non_truncation",
+            lambda x: x,
+            lambda out: out,
+        ),
+        "evolve.ledger.append_chained_jsonl": (
+            "evolve.ledger.append",
+            lambda x: {"path": x.get("ledger_path"), "record": x.get("record")},
+            lambda out: out,
+        ),
+        "forecast.horizon_bins.horizon_bucket": (
+            "forecast.horizon.classify",
+            lambda x: {"horizon": x.get("horizon")},
+            lambda out: {**out, "bucket": out.get("horizon_bucket")},
+        ),
+        "forecast.scoring.brier_score": (
+            "forecast.scoring.brier",
+            lambda x: x,
+            lambda out: {**out, "brier": out.get("brier_score")},
+        ),
+        "forecast.policy_candidates.v0_1": (
+            "forecast.policy.candidates_v0_1",
+            lambda x: x,
+            lambda out: out,
+        ),
+    }
+    alias = legacy_aliases.get(capability)
+    requested_inputs = inputs
+    output_adapter = lambda out: out
+    if alias is not None:
+        capability, input_adapter, output_adapter = alias
+        requested_inputs = input_adapter(inputs)
+
     # Prefer canonical rune bindings first (e.g., "rune:sds")
     bindings = list_runes_by_capability(capability)
     if bindings:
         if len(bindings) > 1:
             raise RuneInvocationError(f"Multiple runes registered for capability: {capability}")
-        return invoke_rune(
+        out = invoke_rune(
             bindings[0].rune_id,
-            inputs,
+            requested_inputs,
             ctx=ctx,
             ledger=ledger,
             strict_execution=strict_execution,
         )
+        return output_adapter(out)
 
     # Fall back to capability contracts (e.g., "oracle.v2.run")
     contract_registry = load_capability_registry()
@@ -145,16 +180,16 @@ def invoke_capability(
     ledger = ledger or RuneInvocationLedger()
     operator = _resolve_operator(contract.operator_path)
 
-    _validate_with_schema(contract.input_schema, inputs, label="input")
+    _validate_with_schema(contract.input_schema, requested_inputs, label="input")
     try:
-        outputs = operator(**inputs, strict_execution=strict_execution)
+        outputs = operator(**requested_inputs, strict_execution=strict_execution)
     except NotImplementedError as exc:
         record = build_record(
             rune_id=contract.rune_id,
             rune_version=contract.version,
             capability=contract.capability_id,
             ctx=context,
-            inputs=inputs,
+            inputs=requested_inputs,
             outputs=None,
             status="stub_blocked",
             error=str(exc),
@@ -167,7 +202,7 @@ def invoke_capability(
             rune_version=contract.version,
             capability=contract.capability_id,
             ctx=context,
-            inputs=inputs,
+            inputs=requested_inputs,
             outputs=None,
             status="failed",
             error=str(exc),
@@ -186,10 +221,10 @@ def invoke_capability(
         rune_version=contract.version,
         capability=contract.capability_id,
         ctx=context,
-        inputs=inputs,
+        inputs=requested_inputs,
         outputs=outputs,
         status="ok",
         error=None,
     )
     ledger.append(record)
-    return outputs
+    return output_adapter(outputs)

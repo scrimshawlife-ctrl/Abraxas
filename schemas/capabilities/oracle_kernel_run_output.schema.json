@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.dev/schemas/capabilities/oracle_kernel_run_output.json",
+  "title": "Oracle Kernel Run Output",
+  "description": "Output schema for oracle.kernel.run capability",
+  "type": "object",
+  "properties": {
+    "oracle_output": {
+      "type": ["object", "null"]
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "required": ["timestamp_utc", "config_sha256", "inputs_sha256"],
+      "properties": {
+        "timestamp_utc": {"type": "string", "format": "date-time"},
+        "config_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "repo_commit": {"type": "string"},
+        "seed": {"type": "integer"},
+        "operation_id": {"type": "string"}
+      }
+    },
+    "not_computable": {
+      "type": ["object", "null"],
+      "required": ["reason"],
+      "properties": {
+        "reason": {"type": "string"},
+        "missing_inputs": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["oracle_output", "provenance"],
+      "properties": {
+        "not_computable": {"type": "null"}
+      }
+    },
+    {
+      "required": ["not_computable"],
+      "properties": {
+        "oracle_output": {"type": "null"},
+        "provenance": {"type": "null"}
+      }
+    }
+  ]
+}

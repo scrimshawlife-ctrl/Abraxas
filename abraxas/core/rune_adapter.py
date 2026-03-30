@@ -66,11 +66,15 @@ def load_fn_exports_deterministic(
     **kwargs
 ) -> Dict[str, Any]:
     """Deterministic wrapper for core.fn_exports.load capability."""
-    from abx.fn_exports import EXPORTS, NOW
+    import importlib
+
+    fn_exports = importlib.import_module("abx.fn_exports")
+    exports = getattr(fn_exports, "EXPORTS")
+    generated_at_unix = getattr(fn_exports, "NOW")
     payload = {
         "owner": "Abraxas",
-        "generated_at_unix": NOW,
-        "functions": EXPORTS,
+        "generated_at_unix": generated_at_unix,
+        "functions": exports,
     }
     config = {
         "seed": seed,

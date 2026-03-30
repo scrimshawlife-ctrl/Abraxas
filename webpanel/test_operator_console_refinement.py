@@ -98,6 +98,37 @@ def test_synthesis_dedupes_reasons_and_blockers_and_sets_actionable_next_step():
     assert "Resolve the first runtime blocker" in out["synthesis_next_step"]
 
 
+def test_synthesis_output_includes_structured_signal_payload_contract():
+    out = _derive_abraxas_synthesis_output(
+        synthesis_input_surface={
+            "pipeline_status": "SUCCESS",
+            "pipeline_final_state": {"pipeline_final_status": "SUCCESS", "pipeline_status_resolved": True},
+            "fusion_label": "READY",
+            "fusion_status": "SUCCESS",
+            "signal_sufficiency_status": "SUFFICIENT",
+            "governance_policy_mode": "decision_review",
+            "runtime_outcome_status": "SUCCESS",
+            "runtime_blocker_summary": [],
+        },
+        selected_run_id="run-structured",
+    )
+    payload = out["structured_signal_payload"]
+    assert payload["raw_signal"]["run_id"] == "run-structured"
+    assert payload["claim_status"]["label"] == out["synthesis_label"]
+    assert isinstance(payload["omissions"], list)
+
+
+def test_synthesis_output_missing_run_uses_not_computable_structured_payload():
+    out = _derive_abraxas_synthesis_output(
+        synthesis_input_surface={},
+        selected_run_id=None,
+    )
+    payload = out["structured_signal_payload"]
+    assert out["synthesis_status"] == "NOT_COMPUTABLE"
+    assert payload["claim_status"]["status"] == "NOT_COMPUTABLE"
+    assert payload["omissions"][0]["omitted_reason"] == "selected_run_id_missing"
+
+
 def test_routing_reason_distinguishes_review_ready_and_less_blocked():
     review_reason = _derive_routing_recommendation_reason(
         review_context=True,
@@ -182,6 +213,16 @@ def test_view_state_routing_surfaces_include_rejected_override_contract(tmp_path
     assert view.pipeline_routing["pipeline_routing_workspace_payload"]["attempted_pipeline_override"] == "ABRAXAS.PIPELINE.unknown"
     assert view.pipeline_routing["routing_export_preview"]["manual_override_status"] == "rejected_unknown_pipeline"
     assert view.pipeline_routing["routing_export_preview"]["attempted_pipeline_override"] == "ABRAXAS.PIPELINE.unknown"
+
+
+def test_view_state_synthesis_surfaces_include_structured_signal_payload(tmp_path):
+    view = build_view_state(base_dir=tmp_path)
+    synthesis = view.abraxas_synthesis
+    payload = synthesis["structured_signal_payload"]
+    assert "raw_signal" in payload
+    assert synthesis["synthesis_workspace_payload"]["structured_signal_payload"] == payload
+    assert synthesis["synthesis_export_preview"]["structured_signal_payload"] == payload
+    assert synthesis["final_abraxas_output_card"]["structured_signal_payload"] == payload
 
 
 def test_signal_sufficiency_minimal_signal_is_insufficient():

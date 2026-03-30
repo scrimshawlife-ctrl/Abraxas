@@ -57,11 +57,12 @@ def append_ledger_deterministic(
 
     # Call existing append_chained_jsonl function (side-effect operation)
     try:
+        from abraxas.evolve.ledger import _get_last_hash
+        ledger_path = Path(path)
+        prev_hash = _get_last_hash(ledger_path)
         append_chained_jsonl_core(path, record)
 
         # Read back the step_hash that was written
-        from abraxas.evolve.ledger import _get_last_hash
-        ledger_path = Path(path)
         step_hash = _get_last_hash(ledger_path)
 
     except Exception as e:
@@ -88,6 +89,7 @@ def append_ledger_deterministic(
     # Return with renamed keys for clarity
     return {
         "success": True,
+        "prev_hash": prev_hash,
         "step_hash": step_hash,
         "provenance": envelope["provenance"],
         "not_computable": envelope["not_computable"]

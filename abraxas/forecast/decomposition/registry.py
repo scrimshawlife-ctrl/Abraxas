@@ -22,6 +22,11 @@ def load_fdr(path: str | Path) -> FDRRegistry:
     Load FDR registry from YAML file and validate.
     """
     path = Path(path)
+    if not path.exists() and not path.is_absolute():
+        repo_root = Path(__file__).resolve().parents[3]
+        candidate = repo_root / path
+        if candidate.exists():
+            path = candidate
     with open(path, "r") as f:
         data = yaml.safe_load(f) or {}
 

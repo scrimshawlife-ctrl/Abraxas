@@ -10,7 +10,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BacktestStatus(str, Enum):
@@ -150,6 +150,22 @@ class TriggerResult(BaseModel):
 
 class BacktestResult(BaseModel):
     """Result of evaluating a backtest case."""
+
+    model_config = ConfigDict(use_enum_values=True)
+
+    def model_dump(self, *args, **kwargs):  # type: ignore[override]
+        payload = super().model_dump(*args, **kwargs)
+
+        def _convert(obj):
+            if isinstance(obj, Enum):
+                return obj.value
+            if isinstance(obj, dict):
+                return {k: _convert(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_convert(v) for v in obj]
+            return obj
+
+        return _convert(payload)
 
     case_id: str
     run_id: str = "manual"  # Run identifier for provenance

@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from abx.oracle.rune_gate import compute_gate, enforce_depth, schedule_insight_window
-from abx.oracle.drift import drift_check, append_drift_log
+from abx.oracle import drift as drift_module
 from abx.oracle.provenance import stamp
 from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.runes.invoke import invoke_capability
@@ -133,7 +133,7 @@ def run_oracle(
     )
 
     # F) Check anchor drift (ϟ₆)
-    drift_bundle = drift_check(
+    drift_bundle = drift_module.drift_check(
         anchor=anchor,
         outputs_history=outputs_history,
         window=20,
@@ -163,7 +163,7 @@ def run_oracle(
 
     # H) Append drift log entry
     from abx.oracle.provenance import load_manifest_sha256
-    append_drift_log(
+    drift_module.append_drift_log(
         anchor=anchor,
         drift_bundle=drift_bundle,
         gate_state=gate_bundle["gate_state"],

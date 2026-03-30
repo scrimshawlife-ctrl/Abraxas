@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from jinja2 import Environment, FileSystemLoader
+import pytest
+
+jinja2 = pytest.importorskip("jinja2")
+Environment = jinja2.Environment
+FileSystemLoader = jinja2.FileSystemLoader
 
 from webpanel.core_bridge import core_ingest
 from webpanel.models import AbraxasSignalPacket, RunState
@@ -91,3 +95,20 @@ def test_oracle_json_payload_contains_keys():
     assert payload is not None
     assert '"signal_id"' in payload
     assert '"provenance"' in payload
+
+
+def test_oracle_view_includes_structured_signal_payload_contract():
+    oracle_view = build_oracle_view(_oracle_output())
+    payload = oracle_view["structured_signal_payload"]
+    assert payload["raw_signal"]["signal_id"] == "sig-oracle-render"
+    assert payload["claim_status"]["suppressed"] is False
+    assert isinstance(payload["structural_model"]["indicator_items"], list)
+
+
+def test_oracle_view_structured_payload_records_suppression_omission():
+    suppressed = _oracle_output()
+    suppressed["flags"] = {"suppressed": True}
+    oracle_view = build_oracle_view(suppressed)
+    omissions = oracle_view["structured_signal_payload"]["omissions"]
+    assert omissions
+    assert omissions[0]["omitted_reason"] == "hard_boundary_suppression"
