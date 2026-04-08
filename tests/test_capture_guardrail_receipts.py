@@ -20,5 +20,7 @@ def test_capture_guardrail_receipts_bundle(tmp_path: Path):
     )
     assert cp.returncode == 0
     payload = json.loads(out.read_text())
+    assert payload["schema_version"] == 1
+    assert payload["receipt_bundle_id"]
     assert "checks" in payload
     assert "receipts" in payload
