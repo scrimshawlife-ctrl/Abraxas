@@ -34,6 +34,18 @@ def main() -> int:
         print(f"INVALID missing={miss}")
         return 1
 
+    if rec.get("record_type") == "release_manifest":
+        registration_receipt = rec.get("registration_receipt")
+        if not isinstance(registration_receipt, dict):
+            print("INVALID missing=registration_receipt")
+            return 1
+        if registration_receipt.get("label") != "subsystem_registration_check":
+            print("INVALID registration_receipt.label")
+            return 1
+        if registration_receipt.get("status") not in {"PASS", "BLOCKED"}:
+            print("INVALID registration_receipt.status")
+            return 1
+
     if a.ledger:
         ledger_path = LEDGER_MAP.get(a.ledger, Path(a.ledger))
         if not ledger_path.parent.exists():

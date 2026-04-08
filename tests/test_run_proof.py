@@ -22,8 +22,21 @@ def test_run_proof_generates_partial_summary():
     assert cp.returncode == 0
     payload = json.loads(cp.stdout)
     assert payload["status"] in {"VALIDATOR-VISIBLE BUT PARTIAL", "CORRELATION-COMPLETE"}
+    assert "registrationReceiptPath" in payload["artifacts"]
+    assert "guardrailValidatorArtifactPath" in payload["artifacts"]
+    assert "proofOperatorSummaryPath" in payload["artifacts"]
+    assert "proofOperatorSummaryValidatorPath" in payload["artifacts"]
     assert "testReceiptPath" in payload["artifacts"]
     assert "auditRecordPath" in payload["artifacts"]
+    assert "guardrail_bundle_validated" in payload["presentReceipts"]
+    assert "proof_operator_summary_validated" in payload["presentReceipts"]
+    assert "subsystem_registration_verified" in payload["presentReceipts"]
+    governance_record = json.loads(Path(payload["artifacts"]["governanceRecordPath"]).read_text())
+    assert governance_record["required_receipts"] == ["runtime_artifact", "validator_artifact"]
+    assert "observed_proof_receipts" in governance_record
+    assert "guardrail_bundle_validated" in governance_record["observed_proof_receipts"]
+    assert governance_record["registration_receipt"]["label"] == "subsystem_registration_check"
+    assert governance_record["registration_receipt"]["status"] == "PASS"
 
     run_id = payload["runId"]
     run_dir = Path("out/proof_runs") / run_id

@@ -44,6 +44,31 @@ capture-test-receipt:
 		exit 2; \
 	fi
 	$(PYTHON) scripts/capture_test_receipt.py --out $(OUT)
+proof-summary:
+	@if [ -z "$(RUN_ID)" ] || [ -z "$(OUT)" ]; then \
+		echo "Usage: make proof-summary RUN_ID=<id> OUT=<path>"; \
+		exit 2; \
+	fi
+	$(PYTHON) scripts/summarize_proof_run.py --run-id $(RUN_ID) --out $(OUT)
+validate-proof-summary:
+	@if [ -z "$(SUMMARY)" ] || [ -z "$(OUT)" ]; then \
+		echo "Usage: make validate-proof-summary SUMMARY=<path> OUT=<path>"; \
+		exit 2; \
+	fi
+	$(PYTHON) scripts/validate_proof_operator_summary.py --summary $(SUMMARY) --out $(OUT)
+run-mircl-v1:
+	@if [ -z "$(REQUEST)" ]; then \
+		echo "Usage: make run-mircl-v1 REQUEST=<path>"; \
+		exit 2; \
+	fi
+	$(PYTHON) scripts/run_mircl_v1.py --request $(REQUEST)
+run-mbom-v1:
+	@if [ -z "$(REQUEST)" ]; then \
+		echo "Usage: make run-mbom-v1 REQUEST=<path>"; \
+		exit 2; \
+	fi
+	$(PYTHON) scripts/run_mbom_v1.py --request $(REQUEST)
+
 capture-repo-status:
 	@if [ -z "$(OUT)" ]; then \
 		echo "Usage: make capture-repo-status OUT=<path>"; \
