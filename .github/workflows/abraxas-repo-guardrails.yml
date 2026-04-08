@@ -11,7 +11,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -e .
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install --no-cache-dir -e ".[dev]"
       - run: make preflight-oracle_signal_layer_v2
       - run: make preflight-mbom_v1
       - run: make preflight-mircl_v1
