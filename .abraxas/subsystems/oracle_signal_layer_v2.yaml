@@ -1,0 +1,45 @@
+{
+  "subsystem_id": "oracle_signal_layer_v2",
+  "canon_status": "authority_support_spine",
+  "tier": "authority_support",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "forecast-active",
+  "promotion_state": "promoted",
+  "revocation_state": "clear",
+  "release_readiness": "gated",
+  "allowed_change_classes": [
+    "maintenance",
+    "forecast_active_change"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift"
+  ],
+  "required_receipts": [
+    "runtime_artifact",
+    "validator_artifact"
+  ],
+  "receipt_overrides": {
+    "forecast_active_change": [
+      "runtime_artifact",
+      "validator_artifact"
+    ]
+  },
+  "promotion_requirements": [
+    "validator_visibility",
+    "reversible_promotion_path"
+  ],
+  "revocation_triggers": [
+    "missing_validator_artifact",
+    "authority_surface_drift"
+  ],
+  "default_completion_if_no_receipts": "attestation_pending",
+  "stop_if_missing": [
+    "runtime_artifact",
+    "validator_artifact"
+  ],
+  "notes": [
+    "Authority support spine: derivative summaries cannot override canonical truth.",
+    "Promotion remains reversible when evidence decays or drift triggers fire."
+  ]
+}

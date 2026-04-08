@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from abraxas.oracle.mbom_v1 import assess_ambiguity
 from abraxas.oracle.v2.pipeline import OracleV2Pipeline, OracleSignal
 
 
@@ -210,8 +211,15 @@ def run_overlay(ctx: Dict[str, Any]) -> Dict[str, Any]:
         # Run forecast phase
         forecast = pipeline._forecast_phase(compression, run_id, git_sha)
 
+        mbom = assess_ambiguity(
+            lifecycle_states=getattr(compression, "lifecycle_states", {}),
+            domain_signals=list(getattr(compression, "domain_signals", [])),
+            resonance_score=float(getattr(forecast, "resonance_score", 0.0)),
+        ).to_dict()
+
         # Store for downstream (if narrative phase is needed later)
         ctx["_forecast"] = forecast
+        ctx["_mbom_v1"] = mbom
 
         return {
             "status": "ok",
@@ -225,6 +233,7 @@ def run_overlay(ctx: Dict[str, Any]) -> Dict[str, Any]:
                 "drift_velocity": forecast.drift_velocity,
                 "provenance_hash": forecast.provenance.inputs_hash,
             },
+            "mbom_v1": mbom,
         }
 
     except Exception as e:

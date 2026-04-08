@@ -1,0 +1,9 @@
+{
+  "record_type": "revocation_event",
+  "timestamp": "",
+  "subsystem_id": "",
+  "trigger": "",
+  "status": "SUCCESS|FAILED|NOT_COMPUTABLE",
+  "provenance": {},
+  "correlation_pointers": []
+}

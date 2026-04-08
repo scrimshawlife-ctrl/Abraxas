@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "release_requirements": {
+    "default": {
+      "minimum_release_readiness": "gated",
+      "required_receipts": [
+        "runtime_artifact",
+        "validator_artifact"
+      ]
+    },
+    "blocked_states": [
+      "blocked",
+      "attestation_pending"
+    ]
+  }
+}

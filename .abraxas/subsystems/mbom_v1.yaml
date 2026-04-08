@@ -1,0 +1,37 @@
+{
+  "subsystem_id": "mbom_v1",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "additive",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "forecast-active",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "forecast_active_change",
+    "authority_surface_drift"
+  ],
+  "required_receipts": [
+    "governance_record"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "additive_only",
+    "non_authority_inflation"
+  ],
+  "revocation_triggers": [
+    "authority_surface_drift"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "governance_record"
+  ],
+  "notes": [
+    "MBOM remains additive and must not inflate authority.",
+    "Forecast-active and authority-surface drift paths are blocked pending proof."
+  ]
+}

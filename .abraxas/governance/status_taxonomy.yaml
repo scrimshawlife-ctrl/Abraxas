@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "canon_status": [
+    "authority_support_spine",
+    "additive_ambiguity_preservation",
+    "shadow_advisory",
+    "forecast_finance_simulation"
+  ],
+  "drop_status": [
+    "active",
+    "paused",
+    "archived"
+  ],
+  "promotion_state": [
+    "candidate",
+    "promoted",
+    "shadow_only",
+    "revoked"
+  ],
+  "release_readiness": [
+    "blocked",
+    "partial",
+    "attestation_pending",
+    "gated"
+  ],
+  "revocation_state": [
+    "clear",
+    "triggered"
+  ]
+}
