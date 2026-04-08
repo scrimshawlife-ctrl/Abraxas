@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "append_only_ledger",
+      "text": "Ledger records are append-only and must not rewrite prior entries."
+    },
+    {
+      "id": "refinement_guard",
+      "text": "Denser continuity may refine bounded continuity only with stronger audit linkage and traversability."
+    },
+    {
+      "id": "no_seeded_closure",
+      "text": "Seeded memory cannot be used as execution closure evidence."
+    }
+  ]
+}

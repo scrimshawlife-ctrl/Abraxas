@@ -1,0 +1,36 @@
+{
+  "subsystem_id": "forecast_portfolio_simulation_v0_1",
+  "canon_status": "forecast_finance_simulation",
+  "tier": "simulation",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "forecast-active",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "gated",
+  "allowed_change_classes": [
+    "forecast_active_change"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift"
+  ],
+  "required_receipts": [
+    "runtime_artifact",
+    "validator_artifact"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "governance_ready_evidence"
+  ],
+  "revocation_triggers": [
+    "missing_validator_artifact"
+  ],
+  "default_completion_if_no_receipts": "attestation_pending",
+  "stop_if_missing": [
+    "runtime_artifact",
+    "validator_artifact"
+  ],
+  "notes": [
+    "Forecast simulation requires governance-ready evidence objects before readiness claims."
+  ]
+}

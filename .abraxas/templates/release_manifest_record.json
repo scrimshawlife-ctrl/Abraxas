@@ -1,0 +1,9 @@
+{
+  "record_type": "release_manifest",
+  "timestamp": "",
+  "artifact_id": "",
+  "subsystems": [],
+  "status": "SUCCESS|FAILED|NOT_COMPUTABLE",
+  "provenance": {},
+  "correlation_pointers": []
+}

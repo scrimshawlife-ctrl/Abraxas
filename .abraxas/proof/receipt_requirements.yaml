@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "receipts": {
+    "runtime_artifact": {
+      "description": "Runtime execution artifact linked to run_id and artifact_id."
+    },
+    "validator_artifact": {
+      "description": "Validator-visible artifact verifying execution integrity."
+    },
+    "governance_record": {
+      "description": "Append-only governance record with schema-valid fields."
+    }
+  },
+  "by_change_class": {
+    "default": {
+      "required": [
+        "governance_record"
+      ]
+    },
+    "forecast_active_change": {
+      "required": [
+        "runtime_artifact",
+        "validator_artifact"
+      ]
+    }
+  }
+}

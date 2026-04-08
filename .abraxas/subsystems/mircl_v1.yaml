@@ -1,0 +1,35 @@
+{
+  "subsystem_id": "mircl_v1",
+  "canon_status": "shadow_advisory",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "shadow_only",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "advisory_update"
+  ],
+  "restricted_change_classes": [
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "governance_record"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_non_routing"
+  ],
+  "revocation_triggers": [
+    "forecast_route_influence"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "governance_record"
+  ],
+  "notes": [
+    "MIRCL is shadow-attached and cannot route forecast-active decisions.",
+    "Silence is not promotion; explicit evidence is required for any state transition."
+  ]
+}

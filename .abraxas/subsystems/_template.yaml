@@ -1,0 +1,20 @@
+{
+  "subsystem_id": "template_subsystem",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": false,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [],
+  "restricted_change_classes": [],
+  "required_receipts": [],
+  "receipt_overrides": {},
+  "promotion_requirements": [],
+  "revocation_triggers": [],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [],
+  "notes": []
+}

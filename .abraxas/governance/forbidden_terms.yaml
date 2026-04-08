@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "forbidden_terms": [
+    "attested",
+    "production-ready",
+    "closed",
+    "complete",
+    "fully promoted"
+  ],
+  "exceptions": [
+    "NOT_COMPUTABLE",
+    "attestation_pending"
+  ]
+}

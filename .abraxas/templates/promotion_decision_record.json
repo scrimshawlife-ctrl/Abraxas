@@ -1,0 +1,9 @@
+{
+  "record_type": "promotion_decision",
+  "timestamp": "",
+  "subsystem_id": "",
+  "decision": "candidate|promoted|revoked",
+  "status": "SUCCESS|FAILED|NOT_COMPUTABLE",
+  "provenance": {},
+  "correlation_pointers": []
+}
