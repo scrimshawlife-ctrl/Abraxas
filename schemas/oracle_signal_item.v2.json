@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/oracle_signal_item.v2.json",
+  "type": "object",
+  "required": ["schema_id", "signal_id", "domain", "subdomain", "score", "confidence", "decay", "tier", "route", "authority_marker"],
+  "properties": {
+    "schema_id": {"const": "OracleSignalItem.v2"},
+    "signal_id": {"type": "string"},
+    "domain": {"type": "string"},
+    "subdomain": {"type": "string"},
+    "score": {"type": "number"},
+    "confidence": {"type": "number"},
+    "decay": {"type": "number"},
+    "tier": {"type": "string"},
+    "route": {"type": "string"},
+    "authority_marker": {"const": "interpretation_only"}
+  }
+}

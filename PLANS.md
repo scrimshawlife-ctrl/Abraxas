@@ -29,10 +29,11 @@ This file is the append-first execution queue for implementation runs.
 - **Intent:** route execution-producing paths through a shared rune artifact envelope.
 - **Definition of done:** new execution paths use wrapper-generated schema-aligned artifacts.
 
-### P2 — Operator UI Spine Follow-up
+### P2 — Operator UI Shell Follow-up
 - **Status:** CONDITIONAL
-- **Intent:** only pursue if current roadmap still requires operator-facing execution trace surfaces.
-- **Definition of done:** explicit go/no-go decision and scoped UI task list.
+- **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.
+- **Definition of done:** explicit go/no-go decision and scoped UI shell task list with canonical-entrypoint signage preserved.
+
 
 ### P0 — Large-Run Deterministic Convergence Spine
 - **Status:** COMPLETE (2026-03-30)
@@ -71,6 +72,10 @@ This file is the append-first execution queue for implementation runs.
    - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
 
 ## Completed
+- 2026-04-09 — OSLv2 operator ergonomics pass: added Makefile entrypoints (`run-oracle-signal-layer-v2`, `run-oracle-signal-layer-v2-invariance`, `test-oracle-signal-layer-v2`) to keep runtime/invariance/validation execution deterministic and reusable from one command surface.
+- 2026-04-08 — Oracle Signal Layer v2 verticalization pass: split runtime into contract/runtime/advisory/stability/proof modules, enforced interpretation-only authority scope, added digest-triplet invariance runner, receipt writer, and focused oracle test suite with explicit NOT_COMPUTABLE advisory visibility.
+- 2026-04-08 — Oracle Signal Layer v2 subsystem drop: landed deterministic `OracleSignalInputEnvelope.v2 -> OracleSignalLayerOutput.v2` runtime spine with bounded MIRCL/trend advisory attachments, validator summary emission, digest-based invariance harness, schema contracts, execution script, and focused tests for authority/advisory boundary enforcement.
+- 2026-04-08 — Operator family naming-law signage pass: classified Operator Console as canonical entrypoint, Operator Mode as runtime state, and Operator UI as implementation shell across webpanel surfaces; added run-console build-artifact signage to prevent wrong-entrypoint drift.
 - *(append completed items here; do not delete historical record)*
 - 2026-03-30 — PR conflict-resolution merge pass: verified repository merge state is clean (`git status --porcelain -b` and conflict marker scan), then recorded explicit NOT_COMPUTABLE merge outcome because no additional local/remote PR refs are present to merge in this environment.
 - 2026-03-30 — Large-run runtime contract enforcement pass: added `scripts/large_run_contracts.py` and wired envelope validation into all large-run builders so invalid artifacts fail fast before write, with focused contract-unit tests.

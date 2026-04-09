@@ -1,0 +1,42 @@
+{
+  "schema_id": "OracleSignalInputEnvelope.v2",
+  "signal_sources": ["mda", "validator"],
+  "payload": {
+    "observations": [
+      {
+        "domain": "macro",
+        "subdomain": "fx",
+        "score": 0.72,
+        "confidence": 0.64,
+        "age_hours": 4,
+        "evidence_refs": ["ev_fx_001", "ev_fx_002"]
+      },
+      {
+        "domain": "macro",
+        "subdomain": "fx",
+        "score": 0.51,
+        "confidence": 0.58,
+        "age_hours": 9,
+        "evidence_refs": ["ev_fx_003"]
+      }
+    ]
+  },
+  "context": {
+    "trend_inputs": [
+      {
+        "label": "fx_1w",
+        "value": 0.12
+      }
+    ]
+  },
+  "metadata": {
+    "run_id": "sample_oracle_signal_v2_run",
+    "lane": "forecast-active",
+    "tier": "advisory",
+    "display_label": "Sample OSLv2 Envelope",
+    "operator_note": "display only",
+    "provenance": {
+      "source": "docs_sample"
+    }
+  }
+}

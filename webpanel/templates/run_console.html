@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Run Console — {{ run_id }}</h1>
+<div class="card">
+  <p><b>Role:</b> Build artifact / run summary surface (not a canonical operator console).</p>
+  <p><b>Canonical entrypoint:</b> <a href="/operator">Operator Console</a>.</p>
+</div>
 <section>
   <h2>Summary Card</h2>
   <p><strong>Policy:</strong> {{ summary.policy_state }}</p>

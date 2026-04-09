@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/oracle_signal_layer_output.v2.json",
+  "type": "object",
+  "required": ["schema_id", "run_id", "lane", "authority", "advisory_attachments", "authority_advisory_boundary_enforced", "provenance", "display_fields", "not_computable_reasons"],
+  "properties": {
+    "schema_id": {"const": "OracleSignalLayerOutput.v2"},
+    "run_id": {"type": "string"},
+    "lane": {"type": "string"},
+    "authority": {"$ref": "oracle_signal_authority_output.v2.json"},
+    "advisory_attachments": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"$ref": "oracle_advisory_attachment.v1.json"},
+          {"$ref": "oracle_trend_attachment.v1.json"}
+        ]
+      }
+    },
+    "authority_advisory_boundary_enforced": {"type": "boolean"},
+    "display_fields": {"type": "object"},
+    "not_computable_reasons": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "object",
+      "required": ["input_hash", "authority_hash", "full_hash", "computable", "status", "not_computable_reasons"],
+      "properties": {
+        "input_hash": {"type": "string"},
+        "authority_hash": {"type": "string"},
+        "full_hash": {"type": "string"},
+        "computable": {"type": "boolean"},
+        "status": {"type": "string", "enum": ["COMPUTABLE", "NOT_COMPUTABLE"]},
+        "not_computable_reasons": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

@@ -3,6 +3,14 @@
 {% block content %}
 <h1>Operator Console v1.5 — Minimal Control Spine</h1>
 <div class="card">
+  <h2>Operator Family Role Law</h2>
+  <p><b>Canonical entrypoint:</b> Operator Console</p>
+  <p><b>Role:</b> Operator-facing read-only control and inspection surface.</p>
+  <p><b>Mode rule:</b> Workbench modes are runtime state (Operator Mode), not alternate entrypoints.</p>
+  <p><b>Shell rule:</b> This page is rendered inside the Operator UI shell.</p>
+</div>
+
+<div class="card">
   <h2>Workbench Modes</h2>
   <p>
     {% for mode in view.workbench_modes_allowed %}

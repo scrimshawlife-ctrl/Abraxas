@@ -4,6 +4,13 @@
 <h1>Run: {{ run.run_id }}</h1>
 <p><a href="/"><- back</a> · <a href="/runs/{{ run.run_id }}/ledger">ledger view</a></p>
 
+
+<div class="card" style="margin-top:12px;">
+  <h2>OSLv2 Artifact Viewer</h2>
+  <p><small>Role: artifact viewer (not a canonical operator console).</small></p>
+  <a href="/oracle-signal-artifact?path=out/oracle_signal_layer_v2/oracle_signal_layer_output_{{ run.run_id }}.json">Open OSLv2 artifact view</a>
+</div>
+
 {% if error %}
   <div class="card warn" style="margin-top:12px;">
     <b>Error:</b> {{ error }}
