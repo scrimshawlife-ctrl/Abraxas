@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/oracle_trend_attachment.v1.json",
+  "type": "object",
+  "required": ["schema_id", "attachment_id", "status", "computable", "advisory_marker", "payload", "provenance"],
+  "properties": {
+    "schema_id": {"const": "OracleTrendAttachment.v1"},
+    "attachment_id": {"const": "trend"},
+    "status": {"type": "string"},
+    "computable": {"type": "boolean"},
+    "advisory_marker": {"const": "advisory_only"},
+    "payload": {
+      "type": "object",
+      "required": ["trend_state", "sample_count"],
+      "properties": {
+        "trend_state": {"type": "string"},
+        "sample_count": {"type": "integer"},
+        "mean_value": {"type": "number"}
+      }
+    },
+    "provenance": {"type": "object"}
+  }
+}

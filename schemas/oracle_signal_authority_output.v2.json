@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/oracle_signal_authority_output.v2.json",
+  "type": "object",
+  "required": ["schema_id", "run_id", "lane", "authority_scope", "signal_items", "provenance"],
+  "properties": {
+    "schema_id": {"const": "OracleSignalAuthorityOutput.v2"},
+    "run_id": {"type": "string"},
+    "lane": {"type": "string"},
+    "authority_scope": {"const": "interpretation_only"},
+    "signal_items": {"type": "array", "items": {"$ref": "oracle_signal_item.v2.json"}},
+    "provenance": {
+      "type": "object",
+      "required": ["core_hash", "authority_hash", "computable", "status"],
+      "properties": {
+        "core_hash": {"type": "string"},
+        "authority_hash": {"type": "string"},
+        "computable": {"type": "boolean"},
+        "status": {"type": "string", "enum": ["COMPUTABLE", "NOT_COMPUTABLE"]}
+      }
+    }
+  }
+}

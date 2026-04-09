@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Oracle Signal Artifact Viewer</h1>
+<p><b>artifact:</b> {{ artifact_path }}</p>
+<div class="card">
+  <h2>Authority (interpretation-only)</h2>
+  <p><b>scope:</b> {{ authority.authority_scope or "UNAVAILABLE" }}</p>
+  <p><b>signal_items:</b> {{ authority.signal_items|length if authority.signal_items else 0 }}</p>
+  <pre>{{ authority | tojson(indent=2) }}</pre>
+</div>
+<div class="card" style="margin-top:12px;">
+  <h2>Advisory Attachments</h2>
+  <p><b>count:</b> {{ advisory_attachments|length }}</p>
+  <ul>
+    {% for item in advisory_attachments %}
+      <li>{{ item.attachment_id }} | status={{ item.status }} | computable={{ item.computable }}</li>
+    {% endfor %}
+  </ul>
+  <pre>{{ advisory_attachments | tojson(indent=2) }}</pre>
+</div>
+<div class="card" style="margin-top:12px;">
+  <h2>Full Payload</h2>
+  <pre>{{ payload | tojson(indent=2) }}</pre>
+</div>
+{% endblock %}

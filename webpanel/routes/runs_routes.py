@@ -14,6 +14,7 @@ from ..execution_validation import load_execution_validation_for_run
 from ..gates import compute_gate_stack
 from ..lineage import get_lineage
 from ..oracle_output import build_oracle_json, build_oracle_view, extract_oracle_output, validate_oracle_output_v2
+from ..oracle_signal_artifact import load_oracle_signal_artifact
 from ..panel_context import (
     _panel_host,
     _panel_port,
@@ -171,6 +172,31 @@ def ui_run(request: Request, run_id: str):
         },
     )
 
+
+
+
+
+def ui_oracle_signal_artifact(request: Request, path: str):
+    try:
+        artifact = load_oracle_signal_artifact(path)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return templates.TemplateResponse(
+        "oracle_signal_artifact.html",
+        {
+            "request": request,
+            "artifact_path": artifact["artifact_path"],
+            "payload": artifact["payload"],
+            "authority": artifact["authority"],
+            "advisory_attachments": artifact["advisory_attachments"],
+            "panel_host": _panel_host(),
+            "panel_port": _panel_port(),
+            "token_enabled": _token_enabled(),
+            "panel_token": _panel_token(),
+        },
+    )
 
 def ui_oracle_json(run_id: str):
     run = panel_context.store.get(run_id)
@@ -351,6 +377,7 @@ async def ui_stabilize(run_id: str, request: Request):
 def register(app):
     app.get("/runs/{run_id}", response_class=HTMLResponse)(ui_run)
     app.get("/runs/{run_id}/oracle.json")(ui_oracle_json)
+    app.get("/oracle-signal-artifact", response_class=HTMLResponse)(ui_oracle_signal_artifact)
     app.get("/runs/{run_id}/projection.json")(ui_projection_json)
     app.get("/runs/{run_id}/stability")(ui_stability)
     app.get("/runs/{run_id}/stability.json")(ui_stability_json)
