@@ -4,6 +4,7 @@ generated_from: ast_import_scan_plus_project_metadata
 status: repo_verified
 classification_schema:
   - CORE_REQUIRED
+  - ENTRYPOINT_REQUIRED
   - OPTIONAL_ADAPTER
   - DEV_TEST_ONLY
   - LEGACY_DEPRECATED
@@ -41,11 +42,14 @@ dependencies:
       source: ast_scan
       confidence: high
   fastapi:
-    class: CORE_REQUIRED
-    authority_scope: [runtime, webpanel]
-    import_policy: normal
-    fallback_policy: hard_setup_failure
-    allowed_to_affect_truth: true
+    class: ENTRYPOINT_REQUIRED
+    authority_scope: [entrypoint, api, webpanel]
+    import_policy: entrypoint_only
+    fallback_policy: launch_blocked_surface_only
+    allowed_to_affect_truth: false
+    required_for_launch: true
+    truth_authoritative: false
+    execution_boundary_role: api
     import_locations:
       - path: abraxas/api/app.py
         line: 5
@@ -56,7 +60,7 @@ dependencies:
         top_level: true
         symbol: FastAPI
     notes:
-      - Runtime API serving and execution endpoints rely on FastAPI.
+      - Required to expose API/web surfaces, but not truth-authoritative for governed computation.
     provenance:
       source: ast_scan
       confidence: medium
@@ -199,6 +203,9 @@ dependencies:
     import_policy: entrypoint_only
     fallback_policy: plain_text_fallback
     allowed_to_affect_truth: false
+    required_for_launch: false
+    truth_authoritative: false
+    execution_boundary_role: cli
     import_locations:
       - path: abraxas/cli/app.py
         line: 8
@@ -210,34 +217,40 @@ dependencies:
       source: ast_scan
       confidence: medium
   typer:
-    class: CORE_REQUIRED
-    authority_scope: [cli]
-    import_policy: normal
-    fallback_policy: hard_setup_failure
-    allowed_to_affect_truth: true
+    class: ENTRYPOINT_REQUIRED
+    authority_scope: [entrypoint, cli]
+    import_policy: entrypoint_only
+    fallback_policy: launch_blocked_surface_only
+    allowed_to_affect_truth: false
+    required_for_launch: true
+    truth_authoritative: false
+    execution_boundary_role: cli
     import_locations:
       - path: abraxas/cli/app.py
         line: 7
         top_level: true
         symbol: typer
     notes:
-      - Command routing entrypoint dependency for operator execution commands.
+      - Required to launch CLI entrypoints, but not truth-authoritative.
     provenance:
       source: ast_scan
       confidence: medium
   uvicorn:
-    class: OPTIONAL_ADAPTER
-    authority_scope: [runtime, webpanel]
+    class: ENTRYPOINT_REQUIRED
+    authority_scope: [entrypoint, runtime, webpanel]
     import_policy: entrypoint_only
-    fallback_policy: execution_time_error
+    fallback_policy: launch_blocked_surface_only
     allowed_to_affect_truth: false
+    required_for_launch: true
+    truth_authoritative: false
+    execution_boundary_role: server
     import_locations:
       - path: webpanel/run.py
         line: 6
         top_level: true
         symbol: uvicorn
     notes:
-      - ASGI server adapter for serving endpoints.
+      - Required only for ASGI launch surfaces and must not affect canonical truth state.
     provenance:
       source: ast_scan
       confidence: medium

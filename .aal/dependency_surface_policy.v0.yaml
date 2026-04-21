@@ -1,0 +1,56 @@
+policy_version: dependency_surface_policy.v0
+repo: scrimshawlife-ctrl/Abraxas
+allow_fallback_heuristic: false
+roles:
+  - truth_authoritative
+  - launch_surface
+  - optional_adapter_surface
+  - test_only
+  - legacy
+path_role_map:
+  - prefix: tests/
+    role: test_only
+  - prefix: abx/optional_dependencies.py
+    role: optional_adapter_surface
+  - prefix: abx/optional_jinja2.py
+    role: optional_adapter_surface
+  - prefix: abraxas/osh/
+    role: optional_adapter_surface
+  - prefix: abraxas/db/
+    role: optional_adapter_surface
+  - prefix: abraxas/core/
+    role: truth_authoritative
+  - prefix: abx/core/
+    role: truth_authoritative
+  - prefix: abx/runtime/
+    role: truth_authoritative
+  - prefix: shared/
+    role: truth_authoritative
+  - prefix: webpanel/
+    role: launch_surface
+  - prefix: server/
+    role: launch_surface
+  - prefix: abraxas/web/
+    role: launch_surface
+  - prefix: abraxas/lens/
+    role: launch_surface
+  - prefix: abraxas/api/
+    role: launch_surface
+  - prefix: abraxas/cli/
+    role: launch_surface
+  - prefix: abx/ui/
+    role: launch_surface
+  - prefix: abx/server/
+    role: launch_surface
+  - prefix: tools/aatf/aatf/
+    role: launch_surface
+  - prefix: scripts/
+    role: launch_surface
+  - prefix: abx/cli.py
+    role: launch_surface
+  - prefix: src/
+    role: truth_authoritative
+  - prefix: abx/
+    role: truth_authoritative
+  - prefix: abraxas/
+    role: truth_authoritative

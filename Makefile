@@ -123,5 +123,26 @@ test-oracle-signal-layer-v2:
 optional-dependency-boundary-check:
 	$(PYTHON) scripts/check_optional_dependency_boundaries.py
 
+dependency-metadata-alignment-check:
+	$(PYTHON) scripts/check_dependency_metadata_alignment.py
+
+dependency-governance-check:
+	$(PYTHON) scripts/check_optional_dependency_boundaries.py
+	$(PYTHON) scripts/check_dependency_metadata_alignment.py
+
+dependency-boundary-check:
+	$(PYTHON) scripts/check_optional_dependency_boundaries.py
+
+dependency-metadata-check:
+	$(PYTHON) scripts/check_dependency_metadata_alignment.py
+
+dependency-check:
+	$(MAKE) dependency-boundary-check
+	$(MAKE) dependency-metadata-check
+
+test-with-deps:
+	$(MAKE) dependency-check
+	pytest -q
+
 svg-validate:
 	bash scripts/validate_architecture_svg.sh

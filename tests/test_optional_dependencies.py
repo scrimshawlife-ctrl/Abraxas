@@ -6,6 +6,7 @@ from abx.optional_dependencies import (
     dependency_available,
     dependency_status,
     load_optional_dependency,
+    require_dependency,
     require_optional_dependency,
 )
 from abx.optional_jinja2 import jinja2_status, load_jinja2
@@ -37,6 +38,7 @@ def test_dependency_status_packet_shape_is_deterministic() -> None:
         "render.preview",
         dependency_class="OPTIONAL_ADAPTER",
         authority_scope="presentation",
+        execution_boundary_role="webpanel",
     )
     assert packet == {
         "dependency_name": "module_that_does_not_exist_abc123",
@@ -44,11 +46,40 @@ def test_dependency_status_packet_shape_is_deterministic() -> None:
         "dependency_class": "OPTIONAL_ADAPTER",
         "feature_name": "render.preview",
         "status": "missing_optional_dependency",
+        "required_for_launch": False,
+        "truth_authoritative": False,
         "allowed_to_affect_truth": False,
         "fallback_policy": "bounded_degraded",
         "authority_scope": "presentation",
+        "execution_boundary_role": "webpanel",
         "provenance": "abx.optional_dependencies.v0",
     }
+
+
+def test_entrypoint_required_dependency_has_launch_scoped_missing_status() -> None:
+    packet = dependency_status(
+        "module_that_does_not_exist_abc123",
+        "web.launch",
+        dependency_class="ENTRYPOINT_REQUIRED",
+        authority_scope="entrypoint",
+        required_for_launch=True,
+        execution_boundary_role="webpanel",
+        allowed_to_affect_truth=False,
+    )
+    assert packet["status"] == "missing_entrypoint_dependency"
+    assert packet["required_for_launch"] is True
+    assert packet["truth_authoritative"] is False
+    assert packet["fallback_policy"] == "launch_blocked_surface_only"
+
+    with pytest.raises(RuntimeError) as err:
+        require_dependency(
+            name="module_that_does_not_exist_abc123",
+            feature_name="web.launch",
+            dependency_class="ENTRYPOINT_REQUIRED",
+        )
+    message = str(err.value)
+    assert "status=missing_entrypoint_dependency" in message
+    assert "fallback=launch_blocked_surface_only" in message
 
 
 def test_jinja2_status_and_loader_when_present() -> None:

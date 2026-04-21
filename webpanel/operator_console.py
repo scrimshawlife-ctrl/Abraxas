@@ -7161,7 +7161,7 @@ def build_view_state(
             "workbench_mode": applied_mode,
             "policy_mode": str(policy_surface.get("policy_mode", "review_only")),
         },
-        "timestamp": _utc_now(),
+        "timestamp": str(selected_detail.get("latest_timestamp", "NOT_COMPUTABLE")),
         "provenance": "operator_console.pipeline_routing.v4.1.deterministic_rulepath",
         "rule_strings": [
             "suitability_rule=allowlist+gating+required_context+classification",

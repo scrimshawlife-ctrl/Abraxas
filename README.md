@@ -156,6 +156,23 @@ Primary governance and validation surfaces:
 
 Governance defaults are fail-closed: missing receipts stay explicit (`partial`, `blocked`, `attestation_pending`, or `NOT_COMPUTABLE`).
 
+## Dependency Governance
+
+Abraxas enforces dependency boundaries through:
+
+- `.aal/dependency_manifest.v0.yaml`
+- `.aal/dependency_surface_policy.v0.yaml`
+- `scripts/check_optional_dependency_boundaries.py`
+
+Key rules:
+- CORE_REQUIRED dependencies may affect runtime truth.
+- ENTRYPOINT_REQUIRED dependencies may launch surfaces but cannot define truth.
+- OPTIONAL_ADAPTER dependencies are limited to rendering/export/bridge roles.
+- Unclassified modules fail closed by default.
+
+Run locally:
+- `make dependency-check`
+
 ### Tier markers (canonical closure ladder)
 
 - **Tier 1**: `python -m abx.cli proof-run --run-id <RUN_ID>`

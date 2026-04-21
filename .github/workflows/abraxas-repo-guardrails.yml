@@ -20,6 +20,10 @@ jobs:
       - run: make registry-check
       - run: make proof-check
       - run: make governance-lint
+      - name: Dependency Boundary Check
+        run: python scripts/check_optional_dependency_boundaries.py
+      - name: Dependency Metadata Check
+        run: python scripts/check_dependency_metadata_alignment.py
       - run: make release-readiness
       - run: make test
       - run: make repo-status
