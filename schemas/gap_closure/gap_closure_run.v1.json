@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/gap_closure/gap_closure_run.v1.json",
+  "title": "GapClosureRun",
+  "type": "object",
+  "required": [
+    "run_id",
+    "schema_version",
+    "input_hash",
+    "provenance",
+    "status"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "const": "gap_closure_run.v1"
+    },
+    "input_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "lane",
+        "mode",
+        "workspace_only"
+      ],
+      "properties": {
+        "lane": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "workspace_only": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "status": {
+      "enum": [
+        "READY",
+        "RUNNING",
+        "COMPLETE",
+        "PARTIAL",
+        "NOT_COMPUTABLE",
+        "FAILED"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

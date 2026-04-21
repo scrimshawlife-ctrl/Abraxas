@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/gap_closure/live_run_projection.v1.json",
+  "title": "LiveRunProjection",
+  "type": "object",
+  "required": ["schema_version", "run_id", "status", "authority_boundary"],
+  "properties": {
+    "schema_version": {"const": "live_run_projection.v1"},
+    "run_id": {"type": "string"},
+    "status": {"type": "string"},
+    "authority_boundary": {"const": "projection cannot alter canon status"}
+  },
+  "additionalProperties": true
+}

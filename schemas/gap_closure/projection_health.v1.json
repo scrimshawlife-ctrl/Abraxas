@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/gap_closure/projection_health.v1.json",
+  "title": "ProjectionHealth",
+  "type": "object",
+  "required": ["schema_version", "run_id", "projection_status", "authority_boundary"],
+  "properties": {
+    "schema_version": {"const": "projection_health.v1"},
+    "run_id": {"type": "string"},
+    "projection_status": {"type": "string"},
+    "authority_boundary": {"const": "projection cannot alter canon status"}
+  },
+  "additionalProperties": true
+}

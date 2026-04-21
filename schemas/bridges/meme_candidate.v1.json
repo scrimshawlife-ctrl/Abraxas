@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/bridges/meme_candidate.v1.json",
+  "title": "MemeCandidate",
+  "type": "object",
+  "required": ["candidate_id", "message"],
+  "properties": {
+    "candidate_id": {"type": "string"},
+    "message": {"type": "string"}
+  },
+  "additionalProperties": true
+}

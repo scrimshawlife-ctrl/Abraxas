@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/gap_closure/closure_validation_report.v1.json",
+  "title": "ClosureValidationReport",
+  "type": "object",
+  "required": ["schema_version", "run_id", "status", "promotion_decision"],
+  "properties": {
+    "schema_version": {"const": "closure_validation_report.v1"},
+    "run_id": {"type": "string"},
+    "status": {"enum": ["PASS", "FAIL", "NOT_COMPUTABLE", "PARTIAL"]},
+    "promotion_decision": {"enum": ["HOLD", "BLOCK"]},
+    "reason": {"type": "string"}
+  },
+  "additionalProperties": true
+}

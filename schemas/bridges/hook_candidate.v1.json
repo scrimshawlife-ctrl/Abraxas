@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/bridges/hook_candidate.v1.json",
+  "title": "HookCandidate",
+  "type": "object",
+  "required": ["candidate_id", "hook"],
+  "properties": {
+    "candidate_id": {"type": "string"},
+    "hook": {"type": "string"}
+  },
+  "additionalProperties": true
+}

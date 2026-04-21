@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/bridges/oracle_forecast_bridge_packet.v1.json",
+  "title": "OracleForecastBridgePacket",
+  "type": "object",
+  "required": ["schema_version", "packet_id", "run_id", "input_hash", "forecast_candidates", "outcome_bindings"],
+  "properties": {
+    "schema_version": {"const": "oracle_forecast_bridge_packet.v1"},
+    "packet_id": {"type": "string"},
+    "run_id": {"type": "string"},
+    "input_hash": {"type": "string"},
+    "forecast_candidates": {"type": "array"},
+    "outcome_bindings": {"type": "array"}
+  },
+  "additionalProperties": true
+}
