@@ -1,0 +1,28 @@
+flowchart LR
+  IN[Operator Inputs\nCLI run_id / script flags\nStatus: Implemented] --> EX
+
+  subgraph Execution[Execution Layer]
+    EX[Execution Entry Surfaces\nabx.cli + scripts/\nStatus: Implemented]
+    RU[Runtime + Runes\nabx/ + abraxas/runes/ + aal_core/\nStatus: Implemented]
+    EX --> RU
+  end
+
+  RU --> SC[Schemas + Contracts\nschemas/ + docs/artifacts/SCHEMA_INDEX.md\nStatus: Implemented]
+  RU --> AR[Artifacts + Ledgers\nout/ + artifacts_seal/ + .abraxas/ledger/\nStatus: Implemented]
+  SC --> VA
+  AR --> VA
+
+  subgraph Assurance[Assurance Layer]
+    VA[Validation + Invariance\nvalidators + gap closure checks\nStatus: Implemented]
+    GO[Governance + Registry\n.abraxas/governance + registries/subsystems\nStatus: Implemented]
+    GO -. constrains .-> EX
+    GO -. constrains .-> RU
+    GO -. constrains .-> VA
+  end
+
+  VA --> RP[Readiness / Promotion Policy\npromotion-check + promotion-policy\nStatus: Partial/Gated]
+  RP --> OP[Operator Projections\nwebpanel/ + server/client/shared\nStatus: Partial/Mixed]
+
+  DO[Docs + Canon Maps\nREADME + docs/ + canonical runtime docs\nStatus: Implemented] -. documents .-> EX
+  DO -. documents .-> GO
+  DO -. documents .-> OP

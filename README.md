@@ -2,182 +2,99 @@
 
 Deterministic runtime, proof surfaces, and governance tooling for ABX/Abraxas execution closure.
 
+Abraxas combines canonical runtime commands, subsystem governance metadata, validator-facing artifact contracts, and operator scripts in one repository.  
+This front door is intentionally truth-scoped: statuses are split into Implemented, Partial, Experimental, and Planned based on repository evidence.
+
+```mermaid
+flowchart LR
+  A[Inputs / Run IDs] --> B[Runtime Execution]
+  B --> C[Artifacts + Schemas]
+  C --> D[Validation + Invariance]
+  D --> E[Governance Records]
+  E --> F[Operator Projections]
+
+  subgraph Canonical
+    B
+    C
+    D
+    E
+  end
+
+  subgraph Derivative
+    F
+  end
+```
+
+![Abraxas architecture overview SVG](docs/assets/architecture/abraxas-architecture-overview.svg)
+
+> SVG is a derived artifact. Regenerate from Mermaid source via `scripts/export_architecture_svg.sh`.
+
 ---
 
 ## Start Here
 
-If you are new, start in this order:
-
-1. **This file** — repo identity, maturity boundaries, and operator quickstart.
-2. **Docs index** — [docs/README.md](docs/README.md) for canonical vs operational vs archival documentation map.
-3. **Governance root** — `.abraxas/` plus `.abraxas/registries/expected_subsystems.yaml`.
-4. **Gap closure deterministic path** — `scripts/run_gap_closure_cycle.py` → `scripts/validate_gap_closure_artifacts.py` → `scripts/log_gap_closure_invariance.py`.
-5. **Verification surface** — `pytest tests/gap_closure`.
+- [README.md](README.md) — front-door orientation and quickstart.
+- [docs/README.md](docs/README.md) — documentation navigation map.
+- [docs/architecture/overview.md](docs/architecture/overview.md) — canonical architecture diagram spec and SVG export plan.
+- [.abraxas/registries/expected_subsystems.yaml](.abraxas/registries/expected_subsystems.yaml) — expected subsystem registry.
+- [.abraxas/subsystems/](.abraxas/subsystems/) — per-subsystem metadata including authorization and lane.
+- [scripts/](scripts/) — operational commands and validators.
+- [tests/gap_closure/](tests/gap_closure/) — deterministic test lane tied to gap closure.
 
 ---
 
-## Overview
+## What Abraxas Is
 
 Abraxas is a multi-surface repository with:
 
-- **Canonical Python runtime and policy/governance lane** (`abx/`, `abraxas/`, `.abraxas/`).
-- **Operator and projection surfaces** (`webpanel/`, `server/`, `client/`, `shared/`).
-- **Run scripts, audits, and report emitters** (`scripts/`).
-- **Schemas, contracts, and artifacts** (`schemas/`, `docs/`, `out/`, `artifacts_*`).
+- Canonical runtime and proof paths (`abx/`, `abraxas/`, `.abraxas/`).
+- Operator and projection surfaces (`webpanel/`, `server/`, `client/`, `shared/`).
+- Deterministic run/validation/report scripts (`scripts/`).
+- Contract and artifact surfaces (`schemas/`, `docs/`, `out/`, `artifacts_*`).
 
-Current repository state includes an additive `gap_closure_v1` path for deterministic run artifacts, validation, invariance logging, stabilization reporting, and dry-run Notion sync tooling. (No canon-active promotion claims are minted by these surfaces.) [.abraxas/subsystems/gap_closure_v1.yaml](.abraxas/subsystems/gap_closure_v1.yaml)
-
----
-
-## Current Maturity (Truth-Scoped)
-
-| Area | Status | Evidence |
-|---|---|---|
-| Deterministic gap closure runtime + validator path | **Implemented** | `scripts/run_gap_closure_cycle.py`, `scripts/validate_gap_closure_artifacts.py`, `abraxas/runes/gap_closure/*` |
-| Invariance logging and stabilization synthesis | **Implemented** | `scripts/log_gap_closure_invariance.py`, `scripts/run_gap_closure_stabilization_report.py` |
-| Notion sync path | **Implemented (operator-controlled)** | `scripts/sync_invariance_to_notion.py` with `--dry-run` and live token gate |
-| Promotion execution | **Partial / gated** | Promotion recommendation remains `HOLD`/`BLOCK` in gap-closure flow |
-| Federated or live oracle wiring for gap closure | **Experimental / not part of this path** | No mandatory live oracle dependency in gap closure scripts |
-| Long-horizon closure and release packaging workflows | **Planned / evolving** | See `docs/` + many audit/report scripts in `scripts/` |
-
-### Implemented
-
-- Canonical JSON + SHA256 deterministic artifacts.
-- Artifact validation with explicit `PASS` / `FAIL` / `NOT_COMPUTABLE`.
-- Invariance rows + local ledger progression state logic.
-- Stabilization report synthesis from artifact + validator + invariance evidence.
-- Dry-run Notion payload generation and live-mode token gating.
-
-### Partial
-
-- Stabilization readiness can remain `partial` when invariance thresholds are not met (for example, only `UNCHECKED` rows available).  
-- Promotion is intentionally non-promotive (`HOLD`/`BLOCK` only) in this path.
-
-### Experimental
-
-- Operator/developer script surfaces in `scripts/` are broad and heterogeneous; many are audit/report experiments beyond the minimal canonical gap-closure spine.
-
-### Planned
-
-- Continued convergence of audit/report scripts into clearer operator runbooks and tighter release-readiness packaging.
+The current clearly implemented additive path is `gap_closure_v1`, including runtime artifact emission, validator checks, invariance logging, and stabilization reporting.
 
 ---
 
-## Architecture at a Glance
+## Core Principles (Repository-Evidenced)
 
-### Canonical runtime spine (repository-declared)
+- Deterministic artifact and hash-based evidence paths.
+- Validation-first posture (`PASS` / `FAIL` / `NOT_COMPUTABLE`).
+- Explicit governance boundaries via subsystem metadata and registry checks.
+- Lane discipline: canonical authority surfaces separated from derivative projections.
+- Non-promotive defaults when required evidence is missing.
+
+---
+
+## System Overview
+
+Canonical diagram spec: [docs/architecture/overview.md](docs/architecture/overview.md).
+
+## Architecture
+
+The system architecture is defined as a canonical artifact:
+
+- Source (Mermaid): `docs/assets/architecture/abraxas-architecture-overview.mmd`
+- Spec: `docs/architecture/overview.md`
+
+This diagram reflects the current repository topology across execution, validation, governance, and artifact surfaces.
+See the spec for explicit truth gaps and confidence labels.
+
+---
+
+### Canonical proof spine
 
 `ingest -> rune invoke -> artifact emit -> ledger linkage -> validator-visible proof -> operator projection -> attestation`
 
-Key canonical entry points:
-
-- `python -m abx.cli proof-run --run-id <RUN_ID>`
-- `python -m abx.cli promotion-check --run-id <RUN_ID>`
-- `python -m abx.cli promotion-policy --run-id <RUN_ID>`
-
-### Gap closure additive spine (`RUN-GAP-FIRST-0001` path)
-
-1. `scripts/run_gap_closure_cycle.py`  
-2. `scripts/validate_gap_closure_artifacts.py`  
-3. `scripts/log_gap_closure_invariance.py`  
-4. `scripts/run_gap_closure_stabilization_report.py`  
-5. `scripts/sync_invariance_to_notion.py --dry-run`
-
----
-
-## Repository Map (operator-centric)
-
-| Path | Purpose |
-|---|---|
-| `.abraxas/` | Governance policy, registries, subsystem manifests, release templates/scripts |
-| `abx/` | Canonical ABX CLI/runtime orchestration surfaces |
-| `abraxas/` | Domain/runtime modules including `abraxas/runes/gap_closure` |
-| `scripts/` | Operational scripts (runtime, audit, validation, reporting, sync) |
-| `schemas/` | JSON schemas (gap closure + bridge contracts and more) |
-| `tests/` | Python tests (`tests/gap_closure` covers the gap closure lane) |
-| `docs/` | Specs, canonical runtime docs, artifact notes |
-| `webpanel/`, `server/`, `client/`, `shared/` | Operator/product projection surfaces |
-| `out/`, `artifacts_seal/`, `artifacts_gate/` | Emitted reports, run artifacts, validator outputs |
-
----
-
-## Key Scripts (Gap Closure + Validation/Governance)
-
-### Gap closure runtime scripts
-
-- `scripts/run_gap_closure_cycle.py`  
-  Emits run/projection/validation artifacts and validator + ledger surfaces.
-
-- `scripts/validate_gap_closure_artifacts.py`  
-  Re-validates generated artifacts for a run and writes validator output.
-
-- `scripts/log_gap_closure_invariance.py`  
-  Reads run artifacts, compares hashes against local history, appends invariance rows.
-
-- `scripts/run_gap_closure_stabilization_report.py`  
-  Synthesizes stabilization report from artifact + validator + invariance + ledger evidence.
-
-- `scripts/sync_invariance_to_notion.py`  
-  Converts invariance rows to Notion payloads; supports `--dry-run` without token.
-
-### Governance / guardrail scripts
-
-- `.abraxas/scripts/preflight.py`
-- `.abraxas/scripts/registry_consistency.py`
-- `.abraxas/scripts/governance_lint.py`
-- `.abraxas/scripts/release_readiness.py`
-
----
-
-## Validation and Governance Surfaces
-
-- Subsystem registry: `.abraxas/registries/expected_subsystems.yaml`
-- Gap subsystem manifest: `.abraxas/subsystems/gap_closure_v1.yaml`
-- Governance templates + ledgers: `.abraxas/templates/`, `.abraxas/ledger/`
-- Documentation index: [docs/README.md](docs/README.md)
-- Canon docs:
-  - [docs/CANONICAL_RUNTIME.md](docs/CANONICAL_RUNTIME.md)
-  - [docs/VALIDATION_AND_ATTESTATION.md](docs/VALIDATION_AND_ATTESTATION.md)
-  - [docs/SUBSYSTEM_INVENTORY.md](docs/SUBSYSTEM_INVENTORY.md)
-  - [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md)
-
----
-
-## Install
-
-### Python
+Canonical CLI entrypoints:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
+python -m abx.cli proof-run --run-id <RUN_ID>
+python -m abx.cli promotion-check --run-id <RUN_ID>
+python -m abx.cli promotion-policy --run-id <RUN_ID>
 ```
 
-Optional dev extras:
-
-```bash
-pip install -e ".[dev]"
-```
-
-### JavaScript/TypeScript surfaces (if needed)
-
-```bash
-npm install
-```
-
----
-
-## Quickstart
-
-### Canonical ABX CLI path
-
-```bash
-python -m abx.cli proof-run --run-id RUN-DEMO-001
-python -m abx.cli promotion-check --run-id RUN-DEMO-001
-python -m abx.cli promotion-policy --run-id RUN-DEMO-001
-```
-
-### Gap closure path (current additive lane)
+### Gap-closure additive lane (documented implemented path)
 
 ```bash
 python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only
@@ -187,49 +104,125 @@ python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-00
 python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-run
 ```
 
-Run gap-closure tests:
+---
+
+## Repository Map
+
+| Path | Purpose | Status |
+|---|---|---|
+| `.abraxas/` | governance policy, registries, subsystem manifests, governance scripts | Implemented |
+| `abx/` | canonical CLI/runtime orchestration | Implemented |
+| `abraxas/` | domain runtime modules and rune surfaces | Implemented |
+| `scripts/` | operational scripts (runtime, validation, reporting, sync) | Implemented / Experimental (mixed) |
+| `schemas/` | JSON schemas and contracts | Implemented |
+| `tests/` | deterministic and integration test suites | Implemented |
+| `docs/` | canon, architecture, workflows, and historical records | Implemented |
+| `webpanel/`, `server/`, `client/`, `shared/` | operator and product-facing projection/API/UI surfaces | Partial / Shadow-adjacent (context-dependent) |
+| `out/`, `artifacts_seal/`, `artifacts_gate/` | emitted artifacts, reports, validator outputs | Implemented |
+
+---
+
+## Key Workflows
+
+### 1) Validate local deterministic lane
 
 ```bash
 pytest tests/gap_closure
 ```
 
----
-
-## Contributor / Operator Path
-
-If you are new and want a deterministic first contribution:
-
-1. Read governance contract and subsystem manifest:
-   - `AGENTS.md`
-   - `.abraxas/subsystems/gap_closure_v1.yaml`
-2. Run deterministic checks:
-   - `pytest tests/gap_closure`
-   - `python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only`
-3. Validate and inspect:
-   - `python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001`
-   - `python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001`
-4. Confirm promotion posture remains non-promotive (`HOLD`/`BLOCK`) in emitted evidence.
-
-Recommended governance guardrails:
+### 2) Run a gap-closure cycle and validate evidence
 
 ```bash
-python scripts/run_governance_lint.py
-make registry-check
+python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only
+python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001
+python scripts/log_gap_closure_invariance.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-scope workspace_only
+```
+
+### 3) Synthesize stabilization and optional Notion dry-run payload
+
+```bash
+python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001
+python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-run
 ```
 
 ---
 
-## Repo Presentation Notes
+## Validation & Governance
 
-- This repo intentionally contains both canonical and experimental/operator surfaces.
-- When in doubt, prioritize:
-  1. runtime artifact evidence,
-  2. validator output,
-  3. governance policy/registry constraints,
-  4. derivative projections.
+Primary governance and validation surfaces:
+
+- Subsystem registry: `.abraxas/registries/expected_subsystems.yaml`
+- Gap subsystem metadata: `.abraxas/subsystems/gap_closure_v1.yaml`
+- Governance scripts: `.abraxas/scripts/preflight.py`, `.abraxas/scripts/registry_consistency.py`, `.abraxas/scripts/governance_lint.py`, `.abraxas/scripts/release_readiness.py`
+- Canon docs: [docs/CANONICAL_RUNTIME.md](docs/CANONICAL_RUNTIME.md), [docs/VALIDATION_AND_ATTESTATION.md](docs/VALIDATION_AND_ATTESTATION.md)
+
+Governance defaults are fail-closed: missing receipts stay explicit (`partial`, `blocked`, `attestation_pending`, or `NOT_COMPUTABLE`).
+
+### Tier markers (canonical closure ladder)
+
+- **Tier 1**: `python -m abx.cli proof-run --run-id <RUN_ID>`
+- **Tier 2**: `python -m abx.cli promotion-check --run-id <RUN_ID>`
+- **Tier 2.5**: federated-readiness classification within `promotion-check` artifacts
+- **Tier 2.75**: `python -m abx.cli promotion-policy --run-id <RUN_ID>`
+- **Tier 3**: `python scripts/run_execution_attestation.py <RUN_ID>` (policy-gated)
+
+Canonical TS sanity marker: `make ts-canonical-check`
 
 ---
 
-## License
+## Maturity Matrix
 
-A root `LICENSE` file is not currently present. `package.json` declares `MIT` for TypeScript package scope only; verify top-level licensing before redistribution.
+| Area | Status | Evidence anchor |
+|---|---|---|
+| Gap-closure runtime + validator path | Implemented | `scripts/run_gap_closure_cycle.py`, `scripts/validate_gap_closure_artifacts.py`, `tests/gap_closure/` |
+| Invariance logging + stabilization report | Implemented | `scripts/log_gap_closure_invariance.py`, `scripts/run_gap_closure_stabilization_report.py` |
+| Notion sync integration | Implemented (operator-controlled) | `scripts/sync_invariance_to_notion.py` with dry-run and token gating |
+| Promotion decision automation | Partial / gated | recommendation remains explicitly non-promotive when thresholds are unmet |
+| Long-tail audit/report script ecosystem | Experimental | heterogeneous script surfaces with mixed canonical relevance |
+| Release packaging and broader convergence | Planned / evolving | docs + governance/readiness tooling indicate ongoing convergence |
+
+---
+
+## Installation
+
+### Python
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+pip install -e ".[dev]"
+```
+
+### JavaScript / TypeScript surfaces (optional)
+
+```bash
+npm install
+```
+
+---
+
+## Quickstart
+
+1. Run deterministic tests:
+   - `pytest tests/gap_closure`
+2. Execute a gap-closure run:
+   - `python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only`
+3. Validate and log invariance:
+   - `python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001`
+   - `python scripts/log_gap_closure_invariance.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-scope workspace_only`
+4. Generate stabilization summary:
+   - `python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001`
+
+---
+
+## Docs Navigation
+
+Use [docs/README.md](docs/README.md) for documentation routing across canon/governance, architecture, workflows, validation/attestation, subsystems, schemas, and archive materials.
+
+---
+
+## License / Status
+
+A root `LICENSE` file is currently not present in this repository.  
+`package.json` declares `MIT` for package scope; verify top-level licensing before redistribution.

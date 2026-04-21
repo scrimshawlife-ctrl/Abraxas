@@ -22,6 +22,9 @@ proof-lookup:
 	$(PYTHON) .abraxas/scripts/proof_requirement_lookup.py --subsystem oracle_signal_layer_v2 --change-class forecast_active_change
 governance-lint:
 	$(PYTHON) .abraxas/scripts/governance_lint.py
+
+ts-canonical-check:
+	npx tsc -p tsconfig.canonical.json --noEmit
 release-readiness:
 	$(PYTHON) .abraxas/scripts/release_readiness.py --subsystem oracle_signal_layer_v2 --receipts runtime_artifact validator_artifact
 append-record:

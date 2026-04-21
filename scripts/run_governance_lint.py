@@ -37,6 +37,7 @@ CLASSIFIED_PATHS = {
     "scripts/run_promotion_audit.py",
     "scripts/run_promotion_pack.py",
     "scripts/run_receiver_acceptance_audit.py",
+    "scripts/run_large_run_promotion_barrier.py",
     "tools/acceptance/run_acceptance_suite.py",
 }
 
@@ -49,11 +50,17 @@ CLASSIFIED_CLI_SUBCOMMANDS = {
 
 CLASSIFIED_MAKE_TARGETS = {
     "proof",
+    "proof-run",
+    "proof-check",
+    "proof-lookup",
+    "proof-summary",
+    "validate-proof-summary",
     "promotion-check",
     "promotion-policy",
     "attest",
     "seal",
     "governance-lint",
+    "governance-summary",
 }
 
 
