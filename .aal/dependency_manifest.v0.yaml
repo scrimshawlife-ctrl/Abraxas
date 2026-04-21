@@ -1,0 +1,259 @@
+manifest_version: dependency_manifest.v0
+repo: scrimshawlife-ctrl/Abraxas
+generated_from: ast_import_scan_plus_project_metadata
+status: repo_verified
+classification_schema:
+  - CORE_REQUIRED
+  - OPTIONAL_ADAPTER
+  - DEV_TEST_ONLY
+  - LEGACY_DEPRECATED
+dependencies:
+  cbor2:
+    class: CORE_REQUIRED
+    authority_scope: [core, runtime]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/storage/packet_codec.py
+        line: 32
+        top_level: false
+        symbol: cbor2
+    notes:
+      - Packet codec dependency used for canonical packet serialization pathways.
+    provenance:
+      source: ast_scan
+      confidence: high
+  cryptography:
+    class: CORE_REQUIRED
+    authority_scope: [core, governance, runtime]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: shared/signing.py
+        line: 103
+        top_level: false
+        symbol: Ed25519PrivateKey
+    notes:
+      - Signature verification materially affects trust and validator semantics.
+    provenance:
+      source: ast_scan
+      confidence: high
+  fastapi:
+    class: CORE_REQUIRED
+    authority_scope: [runtime, webpanel]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/api/app.py
+        line: 5
+        top_level: true
+        symbol: FastAPI
+      - path: webpanel/app.py
+        line: 1
+        top_level: true
+        symbol: FastAPI
+    notes:
+      - Runtime API serving and execution endpoints rely on FastAPI.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  jinja2:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [presentation, webpanel, export]
+    import_policy: lazy_guard_required
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: tests/test_gate_stack_v0.py
+        line: 3
+        top_level: true
+        symbol: Environment
+      - path: tests/test_webpanel_oracle_render.py
+        line: 5
+        top_level: true
+        symbol: importorskip
+    notes:
+      - Jinja2 participates in rendering surfaces only and must never affect canonical authority.
+      - Runtime usages must route through abx.optional_dependencies/abx.optional_jinja2.
+    provenance:
+      source: ast_scan
+      confidence: high
+  jsonschema:
+    class: CORE_REQUIRED
+    authority_scope: [core, governance, runtime]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/core/validate.py
+        line: 8
+        top_level: true
+        symbol: jsonschema
+    notes:
+      - Validation results can affect PASS/FAIL and truth-bearing schema enforcement.
+    provenance:
+      source: ast_scan
+      confidence: high
+  msgpack:
+    class: CORE_REQUIRED
+    authority_scope: [core, runtime]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/storage/packet_codec.py
+        line: 40
+        top_level: false
+        symbol: msgpack
+    notes:
+      - Packet serialization dependency for core storage channels.
+    provenance:
+      source: ast_scan
+      confidence: high
+  numpy:
+    class: CORE_REQUIRED
+    authority_scope: [core, runtime]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/metrics/evaluate.py
+        line: 14
+        top_level: true
+        symbol: np
+    notes:
+      - Metrics computation influences canonical evaluation outputs.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  psycopg:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [external_bridge, runtime]
+    import_policy: lazy_guard_required
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: abraxas/db/pg.py
+        line: 10
+        top_level: false
+        symbol: psycopg
+    notes:
+      - PostgreSQL bridge adapter; not required for canonical in-memory execution paths.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  psycopg2:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [external_bridge, runtime]
+    import_policy: lazy_guard_required
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: abraxas/lexicon/pg_registry.py
+        line: 30
+        top_level: false
+        symbol: psycopg2
+    notes:
+      - Legacy PostgreSQL integration surface.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  pytest:
+    class: DEV_TEST_ONLY
+    authority_scope: [test]
+    import_policy: dev_only
+    fallback_policy: not_applicable
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: tests/test_operator_console_v15.py
+        line: 6
+        top_level: true
+        symbol: pytest
+    notes:
+      - Test runtime only; must not be required by production runtime imports.
+    provenance:
+      source: ast_scan
+      confidence: high
+  requests:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [external_bridge]
+    import_policy: lazy_guard_required
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: abraxas/osh/decodo_client.py
+        line: 9
+        top_level: false
+        symbol: requests
+    notes:
+      - External transport adapter for bridge integrations.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  rich:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [cli, presentation]
+    import_policy: entrypoint_only
+    fallback_policy: plain_text_fallback
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: abraxas/cli/app.py
+        line: 8
+        top_level: true
+        symbol: Console
+    notes:
+      - CLI display enhancement dependency.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  typer:
+    class: CORE_REQUIRED
+    authority_scope: [cli]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/cli/app.py
+        line: 7
+        top_level: true
+        symbol: typer
+    notes:
+      - Command routing entrypoint dependency for operator execution commands.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  uvicorn:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [runtime, webpanel]
+    import_policy: entrypoint_only
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: webpanel/run.py
+        line: 6
+        top_level: true
+        symbol: uvicorn
+    notes:
+      - ASGI server adapter for serving endpoints.
+    provenance:
+      source: ast_scan
+      confidence: medium
+  zstandard:
+    class: CORE_REQUIRED
+    authority_scope: [core, runtime]
+    import_policy: normal
+    fallback_policy: hard_setup_failure
+    allowed_to_affect_truth: true
+    import_locations:
+      - path: abraxas/storage/compress.py
+        line: 137
+        top_level: false
+        symbol: zstd
+    notes:
+      - Compression codec used in packet storage and retrieval pathways.
+    provenance:
+      source: ast_scan
+      confidence: medium

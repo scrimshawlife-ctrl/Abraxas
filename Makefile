@@ -120,5 +120,8 @@ run-oracle-signal-layer-v2-invariance:
 test-oracle-signal-layer-v2:
 	PYTHONPATH=. pytest -q tests/oracle/test_schema_guard.py tests/oracle/test_not_computable_flow.py tests/oracle/test_invariance_digests.py tests/oracle/test_advisory_boundaries.py tests/oracle/test_validator_summary.py tests/test_oracle_signal_layer_v2_drop.py tests/test_webpanel_oracle_signal_artifact_viewer.py
 
+optional-dependency-boundary-check:
+	$(PYTHON) scripts/check_optional_dependency_boundaries.py
+
 svg-validate:
 	bash scripts/validate_architecture_svg.sh

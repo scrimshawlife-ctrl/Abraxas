@@ -519,6 +519,7 @@ def test_fusion_label_branches_are_explicit_and_deterministic() -> None:
         motif_recurrence_detector=success_detector,
         instability_drift_detector=success_detector,
         anomaly_gap_detector=success_detector,
+        signal_sufficiency_surface={"signal_sufficiency_status": "SUFFICIENT"},
     )
     assert stable["fused_label"] == "STABLE_PATTERN"
 
@@ -529,6 +530,7 @@ def test_fusion_label_branches_are_explicit_and_deterministic() -> None:
         motif_recurrence_detector=success_detector,
         instability_drift_detector=success_detector,
         anomaly_gap_detector=success_detector,
+        signal_sufficiency_surface={"signal_sufficiency_status": "SUFFICIENT"},
     )
     assert active["fused_label"] == "ACTIVE_FRICTION"
 
@@ -539,6 +541,7 @@ def test_fusion_label_branches_are_explicit_and_deterministic() -> None:
         motif_recurrence_detector=success_detector,
         instability_drift_detector=success_detector,
         anomaly_gap_detector=success_detector,
+        signal_sufficiency_surface={"signal_sufficiency_status": "SUFFICIENT"},
     )
     assert unstable["fused_label"] == "UNSTABLE_TRANSITION"
 
@@ -549,6 +552,7 @@ def test_fusion_label_branches_are_explicit_and_deterministic() -> None:
         motif_recurrence_detector=success_detector,
         instability_drift_detector=success_detector,
         anomaly_gap_detector=success_detector,
+        signal_sufficiency_surface={"signal_sufficiency_status": "SUFFICIENT"},
     )
     assert incomplete["fused_label"] == "INCOMPLETE_CONTEXT"
 
@@ -559,6 +563,7 @@ def test_fusion_label_branches_are_explicit_and_deterministic() -> None:
         motif_recurrence_detector=success_detector,
         instability_drift_detector=success_detector,
         anomaly_gap_detector=success_detector,
+        signal_sufficiency_surface={"signal_sufficiency_status": "SUFFICIENT"},
     )
     assert broken["fused_label"] == "BROKEN_SIGNAL"
 
@@ -587,6 +592,7 @@ def test_fusion_not_computable_when_any_detector_input_is_not_computable() -> No
         motif_recurrence_detector={"detector_status": "NOT_COMPUTABLE"},
         instability_drift_detector={"detector_status": "SUCCESS"},
         anomaly_gap_detector={"detector_status": "SUCCESS"},
+        signal_sufficiency_surface={"signal_sufficiency_status": "SUFFICIENT"},
     )
     assert fused["fused_status"] == "NOT_COMPUTABLE"
     assert fused["fused_label"] == "NOT_COMPUTABLE"
@@ -2455,7 +2461,7 @@ def test_reporting_workspace_and_publication_artifacts_are_deterministic(tmp_pat
     assert "decision_summary_preview" in view.reporting
     assert "viz_summary_preview" in view.reporting
     assert "closeout_bundle_preview" in view.reporting
-    assert "# Operator Report" in view.reporting["markdown_preview"]
+    assert "# Abraxas Operator Report" in view.reporting["markdown_preview"]
 
     out_root = tmp_path / "artifacts_seal" / "operator_reports"
     session_path, session_status = operator_console.write_operator_report_artifact(
@@ -2640,6 +2646,7 @@ def test_synthesis_uses_pipeline_final_state_when_resolved() -> None:
             "governance_policy_mode": "bounded_runtime",
             "runtime_outcome_status": "NOT_COMPUTABLE",
             "runtime_blocker_summary": [],
+            "signal_sufficiency_status": "SUFFICIENT",
             "pipeline_final_state": {
                 "pipeline_final_status": "SUCCESS",
                 "pipeline_status_resolved": True,
