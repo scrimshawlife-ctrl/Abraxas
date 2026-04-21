@@ -10,8 +10,11 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from scripts.correlation_pointer_block import build_correlation_pointer_block
+
 OUT_DIR = ROOT / "out" / "proof_runs"
 RUNTIME_LEDGER_PATH = ROOT / "out" / "runtime_artifact_ledger.jsonl"
 EXPECTED_SUBSYSTEMS_PATH = ROOT / ".abraxas" / "registries" / "expected_subsystems.yaml"
@@ -92,6 +95,7 @@ def build_governance_release_record(
     observed_proof_receipts: list[str],
     registration_receipt: dict[str, Any],
     status: str,
+    correlation_pointers: list[str],
 ) -> dict:
     return {
         "record_type": "release_manifest",
@@ -105,11 +109,11 @@ def build_governance_release_record(
         "registration_receipt": registration_receipt,
         "status": status,
         "provenance": {"source": "scripts/run_proof.py", "mode": "v3"},
-        "correlation_pointers": [],
+        "correlation_pointers": correlation_pointers,
     }
 
 
-def build_audit_record(subsystem: str, summary: str) -> dict:
+def build_audit_record(subsystem: str, summary: str, correlation_pointers: list[str]) -> dict:
     return {
         "record_type": "audit_report",
         "timestamp": utc_now(),
@@ -117,7 +121,7 @@ def build_audit_record(subsystem: str, summary: str) -> dict:
         "summary": summary,
         "status": "SUCCESS",
         "provenance": {"source": "scripts/run_proof.py", "mode": "v3"},
-        "correlation_pointers": [],
+        "correlation_pointers": correlation_pointers,
     }
 
 
@@ -317,6 +321,20 @@ def main() -> int:
     required_receipts = canonical_required_receipts
     missing_receipts = [item for item in required_receipts if item not in present_receipts]
 
+    governance_pointer_block = build_correlation_pointer_block(
+        root=ROOT,
+        paths=(
+            runtime_artifact_path,
+            validator_artifact_path,
+            registration_receipt_path,
+            receipt_bundle_path,
+            guardrail_validator_artifact_path,
+            test_receipt_path,
+            repo_status_receipt_path,
+            RUNTIME_LEDGER_PATH,
+        ),
+        anchors=(f"{RUNTIME_LEDGER_PATH.relative_to(ROOT)}#recordId={ledger_record_id}",),
+    )
     governance_record = build_governance_release_record(
         subsystem=args.subsystem,
         required_receipts=required_receipts,
@@ -325,6 +343,11 @@ def main() -> int:
         observed_proof_receipts=observed_proof_receipts,
         registration_receipt=registration_receipt,
         status="FAILED" if missing_receipts else "SUCCESS",
+        correlation_pointers=list(governance_pointer_block["correlation_pointers"]),
+    )
+    governance_record["correlation_pointer_state"] = governance_pointer_block["correlation_pointer_state"]
+    governance_record["correlation_pointer_unresolved_reasons"] = list(
+        governance_pointer_block["correlation_pointer_unresolved_reasons"]
     )
 
     governance_record_path = run_dir / "release_manifest_record.json"
@@ -359,9 +382,25 @@ def main() -> int:
     if append_result.returncode != 0:
         raise SystemExit(append_result.returncode)
 
+    audit_pointer_block = build_correlation_pointer_block(
+        root=ROOT,
+        paths=(
+            runtime_artifact_path,
+            validator_artifact_path,
+            registration_receipt_path,
+            governance_record_path,
+            RUNTIME_LEDGER_PATH,
+        ),
+        anchors=(f"{RUNTIME_LEDGER_PATH.relative_to(ROOT)}#recordId={ledger_record_id}",),
+    )
     audit_record = build_audit_record(
         subsystem=args.subsystem,
         summary="Bounded proof run with runtime artifact, validator stub, guardrail receipts, test receipt, and repo status receipt.",
+        correlation_pointers=list(audit_pointer_block["correlation_pointers"]),
+    )
+    audit_record["correlation_pointer_state"] = audit_pointer_block["correlation_pointer_state"]
+    audit_record["correlation_pointer_unresolved_reasons"] = list(
+        audit_pointer_block["correlation_pointer_unresolved_reasons"]
     )
     audit_record_path = run_dir / "audit_record.json"
     audit_record_path.write_text(json.dumps(audit_record, indent=2, sort_keys=True), encoding="utf-8")

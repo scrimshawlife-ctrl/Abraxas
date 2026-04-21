@@ -46,6 +46,11 @@ def test_run_mbom_v1_emits_artifacts_and_appends_audit(tmp_path: Path):
 
     validator_payload = json.loads(validator.read_text())
     assert validator_payload["status"] == "VALID"
+    audit_payload = json.loads(audit_record.read_text())
+    assert artifact.as_posix() in audit_payload["correlation_pointers"]
+    assert validator.as_posix() in audit_payload["correlation_pointers"]
+    assert audit_payload["correlation_pointer_state"] == "present"
+    assert audit_payload["correlation_pointer_unresolved_reasons"] == []
 
     if before is None:
         if audit_ledger.exists():

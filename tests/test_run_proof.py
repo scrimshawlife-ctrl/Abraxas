@@ -37,6 +37,27 @@ def test_run_proof_generates_partial_summary():
     assert "guardrail_bundle_validated" in governance_record["observed_proof_receipts"]
     assert governance_record["registration_receipt"]["label"] == "subsystem_registration_check"
     assert governance_record["registration_receipt"]["status"] == "PASS"
+    assert len(governance_record["correlation_pointers"]) >= 8
+    assert payload["artifacts"]["runtimeArtifactPath"] in governance_record["correlation_pointers"]
+    assert payload["artifacts"]["validatorArtifactPath"] in governance_record["correlation_pointers"]
+    assert "out/runtime_artifact_ledger.jsonl" in governance_record["correlation_pointers"]
+    assert any(
+        pointer.startswith("out/runtime_artifact_ledger.jsonl#recordId=")
+        for pointer in governance_record["correlation_pointers"]
+    )
+    assert governance_record["correlation_pointer_state"] == "present"
+    assert governance_record["correlation_pointer_unresolved_reasons"] == []
+
+    audit_record = json.loads(Path(payload["artifacts"]["auditRecordPath"]).read_text())
+    assert len(audit_record["correlation_pointers"]) >= 5
+    assert payload["artifacts"]["governanceRecordPath"] in audit_record["correlation_pointers"]
+    assert "out/runtime_artifact_ledger.jsonl" in audit_record["correlation_pointers"]
+    assert any(
+        pointer.startswith("out/runtime_artifact_ledger.jsonl#recordId=")
+        for pointer in audit_record["correlation_pointers"]
+    )
+    assert audit_record["correlation_pointer_state"] == "present"
+    assert audit_record["correlation_pointer_unresolved_reasons"] == []
 
     run_id = payload["runId"]
     run_dir = Path("out/proof_runs") / run_id

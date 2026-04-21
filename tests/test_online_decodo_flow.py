@@ -199,5 +199,21 @@ def test_execute_task_routing_returns_noop_when_no_urls(tmp_path) -> None:
     )
 
     assert result["status"] == "NOOP"
-    assert result["transport_outcome"] == "executed_live"
+    assert result["transport_outcome"] == "blocked_policy"
     assert result["created_anchors"] == []
+
+
+def test_resolve_routing_to_urls_decodo_blocks_when_capability_missing() -> None:
+    provider, urls, meta = resolve_routing_to_urls(
+        {
+            "provider": "decodo",
+            "request": {
+                "candidate_urls": ["https://ok.example/path"],
+                "domains": [],
+            },
+        }
+    )
+    assert provider == "decodo"
+    assert urls == []
+    assert meta["transport_outcome"] == "blocked_policy"
+    assert meta["reason_code"] == "decodo_capability_missing"

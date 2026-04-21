@@ -68,6 +68,12 @@ run-mbom-v1:
 		exit 2; \
 	fi
 	$(PYTHON) scripts/run_mbom_v1.py --request $(REQUEST)
+run-notion-next-steps:
+	$(PYTHON) scripts/run_notion_next_steps.py
+build-notion-sync:
+	$(PYTHON) scripts/build_notion_sync_artifact.py
+test-notion-next-steps:
+	pytest -q tests/test_run_notion_next_steps.py tests/test_notion_sync_artifact.py tests/test_online_decodo_flow.py
 
 capture-repo-status:
 	@if [ -z "$(OUT)" ]; then \
@@ -110,4 +116,3 @@ run-oracle-signal-layer-v2-invariance:
 
 test-oracle-signal-layer-v2:
 	PYTHONPATH=. pytest -q tests/oracle/test_schema_guard.py tests/oracle/test_not_computable_flow.py tests/oracle/test_invariance_digests.py tests/oracle/test_advisory_boundaries.py tests/oracle/test_validator_summary.py tests/test_oracle_signal_layer_v2_drop.py tests/test_webpanel_oracle_signal_artifact_viewer.py
-
