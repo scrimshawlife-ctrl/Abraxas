@@ -1,0 +1,39 @@
+name: architecture-svg
+
+on:
+  pull_request:
+    paths:
+      - docs/assets/architecture/**
+      - scripts/export_architecture_svg.sh
+      - scripts/validate_architecture_svg.sh
+      - README.md
+      - docs/architecture/overview.md
+  push:
+    paths:
+      - docs/assets/architecture/**
+      - scripts/export_architecture_svg.sh
+      - scripts/validate_architecture_svg.sh
+      - README.md
+      - docs/architecture/overview.md
+
+jobs:
+  svg-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate tracked architecture SVG
+        run: make svg-validate
+
+  svg-sync-check:
+    if: ${{ vars.ABRAXAS_ENABLE_MERMAID_SYNC_CHECK == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Regenerate architecture SVG
+        run: scripts/export_architecture_svg.sh
+      - name: Assert source and derived artifact are in sync
+        run: git diff --exit-code -- docs/assets/architecture/abraxas-architecture-overview.svg

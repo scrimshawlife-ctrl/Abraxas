@@ -146,6 +146,11 @@ Intentionally omitted for readability:
    ```
 5. Keep README/docs Mermaid blocks as the canonical GitHub-facing render path. Treat SVG/PNG as optional derived artifacts.
 
+6. Validate derived SVG safety constraints before merge:
+   ```bash
+   scripts/validate_architecture_svg.sh
+   ```
+
 ### Style guidance
 
 - Neutral palette with high contrast text.
