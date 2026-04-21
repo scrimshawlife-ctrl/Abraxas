@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from abx.mircl_v1_contracts import MirclAdvisoryArtifact, MirclRequest
+from scripts.correlation_pointer_block import build_correlation_pointer_block
 
 OUT_DIR = ROOT / "out" / "mircl_runs"
 EXPECTED_SUBSYSTEMS_PATH = ROOT / ".abraxas" / "registries" / "expected_subsystems.yaml"
@@ -77,6 +78,11 @@ def main() -> int:
     if validate.returncode != 0:
         raise SystemExit(validate.returncode)
 
+    pointer_block = build_correlation_pointer_block(
+        root=ROOT,
+        paths=(artifact_path, validator_path),
+        anchors=(),
+    )
     governance_record = {
         "record_type": "audit_report",
         "timestamp": utc_now(),
@@ -84,7 +90,9 @@ def main() -> int:
         "summary": "MIRCL shadow advisory artifact emitted.",
         "status": "SUCCESS",
         "provenance": {"source": "scripts/run_mircl_v1.py", "mode": "v1"},
-        "correlation_pointers": [str(artifact_path.relative_to(ROOT))],
+        "correlation_pointers": list(pointer_block["correlation_pointers"]),
+        "correlation_pointer_state": pointer_block["correlation_pointer_state"],
+        "correlation_pointer_unresolved_reasons": list(pointer_block["correlation_pointer_unresolved_reasons"]),
     }
     governance_record_path = run_dir / "mircl_audit_record.json"
     governance_record_path.write_text(json.dumps(governance_record, indent=2, sort_keys=True), encoding="utf-8")

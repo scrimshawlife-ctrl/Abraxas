@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+from abx.online_capability import normalize_online_capability
 from abx.task_ledger import task_event
 from abx.relation_classifier import classify_relation
 
@@ -268,14 +269,19 @@ def resolve_routing_to_urls(routing: Dict[str, Any]) -> Tuple[str, List[str], Di
         }
     if provider == "decodo":
         request = routing.get("request") if isinstance(routing.get("request"), dict) else {}
-        capability = request.get("capability") if isinstance(request.get("capability"), dict) else {}
-        decodo_available = bool(capability.get("decodo_available", True))
-        online_allowed = bool(capability.get("online_allowed", True))
+        capability = normalize_online_capability(
+            request.get("capability") if isinstance(request.get("capability"), dict) else {},
+            default_online_allowed=False,
+            default_decodo_available=False,
+        )
+        decodo_available = capability["decodo_available"]
+        online_allowed = capability["online_allowed"]
         if not online_allowed or not decodo_available:
+            reason_code_local = "decodo_capability_missing" if "capability" not in request else "decodo_unavailable_or_policy_blocked"
             return provider, [], {
                 "request": request,
                 "transport_outcome": "blocked_policy",
-                "reason_code": reason_code or "decodo_unavailable_or_policy_blocked",
+                "reason_code": reason_code or reason_code_local,
             }
         urls: List[str] = []
         candidate_urls = request.get("candidate_urls") if isinstance(request.get("candidate_urls"), list) else []

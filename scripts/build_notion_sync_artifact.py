@@ -17,7 +17,12 @@ def _read_json(path: Path) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def build_sync_artifact(*, stub_index: Dict[str, Any], taxonomy: Dict[str, Any]) -> Dict[str, Any]:
+def build_sync_artifact(
+    *,
+    stub_index: Dict[str, Any],
+    taxonomy: Dict[str, Any],
+    next_steps: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     summary = stub_index.get("summary") if isinstance(stub_index.get("summary"), dict) else {}
     gap_summary = taxonomy.get("gap_summary") if isinstance(taxonomy.get("gap_summary"), dict) else {}
 
@@ -25,7 +30,15 @@ def build_sync_artifact(*, stub_index: Dict[str, Any], taxonomy: Dict[str, Any])
     implementation_gap = int(gap_summary.get("implementation_gap") or 0)
     policy_block = int(gap_summary.get("policy_block") or 0)
     intentional_abstract = int(gap_summary.get("intentional_abstract") or 0)
-    wave_status = "wave_4_completed" if implementation_gap == 0 and policy_block == 0 else "wave_4_in_progress"
+    next_steps = next_steps if isinstance(next_steps, dict) else {}
+    listed_complete = bool(next_steps.get("all_listed_next_steps_completed", False))
+    wave5_complete = bool(next_steps.get("all_wave5_ranked_tasks_completed", False))
+    if implementation_gap == 0 and policy_block == 0 and listed_complete and wave5_complete:
+        wave_status = "wave_5_completed"
+    elif implementation_gap == 0 and policy_block == 0:
+        wave_status = "wave_4_completed"
+    else:
+        wave_status = "wave_4_in_progress"
 
     return {
         "version": "notion_sync.v0.1",
@@ -34,6 +47,7 @@ def build_sync_artifact(*, stub_index: Dict[str, Any], taxonomy: Dict[str, Any])
             "stub_index": "tools/stub_index.json",
             "stub_taxonomy": "docs/artifacts/notion_stub_taxonomy.json",
             "execution_plan": "docs/notion_execution_plan_2026-03-27.md",
+            "next_steps": "docs/artifacts/notion_next_steps.json",
         },
         "status": {
             "wave": wave_status,
@@ -65,6 +79,12 @@ def build_sync_artifact(*, stub_index: Dict[str, Any], taxonomy: Dict[str, Any])
                 "remaining": intentional_abstract,
                 "evidence": ["docs/artifacts/notion_stub_taxonomy.json"],
             },
+            {
+                "id": "wave5_ranked_closure",
+                "state": "completed" if wave5_complete else "in_progress",
+                "remaining": 0 if wave5_complete else 1,
+                "evidence": ["docs/artifacts/notion_next_steps.json"],
+            },
         ],
         "notes": "Machine-readable closure artifact for Notion task updates.",
     }
@@ -74,19 +94,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Build Notion sync artifact from repo state")
     parser.add_argument("--stub-index", default="tools/stub_index.json")
     parser.add_argument("--taxonomy", default="docs/artifacts/notion_stub_taxonomy.json")
+    parser.add_argument("--next-steps", default="docs/artifacts/notion_next_steps.json")
     parser.add_argument("--out", default="docs/artifacts/notion_sync_status.json")
     args = parser.parse_args()
 
     stub_index_path = Path(args.stub_index)
     taxonomy_path = Path(args.taxonomy)
+    next_steps_path = Path(args.next_steps)
     if not stub_index_path.exists():
         raise SystemExit(f"missing stub index: {stub_index_path}")
     if not taxonomy_path.exists():
         raise SystemExit(f"missing taxonomy artifact: {taxonomy_path}")
+    if not next_steps_path.exists():
+        raise SystemExit(f"missing next-steps artifact: {next_steps_path}")
 
     stub_index = _read_json(stub_index_path)
     taxonomy = _read_json(taxonomy_path)
-    artifact = build_sync_artifact(stub_index=stub_index, taxonomy=taxonomy)
+    next_steps = _read_json(next_steps_path)
+    artifact = build_sync_artifact(stub_index=stub_index, taxonomy=taxonomy, next_steps=next_steps)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

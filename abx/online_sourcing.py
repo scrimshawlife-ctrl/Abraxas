@@ -8,6 +8,7 @@ import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+from abx.online_capability import normalize_online_capability
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -102,8 +103,13 @@ def route_online_sources(
     - else: search_lite (if enabled)
     - else: rss (if enabled)
     """
-    online_allowed = bool(caps.get("online_allowed", True))
-    decodo_available = bool(caps.get("decodo_available", False))
+    capability = normalize_online_capability(
+        caps,
+        default_online_allowed=True,
+        default_decodo_available=False,
+    )
+    online_allowed = capability["online_allowed"]
+    decodo_available = capability["decodo_available"]
 
     if not online_allowed:
         return {
@@ -139,8 +145,8 @@ def route_online_sources(
                 "domains": domains[:12],
                 "max_results": 12,
                 "capability": {
-                    "online_allowed": online_allowed,
-                    "decodo_available": decodo_available,
+                    "online_allowed": capability["online_allowed"],
+                    "decodo_available": capability["decodo_available"],
                 },
                 "notes": "Decodo request envelope with deterministic fallback candidates.",
             },

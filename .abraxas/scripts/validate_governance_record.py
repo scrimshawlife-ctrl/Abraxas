@@ -4,6 +4,11 @@ from pathlib import Path
 from _common import parser_base
 
 REQ = ["record_type", "timestamp", "status", "provenance", "correlation_pointers"]
+POINTER_STATE_FIELDS = {
+    "correlation_pointer_state",
+    "correlation_pointer_unresolved_reasons",
+}
+POINTER_STATES = {"present", "empty", "unresolved"}
 ROOT = Path(__file__).resolve().parents[2]
 LEDGER_MAP = {
     "promotion_decisions": ROOT / ".abraxas" / "ledger" / "promotion_decisions.jsonl",
@@ -33,6 +38,34 @@ def main() -> int:
     if miss:
         print(f"INVALID missing={miss}")
         return 1
+    if not isinstance(rec.get("correlation_pointers"), list):
+        print("INVALID correlation_pointers")
+        return 1
+
+    pointer_state_fields_present = [field for field in POINTER_STATE_FIELDS if field in rec]
+    if pointer_state_fields_present and len(pointer_state_fields_present) != len(POINTER_STATE_FIELDS):
+        missing_state_fields = sorted(POINTER_STATE_FIELDS - set(pointer_state_fields_present))
+        print(f"INVALID missing={missing_state_fields}")
+        return 1
+    if pointer_state_fields_present:
+        pointer_state = rec.get("correlation_pointer_state")
+        unresolved = rec.get("correlation_pointer_unresolved_reasons")
+        if pointer_state not in POINTER_STATES:
+            print("INVALID correlation_pointer_state")
+            return 1
+        if not isinstance(unresolved, list):
+            print("INVALID correlation_pointer_unresolved_reasons")
+            return 1
+        pointers = rec.get("correlation_pointers") or []
+        if pointer_state == "present" and (not pointers or unresolved):
+            print("INVALID correlation_pointer_state.present")
+            return 1
+        if pointer_state == "empty" and (pointers or unresolved):
+            print("INVALID correlation_pointer_state.empty")
+            return 1
+        if pointer_state == "unresolved" and not unresolved:
+            print("INVALID correlation_pointer_state.unresolved")
+            return 1
 
     if rec.get("record_type") == "release_manifest":
         registration_receipt = rec.get("registration_receipt")

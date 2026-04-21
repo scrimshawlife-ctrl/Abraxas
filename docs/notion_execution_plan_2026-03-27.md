@@ -1,7 +1,7 @@
 # Notion ↔ Repo Execution Plan (Remaining Coding Tasks)
 
 Date: 2026-03-27 (UTC)
-Status: wave_5_initiated
+Status: wave_5_completed (2026-04-09)
 
 ## OPEN — rescan pulse (2026-03-27 follow-up)
 
@@ -107,6 +107,7 @@ Rescan objective: re-validate remaining Notion task pressure after Wave 4 and in
 - Wave 4 advance: kernel unrouted fallback moved to deterministic not_computable envelope and wired additional handlers; tracked stubs now 4.
 - Wave 4 completion: sync artifact now auto-resolves `status.wave` to `wave_4_completed` when actionable implementation/policy gaps are zero.
 - Wave 5 initiation: tightened `stub_oracle_engine` gating to require explicit scope bounds (`ABRAXAS_STUB_ORACLE_SCOPE=test|dev`) in addition to allow-flag and added coverage tests.
+- Wave 5 completion: adapter lane closure + decodo capability hardening + closure automation are now evidenced by `docs/artifacts/notion_next_steps.json` (`all_wave5_ranked_tasks_completed=true`) and `docs/artifacts/notion_sync_status.json` (`status.wave=wave_5_completed`).
 
 ## SEAL
 

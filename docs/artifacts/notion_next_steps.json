@@ -1,0 +1,100 @@
+{
+  "all_listed_next_steps_completed": true,
+  "all_wave5_ranked_tasks_completed": true,
+  "completed_repo_grounded_tasks": [
+    {
+      "rank": "1",
+      "title": "Adapter lane closure (highest impact)"
+    },
+    {
+      "rank": "2",
+      "title": "Decodo execution hardening"
+    },
+    {
+      "rank": "3",
+      "title": "Rune operator implementation triage"
+    },
+    {
+      "rank": "4",
+      "title": "Notion closure automation"
+    }
+  ],
+  "current_wave": "wave_5_completed",
+  "generated_at": "auto",
+  "recommended_focus": "closure_review",
+  "remaining_repo_grounded_tasks": [],
+  "remaining_task_ids": [],
+  "remaining_wave5_task_ids": [],
+  "repo_grounded_tasks": [
+    {
+      "rank": "1",
+      "title": "Adapter lane closure (highest impact)"
+    },
+    {
+      "rank": "2",
+      "title": "Decodo execution hardening"
+    },
+    {
+      "rank": "3",
+      "title": "Rune operator implementation triage"
+    },
+    {
+      "rank": "4",
+      "title": "Notion closure automation"
+    }
+  ],
+  "sources": {
+    "plan": "docs/notion_execution_plan_2026-03-27.md",
+    "sync_status": "docs/artifacts/notion_sync_status.json"
+  },
+  "task_status": [
+    {
+      "id": "adapter_lane_closure",
+      "state": "completed"
+    },
+    {
+      "id": "decodo_execution_hardening",
+      "state": "completed"
+    },
+    {
+      "id": "rune_operator_implementation_triage",
+      "state": "completed"
+    },
+    {
+      "id": "notion_closure_automation",
+      "state": "completed"
+    }
+  ],
+  "version": "notion_next_steps.v0.1",
+  "wave_5_ranked_tasks": [
+    {
+      "rank": "1",
+      "title": "Kernel stub scope-bound gate (initiated this commit)"
+    },
+    {
+      "rank": "2",
+      "title": "Adapter lane closure continuation"
+    },
+    {
+      "rank": "3",
+      "title": "Decodo/source live-path hardening"
+    }
+  ],
+  "wave_5_task_status": [
+    {
+      "id": "kernel_stub_scope_bound_gate",
+      "state": "completed",
+      "title": "Kernel stub scope-bound gate (initiated this commit)"
+    },
+    {
+      "id": "adapter_lane_closure",
+      "state": "completed",
+      "title": "Adapter lane closure continuation"
+    },
+    {
+      "id": "decodo_execution_hardening",
+      "state": "completed",
+      "title": "Decodo/source live-path hardening"
+    }
+  ]
+}

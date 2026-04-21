@@ -4,10 +4,11 @@
   "sources": {
     "stub_index": "tools/stub_index.json",
     "stub_taxonomy": "docs/artifacts/notion_stub_taxonomy.json",
-    "execution_plan": "docs/notion_execution_plan_2026-03-27.md"
+    "execution_plan": "docs/notion_execution_plan_2026-03-27.md",
+    "next_steps": "docs/artifacts/notion_next_steps.json"
   },
   "status": {
-    "wave": "wave_4_completed",
+    "wave": "wave_5_completed",
     "notion_sync_ready": true,
     "evidence_backed": true
   },
@@ -41,6 +42,14 @@
       "remaining": 4,
       "evidence": [
         "docs/artifacts/notion_stub_taxonomy.json"
+      ]
+    },
+    {
+      "id": "wave5_ranked_closure",
+      "state": "completed",
+      "remaining": 0,
+      "evidence": [
+        "docs/artifacts/notion_next_steps.json"
       ]
     }
   ],
