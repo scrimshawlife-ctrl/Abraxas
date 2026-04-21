@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from jinja2 import Environment, FileSystemLoader
+import pytest
+
+jinja2 = pytest.importorskip("jinja2")
+Environment = jinja2.Environment
+FileSystemLoader = jinja2.FileSystemLoader
 
 from webpanel.core_bridge import core_ingest
 from webpanel.gates import compute_gate_stack
