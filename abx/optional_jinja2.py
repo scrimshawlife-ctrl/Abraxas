@@ -15,4 +15,7 @@ def jinja2_status(feature_name: str = "template_rendering") -> dict:
         feature_name=feature_name,
         dependency_class="OPTIONAL_ADAPTER",
         authority_scope="presentation",
+        required_for_launch=False,
+        execution_boundary_role="webpanel",
+        allowed_to_affect_truth=False,
     )
