@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/FindSkillsOutput.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "matches", "total", "query_hash", "shadow_summary"],
+  "properties": {
+    "status": {"type": "string", "enum": ["OK", "NOT_COMPUTABLE"]},
+    "matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "skill_id",
+          "name",
+          "description",
+          "domains",
+          "capabilities",
+          "confidence",
+          "source",
+          "provenance"
+        ],
+        "properties": {
+          "skill_id": {"type": "string"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "domains": {"type": "array", "items": {"type": "string"}},
+          "capabilities": {"type": "array", "items": {"type": "string"}},
+          "confidence": {"type": "number", "minimum": 0},
+          "source": {"type": "string"},
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["registry_path", "hash"],
+            "properties": {
+              "registry_path": {"type": "string"},
+              "hash": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "total": {"type": "integer", "minimum": 0},
+    "query_hash": {"type": "string"},
+    "shadow_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["duplicate_skill_ids", "missing_metadata", "capability_drift_flags"],
+      "properties": {
+        "duplicate_skill_ids": {"type": "array"},
+        "missing_metadata": {"type": "array"},
+        "capability_drift_flags": {"type": "array"}
+      }
+    }
+  }
+}

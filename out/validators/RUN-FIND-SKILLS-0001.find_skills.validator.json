@@ -1,0 +1,40 @@
+{
+  "run_id": "RUN-FIND-SKILLS-0001",
+  "rune_id": "RUNE.FIND_SKILLS",
+  "files_checked": [
+    "abraxas/runes/find_skills.py",
+    "schemas/FindSkillsInput.v1.json",
+    "schemas/FindSkillsOutput.v1.json",
+    "tests/test_find_skills.py",
+    "docs/runes/FIND_SKILLS.md",
+    "aal_core/runes/catalog.v0.yaml"
+  ],
+  "registry_path": "aal_core/runes/catalog.v0.yaml",
+  "tests_run": [
+    {
+      "cmd": "pytest tests/test_find_skills.py",
+      "result": "PASS"
+    },
+    {
+      "cmd": "pytest tests",
+      "result": "FAIL",
+      "reason": "ModuleNotFoundError: jinja2 during collection"
+    },
+    {
+      "cmd": "make registry-check",
+      "result": "PASS"
+    },
+    {
+      "cmd": "make governance-lint",
+      "result": "PASS"
+    }
+  ],
+  "test_result": "PASS",
+  "query_hash_sample": "99842add11c5633207da7d6fd602e17ca8e7972ef93704dcf336aa9978f06813",
+  "provenance_hash_sample": "d126ecbf05f59d9110aee4de697ec599545d7aec5a8f0f1c22de6f223e8f7ff2",
+  "residuals": [
+    "Full pytest tests blocked by missing dependency jinja2 in environment.",
+    "No dedicated standalone invariance harness target exists for RUNE.FIND_SKILLS outside test_find_skills.py."
+  ],
+  "status": "PARTIAL"
+}

@@ -1,102 +1,137 @@
 schema_version: aal.runes.catalog.v0
-updated_at: "2026-03-28T00:00:00Z"
+updated_at: '2026-03-28T00:00:00Z'
 runes:
-  - rune_id: RUNE.INGEST
-    name: Ingest
-    description: Deterministic ingestion and normalization of source payloads into run-scoped inputs.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: ACTIVE
-    determinism_notes: Input ordering and canonicalization required; no nondeterministic preprocessing.
-    provenance_requirements:
-      - source_uri_or_origin
-      - acquisition_method
-      - collected_at
-  - rune_id: RUNE.SCAN
-    name: Scan
-    description: Deterministic scanning/classification step over normalized inputs.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Stable sort and fixed thresholds required; avoid ambient state.
-    provenance_requirements:
-      - scanner_version
-      - rule_set_id
-      - evaluated_at
-  - rune_id: RUNE.PARSE
-    name: Parse
-    description: Structured parse of scanned artifacts into contract-conforming intermediate forms.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Parser config and grammar versions must be explicit and immutable per run.
-    provenance_requirements:
-      - parser_version
-      - grammar_id
-      - parsed_at
-  - rune_id: RUNE.MAP
-    name: Map
-    description: Mapping from parsed structures to canonical domain fields and semantic vectors.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Mapping tables must be version-pinned and side-effect free.
-    provenance_requirements:
-      - mapping_version
-      - taxonomy_ref
-      - mapped_at
-  - rune_id: RUNE.DIFF
-    name: Diff
-    description: Deterministic diff between current and prior run-linked states.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Baseline selection must be explicit and deterministic.
-    provenance_requirements:
-      - baseline_run_id
-      - comparison_strategy
-      - diffed_at
-  - rune_id: RUNE.ERS
-    name: Evidence-Resolution Surface
-    description: Evaluate evidence and resolution state for validator-facing surfacing.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Resolution policies and scoring weights must be version-pinned.
-    provenance_requirements:
-      - policy_version
-      - evaluator_id
-      - evaluated_at
-  - rune_id: RUNE.AUDIT
-    name: Audit
-    description: Deterministic audit and review summaries over execution-linked artifacts.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Audit classifiers must remain rule-driven and side-effect free.
-    provenance_requirements:
-      - audit_policy_version
-      - evaluator_id
-      - audited_at
-  - rune_id: RUNE.BINDING
-    name: Binding
-    description: Deterministic run/artifact linkage restoration and propagation checks.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Linkage repair and propagation must use explicit source surfaces only.
-    provenance_requirements:
-      - linkage_source
-      - binding_policy_version
-      - validated_at
-  - rune_id: RUNE.CONTEXT_RESTORE
-    name: Context Restore
-    description: Deterministic restoration of required execution context across pipeline layers.
-    input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
-    output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
-    status: SHADOW
-    determinism_notes: Context readiness must be explicit with NOT_COMPUTABLE reasons when incomplete.
-    provenance_requirements:
-      - context_source
-      - restoration_policy_version
-      - restored_at
+- rune_id: RUNE.INGEST
+  name: Ingest
+  description: Deterministic ingestion and normalization of source payloads into run-scoped
+    inputs.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: ACTIVE
+  determinism_notes: Input ordering and canonicalization required; no nondeterministic
+    preprocessing.
+  provenance_requirements:
+  - source_uri_or_origin
+  - acquisition_method
+  - collected_at
+- rune_id: RUNE.SCAN
+  name: Scan
+  description: Deterministic scanning/classification step over normalized inputs.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Stable sort and fixed thresholds required; avoid ambient state.
+  provenance_requirements:
+  - scanner_version
+  - rule_set_id
+  - evaluated_at
+- rune_id: RUNE.PARSE
+  name: Parse
+  description: Structured parse of scanned artifacts into contract-conforming intermediate
+    forms.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Parser config and grammar versions must be explicit and immutable
+    per run.
+  provenance_requirements:
+  - parser_version
+  - grammar_id
+  - parsed_at
+- rune_id: RUNE.MAP
+  name: Map
+  description: Mapping from parsed structures to canonical domain fields and semantic
+    vectors.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Mapping tables must be version-pinned and side-effect free.
+  provenance_requirements:
+  - mapping_version
+  - taxonomy_ref
+  - mapped_at
+- rune_id: RUNE.DIFF
+  name: Diff
+  description: Deterministic diff between current and prior run-linked states.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Baseline selection must be explicit and deterministic.
+  provenance_requirements:
+  - baseline_run_id
+  - comparison_strategy
+  - diffed_at
+- rune_id: RUNE.ERS
+  name: Evidence-Resolution Surface
+  description: Evaluate evidence and resolution state for validator-facing surfacing.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Resolution policies and scoring weights must be version-pinned.
+  provenance_requirements:
+  - policy_version
+  - evaluator_id
+  - evaluated_at
+- rune_id: RUNE.AUDIT
+  name: Audit
+  description: Deterministic audit and review summaries over execution-linked artifacts.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Audit classifiers must remain rule-driven and side-effect free.
+  provenance_requirements:
+  - audit_policy_version
+  - evaluator_id
+  - audited_at
+- rune_id: RUNE.BINDING
+  name: Binding
+  description: Deterministic run/artifact linkage restoration and propagation checks.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Linkage repair and propagation must use explicit source surfaces
+    only.
+  provenance_requirements:
+  - linkage_source
+  - binding_policy_version
+  - validated_at
+- rune_id: RUNE.CONTEXT_RESTORE
+  name: Context Restore
+  description: Deterministic restoration of required execution context across pipeline
+    layers.
+  input_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_inputs
+  output_schema_ref: aal_core/schemas/rune_execution_artifact.v1.json#/definitions/rune_outputs
+  status: SHADOW
+  determinism_notes: Context readiness must be explicit with NOT_COMPUTABLE reasons
+    when incomplete.
+  provenance_requirements:
+  - context_source
+  - restoration_policy_version
+  - restored_at
+- rune_id: RUNE.FIND_SKILLS
+  id: RUNE.FIND_SKILLS
+  name: Find Skills
+  category: discovery
+  lane: FORECAST_QUERY_WITH_SHADOW_DIAGNOSTICS
+  description: Deterministic registered-skill discovery with provenance-linked ranking.
+  input_schema: FindSkillsInput.v1
+  output_schema: FindSkillsOutput.v1
+  input_schema_ref: schemas/FindSkillsInput.v1.json
+  output_schema_ref: schemas/FindSkillsOutput.v1.json
+  deterministic: true
+  shadow_enabled: true
+  authority: discovery_only
+  canonical_sources:
+  - aal_core/runes/catalog.v0.yaml
+  domains:
+  - discovery
+  capabilities:
+  - find
+  - registry
+  - provenance
+  version: v0.1
+  forbidden:
+  - infer_unregistered_skill
+  - execute_skill
+  - promote_skill
+  - fabricate_metadata

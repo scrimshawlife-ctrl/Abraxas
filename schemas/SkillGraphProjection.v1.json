@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/SkillGraphProjection.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["projection_id", "source_query_hash", "nodes", "edges", "authority"],
+  "properties": {
+    "projection_id": {"type": "string"},
+    "source_query_hash": {"type": "string"},
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "type", "provenance_hash"],
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "type": {"type": "string", "enum": ["skill", "domain", "capability"]},
+          "provenance_hash": {"type": "string"}
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "type"],
+        "properties": {
+          "from": {"type": "string"},
+          "to": {"type": "string"},
+          "type": {"type": "string", "enum": ["HAS_DOMAIN", "HAS_CAPABILITY"]}
+        }
+      }
+    },
+    "authority": {"type": "string", "const": "projection_only"}
+  }
+}
