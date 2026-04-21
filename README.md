@@ -25,9 +25,7 @@ flowchart LR
   end
 ```
 
-![Abraxas architecture overview SVG](docs/assets/architecture/abraxas-architecture-overview.svg)
-
-> SVG is a derived artifact. Regenerate from Mermaid source via `scripts/export_architecture_svg.sh`.
+> The README renders the canonical Mermaid source directly. A derived SVG can be regenerated with `scripts/export_architecture_svg.sh` when the local Mermaid/Chrome toolchain is available.
 
 ---
 
