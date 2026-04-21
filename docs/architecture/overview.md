@@ -130,23 +130,21 @@ Intentionally omitted for readability:
 - `abraxas-architecture-overview.mmd` (canonical source)
 - `abraxas-architecture-overview.svg` (derived static asset)
 - `abraxas-architecture-overview.png` (optional derived raster)
+- `mermaid-export-config.json` (derived export settings, not architecture authority)
 
 ### Export workflow
 
 1. Keep Mermaid source in `docs/assets/architecture/abraxas-architecture-overview.mmd`.
-2. Preferred repo script wrapper:
+2. Use the repo wrapper so export config and SVG normalization stay consistent:
    ```bash
    scripts/export_architecture_svg.sh
    ```
-3. Direct Mermaid CLI alternative:
-   ```bash
-   npx @mermaid-js/mermaid-cli -i docs/assets/architecture/abraxas-architecture-overview.mmd -o docs/assets/architecture/abraxas-architecture-overview.svg
-   ```
+3. The wrapper uses Mermaid CLI with `docs/assets/architecture/mermaid-export-config.json`, disables `useMaxWidth`, and normalizes the final SVG width/height against its `viewBox` so GitHub renders it at readable scale.
 4. Optional PNG export:
    ```bash
-   npx @mermaid-js/mermaid-cli -i docs/assets/architecture/abraxas-architecture-overview.mmd -o docs/assets/architecture/abraxas-architecture-overview.png
+   EXPORT_PNG=1 scripts/export_architecture_svg.sh
    ```
-5. Keep README/docs Mermaid blocks for GitHub-native rendering.
+5. Keep README/docs Mermaid blocks as the canonical GitHub-facing render path. Treat SVG/PNG as optional derived artifacts.
 
 ### Style guidance
 
@@ -154,6 +152,7 @@ Intentionally omitted for readability:
 - Rectangular nodes, minimal decorative styling.
 - Keep edge labels sparse and short.
 - Validate readability at default GitHub content width.
+- Avoid responsive SVG sizing (`useMaxWidth`) for derived static assets intended for GitHub markdown rendering.
 
 ### Source-of-truth rule
 
@@ -164,8 +163,9 @@ Intentionally omitted for readability:
 
 ## 6) README/docs integration recommendation
 
-- Root README: keep a compact hero diagram and add a link to this canonical spec page.
+- Root README: render the canonical Mermaid block directly and link to this architecture spec page.
 - Docs index: link this file under Architecture section as the primary architecture reference.
+- Do not embed a derived SVG in README unless it has been regenerated and visually verified.
 - Do not create additional architecture pages until a second stable view is required.
 
 ---
