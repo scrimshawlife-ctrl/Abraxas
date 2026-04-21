@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/bridges/forecast_candidate.v1.json",
+  "title": "ForecastCandidate",
+  "type": "object",
+  "required": ["candidate_id", "label"],
+  "properties": {
+    "candidate_id": {"type": "string"},
+    "label": {"type": "string"}
+  },
+  "additionalProperties": true
+}

@@ -4,6 +4,7 @@
     "oracle_signal_layer_v2",
     "mbom_v1",
     "mircl_v1",
-    "forecast_portfolio_simulation_v0_1"
+    "forecast_portfolio_simulation_v0_1",
+    "gap_closure_v1"
   ]
 }

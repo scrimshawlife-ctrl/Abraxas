@@ -1,0 +1,39 @@
+{
+  "subsystem_id": "gap_closure_v1",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "additive",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "forecast-active",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift"
+  ],
+  "required_receipts": [
+    "gap_closure_runtime_artifacts",
+    "gap_closure_validator_report"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "artifact_backed_validation_only",
+    "projection_derivative_only"
+  ],
+  "revocation_triggers": [
+    "authority_surface_drift",
+    "projection_mutates_canon"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "gap_closure_runtime_artifacts",
+    "gap_closure_validator_report"
+  ],
+  "notes": [
+    "Gap closure outputs are deterministic and artifact-backed.",
+    "Projection cannot alter canon status."
+  ]
+}

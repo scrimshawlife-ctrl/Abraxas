@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/bridges/oracle_gap_bridge.v1.json",
+  "title": "OracleGapBridge",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "bridge_id",
+    "run_id",
+    "input_hash",
+    "oracle_status",
+    "gap_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "oracle_gap_bridge.v1"
+    },
+    "bridge_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "input_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "oracle_status": {
+      "type": "string"
+    },
+    "gap_status": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

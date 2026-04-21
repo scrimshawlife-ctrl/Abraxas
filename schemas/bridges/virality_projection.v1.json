@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/bridges/virality_projection.v1.json",
+  "title": "ViralityProjection",
+  "type": "object",
+  "required": ["projection_id", "score"],
+  "properties": {
+    "projection_id": {"type": "string"},
+    "score": {"type": "number"}
+  },
+  "additionalProperties": true
+}

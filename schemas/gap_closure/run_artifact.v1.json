@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/gap_closure/run_artifact.v1.json",
+  "title": "RunArtifact",
+  "type": "object",
+  "required": ["run_id", "schema_version", "artifact_path", "artifact_hash", "provenance", "input_hash"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "schema_version": {"const": "run_artifact.v1"},
+    "artifact_path": {"type": "string"},
+    "artifact_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "provenance": {"type": "object"},
+    "input_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "additionalProperties": true
+}
