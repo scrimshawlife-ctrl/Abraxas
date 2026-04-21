@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/FindSkillsInput.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query",
+    "domains",
+    "capabilities",
+    "limit",
+    "include_shadow",
+    "sources"
+  ],
+  "properties": {
+    "query": {"type": "string"},
+    "domains": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "limit": {"type": "integer", "minimum": 1},
+    "include_shadow": {"type": "boolean"},
+    "sources": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    }
+  }
+}
