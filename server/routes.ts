@@ -56,6 +56,401 @@ async function readJsonObject(pathValue: string): Promise<Record<string, unknown
   }
 }
 
+type DeveloperReadinessView = {
+  status: "PASS" | "FAIL" | "PARTIAL" | "NOT_COMPUTABLE";
+  reason: string;
+  raw: Record<string, unknown> | null;
+  projection: Record<string, unknown>;
+};
+
+type GapClosureInvarianceView = {
+  status: "PASS" | "FAIL" | "PARTIAL" | "BLOCKED" | "NOT_COMPUTABLE";
+  reason: string;
+  raw: Record<string, unknown> | null;
+  projection: Record<string, unknown>;
+};
+
+type ReadinessComparisonLatestView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  comparison: Record<string, unknown> | null;
+};
+
+type PromotionPreflightView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  advisory: Record<string, unknown> | null;
+};
+
+type ReportingCycleLatestView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  cycle: Record<string, unknown> | null;
+  freshness: Record<string, unknown> | null;
+};
+
+type ReportManifestView = {
+  status: "OK";
+  reason: string;
+  manifest: Array<Record<string, unknown>>;
+};
+
+type ReportManifestDiffView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  diff: Record<string, unknown> | null;
+};
+
+type ReportManifestDiffHistoryView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  history: Array<Record<string, unknown>>;
+};
+
+type ReportManifestSummaryView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  summary: Record<string, unknown> | null;
+};
+
+type ReportManifestWatchlistView = {
+  status: "OK" | "NOT_COMPUTABLE";
+  reason: string;
+  watchlist: Record<string, unknown> | null;
+};
+
+function normalizeDeveloperReadinessProjection(raw: Record<string, unknown> | null): Record<string, unknown> {
+  if (!raw) {
+    return {
+      run_id: "NOT_COMPUTABLE",
+      timestamp_utc: "NOT_COMPUTABLE",
+      status: "NOT_COMPUTABLE",
+      checks: [],
+      missing_surfaces: [],
+      recommended_next_actions: ["Run make developer-readiness"],
+      provenance: {
+        source: "server.routes.normalizeDeveloperReadinessProjection",
+        deterministic_ordering: [],
+      },
+    };
+  }
+
+  const checks = Array.isArray(raw.checks) ? raw.checks : [];
+  const normalizedChecks = checks
+    .filter((row): row is Record<string, unknown> => !!row && typeof row === "object")
+    .map((row) => ({
+      check_id: asString(row.check_id, ""),
+      label: asString(row.label, ""),
+      command: asString(row.command, ""),
+      status: asString(row.status, "NOT_COMPUTABLE"),
+      return_code: typeof row.return_code === "number" ? row.return_code : null,
+      missing_files: asStringArray(row.missing_files, 64).sort(),
+    }))
+    .sort((a, b) => a.check_id.localeCompare(b.check_id));
+
+  const missingSurfaces = (Array.isArray(raw.missing_surfaces) ? raw.missing_surfaces : [])
+    .filter((row): row is Record<string, unknown> => !!row && typeof row === "object")
+    .map((row) => ({
+      check_id: asString(row.check_id, ""),
+      missing_files: asStringArray(row.missing_files, 64).sort(),
+    }))
+    .sort((a, b) => a.check_id.localeCompare(b.check_id));
+
+  return {
+    run_id: asString(raw.run_id, ""),
+    timestamp_utc: asString(raw.timestamp_utc, ""),
+    status: asString(raw.status, "NOT_COMPUTABLE"),
+    checks: normalizedChecks,
+    missing_surfaces: missingSurfaces,
+    recommended_next_actions: asStringArray(raw.recommended_next_actions, 64).sort(),
+    provenance: {
+      ...(asObject(raw.provenance)),
+      deterministic_ordering: normalizedChecks.map((row) => row.check_id),
+    },
+  };
+}
+
+async function buildDeveloperReadinessView(): Promise<DeveloperReadinessView> {
+  const reportPath = path.resolve(process.cwd(), "out", "reports", "developer_readiness.json");
+  const raw = await readJsonObject(reportPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${reportPath}`,
+      raw: null,
+      projection: normalizeDeveloperReadinessProjection(null),
+    };
+  }
+  const normalized = normalizeDeveloperReadinessProjection(raw);
+  return {
+    status: asString(normalized.status, "NOT_COMPUTABLE") as DeveloperReadinessView["status"],
+    reason: "ok",
+    raw,
+    projection: normalized,
+  };
+}
+
+function normalizeGapClosureInvarianceProjection(raw: Record<string, unknown> | null): Record<string, unknown> {
+  if (!raw) {
+    return {
+      run_id: "NOT_COMPUTABLE",
+      invariance_counts: { total: 0, unchecked: 0, provisional: 0, stable: 0 },
+      required_thresholds: {},
+      unmet_conditions: ["missing_gap_closure_stabilization_report"],
+      readiness_state: "NOT_COMPUTABLE",
+      promotion_decision: "HOLD",
+      provenance: {
+        source: "server.routes.normalizeGapClosureInvarianceProjection",
+        deterministic_ordering: [],
+      },
+    };
+  }
+  const counts = asObject(raw.invariance_counts);
+  const unchecked = Number(counts.UNCHECKED ?? 0) || 0;
+  const provisional = Number(counts.PROVISIONAL ?? 0) || 0;
+  const stable = Number(counts.STABLE ?? 0) || 0;
+  return {
+    run_id: asString(raw.run_id, "NOT_COMPUTABLE"),
+    invariance_counts: {
+      total: unchecked + provisional + stable,
+      unchecked,
+      provisional,
+      stable,
+    },
+    required_thresholds: asObject(raw.required_thresholds),
+    unmet_conditions: asStringArray(raw.unmet_conditions, 64).sort(),
+    readiness_state: asString(raw.readiness_state, "NOT_COMPUTABLE"),
+    promotion_decision: asString(raw.promotion_recommendation ?? raw.promotion_decision, "HOLD"),
+    provenance: {
+      source: "server.routes.normalizeGapClosureInvarianceProjection",
+      deterministic_ordering: [
+        "run_id",
+        "invariance_counts.total",
+        "invariance_counts.unchecked",
+        "invariance_counts.provisional",
+        "invariance_counts.stable",
+        "required_thresholds",
+        "unmet_conditions",
+        "readiness_state",
+        "promotion_decision",
+      ],
+    },
+  };
+}
+
+async function buildGapClosureInvarianceView(): Promise<GapClosureInvarianceView> {
+  const reportPath = path.resolve(process.cwd(), "out", "reports", "gap_closure_stabilization_report.json");
+  const raw = await readJsonObject(reportPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${reportPath}`,
+      raw: null,
+      projection: normalizeGapClosureInvarianceProjection(null),
+    };
+  }
+  return {
+    status: asString(raw.status, "NOT_COMPUTABLE") as GapClosureInvarianceView["status"],
+    reason: "ok",
+    raw,
+    projection: normalizeGapClosureInvarianceProjection(raw),
+  };
+}
+
+async function buildReadinessComparisonLatestView(): Promise<ReadinessComparisonLatestView> {
+  const latestPath = path.resolve(process.cwd(), "out", "reports", "readiness_comparison.latest.json");
+  const raw = await readJsonObject(latestPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${latestPath}`,
+      comparison: null,
+    };
+  }
+  return {
+    status: "OK",
+    reason: "ok",
+    comparison: raw,
+  };
+}
+
+async function buildReadinessComparisonLedgerView(limit: number): Promise<Record<string, unknown>> {
+  const ledgerPath = path.resolve(process.cwd(), "out", "reports", "readiness_comparison_ledger.jsonl");
+  if (!existsSync(ledgerPath)) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${ledgerPath}`,
+      records: [],
+    };
+  }
+  const bounded = Math.max(1, Math.min(limit, 100));
+  const lines = (await readFile(ledgerPath, { encoding: "utf-8" }))
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0);
+  const parsed = lines.map((line) => {
+    try {
+      return JSON.parse(line) as Record<string, unknown>;
+    } catch {
+      return { parse_error: true, line };
+    }
+  });
+  return {
+    status: "OK",
+    reason: "ok",
+    records: parsed.slice(-bounded),
+  };
+}
+
+async function buildPromotionPreflightView(): Promise<PromotionPreflightView> {
+  const advisoryPath = path.resolve(process.cwd(), "out", "reports", "promotion_preflight.latest.json");
+  const raw = await readJsonObject(advisoryPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${advisoryPath}`,
+      advisory: null,
+    };
+  }
+  return {
+    status: "OK",
+    reason: "ok",
+    advisory: raw,
+  };
+}
+
+async function buildReportingCycleLatestView(): Promise<ReportingCycleLatestView> {
+  const cyclePath = path.resolve(process.cwd(), "out", "reports", "reporting_cycle.latest.json");
+  const raw = await readJsonObject(cyclePath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${cyclePath}`,
+      cycle: null,
+      freshness: null,
+    };
+  }
+  return {
+    status: "OK",
+    reason: "ok",
+    cycle: raw,
+    freshness: (raw.freshness && typeof raw.freshness === "object") ? raw.freshness as Record<string, unknown> : null,
+  };
+}
+
+async function buildReportManifestView(): Promise<ReportManifestView> {
+  const manifestPath = path.resolve(process.cwd(), "out", "reports", "report_manifest.latest.json");
+  const raw = await readJsonObject(manifestPath);
+  if (Array.isArray(raw)) {
+    return {
+      status: "OK",
+      reason: "ok",
+      manifest: raw.filter((row): row is Record<string, unknown> => !!row && typeof row === "object"),
+    };
+  }
+  const fallbackArtifacts = [
+    "developer_readiness",
+    "invariance",
+    "comparison",
+    "preflight",
+    "reporting_cycle",
+  ];
+  return {
+    status: "OK",
+    reason: "ok",
+    manifest: fallbackArtifacts.map((artifactType) => ({
+      artifact_type: artifactType,
+      timestamp_utc: "NOT_COMPUTABLE",
+      freshness: { is_stale: true, age_seconds: -1 },
+      hash: "NOT_COMPUTABLE",
+      path: "NOT_COMPUTABLE",
+      source_command: "NOT_COMPUTABLE",
+      provenance: { status: "NOT_COMPUTABLE", reason: `report_missing:${manifestPath}` },
+    })),
+  };
+}
+
+async function buildReportManifestDiffView(): Promise<ReportManifestDiffView> {
+  const diffPath = path.resolve(process.cwd(), "out", "reports", "report_manifest.diff.latest.json");
+  const raw = await readJsonObject(diffPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${diffPath}`,
+      diff: null,
+    };
+  }
+  const provenance = (raw.provenance && typeof raw.provenance === "object") ? raw.provenance as Record<string, unknown> : {};
+  const status = String(provenance.status ?? "OK");
+  const reason = String(provenance.reason ?? "ok");
+  return {
+    status: status === "OK" ? "OK" : "NOT_COMPUTABLE",
+    reason,
+    diff: raw,
+  };
+}
+
+async function buildReportManifestDiffHistoryView(limit: number): Promise<ReportManifestDiffHistoryView> {
+  const ledgerPath = path.resolve(process.cwd(), "out", "reports", "report_manifest.diff.ledger.jsonl");
+  if (!existsSync(ledgerPath)) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${ledgerPath}`,
+      history: [],
+    };
+  }
+  const bounded = Math.max(1, Math.min(limit, 100));
+  const lines = (await readFile(ledgerPath, { encoding: "utf-8" }))
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0);
+  const rows = lines.map((line) => {
+    try {
+      return JSON.parse(line) as Record<string, unknown>;
+    } catch {
+      return { parse_error: true, line };
+    }
+  });
+  return {
+    status: "OK",
+    reason: "ok",
+    history: rows.slice(-bounded),
+  };
+}
+
+async function buildReportManifestSummaryView(): Promise<ReportManifestSummaryView> {
+  const summaryPath = path.resolve(process.cwd(), "out", "reports", "report_manifest.summary.latest.json");
+  const raw = await readJsonObject(summaryPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${summaryPath}`,
+      summary: null,
+    };
+  }
+  const indicator = String(raw.stability_indicator ?? "NOT_COMPUTABLE");
+  return {
+    status: indicator === "NOT_COMPUTABLE" ? "NOT_COMPUTABLE" : "OK",
+    reason: String((raw.provenance && typeof raw.provenance === "object" ? raw.provenance.reason : "ok") ?? "ok"),
+    summary: raw as Record<string, unknown>,
+  };
+}
+
+async function buildReportManifestWatchlistView(): Promise<ReportManifestWatchlistView> {
+  const watchlistPath = path.resolve(process.cwd(), "out", "reports", "report_manifest.watchlist.latest.json");
+  const raw = await readJsonObject(watchlistPath);
+  if (!raw) {
+    return {
+      status: "NOT_COMPUTABLE",
+      reason: `report_missing:${watchlistPath}`,
+      watchlist: null,
+    };
+  }
+  return {
+    status: "OK",
+    reason: String((raw.provenance && typeof raw.provenance === "object" ? raw.provenance.reason : "ok") ?? "ok"),
+    watchlist: raw as Record<string, unknown>,
+  };
+}
+
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : String(value ?? fallback);
 }
@@ -404,6 +799,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error building evidence view:", error);
       res.status(500).json({ error: "evidence_view_failed" });
+    }
+  });
+
+  app.get("/api/developer/readiness", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildDeveloperReadinessView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building developer readiness view:", error);
+      res.status(500).json({ error: "developer_readiness_failed" });
+    }
+  });
+
+  app.get("/api/gap-closure/invariance", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildGapClosureInvarianceView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building gap-closure invariance view:", error);
+      res.status(500).json({ error: "gap_closure_invariance_failed" });
+    }
+  });
+
+  app.get("/api/readiness/comparison/latest", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildReadinessComparisonLatestView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building readiness comparison latest view:", error);
+      res.status(500).json({ error: "readiness_comparison_latest_failed" });
+    }
+  });
+
+  app.get("/api/readiness/comparison/ledger", isAuthenticated, async (req, res) => {
+    try {
+      const limit = Number(req.query.limit ?? 20) || 20;
+      const payload = await buildReadinessComparisonLedgerView(limit);
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building readiness comparison ledger view:", error);
+      res.status(500).json({ error: "readiness_comparison_ledger_failed" });
+    }
+  });
+
+  app.get("/api/promotion/preflight", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildPromotionPreflightView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building promotion preflight view:", error);
+      res.status(500).json({ error: "promotion_preflight_failed" });
+    }
+  });
+
+  app.get("/api/reporting/cycle/latest", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildReportingCycleLatestView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building reporting cycle view:", error);
+      res.status(500).json({ error: "reporting_cycle_failed" });
+    }
+  });
+
+  app.get("/api/reports/manifest", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildReportManifestView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building report manifest view:", error);
+      res.status(500).json({ error: "report_manifest_failed" });
+    }
+  });
+
+  app.get("/api/reports/manifest/diff", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildReportManifestDiffView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building report manifest diff view:", error);
+      res.status(500).json({ error: "report_manifest_diff_failed" });
+    }
+  });
+
+  app.get("/api/reports/manifest/diff/history", isAuthenticated, async (req, res) => {
+    try {
+      const limit = Number(req.query.limit ?? 20) || 20;
+      const payload = await buildReportManifestDiffHistoryView(limit);
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building report manifest diff history view:", error);
+      res.status(500).json({ error: "report_manifest_diff_history_failed" });
+    }
+  });
+
+  app.get("/api/reports/manifest/summary", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildReportManifestSummaryView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building report manifest summary view:", error);
+      res.status(500).json({ error: "report_manifest_summary_failed" });
+    }
+  });
+
+  app.get("/api/reports/manifest/watchlist", isAuthenticated, async (_req, res) => {
+    try {
+      const payload = await buildReportManifestWatchlistView();
+      res.json(payload);
+    } catch (error) {
+      console.error("Error building report manifest watchlist view:", error);
+      res.status(500).json({ error: "report_manifest_watchlist_failed" });
     }
   });
 

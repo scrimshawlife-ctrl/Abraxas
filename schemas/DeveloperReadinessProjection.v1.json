@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/DeveloperReadinessProjection.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "timestamp_utc",
+    "status",
+    "checks",
+    "missing_surfaces",
+    "recommended_next_actions",
+    "provenance"
+  ],
+  "properties": {
+    "run_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "status": {"type": "string", "enum": ["PASS", "FAIL", "PARTIAL", "NOT_COMPUTABLE"]},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "label", "command", "status", "return_code", "missing_files"],
+        "properties": {
+          "check_id": {"type": "string"},
+          "label": {"type": "string"},
+          "command": {"type": "string"},
+          "status": {"type": "string", "enum": ["PASS", "FAIL", "NOT_PRESENT", "NOT_COMPUTABLE"]},
+          "return_code": {"type": ["integer", "null"]},
+          "missing_files": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "missing_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "missing_files"],
+        "properties": {
+          "check_id": {"type": "string"},
+          "missing_files": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "recommended_next_actions": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["input_hash", "execution_environment", "deterministic_ordering", "projection_generated_at"],
+      "properties": {
+        "input_hash": {"type": "string"},
+        "execution_environment": {"type": "object"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}},
+        "projection_generated_at": {"type": "string"}
+      }
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/ReadinessComparisonRecord.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "comparison_id",
+    "timestamp_utc",
+    "developer_readiness",
+    "gap_closure_invariance",
+    "alignment",
+    "provenance"
+  ],
+  "properties": {
+    "comparison_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "developer_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "run_id", "checks_total", "checks_passed", "missing_surfaces_count"],
+      "properties": {
+        "status": {"type": "string"},
+        "run_id": {"type": "string"},
+        "checks_total": {"type": "integer", "minimum": 0},
+        "checks_passed": {"type": "integer", "minimum": 0},
+        "missing_surfaces_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "gap_closure_invariance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "run_id",
+        "readiness_state",
+        "promotion_decision",
+        "invariance_total",
+        "invariance_stable",
+        "unmet_conditions_count"
+      ],
+      "properties": {
+        "status": {"type": "string"},
+        "run_id": {"type": "string"},
+        "readiness_state": {"type": "string"},
+        "promotion_decision": {"type": "string"},
+        "invariance_total": {"type": "integer", "minimum": 0},
+        "invariance_stable": {"type": "integer", "minimum": 0},
+        "unmet_conditions_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "alignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "ALIGNED",
+            "DEV_READY_GAP_HOLD",
+            "DEV_PARTIAL_GAP_READY",
+            "BOTH_PARTIAL",
+            "NOT_COMPUTABLE",
+            "UNKNOWN"
+          ]
+        },
+        "reason": {"type": "string"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

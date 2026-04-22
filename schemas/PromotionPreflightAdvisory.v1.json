@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/PromotionPreflightAdvisory.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "advisory_id",
+    "timestamp_utc",
+    "developer_readiness_status",
+    "gap_closure_readiness_state",
+    "promotion_decision",
+    "blockers",
+    "evidence_gaps",
+    "advisory_state",
+    "provenance"
+  ],
+  "properties": {
+    "advisory_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "developer_readiness_status": {"type": "string"},
+    "gap_closure_readiness_state": {"type": "string"},
+    "promotion_decision": {"type": "string"},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "evidence_gaps": {"type": "array", "items": {"type": "string"}},
+    "advisory_state": {
+      "type": "string",
+      "enum": [
+        "READY_CANDIDATE",
+        "BLOCKED_INVARIANCE",
+        "BLOCKED_READINESS",
+        "BLOCKED_BOTH",
+        "NOT_COMPUTABLE"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}
