@@ -146,3 +146,27 @@ test-with-deps:
 
 svg-validate:
 	bash scripts/validate_architecture_svg.sh
+
+architecture-svg-bounds-check:
+	$(PYTHON) scripts/check_architecture_svg_bounds.py
+
+developer-readiness:
+	$(PYTHON) scripts/run_developer_readiness.py
+
+reporting-cycle:
+	$(PYTHON) scripts/run_reporting_cycle.py
+
+report-manifest:
+	$(PYTHON) scripts/generate_report_manifest.py
+
+report-manifest-diff:
+	$(PYTHON) scripts/generate_report_manifest_diff.py
+
+log-report-manifest-diff:
+	$(PYTHON) scripts/log_report_manifest_diff.py
+
+report-manifest-summary:
+	$(PYTHON) scripts/generate_report_manifest_summary.py
+
+report-manifest-watchlist:
+	$(PYTHON) scripts/generate_report_manifest_watchlist.py

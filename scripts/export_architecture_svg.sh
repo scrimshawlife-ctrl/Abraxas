@@ -87,6 +87,16 @@ else:
 path.write_text(ET.tostring(root, encoding="unicode"), encoding="utf-8")
 PY
 
+python - "$TMP_SVG" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+if "<!-- ABRAXAS GENERATED ARTIFACT" not in text:
+    text = "<!-- ABRAXAS GENERATED ARTIFACT: derived from docs/assets/architecture/abraxas-architecture-overview.mmd via scripts/export_architecture_svg.sh -->\n" + text
+path.write_text(text, encoding="utf-8")
+PY
+
 mv "$TMP_SVG" "$SVG_OUT"
 
 if [[ "${EXPORT_PNG:-0}" == "1" ]]; then

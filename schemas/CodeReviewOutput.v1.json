@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/CodeReviewOutput.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "issues", "summary", "provenance"],
+  "properties": {
+    "status": {"type": "string", "enum": ["OK", "NOT_COMPUTABLE"]},
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["issue_id", "severity", "category", "message", "actionable_fix"],
+        "properties": {
+          "issue_id": {"type": "string"},
+          "severity": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+          "category": {"type": "string"},
+          "message": {"type": "string"},
+          "actionable_fix": {"type": "string"}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issue_count", "max_severity"],
+      "properties": {
+        "issue_count": {"type": "integer", "minimum": 0},
+        "max_severity": {"type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]}
+      }
+    },
+    "patch_plan": {
+      "type": ["array", "null"],
+      "items": {"type": "string"}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "evaluation_mode"],
+      "properties": {
+        "contract": {"type": "string", "const": "RUNE.CODE.REVIEW.contract.v1"},
+        "evaluation_mode": {"type": "string", "const": "shape_only"}
+      }
+    }
+  }
+}

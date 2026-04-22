@@ -72,8 +72,18 @@ Canonical diagram spec: [docs/architecture/overview.md](docs/architecture/overvi
 
 The system architecture is defined as a canonical artifact:
 
-- Source (Mermaid): `docs/assets/architecture/abraxas-architecture-overview.mmd`
+- Source (Mermaid, canonical): `docs/assets/architecture/abraxas-architecture-overview.mmd`
+- Derived SVG (generated): `docs/assets/architecture/abraxas-architecture-overview.svg`
 - Spec: `docs/architecture/overview.md`
+
+![Abraxas architecture overview](docs/assets/architecture/abraxas-architecture-overview.svg)
+
+Regenerate the derived SVG (and optional PNG) from the Mermaid source:
+
+```bash
+bash scripts/export_architecture_svg.sh
+# optional PNG: EXPORT_PNG=1 bash scripts/export_architecture_svg.sh
+```
 
 This diagram reflects the current repository topology across execution, validation, governance, and artifact surfaces.
 See the spec for explicit truth gaps and confidence labels.
@@ -144,6 +154,36 @@ python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-ru
 ```
 
 ---
+
+## Developer Readiness Loop
+
+Run a deterministic local readiness sweep across dependency governance, rune contracts, focused web/operator tests, and architecture SVG bounds checks:
+
+```bash
+make developer-readiness
+```
+
+The command writes a structured report to `out/reports/developer_readiness.json` via `scripts/run_developer_readiness.py`. Missing test surfaces remain explicit as `NOT_PRESENT`; no promotion or closure state is inferred from this loop alone.
+
+Read-only comparison snapshots across Developer Readiness and Gap Closure Invariance can be logged with:
+
+```bash
+python scripts/log_readiness_comparison.py
+```
+
+This writes:
+- `out/reports/readiness_comparison.latest.json`
+- `out/reports/readiness_comparison_ledger.jsonl`
+
+The comparison ledger is descriptive-only and non-promotive; promotion policy and authority remain governed by existing canonical runtime/policy surfaces.
+
+Read-only promotion preflight advisory can be generated with:
+
+```bash
+python scripts/generate_promotion_preflight.py
+```
+
+This writes `out/reports/promotion_preflight.latest.json` and is advisory-only (no promotion authority, no threshold or CI gate changes).
 
 ## Validation & Governance
 

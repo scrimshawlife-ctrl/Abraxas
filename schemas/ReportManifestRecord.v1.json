@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/ReportManifestRecord.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "path",
+    "timestamp_utc",
+    "freshness",
+    "hash",
+    "source_command",
+    "provenance"
+  ],
+  "properties": {
+    "artifact_id": {"type": "string"},
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "developer_readiness",
+        "invariance",
+        "comparison",
+        "preflight",
+        "reporting_cycle"
+      ]
+    },
+    "path": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["is_stale", "age_seconds"],
+      "properties": {
+        "is_stale": {"type": "boolean"},
+        "age_seconds": {"type": "integer"}
+      }
+    },
+    "hash": {"type": "string"},
+    "source_command": {"type": "string"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "status", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "status": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

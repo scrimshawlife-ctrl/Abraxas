@@ -9,6 +9,17 @@ def test_webpanel_operator_surface_routes_registered() -> None:
     assert 'app.get("/runs/compare"' in src
     assert 'app.get("/release/readiness"' in src
     assert 'app.get("/runs/{run_id}/evidence"' in src
+    assert 'app.get("/api/developer/readiness")' in src
+    assert 'app.get("/api/gap-closure/invariance")' in src
+    assert 'app.get("/api/readiness/comparison/latest")' in src
+    assert 'app.get("/api/readiness/comparison/ledger")' in src
+    assert 'app.get("/api/promotion/preflight")' in src
+    assert 'app.get("/api/reporting/cycle/latest")' in src
+    assert 'app.get("/api/reports/manifest")' in src
+    assert 'app.get("/api/reports/manifest/diff")' in src
+    assert 'app.get("/api/reports/manifest/diff/history")' in src
+    assert 'app.get("/api/reports/manifest/summary")' in src
+    assert 'app.get("/api/reports/manifest/watchlist")' in src
 
 
 def test_server_operator_surface_api_routes_registered() -> None:
@@ -17,3 +28,14 @@ def test_server_operator_surface_api_routes_registered() -> None:
     assert 'app.get("/api/operator/compare/:runA/:runB"' in src
     assert 'app.get("/api/operator/release-readiness/:runId"' in src
     assert 'app.get("/api/operator/evidence/:runId"' in src
+    assert 'app.get("/api/developer/readiness"' in src
+    assert 'app.get("/api/gap-closure/invariance"' in src
+    assert 'app.get("/api/readiness/comparison/latest"' in src
+    assert 'app.get("/api/readiness/comparison/ledger"' in src
+    assert 'app.get("/api/promotion/preflight"' in src
+    assert 'app.get("/api/reporting/cycle/latest"' in src
+    assert 'app.get("/api/reports/manifest"' in src
+    assert 'app.get("/api/reports/manifest/diff"' in src
+    assert 'app.get("/api/reports/manifest/diff/history"' in src
+    assert 'app.get("/api/reports/manifest/summary"' in src
+    assert 'app.get("/api/reports/manifest/watchlist"' in src

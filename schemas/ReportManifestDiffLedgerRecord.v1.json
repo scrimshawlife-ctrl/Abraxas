@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/ReportManifestDiffLedgerRecord.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ledger_entry_id",
+    "diff_id",
+    "timestamp_utc",
+    "added_count",
+    "removed_count",
+    "hash_changed_count",
+    "freshness_changed_count",
+    "status_changed_count",
+    "unchanged_count",
+    "status",
+    "provenance"
+  ],
+  "properties": {
+    "ledger_entry_id": {"type": "string"},
+    "diff_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "added_count": {"type": "integer", "minimum": 0},
+    "removed_count": {"type": "integer", "minimum": 0},
+    "hash_changed_count": {"type": "integer", "minimum": 0},
+    "freshness_changed_count": {"type": "integer", "minimum": 0},
+    "status_changed_count": {"type": "integer", "minimum": 0},
+    "unchanged_count": {"type": "integer", "minimum": 0},
+    "status": {"type": "string"},
+    "artifact_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_type", "hash_changed_count", "freshness_changed_count", "status_changed_count", "removed_count"],
+        "properties": {
+          "artifact_type": {"type": "string"},
+          "hash_changed_count": {"type": "integer", "minimum": 0},
+          "freshness_changed_count": {"type": "integer", "minimum": 0},
+          "status_changed_count": {"type": "integer", "minimum": 0},
+          "removed_count": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

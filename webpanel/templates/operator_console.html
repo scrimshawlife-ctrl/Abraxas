@@ -64,6 +64,190 @@
 </div>
 
 <div class="card">
+  <h2>Developer Readiness</h2>
+  <p><b>status:</b> <span class="badge">{{ developer_readiness.status or "NOT_COMPUTABLE" }}</span></p>
+  <p><b>checks:</b>
+    {% set passed = developer_readiness.checks | selectattr("status", "equalto", "PASS") | list | length %}
+    {{ passed }} / {{ developer_readiness.checks | length }}
+  </p>
+  <p><b>missing surfaces:</b> {{ developer_readiness.missing_surfaces | length }}</p>
+  <p><b>last run:</b> {{ developer_readiness.timestamp_utc or "NOT_COMPUTABLE" }}</p>
+  <p><b>gap_closure_run_id:</b>
+    {% set gap_run_id = developer_readiness.provenance.gap_closure_run_id_linkage if developer_readiness.provenance else "NOT_COMPUTABLE" %}
+    {% if gap_run_id and gap_run_id != "NOT_COMPUTABLE" %}
+      <a href="#gap-closure-invariance-card">{{ gap_run_id }}</a>
+    {% else %}
+      NOT_COMPUTABLE
+    {% endif %}
+  </p>
+  <details>
+    <summary>Projection JSON</summary>
+    <pre><code>{{ developer_readiness }}</code></pre>
+  </details>
+</div>
+
+<div class="card" id="gap-closure-invariance-card">
+  <h2>Gap Closure / Invariance</h2>
+  <p><b>readiness_state:</b> <span class="badge">{{ gap_closure_invariance.readiness_state or "NOT_COMPUTABLE" }}</span></p>
+  <p><b>stable / total:</b> {{ gap_closure_invariance.invariance_counts.stable or 0 }} / {{ gap_closure_invariance.invariance_counts.total or 0 }}</p>
+  <p><b>promotion decision:</b> {{ gap_closure_invariance.promotion_decision or "HOLD" }}</p>
+  <p><b>unmet conditions:</b> {{ gap_closure_invariance.unmet_conditions | length }}</p>
+  <details>
+    <summary>Projection JSON</summary>
+    <pre><code>{{ gap_closure_invariance }}</code></pre>
+  </details>
+</div>
+
+<div class="card">
+  <h2>Readiness Alignment</h2>
+  <p><b>alignment.state:</b> <span class="badge">{{ readiness_alignment.alignment.state if readiness_alignment else "NOT_COMPUTABLE" }}</span></p>
+  <p><b>developer status:</b> {{ readiness_alignment.developer_readiness.status if readiness_alignment else "NOT_COMPUTABLE" }}</p>
+  <p><b>gap readiness_state:</b> {{ readiness_alignment.gap_closure_invariance.readiness_state if readiness_alignment else "NOT_COMPUTABLE" }}</p>
+  <p><b>promotion_decision:</b> {{ readiness_alignment.gap_closure_invariance.promotion_decision if readiness_alignment else "NOT_COMPUTABLE" }}</p>
+  <p><b>timestamp:</b> {{ readiness_alignment.timestamp_utc if readiness_alignment else "NOT_COMPUTABLE" }}</p>
+</div>
+
+<div class="card">
+  <h2>Promotion Preflight</h2>
+  <p><b>advisory_state:</b> <span class="badge">{{ promotion_preflight.advisory_state if promotion_preflight else "NOT_COMPUTABLE" }}</span></p>
+  <p><b>blockers:</b> {{ promotion_preflight.blockers | length if promotion_preflight else 0 }}</p>
+  <p><b>evidence gaps:</b> {{ promotion_preflight.evidence_gaps | length if promotion_preflight else 0 }}</p>
+  <p><b>promotion_decision:</b> {{ promotion_preflight.promotion_decision if promotion_preflight else "NOT_COMPUTABLE" }}</p>
+  <p><b>timestamp:</b> {{ promotion_preflight.timestamp_utc if promotion_preflight else "NOT_COMPUTABLE" }}</p>
+  <details>
+    <summary>Advisory JSON</summary>
+    <pre><code>{{ promotion_preflight if promotion_preflight else {} }}</code></pre>
+  </details>
+</div>
+
+<div class="card">
+  <h2>Reporting Cycle</h2>
+  <p><b>overall_status:</b> <span class="badge">{{ reporting_cycle.overall_status if reporting_cycle else "NOT_COMPUTABLE" }}</span></p>
+  {% set cycle_freshness = reporting_cycle.freshness if reporting_cycle and reporting_cycle.freshness else {} %}
+  <p><b>stale:</b> {% if cycle_freshness.overall_stale %}<span class="badge">⚠️ STALE</span>{% else %}<span class="badge">fresh</span>{% endif %}</p>
+  <p><b>developer_readiness:</b> {{ reporting_cycle.steps.developer_readiness_status if reporting_cycle and reporting_cycle.steps else "NOT_COMPUTABLE" }}</p>
+  <p><b>developer age:</b> {{ cycle_freshness.per_step.developer_readiness.age_seconds if cycle_freshness and cycle_freshness.per_step and cycle_freshness.per_step.developer_readiness else "NOT_COMPUTABLE" }}s</p>
+  <p><b>invariance:</b> {{ reporting_cycle.steps.invariance_status if reporting_cycle and reporting_cycle.steps else "NOT_COMPUTABLE" }}</p>
+  <p><b>invariance age:</b> {{ cycle_freshness.per_step.invariance.age_seconds if cycle_freshness and cycle_freshness.per_step and cycle_freshness.per_step.invariance else "NOT_COMPUTABLE" }}s</p>
+  <p><b>comparison:</b> {{ reporting_cycle.steps.comparison_status if reporting_cycle and reporting_cycle.steps else "NOT_COMPUTABLE" }}</p>
+  <p><b>comparison age:</b> {{ cycle_freshness.per_step.comparison.age_seconds if cycle_freshness and cycle_freshness.per_step and cycle_freshness.per_step.comparison else "NOT_COMPUTABLE" }}s</p>
+  <p><b>advisory:</b> {{ reporting_cycle.steps.advisory_status if reporting_cycle and reporting_cycle.steps else "NOT_COMPUTABLE" }}</p>
+  <p><b>advisory age:</b> {{ cycle_freshness.per_step.preflight.age_seconds if cycle_freshness and cycle_freshness.per_step and cycle_freshness.per_step.preflight else "NOT_COMPUTABLE" }}s</p>
+  <p><b>missing artifacts:</b> {{ reporting_cycle.missing_artifacts | length if reporting_cycle else 0 }}</p>
+  <p><b>timestamp:</b> {{ reporting_cycle.timestamp_utc if reporting_cycle else "NOT_COMPUTABLE" }}</p>
+  <details>
+    <summary>Cycle JSON</summary>
+    <pre><code>{{ reporting_cycle if reporting_cycle else {} }}</code></pre>
+  </details>
+</div>
+
+<div class="card">
+  <h2>Report Manifest</h2>
+  <p><b>records:</b> {{ report_manifest | length if report_manifest else 0 }}</p>
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left;">artifact_type</th>
+        <th style="text-align:left;">status</th>
+        <th style="text-align:left;">age</th>
+        <th style="text-align:left;">path</th>
+        <th style="text-align:left;">timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in report_manifest or [] %}
+      {% set stale = row.freshness.is_stale if row.freshness else true %}
+      {% set computable = row.timestamp_utc != "NOT_COMPUTABLE" %}
+      <tr>
+        <td>{{ row.artifact_type }}</td>
+        <td>{% if not computable %}not_computable{% elif stale %}stale{% else %}fresh{% endif %}</td>
+        <td>{{ row.freshness.age_seconds if row.freshness else "NOT_COMPUTABLE" }}s</td>
+        <td><code>{{ row.path }}</code></td>
+        <td>{{ row.timestamp_utc }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Manifest Diff</h2>
+  {% set manifest_diff = report_manifest_diff if report_manifest_diff else {} %}
+  {% set changed_count = (manifest_diff.hash_changed | length if manifest_diff.hash_changed else 0) + (manifest_diff.status_changed | length if manifest_diff.status_changed else 0) %}
+  <p><b>added:</b> {{ manifest_diff.added | length if manifest_diff.added else 0 }}</p>
+  <p><b>removed:</b> {{ manifest_diff.removed | length if manifest_diff.removed else 0 }}</p>
+  <p><b>changed:</b> {{ changed_count }}</p>
+  <p><b>freshness changes:</b> {{ manifest_diff.freshness_changed | length if manifest_diff.freshness_changed else 0 }}</p>
+  <p><b>timestamp:</b> {{ manifest_diff.timestamp_utc if manifest_diff else "NOT_COMPUTABLE" }}</p>
+</div>
+
+<div class="card">
+  <h2>Manifest Diff History</h2>
+  <p><b>entries:</b> {{ report_manifest_diff_history | length if report_manifest_diff_history else 0 }}</p>
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left;">timestamp</th>
+        <th style="text-align:left;">added_count</th>
+        <th style="text-align:left;">removed_count</th>
+        <th style="text-align:left;">changed_count</th>
+        <th style="text-align:left;">status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in report_manifest_diff_history or [] %}
+      <tr>
+        <td>{{ row.timestamp_utc }}</td>
+        <td>{{ row.added_count }}</td>
+        <td>{{ row.removed_count }}</td>
+        <td>{{ row.hash_changed_count + row.status_changed_count + row.freshness_changed_count }}</td>
+        <td>{{ row.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Manifest Change Summary</h2>
+  {% set summary = report_manifest_change_summary if report_manifest_change_summary else {} %}
+  {% set total_changes = (summary.totals.added_total if summary.totals else 0) + (summary.totals.removed_total if summary.totals else 0) + (summary.totals.hash_changed_total if summary.totals else 0) + (summary.totals.freshness_changed_total if summary.totals else 0) + (summary.totals.status_changed_total if summary.totals else 0) %}
+  <p><b>stability_indicator:</b> <span class="badge">{{ summary.stability_indicator if summary else "NOT_COMPUTABLE" }}</span></p>
+  <p><b>total changes:</b> {{ total_changes }}</p>
+  <p><b>repeated hash churn:</b> {{ summary.patterns.repeated_hash_churn_count if summary.patterns else 0 }}</p>
+  <p><b>stale transitions:</b> {{ summary.patterns.stale_transition_count if summary.patterns else 0 }}</p>
+  <p><b>artifact disappearances:</b> {{ summary.patterns.artifact_disappearance_count if summary.patterns else 0 }}</p>
+  <p><b>window size:</b> {{ summary.window_size if summary else 0 }}</p>
+  <p><b>timestamp:</b> {{ summary.timestamp_utc if summary else "NOT_COMPUTABLE" }}</p>
+</div>
+
+<div class="card">
+  <h2>Manifest Watchlist</h2>
+  {% set watchlist = report_manifest_watchlist if report_manifest_watchlist else {} %}
+  <p><b>items:</b> {{ watchlist.items | length if watchlist and watchlist.items else 0 }}</p>
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left;">artifact_type</th>
+        <th style="text-align:left;">issue_type</th>
+        <th style="text-align:left;">occurrence_count</th>
+        <th style="text-align:left;">last_seen_timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in watchlist.items if watchlist and watchlist.items %}
+      <tr>
+        <td>{{ item.artifact_type }}</td>
+        <td>{{ item.issue_type }}</td>
+        <td>{{ item.occurrence_count }}</td>
+        <td>{{ item.last_seen_timestamp }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
   <h2>Operator Action</h2>
   <p><b>Action Safety:</b> {{ view.action_safety_envelope.scope_note }}</p>
   <p><b>Allowed:</b> {{ view.action_safety_envelope.allowed_actions }}</p>

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/ReportManifestChangeSummary.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary_id",
+    "timestamp_utc",
+    "window_size",
+    "totals",
+    "patterns",
+    "stability_indicator",
+    "provenance"
+  ],
+  "properties": {
+    "summary_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "window_size": {"type": "integer", "minimum": 1},
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added_total", "removed_total", "hash_changed_total", "freshness_changed_total", "status_changed_total"],
+      "properties": {
+        "added_total": {"type": "integer", "minimum": 0},
+        "removed_total": {"type": "integer", "minimum": 0},
+        "hash_changed_total": {"type": "integer", "minimum": 0},
+        "freshness_changed_total": {"type": "integer", "minimum": 0},
+        "status_changed_total": {"type": "integer", "minimum": 0}
+      }
+    },
+    "patterns": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repeated_hash_churn_count", "stale_transition_count", "artifact_disappearance_count"],
+      "properties": {
+        "repeated_hash_churn_count": {"type": "integer", "minimum": 0},
+        "stale_transition_count": {"type": "integer", "minimum": 0},
+        "artifact_disappearance_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "stability_indicator": {
+      "type": "string",
+      "enum": ["STABLE", "MODERATE_CHURN", "HIGH_CHURN", "NOT_COMPUTABLE"]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

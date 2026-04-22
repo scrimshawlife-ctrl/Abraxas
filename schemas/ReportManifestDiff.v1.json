@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/ReportManifestDiff.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "diff_id",
+    "timestamp_utc",
+    "added",
+    "removed",
+    "hash_changed",
+    "freshness_changed",
+    "status_changed",
+    "unchanged_count",
+    "provenance"
+  ],
+  "properties": {
+    "diff_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "added": {"type": "array", "items": {"type": "string"}},
+    "removed": {"type": "array", "items": {"type": "string"}},
+    "added_artifact_types": {"type": "array", "items": {"type": "string"}},
+    "removed_artifact_types": {"type": "array", "items": {"type": "string"}},
+    "hash_changed": {"type": "array", "items": {"type": "string"}},
+    "freshness_changed": {"type": "array", "items": {"type": "string"}},
+    "status_changed": {"type": "array", "items": {"type": "string"}},
+    "unchanged_count": {"type": "integer", "minimum": 0},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "status", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "status": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

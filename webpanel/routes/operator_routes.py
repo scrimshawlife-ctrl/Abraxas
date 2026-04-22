@@ -7,6 +7,16 @@ from pathlib import Path
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 
+from abx.developer_readiness import read_developer_readiness_payload
+from abx.gap_closure_invariance import read_gap_closure_invariance_payload
+from abx.promotion_preflight import read_promotion_preflight
+from abx.report_manifest import read_report_manifest
+from abx.report_manifest_diff import read_report_manifest_diff
+from abx.report_manifest_diff_ledger import read_diff_history
+from abx.report_manifest_summary import read_manifest_change_summary
+from abx.report_manifest_watchlist import read_report_manifest_watchlist
+from abx.readiness_comparison import read_latest_comparison
+from abx.reporting_cycle import read_reporting_cycle
 from ..operator_console import (
     build_view_state,
     execute_runtime_adapter,
@@ -1098,11 +1108,31 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
 
 def ui_operator_console(request: Request):
     view = _view_from_request(request)
+    developer_readiness = read_developer_readiness_payload().get("projection", {})
+    gap_closure_invariance = read_gap_closure_invariance_payload().get("projection", {})
+    readiness_alignment = read_latest_comparison().get("comparison")
+    promotion_preflight = read_promotion_preflight().get("advisory")
+    reporting_cycle = read_reporting_cycle().get("cycle")
+    report_manifest = read_report_manifest().get("manifest", [])
+    report_manifest_diff = read_report_manifest_diff().get("diff")
+    report_manifest_diff_history = read_diff_history(limit=20).get("history", [])
+    report_manifest_change_summary = read_manifest_change_summary().get("summary")
+    report_manifest_watchlist = read_report_manifest_watchlist().get("watchlist")
     return templates.TemplateResponse(
         "operator_console.html",
         {
             "request": request,
             "view": view,
+            "developer_readiness": developer_readiness,
+            "gap_closure_invariance": gap_closure_invariance,
+            "readiness_alignment": readiness_alignment,
+            "promotion_preflight": promotion_preflight,
+            "reporting_cycle": reporting_cycle,
+            "report_manifest": report_manifest,
+            "report_manifest_diff": report_manifest_diff,
+            "report_manifest_diff_history": report_manifest_diff_history,
+            "report_manifest_change_summary": report_manifest_change_summary,
+            "report_manifest_watchlist": report_manifest_watchlist,
             "action_result": None,
             "panel_token": _panel_token(),
             "panel_host": _panel_host(),
@@ -1431,6 +1461,16 @@ async def ui_run_compliance_probe(request: Request):
         {
             "request": request,
             "view": view_after,
+            "developer_readiness": read_developer_readiness_payload().get("projection", {}),
+            "gap_closure_invariance": read_gap_closure_invariance_payload().get("projection", {}),
+            "readiness_alignment": read_latest_comparison().get("comparison"),
+            "promotion_preflight": read_promotion_preflight().get("advisory"),
+            "reporting_cycle": read_reporting_cycle().get("cycle"),
+            "report_manifest": read_report_manifest().get("manifest", []),
+            "report_manifest_diff": read_report_manifest_diff().get("diff"),
+            "report_manifest_diff_history": read_diff_history(limit=20).get("history", []),
+            "report_manifest_change_summary": read_manifest_change_summary().get("summary"),
+            "report_manifest_watchlist": read_report_manifest_watchlist().get("watchlist"),
             "action_result": action_result,
             "panel_token": _panel_token(),
             "panel_host": _panel_host(),

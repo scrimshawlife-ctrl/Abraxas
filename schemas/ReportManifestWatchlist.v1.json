@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/ReportManifestWatchlist.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["watchlist_id", "timestamp_utc", "items", "provenance"],
+  "properties": {
+    "watchlist_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_type", "issue_type", "occurrence_count", "last_seen_timestamp", "description"],
+        "properties": {
+          "artifact_type": {"type": "string"},
+          "issue_type": {
+            "type": "string",
+            "enum": [
+              "REPEATED_HASH_CHURN",
+              "FREQUENT_STALE_TRANSITION",
+              "REPEATED_DISAPPEARANCE",
+              "UNSTABLE_STATUS",
+              "UNKNOWN"
+            ]
+          },
+          "occurrence_count": {"type": "integer", "minimum": 1},
+          "last_seen_timestamp": {"type": "string"},
+          "description": {"type": "string"}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source", "deterministic_ordering"],
+      "properties": {
+        "source": {"type": "string"},
+        "deterministic_ordering": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

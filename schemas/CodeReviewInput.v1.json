@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/CodeReviewInput.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code_input", "context", "include_patch_plan"],
+  "properties": {
+    "code_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "content"],
+      "properties": {
+        "language": {"type": "string", "minLength": 1},
+        "content": {"type": "string", "minLength": 1},
+        "file_path": {"type": "string"}
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_set_version"],
+      "properties": {
+        "rule_set_version": {"type": "string", "const": "code_review_contract.v1"}
+      }
+    },
+    "include_patch_plan": {"type": "boolean"}
+  }
+}

@@ -165,3 +165,23 @@ def test_12_run_invariance(tmp_path: Path) -> None:
     baseline = find_skills(BASE_INPUT, base_path=tmp_path)
     for _ in range(11):
         assert find_skills(BASE_INPUT, base_path=tmp_path) == baseline
+
+
+def test_malformed_registry_payload_not_computable(tmp_path: Path) -> None:
+    _write_schemas(tmp_path)
+    registry = tmp_path / "aal_core/runes/catalog.v0.yaml"
+    registry.parent.mkdir(parents=True, exist_ok=True)
+    registry.write_text("schema_version: aal.runes.catalog.v0\nrunes: invalid\n", encoding="utf-8")
+    result = find_skills(BASE_INPUT, base_path=tmp_path)
+    assert result["status"] == "NOT_COMPUTABLE"
+
+
+def test_match_provenance_fields_present(tmp_path: Path) -> None:
+    _setup(
+        tmp_path,
+        [_rune("RUNE.FIND_SKILLS", "Find Skills", "Deterministic skill discovery", ["discovery"], ["find", "registry"])],
+    )
+    result = find_skills(BASE_INPUT, base_path=tmp_path)
+    match = result["matches"][0]
+    assert match["provenance"]["registry_path"] == "aal_core/runes/catalog.v0.yaml"
+    assert len(match["provenance"]["hash"]) == 64

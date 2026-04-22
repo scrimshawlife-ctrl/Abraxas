@@ -24,6 +24,145 @@ jobs:
         run: python scripts/check_optional_dependency_boundaries.py
       - name: Dependency Metadata Check
         run: python scripts/check_dependency_metadata_alignment.py
+      - name: Developer readiness loop
+        run: make developer-readiness
+      - name: Developer readiness gate
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          path = Path("out/reports/developer_readiness.json")
+          if not path.exists():
+              raise SystemExit("developer-readiness gate: NOT_COMPUTABLE (missing report)")
+          status = str(json.loads(path.read_text(encoding="utf-8")).get("status", "NOT_COMPUTABLE")).upper()
+          if status == "PASS":
+              raise SystemExit(0)
+          if status == "PARTIAL":
+              print("developer-readiness gate: PARTIAL (allowed, flagged)")
+              raise SystemExit(0)
+          if status == "NOT_COMPUTABLE" and os.getenv("ABRAXAS_ALLOW_NOT_COMPUTABLE_DEVELOPER_READINESS") == "true":
+              print("developer-readiness gate: NOT_COMPUTABLE waived via ABRAXAS_ALLOW_NOT_COMPUTABLE_DEVELOPER_READINESS=true")
+              raise SystemExit(0)
+          raise SystemExit(f"developer-readiness gate: {status} (fail-closed)")
+          PY
+      - name: Gap-closure invariance projection (read-only visibility)
+        run: |
+          python scripts/project_gap_closure_invariance.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/gap_closure_invariance.projection.json")
+          if p.exists():
+              projection = json.loads(p.read_text(encoding="utf-8"))
+              print(f"gap-closure-invariance: readiness_state={projection.get('readiness_state','NOT_COMPUTABLE')} promotion_decision={projection.get('promotion_decision','HOLD')}")
+          else:
+              print("gap-closure-invariance: projection missing")
+          PY
+      - name: Readiness comparison ledger snapshot (read-only visibility)
+        run: |
+          python scripts/log_readiness_comparison.py
+          test -f out/reports/readiness_comparison.latest.json && echo "readiness comparison latest written"
+      - name: Promotion preflight advisory (read-only visibility)
+        run: |
+          python scripts/generate_promotion_preflight.py
+          test -f out/reports/promotion_preflight.latest.json && echo "promotion preflight latest written"
+      - name: Reporting cycle (read-only visibility)
+        run: |
+          make reporting-cycle
+          test -f out/reports/reporting_cycle.latest.json && echo "reporting cycle latest written"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/reporting_cycle.latest.json")
+          if p.exists():
+              payload = json.loads(p.read_text(encoding="utf-8"))
+              freshness = payload.get("freshness", {})
+              print(f"reporting-cycle freshness overall_stale={freshness.get('overall_stale', 'NOT_COMPUTABLE')}")
+          PY
+      - name: Report manifest (read-only visibility)
+        run: |
+          python scripts/generate_report_manifest.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/report_manifest.latest.json")
+          if p.exists():
+              rows = json.loads(p.read_text(encoding="utf-8"))
+              print(f"report-manifest records={len(rows)}")
+          else:
+              print("report-manifest missing")
+          PY
+      - name: Report manifest diff (read-only visibility)
+        run: |
+          python scripts/generate_report_manifest_diff.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/report_manifest.diff.latest.json")
+          if p.exists():
+              diff = json.loads(p.read_text(encoding="utf-8"))
+              print(
+                  "report-manifest-diff "
+                  f"added={len(diff.get('added', []))} "
+                  f"removed={len(diff.get('removed', []))} "
+                  f"hash_changed={len(diff.get('hash_changed', []))} "
+                  f"freshness_changed={len(diff.get('freshness_changed', []))} "
+                  f"status_changed={len(diff.get('status_changed', []))}"
+              )
+          else:
+              print("report-manifest-diff missing")
+          PY
+      - name: Report manifest diff ledger (read-only visibility)
+        run: |
+          python scripts/log_report_manifest_diff.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/report_manifest.diff.ledger.jsonl")
+          if p.exists():
+              lines = [line for line in p.read_text(encoding="utf-8").splitlines() if line.strip()]
+              if lines:
+                  latest = json.loads(lines[-1])
+                  print(
+                      "report-manifest-diff-ledger "
+                      f"status={latest.get('status', 'NOT_COMPUTABLE')} "
+                      f"added_count={latest.get('added_count', 0)} "
+                      f"removed_count={latest.get('removed_count', 0)} "
+                      f"status_changed_count={latest.get('status_changed_count', 0)}"
+                  )
+              else:
+                  print("report-manifest-diff-ledger empty")
+          else:
+              print("report-manifest-diff-ledger missing")
+          PY
+      - name: Report manifest change summary (read-only visibility)
+        run: |
+          python scripts/generate_report_manifest_summary.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/report_manifest.summary.latest.json")
+          if p.exists():
+              summary = json.loads(p.read_text(encoding="utf-8"))
+              print(f\"report-manifest-summary stability_indicator={summary.get('stability_indicator', 'NOT_COMPUTABLE')}\")
+          else:
+              print("report-manifest-summary missing")
+          PY
+      - name: Report manifest watchlist (read-only visibility)
+        run: |
+          python scripts/generate_report_manifest_watchlist.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("out/reports/report_manifest.watchlist.latest.json")
+          if p.exists():
+              watchlist = json.loads(p.read_text(encoding="utf-8"))
+              items = watchlist.get("items", [])
+              print(f"report-manifest-watchlist item_count={len(items)}")
+          else:
+              print("report-manifest-watchlist missing")
+          PY
       - run: make release-readiness
       - run: make test
       - run: make repo-status
