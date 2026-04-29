@@ -30,15 +30,34 @@ def _make_review_item(
 
 
 def build_review_items(report: Mapping[str, Any], advisory: Mapping[str, Any], fusion: Mapping[str, Any]) -> list[OperatorReviewItem]:
+    del advisory
     items: list[OperatorReviewItem] = []
     status = str(report.get("calibration_drift_status", "NOT_COMPUTABLE") or "NOT_COMPUTABLE")
-    if status != "PASS":
+    gate = str(report.get("promotion_gate_status", "NOT_COMPUTABLE") or "NOT_COMPUTABLE")
+    sample_size = int(report.get("sample_size", 0) or 0)
+
+    calibration_priority: str | None = None
+    calibration_decision: str | None = None
+    if status in {"NOT_COMPUTABLE", "FAIL"}:
+        calibration_priority = "P0"
+        calibration_decision = "REQUEST_EVIDENCE"
+    elif gate in {"BLOCKED", "FAIL"}:
+        calibration_priority = "P0"
+        calibration_decision = "REQUEST_EVIDENCE"
+    elif sample_size < 3:
+        calibration_priority = "P0"
+        calibration_decision = "REQUEST_EVIDENCE"
+    elif status == "REVIEW_REQUIRED":
+        calibration_priority = "P1"
+        calibration_decision = "REVIEW"
+
+    if calibration_priority and calibration_decision:
         items.append(
             _make_review_item(
                 review_id="calibration.requires_review",
                 source_system="calibration",
-                decision_type="REQUEST_EVIDENCE",
-                priority="P0",
+                decision_type=calibration_decision,
+                priority=calibration_priority,
                 reason="Calibration requires review",
                 evidence_refs=list(report.get("evidence_refs", [])),
             )

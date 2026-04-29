@@ -48,7 +48,7 @@ def build_proof_states(
         if hash_value == "NOT_COMPUTABLE":
             display_status = "NOT_COMPUTABLE"
             display_allowed = False
-        elif priority in {"P0", "P1"}:
+        elif priority == "P0":
             display_status = "BLOCKED"
             display_allowed = False
         else:

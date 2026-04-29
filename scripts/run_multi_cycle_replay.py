@@ -170,13 +170,35 @@ def run_multi_cycle_replay(input_path: str, num_cycles: int = 10) -> Dict[str, A
 
     cycle_count_required = 30
     evidence_window_status = "SUFFICIENT" if cycle_count >= cycle_count_required else "INSUFFICIENT"
-    readiness_status = "READY" if status == "STABLE" else status
-    patch_004_allowed = evidence_window_status == "SUFFICIENT" and readiness_status == "READY"
+
+    design_pass_allowed = (
+        cycle_count >= cycle_count_required
+        and blocked_count == 0
+        and max_p0 == 0
+        and hard_blockers == []
+        and summary["execution_triggered"] is False
+        and summary["runtime_mutation"] is False
+        and summary["authority_leak_detected"] is False
+        and avg_brier <= 0.15
+        and dominance_max <= 1.5
+    )
+
+    if design_pass_allowed:
+        readiness_status = "READY_FOR_DESIGN"
+        summary["stability_status"] = "PASS_WITH_REVIEW"
+        patch_004_allowed = True
+    else:
+        readiness_status = "READY" if status == "STABLE" else status
+        patch_004_allowed = evidence_window_status == "SUFFICIENT" and readiness_status == "READY"
 
     summary["cycle_count_observed"] = cycle_count
     summary["cycle_count_required"] = cycle_count_required
     summary["evidence_window_status"] = evidence_window_status
     summary["readiness_status"] = readiness_status
+    summary["design_pass_allowed"] = design_pass_allowed
+    summary["execution_allowed"] = False
+    summary["low_confidence_review"] = avg_confidence < 0.25
+    summary["readiness_reason"] = "design_pass_threshold_met" if design_pass_allowed else "design_pass_threshold_not_met"
     summary["patch_004_allowed"] = patch_004_allowed
 
     out_dir = Path("out") / "replay"
