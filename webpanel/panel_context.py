@@ -12,7 +12,33 @@ from .familiar_adapter import FamiliarAdapter
 from .ledger import LedgerChain
 from .store import InMemoryStore
 
-templates = Jinja2Templates(directory="webpanel/templates")
+_templates_env: Optional[Jinja2Templates] = None
+
+
+def templates_factory() -> Jinja2Templates:
+    global _templates_env
+    if _templates_env is None:
+        try:
+            import jinja2  # noqa: F401
+        except ImportError:
+            raise ImportError(
+                "Missing dependency: jinja2. Install Abraxas with webpanel extras: "
+                "pip install 'abraxas[webpanel]'"
+            )
+        _templates_env = Jinja2Templates(directory="webpanel/templates")
+    return _templates_env
+
+
+# Lazy accessor for backwards compat
+templates = None  # type: ignore[assignment]
+
+
+class _LazyTemplates:
+    def __getattr__(self, name: str):  # type: ignore[override]
+        return getattr(templates_factory(), name)
+
+
+templates = _LazyTemplates()  # type: ignore[assignment]
 
 store = InMemoryStore()
 ledger = LedgerChain()
