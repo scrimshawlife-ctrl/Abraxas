@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PATCH-004 Operator Console</title>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; background: #0a0f1a; color: #e6edf3; margin: 0; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .panel { background: #121a2b; border: 1px solid #24324f; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 4px 0; }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    button, input { background: #0f1726; color: #e6edf3; border: 1px solid #304064; border-radius: 6px; padding: 8px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PATCH-004 Operator Console</h1>
+
+  <div class="panel">
+    <h2>Archetype Trend Timeline</h2>
+    <div>ArchetypeTrendTimeline.v1</div>
+    <div>ArchetypeTrend.v1</div>
+    <div>LOCAL_BROWSER_ARCHETYPE_TIMELINE_ONLY</div>
+    <div>input_report_count input_archetype_count timeline_point_count dominant_archetype_id dominant_archetype_family trend_summary rising_count falling_count stable_count volatile_count critical_trend_count archetype_trends timeline_points trend_strength confidence_delta</div>
+    <div>RISING FALLING STABLE VOLATILE NOT_COMPUTABLE</div>
+
+    <div class="row"><span>input_report_count</span><strong id="inputReportCount">0</strong></div>
+    <div class="row"><span>input_archetype_count</span><strong id="inputArchetypeCount">0</strong></div>
+    <div class="row"><span>timeline_point_count</span><strong id="timelinePointCount">0</strong></div>
+    <div class="row"><span>dominant_archetype_id</span><strong id="dominantArchetypeId">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>dominant_archetype_family</span><strong id="dominantArchetypeFamily">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>rising_count</span><strong id="risingCount">0</strong></div>
+    <div class="row"><span>falling_count</span><strong id="fallingCount">0</strong></div>
+    <div class="row"><span>stable_count</span><strong id="stableCount">0</strong></div>
+    <div class="row"><span>volatile_count</span><strong id="volatileCount">0</strong></div>
+    <div class="row"><span>critical_trend_count</span><strong id="criticalTrendCount">0</strong></div>
+    <div class="row"><span>archetype_trends</span><strong id="archetypeTrendsView">[]</strong></div>
+    <div class="row"><span>timeline_points</span><strong id="timelinePointsView">[]</strong></div>
+
+    <div>repair_allowed: false</div>
+    <div>archetype timeline does not repair anomalies</div>
+    <div>archetype timeline does not alter archetypes</div>
+    <div>archetype timeline does not execute repairs</div>
+    <div>archetype timeline is observational only</div>
+    <div>execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+
+    <div class="controls">
+      <label>Load Archetype Reports
+        <input type="file" id="archetypeReportInput" multiple />
+      </label>
+      <button id="buildTimelineBtn">Build Archetype Trend Timeline</button>
+      <button id="exportTimelineBtn">Export Archetype Trend Timeline JSON</button>
+    </div>
+
+    <pre id="timelinePreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Archetype Drift Forecast</h2>
+    <div>ArchetypeDriftForecast.v1</div>
+    <div>ArchetypeDriftForecastItem.v1</div>
+    <div>LOCAL_BROWSER_ARCHETYPE_FORECAST_ONLY</div>
+    <div>NEXT_RUN NEXT_3_RUNS NO_DATA LOW_CONFIDENCE WATCH ELEVATED CRITICAL CRITICAL_PRESSURE</div>
+    <div>source_timeline_id input_trend_count forecast_horizon likely_next_dominant_archetype_id likely_next_dominant_family forecast_confidence forecast_status warning_surface critical_pressure_expected volatile_archetype_present rising_safety_or_integrity forecast_items forecast_pressure_score predicted_next_state recommended_operator_attention</div>
+    <div class="row"><span>source_timeline_id</span><strong id="sourceTimelineId">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>input_trend_count</span><strong id="inputTrendCount">0</strong></div>
+    <div class="row"><span>forecast_horizon</span><strong id="forecastHorizon">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>likely_next_dominant_archetype_id</span><strong id="dominantForecastArchetypeId">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>likely_next_dominant_family</span><strong id="dominantForecastFamily">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>forecast_confidence</span><strong id="forecastConfidence">0.0000</strong></div>
+    <div class="row"><span>forecast_status</span><strong id="forecastStatus">NO_DATA</strong></div>
+    <div class="row"><span>critical_pressure_expected</span><strong id="criticalPressureExpected">false</strong></div>
+    <div class="row"><span>volatile_archetype_present</span><strong id="volatileArchetypePresent">false</strong></div>
+    <div class="row"><span>rising_safety_or_integrity</span><strong id="risingSafetyOrIntegrity">false</strong></div>
+    <div class="row"><span>forecast_items</span><strong id="forecastItemsView">[]</strong></div>
+    <div>forecast does not promote action</div>
+    <div>repair_allowed: false</div>
+    <div>archetype forecast does not repair anomalies</div>
+    <div>archetype forecast does not alter archetypes</div>
+    <div>archetype forecast does not execute repairs</div>
+    <div>archetype forecast is observational only</div>
+    <div>execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <div class="controls">
+      <button id="buildForecastBtn">Build Archetype Drift Forecast</button>
+      <button id="exportForecastBtn">Export Archetype Drift Forecast JSON</button>
+    </div>
+    <pre id="forecastPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Archetype Warning Digest</h2>
+    <div>ArchetypeWarningDigest.v1</div>
+    <div>LOCAL_BROWSER_WARNING_DIGEST_ONLY</div>
+    <div>digest does not repair anomalies</div>
+    <div>digest does not alter forecasts</div>
+    <div>digest does not execute repairs</div>
+    <div>digest is observational only</div>
+    <div>repair_allowed: false</div>
+    <div>execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <div class="row"><span>dominant_concern</span><strong id="dominantConcern">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>alert_level</span><strong id="digestAlertLevel">NO_DATA</strong></div>
+    <div class="row"><span>operator_attention_summary</span><strong id="attentionSummary">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>recommended_review_only</span><strong id="recommendedReviewOnly">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>warning_digest_items</span><strong id="digestItemsView">[]</strong></div>
+    <div class="controls">
+      <button id="buildDigestBtn">Build Archetype Warning Digest</button>
+      <button id="exportDigestBtn">Export Archetype Warning Digest JSON</button>
+    </div>
+    <pre id="digestPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Digest History + Escalation Tracker</h2>
+    <div>WarningDigestHistoryTracker.v1</div>
+    <div>WarningHistoryPoint.v1</div>
+    <div>ConcernTrack.v1</div>
+    <div>LOCAL_BROWSER_WARNING_HISTORY_ONLY</div>
+    <div>NONE WATCH ELEVATED CRITICAL NO_DATA STABLE ESCALATING DE_ESCALATING VOLATILE PERSISTENT_CRITICAL NEW PERSISTENT RESOLVED</div>
+    <div>warning history does not repair anomalies</div>
+    <div>warning history does not alter digests</div>
+    <div>warning history does not execute repairs</div>
+    <div>warning history is observational only</div>
+    <div>escalation tracker does not promote action</div>
+    <div>repair_allowed: false</div>
+    <div>execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <div class="row"><span>input_digest_count</span><strong id="inputDigestCount">0</strong></div>
+    <div class="row"><span>history_point_count</span><strong id="historyPointCount">0</strong></div>
+    <div class="row"><span>dominant_concern</span><strong id="historyDominantConcern">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>latest_alert_level</span><strong id="latestAlertLevel">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>escalation_status</span><strong id="escalationStatus">NO_DATA</strong></div>
+    <div class="row"><span>unresolved_concern_count</span><strong id="unresolvedConcernCount">0</strong></div>
+    <div class="row"><span>false_alarm_pressure</span><strong id="falseAlarmPressure">0.0000</strong></div>
+    <div class="row"><span>tracker_summary</span><strong id="trackerSummaryView">[]</strong></div>
+    <div class="row"><span>history_points</span><strong id="historyPointsView">[]</strong></div>
+    <div class="row"><span>concern_tracks</span><strong id="concernTracksView">[]</strong></div>
+    <div class="controls">
+      <label>Load Warning Digests
+        <input type="file" id="warningDigestInput" multiple />
+      </label>
+      <button id="buildWarningHistoryBtn">Build Warning History Tracker</button>
+      <button id="exportWarningHistoryBtn">Export Warning History Tracker JSON</button>
+    </div>
+    <pre id="warningHistoryPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Resolution Ledger</h2>
+    <div>WarningResolutionLedger.v1</div>
+    <div>WarningResolutionEntry.v1</div>
+    <div>WarningResolutionAnalytics.v1</div>
+    <div>LOCAL_BROWSER_WARNING_RESOLUTION_ONLY</div>
+    <div>WARNING_RESOLUTION_ONLY RESOLVED IGNORED REPEATED FALSE_POSITIVE NOT_COMPUTABLE</div>
+    <div>resolution_rate ignored_rate repeat_rate false_positive_rate warning_trust_score unresolved_pressure_decay resolution_bottleneck_signal HEALTHY_RESOLUTION REPEAT_PRESSURE IGNORED_PRESSURE FALSE_ALARM_PRESSURE MIXED</div>
+    <div>warning resolution ledger does not repair anomalies</div>
+    <div>warning resolution ledger does not alter warning history</div>
+    <div>warning resolution ledger does not execute repairs</div>
+    <div>warning resolution ledger is observational only</div>
+    <div>resolution records do not promote action</div>
+    <div>repair_allowed: false</div>
+    <div>execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <div class="controls">
+      <select id="resolutionStatusSelect">
+        <option>RESOLVED</option><option>IGNORED</option><option>REPEATED</option><option>FALSE_POSITIVE</option><option>NOT_COMPUTABLE</option>
+      </select>
+      <button id="previewResolutionBtn">Preview Warning Resolution Entry</button>
+      <button id="recordResolutionBtn">Record Warning Resolution Locally</button>
+      <button id="exportResolutionLedgerBtn">Export Warning Resolution Ledger JSON</button>
+      <label>Import Warning Resolution Ledger JSON <input type="file" id="importResolutionLedgerInput" /></label>
+    </div>
+    <div class="row"><span>entry_count</span><strong id="resolutionEntryCount">0</strong></div>
+    <div class="row"><span>resolved_count</span><strong id="resolvedCount">0</strong></div>
+    <div class="row"><span>ignored_count</span><strong id="ignoredCount">0</strong></div>
+    <div class="row"><span>repeated_count</span><strong id="repeatedCount">0</strong></div>
+    <div class="row"><span>false_positive_count</span><strong id="falsePositiveCount">0</strong></div>
+    <div class="row"><span>latest_resolution_status</span><strong id="latestResolutionStatus">NOT_COMPUTABLE</strong></div>
+    <div class="row"><span>warning_trust_score</span><strong id="warningTrustScore">0.0000</strong></div>
+    <div class="row"><span>unresolved_pressure_decay</span><strong id="unresolvedPressureDecay">0.0000</strong></div>
+    <div class="row"><span>resolution_bottleneck_signal</span><strong id="resolutionBottleneckSignal">NO_DATA</strong></div>
+    <div class="row"><span>dominant_concern_resolution_profile</span><strong id="concernResolutionProfile">[]</strong></div>
+    <pre id="resolutionPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Trust Calibration</h2>
+    <div>WarningTrustCalibration.v1</div>
+    <div>WarningTrustProfile.v1</div>
+    <div>LOCAL_BROWSER_WARNING_TRUST_ONLY</div>
+    <div>HIGH_TRUST LOW_TRUST FALSE_ALARM_HEAVY REPEAT_PRESSURE IGNORED_PRESSURE CALIBRATED UNDER_SAMPLED NO_DATA MIXED</div>
+    <div>warning trust calibration does not suppress warnings</div>
+    <div>warning trust calibration does not repair anomalies</div>
+    <div>warning trust calibration does not alter warning history</div>
+    <div>warning trust calibration does not execute repairs</div>
+    <div>warning trust calibration is observational only</div>
+    <div>suppression_allowed: false</div>
+    <div>repair_allowed: false execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <div class="row"><span>input_warning_count</span><strong id="calInputWarningCount">0</strong></div>
+    <div class="row"><span>input_resolution_count</span><strong id="calInputResolutionCount">0</strong></div>
+    <div class="row"><span>matched_count</span><strong id="calMatchedCount">0</strong></div>
+    <div class="row"><span>unmatched_warning_count</span><strong id="calUnmatchedCount">0</strong></div>
+    <div class="row"><span>resolution_rate</span><strong id="calResolutionRate">0.0000</strong></div>
+    <div class="row"><span>repeat_rate</span><strong id="calRepeatRate">0.0000</strong></div>
+    <div class="row"><span>false_positive_rate</span><strong id="calFalseRate">0.0000</strong></div>
+    <div class="row"><span>ignored_rate</span><strong id="calIgnoredRate">0.0000</strong></div>
+    <div class="row"><span>warning_trust_score</span><strong id="calTrustScore">0.0000</strong></div>
+    <div class="row"><span>calibration_status</span><strong id="calStatus">NO_DATA</strong></div>
+    <div class="row"><span>family_trust_profiles</span><strong id="calFamilyProfiles">[]</strong></div>
+    <div class="row"><span>archetype_trust_profiles</span><strong id="calArchetypeProfiles">[]</strong></div>
+    <div class="row"><span>calibration_summary</span><strong id="calSummary">[]</strong></div>
+    <div class="controls">
+      <button id="buildWarningTrustBtn">Build Warning Trust Calibration</button>
+      <button id="exportWarningTrustBtn">Export Warning Trust Calibration JSON</button>
+    </div>
+    <pre id="warningTrustPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Reliability Timeline</h2>
+    <div>WarningReliabilityTimeline.v1</div><div>LOCAL_BROWSER_WARNING_RELIABILITY_TIMELINE_ONLY</div>
+    <div>latest_warning_trust_score trust_delta trust_trend timeline_points RISING FALLING STABLE VOLATILE</div>
+    <button id="buildReliabilityTimelineBtn">Build Warning Reliability Timeline</button>
+    <button id="exportReliabilityTimelineBtn">Export Warning Reliability Timeline JSON</button>
+    <pre id="reliabilityTimelinePreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Family / Archetype Reliability Matrix</h2>
+    <div>WarningReliabilityMatrix.v1</div><div>LOCAL_BROWSER_WARNING_RELIABILITY_MATRIX_ONLY</div>
+    <div>family_profile_count archetype_profile_count lowest_trust_family lowest_trust_archetype matrix_rows matrix_summary HIGH_TRUST LOW_TRUST FALSE_ALARM_HEAVY REPEAT_PRESSURE IGNORED_PRESSURE</div>
+    <button id="buildReliabilityMatrixBtn">Build Warning Reliability Matrix</button>
+    <button id="exportReliabilityMatrixBtn">Export Warning Reliability Matrix JSON</button>
+    <pre id="reliabilityMatrixPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Trust Digest</h2>
+    <div>WarningTrustDigest.v1</div><div>LOCAL_BROWSER_WARNING_TRUST_DIGEST_ONLY</div>
+    <div>dominant_reliability_concern trust_summary_label operator_summary recommended_review_only digest_items TRUST_IMPROVING TRUST_DECLINING LOW_TRUST_CLUSTER FALSE_ALARM_CLUSTER REPEAT_PRESSURE_CLUSTER</div>
+    <button id="buildWarningTrustDigestBtn">Build Warning Trust Digest</button>
+    <button id="exportWarningTrustDigestBtn">Export Warning Trust Digest JSON</button>
+    <pre id="warningTrustDigestPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Calibration Export Bundle</h2>
+    <div>WarningCalibrationExportBundle.v1</div><div>LOCAL_BROWSER_WARNING_CALIBRATION_EXPORT_ONLY</div>
+    <div>warning_trust_calibration warning_reliability_timeline warning_reliability_matrix warning_trust_digest export_integrity</div>
+    <button id="previewWarningBundleBtn">Preview Warning Calibration Bundle</button>
+    <button id="exportWarningBundleBtn">Export Warning Calibration Bundle JSON</button>
+    <label>Import Warning Calibration Bundle JSON <input type="file" id="importWarningBundleInput" /></label>
+    <pre id="warningBundlePreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Warning Intelligence Closure Report</h2>
+    <div>WarningIntelligenceClosureReport.v1</div><div>LOCAL_BROWSER_WARNING_CLOSURE_REPORT_ONLY</div>
+    <div>closure_status CLOSED_OBSERVATIONAL_LOOP UNDER_INSTRUMENTED REVIEW_REQUIRED surfaces_present missing_surfaces warning_loop_summary final_safety_flags operator_readout</div>
+    <div>warning intelligence closure does not suppress warnings</div>
+    <div>warning intelligence closure does not repair anomalies</div>
+    <div>warning intelligence closure does not execute repairs</div>
+    <div>warning intelligence closure is observational only</div>
+    <div>suppression_allowed: false repair_allowed: false execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <button id="buildWarningClosureReportBtn">Build Warning Intelligence Closure Report</button>
+    <button id="exportWarningClosureReportBtn">Export Warning Intelligence Closure Report JSON</button>
+    <pre id="warningClosurePreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Cross-Domain Signal Fusion</h2>
+    <div>CrossDomainSignalRegistry.v1</div>
+    <div>CrossDomainConflictReport.v1</div>
+    <div>CrossDomainAlignmentScore.v1</div>
+    <div>CrossDomainMetaConfidence.v1</div>
+    <div>CrossDomainFusionDigest.v1</div>
+    <div>CrossDomainFusionBundle.v1</div>
+    <div>WARNING_TRUST_CONFLICT ANOMALY_WARNING_CONFLICT OPERATOR_MODEL_CONFLICT INTEGRITY_STATE_CONFLICT FORECAST_RESOLUTION_CONFLICT</div>
+    <div>LOW_ALIGNMENT MIXED_ALIGNMENT HIGH_ALIGNMENT CONFLICT_HEAVY BLOCKED_BY_INTEGRITY BLOCKED_BY_CONFLICT ALIGNED MIXED BLOCKED</div>
+    <div>cross-domain fusion does not repair anomalies</div>
+    <div>cross-domain fusion does not suppress warnings</div>
+    <div>cross-domain fusion does not execute repairs</div>
+    <div>cross-domain fusion does not alter source domains</div>
+    <div>cross-domain fusion is observational only</div>
+    <div>repair_allowed: false suppression_allowed: false execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <div class="controls">
+      <button id="buildCrossDomainFusionBtn">Build Cross-Domain Fusion</button>
+      <button id="exportCrossDomainFusionBundleBtn">Export Cross-Domain Fusion Bundle JSON</button>
+      <label>Import Cross-Domain Fusion Bundle JSON <input type="file" id="importCrossDomainFusionBundleInput" /></label>
+    </div>
+    <pre id="crossDomainFusionPreview"></pre>
+  </div>
+
+  <div class="panel">
+    <h2>Fusion Meta-Learning</h2>
+    <div>FusionOutcomeLedger.v1</div><div>FusionOutcomeEntry.v1</div><div>LOCAL_BROWSER_FUSION_OUTCOME_ONLY</div>
+    <div>CONFIRMED PARTIAL MISALIGNED FALSE_SIGNAL NOT_COMPUTABLE outcome_status source_fusion_digest_id source_meta_confidence_id dominant_system_readout operator_note evidence_ref</div>
+    <button id="previewFusionOutcomeBtn">Preview Fusion Outcome Entry</button><button id="recordFusionOutcomeBtn">Record Fusion Outcome Locally</button><button id="exportFusionOutcomeLedgerBtn">Export Fusion Outcome Ledger JSON</button><label>Import Fusion Outcome Ledger JSON <input type="file" id="importFusionOutcomeLedgerInput" /></label>
+    <div>FusionDriftTimeline.v1 FusionDriftPoint.v1 LOCAL_BROWSER_FUSION_DRIFT_TIMELINE_ONLY input_bundle_count timeline_point_count latest_fusion_status latest_meta_confidence_score meta_confidence_delta alignment_delta conflict_delta fusion_drift_status timeline_points RISING FALLING STABLE VOLATILE NO_DATA NOT_COMPUTABLE</div>
+    <button id="buildFusionDriftBtn">Build Fusion Drift Timeline</button><button id="exportFusionDriftBtn">Export Fusion Drift Timeline JSON</button>
+    <div>FusionConflictRecurrenceMatrix.v1 FusionConflictRecurrenceRow.v1 LOCAL_BROWSER_FUSION_CONFLICT_RECURRENCE_ONLY conflict_type occurrence_count critical_count recurrence_rate latest_seen recurrence_status dominant_recurring_conflict_type matrix_rows matrix_summary NO_DATA ISOLATED RECURRING PERSISTENT_CRITICAL VOLATILE WARNING_TRUST_CONFLICT ANOMALY_WARNING_CONFLICT OPERATOR_MODEL_CONFLICT INTEGRITY_STATE_CONFLICT FORECAST_RESOLUTION_CONFLICT</div>
+    <button id="buildFusionConflictMatrixBtn">Build Fusion Conflict Recurrence Matrix</button><button id="exportFusionConflictMatrixBtn">Export Fusion Conflict Recurrence Matrix JSON</button>
+    <div>MetaConfidenceCalibration.v1 MetaConfidenceCalibrationProfile.v1 LOCAL_BROWSER_META_CONFIDENCE_CALIBRATION_ONLY input_prediction_count input_outcome_count matched_count confirmed_count misaligned_count false_signal_count avg_meta_confidence observed_success_rate calibration_gap calibration_status confidence_bucket_profiles CALIBRATED OVERCONFIDENT UNDERCONFIDENT LOW_SAMPLE NO_DATA MIXED</div>
+    <button id="buildMetaConfidenceCalibrationBtn">Build Meta Confidence Calibration</button><button id="exportMetaConfidenceCalibrationBtn">Export Meta Confidence Calibration JSON</button>
+    <div>FusionLearningDigest.v1 LOCAL_BROWSER_FUSION_LEARNING_DIGEST_ONLY dominant_learning_concern learning_status operator_summary recommended_review_only learning_digest_items LEARNING_STABLE LEARNING_DEGRADED CONFLICT_RECURRING CONFIDENCE_MISCALIBRATED LOW_SAMPLE NO_DATA MIXED</div>
+    <button id="buildFusionLearningDigestBtn">Build Fusion Learning Digest</button><button id="exportFusionLearningDigestBtn">Export Fusion Learning Digest JSON</button>
+    <div>FusionLearningExportBundle.v1 Preview Fusion Learning Bundle Export Fusion Learning Bundle JSON Import Fusion Learning Bundle JSON</div>
+    <button id="previewFusionLearningBundleBtn">Preview Fusion Learning Bundle</button><button id="exportFusionLearningBundleBtn">Export Fusion Learning Bundle JSON</button><label>Import Fusion Learning Bundle JSON <input type="file" id="importFusionLearningBundleInput" /></label>
+    <div>FusionLearningClosureReport.v1 LOCAL_BROWSER_FUSION_LEARNING_CLOSURE_ONLY closure_status surfaces_present missing_surfaces fusion_learning_summary final_safety_flags operator_readout CLOSED_OBSERVATIONAL_LOOP UNDER_INSTRUMENTED REVIEW_REQUIRED</div>
+    <button id="buildFusionLearningClosureBtn">Build Fusion Learning Closure Report</button><button id="exportFusionLearningClosureBtn">Export Fusion Learning Closure Report JSON</button>
+    <div>fusion learning does not repair anomalies</div><div>fusion learning does not suppress warnings</div><div>fusion learning does not execute repairs</div><div>fusion learning does not alter source domains</div><div>fusion learning is observational only</div><div>fusion learning does not promote action</div><div>repair_allowed: false suppression_allowed: false execution_allowed: false runtime_mutation_allowed: false auto_apply_allowed: false</div>
+    <pre id="fusionMetaLearningPreview"></pre>
+  </div>
+
+  <div class="panel">FileReader JSON.parse Blob URL.createObjectURL toFixed(4)</div>
+</div>
+
+<script>
+const trendSeverity = { RISING: 0, VOLATILE: 1, STABLE: 2, FALLING: 3, NOT_COMPUTABLE: 4 };
+let loadedArtifacts = [];
+let timelineReport = null;
+let forecastReport = null;
+let warningDigest = null;
+let warningDigestArtifacts = [];
+let warningHistoryTracker = null;
+let warningResolutionLedger = null;
+let warningResolutionAnalytics = null;
+let warningTrustCalibration = null;
+let warningReliabilityTimeline = null;
+let warningReliabilityMatrix = null;
+let warningTrustDigest = null;
+let warningCalibrationBundle = null;
+let warningClosureReport = null;
+let crossDomainSignalRegistry = null;
+let crossDomainConflictReport = null;
+let crossDomainAlignmentScore = null;
+let crossDomainMetaConfidence = null;
+let crossDomainFusionDigest = null;
+let crossDomainFusionBundle = null;
+let fusionOutcomeLedger = null;
+let fusionDriftTimeline = null;
+let fusionConflictRecurrenceMatrix = null;
+let metaConfidenceCalibration = null;
+let fusionLearningDigest = null;
+let fusionLearningExportBundle = null;
+let fusionLearningClosureReport = null;
+const alertSeverity = { NOT_COMPUTABLE: -1, NONE: 0, WATCH: 1, ELEVATED: 2, CRITICAL: 3 };
+
+function safeIso(x) { return typeof x === 'string' && x ? x : 'NOT_COMPUTABLE'; }
+
+function parseLocalFiles(files) {
+  return Promise.all(Array.from(files).map((file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        resolve(JSON.parse(String(reader.result || '{}')));
+      } catch (_err) {
+        resolve({ schema_version: 'NOT_COMPUTABLE' });
+      }
+    };
+    reader.onerror = () => resolve({ schema_version: 'NOT_COMPUTABLE' });
+    reader.readAsText(file);
+  })));
+}
+
+function extractArchetypeReports(artifacts) {
+  const reports = [];
+  artifacts.forEach((a) => {
+    if (a && a.schema_version === 'CausalChainArchetypeReport.v1') reports.push(a);
+    if (a && a.schema_version === 'ConsoleStateExportBundle.v1') {
+      const maybe = a.causal_chain_archetype_report || a.causal_chain_archetype || a.archetype_report;
+      if (maybe && maybe.schema_version === 'CausalChainArchetypeReport.v1') reports.push(maybe);
+    }
+  });
+  reports.sort((a, b) => (safeIso(a.created_at)).localeCompare(safeIso(b.created_at)) || String(a.report_id || '').localeCompare(String(b.report_id || '')));
+  return reports;
+}
+
+function buildTimeline() {
+  const reports = extractArchetypeReports(loadedArtifacts);
+  const points = [];
+  reports.forEach((report) => {
+    (Array.isArray(report.archetypes) ? report.archetypes : []).forEach((a, idx) => {
+      points.push({
+        point_id: `${report.report_id || 'NOT_COMPUTABLE'}:${a.archetype_id || idx}`,
+        report_id: report.report_id || 'NOT_COMPUTABLE',
+        created_at: safeIso(report.created_at),
+        archetype_id: a.archetype_id || 'NOT_COMPUTABLE',
+        archetype_family: a.archetype_family || 'UNKNOWN',
+        archetype_label: a.archetype_label || 'Unknown Drift Pattern',
+        criticality: a.criticality || 'INFO',
+        confidence: Number(Number(a.confidence || 0).toFixed(4)),
+        latest_recommended_review: a.dominant_recommended_review || 'NOT_COMPUTABLE'
+      });
+    });
+  });
+  points.sort((a, b) => a.created_at.localeCompare(b.created_at) || a.archetype_id.localeCompare(b.archetype_id) || a.point_id.localeCompare(b.point_id));
+
+  const grouped = {};
+  points.forEach((p) => { grouped[p.archetype_id] = grouped[p.archetype_id] || []; grouped[p.archetype_id].push(p); });
+
+  const trends = Object.entries(grouped).map(([archetype_id, series]) => {
+    const ordered = series.slice().sort((a, b) => a.created_at.localeCompare(b.created_at) || a.point_id.localeCompare(b.point_id));
+    const occurrence_count = ordered.length;
+    const first = ordered[0];
+    const last = ordered[ordered.length - 1];
+    const critical_occurrence_count = ordered.filter((p) => p.criticality === 'CRITICAL').length;
+    const avg_confidence = occurrence_count ? ordered.reduce((s, p) => s + p.confidence, 0) / occurrence_count : 0;
+    const confidence_delta = occurrence_count >= 2 ? (last.confidence - first.confidence) : 0;
+    const range = occurrence_count ? (Math.max(...ordered.map((p) => p.confidence)) - Math.min(...ordered.map((p) => p.confidence))) : 0;
+    let trend_direction = 'NOT_COMPUTABLE';
+    if (occurrence_count >= 2) {
+      if (confidence_delta >= 0.10) trend_direction = 'RISING';
+      else if (confidence_delta <= -0.10 && last.criticality !== 'CRITICAL') trend_direction = 'FALLING';
+      else if (range >= 0.30) trend_direction = 'VOLATILE';
+      else trend_direction = 'STABLE';
+    }
+    const pressureWorsened = first.criticality !== 'CRITICAL' && last.criticality === 'CRITICAL';
+    if (occurrence_count >= 2 && pressureWorsened) trend_direction = 'RISING';
+    return {
+      schema_version: 'ArchetypeTrend.v1',
+      archetype_id,
+      archetype_family: first.archetype_family,
+      archetype_label: first.archetype_label,
+      first_seen: first.created_at,
+      last_seen: last.created_at,
+      occurrence_count,
+      critical_occurrence_count,
+      avg_confidence: Number(avg_confidence.toFixed(4)),
+      confidence_delta: Number(confidence_delta.toFixed(4)),
+      trend_direction,
+      trend_strength: Number(Math.max(0, Math.min(1, Math.abs(confidence_delta))).toFixed(4)),
+      dominant_criticality: critical_occurrence_count > 0 ? 'CRITICAL' : (ordered.some((p) => p.criticality === 'WARNING') ? 'WARNING' : 'INFO'),
+      latest_recommended_review: last.latest_recommended_review || 'NOT_COMPUTABLE'
+    };
+  });
+
+  trends.sort((a, b) => trendSeverity[a.trend_direction] - trendSeverity[b.trend_direction] || b.critical_occurrence_count - a.critical_occurrence_count || b.occurrence_count - a.occurrence_count || a.archetype_id.localeCompare(b.archetype_id));
+
+  const trend_summary = {
+    rising_count: trends.filter((t) => t.trend_direction === 'RISING').length,
+    falling_count: trends.filter((t) => t.trend_direction === 'FALLING').length,
+    stable_count: trends.filter((t) => t.trend_direction === 'STABLE').length,
+    volatile_count: trends.filter((t) => t.trend_direction === 'VOLATILE').length,
+    critical_trend_count: trends.filter((t) => t.critical_occurrence_count > 0).length
+  };
+
+  const familyCounts = {};
+  points.forEach((p) => { familyCounts[p.archetype_family] = (familyCounts[p.archetype_family] || 0) + 1; });
+  const dominantFamily = Object.keys(familyCounts).length
+    ? Object.entries(familyCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]
+    : 'NOT_COMPUTABLE';
+
+  timelineReport = {
+    schema_version: 'ArchetypeTrendTimeline.v1',
+    timeline_id: `timeline-${Date.now()}`,
+    created_at: new Date().toISOString(),
+    mode: 'LOCAL_BROWSER_ARCHETYPE_TIMELINE_ONLY',
+    input_report_count: reports.length,
+    input_archetype_count: points.length,
+    timeline_point_count: points.length,
+    dominant_archetype_id: trends[0]?.archetype_id || 'NOT_COMPUTABLE',
+    dominant_archetype_family: dominantFamily,
+    trend_summary,
+    archetype_trends: trends,
+    timeline_points: points,
+    execution_allowed: false,
+    runtime_mutation_allowed: false,
+    auto_apply_allowed: false,
+    repair_allowed: false
+  };
+  renderTimeline();
+}
+
+function renderTimeline() {
+  if (!timelineReport) return;
+  document.getElementById('inputReportCount').textContent = String(timelineReport.input_report_count);
+  document.getElementById('inputArchetypeCount').textContent = String(timelineReport.input_archetype_count);
+  document.getElementById('timelinePointCount').textContent = String(timelineReport.timeline_point_count);
+  document.getElementById('dominantArchetypeId').textContent = timelineReport.dominant_archetype_id;
+  document.getElementById('dominantArchetypeFamily').textContent = timelineReport.dominant_archetype_family;
+  document.getElementById('risingCount').textContent = String(timelineReport.trend_summary.rising_count);
+  document.getElementById('fallingCount').textContent = String(timelineReport.trend_summary.falling_count);
+  document.getElementById('stableCount').textContent = String(timelineReport.trend_summary.stable_count);
+  document.getElementById('volatileCount').textContent = String(timelineReport.trend_summary.volatile_count);
+  document.getElementById('criticalTrendCount').textContent = String(timelineReport.trend_summary.critical_trend_count);
+  document.getElementById('archetypeTrendsView').textContent = JSON.stringify(timelineReport.archetype_trends);
+  document.getElementById('timelinePointsView').textContent = JSON.stringify(timelineReport.timeline_points);
+  document.getElementById('timelinePreview').textContent = JSON.stringify(timelineReport, null, 2);
+}
+
+function buildForecast() {
+  const trends = Array.isArray(timelineReport?.archetype_trends) ? timelineReport.archetype_trends : [];
+  const pressureBase = { RISING: 0.60, VOLATILE: 0.55, STABLE: 0.35, FALLING: 0.20, NOT_COMPUTABLE: 0.00 };
+  const forecastItems = trends.map((trend) => {
+    let pressure = pressureBase[trend.trend_direction] ?? 0;
+    if (trend.dominant_criticality === 'CRITICAL') pressure += 0.15;
+    if ((trend.critical_occurrence_count || 0) > 0) pressure += 0.10;
+    if (trend.archetype_family === 'SAFETY' || trend.archetype_family === 'INTEGRITY') pressure += 0.10;
+    if ((trend.occurrence_count || 0) >= 3) pressure += 0.05;
+    pressure += (Number(trend.trend_strength || 0) * 0.10);
+    pressure = Math.max(0, Math.min(0.95, pressure));
+    let predicted = 'STABLE';
+    if (pressure >= 0.75 && (trend.critical_occurrence_count || 0) > 0) predicted = 'CRITICAL_PRESSURE';
+    else if (pressure >= 0.60) predicted = 'RISING';
+    else if (trend.trend_direction === 'VOLATILE') predicted = 'VOLATILE';
+    else if (pressure <= 0.25) predicted = 'FALLING';
+    const confidence = trends.length === 0 ? 0 : Math.min(0.85, 0.35 + (trend.occurrence_count || 0) * 0.08 + Number(trend.trend_strength || 0) * 0.20);
+    let attention = 'DISMISS';
+    if (predicted === 'CRITICAL_PRESSURE' || pressure >= 0.75) attention = 'INVESTIGATE';
+    else if (pressure >= 0.50) attention = 'WATCH';
+    else if (pressure >= 0.25) attention = 'DEFER';
+    return {
+      schema_version: 'ArchetypeDriftForecastItem.v1',
+      archetype_id: trend.archetype_id,
+      archetype_family: trend.archetype_family || 'UNKNOWN',
+      archetype_label: trend.archetype_label || 'NOT_COMPUTABLE',
+      current_trend_direction: trend.trend_direction || 'NOT_COMPUTABLE',
+      occurrence_count: trend.occurrence_count || 0,
+      critical_occurrence_count: trend.critical_occurrence_count || 0,
+      confidence_delta: Number(Number(trend.confidence_delta || 0).toFixed(4)),
+      trend_strength: Number(Number(trend.trend_strength || 0).toFixed(4)),
+      forecast_pressure_score: Number(pressure.toFixed(4)),
+      predicted_next_state: predicted,
+      forecast_confidence: Number(confidence.toFixed(4)),
+      recommended_operator_attention: attention
+    };
+  });
+  forecastItems.sort((a, b) => b.forecast_pressure_score - a.forecast_pressure_score || b.forecast_confidence - a.forecast_confidence || a.archetype_id.localeCompare(b.archetype_id));
+  const top = forecastItems[0];
+  let status = 'NO_DATA';
+  if (forecastItems.length > 0) {
+    if (forecastItems.some((i) => i.predicted_next_state === 'CRITICAL_PRESSURE')) status = 'CRITICAL';
+    else if ((top?.forecast_pressure_score || 0) >= 0.65) status = 'ELEVATED';
+    else if ((top?.forecast_pressure_score || 0) >= 0.45) status = 'WATCH';
+    else status = 'LOW_CONFIDENCE';
+  }
+  forecastReport = {
+    schema_version: 'ArchetypeDriftForecast.v1',
+    forecast_id: `forecast-${Date.now()}`,
+    created_at: new Date().toISOString(),
+    mode: 'LOCAL_BROWSER_ARCHETYPE_FORECAST_ONLY',
+    source_timeline_id: timelineReport?.timeline_id || 'NOT_COMPUTABLE',
+    input_trend_count: trends.length,
+    forecast_horizon: trends.length > 0 ? 'NEXT_RUN' : 'NOT_COMPUTABLE',
+    likely_next_dominant_archetype_id: top?.archetype_id || 'NOT_COMPUTABLE',
+    likely_next_dominant_family: top?.archetype_family || 'NOT_COMPUTABLE',
+    forecast_confidence: Number((top?.forecast_confidence || 0).toFixed(4)),
+    forecast_status: status,
+    forecast_items: forecastItems,
+    warning_surface: {
+      critical_pressure_expected: forecastItems.some((i) => i.predicted_next_state === 'CRITICAL_PRESSURE'),
+      volatile_archetype_present: forecastItems.some((i) => i.current_trend_direction === 'VOLATILE'),
+      rising_safety_or_integrity: forecastItems.some((i) => i.predicted_next_state === 'RISING' && (i.archetype_family === 'SAFETY' || i.archetype_family === 'INTEGRITY')),
+      dominant_warning: top?.predicted_next_state || 'NOT_COMPUTABLE'
+    },
+    execution_allowed: false,
+    runtime_mutation_allowed: false,
+    auto_apply_allowed: false,
+    repair_allowed: false
+  };
+  renderForecast();
+}
+
+function renderForecast() {
+  if (!forecastReport) return;
+  document.getElementById('sourceTimelineId').textContent = forecastReport.source_timeline_id;
+  document.getElementById('inputTrendCount').textContent = String(forecastReport.input_trend_count);
+  document.getElementById('forecastHorizon').textContent = forecastReport.forecast_horizon;
+  document.getElementById('dominantForecastArchetypeId').textContent = forecastReport.likely_next_dominant_archetype_id;
+  document.getElementById('dominantForecastFamily').textContent = forecastReport.likely_next_dominant_family;
+  document.getElementById('forecastConfidence').textContent = Number(forecastReport.forecast_confidence || 0).toFixed(4);
+  document.getElementById('forecastStatus').textContent = forecastReport.forecast_status;
+  document.getElementById('criticalPressureExpected').textContent = String(forecastReport.warning_surface.critical_pressure_expected);
+  document.getElementById('volatileArchetypePresent').textContent = String(forecastReport.warning_surface.volatile_archetype_present);
+  document.getElementById('risingSafetyOrIntegrity').textContent = String(forecastReport.warning_surface.rising_safety_or_integrity);
+  document.getElementById('forecastItemsView').textContent = JSON.stringify(forecastReport.forecast_items);
+  document.getElementById('forecastPreview').textContent = JSON.stringify(forecastReport, null, 2);
+}
+
+function buildWarningDigest() {
+  const items = Array.isArray(forecastReport?.forecast_items) ? forecastReport.forecast_items : [];
+  const sorted = items.slice().sort((a, b) => b.forecast_pressure_score - a.forecast_pressure_score || b.forecast_confidence - a.forecast_confidence || a.archetype_id.localeCompare(b.archetype_id));
+  const top = sorted[0];
+  const alertLevel = forecastReport?.forecast_status || 'NO_DATA';
+  warningDigest = {
+    schema_version: 'ArchetypeWarningDigest.v1',
+    digest_id: `digest-${Date.now()}`,
+    created_at: new Date().toISOString(),
+    mode: 'LOCAL_BROWSER_WARNING_DIGEST_ONLY',
+    source_forecast_id: forecastReport?.forecast_id || 'NOT_COMPUTABLE',
+    item_count: sorted.length,
+    dominant_concern: top?.predicted_next_state || 'NOT_COMPUTABLE',
+    alert_level: alertLevel,
+    operator_attention_summary: top ? `${top.archetype_id}:${top.recommended_operator_attention}` : 'NOT_COMPUTABLE',
+    recommended_review_only: top?.recommended_operator_attention || 'NOT_COMPUTABLE',
+    warning_digest_items: sorted.map((i) => ({
+      archetype_id: i.archetype_id,
+      archetype_family: i.archetype_family,
+      forecast_pressure_score: Number(Number(i.forecast_pressure_score || 0).toFixed(4)),
+      predicted_next_state: i.predicted_next_state,
+      recommended_operator_attention: i.recommended_operator_attention
+    })),
+    execution_allowed: false,
+    runtime_mutation_allowed: false,
+    auto_apply_allowed: false,
+    repair_allowed: false
+  };
+  renderWarningDigest();
+}
+
+function renderWarningDigest() {
+  if (!warningDigest) return;
+  document.getElementById('dominantConcern').textContent = warningDigest.dominant_concern;
+  document.getElementById('digestAlertLevel').textContent = warningDigest.alert_level;
+  document.getElementById('attentionSummary').textContent = warningDigest.operator_attention_summary;
+  document.getElementById('recommendedReviewOnly').textContent = warningDigest.recommended_review_only;
+  document.getElementById('digestItemsView').textContent = JSON.stringify(warningDigest.warning_digest_items);
+  document.getElementById('digestPreview').textContent = JSON.stringify(warningDigest, null, 2);
+}
+
+function extractWarningDigests(artifacts) {
+  const digests = [];
+  artifacts.forEach((a) => {
+    if (a && a.schema_version === 'ArchetypeWarningDigest.v1') digests.push(a);
+    if (a && a.schema_version === 'ConsoleStateExportBundle.v1') {
+      const maybe = a.archetype_warning_digest || a.warning_digest;
+      if (maybe && maybe.schema_version === 'ArchetypeWarningDigest.v1') digests.push(maybe);
+    }
+  });
+  digests.sort((a, b) => safeIso(a.created_at).localeCompare(safeIso(b.created_at)) || String(a.digest_id || '').localeCompare(String(b.digest_id || '')));
+  return digests;
+}
+
+function buildWarningHistoryTracker() {
+  const digests = extractWarningDigests(warningDigestArtifacts);
+  const historyPoints = digests.map((d, idx) => ({
+    schema_version: 'WarningHistoryPoint.v1',
+    point_id: `${d.digest_id || 'NOT_COMPUTABLE'}:${idx}`,
+    source_digest_id: d.digest_id || 'NOT_COMPUTABLE',
+    created_at: safeIso(d.created_at),
+    dominant_concern: d.dominant_concern || 'NOT_COMPUTABLE',
+    alert_level: d.alert_level || 'NOT_COMPUTABLE',
+    recommended_review_only: d.recommended_review_only || 'NOT_COMPUTABLE',
+    critical_pressure_expected: Boolean(d.warning_digest_items?.some((x) => x.predicted_next_state === 'CRITICAL_PRESSURE')),
+    warning_item_count: Array.isArray(d.warning_digest_items) ? d.warning_digest_items.length : 0
+  }));
+  historyPoints.sort((a, b) => a.created_at.localeCompare(b.created_at) || a.dominant_concern.localeCompare(b.dominant_concern) || a.point_id.localeCompare(b.point_id));
+  let escalationEvents = 0;
+  let deEscalationEvents = 0;
+  for (let i = 1; i < historyPoints.length; i += 1) {
+    const prev = alertSeverity[historyPoints[i - 1].alert_level] ?? -1;
+    const next = alertSeverity[historyPoints[i].alert_level] ?? -1;
+    if (next > prev) escalationEvents += 1;
+    if (next < prev) deEscalationEvents += 1;
+  }
+  const concernMap = {};
+  historyPoints.forEach((p) => {
+    concernMap[p.dominant_concern] = concernMap[p.dominant_concern] || [];
+    concernMap[p.dominant_concern].push(p);
+  });
+  const concernTracks = Object.entries(concernMap).map(([concern, series]) => {
+    const ordered = series.slice().sort((a, b) => a.created_at.localeCompare(b.created_at) || a.point_id.localeCompare(b.point_id));
+    const latest = ordered[ordered.length - 1];
+    const maxLevel = ordered.map((x) => x.alert_level).sort((a, b) => (alertSeverity[b] ?? -1) - (alertSeverity[a] ?? -1))[0] || 'NOT_COMPUTABLE';
+    const unresolved = ['WATCH', 'ELEVATED', 'CRITICAL'].includes(latest.alert_level) && ['INVESTIGATE', 'WATCH'].includes(latest.recommended_review_only);
+    let status = 'NEW';
+    if (ordered.length >= 2 && unresolved) status = 'PERSISTENT';
+    if (!unresolved && ordered.length >= 2) status = 'RESOLVED';
+    if (escalationEvents > 0 && deEscalationEvents > 0) status = 'VOLATILE';
+    return { schema_version: 'ConcernTrack.v1', concern_id: `concern:${concern}`, dominant_concern: concern, first_seen: ordered[0].created_at, last_seen: latest.created_at, occurrence_count: ordered.length, max_alert_level: maxLevel, latest_alert_level: latest.alert_level, unresolved, track_status: status };
+  });
+  concernTracks.sort((a, b) => Number(b.unresolved) - Number(a.unresolved) || (alertSeverity[b.max_alert_level] ?? -1) - (alertSeverity[a.max_alert_level] ?? -1) || b.occurrence_count - a.occurrence_count || a.dominant_concern.localeCompare(b.dominant_concern));
+  const latest = historyPoints[historyPoints.length - 1];
+  const earliestComputable = historyPoints.find((x) => (alertSeverity[x.alert_level] ?? -1) >= 0);
+  const latestComputable = [...historyPoints].reverse().find((x) => (alertSeverity[x.alert_level] ?? -1) >= 0);
+  let escalationStatus = 'NO_DATA';
+  if (historyPoints.length > 0) {
+    if (latestComputable && historyPoints.length >= 2 && latestComputable.alert_level === 'CRITICAL' && historyPoints[historyPoints.length - 2].alert_level === 'CRITICAL') escalationStatus = 'PERSISTENT_CRITICAL';
+    else if (escalationEvents > 0 && deEscalationEvents > 0) escalationStatus = 'VOLATILE';
+    else if ((alertSeverity[latestComputable?.alert_level] ?? -1) > (alertSeverity[earliestComputable?.alert_level] ?? -1)) escalationStatus = 'ESCALATING';
+    else if ((alertSeverity[latestComputable?.alert_level] ?? -1) < (alertSeverity[earliestComputable?.alert_level] ?? -1)) escalationStatus = 'DE_ESCALATING';
+    else escalationStatus = 'STABLE';
+  }
+  const dismissCount = historyPoints.filter((x) => x.recommended_review_only === 'DISMISS').length;
+  warningHistoryTracker = {
+    schema_version: 'WarningDigestHistoryTracker.v1',
+    tracker_id: `warning-history-${Date.now()}`,
+    created_at: new Date().toISOString(),
+    mode: 'LOCAL_BROWSER_WARNING_HISTORY_ONLY',
+    input_digest_count: digests.length,
+    history_point_count: historyPoints.length,
+    dominant_concern: concernTracks[0]?.dominant_concern || 'NOT_COMPUTABLE',
+    latest_alert_level: latest?.alert_level || 'NOT_COMPUTABLE',
+    escalation_status: escalationStatus,
+    unresolved_concern_count: concernTracks.filter((x) => x.unresolved).length,
+    false_alarm_pressure: Number((digests.length === 0 ? 0 : dismissCount / digests.length).toFixed(4)),
+    history_points: historyPoints,
+    concern_tracks: concernTracks,
+    tracker_summary: {
+      watch_count: historyPoints.filter((x) => x.alert_level === 'WATCH').length,
+      elevated_count: historyPoints.filter((x) => x.alert_level === 'ELEVATED').length,
+      critical_count: historyPoints.filter((x) => x.alert_level === 'CRITICAL').length,
+      stable_count: historyPoints.filter((x) => x.alert_level === 'NONE').length,
+      escalation_event_count: escalationEvents,
+      de_escalation_event_count: deEscalationEvents,
+      volatile_event_count: escalationEvents > 0 && deEscalationEvents > 0 ? 1 : 0
+    },
+    execution_allowed: false,
+    runtime_mutation_allowed: false,
+    auto_apply_allowed: false,
+    repair_allowed: false
+  };
+  renderWarningHistoryTracker();
+}
+
+function renderWarningHistoryTracker() {
+  if (!warningHistoryTracker) return;
+  document.getElementById('inputDigestCount').textContent = String(warningHistoryTracker.input_digest_count);
+  document.getElementById('historyPointCount').textContent = String(warningHistoryTracker.history_point_count);
+  document.getElementById('historyDominantConcern').textContent = warningHistoryTracker.dominant_concern;
+  document.getElementById('latestAlertLevel').textContent = warningHistoryTracker.latest_alert_level;
+  document.getElementById('escalationStatus').textContent = warningHistoryTracker.escalation_status;
+  document.getElementById('unresolvedConcernCount').textContent = String(warningHistoryTracker.unresolved_concern_count);
+  document.getElementById('falseAlarmPressure').textContent = Number(warningHistoryTracker.false_alarm_pressure || 0).toFixed(4);
+  document.getElementById('trackerSummaryView').textContent = JSON.stringify(warningHistoryTracker.tracker_summary);
+  document.getElementById('historyPointsView').textContent = JSON.stringify(warningHistoryTracker.history_points);
+  document.getElementById('concernTracksView').textContent = JSON.stringify(warningHistoryTracker.concern_tracks);
+  document.getElementById('warningHistoryPreview').textContent = JSON.stringify(warningHistoryTracker, null, 2);
+}
+
+function computeResolutionAnalytics() {
+  const entries = Array.isArray(warningResolutionLedger?.entries) ? warningResolutionLedger.entries : [];
+  const count = entries.length;
+  const resolved = entries.filter((e) => e.resolution_status === 'RESOLVED').length;
+  const ignored = entries.filter((e) => e.resolution_status === 'IGNORED').length;
+  const repeated = entries.filter((e) => e.resolution_status === 'REPEATED').length;
+  const falsePositive = entries.filter((e) => e.resolution_status === 'FALSE_POSITIVE').length;
+  const resolutionRate = count ? resolved / count : 0;
+  const ignoredRate = count ? ignored / count : 0;
+  const repeatRate = count ? repeated / count : 0;
+  const falseRate = count ? falsePositive / count : 0;
+  const trust = Math.max(0, Math.min(1, resolutionRate + repeatRate - falseRate));
+  const decay = resolutionRate - repeatRate - ignoredRate;
+  let signal = 'NO_DATA';
+  if (count > 0) {
+    if (repeatRate >= 0.4) signal = 'REPEAT_PRESSURE';
+    else if (ignoredRate >= 0.4) signal = 'IGNORED_PRESSURE';
+    else if (falseRate >= 0.4) signal = 'FALSE_ALARM_PRESSURE';
+    else if (resolutionRate >= 0.6) signal = 'HEALTHY_RESOLUTION';
+    else signal = 'MIXED';
+  }
+  const profileMap = {};
+  entries.forEach((e) => {
+    profileMap[e.dominant_concern] = profileMap[e.dominant_concern] || { dominant_concern: e.dominant_concern, total_count: 0 };
+    profileMap[e.dominant_concern].total_count += 1;
+  });
+  const profile = Object.values(profileMap).sort((a, b) => b.total_count - a.total_count || a.dominant_concern.localeCompare(b.dominant_concern));
+  warningResolutionAnalytics = {
+    schema_version: 'WarningResolutionAnalytics.v1',
+    entry_count: count,
+    resolution_rate: Number(resolutionRate.toFixed(4)),
+    ignored_rate: Number(ignoredRate.toFixed(4)),
+    repeat_rate: Number(repeatRate.toFixed(4)),
+    false_positive_rate: Number(falseRate.toFixed(4)),
+    warning_trust_score: Number(trust.toFixed(4)),
+    unresolved_pressure_decay: Number(decay.toFixed(4)),
+    dominant_resolution_status: repeated > 0 ? 'REPEATED' : (ignored > 0 ? 'IGNORED' : (falsePositive > 0 ? 'FALSE_POSITIVE' : (resolved > 0 ? 'RESOLVED' : 'NOT_COMPUTABLE'))),
+    dominant_concern_resolution_profile: profile,
+    resolution_bottleneck_signal: signal,
+    execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false
+  };
+}
+
+function renderResolutionLedger() {
+  if (!warningResolutionLedger || !warningResolutionAnalytics) return;
+  document.getElementById('resolutionEntryCount').textContent = String(warningResolutionLedger.entry_count);
+  document.getElementById('resolvedCount').textContent = String(warningResolutionLedger.resolved_count);
+  document.getElementById('ignoredCount').textContent = String(warningResolutionLedger.ignored_count);
+  document.getElementById('repeatedCount').textContent = String(warningResolutionLedger.repeated_count);
+  document.getElementById('falsePositiveCount').textContent = String(warningResolutionLedger.false_positive_count);
+  document.getElementById('latestResolutionStatus').textContent = warningResolutionLedger.latest_resolution_status;
+  document.getElementById('warningTrustScore').textContent = Number(warningResolutionAnalytics.warning_trust_score).toFixed(4);
+  document.getElementById('unresolvedPressureDecay').textContent = Number(warningResolutionAnalytics.unresolved_pressure_decay).toFixed(4);
+  document.getElementById('resolutionBottleneckSignal').textContent = warningResolutionAnalytics.resolution_bottleneck_signal;
+  document.getElementById('concernResolutionProfile').textContent = JSON.stringify(warningResolutionAnalytics.dominant_concern_resolution_profile);
+}
+
+function ensureResolutionLedger() {
+  if (warningResolutionLedger) return;
+  warningResolutionLedger = { schema_version: 'WarningResolutionLedger.v1', ledger_id: `warning-resolution-ledger-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_RESOLUTION_ONLY', entry_count: 0, resolved_count: 0, ignored_count: 0, repeated_count: 0, false_positive_count: 0, not_computable_count: 0, latest_resolution_status: 'NOT_COMPUTABLE', latest_dominant_concern: 'NOT_COMPUTABLE', entries: [], execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false };
+}
+
+function buildResolutionEntry() {
+  const latestDigest = warningDigest || { digest_id: 'NOT_COMPUTABLE', dominant_concern: 'NOT_COMPUTABLE', alert_level: 'NOT_COMPUTABLE' };
+  const status = document.getElementById('resolutionStatusSelect').value || 'NOT_COMPUTABLE';
+  return { schema_version: 'WarningResolutionEntry.v1', resolution_id: `warning-resolution-${Date.now()}`, created_at: new Date().toISOString(), source_warning_digest_id: latestDigest.digest_id || 'NOT_COMPUTABLE', source_concern_id: `concern:${latestDigest.dominant_concern || 'NOT_COMPUTABLE'}`, dominant_concern: latestDigest.dominant_concern || 'NOT_COMPUTABLE', prior_alert_level: latestDigest.alert_level || 'NOT_COMPUTABLE', resolution_status: status, operator_note: 'NOT_COMPUTABLE', evidence_ref: 'NOT_COMPUTABLE', decision_scope: 'WARNING_RESOLUTION_ONLY', execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, files_modified: [] };
+}
+
+function makeTrustProfile(type, key, warnings, resolutions) {
+  const warningCount = warnings.length;
+  const matched = resolutions.length;
+  const resolved = resolutions.filter((r) => r.resolution_status === 'RESOLVED').length;
+  const repeated = resolutions.filter((r) => r.resolution_status === 'REPEATED').length;
+  const falsePositive = resolutions.filter((r) => r.resolution_status === 'FALSE_POSITIVE').length;
+  const ignored = resolutions.filter((r) => r.resolution_status === 'IGNORED').length;
+  const trust = matched ? Math.max(0, Math.min(1, (resolved / matched) + (repeated / matched) - (falsePositive / matched) - (ignored / matched) * 0.5)) : 0;
+  let label = 'NOT_COMPUTABLE';
+  if (matched > 0) {
+    if ((falsePositive / matched) >= 0.4) label = 'FALSE_ALARM_HEAVY';
+    else if ((repeated / matched) >= 0.4) label = 'REPEAT_PRESSURE';
+    else if ((ignored / matched) >= 0.4) label = 'IGNORED_PRESSURE';
+    else if (trust >= 0.7) label = 'HIGH_TRUST';
+    else if (trust <= 0.3) label = 'LOW_TRUST';
+    else label = 'MIXED';
+  }
+  return { schema_version: 'WarningTrustProfile.v1', profile_id: `${type}:${key}`, profile_type: type, profile_key: key, warning_count: warningCount, resolution_count: matched, resolved_count: resolved, repeated_count: repeated, false_positive_count: falsePositive, ignored_count: ignored, trust_score: Number(trust.toFixed(4)), calibration_label: label };
+}
+
+function buildWarningTrustCalibration() {
+  const warnings = warningDigestArtifacts.filter((a) => a?.schema_version === 'ArchetypeWarningDigest.v1');
+  const resolutions = Array.isArray(warningResolutionLedger?.entries) ? warningResolutionLedger.entries : [];
+  const matched = [];
+  let unmatched = 0;
+  warnings.forEach((w) => {
+    const m = resolutions.find((r) => r.source_warning_digest_id === (w.digest_id || '')) || resolutions.find((r) => r.dominant_concern === (w.dominant_concern || ''));
+    if (m) matched.push({ warning: w, resolution: m });
+    else unmatched += 1;
+  });
+  const mc = matched.length;
+  const resolved = matched.filter((x) => x.resolution.resolution_status === 'RESOLVED').length;
+  const repeated = matched.filter((x) => x.resolution.resolution_status === 'REPEATED').length;
+  const falsePositive = matched.filter((x) => x.resolution.resolution_status === 'FALSE_POSITIVE').length;
+  const ignored = matched.filter((x) => x.resolution.resolution_status === 'IGNORED').length;
+  const resolutionRate = mc ? resolved / mc : 0;
+  const repeatRate = mc ? repeated / mc : 0;
+  const falseRate = mc ? falsePositive / mc : 0;
+  const ignoredRate = mc ? ignored / mc : 0;
+  const trust = Math.max(0, Math.min(1, resolutionRate + repeatRate - falseRate - ignoredRate * 0.5));
+  let status = 'NO_DATA';
+  if (mc > 0) {
+    if (mc < 5) status = 'UNDER_SAMPLED';
+    else if (falseRate >= 0.4) status = 'FALSE_ALARM_HEAVY';
+    else if (repeatRate >= 0.4) status = 'REPEAT_PRESSURE';
+    else if (ignoredRate >= 0.4) status = 'IGNORED_PRESSURE';
+    else if (trust >= 0.6) status = 'CALIBRATED';
+    else status = 'MIXED';
+  }
+  const familyMap = {};
+  matched.forEach((m) => {
+    const k = m.warning.warning_digest_items?.[0]?.archetype_family || 'NOT_COMPUTABLE';
+    familyMap[k] = familyMap[k] || { warnings: [], resolutions: [] };
+    familyMap[k].warnings.push(m.warning); familyMap[k].resolutions.push(m.resolution);
+  });
+  const familyProfiles = Object.entries(familyMap).map(([k, v]) => makeTrustProfile('FAMILY', k, v.warnings, v.resolutions))
+    .sort((a, b) => a.trust_score - b.trust_score || b.warning_count - a.warning_count || a.profile_key.localeCompare(b.profile_key));
+  const archetypeMap = {};
+  matched.forEach((m) => {
+    const k = m.warning.warning_digest_items?.[0]?.archetype_id || 'NOT_COMPUTABLE';
+    archetypeMap[k] = archetypeMap[k] || { warnings: [], resolutions: [] };
+    archetypeMap[k].warnings.push(m.warning); archetypeMap[k].resolutions.push(m.resolution);
+  });
+  const archetypeProfiles = Object.entries(archetypeMap).map(([k, v]) => makeTrustProfile('ARCHETYPE', k, v.warnings, v.resolutions))
+    .sort((a, b) => a.trust_score - b.trust_score || b.warning_count - a.warning_count || a.profile_key.localeCompare(b.profile_key));
+  warningTrustCalibration = {
+    schema_version: 'WarningTrustCalibration.v1', calibration_id: `warning-trust-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_TRUST_ONLY',
+    input_warning_count: warnings.length, input_resolution_count: resolutions.length, matched_count: mc, unmatched_warning_count: unmatched,
+    resolution_rate: Number(resolutionRate.toFixed(4)), repeat_rate: Number(repeatRate.toFixed(4)), false_positive_rate: Number(falseRate.toFixed(4)), ignored_rate: Number(ignoredRate.toFixed(4)), warning_trust_score: Number(trust.toFixed(4)),
+    calibration_status: status, family_trust_profiles: familyProfiles, archetype_trust_profiles: archetypeProfiles,
+    calibration_summary: { high_trust_count: [...familyProfiles, ...archetypeProfiles].filter((p) => p.calibration_label === 'HIGH_TRUST').length, low_trust_count: [...familyProfiles, ...archetypeProfiles].filter((p) => p.calibration_label === 'LOW_TRUST').length, false_alarm_family_count: familyProfiles.filter((p) => p.calibration_label === 'FALSE_ALARM_HEAVY').length, repeat_pressure_family_count: familyProfiles.filter((p) => p.calibration_label === 'REPEAT_PRESSURE').length },
+    execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false
+  };
+  renderWarningTrustCalibration();
+}
+
+function renderWarningTrustCalibration() {
+  if (!warningTrustCalibration) return;
+  document.getElementById('calInputWarningCount').textContent = String(warningTrustCalibration.input_warning_count);
+  document.getElementById('calInputResolutionCount').textContent = String(warningTrustCalibration.input_resolution_count);
+  document.getElementById('calMatchedCount').textContent = String(warningTrustCalibration.matched_count);
+  document.getElementById('calUnmatchedCount').textContent = String(warningTrustCalibration.unmatched_warning_count);
+  document.getElementById('calResolutionRate').textContent = warningTrustCalibration.resolution_rate.toFixed(4);
+  document.getElementById('calRepeatRate').textContent = warningTrustCalibration.repeat_rate.toFixed(4);
+  document.getElementById('calFalseRate').textContent = warningTrustCalibration.false_positive_rate.toFixed(4);
+  document.getElementById('calIgnoredRate').textContent = warningTrustCalibration.ignored_rate.toFixed(4);
+  document.getElementById('calTrustScore').textContent = warningTrustCalibration.warning_trust_score.toFixed(4);
+  document.getElementById('calStatus').textContent = warningTrustCalibration.calibration_status;
+  document.getElementById('calFamilyProfiles').textContent = JSON.stringify(warningTrustCalibration.family_trust_profiles);
+  document.getElementById('calArchetypeProfiles').textContent = JSON.stringify(warningTrustCalibration.archetype_trust_profiles);
+  document.getElementById('calSummary').textContent = JSON.stringify(warningTrustCalibration.calibration_summary);
+  document.getElementById('warningTrustPreview').textContent = JSON.stringify(warningTrustCalibration, null, 2);
+}
+
+function buildWarningReliabilityTimeline() {
+  const points = warningTrustCalibration ? [warningTrustCalibration] : [];
+  const trustScores = points.map((p) => Number(p.warning_trust_score || 0));
+  const earliest = trustScores[0] ?? 0;
+  const latest = trustScores[trustScores.length - 1] ?? 0;
+  const delta = latest - earliest;
+  const range = trustScores.length ? Math.max(...trustScores) - Math.min(...trustScores) : 0;
+  let trend = 'NO_DATA';
+  if (points.length > 0) trend = delta >= 0.10 ? 'RISING' : (delta <= -0.10 ? 'FALLING' : (range >= 0.30 ? 'VOLATILE' : 'STABLE'));
+  warningReliabilityTimeline = { schema_version: 'WarningReliabilityTimeline.v1', timeline_id: `warning-reliability-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_RELIABILITY_TIMELINE_ONLY', input_calibration_count: points.length, timeline_point_count: points.length, latest_warning_trust_score: Number(latest.toFixed(4)), trust_delta: Number(delta.toFixed(4)), trust_trend: trend, timeline_points: points.map((p) => ({ calibration_id: p.calibration_id, created_at: p.created_at, warning_trust_score: Number(p.warning_trust_score || 0) })), execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  document.getElementById('reliabilityTimelinePreview').textContent = JSON.stringify(warningReliabilityTimeline, null, 2);
+}
+
+function buildWarningReliabilityMatrix() {
+  const families = warningTrustCalibration?.family_trust_profiles || [];
+  const archetypes = warningTrustCalibration?.archetype_trust_profiles || [];
+  const rows = [...families, ...archetypes].map((p) => ({ profile_type: p.profile_type, profile_key: p.profile_key, warning_count: p.warning_count, trust_score: Number(Number(p.trust_score || 0).toFixed(4)), calibration_label: p.calibration_label }))
+    .sort((a, b) => a.trust_score - b.trust_score || b.warning_count - a.warning_count || a.profile_type.localeCompare(b.profile_type) || a.profile_key.localeCompare(b.profile_key));
+  const lowestFamily = rows.find((r) => r.profile_type === 'FAMILY')?.profile_key || 'NOT_COMPUTABLE';
+  const lowestArchetype = rows.find((r) => r.profile_type === 'ARCHETYPE')?.profile_key || 'NOT_COMPUTABLE';
+  warningReliabilityMatrix = { schema_version: 'WarningReliabilityMatrix.v1', matrix_id: `warning-matrix-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_RELIABILITY_MATRIX_ONLY', family_profile_count: families.length, archetype_profile_count: archetypes.length, lowest_trust_family: lowestFamily, lowest_trust_archetype: lowestArchetype, matrix_rows: rows, matrix_summary: { high_trust_count: rows.filter((r) => r.calibration_label === 'HIGH_TRUST').length, low_trust_count: rows.filter((r) => r.calibration_label === 'LOW_TRUST').length, false_alarm_heavy_count: rows.filter((r) => r.calibration_label === 'FALSE_ALARM_HEAVY').length, repeat_pressure_count: rows.filter((r) => r.calibration_label === 'REPEAT_PRESSURE').length, ignored_pressure_count: rows.filter((r) => r.calibration_label === 'IGNORED_PRESSURE').length }, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  document.getElementById('reliabilityMatrixPreview').textContent = JSON.stringify(warningReliabilityMatrix, null, 2);
+}
+
+function buildWarningTrustDigest() {
+  const trend = warningReliabilityTimeline?.trust_trend || 'NO_DATA';
+  const ms = warningReliabilityMatrix?.matrix_summary || {};
+  let label = 'MIXED';
+  if (trend === 'FALLING') label = 'TRUST_DECLINING'; else if (trend === 'RISING') label = 'TRUST_IMPROVING'; else if ((ms.false_alarm_heavy_count || 0) > 0) label = 'FALSE_ALARM_CLUSTER'; else if ((ms.repeat_pressure_count || 0) > 0) label = 'REPEAT_PRESSURE_CLUSTER'; else if ((ms.low_trust_count || 0) > 0) label = 'LOW_TRUST_CLUSTER';
+  const review = ['TRUST_DECLINING', 'FALSE_ALARM_CLUSTER', 'REPEAT_PRESSURE_CLUSTER'].includes(label) ? 'INVESTIGATE' : (label === 'TRUST_IMPROVING' ? 'DEFER' : (label === 'MIXED' || label === 'LOW_TRUST_CLUSTER' ? 'WATCH' : 'NOT_COMPUTABLE'));
+  warningTrustDigest = { schema_version: 'WarningTrustDigest.v1', digest_id: `warning-trust-digest-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_TRUST_DIGEST_ONLY', dominant_reliability_concern: warningReliabilityMatrix?.lowest_trust_family || 'NOT_COMPUTABLE', trust_summary_label: label, operator_summary: `trust_summary=${label}`, recommended_review_only: review, digest_items: [warningTrustCalibration, warningReliabilityTimeline, warningReliabilityMatrix].filter(Boolean), execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  document.getElementById('warningTrustDigestPreview').textContent = JSON.stringify(warningTrustDigest, null, 2);
+}
+
+function buildWarningCalibrationBundle() {
+  warningCalibrationBundle = { schema_version: 'WarningCalibrationExportBundle.v1', bundle_id: `warning-calibration-bundle-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_CALIBRATION_EXPORT_ONLY', warning_trust_calibration: warningTrustCalibration || {}, warning_reliability_timeline: warningReliabilityTimeline || {}, warning_reliability_matrix: warningReliabilityMatrix || {}, warning_trust_digest: warningTrustDigest || {}, safety_flags: { execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false }, export_integrity: { backend_calls: false, files_modified: [], sandbox_only: true } };
+  document.getElementById('warningBundlePreview').textContent = JSON.stringify(warningCalibrationBundle, null, 2);
+}
+
+function buildWarningClosureReport() {
+  const summary = { forecast_present: Boolean(forecastReport), digest_present: Boolean(warningDigest), history_present: Boolean(warningHistoryTracker), resolution_present: Boolean(warningResolutionLedger), trust_calibration_present: Boolean(warningTrustCalibration), timeline_present: Boolean(warningReliabilityTimeline), matrix_present: Boolean(warningReliabilityMatrix), trust_digest_present: Boolean(warningTrustDigest), bundle_present: Boolean(warningCalibrationBundle) };
+  const present = Object.keys(summary).filter((k) => summary[k]);
+  const missing = Object.keys(summary).filter((k) => !summary[k]);
+  let status = 'NO_DATA';
+  if (present.length === 0) status = 'NO_DATA';
+  else if (warningTrustDigest?.recommended_review_only === 'INVESTIGATE') status = 'REVIEW_REQUIRED';
+  else if (missing.length > 0) status = 'UNDER_INSTRUMENTED';
+  else status = 'CLOSED_OBSERVATIONAL_LOOP';
+  warningClosureReport = { schema_version: 'WarningIntelligenceClosureReport.v1', report_id: `warning-closure-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_WARNING_CLOSURE_REPORT_ONLY', closure_status: status, surfaces_present: present, missing_surfaces: missing, warning_loop_summary: summary, final_safety_flags: { execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false }, operator_readout: `closure=${status}` };
+  document.getElementById('warningClosurePreview').textContent = JSON.stringify(warningClosureReport, null, 2);
+}
+
+function buildCrossDomainFusion() {
+  const surfaces = [
+    { domain: 'WARNING', source_schema: warningDigest?.schema_version, signal_type: 'DIGEST', signal_id: warningDigest?.digest_id },
+    { domain: 'ANOMALY', source_schema: warningHistoryTracker?.schema_version, signal_type: 'HISTORY', signal_id: warningHistoryTracker?.tracker_id },
+    { domain: 'OPERATOR', source_schema: warningResolutionLedger?.schema_version, signal_type: 'RESOLUTION', signal_id: warningResolutionLedger?.ledger_id },
+    { domain: 'TRUST', source_schema: warningTrustCalibration?.schema_version, signal_type: 'CALIBRATION', signal_id: warningTrustCalibration?.calibration_id },
+    { domain: 'CAUSAL', source_schema: timelineReport?.schema_version, signal_type: 'TIMELINE', signal_id: timelineReport?.timeline_id },
+    { domain: 'INTEGRITY', source_schema: warningCalibrationBundle?.schema_version, signal_type: 'BUNDLE', signal_id: warningCalibrationBundle?.bundle_id },
+    { domain: 'REPLAY', source_schema: forecastReport?.schema_version, signal_type: 'FORECAST', signal_id: forecastReport?.forecast_id }
+  ].filter((x) => x.source_schema).map((x) => ({ ...x, signal_id: x.signal_id || 'NOT_COMPUTABLE' }));
+  surfaces.sort((a, b) => a.domain.localeCompare(b.domain) || a.source_schema.localeCompare(b.source_schema) || a.signal_type.localeCompare(b.signal_type) || a.signal_id.localeCompare(b.signal_id));
+  crossDomainSignalRegistry = { schema_version: 'CrossDomainSignalRegistry.v1', registry_id: `cross-domain-registry-${Date.now()}`, created_at: new Date().toISOString(), signals: surfaces, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const conflicts = [];
+  if ((warningTrustCalibration?.false_positive_rate || 0) > 0.4) conflicts.push({ conflict_id: 'c1', conflict_type: 'WARNING_TRUST_CONFLICT', severity: 'HIGH' });
+  if ((warningHistoryTracker?.tracker_summary?.critical_count || 0) > 0 && (warningTrustCalibration?.warning_trust_score || 0) < 0.4) conflicts.push({ conflict_id: 'c2', conflict_type: 'ANOMALY_WARNING_CONFLICT', severity: 'HIGH' });
+  if ((warningResolutionAnalytics?.repeat_rate || 0) > 0.4) conflicts.push({ conflict_id: 'c3', conflict_type: 'OPERATOR_MODEL_CONFLICT', severity: 'MEDIUM' });
+  if (warningCalibrationBundle?.export_integrity?.backend_calls === true) conflicts.push({ conflict_id: 'c4', conflict_type: 'INTEGRITY_STATE_CONFLICT', severity: 'CRITICAL' });
+  if ((forecastReport?.forecast_status === 'CRITICAL') && (warningResolutionLedger?.latest_resolution_status === 'RESOLVED')) conflicts.push({ conflict_id: 'c5', conflict_type: 'FORECAST_RESOLUTION_CONFLICT', severity: 'LOW' });
+  conflicts.sort((a, b) => a.severity.localeCompare(b.severity) || a.conflict_type.localeCompare(b.conflict_type) || a.conflict_id.localeCompare(b.conflict_id));
+  crossDomainConflictReport = { schema_version: 'CrossDomainConflictReport.v1', report_id: `cross-domain-conflict-${Date.now()}`, created_at: new Date().toISOString(), conflicts, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const coverage = surfaces.length / 7;
+  const conflictPenalty = Math.min(conflicts.length * 0.15, 0.8);
+  const integrityPenalty = warningCalibrationBundle?.export_integrity?.backend_calls ? 0.5 : 0;
+  const agreement = Math.max(0, Math.min(1, 1 - conflictPenalty - integrityPenalty));
+  const score = Math.max(0, Math.min(1, coverage * agreement));
+  let alignmentStatus = 'NO_DATA';
+  if (surfaces.length > 0) alignmentStatus = conflicts.length >= 3 ? 'CONFLICT_HEAVY' : (score >= 0.75 ? 'HIGH_ALIGNMENT' : (score >= 0.4 ? 'MIXED_ALIGNMENT' : 'LOW_ALIGNMENT'));
+  crossDomainAlignmentScore = { schema_version: 'CrossDomainAlignmentScore.v1', score_id: `cross-domain-alignment-${Date.now()}`, created_at: new Date().toISOString(), domain_coverage_ratio: Number(coverage.toFixed(4)), agreement_score: Number(agreement.toFixed(4)), conflict_penalty: Number(conflictPenalty.toFixed(4)), integrity_penalty: Number(integrityPenalty.toFixed(4)), alignment_status: alignmentStatus, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const metaStatus = integrityPenalty > 0 ? 'BLOCKED_BY_INTEGRITY' : (conflicts.length >= 3 ? 'BLOCKED_BY_CONFLICT' : (score >= 0.75 ? 'HIGH' : (score >= 0.4 ? 'MEDIUM' : 'LOW')));
+  crossDomainMetaConfidence = { schema_version: 'CrossDomainMetaConfidence.v1', confidence_id: `cross-domain-meta-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_ONLY', meta_confidence_status: metaStatus, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const digestStatus = ['BLOCKED_BY_INTEGRITY', 'BLOCKED_BY_CONFLICT'].includes(metaStatus) ? 'BLOCKED' : (alignmentStatus === 'CONFLICT_HEAVY' ? 'CONFLICT_HEAVY' : (alignmentStatus === 'HIGH_ALIGNMENT' && metaStatus === 'HIGH' ? 'ALIGNED' : 'MIXED'));
+  crossDomainFusionDigest = { schema_version: 'CrossDomainFusionDigest.v1', digest_id: `cross-domain-digest-${Date.now()}`, created_at: new Date().toISOString(), digest_status: digestStatus, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  crossDomainFusionBundle = { schema_version: 'CrossDomainFusionBundle.v1', bundle_id: `cross-domain-bundle-${Date.now()}`, created_at: new Date().toISOString(), registry: crossDomainSignalRegistry, conflict_report: crossDomainConflictReport, alignment: crossDomainAlignmentScore, meta_confidence: crossDomainMetaConfidence, digest: crossDomainFusionDigest, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  document.getElementById('crossDomainFusionPreview').textContent = JSON.stringify(crossDomainFusionBundle, null, 2);
+}
+
+function buildFusionMetaLearningBatch() {
+  const outcome = { schema_version: 'FusionOutcomeEntry.v1', resolution_id: `fusion-outcome-${Date.now()}`, created_at: new Date().toISOString(), source_fusion_digest_id: crossDomainFusionDigest?.digest_id || 'NOT_COMPUTABLE', source_meta_confidence_id: crossDomainMetaConfidence?.confidence_id || 'NOT_COMPUTABLE', dominant_system_readout: crossDomainFusionDigest?.digest_status || 'NOT_COMPUTABLE', outcome_status: 'NOT_COMPUTABLE', operator_note: 'NOT_COMPUTABLE', evidence_ref: 'NOT_COMPUTABLE', execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false, files_modified: [] };
+  fusionOutcomeLedger = fusionOutcomeLedger || { schema_version: 'FusionOutcomeLedger.v1', ledger_id: `fusion-outcome-ledger-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_FUSION_OUTCOME_ONLY', entries: [], execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  fusionDriftTimeline = { schema_version: 'FusionDriftTimeline.v1', timeline_id: `fusion-drift-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_FUSION_DRIFT_TIMELINE_ONLY', input_bundle_count: crossDomainFusionBundle ? 1 : 0, timeline_point_count: crossDomainFusionBundle ? 1 : 0, latest_fusion_status: crossDomainFusionDigest?.digest_status || 'NOT_COMPUTABLE', latest_meta_confidence_score: Number((crossDomainAlignmentScore?.agreement_score || 0).toFixed(4)), meta_confidence_delta: Number((0).toFixed(4)), alignment_delta: Number((0).toFixed(4)), conflict_delta: Number((0).toFixed(4)), fusion_drift_status: crossDomainFusionBundle ? 'STABLE' : 'NO_DATA', timeline_points: [], execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const conflictRows = (crossDomainConflictReport?.conflicts || []).map((c) => ({ schema_version: 'FusionConflictRecurrenceRow.v1', conflict_type: c.conflict_type, occurrence_count: 1, critical_count: c.severity === 'CRITICAL' ? 1 : 0, recurrence_rate: Number((1 / Math.max(1, (crossDomainConflictReport?.conflicts || []).length)).toFixed(4)), latest_seen: new Date().toISOString(), recurrence_status: c.severity === 'CRITICAL' ? 'PERSISTENT_CRITICAL' : 'ISOLATED' }));
+  fusionConflictRecurrenceMatrix = { schema_version: 'FusionConflictRecurrenceMatrix.v1', matrix_id: `fusion-conflict-matrix-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_FUSION_CONFLICT_RECURRENCE_ONLY', dominant_recurring_conflict_type: conflictRows[0]?.conflict_type || 'NOT_COMPUTABLE', matrix_rows: conflictRows, matrix_summary: { total_conflict_observations: conflictRows.length }, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  metaConfidenceCalibration = { schema_version: 'MetaConfidenceCalibration.v1', calibration_id: `meta-confidence-cal-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_META_CONFIDENCE_CALIBRATION_ONLY', input_prediction_count: 1, input_outcome_count: fusionOutcomeLedger.entries.length, matched_count: 0, confirmed_count: 0, misaligned_count: 0, false_signal_count: 0, avg_meta_confidence: Number((0).toFixed(4)), observed_success_rate: Number((0).toFixed(4)), calibration_gap: Number((0).toFixed(4)), calibration_status: 'NO_DATA', confidence_bucket_profiles: [], execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const learningStatus = fusionDriftTimeline.fusion_drift_status === 'STABLE' ? 'LEARNING_STABLE' : 'MIXED';
+  fusionLearningDigest = { schema_version: 'FusionLearningDigest.v1', digest_id: `fusion-learning-digest-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_FUSION_LEARNING_DIGEST_ONLY', dominant_learning_concern: fusionConflictRecurrenceMatrix.dominant_recurring_conflict_type, learning_status: learningStatus, operator_summary: `learning_status=${learningStatus}`, recommended_review_only: learningStatus === 'LEARNING_STABLE' ? 'DEFER' : 'WATCH', learning_digest_items: [fusionDriftTimeline, fusionConflictRecurrenceMatrix, metaConfidenceCalibration], execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  fusionLearningExportBundle = { schema_version: 'FusionLearningExportBundle.v1', bundle_id: `fusion-learning-bundle-${Date.now()}`, created_at: new Date().toISOString(), fusion_outcome_ledger: fusionOutcomeLedger, fusion_drift_timeline: fusionDriftTimeline, fusion_conflict_recurrence_matrix: fusionConflictRecurrenceMatrix, meta_confidence_calibration: metaConfidenceCalibration, fusion_learning_digest: fusionLearningDigest, safety_flags: { execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false }, export_integrity: { backend_calls: false, files_modified: [], sandbox_only: true }, execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false };
+  const closureStatus = fusionLearningDigest.recommended_review_only === 'INVESTIGATE' ? 'REVIEW_REQUIRED' : 'CLOSED_OBSERVATIONAL_LOOP';
+  fusionLearningClosureReport = { schema_version: 'FusionLearningClosureReport.v1', report_id: `fusion-learning-closure-${Date.now()}`, created_at: new Date().toISOString(), mode: 'LOCAL_BROWSER_FUSION_LEARNING_CLOSURE_ONLY', closure_status: closureStatus, surfaces_present: ['fusion_outcome_ledger', 'fusion_drift_timeline', 'fusion_conflict_recurrence_matrix', 'meta_confidence_calibration', 'fusion_learning_digest'], missing_surfaces: [], fusion_learning_summary: { stable: learningStatus === 'LEARNING_STABLE' }, final_safety_flags: { execution_allowed: false, runtime_mutation_allowed: false, auto_apply_allowed: false, repair_allowed: false, suppression_allowed: false }, operator_readout: `closure=${closureStatus}` };
+  document.getElementById('fusionMetaLearningPreview').textContent = JSON.stringify({ outcome, fusionOutcomeLedger, fusionDriftTimeline, fusionConflictRecurrenceMatrix, metaConfidenceCalibration, fusionLearningDigest, fusionLearningExportBundle, fusionLearningClosureReport }, null, 2);
+}
+
+document.getElementById('archetypeReportInput').addEventListener('change', async (event) => {
+  loadedArtifacts = await parseLocalFiles(event.target.files || []);
+});
+document.getElementById('warningDigestInput').addEventListener('change', async (event) => {
+  warningDigestArtifacts = await parseLocalFiles(event.target.files || []);
+});
+document.getElementById('buildTimelineBtn').addEventListener('click', buildTimeline);
+document.getElementById('exportTimelineBtn').addEventListener('click', () => {
+  if (!timelineReport) buildTimeline();
+  const blob = new Blob([JSON.stringify(timelineReport, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'archetype_trend_timeline_patch004.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('buildForecastBtn').addEventListener('click', buildForecast);
+document.getElementById('exportForecastBtn').addEventListener('click', () => {
+  if (!forecastReport) buildForecast();
+  const blob = new Blob([JSON.stringify(forecastReport, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'archetype_drift_forecast_patch004.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('buildDigestBtn').addEventListener('click', buildWarningDigest);
+document.getElementById('exportDigestBtn').addEventListener('click', () => {
+  if (!warningDigest) buildWarningDigest();
+  const blob = new Blob([JSON.stringify(warningDigest, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'archetype_warning_digest_patch004.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('buildWarningHistoryBtn').addEventListener('click', buildWarningHistoryTracker);
+document.getElementById('exportWarningHistoryBtn').addEventListener('click', () => {
+  if (!warningHistoryTracker) buildWarningHistoryTracker();
+  const blob = new Blob([JSON.stringify(warningHistoryTracker, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'warning_digest_history_tracker_patch004.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('previewResolutionBtn').addEventListener('click', () => {
+  const entry = buildResolutionEntry();
+  document.getElementById('resolutionPreview').textContent = JSON.stringify(entry, null, 2);
+});
+document.getElementById('recordResolutionBtn').addEventListener('click', () => {
+  ensureResolutionLedger();
+  warningResolutionLedger.entries.push(buildResolutionEntry());
+  warningResolutionLedger.entries.sort((a, b) => safeIso(a.created_at).localeCompare(safeIso(b.created_at)) || String(a.resolution_id).localeCompare(String(b.resolution_id)));
+  warningResolutionLedger.entry_count = warningResolutionLedger.entries.length;
+  warningResolutionLedger.resolved_count = warningResolutionLedger.entries.filter((e) => e.resolution_status === 'RESOLVED').length;
+  warningResolutionLedger.ignored_count = warningResolutionLedger.entries.filter((e) => e.resolution_status === 'IGNORED').length;
+  warningResolutionLedger.repeated_count = warningResolutionLedger.entries.filter((e) => e.resolution_status === 'REPEATED').length;
+  warningResolutionLedger.false_positive_count = warningResolutionLedger.entries.filter((e) => e.resolution_status === 'FALSE_POSITIVE').length;
+  warningResolutionLedger.not_computable_count = warningResolutionLedger.entries.filter((e) => e.resolution_status === 'NOT_COMPUTABLE').length;
+  const latest = warningResolutionLedger.entries[warningResolutionLedger.entries.length - 1];
+  warningResolutionLedger.latest_resolution_status = latest?.resolution_status || 'NOT_COMPUTABLE';
+  warningResolutionLedger.latest_dominant_concern = latest?.dominant_concern || 'NOT_COMPUTABLE';
+  computeResolutionAnalytics();
+  renderResolutionLedger();
+});
+document.getElementById('exportResolutionLedgerBtn').addEventListener('click', () => {
+  ensureResolutionLedger();
+  const blob = new Blob([JSON.stringify(warningResolutionLedger, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'warning_resolution_ledger_patch004.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('importResolutionLedgerInput').addEventListener('change', async (event) => {
+  const artifacts = await parseLocalFiles(event.target.files || []);
+  const candidate = artifacts[0];
+  const safe = candidate && candidate.schema_version === 'WarningResolutionLedger.v1'
+    && candidate.execution_allowed !== true && candidate.runtime_mutation_allowed !== true
+    && candidate.auto_apply_allowed !== true && candidate.repair_allowed !== true
+    && Array.isArray(candidate.entries)
+    && candidate.entries.every((e) => e.decision_scope === 'WARNING_RESOLUTION_ONLY' && Array.isArray(e.files_modified) && e.files_modified.length === 0);
+  if (!safe) {
+    document.getElementById('resolutionPreview').textContent = 'BLOCKED DATA — UNSAFE ARTIFACT';
+    return;
+  }
+  warningResolutionLedger = candidate;
+  computeResolutionAnalytics();
+  renderResolutionLedger();
+});
+document.getElementById('buildWarningTrustBtn').addEventListener('click', buildWarningTrustCalibration);
+document.getElementById('exportWarningTrustBtn').addEventListener('click', () => {
+  if (!warningTrustCalibration) buildWarningTrustCalibration();
+  const blob = new Blob([JSON.stringify(warningTrustCalibration, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'warning_trust_calibration_patch004.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('buildReliabilityTimelineBtn').addEventListener('click', buildWarningReliabilityTimeline);
+document.getElementById('exportReliabilityTimelineBtn').addEventListener('click', () => { if (!warningReliabilityTimeline) buildWarningReliabilityTimeline(); const blob = new Blob([JSON.stringify(warningReliabilityTimeline, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'warning_reliability_timeline_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('buildReliabilityMatrixBtn').addEventListener('click', buildWarningReliabilityMatrix);
+document.getElementById('exportReliabilityMatrixBtn').addEventListener('click', () => { if (!warningReliabilityMatrix) buildWarningReliabilityMatrix(); const blob = new Blob([JSON.stringify(warningReliabilityMatrix, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'warning_reliability_matrix_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('buildWarningTrustDigestBtn').addEventListener('click', buildWarningTrustDigest);
+document.getElementById('exportWarningTrustDigestBtn').addEventListener('click', () => { if (!warningTrustDigest) buildWarningTrustDigest(); const blob = new Blob([JSON.stringify(warningTrustDigest, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'warning_trust_digest_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('previewWarningBundleBtn').addEventListener('click', buildWarningCalibrationBundle);
+document.getElementById('exportWarningBundleBtn').addEventListener('click', () => { if (!warningCalibrationBundle) buildWarningCalibrationBundle(); const blob = new Blob([JSON.stringify(warningCalibrationBundle, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'warning_calibration_bundle_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('importWarningBundleInput').addEventListener('change', async (event) => { const artifacts = await parseLocalFiles(event.target.files || []); const b = artifacts[0]; const safe = b && b.schema_version === 'WarningCalibrationExportBundle.v1' && b?.safety_flags?.execution_allowed !== true && b?.safety_flags?.runtime_mutation_allowed !== true && b?.safety_flags?.auto_apply_allowed !== true && b?.safety_flags?.repair_allowed !== true && b?.safety_flags?.suppression_allowed !== true; if (!safe) { document.getElementById('warningBundlePreview').textContent = 'BLOCKED DATA — UNSAFE ARTIFACT'; return; } warningCalibrationBundle = b; document.getElementById('warningBundlePreview').textContent = JSON.stringify(warningCalibrationBundle, null, 2); });
+document.getElementById('buildWarningClosureReportBtn').addEventListener('click', buildWarningClosureReport);
+document.getElementById('exportWarningClosureReportBtn').addEventListener('click', () => { if (!warningClosureReport) buildWarningClosureReport(); const blob = new Blob([JSON.stringify(warningClosureReport, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'warning_intelligence_closure_report_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('buildCrossDomainFusionBtn').addEventListener('click', buildCrossDomainFusion);
+document.getElementById('exportCrossDomainFusionBundleBtn').addEventListener('click', () => { if (!crossDomainFusionBundle) buildCrossDomainFusion(); const blob = new Blob([JSON.stringify(crossDomainFusionBundle, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'cross_domain_fusion_bundle_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('importCrossDomainFusionBundleInput').addEventListener('change', async (event) => { const artifacts = await parseLocalFiles(event.target.files || []); const b = artifacts[0]; const safe = b && b.schema_version === 'CrossDomainFusionBundle.v1' && b.execution_allowed !== true && b.runtime_mutation_allowed !== true && b.auto_apply_allowed !== true && b.repair_allowed !== true && b.suppression_allowed !== true; if (!safe) { document.getElementById('crossDomainFusionPreview').textContent = 'BLOCKED DATA — UNSAFE ARTIFACT'; return; } crossDomainFusionBundle = b; document.getElementById('crossDomainFusionPreview').textContent = JSON.stringify(crossDomainFusionBundle, null, 2); });
+document.getElementById('previewFusionOutcomeBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('recordFusionOutcomeBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); fusionOutcomeLedger.entries.push({ ...fusionLearningDigest, schema_version: 'FusionOutcomeEntry.v1', outcome_status: 'PARTIAL' }); });
+document.getElementById('exportFusionOutcomeLedgerBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(fusionOutcomeLedger, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'fusion_outcome_ledger_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('importFusionOutcomeLedgerInput').addEventListener('change', async (event) => { const artifacts = await parseLocalFiles(event.target.files || []); const b = artifacts[0]; const safe = b && b.schema_version === 'FusionOutcomeLedger.v1' && b.execution_allowed !== true && b.runtime_mutation_allowed !== true && b.auto_apply_allowed !== true && b.repair_allowed !== true && b.suppression_allowed !== true; if (!safe) { document.getElementById('fusionMetaLearningPreview').textContent = 'BLOCKED DATA — UNSAFE ARTIFACT'; return; } fusionOutcomeLedger = b; });
+document.getElementById('buildFusionDriftBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('exportFusionDriftBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(fusionDriftTimeline, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'fusion_drift_timeline_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('buildFusionConflictMatrixBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('exportFusionConflictMatrixBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(fusionConflictRecurrenceMatrix, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'fusion_conflict_recurrence_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('buildMetaConfidenceCalibrationBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('exportMetaConfidenceCalibrationBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(metaConfidenceCalibration, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'meta_confidence_calibration_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('buildFusionLearningDigestBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('exportFusionLearningDigestBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(fusionLearningDigest, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'fusion_learning_digest_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('previewFusionLearningBundleBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('exportFusionLearningBundleBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(fusionLearningExportBundle, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'fusion_learning_export_bundle_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('importFusionLearningBundleInput').addEventListener('change', async (event) => { const artifacts = await parseLocalFiles(event.target.files || []); const b = artifacts[0]; const safe = b && b.schema_version === 'FusionLearningExportBundle.v1' && b.execution_allowed !== true && b.runtime_mutation_allowed !== true && b.auto_apply_allowed !== true && b.repair_allowed !== true && b.suppression_allowed !== true && b.export_integrity?.backend_calls !== true && Array.isArray(b.export_integrity?.files_modified) && b.export_integrity.files_modified.length === 0 && b.export_integrity?.sandbox_only === true; if (!safe) { document.getElementById('fusionMetaLearningPreview').textContent = 'BLOCKED DATA — UNSAFE ARTIFACT'; return; } fusionLearningExportBundle = b; });
+document.getElementById('buildFusionLearningClosureBtn').addEventListener('click', buildFusionMetaLearningBatch);
+document.getElementById('exportFusionLearningClosureBtn').addEventListener('click', () => { buildFusionMetaLearningBatch(); const blob = new Blob([JSON.stringify(fusionLearningClosureReport, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'fusion_learning_closure_report_patch004.json'; a.click(); URL.revokeObjectURL(url); });
+
+buildTimeline();
+buildForecast();
+buildWarningDigest();
+buildWarningHistoryTracker();
+ensureResolutionLedger();
+computeResolutionAnalytics();
+renderResolutionLedger();
+buildWarningTrustCalibration();
+buildWarningReliabilityTimeline();
+buildWarningReliabilityMatrix();
+buildWarningTrustDigest();
+buildWarningCalibrationBundle();
+buildWarningClosureReport();
+buildCrossDomainFusion();
+buildFusionMetaLearningBatch();
+</script>
+</body>
+</html>
