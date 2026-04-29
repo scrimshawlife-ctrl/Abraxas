@@ -145,7 +145,7 @@ jobs:
           p = Path("out/reports/report_manifest.summary.latest.json")
           if p.exists():
               summary = json.loads(p.read_text(encoding="utf-8"))
-              print(f\"report-manifest-summary stability_indicator={summary.get('stability_indicator', 'NOT_COMPUTABLE')}\")
+              print(f"report-manifest-summary stability_indicator={summary.get('stability_indicator', 'NOT_COMPUTABLE')}")
           else:
               print("report-manifest-summary missing")
           PY
