@@ -77,3 +77,42 @@ def test_replay_runner_deterministic_surface_excluding_time(tmp_path: Path):
     b = run_replay_cycle(str(path))
 
     assert _strip_time_fields(a) == _strip_time_fields(b)
+
+
+def test_replay_runner_with_write_artifacts_binds_hashes(tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    payload = {
+        "schema_version": "ABXReplayInput.v1",
+        "records": [
+            {"probability": 0.9, "outcome": "YES"},
+            {"probability": 0.1, "outcome": "NO"},
+            {"probability": 0.2, "outcome": "NO"},
+        ],
+    }
+    receipt = run_replay_cycle(str(_write_payload(tmp_path, payload)), write_artifacts=True)
+
+    for item in receipt["proof_state_set"]["items"]:
+        assert item["source_artifact_sha256"].startswith("sha256:")
+        assert item["source_artifact_sha256"] != "NOT_COMPUTABLE"
+
+    run_dir = Path("out/replay/artifacts") / receipt["run_id"]
+    assert (run_dir / "calibration.json").exists()
+    assert (run_dir / "advisory.json").exists()
+    assert (run_dir / "fusion.json").exists()
+    assert (run_dir / "operator_queue.json").exists()
+
+
+def test_replay_runner_without_artifacts_remains_fail_closed(tmp_path: Path):
+    payload = {
+        "schema_version": "ABXReplayInput.v1",
+        "records": [
+            {"probability": 0.9, "outcome": "YES"},
+            {"probability": 0.1, "outcome": "NO"},
+            {"probability": 0.2, "outcome": "NO"},
+        ],
+    }
+    receipt = run_replay_cycle(str(_write_payload(tmp_path, payload)))
+    statuses = {item["display_status"] for item in receipt["proof_state_set"]["items"]}
+    hashes = {item["source_artifact_sha256"] for item in receipt["proof_state_set"]["items"]}
+    assert "NOT_COMPUTABLE" in statuses
+    assert hashes == {"NOT_COMPUTABLE"}

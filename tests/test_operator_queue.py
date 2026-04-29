@@ -1,22 +1,29 @@
+from abx.fusion.fusion_builder import build_fusion_projection
 from abx.operator.queue_builder import build_operator_queue
 from abx.operator.review_builder import build_review_items
 from abx.weighting.advisory_builder import build_domain_weight_advisory
-from abx.fusion.fusion_builder import build_fusion_projection
 from webpanel.gates import build_calibration_drift_report
 
 
-def _report(status: str) -> dict:
+def _report(status: str, *, gate: str = "PASS", sample_size: int = 3) -> dict:
     return {
         "schema_version": "CalibrationDriftReport.v1",
         "generated_at": "2026-01-01T00:00:00+00:00",
         "mean_brier": 0.0,
-        "sample_size": 0,
+        "sample_size": sample_size,
         "not_computable_count": 0,
         "calibration_drift_status": status,
-        "promotion_gate_status": "PASS",
+        "promotion_gate_status": gate,
         "dominant_failure_mode": "none",
         "evidence_refs": ["report.ref"],
     }
+
+
+def _cal_item(items: list[dict]) -> dict | None:
+    for item in items:
+        if item.get("source_system") == "calibration":
+            return item
+    return None
 
 
 def test_operator_queue_schema_and_counts():
@@ -74,12 +81,57 @@ def test_deterministic_ordering_priority_source_review_id():
     assert [item["priority"] for item in queue["items"]] == ["P0", "P1", "P2"]
 
 
-def test_not_computable_propagation_to_p0_request_evidence():
-    report = _report("NOT_COMPUTABLE")
+def test_calibration_review_required_maps_to_p1():
+    report = _report("REVIEW_REQUIRED", gate="PASS", sample_size=3)
     advisory = build_domain_weight_advisory(report)
     fusion = build_fusion_projection(report, advisory)
-    items = build_review_items(report, advisory, fusion)
-    assert any(item["decision_type"] == "REQUEST_EVIDENCE" and item["priority"] == "P0" for item in items)
+    item = _cal_item(build_review_items(report, advisory, fusion))
+    assert item is not None
+    assert item["priority"] == "P1"
+
+
+def test_calibration_fail_maps_to_p0():
+    report = _report("FAIL", gate="PASS", sample_size=3)
+    advisory = build_domain_weight_advisory(report)
+    fusion = build_fusion_projection(report, advisory)
+    item = _cal_item(build_review_items(report, advisory, fusion))
+    assert item is not None
+    assert item["priority"] == "P0"
+
+
+def test_calibration_not_computable_maps_to_p0():
+    report = _report("NOT_COMPUTABLE", gate="PASS", sample_size=3)
+    advisory = build_domain_weight_advisory(report)
+    fusion = build_fusion_projection(report, advisory)
+    item = _cal_item(build_review_items(report, advisory, fusion))
+    assert item is not None
+    assert item["priority"] == "P0"
+
+
+def test_blocked_gate_maps_to_p0():
+    report = _report("PASS", gate="BLOCKED", sample_size=3)
+    advisory = build_domain_weight_advisory(report)
+    fusion = build_fusion_projection(report, advisory)
+    item = _cal_item(build_review_items(report, advisory, fusion))
+    assert item is not None
+    assert item["priority"] == "P0"
+
+
+def test_low_sample_size_maps_to_p0():
+    report = _report("PASS", gate="PASS", sample_size=2)
+    advisory = build_domain_weight_advisory(report)
+    fusion = build_fusion_projection(report, advisory)
+    item = _cal_item(build_review_items(report, advisory, fusion))
+    assert item is not None
+    assert item["priority"] == "P0"
+
+
+def test_clean_pass_has_no_calibration_review_item():
+    report = _report("PASS", gate="PASS", sample_size=3)
+    advisory = build_domain_weight_advisory(report)
+    fusion = build_fusion_projection(report, advisory)
+    item = _cal_item(build_review_items(report, advisory, fusion))
+    assert item is None
 
 
 class _Signal:

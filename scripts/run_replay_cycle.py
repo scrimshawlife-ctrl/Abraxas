@@ -13,6 +13,7 @@ from abx.operator.review_builder import build_review_items
 from abx.viz.proof_builder import build_proof_states
 from abx.viz.set_builder import build_proof_state_set
 from abx.weighting.advisory_builder import build_domain_weight_advisory
+from abx.proof.artifact_writer import write_replay_artifacts
 
 
 def _utc_now() -> str:
@@ -51,7 +52,7 @@ def _parse_records(payload: Mapping[str, Any]) -> List[Mapping[str, Any]]:
     return [r for r in records if isinstance(r, Mapping)]
 
 
-def run_replay_cycle(input_path: str) -> Dict[str, Any]:
+def run_replay_cycle(input_path: str, *, write_artifacts: bool = False) -> Dict[str, Any]:
     run_id = _run_id()
     path = Path(input_path)
     try:
@@ -61,7 +62,8 @@ def run_replay_cycle(input_path: str) -> Dict[str, Any]:
 
     if not isinstance(payload, Mapping):
         return _not_computable_receipt(run_id=run_id)
-    if str(payload.get("schema_version", "")) != "ABXReplayInput.v1":
+    schema_version = str(payload.get("schema_version", "ABXReplayInput.v1") or "ABXReplayInput.v1")
+    if schema_version != "ABXReplayInput.v1":
         return _not_computable_receipt(run_id=run_id)
 
     records = _parse_records(payload)
@@ -123,6 +125,39 @@ def run_replay_cycle(input_path: str) -> Dict[str, Any]:
     proof_states = build_proof_states(report, advisory, fusion, queue)
     proof_set = build_proof_state_set(proof_states)
 
+    if write_artifacts:
+        artifact_hashes = write_replay_artifacts(run_id, report, advisory, fusion, queue)
+        hash_by_projection = {
+            "calibration_drift_report": artifact_hashes["calibration"],
+            "domain_weight_advisory": artifact_hashes["advisory"],
+            "fusion_projection": artifact_hashes["fusion"],
+        }
+        updated_items = []
+        for item in proof_set.get("items", []):
+            projection_id = str(item.get("projection_id", ""))
+            entry = hash_by_projection.get(projection_id)
+            if not entry:
+                updated_items.append(item)
+                continue
+            updated = dict(item)
+            updated["source_artifact_path"] = entry["path"]
+            updated["source_artifact_sha256"] = entry["sha256"]
+            priority = ""
+            review_id = item.get("operator_review_item_id")
+            if isinstance(review_id, str):
+                for row in queue.get("items", []):
+                    if isinstance(row, dict) and str(row.get("review_id", "")) == review_id:
+                        priority = str(row.get("priority", ""))
+                        break
+            if priority in {"P0", "P1"}:
+                updated["display_status"] = "BLOCKED"
+                updated["display_allowed"] = False
+            else:
+                updated["display_status"] = "OK"
+                updated["display_allowed"] = True
+            updated_items.append(updated)
+        proof_set = build_proof_state_set(updated_items)
+
     p0_count = int(queue.get("p0_count", 0) or 0)
     p1_count = int(queue.get("p1_count", 0) or 0)
     if not resolved:
@@ -166,7 +201,8 @@ def main(argv: List[str]) -> int:
     if len(argv) < 2:
         print(json.dumps(_not_computable_receipt(run_id=_run_id()), indent=2, sort_keys=True))
         return 1
-    receipt = run_replay_cycle(argv[1])
+    write_artifacts = "--write-artifacts" in argv[2:]
+    receipt = run_replay_cycle(argv[1], write_artifacts=write_artifacts)
     print(json.dumps(receipt, indent=2, sort_keys=True))
     return 0
 
