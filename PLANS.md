@@ -29,6 +29,15 @@ This file is the append-first execution queue for implementation runs.
 - **Intent:** route execution-producing paths through a shared rune artifact envelope.
 - **Definition of done:** new execution paths use wrapper-generated schema-aligned artifacts.
 
+### P1 — Snapshot Lookup + Synthesis Readiness Refinement
+- **Status:** ACTIVE
+- **Intent:** follow up on post-repair validation by tightening runtime/synthesis gating after envelope exact-match restoration.
+- **Definition of done:** bound + exact-match cases consistently map to non-degraded synthesis labels with explicit blocker precedence.
+- **Current execution slices:**
+  - **SLICE-1 (ACTIVE):** runtime/synthesis blocker precedence audit for bound `EXACT_MATCH` cases (`BLOCKED` vs `NOT_COMPUTABLE` branch boundaries).
+  - **SLICE-2 (QUEUED):** broaden real-case validation set beyond `seal` while preserving deterministic local artifact lineage.
+  - **SLICE-3 (QUEUED):** align final-state-derivable metrics with binding-health derivability semantics to remove contradictory reporting.
+
 ### P2 — Operator UI Shell Follow-up
 - **Status:** CONDITIONAL
 - **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.
@@ -111,6 +120,11 @@ This file is the append-first execution queue for implementation runs.
 - 2026-03-30 — Operator projection convergence pass: introduced `OperatorProjectionSummary.v1` derivation (`abx/operator_projection.py`), wired webpanel projection JSON route (`/runs/{run_id}/projection.json`), and aligned TS secondary API semantics (`/api/operator/projection/:runId`, `shared/operatorProjection.ts`) with focused anti-drift/tests.
 - 2026-03-30 — Promotion bridge pass: added deterministic promotion-readiness contract + CLI (`abx.cli promotion-check`), bridge artifact emission (`out/promotion`), closure-tier docs split, and canonical onboarding drift guard tests.
 - 2026-03-30 — Canonical convergence pass: added `abx.cli proof-run` + `abx/proof_closure.py` to enforce one deterministic proof spine (emit→ledger→validate→operator projection→attest), and compressed operator/runtime/docs truth surfaces via `README.md`, `docs/CANONICAL_RUNTIME.md`, `docs/VALIDATION_AND_ATTESTATION.md`, and `docs/SUBSYSTEM_INVENTORY.md`.
+- 2026-03-30 — Snapshot lookup repair applied in `webpanel/operator_console.py`: `_load_latest_pipeline_binding_snapshot` now prefers selected `run_id` and normalizes persisted `pipeline_envelope` artifacts into `pipeline_execution_envelope` for linkage consumers.
+- 2026-03-30 — Regression coverage extended in `tests/test_operator_console_v15.py` for run-aware snapshot preference, envelope-key normalization, and exact-match bindable synthesis corridor behavior.
+- 2026-03-30 — Post-repair final validation rerun emitted at `artifacts_seal/abraxas_validation/20260329T191714Z.final_validation_post_snapshot_lookup_repair.json` (+ `.md`) with explicit case deviations, cross-case metrics, and `READY_FOR_REFINEMENT` verdict.
+- 2026-03-30 — Plan continuation pass: translated `READY_FOR_REFINEMENT` outcome into explicit snapshot/synthesis refinement execution slices under active queue item `P1 — Snapshot Lookup + Synthesis Readiness Refinement`.
+- 2026-03-30 — Refinement slice progress: `binding_restoration` now explicitly surfaces `final_state_derivable` (aligned with binding-envelope health semantics), with focused regression coverage in `tests/test_operator_console_v15.py`.
 - 2026-03-29 — Governance surface verification run completed: confirmed required enforcement files (`/AGENTS.md`, `/PLANS.md`, `/aal_core/runes/catalog.v0.yaml`, `/aal_core/schemas/rune_execution_artifact.v1.json`, `/aal_core/runes/executor.py`) exist and are repository-visible for deterministic plan-gated execution.
 - 2026-03-28 — ABX-Rune compliance probe path added (`aal_core/runes/compliance_probe.py`) with deterministic `RUNE.INGEST` artifact emission to `artifacts_seal/runs/compliance_probe/<run_id>.artifact.json`.
 - 2026-03-28 — Correlation-linkage compliance probe added via `--linkage-mode` (`absent|present|not_computable`) with deterministic local test linkage provenance and explicit structural handling for empty/non-computable linkage.

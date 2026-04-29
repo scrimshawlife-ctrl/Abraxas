@@ -1119,6 +1119,25 @@ def test_operator_exact_match_binding_succeeds_when_envelope_run_id_matches() ->
     assert health["final_state_bindable"] is True
 
 
+def test_binding_restoration_exposes_final_state_derivable_flag(tmp_path: Path) -> None:
+    _seed_scopepass(tmp_path)
+    _write_json(
+        tmp_path / "artifacts_seal/abraxas_pipeline/20260329T010000Z.pipeline.json",
+        {
+            "pipeline_envelope": {
+                "run_id": "run.generalized_coverage.scopepass.v1",
+                "pipeline_id": "PIPE.ABRAXAS.CORE",
+                "overall_status": "SUCCESS",
+                "final_classification": "SUCCESS",
+            },
+            "pipeline_step_records": [{"step_name": "review_audit", "status": "SUCCESS"}],
+        },
+    )
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    assert view.binding_restoration["final_state_derivable"] is True
+    assert view.binding_restoration["final_state_bindable"] is True
+
+
 def test_nc_pipeline_envelope_run_id_missing_when_envelope_exists_without_run_id() -> None:
     linkage = {
         "envelope_binding_status": "BOUND",

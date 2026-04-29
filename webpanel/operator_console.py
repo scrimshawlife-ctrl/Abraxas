@@ -729,6 +729,150 @@ def write_context_restoration_artifact(
     return path.as_posix(), "written"
 
 
+def write_pipeline_envelope_binding_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_envelope_binding.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_envelope_binding.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v5.0.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.BINDING",
+        "artifact_id": f"pipeline_envelope_binding.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_run_id_propagation_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.run_id_propagation.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.run_id_propagation.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v5.0.1",
+        "source": "operator_console",
+        "rune_id": "RUNE.BINDING",
+        "artifact_id": f"run_id_propagation.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_pipeline_envelope_run_id_repair_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_binding",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.pipeline_envelope_run_id_repair.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.pipeline_envelope_run_id_repair.json"
+        index += 1
+    run_id = str(payload.get("run_id", "NOT_COMPUTABLE")) or "NOT_COMPUTABLE"
+    match_status = str(payload.get("run_id_match_status", "INVOCATION_MISSING"))
+    final_state_bindable = bool(payload.get("final_state_bindable", False))
+    status = "SUCCESS" if final_state_bindable and match_status in {"EXACT_MATCH", "FALLBACK_MATCH"} else "NOT_COMPUTABLE"
+    invocation_state_raw = payload.get("invocation_run_id_state", "MISSING")
+    envelope_state_raw = payload.get("emitted_envelope_run_id_state", "MISSING")
+    if isinstance(invocation_state_raw, Mapping):
+        invocation_state = str(invocation_state_raw.get("invocation_run_id_status", "MISSING"))
+    else:
+        invocation_state = str(invocation_state_raw)
+    if isinstance(envelope_state_raw, Mapping):
+        envelope_state = str(envelope_state_raw.get("pipeline_envelope_run_id_status", "MISSING"))
+    else:
+        envelope_state = str(envelope_state_raw)
+    artifact = {
+        "schema_version": "aal.runes.execution_artifact.v1",
+        "run_id": run_id,
+        "artifact_id": f"pipeline_envelope_run_id_repair.{stamp.lower()}",
+        "rune_id": "RUNE.BINDING",
+        "timestamp": _utc_now(),
+        "phase": "VALIDATE",
+        "status": status,
+        "inputs": {
+            "payload": {
+                "invocation_run_id_state": invocation_state,
+                "emitted_envelope_run_id_state": envelope_state,
+                "run_id_match_status": match_status,
+            },
+            "meta": {"source": "operator_console"},
+        },
+        "outputs": {
+            "payload": dict(payload),
+            "summary": "pipeline_envelope_run_id_repair",
+            "metrics": {"final_state_bindable": final_state_bindable},
+            "errors": [] if status == "SUCCESS" else ["NC_PIPELINE_ENVELOPE_RUN_ID_MISSING_OR_MISMATCH"],
+        },
+        "provenance": {
+            "source_refs": ["operator_console.binding_restoration.pipeline_envelope_run_id_repair.export.v5.0.2"],
+            "notes": "Canonical invocation run_id propagation and envelope binding repair snapshot.",
+        },
+        "ledger_record_ids": [str(x) for x in payload.get("ledger_record_ids", []) if isinstance(x, str)],
+        "ledger_artifact_ids": [str(x) for x in payload.get("ledger_artifact_ids", []) if isinstance(x, str)],
+        "correlation_pointers": [
+            {"type": "invocation_run_id_state", "value": invocation_state, "status": "PRESENT" if invocation_state == "PRESENT" else "MISSING"},
+            {"type": "envelope_run_id_state", "value": envelope_state, "status": "PRESENT" if envelope_state == "PRESENT" else "MISSING"},
+        ],
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
+def write_context_restoration_artifact(
+    *,
+    payload: Mapping[str, Any],
+    root: Path = Path("artifacts_seal") / "abraxas_context",
+) -> tuple[str | None, str]:
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path = root / f"{stamp}.context_restoration.json"
+    index = 1
+    while path.exists():
+        path = root / f"{stamp}.{index}.context_restoration.json"
+        index += 1
+    artifact = {
+        "generated_at": _utc_now(),
+        "ruleset_version": "v4.8.0",
+        "source": "operator_console",
+        "rune_id": "RUNE.CONTEXT_RESTORE",
+        "artifact_id": f"context_restoration.{stamp.lower()}",
+        "ledger_record_ids": [],
+        "ledger_artifact_ids": [],
+        "correlation_pointers": [],
+        **dict(payload),
+    }
+    path.write_text(json.dumps(artifact, sort_keys=True, indent=2), encoding="utf-8")
+    return path.as_posix(), "written"
+
+
 def _load_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -7830,6 +7974,7 @@ def build_view_state(
         "invocation_run_id_state": invocation_run_id_state,
         "pipeline_envelope_run_id_state": pipeline_envelope_run_id_state,
         "run_id_match_status": str(binding_envelope_health_surface.get("run_id_match_status", "INVOCATION_MISSING")),
+        "final_state_derivable": bool(binding_envelope_health_surface.get("final_state_derivable", False)),
         "final_state_bindable": bool(binding_envelope_health_surface.get("final_state_bindable", False)),
         "propagation_nc_subcodes": refined_binding_nc_subcodes[:5],
         "blocker_summary": [
@@ -7875,6 +8020,7 @@ def build_view_state(
         "invocation_run_id_state": invocation_run_id_state,
         "pipeline_envelope_run_id_state": pipeline_envelope_run_id_state,
         "run_id_match_status": str(binding_envelope_health_surface.get("run_id_match_status", "INVOCATION_MISSING")),
+        "final_state_derivable": bool(binding_envelope_health_surface.get("final_state_derivable", False)),
         "final_state_bindable": bool(binding_envelope_health_surface.get("final_state_bindable", False)),
         "ledger_bridge": ledger_bridge,
         "not_computable_subcodes": not_computable_subcodes[:5],
