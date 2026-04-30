@@ -1,0 +1,26 @@
+[
+  {
+    "prediction_id": "pred_1",
+    "event_id": "evt_1",
+    "predicted_outcome": "YES",
+    "probability": 0.8
+  },
+  {
+    "prediction_id": "pred_2",
+    "event_id": "evt_2",
+    "predicted_outcome": "YES",
+    "probability": 0.7
+  },
+  {
+    "prediction_id": "pred_3",
+    "event_id": "evt_3",
+    "predicted_outcome": "NO",
+    "probability": 0.25
+  },
+  {
+    "prediction_id": "pred_4",
+    "event_id": "evt_4",
+    "predicted_outcome": "PARTIAL",
+    "probability": 0.6
+  }
+]

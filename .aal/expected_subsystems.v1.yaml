@@ -1,0 +1,20 @@
+schema_version: ExpectedSubsystems.v1
+subsystems:
+  - id: attestation_runner
+    required_paths:
+      - abraxas/governance/attestation_runner.py
+  - id: binding_validator
+    required_paths:
+      - abraxas/governance/binding_validator.py
+  - id: repair_suggester
+    required_paths:
+      - abraxas/governance/repair_suggester.py
+  - id: cross_domain_fusion
+    required_paths:
+      - abraxas/fusion/
+  - id: pse_outcome_tracker
+    required_paths:
+      - abraxas/pse/outcome_tracker.py
+  - id: brier_ledger
+    required_paths:
+      - abraxas/pse/brier_ledger.py
