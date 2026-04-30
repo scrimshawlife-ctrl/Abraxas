@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CrossDomainSignal.v1",
+  "type": "object",
+  "required": ["schema_version", "signal_id", "domain", "polarity", "magnitude", "confidence", "freshness"],
+  "properties": {
+    "schema_version": {"const": "CrossDomainSignal.v1"},
+    "signal_id": {"type": "string"},
+    "domain": {"type": "string"},
+    "polarity": {"type": "string"},
+    "magnitude": {"type": "number"},
+    "confidence": {"type": "number"},
+    "freshness": {"type": "number"}
+  }
+}

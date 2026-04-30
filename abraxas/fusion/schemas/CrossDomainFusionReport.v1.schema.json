@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CrossDomainFusionReport.v1",
+  "type": "object",
+  "required": ["schema_version", "status", "authority", "domain_scores", "unknown_domains", "conflicts", "meta_confidence", "provenance"],
+  "properties": {
+    "schema_version": {"const": "CrossDomainFusionReport.v1"},
+    "status": {"enum": ["CANDIDATE_ONLY", "NOT_COMPUTABLE"]},
+    "authority": {"const": "CANDIDATE_ONLY"}
+  }
+}

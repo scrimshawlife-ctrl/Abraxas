@@ -1,79 +1,42 @@
-from abx.fusion.fusion_builder import build_fusion_projection
-from abx.weighting.advisory_builder import build_domain_weight_advisory
-from webpanel.gates import build_calibration_drift_report
+from __future__ import annotations
+
+from pathlib import Path
+
+from abraxas.fusion.fusion_engine import fuse_signals
+from abraxas.fusion.models import clamp01
 
 
-def _calibration_report(status: str, generated_at: str = "2026-01-01T00:00:00+00:00") -> dict:
-    return {
-        "schema_version": "CalibrationDriftReport.v1",
-        "generated_at": generated_at,
-        "mean_brier": 0.0,
-        "sample_size": 0,
-        "not_computable_count": 0,
-        "calibration_drift_status": status,
-        "promotion_gate_status": "PASS",
-        "dominant_failure_mode": "none",
-        "evidence_refs": ["x"],
-    }
+def test_deterministic_output() -> None:
+    signals = [{"schema_version": "CrossDomainSignal.v1", "signal_id": "s1", "domain": "oracle", "polarity": "positive", "magnitude": 1.0, "confidence": 0.5, "freshness": 1.0}]
+    assert fuse_signals(signals) == fuse_signals(signals)
 
 
-def test_fusion_schema_and_bounded_priority():
-    report = _calibration_report("REVIEW_REQUIRED")
-    advisory = build_domain_weight_advisory(report)
-    projection = build_fusion_projection(report, advisory)
-    assert projection["schema_version"] == "CrossDomainFusionProjection.v1"
-    assert projection["authority_effect"] == "ADVISORY_ONLY"
-    assert 0.0 <= projection["fused_priority_score"] <= 1.0
+def test_clamping_works() -> None:
+    assert clamp01(-5) == 0.0
+    assert clamp01(3) == 1.0
 
 
-def test_fusion_deterministic_surface_excluding_time():
-    report = _calibration_report("FAIL")
-    advisory = build_domain_weight_advisory(report)
-    a = build_fusion_projection(report, advisory)
-    b = build_fusion_projection(report, advisory)
-    for key in a:
-        if key == "generated_at":
-            continue
-        assert a[key] == b[key]
+def test_dominant_domain_and_conflict_detection() -> None:
+    signals = [
+        {"schema_version": "CrossDomainSignal.v1", "signal_id": "a", "domain": "oracle", "polarity": "positive", "magnitude": 1, "confidence": 1, "freshness": 1},
+        {"schema_version": "CrossDomainSignal.v1", "signal_id": "b", "domain": "operator", "polarity": "negative", "magnitude": 0.5, "confidence": 1, "freshness": 1},
+    ]
+    report = fuse_signals(signals)
+    assert report["dominant_domain"] == "oracle"
+    assert report["conflicts"][0]["type"] == "POLARITY_CONFLICT"
 
 
-def test_fusion_not_computable_propagation():
-    report = _calibration_report("NOT_COMPUTABLE")
-    advisory = build_domain_weight_advisory(report)
-    projection = build_fusion_projection(report, advisory)
-    assert projection["fused_priority_score"] == 0.0
-    assert "CALIBRATION_DRIFT" in projection["drift_alerts"]
-    assert "LOW_CONFIDENCE" in projection["drift_alerts"]
+def test_empty_input_not_computable() -> None:
+    report = fuse_signals([])
+    assert report["status"] == "NOT_COMPUTABLE"
 
 
-def test_fusion_dominance_detection():
-    report = _calibration_report("PASS")
-    advisory = build_domain_weight_advisory(report)
-    projection = build_fusion_projection(report, advisory)
-    assert projection["dominant_domain"] == "market_pse"
-    assert projection["dominance_ratio"] > 1.0
+def test_unknown_domains_and_authority() -> None:
+    signals = [{"schema_version": "CrossDomainSignal.v1", "signal_id": "u1", "domain": "unknown", "polarity": "neutral", "magnitude": 1, "confidence": 1, "freshness": 1}]
+    report = fuse_signals(signals)
+    assert report["unknown_domains"] == ["u1"]
+    assert report["authority"] == "CANDIDATE_ONLY"
 
 
-class _Signal:
-    def __init__(self, provenance_status: str = "complete", invariance_status: str = "pass"):
-        self.provenance_status = provenance_status
-        self.invariance_status = invariance_status
-
-
-class _Run:
-    def __init__(self, *, drift_class: str = "none", provenance_status: str = "complete"):
-        self.session_active = True
-        self.session_max_steps = 10
-        self.session_steps_used = 0
-        self.actions_remaining = 1
-        self.signal = _Signal(provenance_status=provenance_status)
-        self.stability_report = {"drift_class": drift_class}
-
-
-def test_gates_flow_exposes_fusion_without_runtime_mutation():
-    run = _Run(drift_class="major", provenance_status="complete")
-    output = build_calibration_drift_report(run, current_policy_hash="h1", write_ledger=False)
-    assert "fusion_projection" in output
-    projection = output["fusion_projection"]
-    assert projection["authority_effect"] == "ADVISORY_ONLY"
-    assert not hasattr(run, "weights")
+def test_no_portfolio_file_created() -> None:
+    assert not Path("abraxas/pse/portfolio.py").exists()

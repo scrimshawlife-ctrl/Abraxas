@@ -1,0 +1,6 @@
+[
+  {"event_id":"evt_1","resolved_outcome":"YES"},
+  {"event_id":"evt_2","resolved_outcome":"NO"},
+  {"event_id":"evt_3","resolved_outcome":"NO"},
+  {"event_id":"evt_4","resolved_outcome":"YES"}
+]
