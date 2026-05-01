@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackReviewRecommendation.v1",
+  "type": "object",
+  "required": ["recommendation_version", "recommendation_id", "rollback_id", "observation_id", "execution_id", "source_key", "status", "basis", "lineage", "authority"],
+  "properties": {
+    "recommendation_version": {"const": "CanaryRollbackReviewRecommendation.v1"},
+    "status": {"enum": ["recommend_approve_for_rollback_review", "recommend_hold", "recommend_reject", "not_computable"]}
+  }
+}

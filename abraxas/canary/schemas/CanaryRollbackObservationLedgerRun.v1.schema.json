@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackObservationLedgerRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "observations"],
+  "properties": {
+    "artifact": {"const": "CANARY-ROLLBACK-OBSERVATION-LEDGER-001"},
+    "schema_version": {"const": "CanaryRollbackObservationLedgerRun.v1"}
+  }
+}

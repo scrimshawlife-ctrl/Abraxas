@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryCycleClosureLedgerRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "entries"],
+  "properties": {
+    "artifact": {"const": "CANARY-CYCLE-CLOSURE-LEDGER-001"},
+    "schema_version": {"const": "CanaryCycleClosureLedgerRun.v1"}
+  }
+}

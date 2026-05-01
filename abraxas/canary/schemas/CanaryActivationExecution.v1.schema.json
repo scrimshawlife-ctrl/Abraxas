@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryActivationExecution.v1",
+  "type": "object",
+  "required": ["schema_version", "execution_id", "packet_id", "source_key", "overlay_id", "overlay_hash", "simulation_hash", "recommendation_id", "execution_status", "execution_scope", "authority", "applied_artifact", "evidence", "lineage"],
+  "properties": {
+    "schema_version": {"const": "CanaryActivationExecution.v1"},
+    "execution_status": {"enum": ["canary_applied", "blocked", "not_computable"]}
+  }
+}

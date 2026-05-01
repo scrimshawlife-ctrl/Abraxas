@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackExecutionRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "controls", "counts", "executions"],
+  "properties": {
+    "artifact": {"const": "CANARY-ROLLBACK-EXECUTOR-001"},
+    "schema_version": {"const": "CanaryRollbackExecutionRun.v1"}
+  }
+}

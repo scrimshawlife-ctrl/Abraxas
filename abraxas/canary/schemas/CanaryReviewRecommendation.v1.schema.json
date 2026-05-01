@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryReviewRecommendation.v1",
+  "type": "object",
+  "required": ["recommendation_version", "recommendation_id", "overlay_id", "source_key", "status", "basis", "thresholds", "reason", "lineage", "authority"],
+  "properties": {
+    "recommendation_version": {"const": "CanaryReviewRecommendation.v1"},
+    "recommendation_id": {"type": "string"},
+    "overlay_id": {"type": "string"},
+    "entry_id": {"type": ["string", "null"]},
+    "proposal_id": {"type": ["string", "null"]},
+    "source_key": {"type": "string"},
+    "status": {"enum": ["recommend_approve_for_activation_review", "recommend_hold", "recommend_reject", "not_computable"]},
+    "basis": {"type": "object"},
+    "thresholds": {"type": "object"},
+    "reason": {"type": "string"},
+    "lineage": {"type": "object"},
+    "authority": {"type": "object"}
+  }
+}

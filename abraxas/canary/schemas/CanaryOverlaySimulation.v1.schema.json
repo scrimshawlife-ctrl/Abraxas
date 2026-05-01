@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryOverlaySimulation.v1",
+  "type": "object",
+  "required": ["simulation_version", "overlay_id", "source_key", "status", "coverage", "authority"],
+  "properties": {
+    "simulation_version": {"const": "CanaryOverlaySimulation.v1"},
+    "overlay_id": {"type": "string"},
+    "source_key": {"type": "string"},
+    "status": {"enum": ["computed", "not_computable"]},
+    "baseline_error": {"type": ["number", "null"]},
+    "simulated_error": {"type": ["number", "null"]},
+    "delta_error": {"type": ["number", "null"]},
+    "improvement_direction": {"enum": ["improved", "worsened", "neutral", null]},
+    "coverage": {
+      "type": "object",
+      "required": ["forecasts_matched", "scores_used"],
+      "properties": {
+        "forecasts_matched": {"type": "integer", "minimum": 0},
+        "scores_used": {"type": "integer", "minimum": 0}
+      }
+    },
+    "reason": {"type": ["string", "null"]},
+    "authority": {"type": "object"}
+  }
+}

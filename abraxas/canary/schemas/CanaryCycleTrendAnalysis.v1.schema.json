@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryCycleTrendAnalysis.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "analysis_id", "authority", "counts", "rates", "symmetry", "reversibility", "trend", "recommendations", "lineage", "analysis_hash"],
+  "properties": {
+    "artifact": {"const": "CANARY-CYCLE-TREND-ANALYSIS-001"},
+    "schema_version": {"const": "CanaryCycleTrendAnalysis.v1"}
+  }
+}
