@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AALVizSVGArtifactLedgerRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "entries"],
+  "properties": {
+    "artifact": {"const": "AAL-VIZ-SVG-ARTIFACT-LEDGER-001"},
+    "schema_version": {"const": "AALVizSVGArtifactLedgerRun.v1"},
+    "entries": {"type": "array"}
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "required": [
+    "artifact",
+    "schema_version",
+    "manifest_id",
+    "frontend_root",
+    "required_files",
+    "registry_policy",
+    "proof_status",
+    "authority",
+    "manifest_hash"
+  ],
+  "properties": {
+    "artifact": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "manifest_id": { "type": "string" },
+    "frontend_root": { "type": "string" },
+    "required_files": { "type": "object" },
+    "registry_policy": { "type": "object" },
+    "proof_status": { "type": "object" },
+    "authority": { "type": "object" },
+    "manifest_hash": { "type": "string" }
+  }
+}

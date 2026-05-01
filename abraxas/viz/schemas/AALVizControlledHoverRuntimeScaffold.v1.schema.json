@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "required": ["artifact", "schema_version", "scaffold_id", "scaffold_hash", "status", "readiness", "scaffold_plan", "diff_preview", "forbidden_runtime", "drift_hooks", "lineage", "authority"],
+  "properties": {
+    "artifact": {"const": "AAL-VIZ-CONTROLLED-HOVER-RUNTIME-SCAFFOLD-001"},
+    "schema_version": {"const": "AALVizControlledHoverRuntimeScaffold.v1"},
+    "scaffold_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "scaffold_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

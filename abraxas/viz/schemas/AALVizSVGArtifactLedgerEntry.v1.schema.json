@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AALVizSVGArtifactLedgerEntry.v1",
+  "type": "object",
+  "required": ["entry_version", "entry_id", "render_id", "view_id", "svg_hash", "view_packet_hash", "svg_path", "render_snapshot", "audit", "review", "authority"],
+  "properties": {
+    "entry_version": {"const": "AALVizSVGArtifactLedgerEntry.v1"},
+    "entry_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "render_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "view_id": {"type": "string"},
+    "svg_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "view_packet_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}
