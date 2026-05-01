@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "required": ["artifact", "schema_version", "packet_id", "packet_hash", "interaction", "status", "readiness", "hover_contract", "drift_hooks", "lineage", "authority"],
+  "properties": {
+    "artifact": {"const": "AAL-VIZ-CONTROLLED-HOVER-POLICY-PACKET-001"},
+    "schema_version": {"const": "AALVizControlledHoverPolicyPacket.v1"},
+    "packet_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "packet_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

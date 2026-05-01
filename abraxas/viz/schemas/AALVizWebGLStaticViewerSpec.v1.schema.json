@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AALVizWebGLStaticViewerSpec.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "viewer_id", "authority", "viewer", "component_contract", "props_schema", "asset_bindings", "draw_plan", "camera_defaults", "material_defaults", "interaction_policy", "diagnostics", "lineage"],
+  "properties": {
+    "artifact": {"const": "AAL-VIZ-WEBGL-STATIC-VIEWER-001"},
+    "schema_version": {"const": "AALVizWebGLStaticViewerSpec.v1"},
+    "viewer_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

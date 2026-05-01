@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AALVizWebGLInteractionPolicy.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "allowed_future_interactions", "forbidden_interactions", "interaction_state_model", "event_policy", "mutation_policy", "authority", "lineage", "policy_id", "policy_hash"],
+  "properties": {
+    "artifact": {"const": "AAL-VIZ-WEBGL-INTERACTION-POLICY-001"},
+    "schema_version": {"const": "AALVizWebGLInteractionPolicy.v1"},
+    "policy_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "policy_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

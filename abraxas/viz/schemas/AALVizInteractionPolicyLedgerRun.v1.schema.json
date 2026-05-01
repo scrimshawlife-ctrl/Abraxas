@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["entries", "count", "run_hash"],
+  "properties": {
+    "entries": {
+      "type": "array"
+    },
+    "count": {
+      "type": "integer"
+    },
+    "run_hash": {
+      "type": "string"
+    }
+  }
+}

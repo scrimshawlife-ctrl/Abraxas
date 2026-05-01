@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "required": ["type", "files", "manifest_id", "manifest_hash"],
+  "properties": {
+    "type": { "const": "AALVizFrontendHarnessManifest.v1" },
+    "files": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "manifest_id": { "type": "string" },
+    "manifest_hash": { "type": "string" }
+  }
+}

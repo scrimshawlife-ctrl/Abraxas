@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AALVizWebGLSceneSpec.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority"],
+  "properties": {
+    "artifact": {"const": "AAL-VIZ-WEBGL-SCENE-SPEC-001"},
+    "schema_version": {"const": "AALVizWebGLSceneSpec.v1"},
+    "authority": {"type": "object"}
+  }
+}
