@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryObservationLedgerEntry.v1",
+  "type": "object",
+  "required": ["entry_version", "observation_id", "execution_id", "source_key", "execution_status", "artifact", "sandbox", "execution", "replay", "rollback", "lineage", "authority"],
+  "properties": {
+    "entry_version": {"const": "CanaryObservationLedgerEntry.v1"}
+  }
+}

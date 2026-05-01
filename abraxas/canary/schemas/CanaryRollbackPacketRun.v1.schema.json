@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackPacketRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "packets", "skipped_recommendations"],
+  "properties": {
+    "artifact": {"const": "CANARY-ROLLBACK-PACKET-001"},
+    "schema_version": {"const": "CanaryRollbackPacketRun.v1"}
+  }
+}

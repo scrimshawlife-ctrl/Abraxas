@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackObservationLedgerEntry.v1",
+  "type": "object",
+  "required": ["observation_version", "observation_id", "execution_id", "packet_id", "rollback_id", "observation_source_id", "source_key", "execution_status", "mode", "artifact", "scope", "replay", "rollback", "audit", "lineage", "authority"],
+  "properties": {
+    "observation_version": {"const": "CanaryRollbackObservationLedgerEntry.v1"}
+  }
+}

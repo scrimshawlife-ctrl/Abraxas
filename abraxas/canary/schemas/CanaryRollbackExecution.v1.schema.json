@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackExecution.v1",
+  "type": "object",
+  "required": ["execution_version", "execution_id", "packet_id", "rollback_id", "observation_id", "execution_source_id", "source_key", "execution_status", "mode", "scope", "artifact", "rollback_result", "failure", "lineage", "authority"],
+  "properties": {
+    "execution_version": {"const": "CanaryRollbackExecution.v1"},
+    "execution_status": {"enum": ["completed", "skipped", "blocked", "failed"]}
+  }
+}

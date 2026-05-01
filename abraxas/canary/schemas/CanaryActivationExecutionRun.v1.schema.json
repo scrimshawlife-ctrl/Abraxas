@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryActivationExecutionRun.v1",
+  "type": "object",
+  "required": ["schema_version", "run_id", "created_at", "execution_scope", "authority", "input", "counts", "executions", "skipped", "validation"],
+  "properties": {
+    "schema_version": {"const": "CanaryActivationExecutionRun.v1"}
+  }
+}

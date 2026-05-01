@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryTrendLedgerEntry.v1",
+  "type": "object",
+  "required": ["entry_version", "entry_id", "analysis_id", "analysis_hash", "trend_status", "trend_reason", "rates", "counts", "analysis_snapshot", "audit", "review", "authority"],
+  "properties": {
+    "entry_version": {"const": "CanaryTrendLedgerEntry.v1"}
+  }
+}

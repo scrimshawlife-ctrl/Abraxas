@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackReviewGateRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "recommendations"],
+  "properties": {
+    "artifact": {"const": "CANARY-ROLLBACK-REVIEW-GATE-001"},
+    "schema_version": {"const": "CanaryRollbackReviewGateRun.v1"}
+  }
+}

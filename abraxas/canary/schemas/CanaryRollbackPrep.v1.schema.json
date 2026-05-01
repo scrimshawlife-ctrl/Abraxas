@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackPrep.v1",
+  "type": "object",
+  "required": ["rollback_version", "rollback_id", "observation_id", "execution_id", "source_key", "rollback_key", "status", "rollback_plan", "safety", "lineage", "authority"],
+  "properties": {
+    "rollback_version": {"const": "CanaryRollbackPrep.v1"},
+    "status": {"enum": ["prepared", "not_computable"]}
+  }
+}

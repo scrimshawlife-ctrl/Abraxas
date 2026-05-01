@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryCycleClosureReport.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "report_id", "authority", "counts", "symmetry", "reversibility", "closure", "lineage", "report_hash"],
+  "properties": {
+    "artifact": {"const": "CANARY-CYCLE-CLOSURE-REPORT-001"},
+    "schema_version": {"const": "CanaryCycleClosureReport.v1"}
+  }
+}

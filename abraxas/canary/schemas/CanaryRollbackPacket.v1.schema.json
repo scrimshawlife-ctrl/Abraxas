@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryRollbackPacket.v1",
+  "type": "object",
+  "required": ["packet_version", "packet_id", "rollback_id", "observation_id", "execution_id", "source_key", "recommendation_status", "packet_status", "rollback_plan", "safety", "evidence", "lineage", "review", "authority"],
+  "properties": {
+    "packet_version": {"const": "CanaryRollbackPacket.v1"},
+    "packet_status": {"const": "pending_review"}
+  }
+}

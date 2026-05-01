@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryActivationPacketRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "packets", "skipped_recommendations"],
+  "properties": {
+    "artifact": {"const": "CANARY-ACTIVATION-PACKET-001"},
+    "schema_version": {"const": "CanaryActivationPacketRun.v1"},
+    "authority": {"type": "object"},
+    "counts": {"type": "object"},
+    "packets": {"type": "array", "items": {"type": "object"}},
+    "skipped_recommendations": {"type": "array", "items": {"type": "object"}}
+  }
+}

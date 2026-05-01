@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryCycleClosureLedgerEntry.v1",
+  "type": "object",
+  "required": ["entry_version", "entry_id", "report_id", "report_hash", "closure_status", "closure_reason", "observation_symmetry_status", "reversibility_status", "report_snapshot", "audit", "review", "authority"],
+  "properties": {
+    "entry_version": {"const": "CanaryCycleClosureLedgerEntry.v1"}
+  }
+}

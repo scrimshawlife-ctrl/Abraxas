@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryReviewGateRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "thresholds", "counts", "recommendations"],
+  "properties": {
+    "artifact": {"const": "CANARY-REVIEW-GATE-001"},
+    "schema_version": {"const": "CanaryReviewGateRun.v1"},
+    "authority": {"type": "object"},
+    "thresholds": {"type": "object"},
+    "counts": {"type": "object"},
+    "recommendations": {"type": "array", "items": {"type": "object"}}
+  }
+}

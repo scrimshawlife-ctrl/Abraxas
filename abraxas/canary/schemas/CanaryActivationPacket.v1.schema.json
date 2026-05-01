@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryActivationPacket.v1",
+  "type": "object",
+  "required": ["packet_version", "packet_id", "overlay_id", "source_key", "recommendation_status", "packet_status", "summary", "evidence", "lineage", "review", "authority"],
+  "properties": {
+    "packet_version": {"const": "CanaryActivationPacket.v1"},
+    "packet_id": {"type": "string"},
+    "overlay_id": {"type": "string"},
+    "entry_id": {"type": ["string", "null"]},
+    "proposal_id": {"type": ["string", "null"]},
+    "source_key": {"type": "string"},
+    "recommendation_status": {"type": "string"},
+    "packet_status": {"const": "pending_review"},
+    "summary": {"type": "object"},
+    "evidence": {"type": "object"},
+    "lineage": {"type": "object"},
+    "review": {"type": "object"},
+    "authority": {"type": "object"}
+  }
+}

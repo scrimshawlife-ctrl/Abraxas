@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryObservationLedgerRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "entries"],
+  "properties": {
+    "artifact": {"const": "CANARY-OBSERVATION-LEDGER-001"},
+    "schema_version": {"const": "CanaryObservationLedgerRun.v1"}
+  }
+}

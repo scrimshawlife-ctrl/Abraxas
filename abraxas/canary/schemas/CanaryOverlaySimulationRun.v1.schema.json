@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanaryOverlaySimulationRun.v1",
+  "type": "object",
+  "required": ["artifact", "schema_version", "authority", "counts", "simulations"],
+  "properties": {
+    "artifact": {"const": "CANARY-OVERLAY-SIMULATION-001"},
+    "schema_version": {"const": "CanaryOverlaySimulationRun.v1"},
+    "authority": {"type": "object"},
+    "counts": {
+      "type": "object",
+      "required": ["overlays_total", "computed", "not_computable"],
+      "properties": {
+        "overlays_total": {"type": "integer", "minimum": 0},
+        "computed": {"type": "integer", "minimum": 0},
+        "not_computable": {"type": "integer", "minimum": 0}
+      }
+    },
+    "simulations": {"type": "array", "items": {"type": "object"}}
+  }
+}
