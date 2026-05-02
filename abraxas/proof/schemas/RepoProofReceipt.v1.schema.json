@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"RepoProofReceipt.v1","type":"object","required":["receipt_type","patch_id","runtime_mutation","promotion_granted","authority_boundary"],"properties":{"receipt_type":{"const":"RepoProofReceipt.v1"},"authority_boundary":{"const":"proof_only"}}}

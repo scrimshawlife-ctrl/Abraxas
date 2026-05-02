@@ -1,0 +1,1 @@
+{"authority":{"can_activate_canary":false,"can_mutate_runtime":false,"mode":"READINESS_ONLY"},"blocked":false,"blockers":[],"canary_ready":true,"next_step":"CANARY_SIMULATION_ONLY","reason":"All proof layers validated, pointer closure PASS, system stable.","schema":"CanaryReadiness.v1"}

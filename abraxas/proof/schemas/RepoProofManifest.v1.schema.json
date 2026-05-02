@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"RepoProofManifest.v1","type":"object","required":["schema","repo_root","file_count","files"],"properties":{"schema":{"const":"RepoProofManifest.v1"},"repo_root":{"type":"string"},"file_count":{"type":"integer","minimum":0},"files":{"type":"array"}}}
