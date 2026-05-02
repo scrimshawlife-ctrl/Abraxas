@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"PatchCoverageMap.v1","type":"object","required":["schema","patch_count","patches"],"properties":{"schema":{"const":"PatchCoverageMap.v1"},"patch_count":{"type":"integer","minimum":0},"patches":{"type":"array"}}}

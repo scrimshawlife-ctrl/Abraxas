@@ -1,0 +1,1 @@
+{"authority":{"forecast_influence":false,"projection_only":true,"promotion_allowed":false,"runtime_mutation":false},"combined_status":"LOCAL_CHAIN_PROVEN","drift_class":"repo_ahead","pointer_closure":"PASS","proof_layers":{"registry":"BOUND","repo":"PRESENT","runtime":"PRESENT"},"schema":"ProofStateProjection.v1"}

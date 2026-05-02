@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"RepoCanonAlignmentReport.v1","type":"object","required":["schema","drift_class"],"properties":{"schema":{"const":"RepoCanonAlignmentReport.v1"},"drift_class":{"enum":["aligned","repo_ahead","notion_ahead","diverged","not_computable"]}}}
