@@ -1,0 +1,41 @@
+{
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "blocker_frequency_patterns": [
+    {
+      "blocker": "b1",
+      "count": 4
+    },
+    {
+      "blocker": "b2",
+      "count": 1
+    }
+  ],
+  "canonical_hash": "5af94564d20489b45075ac754f54f115cc4908198f12c9e1efa2817240de0b21",
+  "entry_count": 4,
+  "persistent_blockers": [
+    "b1"
+  ],
+  "policy_hash_changes": 1,
+  "policy_vs_state_causality": {
+    "policy_change_events": 1,
+    "status_variants_by_policy": {
+      "A": [
+        "NOT_READY",
+        "WAITING_FOR_APPROVAL"
+      ],
+      "B": [
+        "NOT_READY"
+      ]
+    }
+  },
+  "readiness_status_drift_under_same_policy": [
+    "A"
+  ],
+  "schema_version": "ReadinessPolicyTrends.v1",
+  "status": "TRENDS_READY"
+}

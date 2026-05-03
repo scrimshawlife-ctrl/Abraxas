@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sources",
+    "signals",
+    "metadata",
+    "canonical_hash"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OracleInput.v1"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "lane"
+        ],
+        "properties": {
+          "lane": {
+            "type": "string",
+            "enum": [
+              "SHADOW",
+              "FORECAST",
+              "OBSERVATION"
+            ]
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timestamp",
+        "source_family"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "string"
+        },
+        "source_family": {
+          "type": "string"
+        }
+      }
+    },
+    "canonical_hash": {
+      "type": "string"
+    },
+    "envelope": {
+      "type": "object"
+    }
+  }
+}

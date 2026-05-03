@@ -1,12 +1,28 @@
 {
   "authority": {
     "execution": false,
+    "forecast_authority": false,
     "mutation": false,
     "observe_only": true,
     "promotion": false
   },
-  "deterministic": true,
+  "lane": "SHADOW",
+  "packet_hash": "b72218c581711e3af009b6e93e885f5805e12a535eeadd7543eb31e394597b53",
+  "reason": null,
   "schema_version": "OracleSignalPacket.v1",
+  "signal_count": 1,
+  "signals": [
+    {
+      "k": "v",
+      "lane": "SHADOW",
+      "source_id": "s1"
+    }
+  ],
+  "source_count": 1,
   "status": "COMPUTABLE",
-  "upgraded_from": "STUB"
+  "structural_keys": [
+    "k",
+    "lane",
+    "source_id"
+  ]
 }

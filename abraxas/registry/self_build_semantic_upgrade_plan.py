@@ -7,6 +7,12 @@ h=lambda v:hashlib.sha256(v.encode()).hexdigest();c=lambda o:json.dumps(o,sort_k
 def _depth(path:str,obj:dict[str,Any])->str:
  s=str(obj.get('status',''))
  if s=='NOT_COMPUTABLE':return 'STUB'
+ if path.endswith('oracle_signal_packet.latest.json'):
+  return 'SEMANTIC_COMPUTABLE' if obj.get('schema_version')=='OracleSignalPacket.v1' and isinstance(obj.get('signal_count'),int) and isinstance(obj.get('structural_keys'),list) else 'PLACEHOLDER_COMPUTABLE'
+ if path.endswith('brier_scoring.latest.json'):
+  return 'SEMANTIC_COMPUTABLE' if obj.get('schema_version')=='BrierScoringRun.v1' and isinstance(obj.get('scored_count'),int) and 'mean_brier' in obj else 'PLACEHOLDER_COMPUTABLE'
+ if path.endswith('canary_activation_packet.latest.json'):
+  return 'SEMANTIC_COMPUTABLE' if obj.get('schema_version')=='CanaryActivationPacket.v1' and isinstance(obj.get('entries'),list) else 'PLACEHOLDER_COMPUTABLE'
  if s=='COMPUTABLE' and obj.get('upgraded_from')=='STUB':return 'PLACEHOLDER_COMPUTABLE'
  return 'SEMANTIC_COMPUTABLE'
 def run_self_build_semantic_upgrade_plan()->dict[str,Any]:
@@ -25,6 +31,6 @@ def run_self_build_semantic_upgrade_plan()->dict[str,Any]:
  for p,m,u in mapping:
   d=_depth(p,loaded[p])
   targets.append({"target_path":p,"current_depth":d,"recommended_module":m,"upgrade_type":u,"priority":pri[d],"blockers":[] if d!='SEMANTIC_COMPUTABLE' else ["ALREADY_SEMANTIC"],"validation_commands":["python scripts/run_binding_validator.py","python scripts/run_operator_closure_card.py","python scripts/run_invariance_harness.py"]})
- targets=sorted(targets,key=lambda t:(['HIGH','MEDIUM','LOW'].index(t['priority']),t['target_path']))
+ targets=sorted(targets,key=lambda t:(["HIGH","MEDIUM","LOW"].index(t['priority']),t['target_path']))
  x={"schema_version":"SelfBuildSemanticUpgradePlan.v1","status":"PLAN_READY","targets":targets,"authority":{"mutation":False,"promotion":False,"execution":False,"plan_only":True}}
  x['canonical_hash']=h(c(x));return x

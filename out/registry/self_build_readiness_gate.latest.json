@@ -5,17 +5,46 @@
     "mutation": false,
     "promotion": false
   },
-  "blockers": [],
-  "canonical_hash": "ec2e4d9dd8438fbc20b99194d14018584bb6f1b6100a1e98370b7674b5b3fa60",
+  "blockers": [
+    "lineage_no_broken_links"
+  ],
+  "canonical_hash": "fbc77a2709c9e675877fd38e0517227f19fd9939404d8722a96b8509d5f1055d",
   "gates": {
     "approval_pending": true,
-    "feedback_available": true,
-    "mutation_path_gated": true,
-    "operator_green": true,
-    "recommendations_available": true,
-    "trends_available": true,
-    "validator_pass": true
+    "lineage_no_broken_links": false,
+    "lineage_status_ready": true,
+    "lineage_warning_count_below_threshold": true,
+    "mutation_path_must_be_gated": true,
+    "require_feedback_available": true,
+    "require_lineage_report": true,
+    "require_operator_green": true,
+    "require_recommendations_available": true,
+    "require_validator_pass": true,
+    "trends_available": true
   },
+  "policy": {
+    "lineage_warning_threshold": 5,
+    "mutation_path_must_be_gated": true,
+    "require_feedback_available": true,
+    "require_lineage_report": true,
+    "require_operator_green": true,
+    "require_recommendations_available": true,
+    "require_validator_pass": true,
+    "schema_version": "ReadinessPolicy.v1"
+  },
+  "policy_fields_used": [
+    "lineage_warning_threshold",
+    "mutation_path_must_be_gated",
+    "require_feedback_available",
+    "require_lineage_report",
+    "require_operator_green",
+    "require_recommendations_available",
+    "require_validator_pass",
+    "schema_version"
+  ],
+  "policy_hash": "c512848338cdf4947b650990009f6c85ec4b9ca69066dadf8c1002bcfb6ac3f7",
+  "policy_path": ".aal/readiness_policy.v1.yaml",
+  "policy_schema_version": "ReadinessPolicy.v1",
   "schema_version": "SelfBuildReadinessGate.v1",
-  "status": "WAITING_FOR_APPROVAL"
+  "status": "NOT_READY"
 }

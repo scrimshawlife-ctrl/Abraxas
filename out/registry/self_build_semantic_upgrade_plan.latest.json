@@ -5,14 +5,29 @@
     "plan_only": true,
     "promotion": false
   },
-  "canonical_hash": "74e18261ed501ba8e6d953f141a9d0a11e80b09d77bf29af9f333d9f5423a32b",
+  "canonical_hash": "140feb6bc22b770cfbcc0e74c1074bdc7d0b95cf1546ff5550201d7a131b1348",
   "schema_version": "SelfBuildSemanticUpgradePlan.v1",
   "status": "PLAN_READY",
   "targets": [
     {
       "blockers": [],
-      "current_depth": "PLACEHOLDER_COMPUTABLE",
-      "priority": "MEDIUM",
+      "current_depth": "STUB",
+      "priority": "HIGH",
+      "recommended_module": "scoring",
+      "target_path": "out/scoring/brier_scoring.latest.json",
+      "upgrade_type": "UPGRADE_SCORING_SEMANTICS",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "blockers": [
+        "ALREADY_SEMANTIC"
+      ],
+      "current_depth": "SEMANTIC_COMPUTABLE",
+      "priority": "LOW",
       "recommended_module": "canary",
       "target_path": "out/canary/canary_activation_packet.latest.json",
       "upgrade_type": "UPGRADE_CANARY_SEMANTICS",
@@ -23,25 +38,14 @@
       ]
     },
     {
-      "blockers": [],
-      "current_depth": "PLACEHOLDER_COMPUTABLE",
-      "priority": "MEDIUM",
+      "blockers": [
+        "ALREADY_SEMANTIC"
+      ],
+      "current_depth": "SEMANTIC_COMPUTABLE",
+      "priority": "LOW",
       "recommended_module": "oracle",
       "target_path": "out/oracle/oracle_signal_packet.latest.json",
       "upgrade_type": "UPGRADE_SIGNAL_SEMANTICS",
-      "validation_commands": [
-        "python scripts/run_binding_validator.py",
-        "python scripts/run_operator_closure_card.py",
-        "python scripts/run_invariance_harness.py"
-      ]
-    },
-    {
-      "blockers": [],
-      "current_depth": "PLACEHOLDER_COMPUTABLE",
-      "priority": "MEDIUM",
-      "recommended_module": "scoring",
-      "target_path": "out/scoring/brier_scoring.latest.json",
-      "upgrade_type": "UPGRADE_SCORING_SEMANTICS",
       "validation_commands": [
         "python scripts/run_binding_validator.py",
         "python scripts/run_operator_closure_card.py",
