@@ -1,0 +1,29 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "bundle": {
+    "artifact_count": 67,
+    "hash": "5a7b826d818e52f1056d3b009baeb77662d29ffd774d47405fc51282c365f99c"
+  },
+  "canonical_hash": "87c9c1f3ade8137509c31bd69ce3559a51674d0cabfaeb2c74be40853f7648c6",
+  "health": "GREEN",
+  "invariance": {
+    "all_invariant": true
+  },
+  "notion_sync": {
+    "status": "PASS"
+  },
+  "registry": {
+    "hash": "af22cb4b484c772f9d2837c136b57359a211d4c986b7c76c1fd47ed9d1231433",
+    "subsystem_count": 5
+  },
+  "schema_version": "OperatorClosureCard.v1",
+  "validator": {
+    "fail_count": 0,
+    "status": "PASS"
+  }
+}

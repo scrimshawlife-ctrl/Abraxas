@@ -1,0 +1,25 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "bundle_hash": "d8466ffd1d6bb38ef513025f8db92ba253e9e365e2f57e1566feba4d4cc11940",
+  "canonical_hash": "46990739ee4e28bd7658a76b32af325bbb76dc9396b348f821517ab19d4b94d5",
+  "commit": "b0d753c91b4577bbc9be4995803eb73724969502",
+  "invariance": {
+    "bundle": true,
+    "registry": true,
+    "validator": true
+  },
+  "limitations": [
+    "subsystems return NOT_COMPUTABLE",
+    "no real signal ingestion",
+    "no domain logic implemented"
+  ],
+  "notion_sync": "PASS",
+  "operator_health": "GREEN",
+  "schema_version": "GreenStateReceipt.v1",
+  "validator": "PASS"
+}

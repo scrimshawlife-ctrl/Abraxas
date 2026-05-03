@@ -1,0 +1,145 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "244e514928bb5baaa00489ae1ab41a0f726eb60d543818f6be4319cfff800de6",
+  "fail_count": 5,
+  "plan": [
+    {
+      "actions": [
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "schemas",
+          "expected_paths": [
+            "schemas/AALVizProofState.v1.schema.json"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "scripts",
+          "expected_paths": [
+            "scripts/run_aal_viz_proof_state.py"
+          ]
+        }
+      ],
+      "missing_categories": [
+        "schemas",
+        "scripts"
+      ],
+      "subsystem_id": "aal_viz"
+    },
+    {
+      "actions": [
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "artifacts",
+          "expected_paths": [
+            "out/scoring/brier_scoring.latest.json"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "modules",
+          "expected_paths": [
+            "abraxas/scoring"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "schemas",
+          "expected_paths": [
+            "schemas/BrierScoringRun.v1.schema.json"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "scripts",
+          "expected_paths": [
+            "scripts/run_brier_scoring.py"
+          ]
+        }
+      ],
+      "missing_categories": [
+        "artifacts",
+        "modules",
+        "schemas",
+        "scripts"
+      ],
+      "subsystem_id": "brier_scoring"
+    },
+    {
+      "actions": [
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "artifacts",
+          "expected_paths": [
+            "out/canary/canary_activation_packet.latest.json"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "schemas",
+          "expected_paths": [
+            "schemas/CanaryActivationPacket.v1.schema.json"
+          ]
+        }
+      ],
+      "missing_categories": [
+        "artifacts",
+        "schemas"
+      ],
+      "subsystem_id": "canary_lifecycle"
+    },
+    {
+      "actions": [
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "schemas",
+          "expected_paths": [
+            "schemas/ProofStatusCard.v1.schema.json"
+          ]
+        }
+      ],
+      "missing_categories": [
+        "schemas"
+      ],
+      "subsystem_id": "operator_layer"
+    },
+    {
+      "actions": [
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "artifacts",
+          "expected_paths": [
+            "out/oracle/oracle_signal_packet.latest.json"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "schemas",
+          "expected_paths": [
+            "schemas/OracleSignalPacket.v1.schema.json"
+          ]
+        },
+        {
+          "action": "CREATE_OR_FIX",
+          "category": "scripts",
+          "expected_paths": [
+            "scripts/run_oracle_core.py",
+            "scripts/run_oracle_router.py"
+          ]
+        }
+      ],
+      "missing_categories": [
+        "artifacts",
+        "schemas",
+        "scripts"
+      ],
+      "subsystem_id": "oracle_pipeline"
+    }
+  ],
+  "schema_version": "BindingGapPlan.v1"
+}

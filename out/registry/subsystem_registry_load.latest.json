@@ -1,0 +1,20 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "af22cb4b484c772f9d2837c136b57359a211d4c986b7c76c1fd47ed9d1231433",
+  "registry_id": "abx-subsystem-registry-main",
+  "registry_path": ".aal/subsystem_registry.v1.yaml",
+  "schema_version": "SubsystemRegistryLoadRun.v1",
+  "subsystem_count": 5,
+  "subsystem_ids": [
+    "aal_viz",
+    "brier_scoring",
+    "canary_lifecycle",
+    "operator_layer",
+    "oracle_pipeline"
+  ]
+}

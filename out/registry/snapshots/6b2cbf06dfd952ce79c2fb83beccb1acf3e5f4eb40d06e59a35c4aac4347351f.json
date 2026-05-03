@@ -1,0 +1,12 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "deterministic": true,
+  "schema_version": "SelfBuildRollbackResult.v1",
+  "status": "COMPUTABLE",
+  "upgraded_from": "NOT_COMPUTABLE"
+}

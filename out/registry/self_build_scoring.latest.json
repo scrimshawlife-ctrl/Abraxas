@@ -1,0 +1,193 @@
+{
+  "authority": {
+    "analysis_only": true,
+    "mutation": false
+  },
+  "canonical_hash": "3871a330bbf30456a318dc0ffec9b3bf9e1e04620b65726ff3ac9099bc118333",
+  "flagged_mutations": [
+    {
+      "classification": "REVERTED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_count": 1,
+      "stability_score": -1,
+      "target_path": "out/test/rollback_target.latest.json",
+      "total_score": 3,
+      "validation_score": 3
+    },
+    {
+      "classification": "REVERTED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_count": 1,
+      "stability_score": -1,
+      "target_path": "out/test/rollback_target.latest.json",
+      "total_score": 3,
+      "validation_score": 3
+    }
+  ],
+  "mutation_scores": [
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-60567215eeb1787a",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "total_score": 5,
+      "validation_score": 3
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-3b1304bf48785d0a",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/test/test.latest.json",
+      "total_score": 5,
+      "validation_score": 3
+    },
+    {
+      "classification": "REVERTED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_count": 1,
+      "stability_score": -1,
+      "target_path": "out/test/rollback_target.latest.json",
+      "total_score": 3,
+      "validation_score": 3
+    },
+    {
+      "classification": "REVERTED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_count": 1,
+      "stability_score": -1,
+      "target_path": "out/test/rollback_target.latest.json",
+      "total_score": 3,
+      "validation_score": 3
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-cc270c20b8a63649",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json",
+      "total_score": 2,
+      "validation_score": 0
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-f7c260e3f4b4ce8f",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/registry/self_build_rollback_result.latest.json",
+      "total_score": 2,
+      "validation_score": 0
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-0c27b02326472daa",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json",
+      "total_score": 2,
+      "validation_score": 0
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-ab76b82731c5fbf0",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/registry/snapshots/6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f.json",
+      "total_score": 2,
+      "validation_score": 0
+    }
+  ],
+  "rollback_scores": [
+    {
+      "integrity_score": 0,
+      "mutation_id": "",
+      "rollback_id": "7d7818ec2ecd527bb57c33bc",
+      "stability_score": -1,
+      "status": "NOT_COMPUTABLE",
+      "total_score": -1,
+      "validation_score": 0
+    },
+    {
+      "integrity_score": 1,
+      "mutation_id": "test",
+      "rollback_id": "93b0bacc4966130dfaf94f6f",
+      "stability_score": 1,
+      "status": "ROLLED_BACK",
+      "total_score": 5,
+      "validation_score": 3
+    },
+    {
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_id": "f5e5c8f6a40c44637ae96402",
+      "stability_score": 1,
+      "status": "ROLLED_BACK",
+      "total_score": 5,
+      "validation_score": 3
+    }
+  ],
+  "schema_version": "SelfBuildScoring.v1",
+  "top_mutations": [
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-60567215eeb1787a",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "total_score": 5,
+      "validation_score": 3
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-3b1304bf48785d0a",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/test/test.latest.json",
+      "total_score": 5,
+      "validation_score": 3
+    },
+    {
+      "classification": "REVERTED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_count": 1,
+      "stability_score": -1,
+      "target_path": "out/test/rollback_target.latest.json",
+      "total_score": 3,
+      "validation_score": 3
+    },
+    {
+      "classification": "REVERTED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "rollback_count": 1,
+      "stability_score": -1,
+      "target_path": "out/test/rollback_target.latest.json",
+      "total_score": 3,
+      "validation_score": 3
+    },
+    {
+      "classification": "RETAINED",
+      "integrity_score": 1,
+      "mutation_id": "mutation-f7c260e3f4b4ce8f",
+      "rollback_count": 0,
+      "stability_score": 1,
+      "target_path": "out/registry/self_build_rollback_result.latest.json",
+      "total_score": 2,
+      "validation_score": 0
+    }
+  ]
+}

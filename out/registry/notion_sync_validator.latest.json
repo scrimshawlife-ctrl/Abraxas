@@ -1,0 +1,15 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "bca51d57c73e2e5093eca3895c7a9804ca65a4af819dd5ba5849e64131788679",
+  "extra_in_map": [],
+  "map_hash": "d541dba5218379e11d4db57449ac7017c04cab389ddab7e21fc431cfc2d46862",
+  "missing_in_map": [],
+  "registry_hash": "af22cb4b484c772f9d2837c136b57359a211d4c986b7c76c1fd47ed9d1231433",
+  "schema_version": "NotionSyncValidatorRun.v1",
+  "status": "PASS"
+}

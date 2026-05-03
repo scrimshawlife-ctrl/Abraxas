@@ -1,0 +1,123 @@
+schema_version: SubsystemRegistry.v1
+registry_id: abx-subsystem-registry-main
+authority:
+  notion_canon: Abraxas — Subsystem Inventory (Canon Spine)
+  repo_surface: Abraxas-main
+  aal_viz_authority: projection_only
+  mutation_authority: false
+  promotion_authority: false
+generated_policy:
+  deterministic_ordering: true
+  missing_artifact_behavior: fail_closed
+  unknown_subsystem_behavior: not_computable
+subsystems:
+  - subsystem_id: oracle_pipeline
+    display_name: Oracle Pipeline
+    lane: FORECAST
+    status: PARTIAL
+    canon_pointer: Abraxas — Subsystem Inventory (Canon Spine)
+    expected_paths:
+      modules:
+        - abraxas/ingestion
+        - abraxas/oracle
+      scripts:
+        - scripts/run_oracle_core.py
+        - scripts/run_oracle_router.py
+      schemas:
+        - schemas/OracleSignalPacket.v1.schema.json
+      artifacts:
+        - out/oracle/oracle_signal_packet.latest.json
+    required_tests:
+      - tests/test_oracle_core.py
+      - tests/test_oracle_router.py
+    authority_flags:
+      execution: false
+      mutation: false
+      promotion: false
+      forecast_candidate_only: true
+  - subsystem_id: brier_scoring
+    display_name: Brier Scoring
+    lane: FORECAST
+    status: PARTIAL
+    canon_pointer: Abraxas Coding Spine v1.0 RC — Integrated Runtime Binding
+    expected_paths:
+      modules:
+        - abraxas/scoring
+      scripts:
+        - scripts/run_brier_scoring.py
+      schemas:
+        - schemas/BrierScoringRun.v1.schema.json
+      artifacts:
+        - out/scoring/brier_scoring.latest.json
+    required_tests:
+      - tests/test_brier_scoring.py
+    authority_flags:
+      execution: false
+      mutation: false
+      promotion: false
+      forecast_candidate_only: false
+  - subsystem_id: canary_lifecycle
+    display_name: Canary Lifecycle
+    lane: FORECAST
+    status: PARTIAL
+    canon_pointer: Abraxas Coding Spine v1.1.1 — Adaptive Weight Live Binding
+    expected_paths:
+      modules:
+        - abraxas/canary
+      scripts:
+        - scripts/run_canary_review_gate.py
+        - scripts/run_canary_activation_packet.py
+      schemas:
+        - schemas/CanaryActivationPacket.v1.schema.json
+      artifacts:
+        - out/canary/canary_activation_packet.latest.json
+    required_tests:
+      - tests/test_canary_review_gate.py
+    authority_flags:
+      execution: false
+      mutation: false
+      promotion: false
+      forecast_candidate_only: false
+  - subsystem_id: aal_viz
+    display_name: AAL-Viz
+    lane: PROJECTION
+    status: PARTIAL
+    canon_pointer: Abraxas Coding Spine + AAL-Viz Operator Console — Master Integration Index
+    expected_paths:
+      modules:
+        - aal_core/viz
+        - abraxas/viz
+      scripts:
+        - scripts/run_aal_viz_proof_state.py
+      schemas:
+        - schemas/AALVizProofState.v1.schema.json
+      artifacts:
+        - out/viz/proof_state.latest.json
+    required_tests:
+      - tests/test_aal_viz_proof_state.py
+    authority_flags:
+      execution: false
+      mutation: false
+      promotion: false
+      projection_only: true
+  - subsystem_id: operator_layer
+    display_name: Operator Layer
+    lane: OPERATOR
+    status: PARTIAL
+    canon_pointer: Abraxas Coding Spine + AAL-Viz Operator Console — Master Integration Index
+    expected_paths:
+      modules:
+        - abraxas/operator
+      scripts:
+        - scripts/run_operator_proof_status_card.py
+      schemas:
+        - schemas/ProofStatusCard.v1.schema.json
+      artifacts:
+        - out/operator/proof_status_card.latest.json
+    required_tests:
+      - tests/test_operator_proof_status_card.py
+    authority_flags:
+      execution: false
+      mutation: false
+      promotion: false
+      review_gate_only: true

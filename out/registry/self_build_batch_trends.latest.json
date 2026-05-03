@@ -1,0 +1,27 @@
+{
+  "apply_success_ratio": 0.0,
+  "approval_wait_ratio": 1.0,
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "canonical_hash": "6cf54e6bff756b1c6d0ac29ed80b2031a30d1105b4d7934a699398f70eeb246e",
+  "counts_by_status": {
+    "WAITING_FOR_APPROVAL": 13
+  },
+  "cycle_count": 13,
+  "flagged_trends": [
+    "HIGH_APPROVAL_WAIT_RATIO",
+    "LOW_APPLY_SUCCESS_RATIO",
+    "LOW_POST_VALIDATION_PASS_RATIO"
+  ],
+  "latest_status": "WAITING_FOR_APPROVAL",
+  "post_validation_pass_ratio": 0.0,
+  "schema_version": "SelfBuildBatchTrends.v1",
+  "score_feedback_hashes": [
+    "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05"
+  ],
+  "status": "OK"
+}

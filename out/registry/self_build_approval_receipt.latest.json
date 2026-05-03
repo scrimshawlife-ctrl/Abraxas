@@ -1,0 +1,28 @@
+{
+  "approval_count": 3,
+  "approvals": [
+    {
+      "approval_id": "approval-26969c638ddc6927",
+      "status": "PENDING",
+      "target_path": "out/oracle/oracle_signal_packet.latest.json"
+    },
+    {
+      "approval_id": "approval-4021a870777a303d",
+      "status": "PENDING",
+      "target_path": "out/scoring/brier_scoring.latest.json"
+    },
+    {
+      "approval_id": "approval-517bd2de2dc6a6a6",
+      "status": "PENDING",
+      "target_path": "out/canary/canary_activation_packet.latest.json"
+    }
+  ],
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "operator_controlled": true
+  },
+  "canonical_hash": "b964f5824ca3f4f87072cda5ff4ec933c8b91884a517da4669a6f670cc4c2d10",
+  "schema_version": "SelfBuildApprovalReceipt.v1"
+}

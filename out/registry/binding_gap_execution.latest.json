@@ -1,0 +1,125 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "by_priority": {
+    "1": [
+      {
+        "category": "modules",
+        "exists": false,
+        "priority": 1,
+        "status": "READY",
+        "subsystem_id": "brier_scoring",
+        "target_path": "abraxas/scoring"
+      }
+    ],
+    "2": [
+      {
+        "category": "scripts",
+        "exists": false,
+        "priority": 2,
+        "status": "READY",
+        "subsystem_id": "aal_viz",
+        "target_path": "scripts/run_aal_viz_proof_state.py"
+      },
+      {
+        "category": "scripts",
+        "exists": false,
+        "priority": 2,
+        "status": "READY",
+        "subsystem_id": "brier_scoring",
+        "target_path": "scripts/run_brier_scoring.py"
+      },
+      {
+        "category": "scripts",
+        "exists": false,
+        "priority": 2,
+        "status": "READY",
+        "subsystem_id": "oracle_pipeline",
+        "target_path": "scripts/run_oracle_core.py"
+      },
+      {
+        "category": "scripts",
+        "exists": false,
+        "priority": 2,
+        "status": "READY",
+        "subsystem_id": "oracle_pipeline",
+        "target_path": "scripts/run_oracle_router.py"
+      }
+    ],
+    "3": [
+      {
+        "category": "schemas",
+        "exists": false,
+        "priority": 3,
+        "status": "READY",
+        "subsystem_id": "aal_viz",
+        "target_path": "schemas/AALVizProofState.v1.schema.json"
+      },
+      {
+        "category": "schemas",
+        "exists": false,
+        "priority": 3,
+        "status": "READY",
+        "subsystem_id": "brier_scoring",
+        "target_path": "schemas/BrierScoringRun.v1.schema.json"
+      },
+      {
+        "category": "schemas",
+        "exists": false,
+        "priority": 3,
+        "status": "READY",
+        "subsystem_id": "canary_lifecycle",
+        "target_path": "schemas/CanaryActivationPacket.v1.schema.json"
+      },
+      {
+        "category": "schemas",
+        "exists": false,
+        "priority": 3,
+        "status": "READY",
+        "subsystem_id": "operator_layer",
+        "target_path": "schemas/ProofStatusCard.v1.schema.json"
+      },
+      {
+        "category": "schemas",
+        "exists": false,
+        "priority": 3,
+        "status": "READY",
+        "subsystem_id": "oracle_pipeline",
+        "target_path": "schemas/OracleSignalPacket.v1.schema.json"
+      }
+    ],
+    "4": [
+      {
+        "category": "artifacts",
+        "exists": false,
+        "priority": 4,
+        "status": "READY",
+        "subsystem_id": "brier_scoring",
+        "target_path": "out/scoring/brier_scoring.latest.json"
+      },
+      {
+        "category": "artifacts",
+        "exists": false,
+        "priority": 4,
+        "status": "READY",
+        "subsystem_id": "canary_lifecycle",
+        "target_path": "out/canary/canary_activation_packet.latest.json"
+      },
+      {
+        "category": "artifacts",
+        "exists": false,
+        "priority": 4,
+        "status": "READY",
+        "subsystem_id": "oracle_pipeline",
+        "target_path": "out/oracle/oracle_signal_packet.latest.json"
+      }
+    ]
+  },
+  "canonical_hash": "9e39f89588fadabc514dd8eb7da60bb8a12d0eff4a1d648b613d2c95d09f71f2",
+  "schema_version": "BindingGapExecutionReport.v1",
+  "total_tasks": 13
+}

@@ -1,0 +1,35 @@
+{
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "canonical_hash": "78f56431337a5f03fa1388d4de2ed1699610c1d9c0d1638655c1bf7ecd0339ad",
+  "counts": {
+    "batch_cycles": 13,
+    "mutations": 8,
+    "recommendation_executions": 12,
+    "rollbacks": 3
+  },
+  "lineage": {
+    "batch_ledger_hash": "5747a096b76dd9639817cff6bd000882e3cfd923b48ada624ee019ee1b1514d9",
+    "batch_trends_hash": "6cf54e6bff756b1c6d0ac29ed80b2031a30d1105b4d7934a699398f70eeb246e",
+    "mutation_ledger_hash": "f64645d1eb7400a08ae26fdfc610a991f68a54f12c6c92aee8a6e4d1ff207286",
+    "rollback_ledger_hash": "5cd8b791d9653a24fe595c3d692651394af7bc2ab4a8a305103b93b5f3d114cc",
+    "scoring_hash": "3871a330bbf30456a318dc0ffec9b3bf9e1e04620b65726ff3ac9099bc118333"
+  },
+  "posture": {
+    "approval_state": "WAITING",
+    "mutation_state": "GATED",
+    "recommended_next_action": "REVIEW_PENDING_APPROVALS",
+    "trend_state": "OK"
+  },
+  "risks": [
+    "HIGH_APPROVAL_WAIT_RATIO",
+    "LOW_APPLY_SUCCESS_RATIO",
+    "LOW_POST_VALIDATION_PASS_RATIO"
+  ],
+  "schema_version": "SelfBuildEvolutionSummary.v1",
+  "status": "SUMMARY_READY"
+}

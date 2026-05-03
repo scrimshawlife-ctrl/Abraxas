@@ -1,0 +1,45 @@
+{
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "fail_closed": true,
+    "mutation": false,
+    "promotion": false
+  },
+  "canonical_hash": "e78008a1175baae9f62b7c0027dddb5f9f6c15b6ed0314f68220ecf268301e8d",
+  "phase_results": [
+    {
+      "green_hash": "591b45fb00ba55eeb86421a5fcf4c60146997b3988978c264ee779ddab437d35",
+      "phase": "PREFLIGHT",
+      "status": "PASS"
+    },
+    {
+      "dry_run_count": 0,
+      "phase": "PROPOSAL_STACK",
+      "plan_count": 0,
+      "proposal_count": 0,
+      "queue_count": 0,
+      "status": "PASS"
+    },
+    {
+      "approved_count": 0,
+      "phase": "APPROVAL",
+      "status": "WAIT"
+    }
+  ],
+  "post_validation": {
+    "invariance": false,
+    "operator_health": "NOT_RUN",
+    "validator": "NOT_RUN"
+  },
+  "schema_version": "SelfBuildBatchCycle.v1",
+  "score_feedback": {
+    "blocked_count": 0,
+    "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+    "flagged_count": 0,
+    "ranked_count": 0,
+    "status": "OK"
+  },
+  "scoring_hash": "3871a330bbf30456a318dc0ffec9b3bf9e1e04620b65726ff3ac9099bc118333",
+  "status": "WAITING_FOR_APPROVAL"
+}

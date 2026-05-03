@@ -1,0 +1,34 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true
+  },
+  "canonical_hash": "084ec39629d5d65e0d8c61e60b0d566dcab88bf0c60d52fd7f85ca11d5c02bf2",
+  "safe_to_simulate": true,
+  "schema_version": "SelfBuildDryRun.v1",
+  "simulation_count": 3,
+  "simulations": [
+    {
+      "expected_result": "COMPUTABLE",
+      "green_state_preserved": true,
+      "notes": "No real mutation performed",
+      "simulated_action": "REPLACE_NOT_COMPUTABLE",
+      "target_path": "out/canary/canary_activation_packet.latest.json"
+    },
+    {
+      "expected_result": "COMPUTABLE",
+      "green_state_preserved": true,
+      "notes": "No real mutation performed",
+      "simulated_action": "REPLACE_NOT_COMPUTABLE",
+      "target_path": "out/oracle/oracle_signal_packet.latest.json"
+    },
+    {
+      "expected_result": "COMPUTABLE",
+      "green_state_preserved": true,
+      "notes": "No real mutation performed",
+      "simulated_action": "REPLACE_NOT_COMPUTABLE",
+      "target_path": "out/scoring/brier_scoring.latest.json"
+    }
+  ]
+}

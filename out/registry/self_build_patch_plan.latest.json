@@ -1,0 +1,70 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "e09a8d3190151f0217884e549ec70b75a9152ebf77a512e7f05da53c10f1a14d",
+  "plan_count": 3,
+  "plans": [
+    {
+      "implementation_strategy": [
+        "replace NOT_COMPUTABLE with deterministic placeholder logic",
+        "preserve schema_version",
+        "preserve authority flags"
+      ],
+      "patch_type": "ADD_MINIMAL_COMPUTE",
+      "rollback": "revert to NOT_COMPUTABLE stub if validation fails",
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "test_requirements": [
+        "assert file exists: out/canary/canary_activation_packet.latest.json",
+        "assert status != NOT_COMPUTABLE after patch"
+      ],
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "implementation_strategy": [
+        "replace NOT_COMPUTABLE with deterministic placeholder logic",
+        "preserve schema_version",
+        "preserve authority flags"
+      ],
+      "patch_type": "ADD_MINIMAL_COMPUTE",
+      "rollback": "revert to NOT_COMPUTABLE stub if validation fails",
+      "target_path": "out/oracle/oracle_signal_packet.latest.json",
+      "test_requirements": [
+        "assert file exists: out/oracle/oracle_signal_packet.latest.json",
+        "assert status != NOT_COMPUTABLE after patch"
+      ],
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "implementation_strategy": [
+        "replace NOT_COMPUTABLE with deterministic placeholder logic",
+        "preserve schema_version",
+        "preserve authority flags"
+      ],
+      "patch_type": "ADD_MINIMAL_COMPUTE",
+      "rollback": "revert to NOT_COMPUTABLE stub if validation fails",
+      "target_path": "out/scoring/brier_scoring.latest.json",
+      "test_requirements": [
+        "assert file exists: out/scoring/brier_scoring.latest.json",
+        "assert status != NOT_COMPUTABLE after patch"
+      ],
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    }
+  ],
+  "schema_version": "SelfBuildPatchPlan.v1"
+}

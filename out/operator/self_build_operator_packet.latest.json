@@ -1,0 +1,56 @@
+{
+  "approval_state": "WAITING",
+  "artifact_pointers": [
+    "out/registry/self_build_evolution_summary.latest.json",
+    "out/registry/self_build_readiness_gate.latest.json",
+    "out/registry/self_build_auto_loop_plan.latest.json",
+    "out/registry/self_build_operator_action_recommendations.latest.json",
+    "out/registry/self_build_batch_cycle.latest.json"
+  ],
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "operator_display_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "26072ada6963eff9ebbf4c2d5d949de6ae1c15680fdfaf3b529dfca49ba32d6f",
+  "headline_state": "WAITING_FOR_APPROVAL",
+  "readiness_status": "WAITING_FOR_APPROVAL",
+  "recommended_next_action": "REQUEST_APPROVAL",
+  "risks": [
+    "HIGH_APPROVAL_WAIT_RATIO",
+    "LOW_APPLY_SUCCESS_RATIO",
+    "LOW_POST_VALIDATION_PASS_RATIO"
+  ],
+  "schema_version": "SelfBuildOperatorPacket.v1",
+  "status": "PACKET_READY",
+  "top_recommendations": [
+    {
+      "action_id": "action-00fef7516c6e4ec8",
+      "action_type": "REQUEST_APPROVAL",
+      "approval_id": "approval-35f3b527b2ee8aef",
+      "confidence": 0.75,
+      "reason": "Queue item is pending operator approval",
+      "requires_operator": true,
+      "target_path": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json"
+    },
+    {
+      "action_id": "action-37018592e5df8b60",
+      "action_type": "REQUEST_APPROVAL",
+      "approval_id": "approval-520909c146fab768",
+      "confidence": 0.75,
+      "reason": "Queue item is pending operator approval",
+      "requires_operator": true,
+      "target_path": "out/registry/self_build_rollback_result.latest.json"
+    },
+    {
+      "action_id": "action-860d24056897055f",
+      "action_type": "ESCALATE_APPROVAL_WAIT",
+      "approval_id": null,
+      "confidence": 0.85,
+      "reason": "Trend analyzer reports high approval wait ratio",
+      "requires_operator": true,
+      "target_path": ""
+    }
+  ]
+}

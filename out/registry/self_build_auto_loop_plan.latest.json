@@ -1,0 +1,32 @@
+{
+  "allowed_actions": [
+    "RUN_BATCH",
+    "HOLD",
+    "APPROVE_ONE",
+    "REJECT_TARGET"
+  ],
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "plan_only": true,
+    "promotion": false
+  },
+  "blockers": [],
+  "canonical_hash": "659a381cf97b93f7c69dc720b2fa3d4485d0a1be187bfb5ee8276298c98c6ce6",
+  "forbidden_actions": [
+    "DIRECT_ARTIFACT_MUTATION",
+    "AUTO_APPROVAL",
+    "PROMOTION",
+    "ROLLBACK_WITHOUT_OPERATOR"
+  ],
+  "loop_mode": "GUARDED_OPERATOR_LOOP",
+  "planned_steps": [
+    "run_batch_cycle",
+    "read_trends",
+    "read_score_feedback",
+    "generate_recommendations",
+    "wait_for_operator"
+  ],
+  "schema_version": "SelfBuildAutoLoopPlan.v1",
+  "status": "PLAN_READY"
+}

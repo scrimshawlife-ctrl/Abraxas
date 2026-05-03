@@ -1,0 +1,30 @@
+{
+  "applied_count": 0,
+  "approved_count": 0,
+  "authority": {
+    "artifact_only": true,
+    "execution": false,
+    "fail_closed": true,
+    "mutation": true,
+    "operator_approval_required": true,
+    "promotion": false
+  },
+  "canonical_hash": "f5c856168c8619577bc84904dd540e88a21af5a3ce05bfce92848f04c9f37168",
+  "mutation_ledger": {
+    "canonical_hash": null,
+    "entry_count": 0
+  },
+  "post_validation": {
+    "invariance": false,
+    "operator_health": "NOT_RUN",
+    "validator": "NOT_RUN"
+  },
+  "results": [
+    {
+      "code": "NO_APPROVED_IDS",
+      "message": "No approved ids present in approval input"
+    }
+  ],
+  "schema_version": "SelfBuildMultiApplyResult.v1",
+  "status": "NO_APPROVED_ITEMS"
+}
