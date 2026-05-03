@@ -1,0 +1,21 @@
+{
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "blockers": [],
+  "canonical_hash": "ec2e4d9dd8438fbc20b99194d14018584bb6f1b6100a1e98370b7674b5b3fa60",
+  "gates": {
+    "approval_pending": true,
+    "feedback_available": true,
+    "mutation_path_gated": true,
+    "operator_green": true,
+    "recommendations_available": true,
+    "trends_available": true,
+    "validator_pass": true
+  },
+  "schema_version": "SelfBuildReadinessGate.v1",
+  "status": "WAITING_FOR_APPROVAL"
+}

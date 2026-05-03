@@ -1,0 +1,59 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "operator_approval_required": true,
+    "promotion": false
+  },
+  "canonical_hash": "02e4c74eb4b6b98b692f40dbe1e69d0177d058d83c767332c65d3dc62bfa2160",
+  "items": [
+    {
+      "approval_id": "approval-35f3b527b2ee8aef",
+      "approval_status": "PENDING_OPERATOR_APPROVAL",
+      "expected_result": "COMPUTABLE",
+      "green_state_preserved_predicted": true,
+      "proposed_action": "REPLACE_NOT_COMPUTABLE",
+      "rollback": "revert to NOT_COMPUTABLE stub if validation fails",
+      "safety_verified": true,
+      "target_path": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "approval_id": "approval-520909c146fab768",
+      "approval_status": "PENDING_OPERATOR_APPROVAL",
+      "expected_result": "COMPUTABLE",
+      "green_state_preserved_predicted": true,
+      "proposed_action": "REPLACE_NOT_COMPUTABLE",
+      "rollback": "revert to NOT_COMPUTABLE stub if validation fails",
+      "safety_verified": true,
+      "target_path": "out/registry/self_build_rollback_result.latest.json",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "approval_id": "approval-8e930af18bcd21a9",
+      "approval_status": "PENDING_OPERATOR_APPROVAL",
+      "expected_result": "COMPUTABLE",
+      "green_state_preserved_predicted": true,
+      "proposed_action": "REPLACE_NOT_COMPUTABLE",
+      "rollback": "revert to NOT_COMPUTABLE stub if validation fails",
+      "safety_verified": true,
+      "target_path": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    }
+  ],
+  "queue_count": 3,
+  "schema_version": "SelfBuildOperatorQueue.v1"
+}

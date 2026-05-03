@@ -1,0 +1,29 @@
+{
+  "all_plans_safe": true,
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "c0be268afd4342990fa44cca650b42c1a5cf03eafb7a85358536da474701e0dc",
+  "green_state_verified": true,
+  "results": [
+    {
+      "safe": true,
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "violations": []
+    },
+    {
+      "safe": true,
+      "target_path": "out/oracle/oracle_signal_packet.latest.json",
+      "violations": []
+    },
+    {
+      "safe": true,
+      "target_path": "out/scoring/brier_scoring.latest.json",
+      "violations": []
+    }
+  ],
+  "schema_version": "SelfBuildSafetyReport.v1"
+}

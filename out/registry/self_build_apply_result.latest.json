@@ -1,0 +1,12 @@
+{
+  "applied_count": 0,
+  "authority": {
+    "execution": false,
+    "fail_closed": true,
+    "mutation": false
+  },
+  "canonical_hash": "6eec8e5e1e5967e2a76473820f9b354d8e79831ae0431fffc3f768d3982bd0f5",
+  "message": "No approved items; no mutation performed",
+  "schema_version": "SelfBuildApplyResult.v1",
+  "status": "NO_APPROVED_ITEMS"
+}

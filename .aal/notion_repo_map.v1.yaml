@@ -1,0 +1,39 @@
+schema_version: NotionRepoMap.v1
+map_id: abx-notion-repo-map-main
+bindings:
+  - subsystem_id: oracle_pipeline
+    notion_page_id: 73460b50-4dfd-4cc3-93e7-906559678624
+    repo_paths:
+      - abraxas/oracle
+      - scripts/run_oracle_core.py
+    proof_artifacts:
+      - out/oracle/oracle_signal_packet.latest.json
+    last_commit: UNKNOWN
+  - subsystem_id: brier_scoring
+    notion_page_id: 34f3e8ba-2f5c-8180-bc1d-c07d43dc494e
+    repo_paths:
+      - abraxas/scoring
+    proof_artifacts:
+      - out/scoring/brier_scoring.latest.json
+    last_commit: UNKNOWN
+  - subsystem_id: canary_lifecycle
+    notion_page_id: 34f3e8ba-2f5c-816f-a473-ee270e1d1d75
+    repo_paths:
+      - abraxas/canary
+    proof_artifacts:
+      - out/canary/canary_activation_packet.latest.json
+    last_commit: UNKNOWN
+  - subsystem_id: aal_viz
+    notion_page_id: 34f3e8ba-2f5c-81c6-8b84-d780466e1599
+    repo_paths:
+      - aal_core/viz
+    proof_artifacts:
+      - out/viz/proof_state.latest.json
+    last_commit: UNKNOWN
+  - subsystem_id: operator_layer
+    notion_page_id: 34f3e8ba-2f5c-81c6-8b84-d780466e1599
+    repo_paths:
+      - abraxas/operator
+    proof_artifacts:
+      - out/operator/proof_status_card.latest.json
+    last_commit: UNKNOWN

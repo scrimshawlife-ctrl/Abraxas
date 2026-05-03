@@ -1,0 +1,45 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "731c6c104c3b717c6981988a2b0447284dd60d019a0d0913a4e97312e4335ccb",
+  "counts": {
+    "fail": 0,
+    "not_computable": 0,
+    "pass": 5,
+    "total": 5
+  },
+  "overall_status": "PASS",
+  "registry_id": "abx-subsystem-registry-main",
+  "results": [
+    {
+      "missing": [],
+      "status": "PASS",
+      "subsystem_id": "aal_viz"
+    },
+    {
+      "missing": [],
+      "status": "PASS",
+      "subsystem_id": "brier_scoring"
+    },
+    {
+      "missing": [],
+      "status": "PASS",
+      "subsystem_id": "canary_lifecycle"
+    },
+    {
+      "missing": [],
+      "status": "PASS",
+      "subsystem_id": "operator_layer"
+    },
+    {
+      "missing": [],
+      "status": "PASS",
+      "subsystem_id": "oracle_pipeline"
+    }
+  ],
+  "schema_version": "BindingValidatorRun.v1"
+}

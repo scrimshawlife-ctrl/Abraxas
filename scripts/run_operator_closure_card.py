@@ -6,15 +6,15 @@ import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from abraxas.registry.invariance_harness import run_invariance_harness
+from abraxas.operator.closure_card import run_operator_closure_card
 
 
 def main() -> None:
-    result = run_invariance_harness()
-    out_path = Path("out/registry/invariance_harness_run.latest.json")
+    result = run_operator_closure_card()
+    out_path = Path("out/operator/operator_closure_card.latest.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
-        json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False) + "\n",
+        json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
 

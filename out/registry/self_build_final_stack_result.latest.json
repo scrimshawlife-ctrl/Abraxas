@@ -1,0 +1,22 @@
+{
+  "authority": {
+    "execution": false,
+    "final_stack_orchestration_only": true,
+    "mutation": false,
+    "promotion": false
+  },
+  "authority_integrity": true,
+  "auto_loop_plan_hash": "659a381cf97b93f7c69dc720b2fa3d4485d0a1be187bfb5ee8276298c98c6ce6",
+  "canonical_hash": "e0db97257304eaa9ec60c76e06a656a7315970e30b8214e66464913f769017b6",
+  "generated_artifacts": [
+    "out/registry/self_build_evolution_summary.latest.json",
+    "out/registry/self_build_readiness_gate.latest.json",
+    "out/registry/self_build_auto_loop_plan.latest.json",
+    "out/operator/self_build_operator_packet.latest.json"
+  ],
+  "operator_packet_hash": "26072ada6963eff9ebbf4c2d5d949de6ae1c15680fdfaf3b529dfca49ba32d6f",
+  "readiness_hash": "ec2e4d9dd8438fbc20b99194d14018584bb6f1b6100a1e98370b7674b5b3fa60",
+  "schema_version": "SelfBuildFinalStackResult.v1",
+  "status": "FINAL_STACK_READY",
+  "summary_hash": "78f56431337a5f03fa1388d4de2ed1699610c1d9c0d1638655c1bf7ecd0339ad"
+}

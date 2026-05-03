@@ -6,15 +6,15 @@ import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from abraxas.registry.invariance_harness import run_invariance_harness
+from abraxas.registry.notion_sync_validator import run_notion_sync_validator
 
 
 def main() -> None:
-    result = run_invariance_harness()
-    out_path = Path("out/registry/invariance_harness_run.latest.json")
+    result = run_notion_sync_validator()
+    out_path = Path("out/registry/notion_sync_validator.latest.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
-        json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False) + "\n",
+        json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
 

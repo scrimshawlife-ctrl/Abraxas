@@ -1,0 +1,49 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "01d8ef0a1be50044ef1fb40645e9c4ac12dbc3e81d6a00866ba44ea9b2d54bd5",
+  "proposal_count": 3,
+  "proposals": [
+    {
+      "constraints": [
+        "must_preserve_schema",
+        "must_preserve_authority_flags",
+        "must_not_enable_mutation",
+        "must_not_enable_promotion"
+      ],
+      "current_state": "NOT_COMPUTABLE",
+      "proposed_transition": "COMPUTABLE",
+      "strategy": "IMPLEMENT_MINIMAL_LOGIC",
+      "target_path": "out/canary/canary_activation_packet.latest.json"
+    },
+    {
+      "constraints": [
+        "must_preserve_schema",
+        "must_preserve_authority_flags",
+        "must_not_enable_mutation",
+        "must_not_enable_promotion"
+      ],
+      "current_state": "NOT_COMPUTABLE",
+      "proposed_transition": "COMPUTABLE",
+      "strategy": "IMPLEMENT_MINIMAL_LOGIC",
+      "target_path": "out/oracle/oracle_signal_packet.latest.json"
+    },
+    {
+      "constraints": [
+        "must_preserve_schema",
+        "must_preserve_authority_flags",
+        "must_not_enable_mutation",
+        "must_not_enable_promotion"
+      ],
+      "current_state": "NOT_COMPUTABLE",
+      "proposed_transition": "COMPUTABLE",
+      "strategy": "IMPLEMENT_MINIMAL_LOGIC",
+      "target_path": "out/scoring/brier_scoring.latest.json"
+    }
+  ],
+  "schema_version": "SelfBuildProposal.v1"
+}

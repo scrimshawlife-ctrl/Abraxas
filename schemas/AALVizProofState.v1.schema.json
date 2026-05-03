@@ -1,0 +1,28 @@
+{
+  "schema_version": "StubSchema.v1",
+  "title": "AALVizProofState.v1.schema",
+  "type": "object",
+  "required": ["schema_version", "status", "authority"],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["NOT_COMPUTABLE"]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "authority": {
+      "type": "object",
+      "properties": {
+        "mutation": {"type": "boolean"},
+        "promotion": {"type": "boolean"},
+        "execution": {"type": "boolean"},
+        "observe_only": {"type": "boolean"}
+      },
+      "required": ["mutation", "promotion", "execution", "observe_only"]
+    }
+  }
+}

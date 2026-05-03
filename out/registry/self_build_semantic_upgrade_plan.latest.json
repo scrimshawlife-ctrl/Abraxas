@@ -1,0 +1,52 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "plan_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "74e18261ed501ba8e6d953f141a9d0a11e80b09d77bf29af9f333d9f5423a32b",
+  "schema_version": "SelfBuildSemanticUpgradePlan.v1",
+  "status": "PLAN_READY",
+  "targets": [
+    {
+      "blockers": [],
+      "current_depth": "PLACEHOLDER_COMPUTABLE",
+      "priority": "MEDIUM",
+      "recommended_module": "canary",
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "upgrade_type": "UPGRADE_CANARY_SEMANTICS",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "blockers": [],
+      "current_depth": "PLACEHOLDER_COMPUTABLE",
+      "priority": "MEDIUM",
+      "recommended_module": "oracle",
+      "target_path": "out/oracle/oracle_signal_packet.latest.json",
+      "upgrade_type": "UPGRADE_SIGNAL_SEMANTICS",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    },
+    {
+      "blockers": [],
+      "current_depth": "PLACEHOLDER_COMPUTABLE",
+      "priority": "MEDIUM",
+      "recommended_module": "scoring",
+      "target_path": "out/scoring/brier_scoring.latest.json",
+      "upgrade_type": "UPGRADE_SCORING_SEMANTICS",
+      "validation_commands": [
+        "python scripts/run_binding_validator.py",
+        "python scripts/run_operator_closure_card.py",
+        "python scripts/run_invariance_harness.py"
+      ]
+    }
+  ]
+}

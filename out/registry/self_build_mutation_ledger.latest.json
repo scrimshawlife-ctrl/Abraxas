@@ -1,0 +1,169 @@
+{
+  "canonical_hash": "f64645d1eb7400a08ae26fdfc610a991f68a54f12c6c92aee8a6e4d1ff207286",
+  "entries": [
+    {
+      "after_hash": "85e88e3f7d46bfeea97822172c8bb3b5068e98ff503261f5744ad8f3a2cbd0e8",
+      "approval_id": "approval-517bd2de2dc6a6a6",
+      "before_hash": "ec380f702b65bd413d8703df7b2439f083164f47a0a54980de0d47637564ae6d",
+      "commit": "86032ae4752f82904b8deecb9a784dd531cd8250",
+      "mutation_id": "mutation-60567215eeb1787a",
+      "post_validation": {
+        "invariance": true,
+        "operator_card": "GREEN",
+        "validator": "PASS"
+      },
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "timestamp": "2026-05-03T01:40:16.294269+00:00"
+    },
+    {
+      "after_hash": "after-hash",
+      "approval_id": "approval-test",
+      "before_hash": "before-hash",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json",
+        "snapshot_id": "ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53",
+        "storage": "POINTER"
+      },
+      "commit": "0c1732319783f31ce86002e41c1d720c5fad4d48",
+      "mutation_id": "mutation-3b1304bf48785d0a",
+      "post_validation": {
+        "invariance": true,
+        "operator_card": "GREEN",
+        "validator": "PASS"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/test/test.latest.json",
+      "timestamp": "2026-05-03T01:44:11.358238+00:00"
+    },
+    {
+      "after_hash": "d3707b80da4f2308fc766ca2764db24b7b035a64b171dc1ae172dc2050becd6a",
+      "approval_id": "approval-rollback-test",
+      "before_hash": "ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json",
+        "snapshot_id": "ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786",
+        "storage": "POINTER"
+      },
+      "commit": "e1fa2c1d5b58a64d6308fb682cd3bb778670f84a",
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "post_validation": {
+        "invariance": true,
+        "operator_card": "GREEN",
+        "validator": "PASS"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/test/rollback_target.latest.json",
+      "timestamp": "2026-05-03T01:49:02.288366+00:00"
+    },
+    {
+      "after_hash": "d3707b80da4f2308fc766ca2764db24b7b035a64b171dc1ae172dc2050becd6a",
+      "approval_id": "approval-rollback-test",
+      "before_hash": "ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json",
+        "snapshot_id": "ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786",
+        "storage": "POINTER"
+      },
+      "commit": "deee5123d4abd182f94ce1315a57e401426a3b12",
+      "mutation_id": "mutation-fbfece014b0c3169",
+      "post_validation": {
+        "invariance": true,
+        "operator_card": "GREEN",
+        "validator": "PASS"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/test/rollback_target.latest.json",
+      "timestamp": "2026-05-03T01:54:16.780907+00:00"
+    },
+    {
+      "after_hash": "c0df84cb7d2a8dce77aadcd0f5c25efa9d4eaf774d0308d01132e61930b972dd",
+      "approval_id": "approval-35f3b527b2ee8aef",
+      "before_hash": "ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json",
+        "snapshot_id": "ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53",
+        "storage": "POINTER"
+      },
+      "commit": "5287ccd5a1856638ac659d2dc239302ba82767f8",
+      "mutation_id": "mutation-cc270c20b8a63649",
+      "post_validation": {
+        "invariance": false,
+        "operator_card": "PENDING",
+        "validator": "PENDING"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json",
+      "timestamp": "2026-05-03T01:57:59.346291+00:00"
+    },
+    {
+      "after_hash": "1006c196fae05d7af300303e9366fd6970194c821653b27c1607666b6b60fd4e",
+      "approval_id": "approval-520909c146fab768",
+      "before_hash": "6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f.json",
+        "snapshot_id": "6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f",
+        "storage": "POINTER"
+      },
+      "commit": "5287ccd5a1856638ac659d2dc239302ba82767f8",
+      "mutation_id": "mutation-f7c260e3f4b4ce8f",
+      "post_validation": {
+        "invariance": false,
+        "operator_card": "PENDING",
+        "validator": "PENDING"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/registry/self_build_rollback_result.latest.json",
+      "timestamp": "2026-05-03T01:58:02.185900+00:00"
+    },
+    {
+      "after_hash": "dd0e277ad131e0dd56b976fae5e04915a8308d1ed2b2d052486f84516f48c8ae",
+      "approval_id": "approval-8e930af18bcd21a9",
+      "before_hash": "ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json",
+        "snapshot_id": "ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786",
+        "storage": "POINTER"
+      },
+      "commit": "5287ccd5a1856638ac659d2dc239302ba82767f8",
+      "mutation_id": "mutation-0c27b02326472daa",
+      "post_validation": {
+        "invariance": false,
+        "operator_card": "PENDING",
+        "validator": "PENDING"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json",
+      "timestamp": "2026-05-03T01:58:02.191804+00:00"
+    },
+    {
+      "after_hash": "1006c196fae05d7af300303e9366fd6970194c821653b27c1607666b6b60fd4e",
+      "approval_id": "approval-e8b4ec5cae325ba8",
+      "before_hash": "6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f.json",
+        "snapshot_id": "6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f",
+        "storage": "POINTER"
+      },
+      "commit": "5287ccd5a1856638ac659d2dc239302ba82767f8",
+      "mutation_id": "mutation-ab76b82731c5fbf0",
+      "post_validation": {
+        "invariance": false,
+        "operator_card": "PENDING",
+        "validator": "PENDING"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/registry/snapshots/6b2cbf06dfd952ce79c2fb83beccb1acf3e5f4eb40d06e59a35c4aac4347351f.json",
+      "timestamp": "2026-05-03T01:58:05.084610+00:00"
+    }
+  ],
+  "entry_count": 8,
+  "schema_version": "SelfBuildMutationLedgerCollection.v1"
+}

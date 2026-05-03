@@ -1,0 +1,117 @@
+{
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "observe_only": true,
+    "promotion": false
+  },
+  "canonical_hash": "5b715d869a8f061692a36b7dd308213cbccc85a29c462af4d5494e2effa16681",
+  "schema_version": "BindingGapTasks.v1",
+  "task_count": 13,
+  "tasks": [
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "modules",
+      "priority": 1,
+      "subsystem_id": "brier_scoring",
+      "target_path": "abraxas/scoring",
+      "verify_command": "test -e abraxas/scoring || echo MISSING:abraxas/scoring"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "scripts",
+      "priority": 2,
+      "subsystem_id": "aal_viz",
+      "target_path": "scripts/run_aal_viz_proof_state.py",
+      "verify_command": "test -e scripts/run_aal_viz_proof_state.py || echo MISSING:scripts/run_aal_viz_proof_state.py"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "scripts",
+      "priority": 2,
+      "subsystem_id": "brier_scoring",
+      "target_path": "scripts/run_brier_scoring.py",
+      "verify_command": "test -e scripts/run_brier_scoring.py || echo MISSING:scripts/run_brier_scoring.py"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "scripts",
+      "priority": 2,
+      "subsystem_id": "oracle_pipeline",
+      "target_path": "scripts/run_oracle_core.py",
+      "verify_command": "test -e scripts/run_oracle_core.py || echo MISSING:scripts/run_oracle_core.py"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "scripts",
+      "priority": 2,
+      "subsystem_id": "oracle_pipeline",
+      "target_path": "scripts/run_oracle_router.py",
+      "verify_command": "test -e scripts/run_oracle_router.py || echo MISSING:scripts/run_oracle_router.py"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "schemas",
+      "priority": 3,
+      "subsystem_id": "aal_viz",
+      "target_path": "schemas/AALVizProofState.v1.schema.json",
+      "verify_command": "test -e schemas/AALVizProofState.v1.schema.json || echo MISSING:schemas/AALVizProofState.v1.schema.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "schemas",
+      "priority": 3,
+      "subsystem_id": "brier_scoring",
+      "target_path": "schemas/BrierScoringRun.v1.schema.json",
+      "verify_command": "test -e schemas/BrierScoringRun.v1.schema.json || echo MISSING:schemas/BrierScoringRun.v1.schema.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "schemas",
+      "priority": 3,
+      "subsystem_id": "canary_lifecycle",
+      "target_path": "schemas/CanaryActivationPacket.v1.schema.json",
+      "verify_command": "test -e schemas/CanaryActivationPacket.v1.schema.json || echo MISSING:schemas/CanaryActivationPacket.v1.schema.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "schemas",
+      "priority": 3,
+      "subsystem_id": "operator_layer",
+      "target_path": "schemas/ProofStatusCard.v1.schema.json",
+      "verify_command": "test -e schemas/ProofStatusCard.v1.schema.json || echo MISSING:schemas/ProofStatusCard.v1.schema.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "schemas",
+      "priority": 3,
+      "subsystem_id": "oracle_pipeline",
+      "target_path": "schemas/OracleSignalPacket.v1.schema.json",
+      "verify_command": "test -e schemas/OracleSignalPacket.v1.schema.json || echo MISSING:schemas/OracleSignalPacket.v1.schema.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "artifacts",
+      "priority": 4,
+      "subsystem_id": "brier_scoring",
+      "target_path": "out/scoring/brier_scoring.latest.json",
+      "verify_command": "test -e out/scoring/brier_scoring.latest.json || echo MISSING:out/scoring/brier_scoring.latest.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "artifacts",
+      "priority": 4,
+      "subsystem_id": "canary_lifecycle",
+      "target_path": "out/canary/canary_activation_packet.latest.json",
+      "verify_command": "test -e out/canary/canary_activation_packet.latest.json || echo MISSING:out/canary/canary_activation_packet.latest.json"
+    },
+    {
+      "action": "CREATE_OR_FIX",
+      "category": "artifacts",
+      "priority": 4,
+      "subsystem_id": "oracle_pipeline",
+      "target_path": "out/oracle/oracle_signal_packet.latest.json",
+      "verify_command": "test -e out/oracle/oracle_signal_packet.latest.json || echo MISSING:out/oracle/oracle_signal_packet.latest.json"
+    }
+  ]
+}

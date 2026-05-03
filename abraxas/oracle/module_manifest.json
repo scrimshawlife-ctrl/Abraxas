@@ -1,0 +1,16 @@
+{
+  "schema_version": "ModuleManifest.v1",
+  "subsystem_id": "oracle_pipeline",
+  "module_path": "abraxas/oracle",
+  "status": "STUB",
+  "capabilities": [],
+  "provenance": {
+    "source": "PATCH-BINDING-GAP-MODULE-STUBS-001",
+    "generated": true
+  },
+  "authority": {
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  }
+}

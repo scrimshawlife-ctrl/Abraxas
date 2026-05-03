@@ -1,0 +1,19 @@
+{
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "blocked_targets": [],
+  "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+  "flagged_targets": [],
+  "proposal_count": 0,
+  "ranked_targets": [],
+  "schema_version": "SelfBuildScoreFeedback.v1",
+  "source_hashes": {
+    "proposal_hash": "a2591ec8c1b0158afbf123ac7dc50d4f42d7d9a9e12952ce9db0a4707a4fe4ce",
+    "scoring_hash": "3871a330bbf30456a318dc0ffec9b3bf9e1e04620b65726ff3ac9099bc118333"
+  },
+  "status": "OK"
+}

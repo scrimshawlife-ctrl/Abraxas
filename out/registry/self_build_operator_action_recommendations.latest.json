@@ -1,0 +1,68 @@
+{
+  "action_count": 5,
+  "actions": [
+    {
+      "action_id": "action-00fef7516c6e4ec8",
+      "action_type": "REQUEST_APPROVAL",
+      "approval_id": "approval-35f3b527b2ee8aef",
+      "confidence": 0.75,
+      "reason": "Queue item is pending operator approval",
+      "requires_operator": true,
+      "target_path": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json"
+    },
+    {
+      "action_id": "action-37018592e5df8b60",
+      "action_type": "REQUEST_APPROVAL",
+      "approval_id": "approval-520909c146fab768",
+      "confidence": 0.75,
+      "reason": "Queue item is pending operator approval",
+      "requires_operator": true,
+      "target_path": "out/registry/self_build_rollback_result.latest.json"
+    },
+    {
+      "action_id": "action-860d24056897055f",
+      "action_type": "ESCALATE_APPROVAL_WAIT",
+      "approval_id": null,
+      "confidence": 0.85,
+      "reason": "Trend analyzer reports high approval wait ratio",
+      "requires_operator": true,
+      "target_path": ""
+    },
+    {
+      "action_id": "action-a5027585b6e39ce4",
+      "action_type": "REQUEST_APPROVAL",
+      "approval_id": "approval-8e930af18bcd21a9",
+      "confidence": 0.75,
+      "reason": "Queue item is pending operator approval",
+      "requires_operator": true,
+      "target_path": "out/registry/snapshots/ad5caad642b48532d6f591bac0ce3cdc6fdfa185b42448d31f2ce2e2ff150786.json"
+    },
+    {
+      "action_id": "action-c63deb8bdecd5239",
+      "action_type": "REVIEW_PENDING_APPROVALS",
+      "approval_id": null,
+      "confidence": 0.9,
+      "reason": "Batch cycle is waiting for approvals",
+      "requires_operator": true,
+      "target_path": ""
+    },
+    {
+      "action_id": "action-hold-test",
+      "action_type": "HOLD_APPROVAL_FOR_REVIEW",
+      "approval_id": null,
+      "confidence": 0.5,
+      "reason": "test hold",
+      "requires_operator": true,
+      "target_path": ""
+    }
+  ],
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "canonical_hash": "7a78ac3b19b7e1765dc64ab3a57fbc44b25d25a3995085893d2a9c47e43bd4b4",
+  "schema_version": "SelfBuildOperatorActionRecommendations.v1",
+  "status": "OK"
+}

@@ -6,12 +6,12 @@ import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from abraxas.registry.invariance_harness import run_invariance_harness
+from abraxas.registry.binding_validator import run_binding_validator
 
 
 def main() -> None:
-    result = run_invariance_harness()
-    out_path = Path("out/registry/invariance_harness_run.latest.json")
+    result = run_binding_validator()
+    out_path = Path("out/registry/binding_validator_run.latest.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False) + "\n",
