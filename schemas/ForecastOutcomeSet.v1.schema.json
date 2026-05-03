@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "forecasts",
+    "outcomes",
+    "canonical_hash"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ForecastOutcomeSet.v1"
+    },
+    "forecasts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "probability",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "label": {
+            "type": "string",
+            "enum": [
+              "YES",
+              "NO"
+            ]
+          }
+        }
+      }
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "forecast_id",
+          "resolved_value"
+        ],
+        "properties": {
+          "forecast_id": {
+            "type": "string"
+          },
+          "resolved_value": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          }
+        }
+      }
+    },
+    "canonical_hash": {
+      "type": "string"
+    },
+    "envelope": {
+      "type": "object"
+    }
+  }
+}

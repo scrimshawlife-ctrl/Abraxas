@@ -1,0 +1,8 @@
+schema_version: ReadinessPolicy.v1
+lineage_warning_threshold: 5
+require_lineage_report: true
+require_operator_green: true
+require_validator_pass: true
+require_feedback_available: true
+require_recommendations_available: true
+mutation_path_must_be_gated: true

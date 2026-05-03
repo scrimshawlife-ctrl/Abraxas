@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidates",
+    "canonical_hash"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "CanaryCandidateSet.v1"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "target",
+          "approval",
+          "safety",
+          "rollback_ready"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "approval": {
+            "type": "string"
+          },
+          "safety": {
+            "type": "string"
+          },
+          "rollback_ready": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "canonical_hash": {
+      "type": "string"
+    },
+    "envelope": {
+      "type": "object"
+    }
+  }
+}

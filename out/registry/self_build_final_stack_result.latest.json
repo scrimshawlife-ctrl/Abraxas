@@ -6,16 +6,26 @@
     "promotion": false
   },
   "authority_integrity": true,
-  "auto_loop_plan_hash": "659a381cf97b93f7c69dc720b2fa3d4485d0a1be187bfb5ee8276298c98c6ce6",
-  "canonical_hash": "e0db97257304eaa9ec60c76e06a656a7315970e30b8214e66464913f769017b6",
+  "auto_loop_plan_hash": "64cd906270cf14a572b76ebb2d951f1e5593838f01dcf73b8f063fb66c6bd8d9",
+  "canonical_hash": "54007fa3ebee2e4e15fb521ac7f3f96a37f846e67d3cef8e43896356bae82ae3",
   "generated_artifacts": [
     "out/registry/self_build_evolution_summary.latest.json",
     "out/registry/self_build_readiness_gate.latest.json",
     "out/registry/self_build_auto_loop_plan.latest.json",
-    "out/operator/self_build_operator_packet.latest.json"
+    "out/operator/self_build_operator_packet.latest.json",
+    "out/semantic/semantic_lineage_report.latest.json"
   ],
-  "operator_packet_hash": "26072ada6963eff9ebbf4c2d5d949de6ae1c15680fdfaf3b529dfca49ba32d6f",
-  "readiness_hash": "ec2e4d9dd8438fbc20b99194d14018584bb6f1b6100a1e98370b7674b5b3fa60",
+  "lineage_broken_link_count": 0,
+  "lineage_report_hash": null,
+  "lineage_status": "LINEAGE_REPORT_READY",
+  "lineage_warning_count": 1,
+  "operator_packet_hash": "ed05a3e09811b9d5b843a5ac9ed43299e1c2f0e5d6c3d138625b40a1a83a1a43",
+  "persistent_blocker_count": 1,
+  "policy_hash_change_count": 0,
+  "policy_trends_hash": "258b485e79bbc0596f23b28763d2505bbcb77055af94786ade3c75d54aa1dfb8",
+  "policy_trends_status": "TRENDS_READY",
+  "readiness_hash": "fbc77a2709c9e675877fd38e0517227f19fd9939404d8722a96b8509d5f1055d",
+  "readiness_policy_hash": "c512848338cdf4947b650990009f6c85ec4b9ca69066dadf8c1002bcfb6ac3f7",
   "schema_version": "SelfBuildFinalStackResult.v1",
   "status": "FINAL_STACK_READY",
   "summary_hash": "78f56431337a5f03fa1388d4de2ed1699610c1d9c0d1638655c1bf7ecd0339ad"

@@ -5,7 +5,9 @@
     "out/registry/self_build_readiness_gate.latest.json",
     "out/registry/self_build_auto_loop_plan.latest.json",
     "out/registry/self_build_operator_action_recommendations.latest.json",
-    "out/registry/self_build_batch_cycle.latest.json"
+    "out/registry/self_build_batch_cycle.latest.json",
+    "out/semantic/semantic_lineage_report.latest.json",
+    "out/registry/readiness_policy_trends.latest.json"
   ],
   "authority": {
     "execution": false,
@@ -13,9 +15,39 @@
     "operator_display_only": true,
     "promotion": false
   },
-  "canonical_hash": "26072ada6963eff9ebbf4c2d5d949de6ae1c15680fdfaf3b529dfca49ba32d6f",
+  "canonical_hash": "0c11ca1fa5d34b7e3a4cd98421ce83f3dd479b987eb6c787ad50835bd4ba5e74",
   "headline_state": "WAITING_FOR_APPROVAL",
-  "readiness_status": "WAITING_FOR_APPROVAL",
+  "operator_decision_summary": {
+    "blocking_domains": [
+      "lineage",
+      "lineage_no_broken_links",
+      "policy_trends"
+    ],
+    "confidence": 0.35,
+    "decision_state": "INVESTIGATE",
+    "reason": "Lineage warnings or persistent policy blockers require investigation",
+    "source_hashes": {
+      "lineage_hash": null,
+      "policy_trends_hash": "5af94564d20489b45075ac754f54f115cc4908198f12c9e1efa2817240de0b21",
+      "readiness_hash": "fbc77a2709c9e675877fd38e0517227f19fd9939404d8722a96b8509d5f1055d",
+      "recommendation_hash": "99a941f66ebd9fc772203d0b155076296959417ca361c32b35a54aabaf6b0df7"
+    },
+    "suggested_command": "python scripts/run_self_build_recommendation_executor.py action-00fef7516c6e4ec8"
+  },
+  "readiness_policy_hash": "c512848338cdf4947b650990009f6c85ec4b9ca69066dadf8c1002bcfb6ac3f7",
+  "readiness_policy_trends": {
+    "active_policy_hash": "B",
+    "canonical_hash": "5af94564d20489b45075ac754f54f115cc4908198f12c9e1efa2817240de0b21",
+    "persistent_blockers": [
+      "b1"
+    ],
+    "policy_hash_change_count": 1,
+    "readiness_status_drift_under_same_policy": [
+      "A"
+    ],
+    "status": "TRENDS_READY"
+  },
+  "readiness_status": "NOT_READY",
   "recommended_next_action": "REQUEST_APPROVAL",
   "risks": [
     "HIGH_APPROVAL_WAIT_RATIO",
@@ -23,6 +55,14 @@
     "LOW_POST_VALIDATION_PASS_RATIO"
   ],
   "schema_version": "SelfBuildOperatorPacket.v1",
+  "semantic_lineage": {
+    "broken_parent_reference_count": 1,
+    "canonical_hash": null,
+    "missing_envelope_count": 0,
+    "orphan_contract_count": 0,
+    "status": "LINEAGE_REPORT_READY",
+    "warning_count": 1
+  },
   "status": "PACKET_READY",
   "top_recommendations": [
     {

@@ -2,11 +2,30 @@
   "authority": {
     "execution": false,
     "mutation": false,
-    "observe_only": true,
-    "promotion": false
+    "packet_only": true,
+    "promotion": false,
+    "review_only": true
   },
-  "deterministic": true,
+  "entries": [
+    {
+      "approval": "approved",
+      "id": "c1",
+      "rollback_ready": true,
+      "safety": "ok",
+      "status": "READY_FOR_OPERATOR_REVIEW",
+      "target": "svc-a"
+    },
+    {
+      "approval": null,
+      "id": "c2",
+      "rollback_ready": null,
+      "safety": null,
+      "status": "NOT_COMPUTABLE",
+      "target": "svc-b"
+    }
+  ],
+  "packet_hash": "4974945b62c6a71f2aa300d5a057d0b4903c6a704b8af6cb277d582c2e2b1659",
+  "reason": null,
   "schema_version": "CanaryActivationPacket.v1",
-  "status": "COMPUTABLE",
-  "upgraded_from": "STUB"
+  "status": "COMPUTABLE"
 }
