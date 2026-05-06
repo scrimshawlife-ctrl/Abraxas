@@ -397,3 +397,149 @@ Use [docs/README.md](docs/README.md) for documentation routing across canon/gove
 
 A root `LICENSE` file is currently not present in this repository.  
 `package.json` declares `MIT` for package scope; verify top-level licensing before redistribution.
+
+---
+
+## v2.0.5 — Governed Adaptive Sandbox
+
+v2.0.5 introduces **sandboxed adaptive experimentation, candidate transition simulation, governed mutation proposals, isolated adaptation loops, reversible adaptive branches, stabilization-gated experimentation, adaptive replay validation, and operator-reviewed promotion candidates**.
+
+This is **STILL NOT live autonomy**. All execution remains shadow-only, deterministic, replayable, and sandbox-isolated.
+
+### Adaptive Sandbox Overview
+
+The adaptive sandbox provides a completely isolated environment for experimenting with candidate state transitions **without affecting the runtime state or Canon**. Every operation is:
+
+- **Sandboxed**: Sandbox state hash always differs from runtime source state hash
+- **Deterministic**: Same inputs always produce the same branch hashes, replay results, and stabilization states
+- **Replayable**: Every sandbox branch can be replayed with cryptographic proof of determinism
+- **Governance-first**: Authority locked at all entry points; no authority leaks permitted
+- **Fail-closed**: Cyclic lineage, unstable branches, and replay mismatches all block promotion
+
+### Governed Experimentation Doctrine
+
+```
+Sandbox → Mutations → Replay → Stabilization → Promotion Candidate → Operator Review
+```
+
+1. **Sandbox branch** is created from a governed state (source state hash captured, sandbox state isolated)
+2. **Candidate mutations** are proposed (route, validation, replay, stabilization, projection, topology adjustments)
+3. **Replay validation** confirms deterministic match of sandbox branch
+4. **Stabilization window** accumulates replay matches; failures push state to `unstable`
+5. **Promotion candidate** is generated with `promotion_allowed=False` and `operator_review_required=True`
+6. **Operator review** is always required — no bypass path exists
+
+### Isolated Branch Semantics
+
+- `AdaptiveSandboxBranch.v1`: Isolated branch with locked authority, monotonic `branch_generation`, deterministic hash
+- `AdaptiveBranchLineage.v1`: Tracks branch ancestry; cyclic lineage detected and fails closed
+- Sandbox scope string guarantees distinct sandbox state hashes per scope
+
+### Replay-Safe Adaptation
+
+- `SandboxReplayPacket.v1`: Hash-based replay comparison; mismatch recorded in `mismatched_mutations`
+- Replay mismatch forces `deterministic_match=False` regardless of other fields
+- Any mismatch invalidates the stabilization pathway
+
+### Stabilization-Gated Experimentation
+
+States: `unstable` → `stabilizing` → `stable` (or `failed`)
+
+- Zero replay failures + matches ≥ window → `stable`
+- Any replay failure → `unstable` (or `failed` if no matches at all)
+- `unstable`/`failed` branches cannot be promoted
+
+### Promotion Candidate Review
+
+- `SandboxPromotionCandidate.v1`: Always created with `promotion_allowed=False`
+- `operator_review_required=True` always — setting `promotion_allowed=True` simultaneously is overridden
+- `status=blocked` when stabilization_state is `failed`
+
+### Sandbox Rollback Semantics
+
+- Sandbox branches are **fully reversible** — they never modify Canon or runtime state
+- Closing a sandbox branch (status=`closed`) reverts to the governed state
+- No permanent effects outside the sandbox output artifacts
+
+### Doctrine Validator Extensions (v2.0.5)
+
+Five new gates added to the sandbox doctrine validator:
+
+| Gate | Rule |
+|------|------|
+| `sandbox_branch_gate` | Branch isolated, authority locked, hash valid |
+| `adaptive_replay_gate` | Replay deterministic match confirmed |
+| `adaptive_stabilization_gate` | Stabilization not unstable/failed; no cyclic lineage |
+| `promotion_candidate_gate` | Operator review required; promotion_allowed=False |
+| `mutation_receipt_gate` | All receipts have locked authority |
+
+### Projection Extensions (v2.0.5)
+
+`build_sandbox_summary()` extends the AAL-Viz projection packet:
+
+```python
+{
+    "schema_version": "SandboxSummary.v1",
+    "projection_only": True,
+    "inference_authority": False,
+    "adaptive_branches": <count>,
+    "replay_matches": <count>,
+    "unstable_branches": <count>,
+    "promotion_candidates": <count>,
+    "blocked_promotions": <count>,
+    "lineage_depth": <max depth>,
+    "sandbox_failures": <count>,
+}
+```
+
+### v2.0.5 Module Map
+
+```
+core/sandbox/
+  __init__.py       - Package declaration
+  models.py         - AdaptiveSandboxBranch.v1
+  mutations.py      - CandidateMutationPacket.v1
+  replay.py         - SandboxReplayPacket.v1
+  stabilization.py  - SandboxStabilizationPacket.v1
+  promotion.py      - SandboxPromotionCandidate.v1
+  lineage.py        - AdaptiveBranchLineage.v1, AdaptiveBranchNode
+  receipts.py       - MutationProposalReceipt.v1
+  runtime.py        - AdaptiveSimulationRun.v1, run_adaptive_sandbox()
+  validators.py     - validate_adaptive_replay(), sandbox doctrine gates
+```
+
+### v2.0.5 Commands
+
+```bash
+python scripts/run_registry.py
+python scripts/run_doctrine_validator.py
+python scripts/run_shadow_execution.py
+python scripts/run_rune_replay.py
+python scripts/run_yggdrasil_runtime.py
+python scripts/run_graph_replay.py
+python scripts/run_observability_pipeline.py
+python scripts/run_lineage_validation.py
+python scripts/run_state_engine.py
+python scripts/run_state_replay.py
+python scripts/run_adaptive_sandbox.py
+python scripts/run_sandbox_replay.py
+pytest -q
+```
+
+### v2.0.5 Generated Artifacts
+
+```
+out/sandbox/latest.json             - AdaptiveSimulationRun artifact
+out/sandbox_replay/latest.json      - SandboxReplayPacket artifact
+out/sandbox_lineage/latest.json     - AdaptiveBranchLineage artifact
+out/sandbox_stabilization/latest.json - SandboxStabilizationPacket artifact
+out/promotion_candidates/latest.json  - SandboxPromotionCandidate artifact
+```
+
+### Hard Boundaries (v2.0.5)
+
+- **No intelligence, forecasting, agents, or live autonomy**
+- **No Canon mutation** — sandbox is fully isolated
+- **No runtime mutation outside sandbox**
+- **No external APIs, async workers, or databases**
+- All execution: deterministic, replayable, governance-first, fail-closed, shadow-only, projection-safe, sandbox-isolated

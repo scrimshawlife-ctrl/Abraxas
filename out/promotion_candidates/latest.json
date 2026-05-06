@@ -1,0 +1,14 @@
+{
+  "schema_version": "SandboxPromotionCandidate.v1",
+  "candidate_id": "c9cbfb70-f908-5880-88ed-118873d991af",
+  "sandbox_branch_hash": "3b71462a1c681f2abf6776ee8d3ee7a16eb1c31cba285780c1a890e00efcaa6f",
+  "stabilization_hash": "14bc2ab864c576c26d1eb35d352014e99d630f425d82a91a2dd80b585acc405e",
+  "replay_hash": "2863554fb679dbee15fbd1284bca25694d56acfbcf49625c19b9f84d6d0a4843",
+  "proposed_promotions": [
+    "9e71be21ee2113ef3b99cc3af710a36750e39260a2212e9ea9ee7bfd2e818716",
+    "becafa0aa2e187972de6858ab59252b626b1c121c30fb3cdfae72a7fee7bddea"
+  ],
+  "operator_review_required": true,
+  "promotion_allowed": false,
+  "status": "pending"
+}

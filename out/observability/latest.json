@@ -1,0 +1,10 @@
+{
+  "schema_version": "ObservabilityPacket.v1",
+  "projection_only": true,
+  "inference_authority": false,
+  "run_status": "completed",
+  "receipt_count": 3,
+  "replay_deterministic_match": true,
+  "chain_hash_prefix": "87806f19d649f86b...",
+  "packet_hash": "12e775ce49c04c45129256d0afee78d7f4b693b7df8f65dafc4d32e1ef654282"
+}

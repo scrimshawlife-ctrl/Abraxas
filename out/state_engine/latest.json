@@ -1,0 +1,33 @@
+{
+  "schema_version": "StateEnginePacket.v1",
+  "transition_count": 4,
+  "state_hash": "1324096591678454a9654afdf7caeccdf07925df8469554db0ef5a77d64f018c",
+  "transitions": [
+    {
+      "from_state": "init",
+      "to_state": "governed",
+      "transition_type": "bootstrap"
+    },
+    {
+      "from_state": "governed",
+      "to_state": "stabilizing",
+      "transition_type": "stabilize"
+    },
+    {
+      "from_state": "stabilizing",
+      "to_state": "stable",
+      "transition_type": "confirm"
+    },
+    {
+      "from_state": "stable",
+      "to_state": "replay_safe",
+      "transition_type": "replay_validate"
+    }
+  ],
+  "stabilization_window": 3,
+  "stabilization_state": "stable",
+  "operator_review_required": true,
+  "replay_safe": true,
+  "authority_locked": true,
+  "status": "complete"
+}

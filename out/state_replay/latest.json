@@ -1,0 +1,10 @@
+{
+  "schema_version": "StateReplayPacket.v1",
+  "source_state_hash": "1324096591678454a9654afdf7caeccdf07925df8469554db0ef5a77d64f018c",
+  "replay_state_hash": "1324096591678454a9654afdf7caeccdf07925df8469554db0ef5a77d64f018c",
+  "replay_verification_hash": "50638197825826979251ca539b9609747eb05d6ec6244d2a501b7b8c811ddb37",
+  "deterministic_match": true,
+  "replay_safe": true,
+  "operator_review_required": true,
+  "status": "matched"
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "LineageValidationPacket.v1",
+  "run_id": "68c53d53-0747-4781-ae2e-b30d6eee543b",
+  "plan_hash_prefix": "9f13305729f16809...",
+  "chain_hash_prefix": "07e0e1c9dabb8b61...",
+  "replay_deterministic_match": true,
+  "lineage_hash": "1d8f0e2e807e1ebcf3221d59c281249ad0dc662ddc65c04c02b9daf70162af6e",
+  "status": "valid"
+}
