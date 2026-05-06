@@ -1,0 +1,331 @@
+{
+  "schema_version": "OracleIntakeRun.v1",
+  "run_id": "oracle-intake-fixture-run-001",
+  "intake_envelopes": [
+    {
+      "schema_version": "IntakeEnvelope.v1",
+      "intake_id": "e705d4b4-df0c-56b1-9ab6-0dd36da573dc",
+      "source_id": "src-doc-001",
+      "source_type": "document",
+      "intake_timestamp_index": 0,
+      "raw_payload_hash": "2b91346dfa73306c608a5f2a9d7ca8710bd014abd77ae6cf33d923781793fb26",
+      "normalized_payload_hash": null,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "intake_status": "pending"
+    },
+    {
+      "schema_version": "IntakeEnvelope.v1",
+      "intake_id": "aee62bd3-8ad8-5e54-9f4f-4ce63f51d794",
+      "source_id": "src-receipt-001",
+      "source_type": "receipt",
+      "intake_timestamp_index": 1,
+      "raw_payload_hash": "d929a9f199ff9c80ce7ea681f8840378745f08389ccfcd90a08dfcc20c056f6a",
+      "normalized_payload_hash": null,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "intake_status": "pending"
+    },
+    {
+      "schema_version": "IntakeEnvelope.v1",
+      "intake_id": "507bd7f9-50c8-5241-abee-077e572cc042",
+      "source_id": "src-topology-001",
+      "source_type": "topology",
+      "intake_timestamp_index": 2,
+      "raw_payload_hash": "6e5e972665440c589bb1e7daf16c6aa0aaeac0b725bafc234a0ec66a7517697b",
+      "normalized_payload_hash": null,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "intake_status": "pending"
+    }
+  ],
+  "evidence_packets": [
+    {
+      "schema_version": "SourceEvidencePacket.v1",
+      "evidence_id": "9e86da60-03dc-561e-b25b-520f31f3477c",
+      "intake_hash": "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+      "source_hash": "2b91346dfa73306c608a5f2a9d7ca8710bd014abd77ae6cf33d923781793fb26",
+      "provenance_chain": [
+        "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+        "3d1e082e4e9f208e6201cc67f6a7472d02e027b3dabcbd99e2a315a33eca40be",
+        "1bdcca569e72721a3d4095ae6c49fc30942fa2a18b76268801a067bbac0d6b9d"
+      ],
+      "evidence_type": "structural",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "valid"
+    },
+    {
+      "schema_version": "SourceEvidencePacket.v1",
+      "evidence_id": "63ee1b03-f06e-5894-ac67-7b9319f42664",
+      "intake_hash": "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+      "source_hash": "d929a9f199ff9c80ce7ea681f8840378745f08389ccfcd90a08dfcc20c056f6a",
+      "provenance_chain": [
+        "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+        "3b10e75b0b099a7b7db2a25329ab72b3962cca053262a096c9b88eb4495b5d9b",
+        "2f76ed7666d6da82463f3530c7429208eb140208043cdc3d6ef0f99c717efb3d"
+      ],
+      "evidence_type": "structural",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "valid"
+    },
+    {
+      "schema_version": "SourceEvidencePacket.v1",
+      "evidence_id": "6f27c4e3-7f35-5037-8ff6-c5e6af9f6fd6",
+      "intake_hash": "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+      "source_hash": "6e5e972665440c589bb1e7daf16c6aa0aaeac0b725bafc234a0ec66a7517697b",
+      "provenance_chain": [
+        "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+        "8a96d4f39d1360d2ec591c800dd4f18272d45364432dfb61b6f2988a0e70e2e8",
+        "f7e79284000cdb2a7d7399c5c33fb68fb3061b5a4b99c50677c6b2c0f51cef81"
+      ],
+      "evidence_type": "structural",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "valid"
+    }
+  ],
+  "normalization_packets": [
+    {
+      "schema_version": "IntakeNormalizationPacket.v1",
+      "normalization_id": "357641c1-26b9-5729-93d8-d69f606afeda",
+      "source_hash": "2b91346dfa73306c608a5f2a9d7ca8710bd014abd77ae6cf33d923781793fb26",
+      "normalized_hash": "a50bfe2013e9630c580b509082e0fc4e5e2ef1f29440f5f128da4dd7ddad23a9",
+      "normalization_steps": [
+        "sort_keys",
+        "strip_none",
+        "lowercase_strings"
+      ],
+      "deterministic_normalization_hash": "c7cca64433fcdab28c231b3e323b82bdf9ff877fa13a61e103017259b11b854e",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "complete"
+    },
+    {
+      "schema_version": "IntakeNormalizationPacket.v1",
+      "normalization_id": "13f08152-abd7-57ed-abed-a000a2154d3a",
+      "source_hash": "d929a9f199ff9c80ce7ea681f8840378745f08389ccfcd90a08dfcc20c056f6a",
+      "normalized_hash": "d929a9f199ff9c80ce7ea681f8840378745f08389ccfcd90a08dfcc20c056f6a",
+      "normalization_steps": [
+        "sort_keys",
+        "strip_none",
+        "lowercase_strings"
+      ],
+      "deterministic_normalization_hash": "d05581ba6e19ffcae835423c3fcd75f0d913fc71c6e03ea62c525ff9c3cc4682",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "complete"
+    },
+    {
+      "schema_version": "IntakeNormalizationPacket.v1",
+      "normalization_id": "74585492-56f6-5740-95bd-970dd152c402",
+      "source_hash": "6e5e972665440c589bb1e7daf16c6aa0aaeac0b725bafc234a0ec66a7517697b",
+      "normalized_hash": "6e5e972665440c589bb1e7daf16c6aa0aaeac0b725bafc234a0ec66a7517697b",
+      "normalization_steps": [
+        "sort_keys",
+        "strip_none",
+        "lowercase_strings"
+      ],
+      "deterministic_normalization_hash": "803869c39399ec8b95170191ff64441892824efa2309601a0ed8ff1c036c2f36",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "complete"
+    }
+  ],
+  "replay_packets": [
+    {
+      "schema_version": "IntakeReplayPacket.v1",
+      "replay_id": "cff818ed-5ab4-5c11-a970-10ce3dc823db",
+      "source_intake_hash": "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+      "replay_intake_hash": "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+      "deterministic_match": true,
+      "mismatched_normalizations": [],
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "matched"
+    },
+    {
+      "schema_version": "IntakeReplayPacket.v1",
+      "replay_id": "d7e1695e-f321-5e34-ac7d-46e56719031f",
+      "source_intake_hash": "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+      "replay_intake_hash": "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+      "deterministic_match": true,
+      "mismatched_normalizations": [],
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "matched"
+    },
+    {
+      "schema_version": "IntakeReplayPacket.v1",
+      "replay_id": "9c45ff78-2d48-5092-82cc-0782f5cfc9c5",
+      "source_intake_hash": "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+      "replay_intake_hash": "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+      "deterministic_match": true,
+      "mismatched_normalizations": [],
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "matched"
+    }
+  ],
+  "conflict_packets": [],
+  "stabilization_packets": [
+    {
+      "schema_version": "IntakeStabilizationPacket.v1",
+      "stabilization_id": "0248e050-81cd-50b8-a862-d0e674a5949d",
+      "intake_hash": "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+      "replay_match_count": 3,
+      "replay_failure_count": 0,
+      "conflict_count": 0,
+      "stabilization_window": 3,
+      "stabilization_state": "stable",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "complete"
+    },
+    {
+      "schema_version": "IntakeStabilizationPacket.v1",
+      "stabilization_id": "8fbed473-cc2f-55c1-98a6-7411e0a8abe5",
+      "intake_hash": "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+      "replay_match_count": 3,
+      "replay_failure_count": 0,
+      "conflict_count": 0,
+      "stabilization_window": 3,
+      "stabilization_state": "stable",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "complete"
+    },
+    {
+      "schema_version": "IntakeStabilizationPacket.v1",
+      "stabilization_id": "0f4d55a6-0596-5084-8d24-1e82a56141ab",
+      "intake_hash": "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+      "replay_match_count": 3,
+      "replay_failure_count": 0,
+      "conflict_count": 0,
+      "stabilization_window": 3,
+      "stabilization_state": "stable",
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "complete"
+    }
+  ],
+  "approval_packets": [
+    {
+      "schema_version": "IntakeApprovalPacket.v1",
+      "approval_id": "f2ebc73a-ca66-597c-9dd2-398b34477b64",
+      "intake_hash": "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+      "stabilization_hash": "9ecf0d923898ad7dfacd0ca873e71a8a08a81ec3fc6d86f8dbed1189c521b1b9",
+      "conflict_hashes": [],
+      "approval_required": true,
+      "approved": false,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "pending"
+    },
+    {
+      "schema_version": "IntakeApprovalPacket.v1",
+      "approval_id": "b36f1c92-5a6c-5faa-95bc-625fccfc8bf4",
+      "intake_hash": "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+      "stabilization_hash": "5c4845f15f1d0e406481847f3dc59c5a7b0d7397760d9927162fc6e711f9c3c8",
+      "conflict_hashes": [],
+      "approval_required": true,
+      "approved": false,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "pending"
+    },
+    {
+      "schema_version": "IntakeApprovalPacket.v1",
+      "approval_id": "c5257f5c-5e94-5e53-b1b3-739ace62415a",
+      "intake_hash": "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+      "stabilization_hash": "b7d0dc57bad77a0e0e9cc32544027006d13faffd4d4bddcef2722f18ae1d104d",
+      "conflict_hashes": [],
+      "approval_required": true,
+      "approved": false,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "pending"
+    }
+  ],
+  "deterministic_run_hash": "25aab8b2f8b5dfc38e0b1f0d2ac71dcc23d2b5a7b38dfd5f354f78d15bfcd979",
+  "authority": {
+    "authority_id": "auth.oracle_intake.001",
+    "actor": "system.oracle_intake",
+    "locked": true,
+    "scope": "oracle_intake_only"
+  },
+  "status": "complete"
+}

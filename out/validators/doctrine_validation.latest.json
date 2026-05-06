@@ -3,7 +3,7 @@
   "pipeline_id": "pipeline.tier1.v1",
   "fully_compliant": true,
   "blocking_gates": [],
-  "result_hash": "ffa032e128c82c496fa35ebe7426f441ca5d6322465f962269e82d831a32dbb6",
+  "result_hash": "dfe29e0db2bbfb41c2dee4fed3fcac556a0795762f91e2118357fc5a6c5cfa7e",
   "gates": [
     {
       "gate_id": "execution_plan_gate",
@@ -36,8 +36,44 @@
       "reason": "Rollback packet valid.",
       "evidence": {
         "rollback_possible": true,
-        "rollback_id": "099cee02..."
+        "rollback_id": "2d6d4898..."
       }
+    },
+    {
+      "gate_id": "intake_envelope_gate",
+      "status": "pass",
+      "reason": "No intake_run present (oracle intake not required for this pipeline).",
+      "evidence": {}
+    },
+    {
+      "gate_id": "intake_replay_gate",
+      "status": "pass",
+      "reason": "No intake_run present (oracle intake not required).",
+      "evidence": {}
+    },
+    {
+      "gate_id": "intake_conflict_gate",
+      "status": "pass",
+      "reason": "No intake_run present (oracle intake not required).",
+      "evidence": {}
+    },
+    {
+      "gate_id": "intake_lineage_gate",
+      "status": "pass",
+      "reason": "No intake_lineage present (not required for compliance).",
+      "evidence": {}
+    },
+    {
+      "gate_id": "intake_stabilization_gate",
+      "status": "pass",
+      "reason": "No intake_run present (oracle intake not required).",
+      "evidence": {}
+    },
+    {
+      "gate_id": "intake_approval_gate",
+      "status": "pass",
+      "reason": "No intake_run present (oracle intake not required).",
+      "evidence": {}
     }
   ]
 }

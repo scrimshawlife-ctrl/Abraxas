@@ -173,12 +173,210 @@ def _rollback_gate(evidence: Dict[str, Any]) -> GateResult:
     )
 
 
+# ── v2.0.6 Oracle Intake Gate Functions ──────────────────────────────────
+
+def _intake_envelope_gate(evidence: Dict[str, Any]) -> GateResult:
+    """Gate: intake run must have at least one intake envelope."""
+    intake_run = evidence.get("intake_run")
+    if intake_run is None:
+        return GateResult(
+            gate_id="intake_envelope_gate",
+            status=GateStatus.PASS,
+            reason="No intake_run present (oracle intake not required for this pipeline).",
+        )
+    envelopes = intake_run.get("intake_envelopes", [])
+    if not envelopes:
+        return GateResult(
+            gate_id="intake_envelope_gate",
+            status=GateStatus.FAIL,
+            reason="intake_run present but has no intake_envelopes.",
+        )
+    blocked = [e for e in envelopes if e.get("intake_status") in {"conflict_detected", "rejected"}]
+    if blocked:
+        return GateResult(
+            gate_id="intake_envelope_gate",
+            status=GateStatus.FAIL,
+            reason=f"{len(blocked)} envelope(s) in blocked status.",
+            evidence={"blocked_count": len(blocked)},
+        )
+    return GateResult(
+        gate_id="intake_envelope_gate",
+        status=GateStatus.PASS,
+        reason=f"Intake envelopes valid: {len(envelopes)} envelope(s).",
+        evidence={"envelope_count": len(envelopes)},
+    )
+
+
+def _intake_replay_gate(evidence: Dict[str, Any]) -> GateResult:
+    """Gate: all replay packets must show deterministic match."""
+    intake_run = evidence.get("intake_run")
+    if intake_run is None:
+        return GateResult(
+            gate_id="intake_replay_gate",
+            status=GateStatus.PASS,
+            reason="No intake_run present (oracle intake not required).",
+        )
+    replay_pkts = intake_run.get("replay_packets", [])
+    if not replay_pkts:
+        return GateResult(
+            gate_id="intake_replay_gate",
+            status=GateStatus.FAIL,
+            reason="intake_run present but has no replay packets.",
+        )
+    mismatched = [p for p in replay_pkts if not p.get("deterministic_match", False)]
+    if mismatched:
+        return GateResult(
+            gate_id="intake_replay_gate",
+            status=GateStatus.FAIL,
+            reason=f"Replay mismatch: {len(mismatched)} packet(s) failed deterministic match.",
+            evidence={"mismatched_count": len(mismatched)},
+        )
+    return GateResult(
+        gate_id="intake_replay_gate",
+        status=GateStatus.PASS,
+        reason=f"All {len(replay_pkts)} replay packet(s) matched deterministically.",
+        evidence={"replay_count": len(replay_pkts)},
+    )
+
+
+def _intake_conflict_gate(evidence: Dict[str, Any]) -> GateResult:
+    """Gate: no unresolved conflicts may remain."""
+    intake_run = evidence.get("intake_run")
+    if intake_run is None:
+        return GateResult(
+            gate_id="intake_conflict_gate",
+            status=GateStatus.PASS,
+            reason="No intake_run present (oracle intake not required).",
+        )
+    conflict_pkts = intake_run.get("conflict_packets", [])
+    unresolved = [c for c in conflict_pkts if c.get("status") == "unresolved"]
+    if unresolved:
+        return GateResult(
+            gate_id="intake_conflict_gate",
+            status=GateStatus.FAIL,
+            reason=f"Unresolved conflicts: {len(unresolved)} conflict(s) block compliance.",
+            evidence={"unresolved_count": len(unresolved)},
+        )
+    return GateResult(
+        gate_id="intake_conflict_gate",
+        status=GateStatus.PASS,
+        reason=f"No unresolved conflicts. Total: {len(conflict_pkts)}.",
+        evidence={"conflict_count": len(conflict_pkts)},
+    )
+
+
+def _intake_lineage_gate(evidence: Dict[str, Any]) -> GateResult:
+    """Gate: intake lineage must not be cyclic."""
+    intake_lineage = evidence.get("intake_lineage")
+    if intake_lineage is None:
+        return GateResult(
+            gate_id="intake_lineage_gate",
+            status=GateStatus.PASS,
+            reason="No intake_lineage present (not required for compliance).",
+        )
+    status = intake_lineage.get("status", "")
+    if status == "cyclic":
+        return GateResult(
+            gate_id="intake_lineage_gate",
+            status=GateStatus.FAIL,
+            reason="Cyclic lineage detected. Intake lineage gate fails closed.",
+        )
+    if status == "invalid":
+        return GateResult(
+            gate_id="intake_lineage_gate",
+            status=GateStatus.FAIL,
+            reason="Invalid parent references in intake lineage.",
+        )
+    return GateResult(
+        gate_id="intake_lineage_gate",
+        status=GateStatus.PASS,
+        reason=f"Intake lineage valid: status={status}.",
+        evidence={"lineage_status": status},
+    )
+
+
+def _intake_stabilization_gate(evidence: Dict[str, Any]) -> GateResult:
+    """Gate: stabilization packets must not all be failed/conflicted."""
+    intake_run = evidence.get("intake_run")
+    if intake_run is None:
+        return GateResult(
+            gate_id="intake_stabilization_gate",
+            status=GateStatus.PASS,
+            reason="No intake_run present (oracle intake not required).",
+        )
+    stab_pkts = intake_run.get("stabilization_packets", [])
+    if not stab_pkts:
+        return GateResult(
+            gate_id="intake_stabilization_gate",
+            status=GateStatus.FAIL,
+            reason="intake_run present but has no stabilization packets.",
+        )
+    failed_or_conflicted = [
+        p for p in stab_pkts if p.get("stabilization_state") in {"failed", "conflicted"}
+    ]
+    if len(failed_or_conflicted) == len(stab_pkts):
+        return GateResult(
+            gate_id="intake_stabilization_gate",
+            status=GateStatus.FAIL,
+            reason="All stabilization packets are failed or conflicted.",
+            evidence={"failed_count": len(failed_or_conflicted)},
+        )
+    return GateResult(
+        gate_id="intake_stabilization_gate",
+        status=GateStatus.PASS,
+        reason=f"Stabilization packets present: {len(stab_pkts)}.",
+        evidence={"stabilization_count": len(stab_pkts)},
+    )
+
+
+def _intake_approval_gate(evidence: Dict[str, Any]) -> GateResult:
+    """Gate: no approval bypass attempted."""
+    intake_run = evidence.get("intake_run")
+    if intake_run is None:
+        return GateResult(
+            gate_id="intake_approval_gate",
+            status=GateStatus.PASS,
+            reason="No intake_run present (oracle intake not required).",
+        )
+    approval_pkts = intake_run.get("approval_packets", [])
+    if not approval_pkts:
+        return GateResult(
+            gate_id="intake_approval_gate",
+            status=GateStatus.FAIL,
+            reason="intake_run present but has no approval packets.",
+        )
+    bypassed = [
+        a for a in approval_pkts
+        if a.get("approved", False) and a.get("conflict_hashes")
+    ]
+    if bypassed:
+        return GateResult(
+            gate_id="intake_approval_gate",
+            status=GateStatus.FAIL,
+            reason=f"Approval bypass detected: {len(bypassed)} packet(s) approved with conflicts.",
+            evidence={"bypass_count": len(bypassed)},
+        )
+    return GateResult(
+        gate_id="intake_approval_gate",
+        status=GateStatus.PASS,
+        reason=f"Approval gate satisfied: {len(approval_pkts)} packet(s).",
+        evidence={"approval_count": len(approval_pkts)},
+    )
+
+
 # Registry of all gates for this layer
 _GATE_FUNCTIONS = [
     _execution_plan_gate,
     _execution_receipt_gate,
     _replayability_gate,
     _rollback_gate,
+    # v2.0.6 intake gates
+    _intake_envelope_gate,
+    _intake_replay_gate,
+    _intake_conflict_gate,
+    _intake_lineage_gate,
+    _intake_stabilization_gate,
+    _intake_approval_gate,
 ]
 
 

@@ -1,0 +1,7 @@
+{
+  "schema_version": "IntakeLineagePacket.v1",
+  "lineage_id": "oracle-intake-fixture-run-001-lineage",
+  "lineage_depth": 3,
+  "deterministic_lineage_hash": "5fe244a2b6dbdffcaaf61a05976b279ce8929eff7562cbcf6985a97766519696",
+  "status": "valid"
+}
