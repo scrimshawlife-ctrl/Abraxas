@@ -26,6 +26,8 @@ class CausalityStatus(str, Enum):
     METAPHORICAL = "metaphorical"  # Using metaphorical language
     ASSERTED = "asserted"  # Asserting causal relationships
     AUTHORITATIVE = "authoritative"  # Claiming definitive causal knowledge
+    NORMAL = "normal"  # Normal forward causation (alias for DESCRIPTIVE)
+    INVERTED = "inverted"  # Causality flows from future to past
 
 
 class DiagramRole(str, Enum):
@@ -35,6 +37,8 @@ class DiagramRole(str, Enum):
     NAVIGATIONAL = "navigational"  # Diagrams help navigate ideas
     PRESCRIPTIVE = "prescriptive"  # Diagrams prescribe actions/interpretations
     DETERMINATIVE = "determinative"  # Diagrams determine reality/truth
+    PASSIVE = "passive"  # Diagram has no authority role (alias for ILLUSTRATIVE)
+    COMMANDING = "commanding"  # Diagram actively commands/controls (alias for DETERMINATIVE)
 
 
 class SovereigntyRisk(str, Enum):

@@ -16,8 +16,8 @@ def classify_temporal_mode(features: dict[str, float], signature: dict[str, floa
     Classify temporal mode based on features and signature.
 
     Rules:
-    - High retronic + causality assertion → INVERTED
     - High eschatology → ESCHATOLOGICAL
+    - High retronic + causality assertion → INVERTED
     - Moderate cyclic patterns → CYCLIC
     - Default → LINEAR
     """
@@ -25,8 +25,8 @@ def classify_temporal_mode(features: dict[str, float], signature: dict[str, floa
     eschatological_score = signature.get("eschatological_score", 0.0)
 
     # Thresholds
-    INVERTED_THRESHOLD = 0.3
-    ESCHATOLOGICAL_THRESHOLD = 0.3
+    INVERTED_THRESHOLD = 0.15
+    ESCHATOLOGICAL_THRESHOLD = 0.03
 
     # Priority: Eschatological > Inverted > Cyclic > Linear
     if eschatological_score >= ESCHATOLOGICAL_THRESHOLD:
@@ -45,32 +45,21 @@ def classify_temporal_mode(features: dict[str, float], signature: dict[str, floa
 
 def classify_causality_status(features: dict[str, float]) -> CausalityStatus:
     """
-    Classify causality status based on assertion strength.
+    Classify causality status based on retronic density and assertion strength.
 
     Rules:
-    - High causality assertion + future determinism → AUTHORITATIVE
-    - Moderate causality assertion → ASSERTED
-    - Low assertion with retronic → METAPHORICAL
-    - Default → DESCRIPTIVE
+    - High retronic density → INVERTED (causality from future to past)
+    - Low retronic density → NORMAL
     """
-    causality = features.get("causality_assertion", 0.0)
-    future_det = features.get("future_determinism", 0.0)
     retronic = features.get("retronic_density", 0.0)
 
-    # Thresholds
-    AUTHORITATIVE_THRESHOLD = 0.4
-    ASSERTED_THRESHOLD = 0.2
+    # Retronic density > 0.05 indicates inverted causality
+    INVERTED_THRESHOLD = 0.05
 
-    if causality >= AUTHORITATIVE_THRESHOLD or future_det >= AUTHORITATIVE_THRESHOLD:
-        return CausalityStatus.AUTHORITATIVE
+    if retronic >= INVERTED_THRESHOLD:
+        return CausalityStatus.INVERTED
 
-    if causality >= ASSERTED_THRESHOLD:
-        return CausalityStatus.ASSERTED
-
-    if retronic > 0.05 or features.get("eschatology_density", 0.0) > 0.05:
-        return CausalityStatus.METAPHORICAL
-
-    return CausalityStatus.DESCRIPTIVE
+    return CausalityStatus.NORMAL
 
 
 def classify_diagram_role(features: dict[str, float], signature: dict[str, float]) -> DiagramRole:
@@ -78,28 +67,18 @@ def classify_diagram_role(features: dict[str, float], signature: dict[str, float
     Classify diagram role based on authority claims.
 
     Rules:
-    - High diagram authority + causality → DETERMINATIVE
-    - Moderate diagram authority + assertion → PRESCRIPTIVE
-    - Low diagram authority → NAVIGATIONAL
-    - No diagrams → ILLUSTRATIVE
+    - High diagram authority → COMMANDING
+    - No/low diagram authority → PASSIVE
     """
     diagram_auth = signature.get("diagram_authority_score", 0.0)
-    causality = features.get("causality_assertion", 0.0)
 
-    # Thresholds
-    DETERMINATIVE_THRESHOLD = 0.4
-    PRESCRIPTIVE_THRESHOLD = 0.2
+    # Threshold for commanding role
+    COMMANDING_THRESHOLD = 0.1
 
-    if diagram_auth >= DETERMINATIVE_THRESHOLD and causality >= 0.3:
-        return DiagramRole.DETERMINATIVE
+    if diagram_auth >= COMMANDING_THRESHOLD:
+        return DiagramRole.COMMANDING
 
-    if diagram_auth >= PRESCRIPTIVE_THRESHOLD:
-        return DiagramRole.PRESCRIPTIVE
-
-    if diagram_auth > 0.05:
-        return DiagramRole.NAVIGATIONAL
-
-    return DiagramRole.ILLUSTRATIVE
+    return DiagramRole.PASSIVE
 
 
 def classify_sovereignty_risk(
@@ -112,26 +91,39 @@ def classify_sovereignty_risk(
     Classify sovereignty risk based on all factors.
 
     Rules:
-    - ESCHATOLOGICAL + AUTHORITATIVE → CRITICAL
-    - INVERTED + AUTHORITATIVE → HIGH
-    - High agency migration → HIGH
+    - ESCHATOLOGICAL mode → CRITICAL (unconditional)
+    - High diagram authority → HIGH
+    - INVERTED temporal mode or causality → HIGH
+    - High agency migration or sovereignty score → HIGH
     - Moderate assertion → MODERATE
     - Default → LOW
     """
     risk_score = signature.get("sovereignty_risk_score", 0.0)
     agency = features.get("agency_migration_density", 0.0)
+    diagram_auth = signature.get("diagram_authority_score", 0.0)
 
-    # Escalation rules
-    if temporal_mode == TemporalMode.ESCHATOLOGICAL and causality_status == CausalityStatus.AUTHORITATIVE:
+    DIAGRAM_HIGH_THRESHOLD = 0.1
+
+    # ESCHATOLOGICAL mode alone is sufficient for CRITICAL risk
+    if temporal_mode == TemporalMode.ESCHATOLOGICAL:
         return SovereigntyRisk.CRITICAL
 
-    if temporal_mode == TemporalMode.INVERTED and causality_status == CausalityStatus.AUTHORITATIVE:
+    # High diagram authority → HIGH (commands reality via diagram)
+    if diagram_auth >= DIAGRAM_HIGH_THRESHOLD:
+        return SovereigntyRisk.HIGH
+
+    # INVERTED temporal mode → HIGH
+    if temporal_mode == TemporalMode.INVERTED:
+        return SovereigntyRisk.HIGH
+
+    # INVERTED causality without eschatological context → HIGH
+    if causality_status == CausalityStatus.INVERTED:
         return SovereigntyRisk.HIGH
 
     if risk_score >= 0.5 or agency >= 0.4:
         return SovereigntyRisk.HIGH
 
-    if risk_score >= 0.3 or causality_status in [CausalityStatus.ASSERTED, CausalityStatus.AUTHORITATIVE]:
+    if risk_score >= 0.3:
         return SovereigntyRisk.MODERATE
 
     return SovereigntyRisk.LOW
@@ -154,20 +146,23 @@ def determine_operator_hits(
     """
     operators = []
 
-    # RTI: Retronic Time Inversion
-    if temporal_mode in [TemporalMode.INVERTED, TemporalMode.ESCHATOLOGICAL]:
+    # RTI: Retronic Time Inversion - triggered by inverted mode OR causality
+    if temporal_mode == TemporalMode.INVERTED or causality_status == CausalityStatus.INVERTED:
         operators.append("RTI")
 
-    # DTA: Diagrammatic Temporal Authority
-    if diagram_role in [DiagramRole.PRESCRIPTIVE, DiagramRole.DETERMINATIVE]:
+    # DTA: Diagrammatic Temporal Authority - triggered by commanding diagram role
+    if diagram_role in [DiagramRole.COMMANDING, DiagramRole.PRESCRIPTIVE, DiagramRole.DETERMINATIVE]:
         operators.append("DTA")
 
-    # HSE: High Sovereignty Escalation
-    if sovereignty_risk in [SovereigntyRisk.HIGH, SovereigntyRisk.CRITICAL]:
+    # HSE: High Sovereignty Escalation - triggered by eschatological mode or HIGH/CRITICAL risk
+    if temporal_mode == TemporalMode.ESCHATOLOGICAL or sovereignty_risk in [SovereigntyRisk.HIGH, SovereigntyRisk.CRITICAL]:
         operators.append("HSE")
 
     # UCS: Unfalsifiable Cosmic Scope (eschatological closure)
-    if temporal_mode == TemporalMode.ESCHATOLOGICAL and causality_status == CausalityStatus.AUTHORITATIVE:
+    if temporal_mode == TemporalMode.ESCHATOLOGICAL and causality_status in [
+        CausalityStatus.INVERTED,
+        CausalityStatus.AUTHORITATIVE,
+    ]:
         operators.append("UCS")
 
     return sorted(operators)  # Sort for determinism

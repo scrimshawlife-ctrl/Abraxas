@@ -42,8 +42,8 @@ def classify_phase(text: str, extracted_tokens: dict[str, int] | None = None) ->
     for phase, lexemes in TRIGGER_LEXICON.items():
         hits = 0
         for lexeme in lexemes:
-            if lexeme in extracted_tokens:
-                hits += extracted_tokens[lexeme]
+            if lexeme in extracted_tokens and extracted_tokens[lexeme] > 0:
+                hits += 1  # Count distinct lexeme types, not total occurrences
 
         # Normalize by lexeme group size
         if lexemes:

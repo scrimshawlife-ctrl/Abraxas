@@ -437,7 +437,9 @@ class OASValidator:
                 "tdd_inscope": True,
                 "tdd_hits": tdd_hits,
                 "tdd_recall": tdd_recall,
+                "tdd_test_count": len(test_texts),
                 "control_false_positives": control_false_positives,
+                "control_test_count": len(control_texts),
                 "tdd_golden_passed": passed,
             }
 

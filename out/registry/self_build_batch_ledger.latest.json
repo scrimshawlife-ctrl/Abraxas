@@ -5,7 +5,7 @@
     "mutation": false,
     "promotion": false
   },
-  "canonical_hash": "66bc699ec733377eb71f2025830392454633bf3254c3666e20b4c04e3dc22a22",
+  "canonical_hash": "76d43a5c66ec739c1e95619c1d6e539f0896dd4cd2fce99ca8e7426dc9ec43cf",
   "entries": [
     {
       "applied_count": 0,
@@ -1006,8 +1006,908 @@
         "status": "OK"
       },
       "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48839b3a52bdddd20e3af0c7176038f22925e80572cc6404d530a62979d30bfe",
+      "cycle_id": "cycle-e13889eb252d60d53094",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "1e21b02b7ed03e7be77f1a9916b78104ab9935faba23cc4bfc7ac5247b44297b",
+        "flagged_count": 0,
+        "ranked_count": 1,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "362121192cff6a75e2b43d8047cce4e566080ec052f4939dd6b5db09a2da573c",
+      "cycle_id": "cycle-6f25141809a8f738fbf2",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "6f04acbc500a01e2ceb3a7b1dc769c529ad1af211adaebe00a2eca2b704eecb5",
+      "cycle_id": "cycle-b25c298daa1796387c83",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "1e21b02b7ed03e7be77f1a9916b78104ab9935faba23cc4bfc7ac5247b44297b",
+        "flagged_count": 0,
+        "ranked_count": 1,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "48bde53fdeded238a170a202fce17f03398888e3591b511cb64670ff8776e3cb",
+      "cycle_id": "cycle-2c4e88b204f58053cf7f",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "1e7a49a53f5b72d3212683ca852c117ad2e7f7dc0028f3062c06b083fdfaa568",
+      "cycle_id": "cycle-3f9ae5e4f676fdb8d749",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "1e21b02b7ed03e7be77f1a9916b78104ab9935faba23cc4bfc7ac5247b44297b",
+        "flagged_count": 0,
+        "ranked_count": 1,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "85a12dd6966da9e72fee6d14d4a3bc48113c17e5cf02132ac2224c3d895b430a",
+      "cycle_id": "cycle-b433dff4f159c58d5d79",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "2dff439d3e5f3ce8d0c86abe45c16ca2e1c3c118f0d7402326f63aacfc88f1db",
+      "cycle_id": "cycle-35deb05cfeb2a9a00060",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": null,
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "NOT_RUN"
+      },
+      "status": "STOPPED_PREFLIGHT_NOT_GREEN"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "f5f4226878ccd7f59f54260c744dffe5c758b48cdaa1fd3fc81624e80b871ccd",
+      "cycle_id": "cycle-3828b02fa0126c5b848e",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "f5f4226878ccd7f59f54260c744dffe5c758b48cdaa1fd3fc81624e80b871ccd",
+      "cycle_id": "cycle-3828b02fa0126c5b848e",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "f5f4226878ccd7f59f54260c744dffe5c758b48cdaa1fd3fc81624e80b871ccd",
+      "cycle_id": "cycle-3828b02fa0126c5b848e",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "f5f4226878ccd7f59f54260c744dffe5c758b48cdaa1fd3fc81624e80b871ccd",
+      "cycle_id": "cycle-3828b02fa0126c5b848e",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "f5f4226878ccd7f59f54260c744dffe5c758b48cdaa1fd3fc81624e80b871ccd",
+      "cycle_id": "cycle-3828b02fa0126c5b848e",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "f5f4226878ccd7f59f54260c744dffe5c758b48cdaa1fd3fc81624e80b871ccd",
+      "cycle_id": "cycle-3828b02fa0126c5b848e",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "564d40a10107dd6889f3bb2dbc4abf78e02b7cab14237f60fda893b6eb06b1ce",
+      "cycle_id": "cycle-e2368e8c862292998441",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "1e21b02b7ed03e7be77f1a9916b78104ab9935faba23cc4bfc7ac5247b44297b",
+        "flagged_count": 0,
+        "ranked_count": 1,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
+    },
+    {
+      "applied_count": 0,
+      "approvals": 0,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false,
+        "promotion": false
+      },
+      "batch_cycle_hash": "8f29d8a814be20d3722a592479cab9c2373ddef812c312d656645f6f00eb38c2",
+      "cycle_id": "cycle-77ca8bfc53340a42a30c",
+      "post_validation": {
+        "invariance": false,
+        "operator_health": "NOT_RUN",
+        "validator": "NOT_RUN"
+      },
+      "score_feedback": {
+        "blocked_count": 0,
+        "canonical_hash": "166001a775db718d9f2cdba52649039b059316e60d7fb910eec77f4889689f05",
+        "flagged_count": 0,
+        "ranked_count": 0,
+        "status": "OK"
+      },
+      "status": "WAITING_FOR_APPROVAL"
     }
   ],
-  "entry_count": 40,
+  "entry_count": 76,
   "schema_version": "SelfBuildBatchLedger.v1"
 }

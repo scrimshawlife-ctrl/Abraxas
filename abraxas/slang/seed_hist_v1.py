@@ -54,7 +54,7 @@ CLS_BY_DECAY = {
 
 
 def _seed_path() -> Path:
-    return Path(__file__).resolve().parents[3] / "data" / "slang" / "slang_hist_seed_v1.json"
+    return Path(__file__).resolve().parents[2] / "data" / "slang" / "slang_hist_seed_v1.json"
 
 
 def _clamp(metric: int) -> int:
@@ -164,9 +164,23 @@ def compute_seed_metrics_v1(packet: SlangPacketV1 | Mapping[str, Any]) -> SlangM
     """
     try:
         pkt = packet if isinstance(packet, SlangPacketV1) else SlangPacketV1.model_validate(packet)
-    except ValidationError as exc:
-        fields = [".".join(map(str, err.get("loc", []))) for err in exc.errors()]
-        reason = f"missing or invalid fields: {', '.join(sorted(set(fields)))}"
+    except (ValidationError, TypeError, KeyError, ValueError) as exc:
+        # Build reason from pydantic error details if available, else from exception message
+        reason = str(exc)
+        if isinstance(exc, ValidationError) and hasattr(exc, "errors"):
+            try:
+                errs = exc.errors()
+                fields = [".".join(map(str, err.get("loc", []))) for err in errs]
+                fields = [f for f in fields if f]  # Filter empty strings
+                if fields:
+                    reason = f"missing or invalid fields: {', '.join(sorted(set(fields)))}"
+                else:
+                    msgs = [err.get("msg", "") for err in errs]
+                    reason = f"missing or invalid fields: {'; '.join(m for m in msgs if m)}"
+            except Exception:
+                pass
+        if "missing" not in reason.lower():
+            reason = f"missing or invalid fields: {reason}"
         return SlangMetricsV1.not_computable(reason=reason, method=SEED_METHOD)
 
     metrics = _base_metrics(pkt)
