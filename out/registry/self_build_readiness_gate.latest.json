@@ -5,13 +5,11 @@
     "mutation": false,
     "promotion": false
   },
-  "blockers": [
-    "lineage_no_broken_links"
-  ],
-  "canonical_hash": "fbc77a2709c9e675877fd38e0517227f19fd9939404d8722a96b8509d5f1055d",
+  "blockers": [],
+  "canonical_hash": "fe8e917f56cf06fff71ef45b66909bf8a7dc4be6c8896cf0fc12512f38372b8a",
   "gates": {
     "approval_pending": true,
-    "lineage_no_broken_links": false,
+    "lineage_no_broken_links": true,
     "lineage_status_ready": true,
     "lineage_warning_count_below_threshold": true,
     "mutation_path_must_be_gated": true,
@@ -46,5 +44,5 @@
   "policy_path": ".aal/readiness_policy.v1.yaml",
   "policy_schema_version": "ReadinessPolicy.v1",
   "schema_version": "SelfBuildReadinessGate.v1",
-  "status": "NOT_READY"
+  "status": "WAITING_FOR_APPROVAL"
 }

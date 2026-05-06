@@ -114,7 +114,123 @@ python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-ru
 
 ---
 
-## Repository Map
+## v2.0.1 — Rune Layer
+
+v2.0.1 introduces **typed rune execution, deterministic shadow execution, receipt chaining, replayability, and rollback packets**. Execution remains shadow-only, replayable, receipt-backed, and governance-first.
+
+### Rune Layer Overview
+
+The rune layer provides a structured execution harness for invoking symbolic rune operators in a deterministic, auditable fashion. Every execution step is:
+
+- **Typed**: each rune has a declared input and output schema.
+- **Ordered**: steps execute in deterministic ascending order (`deterministic_order`).
+- **Receipt-backed**: every step emits a `RuneInvocationReceipt` with SHA-256 hashes for both input and output.
+- **Chain-linked**: receipts are canonically chained — changing any one receipt changes the whole `chain_hash`.
+- **Replayable**: the same contract + route graph always produces identical receipt chain hashes.
+- **Rollback-capable**: a `ExecutionRollbackPacket` records which receipts can be reverted.
+
+### Shadow Execution Model
+
+All execution in v2.0.1 runs in **shadow mode only** (`execution_mode = "shadow_only"`). This means:
+
+- No runtime mutation.
+- No Canon mutation.
+- No forecast activation.
+- No live external calls.
+
+Shadow execution is deterministic stub execution — it produces all governance artifacts (receipts, hashes, replay packets) without side effects.
+
+### Replayability Doctrine
+
+The replay system re-runs the same execution deterministically and compares all receipt chain hashes. A `RuneReplayPacket` is emitted with:
+
+- `deterministic_match = True` when all hashes match.
+- `mismatched_receipts` listing any divergent receipts.
+
+Any deviation fails the `replayability_gate` in the doctrine validator.
+
+### Receipt Chaining
+
+`build_receipt_chain(receipts)` produces a canonically ordered, hash-linked chain:
+
+```python
+{
+  "chain_hash": "<sha256 of canonical chain>",
+  "receipt_count": N,
+  "receipts": [...]
+}
+```
+
+Changing any single receipt (input_hash, output_hash, or any field) changes the entire `chain_hash`.
+
+### Rollback Semantics
+
+`ExecutionRollbackPacket` records which execution steps can be reverted:
+
+- `rollback_possible = True` when reverted receipts are present.
+- `rollback_possible = False` when no receipts are available (missing evidence → fail-closed).
+
+### Route-Aware Execution
+
+The shadow runner validates:
+- Route node is present and non-empty for each step.
+- Invalid nodes cause the step to be counted as `failed_steps` and trigger a `not_computable` or `failed` execution status.
+
+### Doctrine Validator Gates (v2.0.1)
+
+Four new gates enforce rune-layer compliance:
+
+| Gate | Description |
+|------|-------------|
+| `execution_plan_gate` | Invocation plan must exist with unique, ordered steps |
+| `execution_receipt_gate` | Receipt chain must have valid 64-char hash and ≥1 receipt |
+| `replayability_gate` | Replay packet must confirm `deterministic_match = True` |
+| `rollback_gate` | Rollback packet must exist with a valid `rollback_id` |
+
+A pipeline is **not fully compliant** if any gate fails.
+
+### v2.0.1 Commands
+
+```bash
+# Registry
+python scripts/run_registry.py
+
+# Doctrine validation (all 4 gates)
+python scripts/run_doctrine_validator.py
+
+# Shadow execution
+python scripts/run_shadow_execution.py
+
+# Replay
+python scripts/run_rune_replay.py
+```
+
+Generated artifacts:
+- `out/execution/latest.json` — shadow run output
+- `out/execution/receipts.latest.json` — receipt chain summary
+- `out/replay/latest.json` — replay packet
+- `out/validators/doctrine_validation.latest.json` — doctrine gate results
+- `out/registry/rune_registry.latest.json` — rune catalog index
+
+### v2.0.1 Module Map
+
+| Module | Purpose |
+|--------|---------|
+| `core/models/governance.py` | `Authority` class with `is_locked()` |
+| `core/execution/context.py` | `RuneExecutionContext.v1` |
+| `core/execution/shadow_runner.py` | `ShadowExecutionRun.v1` + `run_shadow_execution` |
+| `core/execution/replay_runner.py` | `replay_execution` |
+| `core/runes/execution.py` | `execute_rune` deterministic harness |
+| `core/runes/runtime.py` | `RuneInvocationPlan.v1` + `build_invocation_plan` |
+| `core/runes/receipts.py` | `RuneInvocationReceipt.v1` + `build_receipt_chain` |
+| `core/runes/replay.py` | `RuneReplayPacket.v1` |
+| `core/runes/rollback.py` | `ExecutionRollbackPacket.v1` + `generate_rollback_packet` |
+| `core/validators/doctrine.py` | Doctrine validator with 4 rune-layer gates |
+| `core/viz/projection.py` | AAL-Viz execution summary projection extension |
+
+---
+
+
 
 | Path | Purpose | Status |
 |---|---|---|

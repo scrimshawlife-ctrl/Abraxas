@@ -1,12 +1,15 @@
-from pydantic import BaseModel, Field, root_validator
+from __future__ import annotations
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from core.models.governance import Authority
-from typing import List
 from hashlib import sha256
 import json
 
+VALID_EXECUTION_STATES = {"started", "completed", "failed"}
+
+
 class RuneInvocationReceipt(BaseModel):
-    schema_version: str = Field("RuneInvocationReceipt.v1", const=True)
+    schema_version: str = "RuneInvocationReceipt.v1"
     receipt_id: str
     execution_id: str
     rune_id: str
@@ -19,83 +22,57 @@ class RuneInvocationReceipt(BaseModel):
     prior_receipt_hash: Optional[str] = None
     authority: Authority
     status: str
-    errors: List[str] = Field(default_factory=list)
+    errors: List[str] = []
 
-    @root_validator
-    def validate_receipt(cls, values):
-        if not values["authority"].is_locked():
+    def __init__(self, **data):
+        super().__init__(**data)
+        if not self.authority.is_locked():
             raise ValueError("authority must be locked")
-        if not values["route_node"]:
+        if not self.route_node:
             raise ValueError("route_node is required")
-        if not values["execution_state"] in ["started", "completed", "failed"]:
-            raise ValueError("execution_state must be 'started', 'completed', or 'failed'")
-        return values
+        if self.execution_state not in VALID_EXECUTION_STATES:
+            raise ValueError(f"execution_state must be one of {VALID_EXECUTION_STATES}")
 
     def receipt_hash(self) -> str:
-        """
-        Generate a deterministic hash for the receipt
-        """
-        canonical_data = json.dumps(
-            {
-                "receipt_id": self.receipt_id,
-                "execution_id": self.execution_id,
-                "rune_id": self.rune_id,
-                "pipeline_id": self.pipeline_id,
-                "step_id": self.step_id,
-                "execution_state": self.execution_state,
-                "input_hash": self.input_hash,
-                "output_hash": self.output_hash,
-                "route_node": self.route_node,
-                "prior_receipt_hash": self.prior_receipt_hash,
-                "status": self.status,
-                "errors": self.errors
-            },
-            sort_keys=True
-        ).encode("utf-8")
+        canonical_data = json.dumps({
+            "receipt_id": self.receipt_id,
+            "execution_id": self.execution_id,
+            "rune_id": self.rune_id,
+            "pipeline_id": self.pipeline_id,
+            "step_id": self.step_id,
+            "execution_state": self.execution_state,
+            "input_hash": self.input_hash,
+            "output_hash": self.output_hash,
+            "route_node": self.route_node,
+            "prior_receipt_hash": self.prior_receipt_hash,
+            "status": self.status,
+            "errors": sorted(self.errors),
+        }, sort_keys=True).encode("utf-8")
         return sha256(canonical_data).hexdigest()
 
+
 def build_receipt_chain(receipts: List[RuneInvocationReceipt]) -> dict:
-    """
-    Builds a deterministic receipt chain and calculates the chain hash.
-
-    Args:
-        receipts (List[RuneInvocationReceipt]): List of invocation receipts.
-
-    Returns:
-        dict: Chain hash, receipt count, and receipts with updated prior receipt references.
-    """
     if not receipts:
         raise ValueError("Receipts list cannot be empty.")
-
-    # Ensure receipts are ordered deterministically
     sorted_receipts = sorted(receipts, key=lambda r: r.receipt_id)
-
-    # Chain receipts deterministically
     prior_hash = None
     for receipt in sorted_receipts:
         receipt.prior_receipt_hash = prior_hash
         prior_hash = receipt.receipt_hash()
-
-    # Calculate overall chain hash
-    canonical_chain = json.dumps(
-        [
-            {
-                "receipt_id": r.receipt_id,
-                "execution_id": r.execution_id,
-                "rune_id": r.rune_id,
-                "input_hash": r.input_hash,
-                "output_hash": r.output_hash,
-                "prior_receipt_hash": r.prior_receipt_hash
-            }
-            for r in sorted_receipts
-        ],
-        sort_keys=True
-    ).encode("utf-8")
-
+    canonical_chain = json.dumps([
+        {
+            "receipt_id": r.receipt_id,
+            "execution_id": r.execution_id,
+            "rune_id": r.rune_id,
+            "input_hash": r.input_hash,
+            "output_hash": r.output_hash,
+            "prior_receipt_hash": r.prior_receipt_hash,
+        }
+        for r in sorted_receipts
+    ], sort_keys=True).encode("utf-8")
     chain_hash = sha256(canonical_chain).hexdigest()
-
     return {
         "chain_hash": chain_hash,
         "receipt_count": len(sorted_receipts),
-        "receipts": sorted_receipts
+        "receipts": sorted_receipts,
     }

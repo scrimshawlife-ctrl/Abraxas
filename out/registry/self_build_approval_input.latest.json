@@ -1,7 +1,5 @@
 {
-  "approved_ids": [
-    "approval-f66160a19cd544ce"
-  ],
+  "approved_ids": [],
   "rejected_ids": [],
   "schema_version": "SelfBuildApprovalInput.v1"
 }
