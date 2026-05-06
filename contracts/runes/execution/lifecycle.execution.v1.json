@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "lifecycle.execution.v1",
+  "description": "Schema for lifecycle validation of rune execution.",
+  "type": "object",
+  "properties": {
+    "schema_version": {"type": "string", "const": "lifecycle.execution.v1"},
+    "execution_id": {"type": "string"},
+    "pipeline_id": {"type": "string"},
+    "step_validations": {
+      "type": "array",
+      "items": {"type": "object"}
+    }
+  },
+  "required": ["schema_version", "execution_id", "pipeline_id", "step_validations"]
+}
