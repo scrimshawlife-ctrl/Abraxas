@@ -1,0 +1,31 @@
+{
+  "schema_version": "RuneRegistry.v1",
+  "rune_count": 4,
+  "registry_hash": "9bfebedeb68529b8a3a575141eb09cb2dc19eda054e4fc5a48ccf88bc63b5f82",
+  "runes": [
+    {
+      "rune_id": "RUNE_AUDIT",
+      "route_node": "node.audit",
+      "lane": "shadow",
+      "version": "1.0.0"
+    },
+    {
+      "rune_id": "RUNE_HASH",
+      "route_node": "node.hash",
+      "lane": "shadow",
+      "version": "1.0.0"
+    },
+    {
+      "rune_id": "RUNE_ROUTE",
+      "route_node": "node.route",
+      "lane": "shadow",
+      "version": "1.0.0"
+    },
+    {
+      "rune_id": "RUNE_VALIDATE",
+      "route_node": "node.validate",
+      "lane": "shadow",
+      "version": "1.0.0"
+    }
+  ]
+}
