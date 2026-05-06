@@ -1,0 +1,43 @@
+{
+  "schema_version": "DoctrineValidationResult.v1",
+  "pipeline_id": "pipeline.tier1.v1",
+  "fully_compliant": true,
+  "blocking_gates": [],
+  "result_hash": "ffa032e128c82c496fa35ebe7426f441ca5d6322465f962269e82d831a32dbb6",
+  "gates": [
+    {
+      "gate_id": "execution_plan_gate",
+      "status": "pass",
+      "reason": "Invocation plan valid with 3 step(s).",
+      "evidence": {
+        "step_count": 3
+      }
+    },
+    {
+      "gate_id": "execution_receipt_gate",
+      "status": "pass",
+      "reason": "Receipt chain valid. 3 receipt(s), hash=c37d8045...",
+      "evidence": {
+        "receipt_count": 3,
+        "chain_hash": "c37d80451d1d3dc4f9273ece2b88b7339a38bc7b9b8f6eacc8f50905853e591c"
+      }
+    },
+    {
+      "gate_id": "replayability_gate",
+      "status": "pass",
+      "reason": "Replay packet confirms deterministic match.",
+      "evidence": {
+        "deterministic_match": true
+      }
+    },
+    {
+      "gate_id": "rollback_gate",
+      "status": "pass",
+      "reason": "Rollback packet valid.",
+      "evidence": {
+        "rollback_possible": true,
+        "rollback_id": "8d59c4a3..."
+      }
+    }
+  ]
+}

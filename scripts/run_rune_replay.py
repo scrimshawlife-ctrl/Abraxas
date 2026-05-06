@@ -2,7 +2,13 @@
 """Replay the latest shadow execution and emit a RuneReplayPacket."""
 from __future__ import annotations
 import json
+import sys
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from core.models.governance import Authority
 from core.execution.shadow_runner import run_shadow_execution
 from core.execution.replay_runner import replay_execution
