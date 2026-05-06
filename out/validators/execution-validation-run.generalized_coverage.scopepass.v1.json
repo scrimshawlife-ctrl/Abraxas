@@ -1,0 +1,29 @@
+{
+  "artifactId": "execution-validation-run.generalized_coverage.scopepass.v1",
+  "artifactType": "ExecutionValidationArtifact.v1",
+  "correlation": {
+    "ledgerIds": [],
+    "packetIds": [],
+    "pointers": []
+  },
+  "errors": [],
+  "provenance": {
+    "base_dir": ".",
+    "internalStatus": "not_computable",
+    "internalValid": false,
+    "validator": "abx.execution_validator",
+    "version": "mvp.v1"
+  },
+  "runId": "run.generalized_coverage.scopepass.v1",
+  "runeContext": {
+    "phases": [],
+    "runeIds": []
+  },
+  "status": "ERROR",
+  "timestamp": "2026-05-06T02:59:04+00:00",
+  "validatedArtifacts": [],
+  "validatorId": "abx.execution_validator",
+  "warnings": [
+    "No run-linked evidence found in configured ledgers or artifact stores."
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "label": "subsystem_registration_check",
+  "registryPath": ".abraxas/registries/expected_subsystems.yaml",
+  "status": "PASS",
+  "subsystem": "oracle_signal_layer_v2",
+  "timestamp": "2026-05-06T03:01:32.117443+00:00"
+}

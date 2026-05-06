@@ -1,0 +1,30 @@
+{
+  "assessment": {
+    "ambiguity_band": "MEDIUM",
+    "ambiguity_score": 0.4175,
+    "authority": "non-authoritative",
+    "blocked_change_classes": [
+      "forecast_active_change",
+      "authority_surface_drift"
+    ],
+    "lane": "support",
+    "subsystem_id": "mbom_v1"
+  },
+  "assessment_id": "c2d9f9796a7321cc23ac83e37a3f859f21574cf121fcc2cb7f73f39d05ab82a6",
+  "lane": "support",
+  "request": {
+    "domain_signals": [
+      "sig-a",
+      "sig-b"
+    ],
+    "lifecycle_states": {
+      "a": "SEED",
+      "b": "STABLE"
+    },
+    "request_id": "MBOM-REQ-0001",
+    "resonance_score": 0.4
+  },
+  "schema_version": 1,
+  "status": "mbom_assessment_emitted",
+  "subsystem": "mbom_v1"
+}

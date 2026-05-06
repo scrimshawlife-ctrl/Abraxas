@@ -1,0 +1,1 @@
+{"schema_version": "CanaryCandidateSet.v1", "candidates": [{"id": "c1", "target": "svc", "approval": "approved", "safety": "ok", "rollback_ready": true}], "canonical_hash": "9ef52d54ff90a9aef0430584bcbddaf5d95f94fe3f67941757ad6b123a307f4b"}

@@ -1,1 +1,43 @@
-{"schema_version": "SemanticLineageReport.v1", "status": "LINEAGE_REPORT_READY", "warnings": ["broken_parent_reference:scoring"]}
+{
+  "authority": {
+    "analysis_only": true,
+    "execution": false,
+    "mutation": false,
+    "promotion": false
+  },
+  "canonical_hash": "5180f3e395a7233b6f93abc822f635e62c0e7b4909b8a7f1635bed4f122c7de7",
+  "contracts": [
+    {
+      "canonical_hash": "44e9ebed4703a849d59feb20e8ff4e71454ba2cd55879a1256892844763516f8",
+      "contract": "oracle",
+      "envelope_present": false,
+      "parent_run_id": null,
+      "run_id": null,
+      "source_hashes": []
+    },
+    {
+      "canonical_hash": "8f3745601046b2db23cb62c6d6e6f53eb7609ef402674f81b1e72dc5db6bd284",
+      "contract": "scoring",
+      "envelope_present": false,
+      "parent_run_id": null,
+      "run_id": null,
+      "source_hashes": []
+    },
+    {
+      "canonical_hash": "9ef52d54ff90a9aef0430584bcbddaf5d95f94fe3f67941757ad6b123a307f4b",
+      "contract": "canary",
+      "envelope_present": false,
+      "parent_run_id": null,
+      "run_id": null,
+      "source_hashes": []
+    }
+  ],
+  "links": [],
+  "schema_version": "SemanticLineageReport.v1",
+  "status": "LINEAGE_REPORT_READY",
+  "warnings": [
+    "missing_envelope:canary",
+    "missing_envelope:oracle",
+    "missing_envelope:scoring"
+  ]
+}

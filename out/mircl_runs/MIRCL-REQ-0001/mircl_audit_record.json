@@ -1,0 +1,17 @@
+{
+  "correlation_pointer_state": "present",
+  "correlation_pointer_unresolved_reasons": [],
+  "correlation_pointers": [
+    "out/mircl_runs/MIRCL-REQ-0001/mircl_advisory_artifact.json",
+    "out/mircl_runs/MIRCL-REQ-0001/mircl_advisory_validator.json"
+  ],
+  "provenance": {
+    "mode": "v1",
+    "source": "scripts/run_mircl_v1.py"
+  },
+  "record_type": "audit_report",
+  "status": "SUCCESS",
+  "subsystem": "mircl_v1",
+  "summary": "MIRCL shadow advisory artifact emitted.",
+  "timestamp": "2026-05-06T02:59:33.695341+00:00"
+}

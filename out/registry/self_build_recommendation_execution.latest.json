@@ -1,16 +1,12 @@
 {
-  "action_id": "action-does-not-exist",
-  "action_type": null,
   "authority": {
-    "artifact_mutation": false,
     "execution": false,
     "mutation": false,
-    "operator_intent_write": true,
-    "promotion": false,
-    "recommendation_execution_only": true
+    "observe_only": true,
+    "promotion": false
   },
-  "canonical_hash": "1dfb2cd677dcc481c22fd7c38b2bfec085c58063a4cae1e9c72a9d69d68101e4",
-  "reason": "UNKNOWN_ACTION_ID",
+  "deterministic": true,
   "schema_version": "SelfBuildRecommendationExecution.v1",
-  "status": "NOT_COMPUTABLE"
+  "status": "COMPUTABLE",
+  "upgraded_from": "STUB"
 }

@@ -16,15 +16,15 @@
       "target": "svc-a"
     },
     {
-      "approval": null,
+      "approval": "approved",
       "id": "c2",
-      "rollback_ready": null,
-      "safety": null,
-      "status": "NOT_COMPUTABLE",
+      "rollback_ready": false,
+      "safety": "ok",
+      "status": "READY_FOR_OPERATOR_REVIEW",
       "target": "svc-b"
     }
   ],
-  "packet_hash": "4974945b62c6a71f2aa300d5a057d0b4903c6a704b8af6cb277d582c2e2b1659",
+  "packet_hash": "8ed92240cb2ed78869cda946dd7b4d6daf9d3abbf8fa53c694be3331ea4450a7",
   "reason": null,
   "schema_version": "CanaryActivationPacket.v1",
   "status": "COMPUTABLE"
