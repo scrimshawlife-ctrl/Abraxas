@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field, root_validator
 from typing import List, Optional
 from core.models.governance import Authority
+from typing import List
+from hashlib import sha256
+import json
 
 class RuneInvocationReceipt(BaseModel):
     schema_version: str = Field("RuneInvocationReceipt.v1", const=True)
@@ -32,8 +35,6 @@ class RuneInvocationReceipt(BaseModel):
         """
         Generate a deterministic hash for the receipt
         """
-        import hashlib
-        import json
         canonical_data = json.dumps(
             {
                 "receipt_id": self.receipt_id,
@@ -51,4 +52,50 @@ class RuneInvocationReceipt(BaseModel):
             },
             sort_keys=True
         ).encode("utf-8")
-        return hashlib.sha256(canonical_data).hexdigest()
+        return sha256(canonical_data).hexdigest()
+
+def build_receipt_chain(receipts: List[RuneInvocationReceipt]) -> dict:
+    """
+    Builds a deterministic receipt chain and calculates the chain hash.
+
+    Args:
+        receipts (List[RuneInvocationReceipt]): List of invocation receipts.
+
+    Returns:
+        dict: Chain hash, receipt count, and receipts with updated prior receipt references.
+    """
+    if not receipts:
+        raise ValueError("Receipts list cannot be empty.")
+
+    # Ensure receipts are ordered deterministically
+    sorted_receipts = sorted(receipts, key=lambda r: r.receipt_id)
+
+    # Chain receipts deterministically
+    prior_hash = None
+    for receipt in sorted_receipts:
+        receipt.prior_receipt_hash = prior_hash
+        prior_hash = receipt.receipt_hash()
+
+    # Calculate overall chain hash
+    canonical_chain = json.dumps(
+        [
+            {
+                "receipt_id": r.receipt_id,
+                "execution_id": r.execution_id,
+                "rune_id": r.rune_id,
+                "input_hash": r.input_hash,
+                "output_hash": r.output_hash,
+                "prior_receipt_hash": r.prior_receipt_hash
+            }
+            for r in sorted_receipts
+        ],
+        sort_keys=True
+    ).encode("utf-8")
+
+    chain_hash = sha256(canonical_chain).hexdigest()
+
+    return {
+        "chain_hash": chain_hash,
+        "receipt_count": len(sorted_receipts),
+        "receipts": sorted_receipts
+    }
