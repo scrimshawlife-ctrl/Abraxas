@@ -1,5 +1,5 @@
 {
-  "canonical_hash": "d31f5dbb03fcdd1c42856770390b717ecee91519468f89e17b15856cd1f75d74",
+  "canonical_hash": "da7f833df666836294c063af029b7f8a5393a3047dbd982ef80f7673b6dd6a64",
   "entries": [
     {
       "after_hash": "85e88e3f7d46bfeea97822172c8bb3b5068e98ff503261f5744ad8f3a2cbd0e8",
@@ -288,8 +288,50 @@
       "schema_version": "SelfBuildMutationLedger.v1",
       "target_path": "out/test/rollback_target.latest.json",
       "timestamp": "2026-05-06T03:00:12.201039+00:00"
+    },
+    {
+      "after_hash": "980d40820240708af21596f025e6a9a9bb07122c9f75d10c903aa57fa3ab9fa2",
+      "approval_id": "approval-4021a870777a303d",
+      "before_hash": "81eda870f7b7c926bfba36a032f0a3e21f5ad710f8bfeacf8b7861ad54d20d00",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/81eda870f7b7c926bfba36a032f0a3e21f5ad710f8bfeacf8b7861ad54d20d00.json",
+        "snapshot_id": "81eda870f7b7c926bfba36a032f0a3e21f5ad710f8bfeacf8b7861ad54d20d00",
+        "storage": "POINTER"
+      },
+      "commit": "7ca6095e4c6e2e1f26bcf7ac61c1e26af4de7259",
+      "mutation_id": "mutation-6f06b7f72faedc09",
+      "post_validation": {
+        "invariance": false,
+        "operator_card": "PENDING",
+        "validator": "PENDING"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/scoring/brier_scoring.latest.json",
+      "timestamp": "2026-05-06T03:44:38.379888+00:00"
+    },
+    {
+      "after_hash": "after-hash",
+      "approval_id": "approval-test",
+      "before_hash": "before-hash",
+      "before_snapshot": {
+        "payload_or_ref": "out/registry/snapshots/ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53.json",
+        "snapshot_id": "ac72d97ad525b398ace8bc8d1bc63f3248820a1fbf9defa86b3949f4c23def53",
+        "storage": "POINTER"
+      },
+      "commit": "7ca6095e4c6e2e1f26bcf7ac61c1e26af4de7259",
+      "mutation_id": "mutation-3b1304bf48785d0a",
+      "post_validation": {
+        "invariance": true,
+        "operator_card": "GREEN",
+        "validator": "PASS"
+      },
+      "rollback_ready": true,
+      "schema_version": "SelfBuildMutationLedger.v1",
+      "target_path": "out/test/test.latest.json",
+      "timestamp": "2026-05-06T03:44:58.170333+00:00"
     }
   ],
-  "entry_count": 14,
+  "entry_count": 16,
   "schema_version": "SelfBuildMutationLedgerCollection.v1"
 }
