@@ -12,7 +12,7 @@ _MISSING = _Missing()
 
 
 class ValidationError(Exception):
-    """Minimal ValidationError shim for local BaseModel usage."""
+    """Forward declaration; full implementation after BaseModel."""
 
 
 class FieldInfo:
@@ -69,8 +69,20 @@ class BaseModel:
             if key not in annotations:
                 setattr(self, key, value)
 
-    def model_dump(self) -> Dict[str, Any]:
-        return {k: self._dump_value(v) for k, v in self._iter_model_fields()}
+    def model_dump(self, mode: str | None = None) -> Dict[str, Any]:
+        return {k: self._dump_value(v, mode=mode) for k, v in self._iter_model_fields()}
+
+    @classmethod
+    def model_validate(cls, data: Any) -> "BaseModel":
+        """Validate and construct model from a dict or existing instance."""
+        if isinstance(data, cls):
+            return data
+        if isinstance(data, dict):
+            try:
+                return cls(**data)
+            except (TypeError, ValueError) as exc:
+                raise ValidationError(str(exc)) from exc
+        raise ValidationError(f"Cannot validate {type(data).__name__} as {cls.__name__}")
 
     def _iter_model_fields(self) -> Iterable[tuple[str, Any]]:
         annotations: Dict[str, Any] = getattr(self, "__annotations__", {})
@@ -81,13 +93,16 @@ class BaseModel:
             if key not in annotations:
                 yield key, value
 
-    def _dump_value(self, value: Any) -> Any:
+    def _dump_value(self, value: Any, mode: str | None = None) -> Any:
         if isinstance(value, BaseModel):
-            return value.model_dump()
+            return value.model_dump(mode=mode)
         if isinstance(value, list):
-            return [self._dump_value(v) for v in value]
+            return [self._dump_value(v, mode=mode) for v in value]
         if isinstance(value, dict):
-            return {k: self._dump_value(v) for k, v in value.items()}
+            return {k: self._dump_value(v, mode=mode) for k, v in value.items()}
+        # For mode="json", convert enum-like values to their string values
+        if mode == "json" and hasattr(value, "value"):
+            return value.value
         return value
 
     def _coerce_value(self, value: Any, annotation: Any, field_info: Any) -> Any:
@@ -154,6 +169,15 @@ class ValidationError(Exception):
     This repository uses a local pydantic shim for deterministic tests and to
     avoid a hard dependency in some environments.
     """
+
+    def __init__(self, message: str = "", field: str = "") -> None:
+        super().__init__(message)
+        self._errors: List[Dict[str, Any]] = (
+            [{"loc": (field,), "msg": message}] if field else [{"loc": (), "msg": message}]
+        )
+
+    def errors(self) -> List[Dict[str, Any]]:
+        return self._errors
 
 
 def ConfigDict(**kwargs: Any) -> Dict[str, Any]:

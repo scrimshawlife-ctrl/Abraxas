@@ -18,13 +18,14 @@ class OperatorStatus(str, Enum):
     CANONICAL = "canonical"
     LEGACY = "legacy"
     DEPRECATED = "deprecated"
+    PROPOSED = "proposed"
 
 
 class OperatorCandidate(BaseModel):
     """A candidate operator discovered by OAS."""
 
     operator_id: str = Field(..., description="Unique operator identifier")
-    label: str = Field(..., description="Human-readable label")
+    label: str = Field(default="", description="Human-readable label")
     class_tags: list[str] = Field(default_factory=list, description="Classification tags")
     triggers: list[str] = Field(
         default_factory=list, description="Trigger patterns or conditions"
@@ -41,9 +42,15 @@ class OperatorCandidate(BaseModel):
     tests: list[str] = Field(
         default_factory=list, description="Test cases or validation criteria"
     )
+    actions: list[str] = Field(
+        default_factory=list, description="Actions this operator performs"
+    )
+    config: dict[str, Any] = Field(
+        default_factory=dict, description="Operator configuration"
+    )
     provenance: ProvenanceBundle = Field(..., description="Full provenance record")
     discovery_window: dict[str, Any] = Field(
-        ..., description="Discovery time window and sources"
+        default_factory=dict, description="Discovery time window and sources"
     )
     evidence_hashes: list[str] = Field(
         default_factory=list, description="Hashes of input frames used as evidence"
@@ -54,6 +61,9 @@ class OperatorCandidate(BaseModel):
     version: str = Field(default="1.0.0", description="Candidate version")
     status: OperatorStatus = Field(
         default=OperatorStatus.STAGING, description="Current status"
+    )
+    proposed_at: datetime | None = Field(
+        default=None, description="When candidate was proposed"
     )
 
     class Config:

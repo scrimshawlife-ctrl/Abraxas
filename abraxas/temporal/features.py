@@ -11,8 +11,14 @@ RETRONIC_TERMS = [
     "postulate",
     "retronic",
     "time flows backward",
+    "time flows backwards",
     "future determines",
     "destiny pulls",
+    "retrocausal",
+    "temporal inversion",
+    "backwards causation",
+    "time inversion",
+    "retrocausality",
 ]
 
 ESCHATOLOGY_TERMS = [
@@ -21,11 +27,15 @@ ESCHATOLOGY_TERMS = [
     "purification",
     "initiation",
     "end times",
+    "end-times",
     "final",
     "terminal",
     "eschaton",
     "rapture",
     "revelation",
+    "destiny",
+    "inevitable collapse",
+    "omega point",
 ]
 
 DIAGRAM_AUTHORITY_TERMS = [
@@ -39,6 +49,12 @@ DIAGRAM_AUTHORITY_TERMS = [
     "chart proves",
     "glyph",
     "sigil",
+    "commands reality",
+    "absolute authority",
+    "commands through",
+    "diagram commands",
+    "dictates",
+    "obedience",
 ]
 
 AGENCY_TERMS = [

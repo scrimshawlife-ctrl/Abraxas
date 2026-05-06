@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -120,17 +121,22 @@ def _normalize_episode(data: dict[str, Any]) -> VBMEpisode:
     # Extract tokens deterministically
     extracted_tokens = _extract_tokens(summary_text)
 
-    # Build provenance
+    # Build provenance - use a deterministic created_at derived from data hash
+    # so that two loads of the same fixture produce the same provenance hash.
+    data_hash = hash_canonical_json(data)
+    # Use epoch 2024-01-01 as a stable sentinel for fixture-loaded episodes
+    stable_created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
     provenance = ProvenanceBundle(
         inputs=[
             ProvenanceRef(
                 scheme="fixture",
                 path=f"vbm/{episode_id}",
-                sha256=hash_canonical_json(data),
+                sha256=data_hash,
             )
         ],
         transforms=["normalize_whitespace", "extract_claims", "extract_tokens"],
         metrics={"token_count": float(len(extracted_tokens))},
+        created_at=stable_created_at,
         created_by="vbm_corpus_loader",
     )
 
