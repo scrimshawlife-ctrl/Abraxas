@@ -36,7 +36,7 @@
       "reason": "Rollback packet valid.",
       "evidence": {
         "rollback_possible": true,
-        "rollback_id": "405078dc..."
+        "rollback_id": "052c6d39..."
       }
     }
   ]
