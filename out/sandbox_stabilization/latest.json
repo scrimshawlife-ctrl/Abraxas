@@ -1,0 +1,11 @@
+{
+  "schema_version": "SandboxStabilizationPacket.v1",
+  "stabilization_id": "stab-script",
+  "sandbox_branch_hash": "3b71462a1c681f2abf6776ee8d3ee7a16eb1c31cba285780c1a890e00efcaa6f",
+  "replay_match_count": 1,
+  "replay_failure_count": 0,
+  "stabilization_window": 3,
+  "stabilization_state": "stabilizing",
+  "status": "complete",
+  "stabilization_hash": "d7f4ea42448c5a8a8a68cb225adecf4c99cb33e52892f0c35687914d5e4f5baf"
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "YggdrasilRuntimeTopology.v1",
+  "node_count": 4,
+  "edge_count": 3,
+  "graph_hash": "4bedaf1a34d20a1efcef4be011d510150ad8431ecf0f32a97b6d4c0ac2693514",
+  "nodes": [
+    {
+      "node_id": "node.audit",
+      "role": "audit",
+      "lane": "shadow"
+    },
+    {
+      "node_id": "node.hash",
+      "role": "hash",
+      "lane": "shadow"
+    },
+    {
+      "node_id": "node.validate",
+      "role": "validate",
+      "lane": "shadow"
+    },
+    {
+      "node_id": "node.route",
+      "role": "route",
+      "lane": "shadow"
+    }
+  ],
+  "edges": [
+    {
+      "from": "node.audit",
+      "to": "node.hash"
+    },
+    {
+      "from": "node.hash",
+      "to": "node.validate"
+    },
+    {
+      "from": "node.validate",
+      "to": "node.route"
+    }
+  ],
+  "projection_only": true,
+  "inference_authority": false
+}

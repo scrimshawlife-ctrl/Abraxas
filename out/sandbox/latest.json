@@ -1,0 +1,13 @@
+{
+  "schema_version": "AdaptiveSimulationRun.v1",
+  "run_id": "4c32f17c-f624-4e17-9d53-ed1506526265",
+  "branch_hash": "3b71462a1c681f2abf6776ee8d3ee7a16eb1c31cba285780c1a890e00efcaa6f",
+  "branch_id": "6325b468-6a28-5971-97cd-bf650658ccbd",
+  "branch_generation": 4,
+  "stabilization_state": "stabilizing",
+  "replay_match_count": 1,
+  "replay_failure_count": 0,
+  "mutation_count": 2,
+  "deterministic_run_hash": "465b2fbaddec455e4228e382e81227584e6f2c15a0ef3f8075ac8ec6239cbfb3",
+  "status": "complete"
+}

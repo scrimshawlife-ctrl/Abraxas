@@ -1,0 +1,10 @@
+{
+  "schema_version": "SandboxReplayPacket.v1",
+  "replay_id": "c1a4aa80-628b-5d5a-9707-7fc03e4eec5b",
+  "source_branch_hash": "3b71462a1c681f2abf6776ee8d3ee7a16eb1c31cba285780c1a890e00efcaa6f",
+  "replay_branch_hash": "3b71462a1c681f2abf6776ee8d3ee7a16eb1c31cba285780c1a890e00efcaa6f",
+  "deterministic_match": true,
+  "mismatched_mutations": [],
+  "replay_hash": "c317c244af900207312e9a79efe3d649f9012fb41d9a22353f0b8cd58a3b65e8",
+  "status": "matched"
+}

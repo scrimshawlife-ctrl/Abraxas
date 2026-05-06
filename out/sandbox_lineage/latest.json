@@ -1,0 +1,8 @@
+{
+  "schema_version": "AdaptiveBranchLineage.v1",
+  "lineage_id": "lin-001",
+  "lineage_depth": 1,
+  "deterministic_lineage_hash": "e3c9fe9a84135f0b54ca479c318a75c1bdc973bfc0e72bd164aea0a9c87931fc",
+  "status": "valid",
+  "node_count": 1
+}

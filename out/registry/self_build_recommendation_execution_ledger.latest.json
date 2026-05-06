@@ -4,7 +4,7 @@
     "execution": false,
     "mutation": false
   },
-  "canonical_hash": "2270422d9c40d25023a1cb8692cf8406c9ce346c1a9a7c0fff7379783d4288b9",
+  "canonical_hash": "9a5f84fd7aa48261f194dc30b13b921ce6d7d7dc56b0ccd85736911c6514bf4e",
   "entries": [
     {
       "action_id": "action-does-not-exist",
@@ -1229,8 +1229,178 @@
       "reason": "UNKNOWN_ACTION_ID",
       "status": "FAILED",
       "timestamp": "2026-05-06T13:57:18.225566+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "b2da9301730c4cf0e07a32c8b7bae2e0c9857fd492b02116d9ab1f09c84dca6c",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.604205+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "182b60326f67de4ca4ee6b7a6ac9a3293ecc8dbfb51c42103c1dc1b063ba4320",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.605594+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "b46ca3226873e7ef996f25cf4e371fd5d1302c2bd4a3995d9dcc0f968c7a6c5d",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.607644+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "2ada5f87029013107591a2dad6bf41d1447a20d01aeaed76052ba3a771eb0cab",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.609051+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "402e6bf6f303d96bd78ca7815a210287d5213f2a746447449e20a9165c10f3a0",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.611568+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "2761a9f088c13181cbf6eb5d3332429c40fb96d0b0fd6bb8fb08fd4e496e52f4",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.612974+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "b8218bc4747d8344ca05294820a3a6f6a10d418669f80c952dfee987c61bf8f8",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:58.615311+00:00"
+    },
+    {
+      "action_id": "action-00fef7516c6e4ec8",
+      "action_type": "APPROVE_ONE",
+      "approval_id": null,
+      "approval_write_hash": "49305f6b33ffc76f7f7cf7d0df005ce41cf60d6b2a7fba40ada8fcf0c24995ee",
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "b3d07b504e30a59b813f24e33ab8992298d0190516588a491f5ad03929555636",
+      "execution_id": "exec-1f726cad4faa12d7966b",
+      "reason": null,
+      "status": "EXECUTED",
+      "timestamp": "2026-05-06T15:16:59.153601+00:00"
+    },
+    {
+      "action_id": "action-hold-test",
+      "action_type": "HOLD",
+      "approval_id": null,
+      "approval_write_hash": "2a8adf00e2372fb52f761cc10814cd87e78f51eb1ad47a9e840ff6de60a20246",
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "f0e9440058182c18a4bf065c1c2d8298d22231823da8c1b92482636cd4a35048",
+      "execution_id": "exec-08d355b971051632b145",
+      "reason": null,
+      "status": "NO_OP",
+      "timestamp": "2026-05-06T15:16:59.156157+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "23a84ea5d6c715ca51b456dccad62886e59906de85c052c4d2aa34cc3146d4b1",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:16:59.158317+00:00"
     }
   ],
-  "entry_count": 72,
+  "entry_count": 82,
   "schema_version": "SelfBuildRecommendationExecutionLedger.v1"
 }
