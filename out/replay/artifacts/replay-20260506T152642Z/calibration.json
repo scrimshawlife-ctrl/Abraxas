@@ -1,0 +1,1 @@
+{"calibration_drift_status":"PASS","dominant_failure_mode":"none","evidence_refs":["abx.calibration.report_builder.build_calibration_report","scripts.run_replay_cycle"],"generated_at":"2026-05-06T15:26:42.834952+00:00","mean_brier":0.06906666666666668,"not_computable_count":1,"promotion_gate_status":"PASS","sample_size":3,"schema_version":"CalibrationDriftReport.v1"}
