@@ -1,1 +1,1 @@
-{"schema_version": "OracleInput.v1", "sources": [{"id": "s1"}], "signals": [{"lane": "SHADOW", "source_id": "s1", "k": "v"}], "metadata": {"timestamp": "2026-05-03T00:00:00Z", "source_family": "local"}, "canonical_hash": "d0ac40e6893d0383434c9bf41ba53122ca67fc78a1814e7c9ef14db0d42681d0"}
+{"schema_version": "OracleInput.v1", "sources": [{"id": "s1"}], "signals": [{"lane": "SHADOW"}], "metadata": {"timestamp": "2026-05-03T00:00:00Z", "source_family": "local"}, "canonical_hash": "44e9ebed4703a849d59feb20e8ff4e71454ba2cd55879a1256892844763516f8"}
