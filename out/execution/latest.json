@@ -1,0 +1,17 @@
+{
+  "schema_version": "ShadowExecutionRun.v1",
+  "run_id": "20f04d50-f07e-46e5-a7d2-5cdd96e133d2",
+  "pipeline_id": "pipeline.tier1.v1",
+  "execution_context_hash": "fbde5ac9449efe72f83dc1d7ed5f8ad3f13cf8b2fd3db8f937fd0f2137f3f830",
+  "invocation_plan_hash": "4b579a5aaadf2991cfffda66d32b481690b17478ae75de993f575f5e26e56d01",
+  "receipt_chain_hash": "c37d80451d1d3dc4f9273ece2b88b7339a38bc7b9b8f6eacc8f50905853e591c",
+  "executed_steps": [
+    "c8eb93ca-f975-5ec9-ae4f-42ee96f72a43",
+    "2d191dcf-65ad-5c33-989d-a4d0b6c0f71e",
+    "a6b59e88-7afb-5c4a-a94a-438980996396"
+  ],
+  "failed_steps": [],
+  "skipped_steps": [],
+  "status": "completed",
+  "recommended_next_state": "proceed"
+}

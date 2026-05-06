@@ -1,0 +1,10 @@
+{
+  "schema_version": "RuneReplayPacket.v1",
+  "replay_id": "4bf0f2b8d506866769b2535079af72399b5a098adaeabb01cdf13b13af5e76d0",
+  "source_execution_hash": "fbde5ac9449efe72f83dc1d7ed5f8ad3f13cf8b2fd3db8f937fd0f2137f3f830",
+  "replay_execution_hash": "fbde5ac9449efe72f83dc1d7ed5f8ad3f13cf8b2fd3db8f937fd0f2137f3f830",
+  "identical_output": true,
+  "deterministic_match": true,
+  "mismatched_receipts": [],
+  "status": "matched"
+}
