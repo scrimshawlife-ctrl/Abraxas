@@ -1,12 +1,16 @@
 {
   "authority": {
+    "analysis_only": true,
     "execution": false,
     "mutation": false,
-    "observe_only": true,
     "promotion": false
   },
-  "deterministic": true,
+  "mean_brier": null,
+  "packet_hash": "2018931ca14a3fd071cda46bd2f5de6e697dee9c62eab9752e09fa87c601dfd3",
+  "reason": "MISSING_OR_INVALID_SCOREABLE_INPUT",
   "schema_version": "BrierScoringRun.v1",
-  "status": "COMPUTABLE",
-  "upgraded_from": "NOT_COMPUTABLE"
+  "scored_count": 0,
+  "scores": [],
+  "status": "NOT_COMPUTABLE",
+  "unresolved_count": 0
 }

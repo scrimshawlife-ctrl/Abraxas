@@ -1,1 +1,1 @@
-{"schema_version": "CanaryCandidateSet.v1", "candidates": [{"id": "c1", "target": "svc", "approval": "approved", "safety": "ok", "rollback_ready": true}], "canonical_hash": "9ef52d54ff90a9aef0430584bcbddaf5d95f94fe3f67941757ad6b123a307f4b"}
+{"schema_version": "CanaryCandidateSet.v1", "candidates": [{"id": "c1", "target": "svc-a", "approval": "approved", "safety": "ok", "rollback_ready": true}, {"id": "c2", "target": "svc-b", "approval": "approved", "safety": "ok", "rollback_ready": false}], "canonical_hash": "1f2bd195e3830fcf015cd567b3d5c3f67a1d035926294ff06ff8f2f2c88ed6b3"}
