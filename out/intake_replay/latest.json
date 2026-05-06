@@ -1,0 +1,10 @@
+{
+  "schema_version": "IntakeReplayPacket.v1",
+  "replay_id": "c3a76496-255e-50d0-91fd-b8a9812e3318",
+  "source_intake_hash": "2b91346dfa73306c608a5f2a9d7ca8710bd014abd77ae6cf33d923781793fb26",
+  "replay_intake_hash": "2b91346dfa73306c608a5f2a9d7ca8710bd014abd77ae6cf33d923781793fb26",
+  "deterministic_match": true,
+  "mismatched_normalizations": [],
+  "replay_hash": "6001221e23acfa5a8f2d41c937dd240f314c0b69b748e9e5aa192641c4627bc0",
+  "status": "matched"
+}

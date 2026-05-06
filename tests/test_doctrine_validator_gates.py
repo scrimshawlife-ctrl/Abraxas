@@ -153,16 +153,16 @@ def test_doctrine_result_to_dict_shape():
     d = doctrine_result_to_dict(result)
     assert d["schema_version"] == "DoctrineValidationResult.v1"
     assert "gates" in d
-    assert len(d["gates"]) == 4
+    # v2.0.6 adds 6 oracle intake gates: 4 original + 6 new = 10
+    assert len(d["gates"]) == 10
     assert all("gate_id" in g and "status" in g and "reason" in g for g in d["gates"])
 
 
-def test_all_four_gates_present():
+def test_all_core_gates_present():
     result = validate_pipeline_doctrine("pipe-001", _full_evidence())
     gate_ids = {g.gate_id for g in result.gates}
-    assert gate_ids == {
-        "execution_plan_gate",
-        "execution_receipt_gate",
-        "replayability_gate",
-        "rollback_gate",
-    }
+    # Original 4 gates must still be present
+    assert {"execution_plan_gate", "execution_receipt_gate", "replayability_gate", "rollback_gate"}.issubset(gate_ids)
+    # v2.0.6 oracle intake gates must also be present
+    assert {"intake_envelope_gate", "intake_replay_gate", "intake_conflict_gate",
+            "intake_lineage_gate", "intake_stabilization_gate", "intake_approval_gate"}.issubset(gate_ids)

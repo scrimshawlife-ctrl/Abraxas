@@ -4,7 +4,7 @@
     "execution": false,
     "mutation": false
   },
-  "canonical_hash": "9a5f84fd7aa48261f194dc30b13b921ce6d7d7dc56b0ccd85736911c6514bf4e",
+  "canonical_hash": "d288103a14f32e749dcf38154eab9845ea9425d033dcbdbb6fd5e2a88478f342",
   "entries": [
     {
       "action_id": "action-does-not-exist",
@@ -1399,8 +1399,348 @@
       "reason": "UNKNOWN_ACTION_ID",
       "status": "FAILED",
       "timestamp": "2026-05-06T15:16:59.158317+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "16dd1f8fc379edaee19c8db83f9b1e580cfa6b9ba765815a53b458a65f1ecc05",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.571003+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "d323007505f6b7889fd8b17b6517c30cb7f4c25634ad8131e20a227bb35c30bd",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.572648+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "8f0963f7284c348763e5b58f5eb4a4829de5e5ce5709219af462c890a894f7d2",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.575117+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "7f67a12dbd0471d9719d24b045f08ee9b24cb22fdef686875228a3a334b3045d",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.577000+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "43f8581cacb369b0f36a9b154158ea0393bb406f0e05c08c7408a1fab61b5c3b",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.579877+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "910f1c8d44cb90d84ff1ad1a70651219395607b9eeee58c05161f8a1636a7caa",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.581549+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "d00e2abb3441ac82d90589f7a7a4e0a851b9c508793342a161049347702703b1",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:22.584124+00:00"
+    },
+    {
+      "action_id": "action-00fef7516c6e4ec8",
+      "action_type": "APPROVE_ONE",
+      "approval_id": null,
+      "approval_write_hash": "49305f6b33ffc76f7f7cf7d0df005ce41cf60d6b2a7fba40ada8fcf0c24995ee",
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "3007ba2611b582da88be557de9209d47f9121a33e111fc560169393b126c503b",
+      "execution_id": "exec-1f726cad4faa12d7966b",
+      "reason": null,
+      "status": "EXECUTED",
+      "timestamp": "2026-05-06T15:27:23.179647+00:00"
+    },
+    {
+      "action_id": "action-hold-test",
+      "action_type": "HOLD",
+      "approval_id": null,
+      "approval_write_hash": "2a8adf00e2372fb52f761cc10814cd87e78f51eb1ad47a9e840ff6de60a20246",
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "2cfdf3e682eddb5a999d434e5160bc33d3f5d1d0babe9663717157f7abf31123",
+      "execution_id": "exec-08d355b971051632b145",
+      "reason": null,
+      "status": "NO_OP",
+      "timestamp": "2026-05-06T15:27:23.182438+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "d7b6339f2220efb9f5614385053a65954633d81013a8c530109522caedba82bf",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:27:23.184845+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "c60abc0fdeca4d03615ade22b5868e07ad39a8ef739c9dbccb2ead1746320e2d",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.023005+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "820c2d28fc3c10e863204f6b31f19d718a9fa7ea2377c126215d05b60c517ae1",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.024734+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "cef6d6fd82d8715a6f72fcccdd811eb7e996c85e643a66e06cae6be26fb253ef",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.027175+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "0848bfa968580fbd87835cff6dbf1ba53567f879baf0a8d15c1a0c97acf4c337",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.028948+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "2e6c855a209d3c87bc8bb0b86cf2f70149fe96556b51f0ef468f02f0c4925766",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.031964+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "f7162d333333c2c4a6e33efe5a458afc332bd38d84741180b7da56c8116e21a9",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.033730+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "8422de4bb16b86a6573780f17bdf0e833ae23f0aab4769cf0584e4dacdd4a779",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.036513+00:00"
+    },
+    {
+      "action_id": "action-00fef7516c6e4ec8",
+      "action_type": "APPROVE_ONE",
+      "approval_id": null,
+      "approval_write_hash": "49305f6b33ffc76f7f7cf7d0df005ce41cf60d6b2a7fba40ada8fcf0c24995ee",
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "6d9eb2e55cc475e7d4d36cbd9abe92feaca0c36afc6e2547fb2bed0eb0ad4370",
+      "execution_id": "exec-1f726cad4faa12d7966b",
+      "reason": null,
+      "status": "EXECUTED",
+      "timestamp": "2026-05-06T15:41:00.635945+00:00"
+    },
+    {
+      "action_id": "action-hold-test",
+      "action_type": "HOLD",
+      "approval_id": null,
+      "approval_write_hash": "2a8adf00e2372fb52f761cc10814cd87e78f51eb1ad47a9e840ff6de60a20246",
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "491a2e528c9bd1a78b21813e3a7d65746f380799fd1eb5849a19ba9de65b70e1",
+      "execution_id": "exec-08d355b971051632b145",
+      "reason": null,
+      "status": "NO_OP",
+      "timestamp": "2026-05-06T15:41:00.638819+00:00"
+    },
+    {
+      "action_id": "action-does-not-exist",
+      "action_type": null,
+      "approval_id": null,
+      "approval_write_hash": null,
+      "authority": {
+        "analysis_only": true,
+        "execution": false,
+        "mutation": false
+      },
+      "batch_cycle_hash": null,
+      "canonical_hash": "ab78ad6ceb8a6453843812f37b89408f63613108558ed89da8ed77bda33ef083",
+      "execution_id": "exec-37f6b1be8be263df088c",
+      "reason": "UNKNOWN_ACTION_ID",
+      "status": "FAILED",
+      "timestamp": "2026-05-06T15:41:00.641699+00:00"
     }
   ],
-  "entry_count": 82,
+  "entry_count": 102,
   "schema_version": "SelfBuildRecommendationExecutionLedger.v1"
 }

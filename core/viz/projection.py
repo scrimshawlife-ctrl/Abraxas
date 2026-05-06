@@ -211,3 +211,100 @@ def extend_projection_packet_with_sandbox(
     extended["packet_hash"] = sha256(canonical).hexdigest()
 
     return extended
+
+
+# ── v2.0.6 Oracle Intake projection extensions ────────────────────────────
+
+def build_oracle_intake_summary(
+    intake_runs: List[Dict[str, Any]],
+    replay_packets: List[Dict[str, Any]],
+    normalization_packets: List[Dict[str, Any]],
+    conflict_packets: List[Dict[str, Any]],
+    stabilization_packets: List[Dict[str, Any]],
+    approval_packets: List[Dict[str, Any]],
+    lineage_packets: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Build projection-only oracle intake summary.
+
+    Notes:
+        projection_only = True
+        inference_authority = False
+        No Canon mutation.
+        No forecast activation.
+    """
+    intake_run_count = len(intake_runs)
+
+    replay_matches = sum(
+        1 for p in replay_packets if p.get("deterministic_match", False)
+    )
+
+    norm_count = len(normalization_packets)
+
+    unresolved_conflicts = sum(
+        1 for c in conflict_packets if c.get("status") == "unresolved"
+    )
+
+    stable_intakes = sum(
+        1 for s in stabilization_packets
+        if s.get("stabilization_state") in {"stable", "stabilizing"}
+    )
+
+    blocked_approvals = sum(
+        1 for a in approval_packets if a.get("status") in {"blocked", "pending"}
+    )
+
+    lineage_depth = max(
+        (lp.get("lineage_depth", 0) for lp in lineage_packets), default=0
+    )
+
+    provenance_failures = sum(
+        1 for run in intake_runs
+        for ep in run.get("evidence_packets", [])
+        if ep.get("status") in {"not_computable", "failed"}
+    )
+
+    return {
+        "schema_version": "OracleIntakeSummary.v1",
+        "projection_only": True,
+        "inference_authority": False,
+        "intake_runs": intake_run_count,
+        "replay_matches": replay_matches,
+        "normalization_packets": norm_count,
+        "unresolved_conflicts": unresolved_conflicts,
+        "stable_intakes": stable_intakes,
+        "blocked_approvals": blocked_approvals,
+        "lineage_depth": lineage_depth,
+        "provenance_failures": provenance_failures,
+    }
+
+
+def extend_projection_packet_with_oracle_intake(
+    base_packet: Dict[str, Any],
+    intake_runs: List[Dict[str, Any]],
+    replay_packets: List[Dict[str, Any]],
+    normalization_packets: List[Dict[str, Any]],
+    conflict_packets: List[Dict[str, Any]],
+    stabilization_packets: List[Dict[str, Any]],
+    approval_packets: List[Dict[str, Any]],
+    lineage_packets: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Extend an existing AAL-Viz projection packet with oracle intake summary.
+
+    Returns:
+        Extended projection packet. Immutable - creates a new dict.
+    """
+    extended = dict(base_packet)
+    extended["oracle_intake_summary"] = build_oracle_intake_summary(
+        intake_runs,
+        replay_packets,
+        normalization_packets,
+        conflict_packets,
+        stabilization_packets,
+        approval_packets,
+        lineage_packets,
+    )
+
+    canonical = json.dumps(extended, sort_keys=True).encode("utf-8")
+    extended["packet_hash"] = sha256(canonical).hexdigest()
+
+    return extended

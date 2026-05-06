@@ -1,0 +1,53 @@
+{
+  "run_id": "oracle-intake-fixture-run-001",
+  "approvals": [
+    {
+      "schema_version": "IntakeApprovalPacket.v1",
+      "approval_id": "f2ebc73a-ca66-597c-9dd2-398b34477b64",
+      "intake_hash": "a352855d138f2ff054b6fb81599e2db9d6d64c804d9e9ed523b634c33c59c9d0",
+      "stabilization_hash": "9ecf0d923898ad7dfacd0ca873e71a8a08a81ec3fc6d86f8dbed1189c521b1b9",
+      "conflict_hashes": [],
+      "approval_required": true,
+      "approved": false,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "pending"
+    },
+    {
+      "schema_version": "IntakeApprovalPacket.v1",
+      "approval_id": "b36f1c92-5a6c-5faa-95bc-625fccfc8bf4",
+      "intake_hash": "c65e0fe79eb02cb0fcbdc68fffea69d610c4881a397852e3663ba12103cdb9e5",
+      "stabilization_hash": "5c4845f15f1d0e406481847f3dc59c5a7b0d7397760d9927162fc6e711f9c3c8",
+      "conflict_hashes": [],
+      "approval_required": true,
+      "approved": false,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "pending"
+    },
+    {
+      "schema_version": "IntakeApprovalPacket.v1",
+      "approval_id": "c5257f5c-5e94-5e53-b1b3-739ace62415a",
+      "intake_hash": "92f277c15dce9cd36361b020f228e0c6b6b3375f0170f9aa0299ba6c9363c3d0",
+      "stabilization_hash": "b7d0dc57bad77a0e0e9cc32544027006d13faffd4d4bddcef2722f18ae1d104d",
+      "conflict_hashes": [],
+      "approval_required": true,
+      "approved": false,
+      "authority": {
+        "authority_id": "auth.oracle_intake.001",
+        "actor": "system.oracle_intake",
+        "locked": true,
+        "scope": "oracle_intake_only"
+      },
+      "status": "pending"
+    }
+  ]
+}
