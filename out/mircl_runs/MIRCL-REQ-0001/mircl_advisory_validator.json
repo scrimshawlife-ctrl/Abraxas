@@ -1,0 +1,8 @@
+{
+  "advisoryId": "4a3c8af72386b04cf1695cb8efe407edb062a020ccabb1ddafad1ff1e36dcaae",
+  "artifactPath": "/home/runner/work/Abraxas/Abraxas/out/mircl_runs/MIRCL-REQ-0001/mircl_advisory_artifact.json",
+  "errors": [],
+  "label": "mircl_v1_artifact_contract_validation",
+  "status": "VALID",
+  "timestamp": "2026-05-06T02:59:33.687740+00:00"
+}

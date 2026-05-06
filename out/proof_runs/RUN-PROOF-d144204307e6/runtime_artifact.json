@@ -1,0 +1,12 @@
+{
+  "artifactId": "ART-bcf24708a5da",
+  "kind": "RunProofRecord",
+  "packetId": "PKT-95dc26febbc3",
+  "payload": {
+    "deterministic": true,
+    "message": "Bounded proof emission with structured governance/test/status receipts"
+  },
+  "runId": "RUN-PROOF-d144204307e6",
+  "status": "PASS",
+  "timestamp": "2026-05-06T03:01:32.117648+00:00"
+}

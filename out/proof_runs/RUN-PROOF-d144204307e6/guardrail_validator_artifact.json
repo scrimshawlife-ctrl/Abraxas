@@ -1,0 +1,10 @@
+{
+  "bundlePath": "/home/runner/work/Abraxas/Abraxas/out/proof_runs/RUN-PROOF-d144204307e6/guardrail_receipts.json",
+  "checkedCheckCount": 4,
+  "checkedReceiptBundleId": "e90edb1d2406ddf2a2dc2c9cba18cd9b1cff8a86aac533ce84e0ab6396bc16df",
+  "checkedReceiptCount": 3,
+  "errors": [],
+  "label": "guardrail_receipt_contract_validation",
+  "status": "VALID",
+  "timestamp": "2026-05-06T03:01:32.407044+00:00"
+}

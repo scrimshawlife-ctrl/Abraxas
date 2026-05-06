@@ -1,0 +1,8 @@
+{
+  "artifactPath": "/home/runner/work/Abraxas/Abraxas/out/mbom_runs/MBOM-REQ-0001/mbom_assessment_artifact.json",
+  "assessmentId": "c2d9f9796a7321cc23ac83e37a3f859f21574cf121fcc2cb7f73f39d05ab82a6",
+  "errors": [],
+  "label": "mbom_v1_artifact_contract_validation",
+  "status": "VALID",
+  "timestamp": "2026-05-06T02:59:33.270233+00:00"
+}

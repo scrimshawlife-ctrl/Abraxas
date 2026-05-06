@@ -1,0 +1,1 @@
+{"schema_version": "ForecastOutcomeSet.v1", "forecasts": [{"id": "f1", "probability": 0.5, "label": "YES"}], "outcomes": [{"forecast_id": "f1", "resolved_value": 1}], "canonical_hash": "8f3745601046b2db23cb62c6d6e6f53eb7609ef402674f81b1e72dc5db6bd284"}

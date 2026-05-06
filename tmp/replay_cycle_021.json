@@ -1,0 +1,30 @@
+{
+  "records": [
+    {
+      "domain": "coding",
+      "forecast_probability": 0.62,
+      "outcome": "PENDING",
+      "record_id": "r4"
+    },
+    {
+      "domain": "market_pse",
+      "forecast_probability": 0.8200000000000001,
+      "outcome": "YES",
+      "record_id": "r1"
+    },
+    {
+      "domain": "market_pse",
+      "forecast_probability": 0.32,
+      "outcome": "NO",
+      "record_id": "r2"
+    },
+    {
+      "domain": "oracle",
+      "forecast_probability": 0.72,
+      "outcome": "YES",
+      "record_id": "r3"
+    }
+  ],
+  "run_id": "multi_cycle_021",
+  "schema_version": "ABXReplayInput.v1"
+}

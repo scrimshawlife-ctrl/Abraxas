@@ -1,0 +1,69 @@
+{
+  "checks": [
+    {
+      "command": [
+        "/usr/bin/python",
+        "/home/runner/work/Abraxas/Abraxas/.abraxas/scripts/registry_consistency.py"
+      ],
+      "label": "registry_consistency",
+      "returncode": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": "OK\n",
+      "timestamp": "2026-05-06T03:01:32.238603+00:00"
+    },
+    {
+      "command": [
+        "/usr/bin/python",
+        "/home/runner/work/Abraxas/Abraxas/.abraxas/scripts/governance_lint.py"
+      ],
+      "label": "governance_lint",
+      "returncode": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": "OK\n",
+      "timestamp": "2026-05-06T03:01:32.276490+00:00"
+    },
+    {
+      "command": [
+        "/usr/bin/python",
+        "/home/runner/work/Abraxas/Abraxas/.abraxas/scripts/release_readiness.py",
+        "--subsystem",
+        "oracle_signal_layer_v2",
+        "--receipts",
+        "runtime_artifact",
+        "validator_artifact"
+      ],
+      "label": "release_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": "READY\n",
+      "timestamp": "2026-05-06T03:01:32.314171+00:00"
+    },
+    {
+      "command": [
+        "/usr/bin/python",
+        "/home/runner/work/Abraxas/Abraxas/.abraxas/scripts/reconcile_subsystem_state.py",
+        "--ledger",
+        "/home/runner/work/Abraxas/Abraxas/.abraxas/ledger/release_manifests.jsonl"
+      ],
+      "label": "reconcile_subsystem",
+      "returncode": 1,
+      "status": "BLOCKED",
+      "stderr": "",
+      "stdout": "{\n  \"missing_ledger_records\": [\n    \"oracle_signal_layer_v2\",\n    \"mbom_v1\",\n    \"mircl_v1\",\n    \"forecast_portfolio_simulation_v0_1\",\n    \"gap_closure_v1\"\n  ]\n}\n",
+      "timestamp": "2026-05-06T03:01:32.352050+00:00"
+    }
+  ],
+  "receipt_bundle_id": "e90edb1d2406ddf2a2dc2c9cba18cd9b1cff8a86aac533ce84e0ab6396bc16df",
+  "receipts": [
+    "governance_lint_pass",
+    "registry_consistency_pass",
+    "release_readiness_pass"
+  ],
+  "schema_version": 1,
+  "status": "PARTIAL",
+  "subsystem": "oracle_signal_layer_v2",
+  "timestamp": "2026-05-06T03:01:32.352076+00:00"
+}

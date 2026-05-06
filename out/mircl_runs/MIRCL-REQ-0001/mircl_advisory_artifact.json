@@ -1,0 +1,14 @@
+{
+  "advisory_id": "4a3c8af72386b04cf1695cb8efe407edb062a020ccabb1ddafad1ff1e36dcaae",
+  "advisory_text": "MIRCL shadow advisory for request MIRCL-REQ-0001: Map symbolic drift as advisory only",
+  "context_tags": [
+    "shadow",
+    "mircl"
+  ],
+  "lane": "shadow",
+  "request_id": "MIRCL-REQ-0001",
+  "schema_version": 1,
+  "source_prompt": "Map symbolic drift as advisory only",
+  "status": "shadow_advisory_emitted",
+  "subsystem": "mircl_v1"
+}

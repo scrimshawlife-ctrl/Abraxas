@@ -1,0 +1,16 @@
+{
+  "artifactId": "ART-bcf24708a5da",
+  "correlation": {
+    "ledgerRecordIds": [
+      "REC-241a886d1ee0"
+    ],
+    "packetIds": [
+      "PKT-95dc26febbc3"
+    ]
+  },
+  "errors": [],
+  "runId": "RUN-PROOF-d144204307e6",
+  "status": "VALIDATOR-VISIBLE",
+  "timestamp": "2026-05-06T03:01:32.147752+00:00",
+  "warnings": []
+}
