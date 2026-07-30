@@ -1,100 +1,110 @@
 # Abraxas
 
-Deterministic runtime, proof surfaces, and governance tooling for ABX/Abraxas execution closure.
+**Governed AI Operating System**  
+*Deterministic • Observable • Recursive • Provenance-Backed*
 
-Abraxas combines canonical runtime commands, subsystem governance metadata, validator-facing artifact contracts, and operator scripts in one repository.  
-This front door is intentionally truth-scoped: statuses are split into Implemented, Partial, Experimental, and Planned based on repository evidence.
+> Structure before narrative. Evidence before authority. Governance before autonomy.
+
+Abraxas is evolving from a governed deterministic execution framework into a unified AI operating system built from its existing runtime, ABX-Runes, artifact, ledger, validation, governance, continuity, and operator infrastructure.
+
+The repository already contains a strong execution and assurance kernel. The current program is to compress those existing components behind one canonical session, workspace, process, capability, event, artifact, memory, and delivery lifecycle rather than adding disconnected subsystems.
+
+## Canonical Direction
 
 ```mermaid
 flowchart LR
-  A[Inputs / Run IDs] --> B[Runtime Execution]
-  B --> C[Artifacts + Schemas]
-  C --> D[Validation + Invariance]
-  D --> E[Governance Records]
-  E --> F[Operator Projections]
+  A[Operator Intent] --> B[Session + Workspace]
+  B --> C[TaskGraphIR]
+  C --> D[Policy + Permissions]
+  D --> E[Capability Resolution]
+  E --> F[Governed Execution]
+  F --> G[Events + Checkpoints]
+  G --> H[Artifacts + Validation]
+  H --> I[Delivery + Memory]
+  I --> J[Operator Projection]
 
-  subgraph Canonical
-    B
-    C
-    D
-    E
-  end
-
-  subgraph Derivative
-    F
-  end
+  K[Governance + Registry] -. constrains .-> B
+  K -. constrains .-> D
+  K -. constrains .-> E
+  K -. constrains .-> F
+  K -. constrains .-> H
 ```
 
-> The README renders the canonical Mermaid source directly. A derived SVG can be regenerated with `scripts/export_architecture_svg.sh` when the local Mermaid/Chrome toolchain is available.
+Canonical lifecycle:
 
----
+```text
+operator intent
+→ session and workspace context
+→ deterministic task graph
+→ policy and permission evaluation
+→ capability resolution
+→ governed execution
+→ checkpoints and artifacts
+→ validation and provenance
+→ delivery
+→ memory and continuity commit
+```
 
 ## Start Here
 
-- [README.md](README.md) — front-door orientation and quickstart.
-- [docs/README.md](docs/README.md) — documentation navigation map.
-- [docs/architecture/overview.md](docs/architecture/overview.md) — canonical architecture diagram spec and SVG export plan.
-- [.abraxas/registries/expected_subsystems.yaml](.abraxas/registries/expected_subsystems.yaml) — expected subsystem registry.
-- [.abraxas/subsystems/](.abraxas/subsystems/) — per-subsystem metadata including authorization and lane.
-- [scripts/](scripts/) — operational commands and validators.
-- [tests/gap_closure/](tests/gap_closure/) — deterministic test lane tied to gap closure.
+- [AI OS Contract](docs/ai-os/AI_OS_CONTRACT.md) — canonical target architecture and invariants.
+- [AI OS Roadmap](docs/ai-os/ROADMAP.md) — phased implementation sequence and exit criteria.
+- [JCode Execution Plan](docs/ai-os/JCODE_EXECUTION_PLAN.md) — bounded agent plan for the first AI OS foundation campaign.
+- [Documentation Index](docs/README.md) — repository documentation map.
+- [Canonical Runtime](docs/CANONICAL_RUNTIME.md) — current proof and execution spine.
+- [Validation and Attestation](docs/VALIDATION_AND_ATTESTATION.md) — assurance boundaries.
+- [Subsystem Inventory](docs/SUBSYSTEM_INVENTORY.md) — current subsystem roles and maturity.
+- [Active Plan](PLANS.md) — current execution queue.
 
----
+## Current Architecture
 
-## What Abraxas Is
+### Strong foundation
 
-Abraxas is a multi-surface repository with:
+- deterministic runtime and hash-based artifacts;
+- ABX-Runes typed execution, receipts, replay, and rollback;
+- governance registries and subsystem metadata;
+- validation, invariance, readiness, and promotion-policy surfaces;
+- continuity-ledger and task-graph prototypes;
+- operator projection and web surfaces;
+- sandboxed adaptive experimentation.
 
-- Canonical runtime and proof paths (`abx/`, `abraxas/`, `.abraxas/`).
-- Operator and projection surfaces (`webpanel/`, `server/`, `client/`, `shared/`).
-- Deterministic run/validation/report scripts (`scripts/`).
-- Contract and artifact surfaces (`schemas/`, `docs/`, `out/`, `artifacts_*`).
+### Partial
 
-The current clearly implemented additive path is `gap_closure_v1`, including runtime artifact emission, validator checks, invariance logging, and stabilization reporting.
+- task and process intermediate representation;
+- continuity and stabilization runtime;
+- capability abstraction;
+- policy-to-projection wiring;
+- operator-console consistency;
+- artifact addressing and linkage.
 
----
+### Remaining AI OS services
 
-## Core Principles (Repository-Evidenced)
+- canonical session and persistent workspace models;
+- unified process orchestrator;
+- event bus and reconstructable state machine;
+- dependency-aware scheduler;
+- model-provider routing;
+- principal-level permissions and secret brokerage;
+- governed agent lifecycle;
+- scoped persistent memory;
+- canonical artifact filesystem;
+- plugin installation and versioning.
 
-- Deterministic artifact and hash-based evidence paths.
-- Validation-first posture (`PASS` / `FAIL` / `NOT_COMPUTABLE`).
-- Explicit governance boundaries via subsystem metadata and registry checks.
-- Lane discipline: canonical authority surfaces separated from derivative projections.
-- Non-promotive defaults when required evidence is missing.
+## Existing Canonical Proof Spine
 
----
+The current repository-evidenced proof path remains authoritative during migration:
 
-## System Overview
-
-Canonical diagram spec: [docs/architecture/overview.md](docs/architecture/overview.md).
-
-## Architecture
-
-The system architecture is defined as a canonical artifact:
-
-- Source (Mermaid, canonical): `docs/assets/architecture/abraxas-architecture-overview.mmd`
-- Derived SVG (generated): `docs/assets/architecture/abraxas-architecture-overview.svg`
-- Spec: `docs/architecture/overview.md`
-
-![Abraxas architecture overview](docs/assets/architecture/abraxas-architecture-overview.svg)
-
-Regenerate the derived SVG (and optional PNG) from the Mermaid source:
-
-```bash
-bash scripts/export_architecture_svg.sh
-# optional PNG: EXPORT_PNG=1 bash scripts/export_architecture_svg.sh
+```text
+ingest
+→ rune invoke
+→ artifact emit
+→ ledger linkage
+→ validator-visible proof
+→ operator projection
+→ attestation
 ```
 
-This diagram reflects the current repository topology across execution, validation, governance, and artifact surfaces.
-See the spec for explicit truth gaps and confidence labels.
-
----
-
-### Canonical proof spine
-
-`ingest -> rune invoke -> artifact emit -> ledger linkage -> validator-visible proof -> operator projection -> attestation`
-
-Canonical CLI entrypoints:
+Canonical commands include:
 
 ```bash
 python -m abx.cli proof-run --run-id <RUN_ID>
@@ -102,444 +112,70 @@ python -m abx.cli promotion-check --run-id <RUN_ID>
 python -m abx.cli promotion-policy --run-id <RUN_ID>
 ```
 
-### Gap-closure additive lane (documented implemented path)
+The AI OS kernel must reuse and route through this infrastructure. It must not silently fork proof, policy, validation, or authority semantics.
 
-```bash
-python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only
-python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001
-python scripts/log_gap_closure_invariance.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-scope workspace_only
-python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001
-python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-run
-```
+## Package Roles
 
----
-
-## v2.0.1 — Rune Layer
-
-v2.0.1 introduces **typed rune execution, deterministic shadow execution, receipt chaining, replayability, and rollback packets**. Execution remains shadow-only, replayable, receipt-backed, and governance-first.
-
-### Rune Layer Overview
-
-The rune layer provides a structured execution harness for invoking symbolic rune operators in a deterministic, auditable fashion. Every execution step is:
-
-- **Typed**: each rune has a declared input and output schema.
-- **Ordered**: steps execute in deterministic ascending order (`deterministic_order`).
-- **Receipt-backed**: every step emits a `RuneInvocationReceipt` with SHA-256 hashes for both input and output.
-- **Chain-linked**: receipts are canonically chained — changing any one receipt changes the whole `chain_hash`.
-- **Replayable**: the same contract + route graph always produces identical receipt chain hashes.
-- **Rollback-capable**: a `ExecutionRollbackPacket` records which receipts can be reverted.
-
-### Shadow Execution Model
-
-All execution in v2.0.1 runs in **shadow mode only** (`execution_mode = "shadow_only"`). This means:
-
-- No runtime mutation.
-- No Canon mutation.
-- No forecast activation.
-- No live external calls.
-
-Shadow execution is deterministic stub execution — it produces all governance artifacts (receipts, hashes, replay packets) without side effects.
-
-### Replayability Doctrine
-
-The replay system re-runs the same execution deterministically and compares all receipt chain hashes. A `RuneReplayPacket` is emitted with:
-
-- `deterministic_match = True` when all hashes match.
-- `mismatched_receipts` listing any divergent receipts.
-
-Any deviation fails the `replayability_gate` in the doctrine validator.
-
-### Receipt Chaining
-
-`build_receipt_chain(receipts)` produces a canonically ordered, hash-linked chain:
-
-```python
-{
-  "chain_hash": "<sha256 of canonical chain>",
-  "receipt_count": N,
-  "receipts": [...]
-}
-```
-
-Changing any single receipt (input_hash, output_hash, or any field) changes the entire `chain_hash`.
-
-### Rollback Semantics
-
-`ExecutionRollbackPacket` records which execution steps can be reverted:
-
-- `rollback_possible = True` when reverted receipts are present.
-- `rollback_possible = False` when no receipts are available (missing evidence → fail-closed).
-
-### Route-Aware Execution
-
-The shadow runner validates:
-- Route node is present and non-empty for each step.
-- Invalid nodes cause the step to be counted as `failed_steps` and trigger a `not_computable` or `failed` execution status.
-
-### Doctrine Validator Gates (v2.0.1)
-
-Four new gates enforce rune-layer compliance:
-
-| Gate | Description |
-|------|-------------|
-| `execution_plan_gate` | Invocation plan must exist with unique, ordered steps |
-| `execution_receipt_gate` | Receipt chain must have valid 64-char hash and ≥1 receipt |
-| `replayability_gate` | Replay packet must confirm `deterministic_match = True` |
-| `rollback_gate` | Rollback packet must exist with a valid `rollback_id` |
-
-A pipeline is **not fully compliant** if any gate fails.
-
-### v2.0.1 Commands
-
-```bash
-# Registry
-python scripts/run_registry.py
-
-# Doctrine validation (all 4 gates)
-python scripts/run_doctrine_validator.py
-
-# Shadow execution
-python scripts/run_shadow_execution.py
-
-# Replay
-python scripts/run_rune_replay.py
-```
-
-Generated artifacts:
-- `out/execution/latest.json` — shadow run output
-- `out/execution/receipts.latest.json` — receipt chain summary
-- `out/replay/latest.json` — replay packet
-- `out/validators/doctrine_validation.latest.json` — doctrine gate results
-- `out/registry/rune_registry.latest.json` — rune catalog index
-
-### v2.0.1 Module Map
-
-| Module | Purpose |
-|--------|---------|
-| `core/models/governance.py` | `Authority` class with `is_locked()` |
-| `core/execution/context.py` | `RuneExecutionContext.v1` |
-| `core/execution/shadow_runner.py` | `ShadowExecutionRun.v1` + `run_shadow_execution` |
-| `core/execution/replay_runner.py` | `replay_execution` |
-| `core/runes/execution.py` | `execute_rune` deterministic harness |
-| `core/runes/runtime.py` | `RuneInvocationPlan.v1` + `build_invocation_plan` |
-| `core/runes/receipts.py` | `RuneInvocationReceipt.v1` + `build_receipt_chain` |
-| `core/runes/replay.py` | `RuneReplayPacket.v1` |
-| `core/runes/rollback.py` | `ExecutionRollbackPacket.v1` + `generate_rollback_packet` |
-| `core/validators/doctrine.py` | Doctrine validator with 4 rune-layer gates |
-| `core/viz/projection.py` | AAL-Viz execution summary projection extension |
-
----
-
-
-
-| Path | Purpose | Status |
+| Path | Role | Status |
 |---|---|---|
-| `.abraxas/` | governance policy, registries, subsystem manifests, governance scripts | Implemented |
-| `abx/` | canonical CLI/runtime orchestration | Implemented |
-| `abraxas/` | domain runtime modules and rune surfaces | Implemented |
-| `scripts/` | operational scripts (runtime, validation, reporting, sync) | Implemented / Experimental (mixed) |
-| `schemas/` | JSON schemas and contracts | Implemented |
-| `tests/` | deterministic and integration test suites | Implemented |
-| `docs/` | canon, architecture, workflows, and historical records | Implemented |
-| `webpanel/`, `server/`, `client/`, `shared/` | operator and product-facing projection/API/UI surfaces | Partial / Shadow-adjacent (context-dependent) |
-| `out/`, `artifacts_seal/`, `artifacts_gate/` | emitted artifacts, reports, validator outputs | Implemented |
+| `.abraxas/` | governance, policy, subsystem manifests, registries | Implemented |
+| `abx/` | canonical CLI and proof orchestration | Implemented |
+| `abraxas/` | domain runtime, rune, oracle, detector, and execution modules | Implemented / mixed |
+| `abx_familiar/` | task graph, continuity, and delegated-runtime prototypes | Partial |
+| `schemas/` | artifact and execution contracts | Implemented |
+| `scripts/` | operational, validation, reporting, and compatibility entrypoints | Mixed |
+| `webpanel/`, `server/`, `client/`, `shared/` | operator projections and product surfaces | Partial / mixed |
+| `abx_os/` | canonical AI OS kernel and service boundary | Planned |
 
----
+## AI OS Invariants
 
-## Key Workflows
+1. Canonical transforms, ordering, identifiers, and hashes are deterministic where computable.
+2. Missing evidence resolves to `NOT_COMPUTABLE`, never fabricated completion.
+3. Every process, capability call, artifact, memory write, and delivery carries provenance.
+4. External calls and mutations require explicit grants and policy evaluation.
+5. Projection surfaces may display canonical state but may not redefine it.
+6. Long-running work supports checkpoints, replay, cancellation, and bounded recovery.
+7. Every executable surface is registered as a capability or classified as private implementation.
+8. Agents cannot expand their own authority.
 
-### 1) Validate local deterministic lane
+## First Implementation Milestone
+
+The first milestone is one end-to-end vertical slice:
+
+```text
+operator request
+→ SessionEnvelope.v1
+→ OperatorIntent.v1
+→ TaskGraphIR.v1
+→ capability resolution
+→ one model inference
+→ one repository read
+→ checkpoint
+→ artifact registration
+→ validation
+→ DeliveryPack.v1
+→ continuity and memory commit
+→ operator projection
+```
+
+Broad migrations and UI expansion should not begin until this path is deterministic, replayable, tested, and documented.
+
+## Development Readiness
+
+Use repository-native validation surfaces before claiming closure:
 
 ```bash
-pytest tests/gap_closure
-```
-
-### 2) Run a gap-closure cycle and validate evidence
-
-```bash
-python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only
-python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001
-python scripts/log_gap_closure_invariance.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-scope workspace_only
-```
-
-### 3) Synthesize stabilization and optional Notion dry-run payload
-
-```bash
-python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001
-python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-run
-```
-
----
-
-## Developer Readiness Loop
-
-Run a deterministic local readiness sweep across dependency governance, rune contracts, focused web/operator tests, and architecture SVG bounds checks:
-
-```bash
-make developer-readiness
-```
-
-The command writes a structured report to `out/reports/developer_readiness.json` via `scripts/run_developer_readiness.py`. Missing test surfaces remain explicit as `NOT_PRESENT`; no promotion or closure state is inferred from this loop alone.
-
-Read-only comparison snapshots across Developer Readiness and Gap Closure Invariance can be logged with:
-
-```bash
-python scripts/log_readiness_comparison.py
-```
-
-This writes:
-- `out/reports/readiness_comparison.latest.json`
-- `out/reports/readiness_comparison_ledger.jsonl`
-
-The comparison ledger is descriptive-only and non-promotive; promotion policy and authority remain governed by existing canonical runtime/policy surfaces.
-
-Read-only promotion preflight advisory can be generated with:
-
-```bash
-python scripts/generate_promotion_preflight.py
-```
-
-This writes `out/reports/promotion_preflight.latest.json` and is advisory-only (no promotion authority, no threshold or CI gate changes).
-
-## Validation & Governance
-
-Primary governance and validation surfaces:
-
-- Subsystem registry: `.abraxas/registries/expected_subsystems.yaml`
-- Gap subsystem metadata: `.abraxas/subsystems/gap_closure_v1.yaml`
-- Governance scripts: `.abraxas/scripts/preflight.py`, `.abraxas/scripts/registry_consistency.py`, `.abraxas/scripts/governance_lint.py`, `.abraxas/scripts/release_readiness.py`
-- Canon docs: [docs/CANONICAL_RUNTIME.md](docs/CANONICAL_RUNTIME.md), [docs/VALIDATION_AND_ATTESTATION.md](docs/VALIDATION_AND_ATTESTATION.md)
-
-Governance defaults are fail-closed: missing receipts stay explicit (`partial`, `blocked`, `attestation_pending`, or `NOT_COMPUTABLE`).
-
-## Dependency Governance
-
-Abraxas enforces dependency boundaries through:
-
-- `.aal/dependency_manifest.v0.yaml`
-- `.aal/dependency_surface_policy.v0.yaml`
-- `scripts/check_optional_dependency_boundaries.py`
-
-Key rules:
-- CORE_REQUIRED dependencies may affect runtime truth.
-- ENTRYPOINT_REQUIRED dependencies may launch surfaces but cannot define truth.
-- OPTIONAL_ADAPTER dependencies are limited to rendering/export/bridge roles.
-- Unclassified modules fail closed by default.
-
-Run locally:
-- `make dependency-check`
-
-### Tier markers (canonical closure ladder)
-
-- **Tier 1**: `python -m abx.cli proof-run --run-id <RUN_ID>`
-- **Tier 2**: `python -m abx.cli promotion-check --run-id <RUN_ID>`
-- **Tier 2.5**: federated-readiness classification within `promotion-check` artifacts
-- **Tier 2.75**: `python -m abx.cli promotion-policy --run-id <RUN_ID>`
-- **Tier 3**: `python scripts/run_execution_attestation.py <RUN_ID>` (policy-gated)
-
-Canonical TS sanity marker: `make ts-canonical-check`
-
----
-
-## Maturity Matrix
-
-| Area | Status | Evidence anchor |
-|---|---|---|
-| Gap-closure runtime + validator path | Implemented | `scripts/run_gap_closure_cycle.py`, `scripts/validate_gap_closure_artifacts.py`, `tests/gap_closure/` |
-| Invariance logging + stabilization report | Implemented | `scripts/log_gap_closure_invariance.py`, `scripts/run_gap_closure_stabilization_report.py` |
-| Notion sync integration | Implemented (operator-controlled) | `scripts/sync_invariance_to_notion.py` with dry-run and token gating |
-| Promotion decision automation | Partial / gated | recommendation remains explicitly non-promotive when thresholds are unmet |
-| Long-tail audit/report script ecosystem | Experimental | heterogeneous script surfaces with mixed canonical relevance |
-| Release packaging and broader convergence | Planned / evolving | docs + governance/readiness tooling indicate ongoing convergence |
-
----
-
-## Installation
-
-### Python
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-pip install -e ".[dev]"
-```
-
-### JavaScript / TypeScript surfaces (optional)
-
-```bash
-npm install
-```
-
----
-
-## Quickstart
-
-1. Run deterministic tests:
-   - `pytest tests/gap_closure`
-2. Execute a gap-closure run:
-   - `python scripts/run_gap_closure_cycle.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-only`
-3. Validate and log invariance:
-   - `python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001`
-   - `python scripts/log_gap_closure_invariance.py --run-id RUN-GAP-FIRST-0001 --mode sandbox --workspace-scope workspace_only`
-4. Generate stabilization summary:
-   - `python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001`
-
----
-
-## Docs Navigation
-
-Use [docs/README.md](docs/README.md) for documentation routing across canon/governance, architecture, workflows, validation/attestation, subsystems, schemas, and archive materials.
-
----
-
-## License / Status
-
-A root `LICENSE` file is currently not present in this repository.  
-`package.json` declares `MIT` for package scope; verify top-level licensing before redistribution.
-
----
-
-## v2.0.5 — Governed Adaptive Sandbox
-
-v2.0.5 introduces **sandboxed adaptive experimentation, candidate transition simulation, governed mutation proposals, isolated adaptation loops, reversible adaptive branches, stabilization-gated experimentation, adaptive replay validation, and operator-reviewed promotion candidates**.
-
-This is **STILL NOT live autonomy**. All execution remains shadow-only, deterministic, replayable, and sandbox-isolated.
-
-### Adaptive Sandbox Overview
-
-The adaptive sandbox provides a completely isolated environment for experimenting with candidate state transitions **without affecting the runtime state or Canon**. Every operation is:
-
-- **Sandboxed**: Sandbox state hash always differs from runtime source state hash
-- **Deterministic**: Same inputs always produce the same branch hashes, replay results, and stabilization states
-- **Replayable**: Every sandbox branch can be replayed with cryptographic proof of determinism
-- **Governance-first**: Authority locked at all entry points; no authority leaks permitted
-- **Fail-closed**: Cyclic lineage, unstable branches, and replay mismatches all block promotion
-
-### Governed Experimentation Doctrine
-
-```
-Sandbox → Mutations → Replay → Stabilization → Promotion Candidate → Operator Review
-```
-
-1. **Sandbox branch** is created from a governed state (source state hash captured, sandbox state isolated)
-2. **Candidate mutations** are proposed (route, validation, replay, stabilization, projection, topology adjustments)
-3. **Replay validation** confirms deterministic match of sandbox branch
-4. **Stabilization window** accumulates replay matches; failures push state to `unstable`
-5. **Promotion candidate** is generated with `promotion_allowed=False` and `operator_review_required=True`
-6. **Operator review** is always required — no bypass path exists
-
-### Isolated Branch Semantics
-
-- `AdaptiveSandboxBranch.v1`: Isolated branch with locked authority, monotonic `branch_generation`, deterministic hash
-- `AdaptiveBranchLineage.v1`: Tracks branch ancestry; cyclic lineage detected and fails closed
-- Sandbox scope string guarantees distinct sandbox state hashes per scope
-
-### Replay-Safe Adaptation
-
-- `SandboxReplayPacket.v1`: Hash-based replay comparison; mismatch recorded in `mismatched_mutations`
-- Replay mismatch forces `deterministic_match=False` regardless of other fields
-- Any mismatch invalidates the stabilization pathway
-
-### Stabilization-Gated Experimentation
-
-States: `unstable` → `stabilizing` → `stable` (or `failed`)
-
-- Zero replay failures + matches ≥ window → `stable`
-- Any replay failure → `unstable` (or `failed` if no matches at all)
-- `unstable`/`failed` branches cannot be promoted
-
-### Promotion Candidate Review
-
-- `SandboxPromotionCandidate.v1`: Always created with `promotion_allowed=False`
-- `operator_review_required=True` always — setting `promotion_allowed=True` simultaneously is overridden
-- `status=blocked` when stabilization_state is `failed`
-
-### Sandbox Rollback Semantics
-
-- Sandbox branches are **fully reversible** — they never modify Canon or runtime state
-- Closing a sandbox branch (status=`closed`) reverts to the governed state
-- No permanent effects outside the sandbox output artifacts
-
-### Doctrine Validator Extensions (v2.0.5)
-
-Five new gates added to the sandbox doctrine validator:
-
-| Gate | Rule |
-|------|------|
-| `sandbox_branch_gate` | Branch isolated, authority locked, hash valid |
-| `adaptive_replay_gate` | Replay deterministic match confirmed |
-| `adaptive_stabilization_gate` | Stabilization not unstable/failed; no cyclic lineage |
-| `promotion_candidate_gate` | Operator review required; promotion_allowed=False |
-| `mutation_receipt_gate` | All receipts have locked authority |
-
-### Projection Extensions (v2.0.5)
-
-`build_sandbox_summary()` extends the AAL-Viz projection packet:
-
-```python
-{
-    "schema_version": "SandboxSummary.v1",
-    "projection_only": True,
-    "inference_authority": False,
-    "adaptive_branches": <count>,
-    "replay_matches": <count>,
-    "unstable_branches": <count>,
-    "promotion_candidates": <count>,
-    "blocked_promotions": <count>,
-    "lineage_depth": <max depth>,
-    "sandbox_failures": <count>,
-}
-```
-
-### v2.0.5 Module Map
-
-```
-core/sandbox/
-  __init__.py       - Package declaration
-  models.py         - AdaptiveSandboxBranch.v1
-  mutations.py      - CandidateMutationPacket.v1
-  replay.py         - SandboxReplayPacket.v1
-  stabilization.py  - SandboxStabilizationPacket.v1
-  promotion.py      - SandboxPromotionCandidate.v1
-  lineage.py        - AdaptiveBranchLineage.v1, AdaptiveBranchNode
-  receipts.py       - MutationProposalReceipt.v1
-  runtime.py        - AdaptiveSimulationRun.v1, run_adaptive_sandbox()
-  validators.py     - validate_adaptive_replay(), sandbox doctrine gates
-```
-
-### v2.0.5 Commands
-
-```bash
-python scripts/run_registry.py
-python scripts/run_doctrine_validator.py
-python scripts/run_shadow_execution.py
-python scripts/run_rune_replay.py
-python scripts/run_yggdrasil_runtime.py
-python scripts/run_graph_replay.py
-python scripts/run_observability_pipeline.py
-python scripts/run_lineage_validation.py
-python scripts/run_state_engine.py
-python scripts/run_state_replay.py
-python scripts/run_adaptive_sandbox.py
-python scripts/run_sandbox_replay.py
 pytest -q
+make dependency-check
+make developer-readiness
+make governance-lint
+make ts-canonical-check
 ```
 
-### v2.0.5 Generated Artifacts
+Known and pre-existing failures must be separated from new regressions. Missing toolchain or evidence must remain explicit.
 
-```
-out/sandbox/latest.json             - AdaptiveSimulationRun artifact
-out/sandbox_replay/latest.json      - SandboxReplayPacket artifact
-out/sandbox_lineage/latest.json     - AdaptiveBranchLineage artifact
-out/sandbox_stabilization/latest.json - SandboxStabilizationPacket artifact
-out/promotion_candidates/latest.json  - SandboxPromotionCandidate artifact
-```
+## Status
 
-### Hard Boundaries (v2.0.5)
+Abraxas is not yet a complete AI OS. It is a mature governed execution and assurance foundation with an active unification roadmap.
 
-- **No intelligence, forecasting, agents, or live autonomy**
-- **No Canon mutation** — sandbox is fully isolated
-- **No runtime mutation outside sandbox**
-- **No external APIs, async workers, or databases**
-- All execution: deterministic, replayable, governance-first, fail-closed, shadow-only, projection-safe, sandbox-isolated
+Current full-system AI OS readiness is best treated as **partial** until the canonical workspace, process, capability, event, memory, permission, scheduler, and agent-runtime layers are implemented and verified.
