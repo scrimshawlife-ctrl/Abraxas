@@ -1,142 +1,275 @@
-# AAL-Core Active Plan Surface
+# Abraxas Active Plan Surface
 
-This file is the append-first execution queue for implementation runs.
+This file is the canonical append-first execution queue for the Abraxas AI OS unification program.
+
+Detailed architecture and sequencing:
+
+- [`docs/ai-os/AI_OS_CONTRACT.md`](docs/ai-os/AI_OS_CONTRACT.md)
+- [`docs/ai-os/ROADMAP.md`](docs/ai-os/ROADMAP.md)
+- [`docs/ai-os/JCODE_EXECUTION_PLAN.md`](docs/ai-os/JCODE_EXECUTION_PLAN.md)
 
 ## Operating Contract
-- Keep updates incremental; avoid rewriting historical entries.
-- Add new tasks under the active queue with date + owner + status.
-- Move finished items to `Completed` with closure notes and linkage references.
+
+- Preserve existing deterministic runtime, governance, proof, validation, replay, and `NOT_COMPUTABLE` semantics.
+- Reuse existing infrastructure before creating new modules.
+- Reduce ambiguity before increasing feature scope.
+- Keep canonical state separate from derivative projections.
+- Treat external calls and side effects as governed capabilities.
+- Complete one vertical slice before broad migration.
+- Record completed work with evidence links, tests, and remaining gaps.
+- Never infer promotion, readiness, or closure from documentation alone.
+
+## Strategic Objective
+
+Unify the existing Abraxas architecture into a governed AI operating system with one canonical lifecycle:
+
+```text
+operator intent
+→ session and workspace context
+→ deterministic task graph
+→ policy and permission evaluation
+→ capability resolution
+→ governed execution
+→ events and checkpoints
+→ artifacts and validation
+→ delivery
+→ memory and continuity commit
+→ operator projection
+```
 
 ## Active Queue
 
-### P0 — Validator Artifact Linkage Closure
-- **Status:** ACTIVE
-- **Intent:** ensure rune execution artifacts link cleanly into validator/ledger surfaces.
-- **Definition of done:** linkage fields populated or explicitly marked unresolved with reasons.
+### P0 — AI OS Repository Mapping and Ownership
 
-### P0 — Proof-Run Correlation Pointer Completion
-- **Status:** ACTIVE
-- **Intent:** complete correlation pointer propagation across run outputs.
-- **Definition of done:** all execution artifacts include correlation pointer set semantics (present, empty, or unresolved reason).
+- **Status:** READY
+- **Intent:** identify all existing implementation surfaces that should be reused, adapted, wrapped, projected, retained for compatibility, or archived.
+- **Required output:** `docs/ai-os/JCODE_REPOSITORY_MAP.md`.
+- **Definition of done:**
+  - canonical entrypoints inventoried;
+  - runes, scripts, adapters, connectors, model calls, agents, APIs, and workflows classified;
+  - direct cross-subsystem calls mapped;
+  - schema, hashing, artifact, ledger, receipt, policy, task graph, continuity, and projection helpers mapped;
+  - ownership ambiguity explicitly resolved or marked `NOT_COMPUTABLE`.
 
-### P1 — Rune-Aware Validator Surfacing
-- **Status:** ACTIVE
-- **Intent:** surface rune_id and phase-aware status in validator-facing summaries.
-- **Definition of done:** validator layer can index or display per-rune execution outcomes.
+### P0 — Kernel Boundary ADR
 
-### P1 — Execution Artifact Generation Integration
-- **Status:** ACTIVE
-- **Intent:** route execution-producing paths through a shared rune artifact envelope.
-- **Definition of done:** new execution paths use wrapper-generated schema-aligned artifacts.
+- **Status:** QUEUED
+- **Intent:** define package ownership and dependency direction for `abx_os` without changing existing runtime authority.
+- **Required output:** `docs/adr/ADR-AI-OS-001-kernel-boundary.md`.
+- **Definition of done:**
+  - `abx_os` responsibilities fixed;
+  - existing `abx`, `abraxas`, `abx_familiar`, `.abraxas`, schemas, and projection roles documented;
+  - import and authority boundaries testable;
+  - no broad package relocation required.
 
-### P1 — Snapshot Lookup + Synthesis Readiness Refinement
-- **Status:** ACTIVE
-- **Intent:** follow up on post-repair validation by tightening runtime/synthesis gating after envelope exact-match restoration.
-- **Definition of done:** bound + exact-match cases consistently map to non-degraded synthesis labels with explicit blocker precedence.
-- **Current execution slices:**
-  - **SLICE-1 (ACTIVE):** runtime/synthesis blocker precedence audit for bound `EXACT_MATCH` cases (`BLOCKED` vs `NOT_COMPUTABLE` branch boundaries).
-  - **SLICE-2 (QUEUED):** broaden real-case validation set beyond `seal` while preserving deterministic local artifact lineage.
-  - **SLICE-3 (QUEUED):** align final-state-derivable metrics with binding-health derivability semantics to remove contradictory reporting.
+### P0 — AI OS Foundation Schemas
 
-### P2 — Operator UI Shell Follow-up
+- **Status:** QUEUED
+- **Intent:** add machine-readable contracts for the minimum canonical AI OS objects.
+- **Scope:**
+  - `Principal.v1`;
+  - `SessionEnvelope.v1`;
+  - `WorkspaceState.v1`;
+  - `OperatorIntent.v1`;
+  - `TaskGraphIR.v1`;
+  - `ProcessRun.v1`;
+  - `CapabilityManifest.v1`;
+  - `SystemEvent.v1`;
+  - `Checkpoint.v1`;
+  - `ArtifactEnvelope.v1`;
+  - `DeliveryPack.v1`.
+- **Definition of done:** positive and negative fixtures, schema-index registration, stable semantic digests, explicit reason-code and `NOT_COMPUTABLE` semantics.
+
+### P0 — TaskGraphIR.v1 Compatibility Layer
+
+- **Status:** QUEUED
+- **Intent:** extend the current deterministic task representation into an executable process graph without breaking v0 consumers.
+- **Definition of done:**
+  - deterministic nodes and edges;
+  - capability, data, policy, budget, approval, checkpoint, retry, timeout, and rollback references;
+  - v0-to-v1 adapter;
+  - cycle and missing-reference rejection;
+  - stable topological ordering and semantic hash tests.
+
+### P0 — Capability Registry Foundation
+
+- **Status:** QUEUED
+- **Intent:** establish one public execution abstraction for runes, tools, scripts, adapters, models, connectors, and delegated operations.
+- **Initial adapters:**
+  - `model.infer.mock.v1`;
+  - `repo.inspect.local_read.v1`.
+- **Definition of done:**
+  - unregistered capability execution blocked;
+  - grants checked before invocation;
+  - side-effect class, timeout, retry, schemas, and receipts enforced;
+  - invocation receipts linked to session, workspace, process, task, and artifact IDs.
+
+### P0 — Process, Event, and Checkpoint Spine
+
+- **Status:** QUEUED
+- **Intent:** make runtime state reconstructable and resumable.
+- **Definition of done:**
+  - canonical process state machine;
+  - append-only system events;
+  - state reconstruction from events;
+  - idempotent checkpoint resume;
+  - cancellation and `NOT_COMPUTABLE` terminal paths;
+  - digest mismatch detection.
+
+### P0 — Canonical AI OS Vertical Slice
+
+- **Status:** BLOCKED_BY_PREVIOUS_P0
+- **Intent:** prove one complete lifecycle through a single kernel entrypoint.
+- **Required flow:**
+
+```text
+request
+→ session
+→ intent
+→ TaskGraphIR.v1
+→ policy and grants
+→ mock model capability
+→ read-only repository capability
+→ checkpoint
+→ artifact registration
+→ validation
+→ DeliveryPack.v1
+→ workspace/continuity commit
+→ operator projection
+```
+
+- **Definition of done:**
+  - one command or test executes the full path;
+  - all artifacts schema-valid;
+  - replay produces equivalent semantic digests;
+  - resume does not duplicate completed capability calls;
+  - no live model or external network required by the deterministic test lane;
+  - existing proof and governance tests do not regress.
+
+### P1 — Capability Convergence
+
+- **Status:** FUTURE
+- **Intent:** wrap high-value existing execution surfaces and redirect legacy entrypoints through the canonical capability layer.
+- **Definition of done:** new public functionality cannot bypass capability registration; compatibility shims are explicit; direct-call lint is enforced.
+
+### P1 — Persistent Workspace and Memory
+
+- **Status:** FUTURE
+- **Intent:** preserve governed operational context across sessions.
+- **Definition of done:** persistent workspace store, separated memory namespaces, provenance-backed writes, retention and supersession semantics, continuity cursor, import/export bundle.
+
+### P1 — Identity, Permissions, and Secret References
+
+- **Status:** FUTURE
+- **Intent:** move governance from subsystem-only boundaries to runtime principal and capability authorization.
+- **Definition of done:** principal roles, capability grants, delegated authority limits, opaque secret references, and approval records.
+
+### P1 — Scheduler and Agent Runtime
+
+- **Status:** FUTURE
+- **Intent:** support bounded long-running and delegated work.
+- **Definition of done:** dependency scheduling, concurrency limits, retries, timeouts, cancellation, budgets, approval gates, agent parent/child lineage, checkpoints, and termination receipts.
+
+### P2 — Unified Operator Console
+
 - **Status:** CONDITIONAL
-- **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.
-- **Definition of done:** explicit go/no-go decision and scoped UI shell task list with canonical-entrypoint signage preserved.
+- **Intent:** converge `webpanel`, `server`, `client`, and `shared` onto canonical AI OS projections after the vertical slice is complete.
+- **Definition of done:** workspace, process, task graph, capability, agent, approval, artifact, event, memory, provenance, and recovery views all trace to canonical records.
 
+### P2 — Plugin and Automation Ecosystem
 
-### P0 — Large-Run Deterministic Convergence Spine
-- **Status:** COMPLETE (2026-03-30)
-- **Intent:** scale proof/validator/policy/operator flow to large-run batches without losing deterministic artifact linkage.
-- **Definition of done:** large-run orchestration emits per-run + batch-level artifacts with explicit `run_id`, `rune_id`, `artifact_id`, `timestamp`, status, linkage pointers, and fail-closed `NOT_COMPUTABLE` handling when linkage is incomplete.
-- **Execution Steps (PLAN extension):**
-  1. **Batch run envelope audit**
-     - rune_id: `RUNE.DIFF`
-     - input contract: execution-validation + projection artifacts
-     - output contract: large-run coverage ledger (`out/ledger/large_run_coverage.jsonl`)
-     - determinism: sorted run-id traversal, stable hash ordering
-     - artifact/linkage: per-run evidence pointers + batch summary pointer
-  2. **Correlation-pointer density gate**
-     - rune_id: `RUNE.INGEST`
-     - input contract: validator correlation blocks
-     - output contract: pointer sufficiency report (`out/reports/large_run_pointer_sufficiency.json`)
-     - determinism: threshold policy from static config, no randomized sampling
-     - artifact/linkage: explicit unresolved reasons when any run lacks pointers
-  3. **Rune-aware operator index emission**
-     - rune_id: `RUNE.DIFF`
-     - input contract: validator `runeContext` + operator projection summaries
-     - output contract: rune/run matrix (`out/operator/rune_run_index.json`)
-     - determinism: canonical rune sort + run sort
-     - artifact/linkage: references validator artifact ids + projection artifact ids
-  4. **Promotion-policy batch barrier**
-     - rune_id: `RUNE.DIFF`
-     - input contract: readiness/policy artifacts for each run
-     - output contract: batch promotion barrier artifact (`out/policy/large_run_barrier.json`)
-     - determinism: fail-closed aggregate state computed from per-run policy states
-     - artifact/linkage: includes blocking run ids + policy artifact pointers
- - **Closure evidence (implemented):**
-   - `scripts/run_large_run_coverage_audit.py` → `out/reports/large_run_coverage_<batch_id>.json` + `out/ledger/large_run_coverage.jsonl`
-   - `scripts/run_large_run_pointer_sufficiency.py` → `out/reports/large_run_pointer_sufficiency_<batch_id>.json`
-   - `scripts/run_large_run_rune_run_index.py` → `out/operator/rune_run_index.json`
-   - `scripts/run_large_run_promotion_barrier.py` → `out/policy/large_run_barrier_<batch_id>.json`
-   - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
+- **Status:** FUTURE
+- **Intent:** make the AI OS extensible without weakening governance.
+- **Definition of done:** installable capability bundles, dependency and permission declarations, migration hooks, reversible installation, scheduled/conditional automation, and plugin trust tiers.
+
+## Existing Runtime Closure Work — Carryover
+
+The following work remains valid and should be integrated where it supports the AI OS vertical slice:
+
+### Validator Artifact Linkage Closure
+
+- Complete rune execution linkage into validator and ledger surfaces.
+- Preserve explicit unresolved reasons when linkage is incomplete.
+
+### Proof-Run Correlation Pointer Completion
+
+- Propagate correlation-pointer set semantics across execution artifacts.
+- Preserve `present`, `empty`, and `unresolved` states.
+
+### Rune-Aware Validator Surfacing
+
+- Surface rune identifiers and phase-aware outcomes in validator and operator summaries.
+
+### Execution Artifact Generation Integration
+
+- Route execution-producing paths through shared schema-aligned artifact envelopes.
+
+### Snapshot Lookup and Synthesis Readiness
+
+- Resolve blocker precedence for bound exact-match cases.
+- Broaden deterministic real-case validation.
+- Align derivable metrics with binding-health semantics.
+
+These items are supporting infrastructure, not a substitute for the canonical AI OS session, process, capability, event, workspace, and delivery lifecycle.
+
+## Phase Gates
+
+### Phase 0 Gate
+
+- repository map complete;
+- ownership ADR accepted;
+- no unresolved P0 ownership collision.
+
+### Phase 1 Gate
+
+- foundation schemas validated;
+- package skeleton import-safe;
+- dependency boundaries enforced.
+
+### Phase 2 Gate
+
+- vertical slice complete;
+- deterministic replay passes;
+- checkpoint resume passes;
+- capability and policy bypass tests pass;
+- operator projection reads canonical records only.
+
+### Expansion Gate
+
+Workspace persistence, real models, scheduler, agents, memory, and UI expansion may proceed only after the Phase 2 gate is satisfied.
+
+## Required Validation
+
+Use repository-native commands and record exact results:
+
+```bash
+pytest -q
+make dependency-check
+make developer-readiness
+make governance-lint
+make ts-canonical-check
+```
+
+Classify failures as:
+
+```text
+NEW_REGRESSION
+PRE_EXISTING_FAILURE
+ENVIRONMENT_BLOCKED
+NOT_COMPUTABLE
+```
+
+## Explicit Non-Goals Before Vertical-Slice Closure
+
+- unrestricted autonomous execution;
+- broad UI redesign;
+- distributed scheduling;
+- plugin marketplace;
+- self-modifying kernel behavior;
+- migration of every legacy script;
+- new symbolic subsystems not required by the first vertical slice.
 
 ## Completed
-- 2026-04-09 — Notion sync wave-state convergence pass: `build_notion_sync_artifact.py` now consumes `notion_next_steps` closure flags and emits `wave_5_completed` only when both gap metrics and ranked/listed next-step closures are satisfied; refreshed sync + next-step artifacts now agree on Wave-5 completion.
-- 2026-04-09 — Notion Wave-5 closure evidence pass: `run_notion_next_steps.py` now evaluates ranked Wave-5 tasks directly (`wave_5_task_status`, `remaining_wave5_task_ids`, `all_wave5_ranked_tasks_completed`) and reports all three ranked items complete with deterministic code-evidence checks, with Makefile entrypoints added for repeatable operator execution.
-- 2026-04-09 — Notion next-step artifact consistency pass: `run_notion_next_steps.py` now emits split task views (`repo_grounded_tasks`, `completed_repo_grounded_tasks`, `remaining_repo_grounded_tasks`) so closure state is non-contradictory when `all_listed_next_steps_completed=true`.
-- 2026-04-09 — Notion next-step closure pass: completed listed next-step gates by (1) removing `CacheOnlyAdapter` from public adapter exports, (2) unifying Decodo capability normalization across sourcing/resolver with fail-closed missing-capability handling, (3) preserving zero implementation-gap triage via sync metrics, and (4) extending `run_notion_next_steps.py` to emit explicit per-task completion states with `all_listed_next_steps_completed=true`.
-- 2026-04-09 — Notion next-step artifact pass: added `scripts/run_notion_next_steps.py` and emitted `docs/artifacts/notion_next_steps.json`, producing deterministic Wave-5 focus + ranked task extraction from `docs/notion_execution_plan_2026-03-27.md` and `docs/artifacts/notion_sync_status.json`.
-- 2026-04-09 — Governance validator pointer-contract pass: `.abraxas/scripts/validate_governance_record.py` now validates optional pointer-state fields (`correlation_pointer_state`, `correlation_pointer_unresolved_reasons`) with consistency rules (`present|empty|unresolved`), and proof/advisory emitters remain aligned via shared correlation-pointer helper imports.
-- 2026-04-09 — Large-batch correlation block convergence pass: extracted shared deterministic helper `scripts/correlation_pointer_block.py` and propagated normalized pointer-state/unresolved-reason emission into `run_proof`, `run_mircl_v1`, and `run_mbom_v1`, with expanded focused tests for all three execution paths plus helper-level contract checks.
-- 2026-04-09 — Proof-run pointer-state normalization pass: replaced synthetic `NOT_COMPUTABLE:<path>:artifact_missing` pseudo-pointers with explicit governance fields (`correlation_pointer_state`, `correlation_pointer_unresolved_reasons`) while keeping `correlation_pointers` path-only and ledger-anchor capable.
-- 2026-04-09 — Proof-run pointer semantics hardening pass: added runtime-ledger correlation pointers (`out/runtime_artifact_ledger.jsonl` + `#recordId=<id>` anchors), registration-receipt linkage, and explicit `NOT_COMPUTABLE:<path>:artifact_missing` fallback encoding in `scripts/run_proof.py` to keep linkage fail-closed when artifacts are absent.
-- 2026-04-09 — Proof-run correlation pointer propagation pass: `scripts/run_proof.py` now emits non-empty artifact-relative `correlation_pointers` for both release-manifest and audit governance records, linking runtime/validator/receipt surfaces and governance artifacts to satisfy explicit pointer set semantics.
-- 2026-04-09 — OSLv2 operator ergonomics pass: added Makefile entrypoints (`run-oracle-signal-layer-v2`, `run-oracle-signal-layer-v2-invariance`, `test-oracle-signal-layer-v2`) to keep runtime/invariance/validation execution deterministic and reusable from one command surface.
-- 2026-04-08 — Oracle Signal Layer v2 verticalization pass: split runtime into contract/runtime/advisory/stability/proof modules, enforced interpretation-only authority scope, added digest-triplet invariance runner, receipt writer, and focused oracle test suite with explicit NOT_COMPUTABLE advisory visibility.
-- 2026-04-08 — Oracle Signal Layer v2 subsystem drop: landed deterministic `OracleSignalInputEnvelope.v2 -> OracleSignalLayerOutput.v2` runtime spine with bounded MIRCL/trend advisory attachments, validator summary emission, digest-based invariance harness, schema contracts, execution script, and focused tests for authority/advisory boundary enforcement.
-- 2026-04-08 — Operator family naming-law signage pass: classified Operator Console as canonical entrypoint, Operator Mode as runtime state, and Operator UI as implementation shell across webpanel surfaces; added run-console build-artifact signage to prevent wrong-entrypoint drift.
-- *(append completed items here; do not delete historical record)*
-- 2026-03-30 — PR conflict-resolution merge pass: verified repository merge state is clean (`git status --porcelain -b` and conflict marker scan), then recorded explicit NOT_COMPUTABLE merge outcome because no additional local/remote PR refs are present to merge in this environment.
-- 2026-03-30 — Large-run runtime contract enforcement pass: added `scripts/large_run_contracts.py` and wired envelope validation into all large-run builders so invalid artifacts fail fast before write, with focused contract-unit tests.
-- 2026-03-30 — Large-run contract schema pass: added shared envelope schema `aal_core/schemas/large_run_execution_artifact.v1.json` and focused contract test coverage to ensure large-run artifacts emit required run-linked fields (`run_id`, `rune_id`, `artifact_id`, `timestamp`, `phase`, `status`, `inputs/outputs`, `provenance`, `correlation_pointers`).
-- 2026-03-30 — Large-run convergence operationalization pass: wired canonical `make large-run-convergence BATCH_ID=<id> [MIN_POINTERS=1]` target to execute deterministic bundle orchestration through `scripts/run_large_run_convergence.py`.
-- 2026-03-30 — Large-run convergence orchestration pass: added `scripts/run_large_run_convergence.py` to compose coverage, pointer sufficiency, rune-run indexing, and promotion barrier into deterministic `LargeRunConvergenceBundle.v1` outputs with fail-closed aggregate status (`SUCCESS|BLOCKED|NOT_COMPUTABLE`).
-- 2026-03-30 — Large-run convergence step-4 implementation pass: added `scripts/run_large_run_promotion_barrier.py` to emit deterministic `LargeRunPromotionBarrier.v1` batch artifacts that aggregate per-run promotion-policy decisions into fail-closed `SUCCESS|BLOCKED|NOT_COMPUTABLE` barrier states with blocking reason codes.
-- 2026-03-30 — Large-run convergence step-3 implementation pass: added `scripts/run_large_run_rune_run_index.py` to emit deterministic `RuneRunIndex.v1` artifacts mapping `rune_id -> run_id` rows with validator/projection status linkage for operator indexing surfaces.
-- 2026-03-30 — Large-run convergence step-2 implementation pass: added `scripts/run_large_run_pointer_sufficiency.py` to emit deterministic `LargeRunPointerSufficiency.v1` artifacts that classify per-run correlation pointer sufficiency with explicit threshold-based `SUFFICIENT|NOT_COMPUTABLE` states and reason codes.
-- 2026-03-30 — Large-run convergence step-1 implementation pass: added `scripts/run_large_run_coverage_audit.py` to emit deterministic `LargeRunCoverageAudit.v1` batch artifacts and run-linked ledger rows (`out/ledger/large_run_coverage.jsonl`) with explicit `COVERED|NOT_COMPUTABLE` states and reason codes.
-- 2026-03-30 — Validator traceability contract hardening pass: rune governance traceability checks now fail closed when `ExecutionValidationArtifact.v1` omits `runeContext.runeIds` or `runeContext.phases`, with focused tests covering missing and linked-complete states.
-- 2026-03-30 — Rune-context projection bridge pass: `abx.operator_projection` now surfaces validator `runeContext` into deterministic linkage summary fields (`rune_id_count`, `rune_ids`, `phase_count`, `phases`) so operator views can index rune-level execution context directly.
-- 2026-03-30 — Rune-aware validator surfacing pass: `abx.execution_validator` now extracts `rune_id` + `phase` from run-linked evidence and emits deterministic `runeContext` (`runeIds`, `phases`) in `ExecutionValidationArtifact.v1`, with focused type/validator coverage tests.
-- 2026-03-30 — Operator Surface v1 pass: added canonical operator view aggregation (`abx/operator_views.py`), webpanel run-console/compare/release/evidence routes, secondary operator APIs, shared TS view contracts, and focused operator-surface tests without forking core proof/readiness/policy semantics.
-- 2026-03-30 — Pre-feature stabilization/release pass: added `ReleaseReadinessReport.v1` surface (`scripts/run_release_readiness.py`, `docs/RELEASE_READINESS.md`, `make release-readiness`), introduced canonical TS sanity lane (`tsconfig.canonical.json`, `make ts-canonical-check`), and expanded federated transport/evidence semantics to `RemoteEvidenceManifest.v1` with bounded packet freshness/consistency aggregation propagated into readiness/policy/projection.
-- 2026-03-30 — Remaining-totality hardening pass: added federated transport/remote evidence spine v0 (`abx/federated_transport.py`), linked remote evidence verification into Tier 2.5/2.75 and Tier 3 policy provenance, expanded governance lint discovery to CLI/make heavy surfaces, and further contained shadow `run_promotion_pack` behind explicit override.
-- 2026-03-30 — Convergence hardening consolidation pass: added consolidated governance lint (`scripts/run_governance_lint.py`) with anti-regrowth checks for canonical command surfacing, tier language coherence, shadow/deprecate labeling, heavy-path classification coverage, and TS projection token parity; wired `make governance-lint` and added guardrail tests.
-- 2026-03-30 — Shadow path stabilization/retirement triage pass: stabilized `tools/acceptance/run_acceptance_suite.py` for non-repo cwd invocation, expanded shadow triage taxonomy (`STABILIZE_SHADOW`, `REDIRECT_TO_CANONICAL`, `DEPRECATE_OR_RETIRE`) in subsystem inventory, and marked seal diagnostics as deprecate/archive candidates for promotion workflows.
-- 2026-03-30 — Historical Tier 3 path audit + containment pass: classified promotion/seal/attestation-adjacent entrypoints in docs, marked non-canonical heavy paths as shadow diagnostics, and gated `abx.cli acceptance` behind explicit override (`ABX_ALLOW_SHADOW_ACCEPTANCE=1`) with canonical guidance to `scripts/run_execution_attestation.py`.
-- 2026-03-30 — Tier 3 execution gate integration pass: `scripts/run_execution_attestation.py` now evaluates Tier 2.75 policy first, refuses heavy execution for `BLOCKED`/`NOT_COMPUTABLE`, and embeds policy provenance (`decision_state`, reason codes, blockers, waiver/federation fields, policy artifact path) in attestation artifacts.
-- 2026-03-30 — Promotion policy gate pass: added deterministic Tier 2.75 policy evaluator (`abx/promotion_policy.py`), CLI + artifact emission (`abx.cli promotion-policy`, `out/policy/promotion-policy-<run_id>.json`), projection policy fields, and focused allow/block/waive/not-computable tests/docs clarifying readiness vs permission boundary.
-- 2026-03-30 — Federated evidence + Tier 3 hardening pass: added explicit federated evidence contract (`abx/federated_evidence.py`), extended promotion readiness with local vs federated states, and surfaced Tier 2/Tier 2.5 boundaries in operator projection and docs without simulating remote execution.
-- 2026-03-30 — Operator projection convergence pass: introduced `OperatorProjectionSummary.v1` derivation (`abx/operator_projection.py`), wired webpanel projection JSON route (`/runs/{run_id}/projection.json`), and aligned TS secondary API semantics (`/api/operator/projection/:runId`, `shared/operatorProjection.ts`) with focused anti-drift/tests.
-- 2026-03-30 — Promotion bridge pass: added deterministic promotion-readiness contract + CLI (`abx.cli promotion-check`), bridge artifact emission (`out/promotion`), closure-tier docs split, and canonical onboarding drift guard tests.
-- 2026-03-30 — Canonical convergence pass: added `abx.cli proof-run` + `abx/proof_closure.py` to enforce one deterministic proof spine (emit→ledger→validate→operator projection→attest), and compressed operator/runtime/docs truth surfaces via `README.md`, `docs/CANONICAL_RUNTIME.md`, `docs/VALIDATION_AND_ATTESTATION.md`, and `docs/SUBSYSTEM_INVENTORY.md`.
-- 2026-03-30 — Snapshot lookup repair applied in `webpanel/operator_console.py`: `_load_latest_pipeline_binding_snapshot` now prefers selected `run_id` and normalizes persisted `pipeline_envelope` artifacts into `pipeline_execution_envelope` for linkage consumers.
-- 2026-03-30 — Regression coverage extended in `tests/test_operator_console_v15.py` for run-aware snapshot preference, envelope-key normalization, and exact-match bindable synthesis corridor behavior.
-- 2026-03-30 — Post-repair final validation rerun emitted at `artifacts_seal/abraxas_validation/20260329T191714Z.final_validation_post_snapshot_lookup_repair.json` (+ `.md`) with explicit case deviations, cross-case metrics, and `READY_FOR_REFINEMENT` verdict.
-- 2026-03-30 — Plan continuation pass: translated `READY_FOR_REFINEMENT` outcome into explicit snapshot/synthesis refinement execution slices under active queue item `P1 — Snapshot Lookup + Synthesis Readiness Refinement`.
-- 2026-03-30 — Refinement slice progress: `binding_restoration` now explicitly surfaces `final_state_derivable` (aligned with binding-envelope health semantics), with focused regression coverage in `tests/test_operator_console_v15.py`.
-- 2026-03-29 — Governance surface verification run completed: confirmed required enforcement files (`/AGENTS.md`, `/PLANS.md`, `/aal_core/runes/catalog.v0.yaml`, `/aal_core/schemas/rune_execution_artifact.v1.json`, `/aal_core/runes/executor.py`) exist and are repository-visible for deterministic plan-gated execution.
-- 2026-03-28 — ABX-Rune compliance probe path added (`aal_core/runes/compliance_probe.py`) with deterministic `RUNE.INGEST` artifact emission to `artifacts_seal/runs/compliance_probe/<run_id>.artifact.json`.
-- 2026-03-28 — Correlation-linkage compliance probe added via `--linkage-mode` (`absent|present|not_computable`) with deterministic local test linkage provenance and explicit structural handling for empty/non-computable linkage.
-- 2026-03-28 — Real linkage resolution probe pass added via `--linkage-mode resolve` in `aal_core/runes/compliance_probe.py`; deterministic repo-visible scan over `artifacts_seal` and `out/ledger` now attempts evidence-backed population of `ledger_record_ids`, `ledger_artifact_ids`, and `correlation_pointers` with explicit unresolved handling when no match is found.
-- 2026-03-28 — Validator-surfacing closure bridge probe added via `--validator-surface-probe` in `aal_core/runes/compliance_probe.py`; emits validator-facing bridge artifact with explicit surface state (`SURFACED_TO_VALIDATOR_OUTPUT`, `UNSURFACED_STRUCTURALLY_AVAILABLE`, `NOT_COMPUTABLE`) while preserving run/artifact/rune/status/linkage fields from the compliance artifact.
-- 2026-03-28 — Closure-grade readiness audit pass added via `scripts/run_closure_readiness_audit.py`; deterministic artifact classification now maps proof-chain status across visibility, linkage preservation, validator surfacing, correlation sufficiency, continuity, and promotion-evidence sufficiency to finite remediation hints.
-- 2026-03-28 — Closure remediation ordering pass added via `scripts/run_closure_remediation_order.py`; consumes closure readiness audit artifact and emits deterministic blocker/prerequisite/downstream/cleanup patch queue with dependency notes and a single recommended first patch.
-- 2026-03-28 — Executed `PATCH.CLOSURE.001` from closure remediation order: compliance probe now writes deterministic run-linked ledger rows to `out/ledger/compliance_probe_linkage.jsonl`, enabling validator `correlation.ledgerIds` continuity for probe runs without introducing additional queued patches.
-- 2026-03-28 — Executed `PATCH.CLOSURE.002` from closure remediation order: resolve-mode compliance artifacts now carry deterministic non-empty `correlation_pointers` tied to probe-ledger continuity records, improving pointer sufficiency without implementing downstream patches.
-- 2026-03-28 — Executed `PATCH.CLOSURE.003` from closure remediation order: `scripts/run_closure_readiness_audit.py` now applies an explicit promotion-readiness gate requiring `continuity` + `pointer_sufficiency` evidence (with supporting visibility/linkage/surfacing checks), yielding deterministic `SATISFIED|PARTIAL|BLOCKED|MISSING` classification without implementing downstream patches.
-- 2026-03-28 — Closure scope-classification pass added via `scripts/run_closure_scope_classification.py`; deterministic artifact now separates probe-path confirmation from generalized non-probe proof surfaces and explicitly enumerates uncovered or blocked scope surfaces.
-- 2026-03-28 — Generalized closure coverage pass added via `aal_core/runes/generalized_coverage_probe.py`; emits one deterministic non-probe run with run/artifact linkage to ledger + validator outputs so generalized scope can be measured without widening subsystem scope.
-- 2026-03-28 — Closure stabilization attestation pass added via `scripts/run_closure_generalized_attestation.py`; emits deterministic milestone checkpoint `closure_generalized_attestation.v1.json` with evidence hashes, confirming run ids, satisfied closure conditions, and non-blocking follow-up separation.
-- 2026-03-28 — Closure regression guard pass added via `tests/test_closure_generalized_regression_guard.py`; deterministic checks now protect generalized scope confirmation, attestation generation, and non-probe validator linkage structure for the attested closure milestone.
-- 2026-03-28 — Closure milestone finalization pass: CI now executes `tests/test_closure_generalized_regression_guard.py` via `.github/workflows/abx_familiar_canary.yml`, and canonical note artifact recorded at `docs/artifacts/closure_generalized_milestone_note.v1.json`.
+
+- 2026-07-30 — Defined canonical AI OS contract, phased roadmap, JCode implementation plan, README posture, documentation routing, and active execution queue on `agent/ai-os-unification-docs`.
+- Historical completed runtime, governance, validator, proof, correlation, large-run, Notion-sync, Oracle Signal Layer, and operator-surface work remains preserved in git history and repository artifacts.
