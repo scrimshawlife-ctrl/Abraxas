@@ -475,6 +475,90 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.chrono_scan:apply_chrono_scan",
       "definition_path": "abraxas/runes/definitions/rune_chrono_scan.json"
+    },
+    {
+      "id": "RUNE.CHRONO_ALIGN",
+      "short_name": "CHA",
+      "name": "CHRONO Align",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_align:apply_chrono_align",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_align.json"
+    },
+    {
+      "id": "RUNE.CHRONO_OVERLAY",
+      "short_name": "CHO",
+      "name": "CHRONO Overlay",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_overlay:apply_chrono_overlay",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_overlay.json"
+    },
+    {
+      "id": "RUNE.CHRONO_PACKET",
+      "short_name": "CHP",
+      "name": "CHRONO Packet",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_packet:apply_chrono_packet",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_packet.json"
+    },
+    {
+      "id": "RUNE.TRUST",
+      "short_name": "TRU",
+      "name": "Trust Dynamics",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.trust:apply_trust",
+      "definition_path": "abraxas/runes/definitions/rune_trust.json"
+    },
+    {
+      "id": "RUNE.MEMETIC",
+      "short_name": "MEM",
+      "name": "Memetic Core",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.memetic:apply_memetic",
+      "definition_path": "abraxas/runes/definitions/rune_memetic.json"
+    },
+    {
+      "id": "RUNE.CALIBRATION",
+      "short_name": "CAL",
+      "name": "Long-Horizon Calibration",
+      "layer": "Validation",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.calibration:apply_calibration",
+      "definition_path": "abraxas/runes/definitions/rune_calibration.json"
+    },
+    {
+      "id": "RUNE.ONT_EVO",
+      "short_name": "ONT",
+      "name": "Ontology Evolution",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.ont_evo:apply_ont_evo",
+      "definition_path": "abraxas/runes/definitions/rune_ont_evo.json"
     }
   ],
   "capabilities": [

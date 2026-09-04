@@ -1,0 +1,80 @@
+{
+  "id": "RUNE.CHRONO_OVERLAY",
+  "name": "CHRONO Overlay",
+  "short_name": "CHO",
+  "layer": "Core",
+  "motto": "Annotate symbols. Do not contaminate evidence.",
+  "function": "Attaches symbolic timing overlays as speculative annotations without contaminating observed SCAN/ALIGN evidence or influencing Forecast.",
+  "inputs": [
+    "symbolic_inputs",
+    "operator_notes",
+    "temporal_context"
+  ],
+  "outputs": [
+    "speculative",
+    "provenance"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "No Forecast weighting or mutation",
+    "No proof substitution",
+    "No inferred causality",
+    "No truth-state escalation",
+    "Speculative annotations stay fenced in speculative",
+    "Must not write into observed or inferred SCAN/ALIGN fields",
+    "Weak symbolic input yields empty arrays (no improvisation)",
+    "Deterministic: identical symbolic_inputs + operator_notes + temporal_context yield identical speculative annotations",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_symbolic_inputs",
+    "post_compute: attach_speculative_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.CHRONO_OVERLAY CHO v0.1.0",
+    "CHRONO family golden tests A/B/D"
+  ],
+  "canonical_statement": "RUNE.CHRONO_OVERLAY (CHO) emits speculative symbolic_time_markers and ritual_timing_notes from explicit symbolic inputs and operator notes. It does not invent markers, copy speculative content into observed or inferred SCAN/ALIGN metrics, assert causality, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "EXPLAIN",
+    "influence_policy": "NONE",
+    "acronym": "CHO",
+    "operator_path": "abraxas.runes.operators.chrono_overlay:apply_chrono_overlay",
+    "declared_dependencies": [
+      "RUNE.ERS"
+    ],
+    "dependencies": [],
+    "determinism_rule": "Given identical symbolic_inputs + identical operator_notes + identical temporal_context, emitted speculative annotations must be identical.",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp",
+      "computation_path"
+    ],
+    "failure_modes": [
+      "symbolic_input_too_weak",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "symbolic_inputs", "type": "string[]", "required": false},
+      {"name": "operator_notes", "type": "string[]", "required": false},
+      {"name": "temporal_context", "type": "Record<string, unknown>", "required": false}
+    ],
+    "outputs": [
+      {"name": "speculative", "type": "{ symbolic_time_markers: string[]; ritual_timing_notes: string[] }"},
+      {"name": "provenance", "type": "{ computation_path: string[]; confidence: number | null }"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "speculative_isolation": true
+  }
+}

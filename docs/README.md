@@ -6,6 +6,8 @@ Navigation map for canonical governance docs, architecture specs, operator workf
 
 ## Start Here
 
+- [SIBLING_REPOS.md](SIBLING_REPOS.md) — doctrine sibling (`Abraxas-v2.0`) vs this runtime/proof repo.
+- [README_HEADING_MAP.md](README_HEADING_MAP.md) — how to read `v2.0.1` / `v2.0.5` headings as local modules.
 - [../README.md](../README.md) — front door with quickstart and maturity matrix.
 - [CANONICAL_RUNTIME.md](CANONICAL_RUNTIME.md) — canonical runtime and proof spine.
 - [VALIDATION_AND_ATTESTATION.md](VALIDATION_AND_ATTESTATION.md) — validator and attestation boundaries.

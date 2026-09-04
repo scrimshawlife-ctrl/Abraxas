@@ -1,0 +1,90 @@
+{
+  "id": "RUNE.CALIBRATION",
+  "name": "Long-Horizon Calibration",
+  "short_name": "CAL",
+  "layer": "Validation",
+  "motto": "Name the stubs. Invent no incidents.",
+  "function": "Shadow typed stub for long-horizon validation / calibration. Accepts forecastLifecycles, forecastScores, and horizonSpec. Emits CalibrationReport / PerformanceDrift / HorizonMetrics or nulls plus NOT_COMPUTABLE. Placeholder types stay NOT_COMPUTABLE. Does not implement FORECAST_SCORE, activate live Forecast scoring, invent calibration incidents, or mutate Forecast weights.",
+  "inputs": [
+    "forecastLifecycles",
+    "forecastScores",
+    "horizonSpec"
+  ],
+  "outputs": [
+    "calibrationReport",
+    "performanceDrift",
+    "horizonMetrics"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "Code-bind override of Drift stub ACTIVE/BOUNDED",
+    "Plain id RUNE.CALIBRATION only",
+    "Category VALIDATE",
+    "Placeholder types ForecastLifecycle, ForecastScore, HorizonSpec, CalibrationReport, PerformanceDrift, HorizonMetrics stay NOT_COMPUTABLE",
+    "No live Forecast scoring activation",
+    "No invented calibration incidents",
+    "No Forecast mutation or weighting",
+    "Do not implement RUNE.FORECAST_SCORE",
+    "Declared deps FORECAST_SCORE, CONTINUITY, ERS are unbound",
+    "Weak or missing inputs yield nulls plus NOT_COMPUTABLE / metric_not_computable / missing_resolution_data / horizon_mismatch",
+    "Deterministic: metrics recomputable from emitted artifacts only; same artifacts → same metrics",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_calibration_stub_inputs",
+    "post_compute: attach_stub_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.CALIBRATION CAL v0.1.0",
+    "FORGE Drift brief #7 typed stub",
+    "CALIBRATION goldens A/B"
+  ],
+  "canonical_statement": "RUNE.CALIBRATION (CAL) is a Shadow typed stub. It accepts forecastLifecycles, forecastScores, and horizonSpec, emits null-safe CalibrationReportStub / PerformanceDriftStub / HorizonMetricsStub or nulls with NOT_COMPUTABLE / metric_not_computable / missing_resolution_data / horizon_mismatch, and does not activate live Forecast scoring, invent calibration incidents, implement FORECAST_SCORE, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "VALIDATE",
+    "influence_policy": "NONE",
+    "acronym": "CAL",
+    "operator_path": "abraxas.runes.operators.calibration:apply_calibration",
+    "declared_dependencies": [
+      "RUNE.FORECAST_SCORE",
+      "RUNE.CONTINUITY",
+      "RUNE.ERS"
+    ],
+    "dependencies": [],
+    "determinism_rule": "metrics must be recomputable from emitted artifacts only; same artifacts → same metrics",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp"
+    ],
+    "failure_modes": [
+      "missing_resolution_data",
+      "metric_not_computable",
+      "horizon_mismatch"
+    ],
+    "inputs": [
+      {"name": "forecastLifecycles", "type": "ForecastLifecycleStub[]", "required": true},
+      {"name": "forecastScores", "type": "ForecastScoreStub[]", "required": true},
+      {"name": "horizonSpec", "type": "HorizonSpecStub", "required": true}
+    ],
+    "outputs": [
+      {"name": "calibrationReport", "type": "CalibrationReportStub"},
+      {"name": "performanceDrift", "type": "PerformanceDriftStub"},
+      {"name": "horizonMetrics", "type": "HorizonMetricsStub"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "typed_stub": true,
+    "no_live_forecast_scoring": true,
+    "no_forecast_score_implementation": true
+  }
+}

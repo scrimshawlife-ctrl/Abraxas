@@ -1,0 +1,42 @@
+{
+  "subsystem_id": "rune_chrono_align_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "chrono_align_golden_a_determinism",
+    "chrono_align_golden_b_null_discipline"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "fabricated_window",
+    "lane_claimed_active"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "chrono_align_golden_a_determinism",
+    "chrono_align_golden_b_null_discipline"
+  ],
+  "notes": [
+    "RUNE.CHRONO_ALIGN Shadow bind only. Not Canary. Not Canon-Active.",
+    "influence_policy remains NONE. Inferred windows are bounded; no outcome certainty.",
+    "Consumes RUNE.CHRONO_SCAN observed metrics only. RUNE.ERS stays an unbound declared dependency (expected lag)."
+  ]
+}
