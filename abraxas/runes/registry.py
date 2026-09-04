@@ -41,7 +41,12 @@ def load_registry(registry_path: str | Path | None = None) -> list[RuneBinding]:
         definition = RuneDefinition(**json.loads(definition_path.read_text()))
         capability = f"rune:{definition.short_name.lower()}"
         operator_module = definition.short_name.lower()
-        operator_path = f"abraxas.runes.operators.{operator_module}:apply_{operator_module}"
+        metadata = definition.metadata if isinstance(definition.metadata, dict) else {}
+        operator_path = (
+            entry.get("operator_path")
+            or metadata.get("operator_path")
+            or f"abraxas.runes.operators.{operator_module}:apply_{operator_module}"
+        )
         bindings.append(
             RuneBinding(
                 rune_id=definition.id,
@@ -52,8 +57,8 @@ def load_registry(registry_path: str | Path | None = None) -> list[RuneBinding]:
                 inputs=definition.inputs,
                 outputs=definition.outputs,
                 definition_path=str(entry["definition_path"]),
-                sigil_path=str(entry["sigil_path"]),
-                operator_path=operator_path,
+                sigil_path=str(entry.get("sigil_path") or ""),
+                operator_path=str(operator_path),
             )
         )
 

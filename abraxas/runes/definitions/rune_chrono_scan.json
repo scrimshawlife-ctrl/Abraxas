@@ -1,0 +1,84 @@
+{
+  "id": "RUNE.CHRONO_SCAN",
+  "name": "CHRONO Scan",
+  "short_name": "CHS",
+  "layer": "Core",
+  "motto": "Observe timing structure. Invent nothing.",
+  "function": "Detects observed timing structure (recurrence, cadence, clustering) from TemporalEvent streams without symbolic interpretation or Forecast influence.",
+  "inputs": [
+    "source_family",
+    "source_ids",
+    "events",
+    "time_field",
+    "window_config"
+  ],
+  "outputs": [
+    "observed",
+    "provenance"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "No symbolic interpretation",
+    "No execution recommendation",
+    "No causal assertion",
+    "No Forecast weighting or mutation",
+    "Weak or insufficient signal yields nulls plus NOT_COMPUTABLE",
+    "Deterministic: identical ordered events + time_field + window_config yield identical outputs",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_temporal_events",
+    "post_compute: attach_observed_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.CHRONO_SCAN CHS v0.1.0",
+    "CHRONO family golden tests A/B"
+  ],
+  "canonical_statement": "RUNE.CHRONO_SCAN (CHS) observes recurrence, cadence, and clustering from TemporalEvent streams and emits null-safe metrics with NOT_COMPUTABLE flags when signal is weak. It does not interpret symbols, recommend execution, assert causality, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "DETECT",
+    "influence_policy": "NONE",
+    "acronym": "CHS",
+    "operator_path": "abraxas.runes.operators.chrono_scan:apply_chrono_scan",
+    "declared_dependencies": [
+      "RUNE.ERS"
+    ],
+    "dependencies": [],
+    "determinism_rule": "Given identical ordered events + identical time_field + identical window_config, outputs must be identical. No randomness.",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp",
+      "computation_path",
+      "source_family_trace"
+    ],
+    "failure_modes": [
+      "timestamps_missing",
+      "event_density_too_weak",
+      "window_config_invalid",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "source_family", "type": "string[]", "required": true},
+      {"name": "source_ids", "type": "string[]", "required": false},
+      {"name": "events", "type": "TemporalEvent[]", "required": true},
+      {"name": "time_field", "type": "string | null", "required": false},
+      {"name": "window_config", "type": "{ lookback_span: string | null; bucket_size: string | null }", "required": false}
+    ],
+    "outputs": [
+      {"name": "observed", "type": "{ cadence_interval: number | null; recurrence_strength: number | null; window_density: number | null; timing_volatility: number | null; cadence_stability: number | null; recurrence_pressure: number | null; not_computable_flags?: string[] }"},
+      {"name": "provenance", "type": "{ computation_path: string[]; source_family_trace?: string[]; source_ids?: string[]; confidence: number | null }"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true
+  }
+}

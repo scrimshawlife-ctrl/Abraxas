@@ -5,6 +5,7 @@
     "mbom_v1",
     "mircl_v1",
     "forecast_portfolio_simulation_v0_1",
-    "gap_closure_v1"
+    "gap_closure_v1",
+    "rune_chrono_scan_v0"
   ]
 }
