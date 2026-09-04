@@ -4,7 +4,7 @@ Fail-closed. This is not blanket merge automation.
 
 ## What it does
 
-Workflow `.github/workflows/pr-automerge-docs.yml` enables GitHub **squash auto-merge** when all of the following hold:
+Workflow `.github/workflows/pr-automerge-docs.yml` enables GitHub **squash auto-merge** when all of the following hold. The job does not check out the repo; `gh` is pinned with `GH_REPO` / `--repo` so a missing `.git` directory cannot fail the skip path.
 
 - PR targets `main`
 - PR is not a draft and is not from a fork

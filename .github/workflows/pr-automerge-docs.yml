@@ -19,6 +19,7 @@ jobs:
       - name: Evaluate automerge gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           BASE: ${{ github.event.pull_request.base.ref }}
         run: |
@@ -27,7 +28,8 @@ jobs:
             echo "skip: base is $BASE not main"
             exit 0
           fi
-          labels=$(gh pr view "$PR" --json labels --jq '[.labels[].name] | join(",")')
+          # No checkout: gh must not infer the repo from .git.
+          labels=$(gh pr view "$PR" --repo "$GH_REPO" --json labels --jq '[.labels[].name] | join(",")')
           echo "labels=$labels"
           case ",$labels," in
             *,docs,*) ;;
@@ -37,7 +39,7 @@ jobs:
             *,automerge,*) ;;
             *) echo "skip: missing label automerge"; exit 0 ;;
           esac
-          files=$(gh pr diff "$PR" --name-only)
+          files=$(gh pr diff "$PR" --repo "$GH_REPO" --name-only)
           echo "$files"
           blocked='^(\.abraxas/|abx/|abraxas/|core/|contracts/|scripts/|tests/|\.github/|aal_core/|webpanel/|server/|client/|shared/|schemas/)'
           if echo "$files" | grep -Eq "$blocked"; then
@@ -55,5 +57,5 @@ jobs:
           done <<EOF
           $files
           EOF
-          gh pr merge "$PR" --squash --auto --delete-branch
+          gh pr merge "$PR" --repo "$GH_REPO" --squash --auto --delete-branch
           echo "automerge enabled (squash) for #$PR"
