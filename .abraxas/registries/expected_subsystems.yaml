@@ -7,6 +7,7 @@
     "forecast_portfolio_simulation_v0_1",
     "gap_closure_v1",
     "rune_chrono_scan_v0",
-    "rune_chrono_align_v0"
+    "rune_chrono_align_v0",
+    "rune_chrono_overlay_v0"
   ]
 }
