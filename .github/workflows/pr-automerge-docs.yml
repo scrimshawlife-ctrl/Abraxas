@@ -1,0 +1,59 @@
+name: pr-automerge-docs
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  gate-and-enable:
+    if: >
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate automerge gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$BASE" != "main" ]; then
+            echo "skip: base is $BASE not main"
+            exit 0
+          fi
+          labels=$(gh pr view "$PR" --json labels --jq '[.labels[].name] | join(",")')
+          echo "labels=$labels"
+          case ",$labels," in
+            *,docs,*) ;;
+            *) echo "skip: missing label docs"; exit 0 ;;
+          esac
+          case ",$labels," in
+            *,automerge,*) ;;
+            *) echo "skip: missing label automerge"; exit 0 ;;
+          esac
+          files=$(gh pr diff "$PR" --name-only)
+          echo "$files"
+          blocked='^(\.abraxas/|abx/|abraxas/|core/|contracts/|scripts/|tests/|\.github/|aal_core/|webpanel/|server/|client/|shared/|schemas/)'
+          if echo "$files" | grep -Eq "$blocked"; then
+            echo "blocked: path outside docs allowlist"
+            echo "$files" | grep -E "$blocked" || true
+            exit 0
+          fi
+          allowed='^(docs/|README\.md|CHANGELOG\.md|LICENSE|MEMORIES\.md|PLANS\.md|STATUS\.md|QUICKSTART\.md)'
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if ! echo "$f" | grep -Eq "$allowed"; then
+              echo "blocked: $f not on allowlist"
+              exit 0
+            fi
+          done <<EOF
+          $files
+          EOF
+          gh pr merge "$PR" --squash --auto --delete-branch
+          echo "automerge enabled (squash) for #$PR"
