@@ -1,0 +1,48 @@
+{
+  "subsystem_id": "rune_calibration_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "calibration_golden_a_determinism",
+    "calibration_golden_b_null_discipline"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "typed_stub_only",
+    "no_live_forecast_scoring"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "invented_calibration_incident",
+    "live_forecast_scoring_activation",
+    "lane_claimed_active",
+    "forecast_score_implemented_or_wired"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "calibration_golden_a_determinism",
+    "calibration_golden_b_null_discipline"
+  ],
+  "notes": [
+    "RUNE.CALIBRATION Shadow typed stub only. Not Canary. Not Canon-Active. No live Forecast scoring.",
+    "Code-bind override: lane=SHADOW and influence_policy=NONE (ignore Drift stub ACTIVE/BOUNDED).",
+    "Placeholder types stay NOT_COMPUTABLE. Category VALIDATE.",
+    "FORECAST_SCORE, CONTINUITY, ERS stay unbound declared dependencies (expected lag; do not implement FORECAST_SCORE).",
+    "No calibration-incident invent. No Forecast mutation or weighting. No ONT_EVO. No mass Index mint."
+  ]
+}
