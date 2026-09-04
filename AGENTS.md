@@ -78,3 +78,7 @@ Accelerate delivery by enforcing proof-addressable structure early and failing c
 
 ## Operator Output Style
 Return: changed files, validation commands/results, unresolved risks/placeholders, and next manual steps.
+
+## Escalation
+- Broken tests are defects. Report or fix the defect; do not weaken, skip, or rewrite assertions to obtain a passing result.
+- Reward-hacking is forbidden: no silent skips, no fixture forgery, no green-at-any-cost edits.
