@@ -511,6 +511,18 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.chrono_packet:apply_chrono_packet",
       "definition_path": "abraxas/runes/definitions/rune_chrono_packet.json"
+    },
+    {
+      "id": "RUNE.TRUST",
+      "short_name": "TRU",
+      "name": "Trust Dynamics",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.trust:apply_trust",
+      "definition_path": "abraxas/runes/definitions/rune_trust.json"
     }
   ],
   "capabilities": [
