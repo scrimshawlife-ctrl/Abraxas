@@ -463,6 +463,18 @@
       "introduced_version": "1.7.4",
       "sigil_path": "abraxas/runes/sigils/ϟ₄₆_ACTIVE_POINTER_ATOMIC.svg",
       "definition_path": "abraxas/runes/definitions/rune_46_active_pointer_atomic.json"
+    },
+    {
+      "id": "RUNE.CHRONO_SCAN",
+      "short_name": "CHS",
+      "name": "CHRONO Scan",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_scan:apply_chrono_scan",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_scan.json"
     }
   ],
   "capabilities": [
