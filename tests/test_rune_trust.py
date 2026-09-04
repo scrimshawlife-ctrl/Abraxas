@@ -22,13 +22,14 @@ _PRIOR = {"id": "state-0", "epoch": "2026-01-01T00:00:00Z"}
 _OUTCOME_LINKS = [{"id": "ol-1", "forecast_id": None}]
 
 
-def _assess(events=_ORDERED_EVENTS, prior=_PRIOR, **kwargs):
-    return assess(
-        events,
-        prior,
-        outcome_links=kwargs.pop("outcome_links", _OUTCOME_LINKS),
-        **kwargs,
-    )
+def _assess(events=None, prior=None, **kwargs):
+    if events is None:
+        events = list(_ORDERED_EVENTS)
+    if prior is None:
+        prior = dict(_PRIOR)
+    if "outcome_links" not in kwargs:
+        kwargs["outcome_links"] = list(_OUTCOME_LINKS)
+    return assess(events, prior, **kwargs)
 
 
 def test_golden_a_determinism_identical_payloads() -> None:
@@ -168,8 +169,18 @@ def test_apply_adapter_matches_assess() -> None:
         seed=3,
         run_id="TRUST-ADAPTER",
     )
-    assert dumped == typed.model_dump()
+    assert dumped["trustAssessment"] == typed.trust_assessment.model_dump()
+    assert dumped["trustState"] == typed.trust_state.model_dump()
+    assert dumped["trustUpdate"] == typed.trust_update.model_dump()
+    assert "trust_assessment" not in dumped
+    assert "trust_state" not in dumped
+    assert "trust_update" not in dumped
     assert dumped["lane"] == "SHADOW"
     assert dumped["influence_policy"] == "NONE"
-    assert dumped["trust_assessment"]["score"] is None
+    assert dumped["trustAssessment"]["score"] is None
+    assert [item.name for item in get_abx_rune_contract("RUNE.TRUST").outputs] == [
+        "trustAssessment",
+        "trustState",
+        "trustUpdate",
+    ]
     assert isinstance(typed, TrustResult)
