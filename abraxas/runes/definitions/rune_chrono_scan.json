@@ -24,6 +24,8 @@
     "No causal assertion",
     "No Forecast weighting or mutation",
     "Weak or insufficient signal yields nulls plus NOT_COMPUTABLE",
+    "Required source_family omitted, empty, or malformed yields nulls plus NOT_COMPUTABLE",
+    "Any event lacking a parseable timestamp yields timestamps_missing plus NOT_COMPUTABLE",
     "Deterministic: identical ordered events + time_field + window_config yield identical outputs",
     "No wall-clock reads"
   ],
@@ -58,12 +60,14 @@
       "catalog_hash",
       "timestamp",
       "computation_path",
-      "source_family_trace"
+      "source_family_trace",
+      "source_ids"
     ],
     "failure_modes": [
       "timestamps_missing",
       "event_density_too_weak",
       "window_config_invalid",
+      "source_family_missing",
       "not_computable"
     ],
     "inputs": [

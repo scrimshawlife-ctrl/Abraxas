@@ -37,6 +37,7 @@
   "notes": [
     "RUNE.CHRONO_SCAN Shadow bind only. Not Canary. Not Canon-Active.",
     "influence_policy remains NONE. Outputs are observed metrics plus NOT_COMPUTABLE flags.",
-    "RUNE.ERS stays an unbound declared dependency (expected lag)."
+    "RUNE.ERS stays an unbound declared dependency (expected lag).",
+    "Fail-closed: missing source_family, mixed missing timestamps, and non-finite epochs stay NOT_COMPUTABLE."
   ]
 }
