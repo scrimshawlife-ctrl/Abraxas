@@ -475,6 +475,18 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.chrono_scan:apply_chrono_scan",
       "definition_path": "abraxas/runes/definitions/rune_chrono_scan.json"
+    },
+    {
+      "id": "RUNE.CHRONO_ALIGN",
+      "short_name": "CHA",
+      "name": "CHRONO Align",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_align:apply_chrono_align",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_align.json"
     }
   ],
   "capabilities": [
