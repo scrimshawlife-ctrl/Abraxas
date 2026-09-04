@@ -535,6 +535,18 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.memetic:apply_memetic",
       "definition_path": "abraxas/runes/definitions/rune_memetic.json"
+    },
+    {
+      "id": "RUNE.CALIBRATION",
+      "short_name": "CAL",
+      "name": "Long-Horizon Calibration",
+      "layer": "Validation",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.calibration:apply_calibration",
+      "definition_path": "abraxas/runes/definitions/rune_calibration.json"
     }
   ],
   "capabilities": [
