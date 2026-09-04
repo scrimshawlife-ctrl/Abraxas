@@ -22,13 +22,14 @@ _PRIOR = {"id": "state-0", "epoch": "2026-01-01T00:00:00Z"}
 _OUTCOME_LINKS = [{"id": "ol-1", "forecast_id": None}]
 
 
-def _assess(events=_ORDERED_EVENTS, prior=_PRIOR, **kwargs):
-    return assess(
-        events,
-        prior,
-        outcome_links=kwargs.pop("outcome_links", _OUTCOME_LINKS),
-        **kwargs,
-    )
+def _assess(events=None, prior=None, **kwargs):
+    if events is None:
+        events = list(_ORDERED_EVENTS)
+    if prior is None:
+        prior = dict(_PRIOR)
+    if "outcome_links" not in kwargs:
+        kwargs["outcome_links"] = list(_OUTCOME_LINKS)
+    return assess(events, prior, **kwargs)
 
 
 def test_golden_a_determinism_identical_payloads() -> None:
