@@ -28,7 +28,10 @@ _DEFAULT_TIME_FIELDS = ("timestamp", "ts", "t", "time", "observed_at", "event_ti
 _FLAG_TIMESTAMPS_MISSING = "timestamps_missing"
 _FLAG_DENSITY_WEAK = "event_density_too_weak"
 _FLAG_WINDOW_INVALID = "window_config_invalid"
+_FLAG_SOURCE_FAMILY_MISSING = "source_family_missing"
 _FLAG_NOT_COMPUTABLE = "NOT_COMPUTABLE"
+_MAX_EPOCH_SECONDS = 253402300799.0
+_JSONABLE_DEPTH = 32
 
 
 class ChronoScanObserved(BaseModel):
@@ -86,6 +89,18 @@ def scan(
         events, families, ids, field, window_config, seed, run_id, caller_ts, catalog_hash
     )
 
+    if not families:
+        return _null_result(
+            flags=[_FLAG_SOURCE_FAMILY_MISSING, _FLAG_NOT_COMPUTABLE],
+            path=path + ["reject_source_family", "not_computable"],
+            input_hash=input_hash,
+            families=families,
+            ids=ids,
+            run_id=run_id,
+            catalog_hash=catalog_hash,
+            timestamp=caller_ts,
+        )
+
     parsed = _as_event_list(events)
     if parsed is None:
         return _null_result(
@@ -112,12 +127,12 @@ def scan(
             timestamp=caller_ts,
         )
 
-    stamped = _extract_timestamps(parsed, field)
+    stamped, missing_timestamps = _extract_timestamps(parsed, field)
     path.append("extract_timestamps")
-    if not stamped:
+    if missing_timestamps or not stamped:
         return _null_result(
             flags=[_FLAG_TIMESTAMPS_MISSING, _FLAG_NOT_COMPUTABLE],
-            path=path + ["not_computable"],
+            path=path + ["reject_timestamps", "not_computable"],
             input_hash=input_hash,
             families=families,
             ids=ids,
@@ -245,9 +260,10 @@ def _parse_span(raw: object) -> tuple[float | None, bool]:
     if isinstance(raw, bool):
         return None, False
     if isinstance(raw, (int, float)):
-        if raw != raw or raw <= 0:
+        value = float(raw)
+        if not math.isfinite(value) or value <= 0:
             return None, False
-        return float(raw), True
+        return value, True
     if not isinstance(raw, str):
         return None, False
     text = raw.strip().lower()
@@ -263,21 +279,27 @@ def _parse_span(raw: object) -> tuple[float | None, bool]:
 
 def _is_positive_number(text: str) -> bool:
     try:
-        return float(text) > 0
+        value = float(text)
     except ValueError:
         return False
+    return math.isfinite(value) and value > 0
+
+
+def _finite_epoch(value: float) -> float | None:
+    if not math.isfinite(value) or value < 0:
+        return None
+    if value > 1e12:
+        value = value / 1000.0
+    if not math.isfinite(value) or value > _MAX_EPOCH_SECONDS:
+        return None
+    return value
 
 
 def _epoch_seconds(raw: object) -> float | None:
     if isinstance(raw, bool) or raw is None:
         return None
     if isinstance(raw, (int, float)):
-        value = float(raw)
-        if value != value or value < 0:
-            return None
-        if value > 1e12:
-            value = value / 1000.0
-        return value
+        return _finite_epoch(float(raw))
     if not isinstance(raw, str) or not raw.strip():
         return None
     text = raw.strip()
@@ -285,11 +307,7 @@ def _epoch_seconds(raw: object) -> float | None:
         numeric = float(text)
     except ValueError:
         return _iso_to_epoch(text)
-    if numeric < 0 or numeric != numeric:
-        return None
-    if numeric > 1e12:
-        numeric = numeric / 1000.0
-    return numeric
+    return _finite_epoch(numeric)
 
 
 def _iso_to_epoch(text: str) -> float | None:
@@ -305,12 +323,14 @@ def _iso_to_epoch(text: str) -> float | None:
 
 def _extract_timestamps(
     events: list[object], time_field: str | None
-) -> list[tuple[float, int, str]]:
+) -> tuple[list[tuple[float, int, str]], int]:
     keys = (time_field,) if time_field else _DEFAULT_TIME_FIELDS
     stamped: list[tuple[float, int, str]] = []
+    missing = 0
     for index, event in enumerate(events):
         mapping = _as_mapping(event)
         if mapping is None:
+            missing += 1
             continue
         raw = None
         for key in keys:
@@ -321,14 +341,21 @@ def _extract_timestamps(
                 break
         epoch = _epoch_seconds(raw)
         if epoch is None:
+            missing += 1
             continue
         label = raw if isinstance(raw, str) else _epoch_to_iso(epoch)
+        if not isinstance(label, str):
+            missing += 1
+            continue
         stamped.append((epoch, index, label))
-    return stamped
+    return stamped, missing
 
 
-def _epoch_to_iso(epoch: float) -> str:
-    return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+def _epoch_to_iso(epoch: float) -> str | None:
+    try:
+        return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except (OverflowError, OSError, ValueError):
+        return None
 
 
 def _apply_lookback(
@@ -448,6 +475,27 @@ def _confidence(observed: ChronoScanObserved, interval_count: int) -> float | No
     return _round(volume * observed.recurrence_strength)
 
 
+def _jsonable(value: object, *, depth: int = 0) -> object:
+    if depth > _JSONABLE_DEPTH:
+        return {"_truncated": True}
+    if value is None or isinstance(value, (str, int, bool)):
+        return value
+    if isinstance(value, float):
+        if math.isfinite(value):
+            return value
+        return {"_nonfinite": str(value)}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _jsonable(item, depth=depth + 1)
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+        }
+    if isinstance(value, (bytes, bytearray)):
+        return value.decode("utf-8", errors="replace")
+    if isinstance(value, Sequence):
+        return [_jsonable(item, depth=depth + 1) for item in value]
+    return {"_unserializable": type(value).__name__}
+
+
 def _input_hash(
     events: object,
     families: list[str],
@@ -459,18 +507,36 @@ def _input_hash(
     timestamp: str | None,
     catalog_hash: object,
 ) -> str:
+    if isinstance(events, Sequence) and not isinstance(events, (str, bytes, bytearray)):
+        hashed_events: object = _jsonable(list(events))
+    else:
+        hashed_events = None
     payload = {
         "catalog_hash": catalog_hash if isinstance(catalog_hash, str) else None,
-        "events": events if isinstance(events, (list, tuple)) else None,
+        "events": hashed_events,
         "run_id": run_id if isinstance(run_id, str) else None,
         "seed": seed if isinstance(seed, (int, str)) and not isinstance(seed, bool) else None,
         "source_family": families,
         "source_ids": ids,
         "time_field": time_field,
         "timestamp": timestamp,
-        "window_config": window_config if isinstance(window_config, Mapping) else None,
+        "window_config": _jsonable(window_config) if isinstance(window_config, Mapping) else None,
     }
-    return sha256_hex(canonical_json(payload))
+    try:
+        return sha256_hex(canonical_json(payload))
+    except (TypeError, ValueError):
+        fallback = {
+            "catalog_hash": None,
+            "events": {"_unserializable": type(events).__name__},
+            "run_id": None,
+            "seed": None,
+            "source_family": list(families),
+            "source_ids": list(ids),
+            "time_field": time_field,
+            "timestamp": timestamp,
+            "window_config": None,
+        }
+        return sha256_hex(canonical_json(fallback))
 
 
 def _null_result(

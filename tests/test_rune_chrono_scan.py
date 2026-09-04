@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections import deque
+
 from abraxas.runes.operators.chrono_scan import ChronoScanResult, apply_chrono_scan, scan
 from abraxas.runes.registry import describe_rune
 from abx.lifecycle_policy import enforce_lane_policy
@@ -71,7 +73,9 @@ def test_golden_b_null_discipline_empty_and_unparseable() -> None:
     for result in (empty, junk):
         assert result.observed.cadence_interval is None
         assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+        assert "timestamps_missing" in result.observed.not_computable_flags
         assert result.observed.not_computable_flags
+        assert result.provenance.confidence is None
 
 
 def test_golden_b_invalid_window_fail_closed() -> None:
@@ -115,6 +119,8 @@ def test_contract_object_is_shadow_detect_none() -> None:
     assert [item.name for item in contract.outputs] == ["observed", "provenance"]
     assert "not_computable" in contract.failure_modes
     assert "timestamps_missing" in contract.failure_modes
+    assert "source_family_missing" in contract.failure_modes
+    assert "source_ids" in contract.provenance_fields
     policy = enforce_lane_policy(
         lane=contract.lane,
         influence_policy=contract.influence_policy,
@@ -145,3 +151,102 @@ def test_apply_adapter_matches_scan() -> None:
     assert dumped["lane"] == "SHADOW"
     assert dumped["influence_policy"] == "NONE"
     assert isinstance(typed, ChronoScanResult)
+
+
+def test_input_hash_accepts_deque_and_tuple() -> None:
+    kwargs = {
+        "source_family": ["chrono.fixture"],
+        "source_ids": ["src-a"],
+        "time_field": "timestamp",
+        "seed": 1,
+        "run_id": "CHRONO-HASH",
+    }
+    from_list = scan(list(_STRONG_EVENTS), **kwargs)
+    from_tuple = scan(tuple(_STRONG_EVENTS), **kwargs)
+    from_deque = scan(deque(_STRONG_EVENTS), **kwargs)
+    missing = scan(None, **kwargs)
+    assert from_list.provenance.input_hash == from_tuple.provenance.input_hash
+    assert from_list.provenance.input_hash == from_deque.provenance.input_hash
+    assert from_list.provenance.input_hash != missing.provenance.input_hash
+
+
+def test_input_hash_does_not_raise_on_unserializable() -> None:
+    class Blob:
+        pass
+
+    result = scan(
+        [{"timestamp": "2026-01-01T00:00:00Z", "blob": Blob()}],
+        source_family=["chrono.fixture"],
+        time_field="timestamp",
+    )
+    assert result.provenance.input_hash
+    assert result.observed.cadence_interval is None
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+
+
+def test_non_finite_timestamp_is_not_computable() -> None:
+    events = [
+        {"timestamp": float("inf")},
+        {"timestamp": "2026-01-01T00:00:00Z"},
+        {"timestamp": "2026-01-01T00:10:00Z"},
+        {"timestamp": "2026-01-01T00:20:00Z"},
+    ]
+    result = _scan(events)
+    assert result.observed.cadence_interval is None
+    assert result.provenance.confidence is None
+    assert "timestamps_missing" in result.observed.not_computable_flags
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+
+
+def test_overflow_epoch_is_not_computable() -> None:
+    events = [
+        {"timestamp": 1e20},
+        {"timestamp": "2026-01-01T00:00:00Z"},
+        {"timestamp": "2026-01-01T00:10:00Z"},
+        {"timestamp": "2026-01-01T00:20:00Z"},
+    ]
+    result = _scan(events)
+    assert result.observed.cadence_interval is None
+    assert "timestamps_missing" in result.observed.not_computable_flags
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+
+
+def test_non_finite_window_fail_closed() -> None:
+    result = _scan(_STRONG_EVENTS, window_config={"lookback_span": float("inf")})
+    assert result.observed.cadence_interval is None
+    assert "window_config_invalid" in result.observed.not_computable_flags
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+
+
+def test_mixed_missing_timestamps_fail_closed() -> None:
+    mixed = [
+        {"timestamp": "2026-01-01T00:00:00Z"},
+        {"timestamp": "2026-01-01T00:10:00Z"},
+        {"id": "gap"},
+        {"timestamp": "2026-01-01T00:20:00Z"},
+        {"timestamp": "2026-01-01T00:30:00Z"},
+    ]
+    result = _scan(mixed)
+    assert result.observed.cadence_interval is None
+    assert result.observed.recurrence_strength is None
+    assert result.provenance.confidence is None
+    assert "timestamps_missing" in result.observed.not_computable_flags
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+
+
+def test_missing_source_family_is_not_computable() -> None:
+    result = scan(_STRONG_EVENTS, time_field="timestamp")
+    assert result.observed.cadence_interval is None
+    assert result.provenance.confidence is None
+    assert result.provenance.source_family_trace == []
+    assert "source_family_missing" in result.observed.not_computable_flags
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
+    assert "reject_source_family" in result.provenance.computation_path
+
+
+def test_empty_source_family_is_not_computable() -> None:
+    result = scan(_STRONG_EVENTS, source_family=[], time_field="timestamp")
+    assert result.observed.cadence_interval is None
+    assert result.provenance.confidence is None
+    assert "source_family_missing" in result.observed.not_computable_flags
+    assert "NOT_COMPUTABLE" in result.observed.not_computable_flags
