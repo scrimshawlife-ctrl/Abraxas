@@ -487,6 +487,18 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.chrono_align:apply_chrono_align",
       "definition_path": "abraxas/runes/definitions/rune_chrono_align.json"
+    },
+    {
+      "id": "RUNE.CHRONO_OVERLAY",
+      "short_name": "CHO",
+      "name": "CHRONO Overlay",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_overlay:apply_chrono_overlay",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_overlay.json"
     }
   ],
   "capabilities": [
