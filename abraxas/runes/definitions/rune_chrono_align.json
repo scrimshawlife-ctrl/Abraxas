@@ -1,0 +1,82 @@
+{
+  "id": "RUNE.CHRONO_ALIGN",
+  "name": "CHRONO Align",
+  "short_name": "CHA",
+  "layer": "Core",
+  "motto": "Map timing to windows. Claim no outcomes.",
+  "function": "Maps observed CHRONO_SCAN timing metrics to bounded candidate execution windows without escalating to outcome certainty or Forecast influence.",
+  "inputs": [
+    "observed_temporal_metrics",
+    "candidate_actions",
+    "alignment_policy"
+  ],
+  "outputs": [
+    "inferred",
+    "provenance"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "No action-success claims",
+    "No timing-alignment-as-certainty",
+    "No symbolic overlays as evidence",
+    "No Forecast weighting or mutation",
+    "No lawful window yields null fields (no improvisation)",
+    "Deterministic: identical observed_temporal_metrics + candidate_actions ordering + alignment_policy yield identical inferred windows",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_scan_metrics",
+    "post_compute: attach_inferred_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.CHRONO_ALIGN CHA v0.1.0",
+    "CHRONO family golden tests A/B/C"
+  ],
+  "canonical_statement": "RUNE.CHRONO_ALIGN (CHA) maps observed CHRONO_SCAN timing metrics to bounded candidate windows and emits null-safe inferred fields with NOT_COMPUTABLE flags when no lawful window exists. It does not claim action success, convert alignment into certainty, import symbolic overlays as evidence, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "SCHEDULE",
+    "influence_policy": "NONE",
+    "acronym": "CHA",
+    "operator_path": "abraxas.runes.operators.chrono_align:apply_chrono_align",
+    "declared_dependencies": [
+      "RUNE.CHRONO_SCAN",
+      "RUNE.ERS"
+    ],
+    "dependencies": [
+      "RUNE.CHRONO_SCAN"
+    ],
+    "determinism_rule": "Given identical observed_temporal_metrics + identical candidate_actions ordering + identical alignment_policy, inferred windows must be identical.",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp",
+      "computation_path"
+    ],
+    "failure_modes": [
+      "metrics_not_computable",
+      "no_lawful_window",
+      "policy_invalid",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "observed_temporal_metrics", "type": "{ cadence_interval: number | null; recurrence_strength: number | null; window_density: number | null; timing_volatility: number | null; cadence_stability: number | null; recurrence_pressure: number | null }", "required": true},
+      {"name": "candidate_actions", "type": "string[]", "required": false},
+      {"name": "alignment_policy", "type": "{ min_confidence: number | null; max_window_span: string | null }", "required": false}
+    ],
+    "outputs": [
+      {"name": "inferred", "type": "{ alignment_window: string | null; execution_readiness: string | null; timing_advantage_hypothesis: string | null; window_decay_rate: number | null; not_computable_flags?: string[] }"},
+      {"name": "provenance", "type": "{ computation_path: string[]; confidence: number | null }"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true
+  }
+}
