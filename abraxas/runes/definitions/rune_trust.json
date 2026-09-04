@@ -1,0 +1,88 @@
+{
+  "id": "RUNE.TRUST",
+  "name": "Trust Dynamics",
+  "short_name": "TRU",
+  "layer": "Core",
+  "motto": "Name the stubs. Invent no scores.",
+  "function": "Shadow typed stub for trust assessment / state / update. Accepts ordered trustEvents and priorTrustState. Placeholder types stay NOT_COMPUTABLE. Does not invent trust scores, schema engines, or Forecast influence.",
+  "inputs": [
+    "trustEvents",
+    "priorTrustState",
+    "outcomeLinks"
+  ],
+  "outputs": [
+    "trustAssessment",
+    "trustState",
+    "trustUpdate"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "Code-bind override of Drift stub ACTIVE/DIRECT",
+    "Distinct from RUNE.TRUST_CUE_SCAN (no merge, alias, or reuse)",
+    "Placeholder types TrustEvent, TrustState, TrustAssessment, TrustUpdate, OutcomeLink stay NOT_COMPUTABLE",
+    "No invented trust scores",
+    "No Forecast DIRECT path or weighting",
+    "Declared deps FORECAST_SCORE, DRIFT, ERS, CONTINUITY are unbound",
+    "Weak or missing inputs yield nulls plus NOT_COMPUTABLE / trust_not_computable",
+    "Deterministic: identical ordered trustEvents + identical priorTrustState yield identical output",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_trust_stub_inputs",
+    "post_compute: attach_stub_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.TRUST TRU v0.1.0",
+    "FORGE Drift brief #5 typed stub",
+    "TRUST goldens A/B"
+  ],
+  "canonical_statement": "RUNE.TRUST (TRU) is a Shadow typed stub. It accepts ordered trustEvents and priorTrustState, emits null-safe TrustAssessmentStub / TrustStateStub / TrustUpdateStub with NOT_COMPUTABLE / trust_not_computable, and does not invent scores, merge TRUST_CUE_SCAN, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "DETECT",
+    "influence_policy": "NONE",
+    "acronym": "TRU",
+    "operator_path": "abraxas.runes.operators.trust:apply_trust",
+    "declared_dependencies": [
+      "RUNE.FORECAST_SCORE",
+      "RUNE.DRIFT",
+      "RUNE.ERS",
+      "RUNE.CONTINUITY"
+    ],
+    "dependencies": [],
+    "determinism_rule": "same priorTrustState + same events (ordered) + same decay parameters → identical updated TrustState",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp"
+    ],
+    "failure_modes": [
+      "missing_outcome_mapping",
+      "trust_not_computable",
+      "contradiction_overload",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "trustEvents", "type": "TrustEventStub[]", "required": true},
+      {"name": "priorTrustState", "type": "TrustStateStub", "required": true},
+      {"name": "outcomeLinks", "type": "OutcomeLinkStub[]", "required": false}
+    ],
+    "outputs": [
+      {"name": "trustAssessment", "type": "TrustAssessmentStub"},
+      {"name": "trustState", "type": "TrustStateStub"},
+      {"name": "trustUpdate", "type": "TrustUpdateStub"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "typed_stub": true,
+    "distinct_from": "RUNE.TRUST_CUE_SCAN"
+  }
+}

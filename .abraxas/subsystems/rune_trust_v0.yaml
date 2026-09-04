@@ -1,0 +1,45 @@
+{
+  "subsystem_id": "rune_trust_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "trust_golden_a_determinism",
+    "trust_golden_b_null_discipline"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "typed_stub_only"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "invented_trust_score",
+    "lane_claimed_active",
+    "merged_with_trust_cue_scan"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "trust_golden_a_determinism",
+    "trust_golden_b_null_discipline"
+  ],
+  "notes": [
+    "RUNE.TRUST Shadow typed stub only. Not Canary. Not Canon-Active. No Trust Dynamics engine.",
+    "Code-bind override: lane=SHADOW and influence_policy=NONE (ignore Drift stub ACTIVE/DIRECT).",
+    "Placeholder types stay NOT_COMPUTABLE. Distinct from RUNE.TRUST_CUE_SCAN.",
+    "FORECAST_SCORE, DRIFT, ERS, CONTINUITY stay unbound declared dependencies (expected lag)."
+  ]
+}
