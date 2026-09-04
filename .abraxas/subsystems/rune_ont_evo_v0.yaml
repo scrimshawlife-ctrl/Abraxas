@@ -1,0 +1,53 @@
+{
+  "subsystem_id": "rune_ont_evo_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "ont_evo_golden_a_determinism",
+    "ont_evo_golden_b_null_discipline",
+    "ont_evo_illegal_promotion_fail_closed"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "typed_stub_only",
+    "promotion_evidence_required_for_any_promotion_emit"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "live_vocabulary_mutation",
+    "auto_active_ontology_write",
+    "invented_executable_ontology",
+    "illegal_promotion_emitted_as_success",
+    "lane_claimed_active"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "ont_evo_golden_a_determinism",
+    "ont_evo_golden_b_null_discipline",
+    "ont_evo_illegal_promotion_fail_closed"
+  ],
+  "notes": [
+    "RUNE.ONT_EVO Shadow typed stub only. Not Canary. Not Canon-Active. No executable ontology.",
+    "Code-bind override: lane=SHADOW and influence_policy=NONE (ignore Drift stub ACTIVE/BOUNDED).",
+    "Placeholder types stay NOT_COMPUTABLE. Category CONTINUITY.",
+    "VECTOR, CONTINUITY, ERS stay unbound declared dependencies (expected lag; no live bind).",
+    "Fail-closed: missing or weak promotionEvidence → illegal_promotion / NOT_COMPUTABLE.",
+    "Never mutate live CanonicalVectorVocabulary. Never Auto-Active ontology write.",
+    "No mass Index mint. No soul/Vernacular/Neon. No Active. No Canary lift."
+  ]
+}

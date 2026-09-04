@@ -547,6 +547,18 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.calibration:apply_calibration",
       "definition_path": "abraxas/runes/definitions/rune_calibration.json"
+    },
+    {
+      "id": "RUNE.ONT_EVO",
+      "short_name": "ONT",
+      "name": "Ontology Evolution",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.ont_evo:apply_ont_evo",
+      "definition_path": "abraxas/runes/definitions/rune_ont_evo.json"
     }
   ],
   "capabilities": [

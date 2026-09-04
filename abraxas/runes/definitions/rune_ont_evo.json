@@ -1,0 +1,94 @@
+{
+  "id": "RUNE.ONT_EVO",
+  "name": "Ontology Evolution",
+  "short_name": "ONT",
+  "layer": "Core",
+  "motto": "Name the stubs. Promote nothing without evidence.",
+  "function": "Shadow typed stub for ontology vector proposal / promotion / deprecation / mapping. Accepts vectorProposals, currentVocabulary, and optional promotionEvidence. Emits VectorProposal / VectorPromotion / VectorDeprecation / VectorMapping or nulls plus NOT_COMPUTABLE. Missing or weak promotionEvidence is illegal_promotion. Placeholder types stay NOT_COMPUTABLE. Does not mutate live CanonicalVectorVocabulary, Auto-Active ontology-write, invent executable ontology code, or influence Forecast.",
+  "inputs": [
+    "vectorProposals",
+    "currentVocabulary",
+    "promotionEvidence"
+  ],
+  "outputs": [
+    "vectorProposal",
+    "vectorPromotion",
+    "vectorDeprecation",
+    "vectorMapping"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "Code-bind override of Drift stub ACTIVE/BOUNDED",
+    "Plain id RUNE.ONT_EVO only",
+    "Category CONTINUITY",
+    "Placeholder types VectorProposal, CanonicalVectorVocabulary, PromotionEvidence, VectorPromotion, VectorDeprecation, VectorMapping stay NOT_COMPUTABLE",
+    "Fail-closed promotion: missing or weak promotionEvidence yields illegal_promotion and NOT_COMPUTABLE",
+    "Never mutate live CanonicalVectorVocabulary",
+    "Never Auto-Active ontology write",
+    "Never invent executable ontology code",
+    "Declared deps VECTOR, CONTINUITY, ERS are unbound",
+    "Weak or missing inputs yield nulls plus NOT_COMPUTABLE / illegal_promotion / missing_vector_mapping / backward_compatibility_break",
+    "Deterministic: same proposal set + same thresholds + same ordering yield identical promotion/deprecation/mapping outputs",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_ont_evo_stub_inputs",
+    "post_compute: attach_stub_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.ONT_EVO ONT v0.1.0",
+    "FORGE Drift brief #8 typed stub",
+    "ONT_EVO goldens A/B"
+  ],
+  "canonical_statement": "RUNE.ONT_EVO (ONT) is a Shadow typed stub. It accepts vectorProposals, currentVocabulary, and optional promotionEvidence, emits null-safe VectorProposalStub / VectorPromotionStub / VectorDeprecationStub / VectorMappingStub or nulls with NOT_COMPUTABLE / illegal_promotion / missing_vector_mapping / backward_compatibility_break, and does not mutate live CanonicalVectorVocabulary, Auto-Active ontology-write, invent executable ontology, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "CONTINUITY",
+    "influence_policy": "NONE",
+    "acronym": "ONT",
+    "operator_path": "abraxas.runes.operators.ont_evo:apply_ont_evo",
+    "declared_dependencies": [
+      "RUNE.VECTOR",
+      "RUNE.CONTINUITY",
+      "RUNE.ERS"
+    ],
+    "dependencies": [],
+    "determinism_rule": "same proposal set + same thresholds + same ordering → identical promotion/deprecation/mapping outputs",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp"
+    ],
+    "failure_modes": [
+      "missing_vector_mapping",
+      "illegal_promotion",
+      "backward_compatibility_break",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "vectorProposals", "type": "VectorProposalStub[]", "required": true},
+      {"name": "currentVocabulary", "type": "CanonicalVectorVocabularyStub", "required": true},
+      {"name": "promotionEvidence", "type": "PromotionEvidenceStub", "required": false}
+    ],
+    "outputs": [
+      {"name": "vectorProposal", "type": "VectorProposalStub"},
+      {"name": "vectorPromotion", "type": "VectorPromotionStub"},
+      {"name": "vectorDeprecation", "type": "VectorDeprecationStub"},
+      {"name": "vectorMapping", "type": "VectorMappingStub"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "typed_stub": true,
+    "no_live_vocabulary_mutation": true,
+    "no_auto_active_ontology_write": true,
+    "no_executable_ontology": true
+  }
+}
