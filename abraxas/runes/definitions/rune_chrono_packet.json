@@ -1,0 +1,87 @@
+{
+  "id": "RUNE.CHRONO_PACKET",
+  "name": "CHRONO Packet",
+  "short_name": "CHP",
+  "layer": "Core",
+  "motto": "Compose the packet. Fabricate nothing.",
+  "function": "Emits TemporalAlignmentPacket.v1 by combining observed, inferred, and speculative blocks while preserving nullability, speculative isolation, and SHADOW lane.",
+  "inputs": [
+    "observed",
+    "inferred",
+    "speculative",
+    "provenance"
+  ],
+  "outputs": [
+    "temporalAlignmentPacket"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "No Forecast weighting or mutation",
+    "No fabricating missing fields",
+    "No coercing speculative values into observed",
+    "No mutating SHADOW to FORECAST without promotion",
+    "Unclean formation yields status not_computable",
+    "Deterministic: identical observed + inferred + speculative + provenance yield a byte-identical packet",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_block_inputs",
+    "post_compute: attach_packet_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.CHRONO_PACKET CHP v0.1.0",
+    "TemporalAlignmentPacket.v1",
+    "CHRONO family golden tests A/B/E/F"
+  ],
+  "canonical_statement": "RUNE.CHRONO_PACKET (CHP) emits TemporalAlignmentPacket.v1 from observed, inferred, and speculative inputs with required provenance. It does not fabricate missing fields, coerce speculative values into observed, mutate SHADOW to FORECAST, or influence Forecast. Unclean formation yields status not_computable.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "ARTIFACT",
+    "influence_policy": "NONE",
+    "acronym": "CHP",
+    "operator_path": "abraxas.runes.operators.chrono_packet:apply_chrono_packet",
+    "declared_dependencies": [
+      "RUNE.CHRONO_SCAN",
+      "RUNE.CHRONO_ALIGN",
+      "RUNE.CHRONO_OVERLAY",
+      "RUNE.ERS"
+    ],
+    "dependencies": [
+      "RUNE.CHRONO_SCAN",
+      "RUNE.CHRONO_ALIGN",
+      "RUNE.CHRONO_OVERLAY"
+    ],
+    "determinism_rule": "Given identical inputs, output packet must be byte-identical (schema-stable, hash-stable).",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp",
+      "computation_path"
+    ],
+    "failure_modes": [
+      "schema_noncompliance",
+      "missing_required_provenance",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "observed", "type": "Record<string, unknown>", "required": false},
+      {"name": "inferred", "type": "Record<string, unknown>", "required": false},
+      {"name": "speculative", "type": "Record<string, unknown>", "required": false},
+      {"name": "provenance", "type": "Record<string, unknown>", "required": true}
+    ],
+    "outputs": [
+      {"name": "temporalAlignmentPacket", "type": "TemporalAlignmentPacket.v1"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "speculative_isolation": true
+  }
+}

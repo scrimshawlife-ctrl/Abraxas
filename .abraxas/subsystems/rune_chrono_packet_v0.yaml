@@ -1,0 +1,46 @@
+{
+  "subsystem_id": "rune_chrono_packet_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "chrono_packet_golden_a_determinism",
+    "chrono_packet_golden_b_null_discipline",
+    "chrono_packet_golden_e_packet_schema"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "speculative_isolation"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "speculative_leakage_into_observed",
+    "speculative_leakage_into_inferred",
+    "lane_claimed_active"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "chrono_packet_golden_a_determinism",
+    "chrono_packet_golden_b_null_discipline",
+    "chrono_packet_golden_e_packet_schema"
+  ],
+  "notes": [
+    "RUNE.CHRONO_PACKET Shadow bind only. Not Canary. Not Canon-Active.",
+    "influence_policy remains NONE. Speculative OVERLAY fields stay fenced from packet observed.",
+    "RUNE.ERS stays an unbound declared dependency (expected lag)."
+  ]
+}

@@ -499,6 +499,18 @@
       "influence_policy": "NONE",
       "operator_path": "abraxas.runes.operators.chrono_overlay:apply_chrono_overlay",
       "definition_path": "abraxas/runes/definitions/rune_chrono_overlay.json"
+    },
+    {
+      "id": "RUNE.CHRONO_PACKET",
+      "short_name": "CHP",
+      "name": "CHRONO Packet",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.chrono_packet:apply_chrono_packet",
+      "definition_path": "abraxas/runes/definitions/rune_chrono_packet.json"
     }
   ],
   "capabilities": [
