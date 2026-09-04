@@ -1,0 +1,46 @@
+{
+  "subsystem_id": "rune_memetic_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "memetic_golden_a_determinism",
+    "memetic_golden_b_null_discipline"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "typed_stub_only"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "invented_vernacular_row",
+    "lane_claimed_active",
+    "merged_with_memetic_capability_operators"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "memetic_golden_a_determinism",
+    "memetic_golden_b_null_discipline"
+  ],
+  "notes": [
+    "RUNE.MEMETIC Shadow typed stub only. Not Canary. Not Canon-Active. No executable memetic runtime.",
+    "Code-bind override: lane=SHADOW and influence_policy=NONE (ignore Drift stub ACTIVE/BOUNDED).",
+    "Placeholder types stay NOT_COMPUTABLE. Distinct from ϟ_MEMETIC_* capability operators.",
+    "SLANG, ECO, DRIFT, ERS stay unbound declared dependencies (expected lag; no Forecast wire).",
+    "No Vernacular invent. No Neon historical backfill. No SacredClass merges. No slang lexicon writes."
+  ]
+}

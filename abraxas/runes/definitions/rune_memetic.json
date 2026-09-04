@@ -1,0 +1,92 @@
+{
+  "id": "RUNE.MEMETIC",
+  "name": "Memetic Core",
+  "short_name": "MEM",
+  "layer": "Core",
+  "motto": "Name the stubs. Invent no Vernacular.",
+  "function": "Shadow typed stub for memetic cluster / artifact / narrative-track detection. Accepts slangEvents, eggcornEvents, and windowSpec. Placeholder types stay NOT_COMPUTABLE. Does not invent Vernacular rows, SacredClass merges, Neon backfill, or Forecast influence.",
+  "inputs": [
+    "slangEvents",
+    "eggcornEvents",
+    "windowSpec"
+  ],
+  "outputs": [
+    "memeticCluster",
+    "memeticArtifact",
+    "narrativeTracks"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "Code-bind override of Drift stub ACTIVE/BOUNDED",
+    "Plain id RUNE.MEMETIC only",
+    "Distinct from ϟ_MEMETIC_* capability operators (no merge, alias, or reuse)",
+    "Placeholder types SlangEvent, EggcornEvent, RollingWindowSpec, MemeticCluster, MemeticArtifact, NarrativeTrack stay NOT_COMPUTABLE",
+    "No Vernacular invent",
+    "No Neon historical backfill",
+    "No SacredClass merges",
+    "No new slang lexicon writes",
+    "No executable memetic runtime claims",
+    "Declared deps SLANG, ECO, DRIFT, ERS are unbound",
+    "Weak or missing inputs yield nulls plus NOT_COMPUTABLE / contamination_not_computable",
+    "Deterministic: identical ordered slangEvents + identical ordered eggcornEvents + identical windowSpec yield identical output",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_memetic_stub_inputs",
+    "post_compute: attach_stub_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.MEMETIC MEM v0.1.0",
+    "FORGE Drift brief #6 typed stub",
+    "MEMETIC goldens A/B"
+  ],
+  "canonical_statement": "RUNE.MEMETIC (MEM) is a Shadow typed stub. It accepts slangEvents, eggcornEvents, and windowSpec, emits null-safe MemeticClusterStub / MemeticArtifactStub / NarrativeTrackStub with NOT_COMPUTABLE / contamination_not_computable, and does not invent Vernacular rows, merge ϟ_MEMETIC_* operators, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "DETECT",
+    "influence_policy": "NONE",
+    "acronym": "MEM",
+    "operator_path": "abraxas.runes.operators.memetic:apply_memetic",
+    "declared_dependencies": [
+      "RUNE.SLANG",
+      "RUNE.ECO",
+      "RUNE.DRIFT",
+      "RUNE.ERS"
+    ],
+    "dependencies": [],
+    "determinism_rule": "same events + same window + same ordering → identical clusters, scores, and artifacts",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp"
+    ],
+    "failure_modes": [
+      "missing_slang_or_eco_lineage",
+      "cluster_formation_fail",
+      "contamination_not_computable",
+      "not_computable"
+    ],
+    "inputs": [
+      {"name": "slangEvents", "type": "SlangEventStub[]", "required": true},
+      {"name": "eggcornEvents", "type": "EggcornEventStub[]", "required": true},
+      {"name": "windowSpec", "type": "RollingWindowSpecStub", "required": true}
+    ],
+    "outputs": [
+      {"name": "memeticCluster", "type": "MemeticClusterStub"},
+      {"name": "memeticArtifact", "type": "MemeticArtifactStub"},
+      {"name": "narrativeTracks", "type": "NarrativeTrackStub[]"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "typed_stub": true,
+    "distinct_from": "ϟ_MEMETIC_*"
+  }
+}
