@@ -87,7 +87,9 @@ def test_golden_a_seed_does_not_invent_vernacular_or_clusters() -> None:
     right = _detect(seed=99)
     assert left.memetic_cluster.model_dump() == right.memetic_cluster.model_dump()
     assert left.memetic_artifact.model_dump() == right.memetic_artifact.model_dump()
-    assert left.narrative_tracks == right.narrative_tracks
+    assert [track.model_dump() for track in left.narrative_tracks] == [
+        track.model_dump() for track in right.narrative_tracks
+    ]
     assert left.vernacular_rows is None
     assert right.vernacular_rows is None
     assert left.provenance.input_hash != right.provenance.input_hash

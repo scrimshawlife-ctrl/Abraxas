@@ -155,7 +155,14 @@ def detect(
 
     path.append("typed_stub")
     flags = [_FLAG_NOT_COMPUTABLE, _FLAG_CONTAMINATION, _FLAG_CLUSTER_FAIL]
-    missing_lineage = slang is None or eco is None or not slang or not eco
+    missing_lineage = (
+        slang is None
+        or eco is None
+        or not slang
+        or not eco
+        or slang_weak
+        or eco_weak
+    )
     if missing_lineage:
         flags.append(_FLAG_MISSING_LINEAGE)
         path.append("missing_slang_or_eco_lineage")
