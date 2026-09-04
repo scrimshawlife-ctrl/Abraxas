@@ -169,12 +169,15 @@ def test_apply_adapter_matches_assess() -> None:
         seed=3,
         run_id="TRUST-ADAPTER",
     )
+    typed_dump = typed.model_dump()
     assert dumped["trustAssessment"] == typed.trust_assessment.model_dump()
     assert dumped["trustState"] == typed.trust_state.model_dump()
     assert dumped["trustUpdate"] == typed.trust_update.model_dump()
-    assert "trust_assessment" not in dumped
-    assert "trust_state" not in dumped
-    assert "trust_update" not in dumped
+    assert dumped["trust_assessment"] == typed_dump["trust_assessment"]
+    assert dumped["trust_state"] == typed_dump["trust_state"]
+    assert dumped["trust_update"] == typed_dump["trust_update"]
+    for key, value in typed_dump.items():
+        assert dumped[key] == value
     assert dumped["lane"] == "SHADOW"
     assert dumped["influence_policy"] == "NONE"
     assert dumped["trustAssessment"]["score"] is None
