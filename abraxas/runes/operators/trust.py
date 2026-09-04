@@ -24,6 +24,11 @@ _FLAG_MISSING_OUTCOME = "missing_outcome_mapping"
 _FLAG_WEAK = "placeholder_or_weak_input"
 
 _IDENTIFYING_KEYS = ("id", "event_id", "eventId", "link_id", "linkId")
+_CONTRACT_OUTPUT_KEYS = {
+    "trust_assessment": "trustAssessment",
+    "trust_state": "trustState",
+    "trust_update": "trustUpdate",
+}
 
 
 class TrustEventStub(BaseModel):
@@ -179,7 +184,13 @@ def apply_trust(
         catalog_hash=catalog_hash,
         strict_execution=strict_execution,
     )
-    return result.model_dump()
+    return _dump_contract(result)
+
+
+def _dump_contract(result: TrustResult) -> dict[str, object]:
+    """Emit ABXRuneContract output names for registry callers."""
+    dumped = result.model_dump()
+    return {_CONTRACT_OUTPUT_KEYS.get(key, key): value for key, value in dumped.items()}
 
 
 def _as_mapping(raw: object) -> Mapping[str, object] | None:

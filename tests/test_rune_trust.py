@@ -169,8 +169,18 @@ def test_apply_adapter_matches_assess() -> None:
         seed=3,
         run_id="TRUST-ADAPTER",
     )
-    assert dumped == typed.model_dump()
+    assert dumped["trustAssessment"] == typed.trust_assessment.model_dump()
+    assert dumped["trustState"] == typed.trust_state.model_dump()
+    assert dumped["trustUpdate"] == typed.trust_update.model_dump()
+    assert "trust_assessment" not in dumped
+    assert "trust_state" not in dumped
+    assert "trust_update" not in dumped
     assert dumped["lane"] == "SHADOW"
     assert dumped["influence_policy"] == "NONE"
-    assert dumped["trust_assessment"]["score"] is None
+    assert dumped["trustAssessment"]["score"] is None
+    assert [item.name for item in get_abx_rune_contract("RUNE.TRUST").outputs] == [
+        "trustAssessment",
+        "trustState",
+        "trustUpdate",
+    ]
     assert isinstance(typed, TrustResult)
