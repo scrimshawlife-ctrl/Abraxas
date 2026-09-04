@@ -64,8 +64,8 @@ def test_golden_a_determinism_identical_payloads() -> None:
     assert first.model_dump() == second.model_dump()
     assert first.speculative.symbolic_time_markers == [
         "2026-04-16T09:00:00Z",
-        "marker:anniversary_window",
         "new_moon",
+        "marker:anniversary_window",
     ]
     assert first.speculative.ritual_timing_notes == _NOTES
     assert first.speculative.not_computable_flags == []

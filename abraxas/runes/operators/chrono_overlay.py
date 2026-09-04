@@ -248,10 +248,12 @@ def _tokens_from_text(text: str) -> list[str]:
         occupied.append(match.span())
     for match in _EXPLICIT_MARKER.finditer(text):
         tokens.append(f"marker:{match.group(1)}")
-    normalized = re.sub(r"[\s\-]+", "_", text.lower())
+    lowered = text.lower()
     for name in _KNOWN_MARKERS:
-        pattern = rf"(?<![a-z0-9_]){re.escape(name)}(?![a-z0-9_])"
-        if re.search(pattern, normalized):
+        parts = name.split("_")
+        joined = r"[\s_\-]+".join(re.escape(part) for part in parts)
+        pattern = rf"(?<![a-z0-9]){joined}(?![a-z0-9])"
+        if re.search(pattern, lowered):
             tokens.append(name)
     return tokens
 
