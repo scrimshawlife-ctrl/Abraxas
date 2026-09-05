@@ -8,16 +8,21 @@ from typing import Any, Dict, Optional, Type
 
 from abraxas.sources.adapters import (
     CLDRSnapshotAdapter,
+    ExchangeRateOpenV6Adapter,
     GovDocsJSONLAdapter,
     HTTPSnapshotAdapter,
     JPLHorizonsAdapter,
     LinguisticJSONLAdapter,
     NCEICDOAdapter,
     NISTBulletinsAdapter,
+    RESTCountriesV3Adapter,
     SWPCKpAdapter,
     TimeSeriesCSVAdapter,
     TomskSOSAdapter,
     TZDBSnapshotAdapter,
+    USFederalRegisterAdapter,
+    USGSEarthquakeFDSNAdapter,
+    WorldBankRegionV2Adapter,
 )
 from abraxas.sources.adapters.base import SourceAdapter
 from abraxas.sources.atlas import get_source
@@ -36,6 +41,11 @@ ADAPTER_REGISTRY: dict[str, Type[SourceAdapter]] = {
     "cldr_snapshot": CLDRSnapshotAdapter,
     "nist_bulletin_pdf_index": NISTBulletinsAdapter,
     "tomsk_sos_scrape_cache": TomskSOSAdapter,
+    "worldbank_region_v2": WorldBankRegionV2Adapter,
+    "exchangerate_open_v6": ExchangeRateOpenV6Adapter,
+    "usgs_earthquake_fdsn": USGSEarthquakeFDSNAdapter,
+    "us_federal_register": USFederalRegisterAdapter,
+    "restcountries_v3": RESTCountriesV3Adapter,
 }
 
 

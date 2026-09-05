@@ -1,0 +1,9 @@
+{
+  "result": "success",
+  "base_code": "USD",
+  "rates": {
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "JPY": 150.1
+  }
+}

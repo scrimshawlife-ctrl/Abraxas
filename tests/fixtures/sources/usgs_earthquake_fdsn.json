@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "count": 1
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "us7000test",
+      "properties": {
+        "mag": 4.2,
+        "place": "test fixture",
+        "time": 1767225600000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.0, 37.0, 10.0]
+      }
+    }
+  ]
+}

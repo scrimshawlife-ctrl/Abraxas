@@ -5,8 +5,23 @@ from pathlib import Path
 import pytest
 
 from abraxas.sources.adapters.cldr_snapshot import CLDRSnapshotAdapter
+from abraxas.sources.adapters.exchangerate_open_v6 import ExchangeRateOpenV6Adapter
 from abraxas.sources.adapters.http_snapshot import HTTPSnapshotAdapter
+from abraxas.sources.adapters.restcountries_v3 import RESTCountriesV3Adapter
+from abraxas.sources.adapters.us_federal_register import USFederalRegisterAdapter
+from abraxas.sources.adapters.usgs_earthquake_fdsn import USGSEarthquakeFDSNAdapter
+from abraxas.sources.adapters.worldbank_region_v2 import WorldBankRegionV2Adapter
 from abraxas.sources.types import Cadence, CachePolicy, SourceKind, SourceRef, SourceSpec, SourceWindow
+
+_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "sources"
+
+_P0_ADAPTERS = (
+    (WorldBankRegionV2Adapter, "worldbank_region_v2"),
+    (ExchangeRateOpenV6Adapter, "exchangerate_open_v6"),
+    (USGSEarthquakeFDSNAdapter, "usgs_earthquake_fdsn"),
+    (USFederalRegisterAdapter, "us_federal_register"),
+    (RESTCountriesV3Adapter, "restcountries_v3"),
+)
 
 
 class _FakeResponse:
@@ -98,6 +113,47 @@ def test_http_snapshot_parse_and_emit_packets() -> None:
 
 def test_stubbed_adapters_now_use_http_snapshot() -> None:
     assert issubclass(CLDRSnapshotAdapter, HTTPSnapshotAdapter)
+    for adapter_cls, adapter_name in _P0_ADAPTERS:
+        assert issubclass(adapter_cls, HTTPSnapshotAdapter)
+        assert adapter_cls.adapter_name == adapter_name
+        assert adapter_cls.version
+
+
+def test_p0_http_snapshot_adapters_parse_fixtures() -> None:
+    worldbank = WorldBankRegionV2Adapter().parse(
+        (_FIXTURES / "worldbank_region_v2.json").read_bytes(),
+        run_ctx={},
+    )
+    assert "items" in worldbank
+    assert isinstance(worldbank["items"], list)
+    assert worldbank["items"][1][0]["id"] == "AFR"
+
+    fx = ExchangeRateOpenV6Adapter().parse(
+        (_FIXTURES / "exchangerate_open_v6.json").read_bytes(),
+        run_ctx={},
+    )
+    assert fx["base_code"] == "USD"
+    assert "EUR" in fx["rates"]
+
+    usgs = USGSEarthquakeFDSNAdapter().parse(
+        (_FIXTURES / "usgs_earthquake_fdsn.json").read_bytes(),
+        run_ctx={},
+    )
+    assert usgs["type"] == "FeatureCollection"
+    assert usgs["features"][0]["id"] == "us7000test"
+
+    federal = USFederalRegisterAdapter().parse(
+        (_FIXTURES / "us_federal_register.json").read_bytes(),
+        run_ctx={},
+    )
+    assert federal["results"][0]["document_number"] == "2026-00001"
+
+    countries = RESTCountriesV3Adapter().parse(
+        (_FIXTURES / "restcountries_v3.json").read_bytes(),
+        run_ctx={},
+    )
+    assert "items" in countries
+    assert countries["items"][0]["cca2"] == "NO"
 
 
 def test_http_snapshot_rejects_non_http_url(tmp_path) -> None:
