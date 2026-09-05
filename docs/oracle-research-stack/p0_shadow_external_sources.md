@@ -16,4 +16,6 @@ They are not promoted to Canary or Active. No secrets. No phenomenology claims.
 
 Operator path: Notion registry row → this note → `abraxas/sources/atlas.py` SourceSpec → named `HTTPSnapshotAdapter` subclass → `ADAPTER_REGISTRY`.
 
+Research RAG Phase 0 (receipts + chunks, Notion query retrieve) lives in `abraxas/research_rag/` and [research_rag_phase0.md](research_rag_phase0.md). That path is shadow access, not Canon.
+
 Status label: `candidate`. Missing live-run receipts remain explicit (`attestation_pending` for any gated claim).

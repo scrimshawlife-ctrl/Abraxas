@@ -114,6 +114,19 @@ python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-00
 python scripts/sync_invariance_to_notion.py --run-id RUN-GAP-FIRST-0001 --dry-run
 ```
 
+### Research RAG Phase 0 (shadow; not Canon)
+
+Notion databases are the system of record for ingest receipts and research chunks. Retrieve is Notion query/filter only. Embed model stays `none`. No Wiki page writes.
+
+```bash
+PYTHONPATH=. python -m abraxas.research_rag ingest --source-id SOURCE --run-id RUN --adapter ADAPTER --freshness YYYY-MM-DD --payload-file payload.json
+PYTHONPATH=. python -m abraxas.research_rag retrieve --excerpt "term" --source-id SOURCE
+PYTHONPATH=. python -m abraxas.research_rag compile --chunk-page-id ID --compile-source-url URL --wiki-claim-url URL
+PYTHONPATH=. pytest -q tests/test_research_rag_phase0.py
+```
+
+Env vars: `NOTION_TOKEN`, `NOTION_VERSION`, `ABX_RESEARCH_RAG_*` (see `.env.example` and [docs/oracle-research-stack/research_rag_phase0.md](docs/oracle-research-stack/research_rag_phase0.md)).
+
 ---
 
 ## Rune layer (local module)

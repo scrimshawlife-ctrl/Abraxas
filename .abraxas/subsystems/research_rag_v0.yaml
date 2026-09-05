@@ -1,0 +1,45 @@
+{
+  "subsystem_id": "research_rag_v0",
+  "canon_status": "shadow_advisory",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "research_rag_phase0_unit"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "notion_sot_only"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "local_index_treated_as_sot",
+    "wiki_page_write",
+    "paid_embed_call",
+    "lane_claimed_canon"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "research_rag_phase0_unit"
+  ],
+  "notes": [
+    "Phase 0 Research RAG write/retrieve. Notion DBs are SoT. Not Canon. No new bots.",
+    "Retrieve is Notion query/filter only. Embed model must be empty or none. No paid embed.",
+    "Never write Doctrine Wiki pages. Compile helper sets Chunk URL fields only.",
+    "Operator stamp: Danny human-yes OBSERVED 2026-09-05 PT.",
+    "Missing live-run receipts remain explicit (attestation_pending for any gated claim)."
+  ]
+}
