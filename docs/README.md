@@ -42,6 +42,7 @@ Navigation map for canonical governance docs, architecture specs, operator workf
 - [oracle_signal_layer_v2_receipts.md](oracle_signal_layer_v2_receipts.md) — OSL v2 receipt surfaces.
 - [acceptance/README.md](acceptance/README.md) — acceptance workflow entrypoint.
 - [seal/SEAL_VALIDATION_GUIDE.md](seal/SEAL_VALIDATION_GUIDE.md) — seal validation usage.
+- [oracle-research-stack/research_rag_phase0.md](oracle-research-stack/research_rag_phase0.md) — Research RAG Phase 0 Notion write/retrieve (shadow, not Canon).
 
 ---
 
