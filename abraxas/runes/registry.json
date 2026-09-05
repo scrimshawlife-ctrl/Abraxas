@@ -525,6 +525,18 @@
       "definition_path": "abraxas/runes/definitions/rune_trust.json"
     },
     {
+      "id": "RUNE.AVAILABILITY_BUS",
+      "short_name": "AVL",
+      "name": "Availability Bus",
+      "layer": "Core",
+      "status": "shadow",
+      "introduced_version": "v0.1.0",
+      "lane": "SHADOW",
+      "influence_policy": "NONE",
+      "operator_path": "abraxas.runes.operators.availability_bus:apply_availability_bus",
+      "definition_path": "abraxas/runes/definitions/rune_availability_bus.json"
+    },
+    {
       "id": "RUNE.MEMETIC",
       "short_name": "MEM",
       "name": "Memetic Core",

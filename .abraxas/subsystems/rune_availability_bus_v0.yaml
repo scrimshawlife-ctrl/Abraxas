@@ -1,0 +1,49 @@
+{
+  "subsystem_id": "rune_availability_bus_v0",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "availability_bus_golden_a_determinism",
+    "availability_bus_golden_b_null_discipline"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "typed_stub_only",
+    "access_not_phenomenal"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "invented_availability_score",
+    "lane_claimed_active",
+    "phenomenology_claim",
+    "consciousness_module_naming",
+    "equated_with_chrono_packet"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "availability_bus_golden_a_determinism",
+    "availability_bus_golden_b_null_discipline"
+  ],
+  "notes": [
+    "RUNE.AVAILABILITY_BUS Shadow typed stub only. Not Canary. Not Canon-Active. No availability engine.",
+    "Code-bind override: lane=SHADOW and influence_policy=NONE (ignore any stub ACTIVE/DIRECT).",
+    "Acronym AVL (not AVB). Category bind debt: mint GOVERN maps to ROUTE. Do not extend Literal. Do not invent Active.",
+    "Access/reportability/availability only. Placeholder types stay NOT_COMPUTABLE. Distinct from RUNE.CHRONO_PACKET.",
+    "TRUST, DRIFT, ERS stay unbound declared dependencies (expected lag)."
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "id": "RUNE.AVAILABILITY_BUS",
+  "name": "Availability Bus",
+  "short_name": "AVL",
+  "layer": "Core",
+  "motto": "Admit what is reportable. Invent no access.",
+  "function": "Shadow typed stub for access/reportability admission. Accepts registryAdmission and shadowHonestyVerdict. Placeholder types stay NOT_COMPUTABLE. Emits availabilityPacket / accessReport / sealReceipt shaped stubs. Does not invent availability scores, claim sentience, write Active status, equate with RUNE.CHRONO_PACKET, or influence Forecast.",
+  "inputs": [
+    "registryAdmission",
+    "promotionEvent",
+    "shadowHonestyVerdict",
+    "driftParity",
+    "chronoPacket",
+    "timechainSeal",
+    "prismCardLifecycle"
+  ],
+  "outputs": [
+    "availabilityPacket",
+    "accessReport",
+    "sealReceipt"
+  ],
+  "constraints": [
+    "SHADOW lane only",
+    "influence_policy NONE",
+    "Code-bind override of any stub ACTIVE/DIRECT",
+    "Acronym AVL (not AVB)",
+    "Access and reportability only",
+    "Category bind debt: mint GOVERN maps to ROUTE (Literal has no GOVERN; do not extend Literal; do not invent Active)",
+    "Distinct from RUNE.CHRONO_PACKET (no merge, alias, or equate)",
+    "Placeholder types RegistryAdmission, HonestyVerdict, AvailabilityPacket, AccessReport, SealReceipt stay NOT_COMPUTABLE",
+    "No invented availability scores",
+    "No Forecast DIRECT path, weighting, or mutation",
+    "No Canary. No Canon-Active. No new bots, services, DBs, or queues",
+    "Declared deps TRUST, DRIFT, ERS are unbound",
+    "Fail-closed on phenomenology_claim, consciousness_module_naming, honesty_hold, registry_id_missing, active_without_human_yes",
+    "Weak or missing inputs yield nulls plus NOT_COMPUTABLE / availability_not_computable",
+    "Deterministic: identical registryAdmission + identical shadowHonestyVerdict + identical optional fields yield identical output",
+    "No wall-clock reads"
+  ],
+  "hooks": [
+    "pre_compute: parse_availability_stub_inputs",
+    "post_compute: attach_stub_provenance"
+  ],
+  "evidence_tier": "shadow",
+  "provenance_sources": [
+    "ABXRuneContract RUNE.AVAILABILITY_BUS AVL v0.1.0",
+    "OBSERVED registry mint 3d23e8ba2f5c81538c10ce4bf0277a51",
+    "OBSERVED contract mint 3d23e8ba2f5c815bbc17c24dc35c27b0",
+    "AVAILABILITY_BUS goldens A/B + fail-closed"
+  ],
+  "canonical_statement": "RUNE.AVAILABILITY_BUS (AVL) is a Shadow typed stub. It accepts registryAdmission and shadowHonestyVerdict, emits null-safe AvailabilityPacketStub / AccessReportStub / SealReceiptStub with NOT_COMPUTABLE / availability_not_computable, fail-closes on banned claim language and honesty/registry holds, and does not invent scores, equate with RUNE.CHRONO_PACKET, or influence Forecast.",
+  "introduced_version": "v0.1.0",
+  "metadata": {
+    "lane": "SHADOW",
+    "category": "ROUTE",
+    "category_bind_debt": "GOVERN",
+    "influence_policy": "NONE",
+    "acronym": "AVL",
+    "operator_path": "abraxas.runes.operators.availability_bus:apply_availability_bus",
+    "declared_dependencies": [
+      "RUNE.TRUST",
+      "RUNE.DRIFT",
+      "RUNE.ERS"
+    ],
+    "dependencies": [],
+    "determinism_rule": "same inputs + same honesty axes + same Promotion Grammar rung → identical AvailabilityPacket + SealReceipt",
+    "provenance_fields": [
+      "rune_id",
+      "version",
+      "run_id",
+      "input_hash",
+      "output_hash",
+      "catalog_hash",
+      "timestamp"
+    ],
+    "failure_modes": [
+      "phenomenology_claim",
+      "consciousness_module_naming",
+      "active_without_human_yes",
+      "honesty_hold",
+      "registry_id_missing"
+    ],
+    "inputs": [
+      {"name": "registryAdmission", "type": "RegistryAdmissionStub", "required": true},
+      {"name": "promotionEvent", "type": "PromotionEventStub", "required": false},
+      {"name": "shadowHonestyVerdict", "type": "HonestyVerdictStub", "required": true},
+      {"name": "driftParity", "type": "DriftParityStub", "required": false},
+      {"name": "chronoPacket", "type": "ChronoPacketStub", "required": false},
+      {"name": "timechainSeal", "type": "TimechainSealStub", "required": false},
+      {"name": "prismCardLifecycle", "type": "PrismCardEventStub", "required": false}
+    ],
+    "outputs": [
+      {"name": "availabilityPacket", "type": "AvailabilityPacketStub"},
+      {"name": "accessReport", "type": "AccessReportStub"},
+      {"name": "sealReceipt", "type": "SealReceiptStub"}
+    ],
+    "shadow_only": true,
+    "no_influence": true,
+    "no_causal_assert": true,
+    "typed_stub": true,
+    "access_not_phenomenal": true,
+    "distinct_from": "RUNE.CHRONO_PACKET"
+  }
+}
