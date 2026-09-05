@@ -229,6 +229,139 @@ def _records() -> List[SourceSpec]:
                 )
             ],
         ),
+        SourceRecord(
+            source_id="WORLDBANK_REGION_V2",
+            kind=SourceKind.economic_macro,
+            provider="World Bank Open Data (region catalog v2)",
+            cadence=Cadence.on_release,
+            backfill="catalog_snapshot",
+            tvm_vectors=[
+                TVMVectorId.V11_ECONOMIC_STRESS.value,
+            ],
+            mda_domains=["ECONOMIC_STRESS"],
+            adapter="worldbank_region_v2",
+            cache_policy=CachePolicy.required,
+            determinism_notes="cache_required; cache raw JSON; list payload wrapped as items.",
+            provenance_notes=(
+                "SHADOW lane; influence=NONE; not promoted. "
+                "Notion EXT.WORLDBANK.REGION.v1. Public region catalog; no secrets."
+            ),
+            legal_notes="Public World Bank API; cache snapshots; do not embed credentials.",
+            refs=[
+                SourceRef(
+                    id="WorldBank_Region_V2",
+                    title="World Bank API v2 region",
+                    url="https://api.worldbank.org/v2/region?format=json",
+                )
+            ],
+        ),
+        SourceRecord(
+            source_id="EXCHANGERATE_OPEN_V6",
+            kind=SourceKind.inflation_prices,
+            provider="ExchangeRate-API (open.er-api.com v6)",
+            cadence=Cadence.daily,
+            backfill="rolling_latest",
+            tvm_vectors=[
+                TVMVectorId.V11_ECONOMIC_STRESS.value,
+            ],
+            mda_domains=["ECONOMIC_STRESS"],
+            adapter="exchangerate_open_v6",
+            cache_policy=CachePolicy.required,
+            determinism_notes="cache_required; cache raw latest-USD JSON.",
+            provenance_notes=(
+                "SHADOW lane; influence=NONE; not promoted. "
+                "Notion EXT.EXCHANGERATE.LATEST.v1. Public latest-USD snapshot; no secrets."
+            ),
+            legal_notes="Public open.er-api.com; cache snapshots; no API key in repo.",
+            refs=[
+                SourceRef(
+                    id="ExchangeRate_Open_V6_USD",
+                    title="Open ExchangeRate API v6 latest USD",
+                    url="https://open.er-api.com/v6/latest/USD",
+                )
+            ],
+        ),
+        SourceRecord(
+            source_id="USGS_EARTHQUAKE_FDSN",
+            kind=SourceKind.meteorological_climate,
+            provider="USGS Earthquake Hazards Program (FDSN event)",
+            cadence=Cadence.hourly,
+            backfill="rolling_recent",
+            tvm_vectors=[
+                TVMVectorId.V7_COGNITIVE_LOAD.value,
+                TVMVectorId.V8_EMOTIONAL_CLIMATE.value,
+            ],
+            mda_domains=["ENVIRONMENT"],
+            adapter="usgs_earthquake_fdsn",
+            cache_policy=CachePolicy.required,
+            determinism_notes="cache_required; cache raw GeoJSON; limit=50 orderby=time.",
+            provenance_notes=(
+                "SHADOW lane; influence=NONE; not promoted. "
+                "Notion EXT.USGS.EARTHQUAKE.v1. "
+                "SourceKind.meteorological_climate is best-fit (no hazard kind). No secrets."
+            ),
+            legal_notes="Public USGS FDSN; cache snapshots; no credentials.",
+            refs=[
+                SourceRef(
+                    id="USGS_FDSN_Event_GeoJSON",
+                    title="USGS FDSN event query GeoJSON",
+                    url="https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=50&orderby=time",
+                )
+            ],
+        ),
+        SourceRecord(
+            source_id="US_FEDERAL_REGISTER",
+            kind=SourceKind.regulatory_updates,
+            provider="U.S. Federal Register API",
+            cadence=Cadence.daily,
+            backfill="rolling_recent",
+            tvm_vectors=[
+                TVMVectorId.V10_GOVERNANCE_PRESSURE.value,
+            ],
+            mda_domains=["GOVERNANCE"],
+            adapter="us_federal_register",
+            cache_policy=CachePolicy.required,
+            determinism_notes="cache_required; cache raw documents.json; per_page=20 order=newest.",
+            provenance_notes=(
+                "SHADOW lane; influence=NONE; not promoted. "
+                "Notion EXT.US.FEDERAL_REGISTER.v1. Public documents index; no secrets."
+            ),
+            legal_notes="Public Federal Register API; cache snapshots; no credentials.",
+            refs=[
+                SourceRef(
+                    id="US_Federal_Register_Documents",
+                    title="Federal Register API v1 documents",
+                    url="https://www.federalregister.gov/api/v1/documents.json?per_page=20&order=newest",
+                )
+            ],
+        ),
+        SourceRecord(
+            source_id="RESTCOUNTRIES_V3",
+            kind=SourceKind.governance_docs,
+            provider="REST Countries (v3.1)",
+            cadence=Cadence.on_release,
+            backfill="catalog_snapshot",
+            tvm_vectors=[
+                TVMVectorId.V10_GOVERNANCE_PRESSURE.value,
+                TVMVectorId.V3_DISTRIBUTION_DYNAMICS.value,
+            ],
+            mda_domains=["GOVERNANCE"],
+            adapter="restcountries_v3",
+            cache_policy=CachePolicy.required,
+            determinism_notes="cache_required; cache raw country list; list payload wrapped as items.",
+            provenance_notes=(
+                "SHADOW lane; influence=NONE; not promoted. "
+                "Notion EXT.RESTCOUNTRIES.v1. Public country catalog; no secrets."
+            ),
+            legal_notes="Public REST Countries API; cache snapshots; no credentials.",
+            refs=[
+                SourceRef(
+                    id="RESTCountries_V31_All",
+                    title="REST Countries v3.1 all (name,cca2,region,population)",
+                    url="https://restcountries.com/v3.1/all?fields=name,cca2,region,population",
+                )
+            ],
+        ),
     ]
 
 

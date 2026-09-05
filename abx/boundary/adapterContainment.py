@@ -25,6 +25,46 @@ def _sample_transforms() -> list[AdapterTransformRecord]:
             output_trust="GOVERNED_DERIVED",
             metadata={"adds_fields": ["kp_index"], "policy_flags": ["requires_governance_gate"]},
         ),
+        build_transform_record(
+            adapter_id="adapter.worldbank_region_v2.v1",
+            connector_id="connector.worldbank_region_v2",
+            transform_type="translation",
+            input_trust="EXTERNAL_ASSERTED",
+            output_trust="EXTERNAL_ASSERTED",
+            metadata={"adds_fields": ["source", "payload"], "policy_flags": []},
+        ),
+        build_transform_record(
+            adapter_id="adapter.exchangerate_open_v6.v1",
+            connector_id="connector.exchangerate_open_v6",
+            transform_type="translation",
+            input_trust="EXTERNAL_ASSERTED",
+            output_trust="EXTERNAL_ASSERTED",
+            metadata={"adds_fields": ["source", "payload"], "policy_flags": []},
+        ),
+        build_transform_record(
+            adapter_id="adapter.usgs_earthquake_fdsn.v1",
+            connector_id="connector.usgs_earthquake_fdsn",
+            transform_type="translation",
+            input_trust="EXTERNAL_ASSERTED",
+            output_trust="EXTERNAL_ASSERTED",
+            metadata={"adds_fields": ["source", "payload"], "policy_flags": []},
+        ),
+        build_transform_record(
+            adapter_id="adapter.us_federal_register.v1",
+            connector_id="connector.us_federal_register",
+            transform_type="translation",
+            input_trust="EXTERNAL_ASSERTED",
+            output_trust="EXTERNAL_ASSERTED",
+            metadata={"adds_fields": ["source", "payload"], "policy_flags": []},
+        ),
+        build_transform_record(
+            adapter_id="adapter.restcountries_v3.v1",
+            connector_id="connector.restcountries_v3",
+            transform_type="translation",
+            input_trust="EXTERNAL_ASSERTED",
+            output_trust="EXTERNAL_ASSERTED",
+            metadata={"adds_fields": ["source", "payload"], "policy_flags": []},
+        ),
     ]
 
 

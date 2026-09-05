@@ -8,5 +8,10 @@
   "NOAA_NCEI_CDO_V2": "climate_energy",
   "NASA_JPL_HORIZONS_EPHEM": "wildcards",
   "TOMSK_SOS_SCHUMANN": "wildcards",
-  "IANA_TZDB": "wildcards"
+  "IANA_TZDB": "wildcards",
+  "WORLDBANK_REGION_V2": "finance",
+  "EXCHANGERATE_OPEN_V6": "finance",
+  "USGS_EARTHQUAKE_FDSN": "climate_energy",
+  "US_FEDERAL_REGISTER": "geopolitics",
+  "RESTCOUNTRIES_V3": "geopolitics"
 }

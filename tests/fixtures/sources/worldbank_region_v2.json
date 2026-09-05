@@ -1,0 +1,20 @@
+[
+  {
+    "page": 1,
+    "pages": 1,
+    "per_page": "50",
+    "total": 2
+  },
+  [
+    {
+      "id": "AFR",
+      "iso2code": "A9",
+      "value": "Africa"
+    },
+    {
+      "id": "EAS",
+      "iso2code": "Z4",
+      "value": "East Asia & Pacific"
+    }
+  ]
+]
