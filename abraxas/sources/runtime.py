@@ -18,6 +18,7 @@ from abraxas.sources.adapters import (
     RESTCountriesV3Adapter,
     SWPCKpAdapter,
     TimeSeriesCSVAdapter,
+    TimesFMLocalAdapter,
     TomskSOSAdapter,
     TZDBSnapshotAdapter,
     USFederalRegisterAdapter,
@@ -46,6 +47,7 @@ ADAPTER_REGISTRY: dict[str, Type[SourceAdapter]] = {
     "usgs_earthquake_fdsn": USGSEarthquakeFDSNAdapter,
     "us_federal_register": USFederalRegisterAdapter,
     "restcountries_v3": RESTCountriesV3Adapter,
+    "timesfm_local_2_5": TimesFMLocalAdapter,
 }
 
 

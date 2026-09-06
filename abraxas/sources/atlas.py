@@ -362,6 +362,35 @@ def _records() -> List[SourceSpec]:
                 )
             ],
         ),
+        SourceRecord(
+            source_id="ENERGY_CHARTS_PRICE_V1",
+            kind=SourceKind.inflation_prices,
+            provider="Energy Charts (Bundesnetzagentur / SMARD via energy-charts.info)",
+            cadence=Cadence.hourly,
+            backfill="rolling_recent",
+            tvm_vectors=[
+                TVMVectorId.V11_ECONOMIC_STRESS.value,
+            ],
+            mda_domains=["ECONOMIC_STRESS"],
+            adapter="timesfm_local_2_5",
+            cache_policy=CachePolicy.required,
+            determinism_notes="cache_required; cache raw DE-LU price JSON; history window clipped in parse.",
+            provenance_notes=(
+                "SHADOW lane; influence=NONE; not promoted. "
+                "Packet source_id EXT.ENERGY_CHARTS.PRICE.v1. Public day-ahead prices; no secrets."
+            ),
+            legal_notes=(
+                "Public Energy Charts API; cache snapshots; no credentials. "
+                "Upstream license_info is CC BY 4.0 from Bundesnetzagentur | SMARD.de."
+            ),
+            refs=[
+                SourceRef(
+                    id="EnergyCharts_Price_DE_LU",
+                    title="Energy Charts price DE-LU",
+                    url="https://api.energy-charts.info/price?bzn=DE-LU",
+                )
+            ],
+        ),
     ]
 
 

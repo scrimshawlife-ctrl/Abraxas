@@ -13,6 +13,8 @@ preflight-forecast_portfolio_simulation_v0_1:
 	$(PYTHON) .abraxas/scripts/preflight.py --subsystem forecast_portfolio_simulation_v0_1
 preflight-research_rag_v0:
 	$(PYTHON) .abraxas/scripts/preflight.py --subsystem research_rag_v0
+preflight-timesfm_shadow_lab_v0:
+	$(PYTHON) .abraxas/scripts/preflight.py --subsystem timesfm_shadow_lab_v0
 
 scaffold:
 	$(PYTHON) .abraxas/scripts/scaffold_drop.py --out /tmp/code_drop_envelope.md
@@ -81,6 +83,10 @@ test-notion-next-steps:
 	pytest -q tests/test_run_notion_next_steps.py tests/test_notion_sync_artifact.py tests/test_online_decodo_flow.py
 test-research-rag:
 	PYTHONPATH=. pytest -q tests/test_research_rag_phase0.py
+test-timesfm-shadow:
+	PYTHONPATH=. pytest -q tests/test_timesfm_shadow_lab.py
+timesfm-shadow-smoke:
+	PYTHONPATH=. $(PYTHON) -m abraxas.sources.timesfm_shadow
 
 capture-repo-status:
 	@if [ -z "$(OUT)" ]; then \
@@ -111,7 +117,7 @@ repo-status:
 repo-guardrails: preflight registry-check proof-check governance-lint release-readiness continuity-drift repo-status
 
 test:
-	pytest -q tests/test_preflight.py tests/test_check_proof_claims.py tests/test_registry_consistency.py tests/test_release_readiness.py tests/test_governance_lint.py tests/test_append_governance_record.py tests/test_generate_release_manifest.py tests/test_governance_summary.py tests/test_validate_governance_record.py tests/test_reconcile_subsystem_state.py tests/test_continuity_drift_check.py tests/test_repo_status.py tests/test_validate_run.py tests/test_capture_guardrail_receipts.py tests/test_capture_test_receipt.py tests/test_capture_repo_status_receipt.py tests/test_run_proof.py tests/test_mbom_v1.py tests/test_oracle_registry_mbom.py tests/test_research_rag_phase0.py
+	pytest -q tests/test_preflight.py tests/test_check_proof_claims.py tests/test_registry_consistency.py tests/test_release_readiness.py tests/test_governance_lint.py tests/test_append_governance_record.py tests/test_generate_release_manifest.py tests/test_governance_summary.py tests/test_validate_governance_record.py tests/test_reconcile_subsystem_state.py tests/test_continuity_drift_check.py tests/test_repo_status.py tests/test_validate_run.py tests/test_capture_guardrail_receipts.py tests/test_capture_test_receipt.py tests/test_capture_repo_status_receipt.py tests/test_run_proof.py tests/test_mbom_v1.py tests/test_oracle_registry_mbom.py tests/test_research_rag_phase0.py tests/test_timesfm_shadow_lab.py
 
 run-oracle-signal-layer-v2:
 	@if [ -z "$(INPUT)" ]; then 		echo "Usage: make run-oracle-signal-layer-v2 INPUT=<path> [REPEATS=<n>] [OUT_DIR=<path>]"; 		exit 2; 	fi

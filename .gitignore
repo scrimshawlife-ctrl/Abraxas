@@ -63,6 +63,9 @@ tools/aatf/.aatf/
 .sandbox/ledger/
 .sandbox/tmp/
 
+# TimesFM Shadow lab evidence (local only; never commit)
+out/timesfm_shadow/
+
 # MDA run outputs (if placed under sandbox)
 *.invariance_report.json
 *.fusion_graph.json

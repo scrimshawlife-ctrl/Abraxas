@@ -127,6 +127,18 @@ PYTHONPATH=. pytest -q tests/test_research_rag_phase0.py
 
 Env vars: `NOTION_TOKEN`, `NOTION_VERSION`, `ABX_RESEARCH_RAG_*` (see `.env.example` and [docs/oracle-research-stack/research_rag_phase0.md](docs/oracle-research-stack/research_rag_phase0.md)).
 
+### TimesFM 2.5 Shadow lab (not Canon; not Forecast)
+
+Local TimesFM 2.5 adapter plus DE-LU Energy Charts smoke. Writes `TimesFMShadowForecast.v0` under `out/timesfm_shadow/` only. `valid_for_forecast` stays `false`. Optional torch/transformers are not required for CI.
+
+```bash
+PYTHONPATH=. pytest -q tests/test_timesfm_shadow_lab.py
+pip install -e '.[timesfm]'
+PYTHONPATH=. python -m abraxas.sources.timesfm_shadow --out-dir out/timesfm_shadow
+```
+
+See [docs/oracle-research-stack/timesfm_shadow_lab.md](docs/oracle-research-stack/timesfm_shadow_lab.md).
+
 ---
 
 ## Rune layer (local module)
