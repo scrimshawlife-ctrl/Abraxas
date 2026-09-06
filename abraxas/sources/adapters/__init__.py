@@ -12,6 +12,7 @@ from .restcountries_v3 import RESTCountriesV3Adapter
 from .tomsk_sos import TomskSOSAdapter
 from .timeseries_csv import TimeSeriesCSVAdapter
 from .govdocs_jsonl import GovDocsJSONLAdapter
+from .timesfm_local import TimesFMLocalAdapter
 from .tzdb_snapshot import TZDBSnapshotAdapter
 from .us_federal_register import USFederalRegisterAdapter
 from .usgs_earthquake_fdsn import USGSEarthquakeFDSNAdapter
@@ -30,6 +31,7 @@ __all__ = [
     "TomskSOSAdapter",
     "TimeSeriesCSVAdapter",
     "GovDocsJSONLAdapter",
+    "TimesFMLocalAdapter",
     "TZDBSnapshotAdapter",
     "USFederalRegisterAdapter",
     "USGSEarthquakeFDSNAdapter",

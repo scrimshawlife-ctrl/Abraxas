@@ -75,6 +75,12 @@ bridge = [
     "requests>=2.31.0",
 ]
 
+# TimesFM 2.5 Shadow lab (CPU smoke only; never required for CI)
+timesfm = [
+    "torch>=2.2.0",
+    "transformers>=4.57.0",
+]
+
 # Development dependencies
 dev = [
     "pytest>=7.0.0",
@@ -106,6 +112,7 @@ packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
             "abraxas.disinfo",
             "abraxas.renderers", "abraxas.renderers.resonance_narratives",
             "abraxas.schema", "abraxas.schemas", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
+            "abraxas.sources.timesfm_shadow",
             "abraxas.temporal", "abraxas.metric_extractors", "abraxas.influence",
             "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
             "abraxas.economics", "abraxas.governance", "abraxas.lens", "abraxas.detectors",

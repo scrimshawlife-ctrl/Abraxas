@@ -1,0 +1,50 @@
+{
+  "subsystem_id": "timesfm_shadow_lab_v0",
+  "canon_status": "shadow_advisory",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "timesfm_shadow_unit"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "timesfm_2_5_apache_only",
+    "no_canon_rune_mint"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "valid_for_forecast_true",
+    "timesfm_3_0_or_non_apache_weights",
+    "objective_probability_write_from_timesfm",
+    "canon_registry_or_rune_active_mint",
+    "notion_receipt_write"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "timesfm_shadow_unit"
+  ],
+  "notes": [
+    "Path A TimesFM 2.5 Shadow lab. Not Canon. Not Forecast. No TimesFM 3.0.",
+    "Model lock: google/timesfm-2.5-200m-transformers Apache-2.0 with pinned hf_revision.",
+    "Lane SHADOW, influence_policy NONE, valid_for_forecast=false always.",
+    "Quantiles and mean are generative_prior_not_objective_probability. Never write BIAS_DELTA objective_probability.",
+    "Evidence sink is local JSON under out/timesfm_shadow/ only. No Notion Receipt writes.",
+    "RUNE.TIMESFM_FORECAST is a code-only stub string. Do not mint Canon Registry or Rune Active.",
+    "Optional torch/transformers inference is smoke-only and is not required for CI.",
+    "Operator stamp: Danny human-yes 2026-09-06 PT."
+  ]
+}

@@ -254,6 +254,40 @@ dependencies:
     provenance:
       source: ast_scan
       confidence: medium
+  torch:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [external_bridge]
+    import_policy: lazy_guard_required
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: abraxas/sources/timesfm_shadow/infer.py
+        line: 80
+        top_level: false
+        symbol: torch
+    notes:
+      - TimesFM 2.5 Shadow lab CPU inference only. Not truth-authoritative.
+      - Lazy import via abx.optional_dependencies.require_optional_dependency.
+    provenance:
+      source: timesfm_shadow_lab_v0
+      confidence: high
+  transformers:
+    class: OPTIONAL_ADAPTER
+    authority_scope: [external_bridge]
+    import_policy: lazy_guard_required
+    fallback_policy: execution_time_error
+    allowed_to_affect_truth: false
+    import_locations:
+      - path: abraxas/sources/timesfm_shadow/infer.py
+        line: 81
+        top_level: false
+        symbol: transformers
+    notes:
+      - TimesFm2_5ModelForPrediction loader for google/timesfm-2.5-200m-transformers.
+      - Apache-2.0 weights only. Not required for CI. Not Forecast-active.
+    provenance:
+      source: timesfm_shadow_lab_v0
+      confidence: high
   zstandard:
     class: CORE_REQUIRED
     authority_scope: [core, runtime]
