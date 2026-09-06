@@ -135,9 +135,13 @@ Local TimesFM 2.5 adapter plus DE-LU Energy Charts smoke. Writes `TimesFMShadowF
 PYTHONPATH=. pytest -q tests/test_timesfm_shadow_lab.py
 pip install -e '.[timesfm]'
 PYTHONPATH=. python -m abraxas.sources.timesfm_shadow --out-dir out/timesfm_shadow
+PYTHONPATH=. python -m abraxas.sources.timesfm_shadow_projection \
+  --packet tests/fixtures/timesfm_shadow/timesfm_shadow_forecast.v0.golden.json \
+  --out out/timesfm_shadow/timesfm_shadow_notion_projection.v0.json
+PYTHONPATH=. pytest -q tests/test_timesfm_shadow_projection.py
 ```
 
-See [docs/oracle-research-stack/timesfm_shadow_lab.md](docs/oracle-research-stack/timesfm_shadow_lab.md).
+See [docs/oracle-research-stack/timesfm_shadow_lab.md](docs/oracle-research-stack/timesfm_shadow_lab.md). T3 Notion DB write is out of band.
 
 ---
 

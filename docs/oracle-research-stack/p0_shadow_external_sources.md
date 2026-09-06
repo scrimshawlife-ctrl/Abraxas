@@ -17,7 +17,7 @@ They are not promoted to Canary or Active. No secrets. No phenomenology claims.
 
 Operator path: Notion registry row → this note → `abraxas/sources/atlas.py` SourceSpec → named `HTTPSnapshotAdapter` subclass → `ADAPTER_REGISTRY`.
 
-TimesFM 2.5 Shadow lab (DE-LU smoke, local JSON only) lives in `abraxas/sources/timesfm_shadow/` and [timesfm_shadow_lab.md](timesfm_shadow_lab.md). That path is Shadow access, not Canon, and does not mint `RUNE.TIMESFM_FORECAST`.
+TimesFM 2.5 Shadow lab (DE-LU smoke, local JSON only) lives in `abraxas/sources/timesfm_shadow/` and [timesfm_shadow_lab.md](timesfm_shadow_lab.md). That path is Shadow access, not Canon, and does not mint `RUNE.TIMESFM_FORECAST`. T1-T2 Notion projection is local JSON only (`abraxas/sources/timesfm_shadow_projection.py`); it does not write Notion or change Forecast authority.
 
 Research RAG Phase 0 (receipts + chunks, Notion query retrieve) lives in `abraxas/research_rag/` and [research_rag_phase0.md](research_rag_phase0.md). That path is shadow access, not Canon.
 

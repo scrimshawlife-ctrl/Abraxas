@@ -1,0 +1,49 @@
+{
+  "subsystem_id": "timesfm_shadow_notion_projection_v0",
+  "canon_status": "shadow_advisory",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "timesfm_shadow_projection_unit"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "no_notion_api_write",
+    "valid_for_forecast_false"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "valid_for_forecast_true",
+    "objective_probability_write_from_timesfm",
+    "canon_registry_or_rune_active_mint",
+    "notion_api_write",
+    "forecast_lane_on_projection"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "timesfm_shadow_projection_unit"
+  ],
+  "notes": [
+    "T1-T2 TimesFM Shadow Notion projection. Local JSON only. Not Canon. Not Forecast.",
+    "Projects TimesFMShadowForecast.v0 into timesfm_shadow_notion_projection.v0.",
+    "source_id is EXT.TIMESFM.2_5.v1. series_ref is the packet series id.",
+    "Projector forces lane=SHADOW, influence=NONE, valid_for_forecast=false.",
+    "Semantics normalize to generative_prior. History arrays are not copied.",
+    "T3 Notion database write is out of band (Boof). This slice must not call Notion.",
+    "Operator stamp: Danny human-yes 2026-09-06 PT."
+  ]
+}

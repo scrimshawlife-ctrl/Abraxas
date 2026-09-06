@@ -43,6 +43,7 @@
     "Lane SHADOW, influence_policy NONE, valid_for_forecast=false always.",
     "Quantiles and mean are generative_prior_not_objective_probability. Never write BIAS_DELTA objective_probability.",
     "Evidence sink is local JSON under out/timesfm_shadow/ only. No Notion Receipt writes.",
+    "T1-T2 Notion projection is a separate downstream SHADOW_PROJECTION slice. It does not write Notion and does not change forecast authority.",
     "RUNE.TIMESFM_FORECAST is a code-only stub string. Do not mint Canon Registry or Rune Active.",
     "Optional torch/transformers inference is smoke-only and is not required for CI.",
     "Operator stamp: Danny human-yes 2026-09-06 PT."

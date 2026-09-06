@@ -1,0 +1,67 @@
+{
+  "packet_type": "TimesFMShadowForecast.v0",
+  "lane": "SHADOW",
+  "influence_policy": "NONE",
+  "valid_for_forecast": false,
+  "model_id": "google/timesfm-2.5-200m-transformers",
+  "hf_revision": "5a9806b9b291fad9233b5249d88263f1846304d3",
+  "license": "Apache-2.0",
+  "seed": 20260906,
+  "source_id": "EXT.ENERGY_CHARTS.PRICE.v1",
+  "bzn": "DE-LU",
+  "history": {
+    "timestamps": [
+      "2024-01-01T00:00:00Z",
+      "2024-01-01T01:00:00Z"
+    ],
+    "values": [
+      10.0,
+      11.0
+    ],
+    "window_n": 2
+  },
+  "forecast": {
+    "horizon": 2,
+    "mean": [
+      1.0,
+      2.0
+    ],
+    "quantiles": {
+      "q10": [
+        0.0,
+        1.0
+      ],
+      "q50": [
+        1.0,
+        2.0
+      ],
+      "q90": [
+        2.0,
+        3.0
+      ]
+    }
+  },
+  "semantics": "generative_prior_not_objective_probability",
+  "fold_in": {
+    "feeds": [
+      {
+        "target": "RUNE.TIMESFM_FORECAST",
+        "lane": "SHADOW",
+        "authority": "none",
+        "writes_objective_probability": false
+      },
+      {
+        "target": "MONTE_FORECAST",
+        "lane": "SHADOW",
+        "authority": "none",
+        "writes_objective_probability": false
+      },
+      {
+        "target": "BIAS_DELTA",
+        "lane": "SHADOW",
+        "authority": "none",
+        "writes_objective_probability": false
+      }
+    ]
+  }
+}
