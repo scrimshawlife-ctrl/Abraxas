@@ -15,6 +15,8 @@ preflight-research_rag_v0:
 	$(PYTHON) .abraxas/scripts/preflight.py --subsystem research_rag_v0
 preflight-timesfm_shadow_lab_v0:
 	$(PYTHON) .abraxas/scripts/preflight.py --subsystem timesfm_shadow_lab_v0
+preflight-timesfm_shadow_notion_projection_v0:
+	$(PYTHON) .abraxas/scripts/preflight.py --subsystem timesfm_shadow_notion_projection_v0
 
 scaffold:
 	$(PYTHON) .abraxas/scripts/scaffold_drop.py --out /tmp/code_drop_envelope.md
@@ -85,8 +87,12 @@ test-research-rag:
 	PYTHONPATH=. pytest -q tests/test_research_rag_phase0.py
 test-timesfm-shadow:
 	PYTHONPATH=. pytest -q tests/test_timesfm_shadow_lab.py
+test-timesfm-shadow-projection:
+	PYTHONPATH=. pytest -q tests/test_timesfm_shadow_projection.py
 timesfm-shadow-smoke:
 	PYTHONPATH=. $(PYTHON) -m abraxas.sources.timesfm_shadow
+timesfm-shadow-projection:
+	PYTHONPATH=. $(PYTHON) -m abraxas.sources.timesfm_shadow_projection --packet $(PACKET) --out $(OUT)
 
 capture-repo-status:
 	@if [ -z "$(OUT)" ]; then \

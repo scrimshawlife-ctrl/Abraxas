@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "abraxas://schemas/timesfm_shadow_notion_projection.v0.json",
+  "title": "timesfm_shadow_notion_projection.v0",
+  "description": "SHADOW-only TimesFM Notion projection. Not Forecast. Not Canon. No history arrays.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "packet_hash",
+    "source_id",
+    "series_ref",
+    "hf_model",
+    "lane",
+    "influence",
+    "valid_for_forecast",
+    "semantics",
+    "history_len",
+    "horizon",
+    "quantiles",
+    "fold_in_feeds",
+    "authority_badge",
+    "local_path"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "timesfm_shadow_notion_projection.v0"
+    },
+    "packet_hash": {
+      "type": "string",
+      "description": "SHA-256 hex of the raw input packet file bytes.",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_id": {
+      "type": "string",
+      "const": "EXT.TIMESFM.2_5.v1",
+      "description": "Model registry id. Not the series id."
+    },
+    "series_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Packet source_id (series), e.g. EXT.ENERGY_CHARTS.PRICE.v1."
+    },
+    "hf_model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hf_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "bzn": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane": {
+      "type": "string",
+      "const": "SHADOW"
+    },
+    "influence": {
+      "type": "string",
+      "const": "NONE"
+    },
+    "valid_for_forecast": {
+      "type": "boolean",
+      "const": false
+    },
+    "semantics": {
+      "type": "string",
+      "const": "generative_prior"
+    },
+    "history_len": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "horizon": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "quantiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["q10", "q50", "q90"],
+      "properties": {
+        "q10": {
+          "type": "array",
+          "items": {"type": "number"},
+          "minItems": 1
+        },
+        "q50": {
+          "type": "array",
+          "items": {"type": "number"},
+          "minItems": 1
+        },
+        "q90": {
+          "type": "array",
+          "items": {"type": "number"},
+          "minItems": 1
+        }
+      }
+    },
+    "mean_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["last", "n"],
+      "properties": {
+        "last": {"type": "number"},
+        "n": {"type": "integer", "minimum": 1}
+      }
+    },
+    "fold_in_feeds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["target", "authority"],
+        "properties": {
+          "target": {"type": "string", "minLength": 1},
+          "authority": {"type": "string", "const": "none"}
+        }
+      }
+    },
+    "authority_badge": {
+      "type": "string",
+      "const": "SHADOW_PROJECTION"
+    },
+    "local_path": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

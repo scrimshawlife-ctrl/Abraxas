@@ -51,6 +51,23 @@ The smoke path:
 
 First run downloads weights once. Later runs reuse the local HF cache. No spend APIs. No Notion Receipt writes.
 
+## T1-T2 Shadow Notion projection (no Notion writes)
+
+Local projector only. It reads a `TimesFMShadowForecast.v0` packet and writes
+`timesfm_shadow_notion_projection.v0`. Forecast authority does not change.
+`valid_for_forecast` stays `false`. History timestamps and values are not copied.
+
+Schema: [`schemas/timesfm_shadow_notion_projection.v0.json`](../../schemas/timesfm_shadow_notion_projection.v0.json)
+
+```bash
+PYTHONPATH=. python -m abraxas.sources.timesfm_shadow_projection \
+  --packet tests/fixtures/timesfm_shadow/timesfm_shadow_forecast.v0.golden.json \
+  --out out/timesfm_shadow/timesfm_shadow_notion_projection.v0.json
+PYTHONPATH=. pytest -q tests/test_timesfm_shadow_projection.py
+```
+
+T3 Notion database write is out of band (Boof).
+
 ## Hold
 
 - No Canon mint.

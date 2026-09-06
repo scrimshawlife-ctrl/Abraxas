@@ -1,0 +1,51 @@
+{
+  "authority_badge": "SHADOW_PROJECTION",
+  "bzn": "DE-LU",
+  "fold_in_feeds": [
+    {
+      "authority": "none",
+      "target": "RUNE.TIMESFM_FORECAST"
+    },
+    {
+      "authority": "none",
+      "target": "MONTE_FORECAST"
+    },
+    {
+      "authority": "none",
+      "target": "BIAS_DELTA"
+    }
+  ],
+  "hf_model": "google/timesfm-2.5-200m-transformers",
+  "hf_revision": "5a9806b9b291fad9233b5249d88263f1846304d3",
+  "history_len": 2,
+  "horizon": 2,
+  "influence": "NONE",
+  "lane": "SHADOW",
+  "license": "Apache-2.0",
+  "local_path": "tests/fixtures/timesfm_shadow/timesfm_shadow_forecast.v0.golden.json",
+  "mean_summary": {
+    "last": 2.0,
+    "n": 2
+  },
+  "packet_hash": "ea0119d3e7f101d675f47c5fc61ccdd96f573becca15da3c4c2ac69b8c6e7746",
+  "quantiles": {
+    "q10": [
+      0.0,
+      1.0
+    ],
+    "q50": [
+      1.0,
+      2.0
+    ],
+    "q90": [
+      2.0,
+      3.0
+    ]
+  },
+  "schema_version": "timesfm_shadow_notion_projection.v0",
+  "seed": 20260906,
+  "semantics": "generative_prior",
+  "series_ref": "EXT.ENERGY_CHARTS.PRICE.v1",
+  "source_id": "EXT.TIMESFM.2_5.v1",
+  "valid_for_forecast": false
+}
