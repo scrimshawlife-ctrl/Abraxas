@@ -149,32 +149,35 @@ def test_packet_rejects_forecast_lane_and_wrong_revision() -> None:
         mean=[1.0],
         quantiles={"q10": [0.0], "q50": [1.0], "q90": [2.0]},
     )
-    with pytest.raises(ValidationError):
-        TimesFMShadowForecastV0(
-            valid_for_forecast=True,  # type: ignore[arg-type]
-            hf_revision=HF_REVISION,
-            seed=1,
-            history=history,
-            forecast=forecast,
-            fold_in=default_fold_in(),
-        )
+    promoted = TimesFMShadowForecastV0(
+        valid_for_forecast=True,
+        hf_revision=HF_REVISION,
+        seed=1,
+        history=history,
+        forecast=forecast,
+        fold_in=default_fold_in(),
+    )
+    with pytest.raises(ValidationError, match="valid_for_forecast"):
+        assert_shadow_locks(promoted)
+    bad_rev = TimesFMShadowForecastV0(
+        hf_revision="deadbeef",
+        seed=1,
+        history=history,
+        forecast=forecast,
+        fold_in=default_fold_in(),
+    )
     with pytest.raises(ValidationError, match="hf_revision"):
-        TimesFMShadowForecastV0(
-            hf_revision="deadbeef",
-            seed=1,
-            history=history,
-            forecast=forecast,
-            fold_in=default_fold_in(),
-        )
-    with pytest.raises(ValidationError):
-        TimesFMShadowForecastV0(
-            model_id="google/timesfm-3.0-demo",  # type: ignore[arg-type]
-            hf_revision=HF_REVISION,
-            seed=1,
-            history=history,
-            forecast=forecast,
-            fold_in=default_fold_in(),
-        )
+        assert_shadow_locks(bad_rev)
+    v3 = TimesFMShadowForecastV0(
+        model_id="google/timesfm-3.0-demo",
+        hf_revision=HF_REVISION,
+        seed=1,
+        history=history,
+        forecast=forecast,
+        fold_in=default_fold_in(),
+    )
+    with pytest.raises(ValidationError, match="TimesFM 3"):
+        assert_shadow_locks(v3)
 
 
 def test_predict_uses_injected_infer_fn() -> None:

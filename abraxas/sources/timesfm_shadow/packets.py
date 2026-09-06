@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal, Mapping, Sequence
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationError
 
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.sources.timesfm_shadow.constants import (
@@ -30,33 +30,11 @@ class HistoryBlock(BaseModel):
     values: list[float]
     window_n: int
 
-    @model_validator(mode="after")
-    def _aligned(self) -> "HistoryBlock":
-        if len(self.timestamps) != len(self.values):
-            raise ValueError("history timestamps and values must have equal length")
-        if self.window_n != len(self.values):
-            raise ValueError("history window_n must equal values length")
-        if self.window_n < 1:
-            raise ValueError("history window_n must be >= 1")
-        return self
-
 
 class ForecastBlock(BaseModel):
     horizon: int
     mean: list[float]
     quantiles: dict[str, list[float]]
-
-    @model_validator(mode="after")
-    def _aligned(self) -> "ForecastBlock":
-        if self.horizon < 1:
-            raise ValueError("forecast horizon must be >= 1")
-        if len(self.mean) != self.horizon:
-            raise ValueError("forecast mean length must equal horizon")
-        for key in ("q10", "q50", "q90"):
-            series = self.quantiles.get(key)
-            if not isinstance(series, list) or len(series) != self.horizon:
-                raise ValueError(f"forecast quantiles.{key} length must equal horizon")
-        return self
 
 
 class FoldInFeed(BaseModel):
@@ -64,16 +42,6 @@ class FoldInFeed(BaseModel):
     lane: Literal["SHADOW"] = LANE
     authority: Literal["none"] = "none"
     writes_objective_probability: bool = False
-
-    @model_validator(mode="after")
-    def _shadow_only(self) -> "FoldInFeed":
-        if self.lane != LANE:
-            raise ValueError("fold_in feeds remain SHADOW only")
-        if self.authority != "none":
-            raise ValueError("fold_in feeds have no authority")
-        if self.writes_objective_probability:
-            raise ValueError("TimesFM must not write objective_probability")
-        return self
 
 
 class FoldInBlock(BaseModel):
@@ -83,47 +51,20 @@ class FoldInBlock(BaseModel):
 class TimesFMShadowForecastV0(BaseModel):
     """Local Shadow evidence packet. Not Canon. Not Forecast-active."""
 
-    model_config = ConfigDict(extra="forbid")
-
     packet_type: Literal["TimesFMShadowForecast.v0"] = PACKET_TYPE
     lane: Literal["SHADOW"] = LANE
     influence_policy: Literal["NONE"] = INFLUENCE_POLICY
-    valid_for_forecast: Literal[False] = VALID_FOR_FORECAST
-    model_id: Literal["google/timesfm-2.5-200m-transformers"] = MODEL_ID
-    hf_revision: str = Field(min_length=7)
-    license: Literal["Apache-2.0"] = LICENSE
+    valid_for_forecast: bool = VALID_FOR_FORECAST
+    model_id: str = MODEL_ID
+    hf_revision: str = Field()
+    license: str = LICENSE
     seed: int
-    source_id: Literal["EXT.ENERGY_CHARTS.PRICE.v1"] = SOURCE_ID
-    bzn: Literal["DE-LU"] = BZN
+    source_id: str = SOURCE_ID
+    bzn: str = BZN
     history: HistoryBlock
     forecast: ForecastBlock
-    semantics: Literal["generative_prior_not_objective_probability"] = SEMANTICS
+    semantics: str = SEMANTICS
     fold_in: FoldInBlock
-
-    @field_validator("hf_revision")
-    @classmethod
-    def _revision_is_pin(cls, value: str) -> str:
-        if value != HF_REVISION:
-            raise ValueError(f"hf_revision must equal pinned {HF_REVISION}")
-        return value
-
-    @field_validator("model_id")
-    @classmethod
-    def _model_is_2_5(cls, value: str) -> str:
-        lowered = value.lower()
-        if any(marker in lowered for marker in FORBIDDEN_MODEL_MARKERS):
-            raise ValueError("TimesFM 3.0 and non-2.5 ids are forbidden")
-        if value != MODEL_ID:
-            raise ValueError(f"model_id must equal {MODEL_ID}")
-        return value
-
-    @model_validator(mode="after")
-    def _locks(self) -> "TimesFMShadowForecastV0":
-        if self.valid_for_forecast is not False:
-            raise ValueError("valid_for_forecast must stay false")
-        if "objective_probability" in self.model_dump():
-            raise ValueError("packet must not carry objective_probability")
-        return self
 
     def packet_hash(self) -> str:
         return sha256_hex(canonical_json(self.model_dump()))
@@ -168,23 +109,54 @@ def build_shadow_packet(
 
 
 def assert_shadow_locks(packet: TimesFMShadowForecastV0) -> None:
-    if packet.valid_for_forecast is not False:
-        raise ValueError("valid_for_forecast must be false")
-    if packet.license != LICENSE:
-        raise ValueError("license must be Apache-2.0")
-    if packet.model_id != MODEL_ID:
-        raise ValueError("model_id lock failed")
-    if packet.hf_revision != HF_REVISION:
-        raise ValueError("hf_revision lock failed")
-    if packet.lane != LANE or packet.influence_policy != INFLUENCE_POLICY:
-        raise ValueError("lane lock failed")
-    if packet.semantics != SEMANTICS:
-        raise ValueError("semantics lock failed")
-    targets = {feed.target: feed for feed in packet.fold_in.feeds}
-    if RUNE_TIMESFM_FORECAST not in targets:
-        raise ValueError("missing RUNE.TIMESFM_FORECAST fold_in feed")
+    _require(packet.valid_for_forecast is False, "valid_for_forecast must be false")
+    _require(packet.license == LICENSE, "license must be Apache-2.0")
+    _require(_not_timesfm_3(packet.model_id), "TimesFM 3.0 and non-2.5 ids are forbidden")
+    _require(packet.model_id == MODEL_ID, "model_id lock failed")
+    _require(packet.hf_revision == HF_REVISION, "hf_revision lock failed")
+    _require(len(packet.hf_revision) >= 7, "hf_revision must be a commit SHA")
+    _require(packet.lane == LANE and packet.influence_policy == INFLUENCE_POLICY, "lane lock failed")
+    _require(packet.semantics == SEMANTICS, "semantics lock failed")
+    _require(packet.packet_type == PACKET_TYPE, "packet_type lock failed")
+    _require(packet.source_id == SOURCE_ID, "source_id lock failed")
+    _require(packet.bzn == BZN, "bzn lock failed")
+    _require("objective_probability" not in packet.model_dump(), "packet must not carry objective_probability")
+    _validate_history(packet.history)
+    _validate_forecast(packet.forecast)
+    _validate_fold_in(packet.fold_in)
+
+
+def _validate_history(history: HistoryBlock) -> None:
+    _require(len(history.timestamps) == len(history.values), "history timestamps and values must have equal length")
+    _require(history.window_n == len(history.values), "history window_n must equal values length")
+    _require(history.window_n >= 1, "history window_n must be >= 1")
+
+
+def _validate_forecast(forecast: ForecastBlock) -> None:
+    _require(forecast.horizon >= 1, "forecast horizon must be >= 1")
+    _require(len(forecast.mean) == forecast.horizon, "forecast mean length must equal horizon")
+    for key in ("q10", "q50", "q90"):
+        series = forecast.quantiles.get(key)
+        _require(isinstance(series, list) and len(series) == forecast.horizon, f"forecast quantiles.{key} length must equal horizon")
+
+
+def _validate_fold_in(fold_in: FoldInBlock) -> None:
+    targets = {feed.target: feed for feed in fold_in.feeds}
+    _require(RUNE_TIMESFM_FORECAST in targets, "missing RUNE.TIMESFM_FORECAST fold_in feed")
     bias = targets.get(BIAS_DELTA_FEED)
-    if bias is None or bias.writes_objective_probability:
-        raise ValueError("BIAS_DELTA must be SHADOW and must not write objective_probability")
-    if any(feed.lane != LANE for feed in packet.fold_in.feeds):
-        raise ValueError("fold_in feeds must stay SHADOW")
+    _require(bias is not None, "missing BIAS_DELTA fold_in feed")
+    _require(bias.writes_objective_probability is False, "BIAS_DELTA must not write objective_probability")
+    for feed in fold_in.feeds:
+        _require(feed.lane == LANE, "fold_in feeds must stay SHADOW")
+        _require(feed.authority == "none", "fold_in feeds have no authority")
+        _require(feed.writes_objective_probability is False, "TimesFM must not write objective_probability")
+
+
+def _not_timesfm_3(model_id: str) -> bool:
+    lowered = model_id.lower()
+    return not any(marker in lowered for marker in FORBIDDEN_MODEL_MARKERS)
+
+
+def _require(ok: bool, message: str) -> None:
+    if not ok:
+        raise ValidationError(message)
