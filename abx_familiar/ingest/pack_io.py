@@ -6,6 +6,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+from abx_familiar.ingest.project_v2_pack import (
+    project_v2_pack_dict,
+    should_project_v2_pack,
+)
 from abx_familiar.ir.evidence_pack_v0 import EvidenceItem, EvidencePack
 
 
@@ -29,6 +33,9 @@ def load_evidence_pack(path: str | Path) -> EvidencePack:
     raw = json.loads(Path(path).expanduser().read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValueError("pack root is not an object")
+    if should_project_v2_pack(raw):
+        pack, _sidecar = project_v2_pack_dict(raw)
+        return pack
     items_raw = raw.get("items") if isinstance(raw.get("items"), list) else []
     items = [item_from_dict(row) for row in items_raw if isinstance(row, dict)]
     pack = EvidencePack(
