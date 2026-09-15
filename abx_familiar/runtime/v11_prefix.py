@@ -54,7 +54,7 @@ def run_v11_prefix(
     if ledger_store is not None:
         ledger_store.append(entry)
 
-    delivery = herald_pointer(run_id, binding, entry, weave)
+    delivery = herald_pointer(run_id, binding, entry, weave, ward_post=post)
     return {
         "coupling": "spec_v1.1",
         "plan_id": plan.plan_id,
