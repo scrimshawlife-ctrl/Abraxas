@@ -15,13 +15,12 @@ SEQUENCE = (
     ("keep", "abx.familiar.keep.v0"),
     ("herald", "abx.familiar.herald.v0"),
 )
-IMPLEMENTED = {"summon", "ward_pre", "forage", "bind", "keep"}
+IMPLEMENTED = {item[0] for item in SEQUENCE}
 
 
 def build_v11_invocation_plan(plan_id: str = "familiar_v1_1") -> InvocationPlan:
     invocations: list[RuneInvocation] = []
     for inv_id, rune_id in SEQUENCE:
-        implemented = inv_id in IMPLEMENTED
         invocations.append(
             RuneInvocation(
                 invocation_id=inv_id,
@@ -29,9 +28,9 @@ def build_v11_invocation_plan(plan_id: str = "familiar_v1_1") -> InvocationPlan:
                 input_contract_ref="EvidencePack.v0",
                 params={"coupling": COUPLING, "gate": inv_id},
                 determinism="strict",
-                side_effects="none" if inv_id != "keep" else "ledger_append",
-                not_computable=not implemented,
-                missing_fields=[] if implemented else ["implementation"],
+                side_effects="ledger_append" if inv_id == "keep" else "none",
+                not_computable=False,
+                missing_fields=[],
             )
         )
     edges = [
