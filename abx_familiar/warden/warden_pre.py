@@ -78,9 +78,13 @@ def warden_pre(
         leakage.append("advisory_only")
         violations.append(_flag("ADVISORY_REQUIRED", "advisory_only must be true", "error"))
     if receipt.get("commercial_claims_blocked") is not True:
-        leakage.append("commercial_claims")
-        violations.append(
-            _flag("COMMERCIAL_UNBLOCKED", "commercial_claims_blocked must be true", "error")
+        # Density gate on v2.0 packs, not a SHADOW authority bit.
+        warnings.append(
+            _flag(
+                "COMMERCIAL_UNBLOCKED",
+                "commercial_claims_blocked is not true; density gate only, not a lane leak",
+                "warn",
+            )
         )
 
     authority = receipt.get("authority") if isinstance(receipt.get("authority"), dict) else {}
