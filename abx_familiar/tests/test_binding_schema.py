@@ -1,3 +1,5 @@
+import pytest
+
 from abx_familiar.binder.bind import bind_shadow
 from abx_familiar.binder.schema import validate_binding
 from abx_familiar.ingest.familiar_ingestion_receipt import build_familiar_ingestion_receipt
@@ -25,3 +27,13 @@ def test_bound_and_rejected_match_schema():
     bad = bind_shadow(pack, broken, ward, binding_id="bad")
     assert bad["status"] == "BIND_REJECTED"
     assert validate_binding(bad) == []
+
+
+def test_tampered_binding_fails_schema():
+    pack = _pack()
+    receipt = build_familiar_ingestion_receipt(pack)
+    ward = warden_pre(pack, receipt, report_id="pre")
+    ok = bind_shadow(pack, receipt, ward, binding_id="ok")
+    tampered = dict(ok)
+    tampered["binding_hash"] = "not-a-hash"
+    assert validate_binding(tampered)

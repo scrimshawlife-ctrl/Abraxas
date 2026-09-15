@@ -2,6 +2,7 @@
 
 Seals pack_hash + receipt_hash + ward_pre hash.
 Also checks pack_id, pack_hash, and receipt status. Does not infer.
+Returned dict must pass FamiliarBinding.v0.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ import hashlib
 import json
 from typing import Any
 
+from abx_familiar.binder.schema import validate_binding
 from abx_familiar.ir.evidence_pack_v0 import EvidencePack
 from abx_familiar.ir.ward_report_v0 import WardReport
 
@@ -53,6 +55,9 @@ def _body(
         "blockers": list(blockers),
     }
     raw["binding_hash"] = _hash(raw)
+    errors = validate_binding(raw)
+    if errors:
+        raise ValueError("FamiliarBinding.v0 invalid: " + "; ".join(errors))
     return raw
 
 
