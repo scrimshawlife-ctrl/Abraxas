@@ -1,6 +1,7 @@
 from abx_familiar.binder.bind import bind_shadow
 from abx_familiar.ingest.familiar_ingestion_receipt import build_familiar_ingestion_receipt
 from abx_familiar.ir.evidence_pack_v0 import EvidenceItem, EvidencePack
+from abx_familiar.ledger.in_memory_store import InMemoryAppendOnlyStore
 from abx_familiar.runtime.v11_prefix import run_v11_prefix
 from abx_familiar.summoner import SEQUENCE, build_v11_invocation_plan
 from abx_familiar.warden.warden_pre import warden_pre
@@ -31,8 +32,12 @@ def test_bind_rejects_failed_ward():
     assert binding["status"] == "BIND_REJECTED"
 
 
-def test_prefix_binds_shadow():
-    out = run_v11_prefix(_pack(), run_id="t1")
+def test_prefix_binds_shadow_and_keeps():
+    store = InMemoryAppendOnlyStore()
+    out = run_v11_prefix(_pack(), run_id="t1", ledger_store=store)
     assert out["binding"]["status"] == "BOUND_SHADOW"
     assert out["ward_pre"]["invariance_passed"] is True
-    assert "weave" in out["closed"]
+    assert out["ledger_entry"]["not_computable"] is False
+    assert out["ledger_entry"]["output_hash"] == out["binding"]["binding_hash"]
+    assert out["ledger_entry"]["meta"]["skipped_gates"] == ["weave", "ward_post", "herald"]
+    assert list(store.read_all())[0].run_id == "t1"
