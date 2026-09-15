@@ -1,0 +1,50 @@
+{
+  "program_id": "ABX-NOEMA-REP-001",
+  "inspected_on": "2026-09-14",
+  "sources": {
+    "Abraxas": {
+      "repository": "scrimshawlife-ctrl/Abraxas",
+      "commit": "951732f7228af22ccfbbf9db0276cd28eef954bf",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    },
+    "Noema-Specs": {
+      "repository": "Zero-State-LLC/Noema-Specs",
+      "commit": "22246e29964d1ab2ef62d1baab4403c8d7a5e32f",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    },
+    "noema-client": {
+      "repository": "scrimshawlife-ctrl/noema-client",
+      "commit": "2cce40d9655d8c4d90f56b281e3d9ec1a8aa73cf",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    },
+    "Hyperlex": {
+      "repository": "scrimshawlife-ctrl/Hyperlex",
+      "commit": "c73aebc5adcfb90e0a39e09153da7d4b0c6f34bb",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    },
+    "Semion": {
+      "repository": "scrimshawlife-ctrl/Semion",
+      "commit": "47a97b7889161a0d0e758b99d52e29919e8f28a7",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    },
+    "Noesis": {
+      "repository": "scrimshawlife-ctrl/Noesis",
+      "commit": "05ef9b264f5a4627afd51be14c3408b71f722531",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    },
+    "Trutina": {
+      "repository": "scrimshawlife-ctrl/Trutina",
+      "commit": "ef29afce50cb3beffaefeb32d60a6f447d4af900",
+      "evidence_kind": "repository-inspection-not-runtime-reproduction"
+    }
+  },
+  "notion_sources": [
+    "https://app.notion.com/p/3d83e8ba2f5c816faeb9e351a17ab3e7",
+    "https://app.notion.com/p/3d73e8ba2f5c81ad89d7c2df8e931a83",
+    "https://app.notion.com/p/3d83e8ba2f5c813c9989c0a2dc28357f"
+  ],
+  "limitations": [
+    "No live world, GPU, private corpus or checkpoint independently executed.",
+    "Spec 009 bind table inspected separately through GitHub connector; no Noesis bind inferred."
+  ]
+}

@@ -335,3 +335,7 @@ Doctrine: Sandbox → Mutations → Replay → Stabilization → Promotion Candi
 `SandboxPromotionCandidate.v1` is always created with `promotion_allowed=False` and `operator_review_required=True`.
 
 Hard boundaries: no live autonomy, no Canon mutation, no runtime mutation outside sandbox, no external APIs in this module.
+
+## Candidate persistent-agent research program
+
+[ABX-NOEMA-REP-001](docs/research/persistent-agent-program/spec.md) coordinates Noema evidence with Hyperlexical, Semion, Noesis and Trutina through existing ownership boundaries. Includes a candidate review sidecar and acceptance/task mapping. Advisory specification only; no new subsystem, runtime activation, specialist binding or promotion.

@@ -1,0 +1,65 @@
+{
+  "schema_version": "0.1.0-candidate",
+  "program_id": "ABX-NOEMA-REP-001",
+  "experiment_id": "review-only-not-an-executed-experiment",
+  "status": "candidate",
+  "authority": "ADVISORY_ONLY",
+  "components": [
+    {
+      "component": "noema",
+      "required": true,
+      "contract_ref": "Noema-Specs/docs/EXPERIMENT-LAB.md",
+      "status": "NOT_EXECUTED",
+      "artifacts": [],
+      "reason": "No experimental receipt produced by this specification change."
+    },
+    {
+      "component": "hyperlexical",
+      "required": true,
+      "contract_ref": "Hyperlex/schemas/hyperlexical_inference.v0.1.schema.json",
+      "status": "NOT_EXECUTED",
+      "artifacts": [],
+      "reason": "No experimental receipt produced by this specification change."
+    },
+    {
+      "component": "semion",
+      "required": true,
+      "contract_ref": "Semion/schemas/semion.frame.v0.schema.json",
+      "status": "NOT_EXECUTED",
+      "artifacts": [],
+      "reason": "No experimental receipt produced by this specification change."
+    },
+    {
+      "component": "noesis",
+      "required": true,
+      "contract_ref": "Noesis/contracts/experiment-manifest.schema.json",
+      "status": "NOT_EXECUTED",
+      "artifacts": [],
+      "reason": "No experimental receipt produced by this specification change."
+    },
+    {
+      "component": "trutina",
+      "required": true,
+      "contract_ref": "Trutina/contracts/brier.score.v0.schema.json",
+      "status": "NOT_EXECUTED",
+      "artifacts": [],
+      "reason": "No experimental receipt produced by this specification change."
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "review-integration-readiness",
+      "text": "End-to-end scientific integration is demonstrated.",
+      "depends_on": [
+        "noema",
+        "hyperlexical",
+        "semion",
+        "noesis",
+        "trutina"
+      ],
+      "label": "NOT_COMPUTABLE",
+      "evidence": [],
+      "reason": "This is a review fixture; no end-to-end experiment has run."
+    }
+  ]
+}
