@@ -1,0 +1,36 @@
+{
+  "schema_version": "EvidencePack.v0",
+  "pack_id": "pack_h_forage_min_2026-09-15",
+  "topic": "H_FORAGE min replay",
+  "intent": "tech",
+  "must_answer": ["does projector plus binder seal?"],
+  "sources": [
+    {
+      "source_id": "S001",
+      "url_or_path": "https://github.com/scrimshawlife-ctrl/Abraxas",
+      "title": "execution Abraxas",
+      "publisher": "github",
+      "source_class": "primary",
+      "excerpt": "runtime remote"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "Execution Abraxas exists as a public remote.",
+      "register": "OBSERVED",
+      "source_ids": ["S001"]
+    }
+  ],
+  "authority": {
+    "execution_authority": false,
+    "promotion_authorized": false,
+    "forecast_routing_authorized": false,
+    "canon_mutation_allowed": false
+  },
+  "provenance": {
+    "producer_system": "OPERATOR",
+    "skill_id": "abx-familiar-signal-forager",
+    "tool_trace_summary": "stabilization min fixture"
+  }
+}
