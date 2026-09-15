@@ -188,9 +188,13 @@ def apply_trust(
 
 
 def _dump_contract(result: TrustResult) -> dict[str, object]:
-    """Emit ABXRuneContract output names for registry callers."""
+    """Emit contract camelCase keys without dropping snake_case aliases."""
     dumped = result.model_dump()
-    return {_CONTRACT_OUTPUT_KEYS.get(key, key): value for key, value in dumped.items()}
+    aliased = dict(dumped)
+    for snake, camel in _CONTRACT_OUTPUT_KEYS.items():
+        if snake in dumped:
+            aliased[camel] = dumped[snake]
+    return aliased
 
 
 def _as_mapping(raw: object) -> Mapping[str, object] | None:
