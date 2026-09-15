@@ -67,6 +67,22 @@ class FamiliarRuntime:
         self.keeper = Keeper()
 
     def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        # Opt-in: EvidencePack present → spec v1.1 prefix (keep_output.v1).
+        # Lazy import avoids a cycle with runtime.v11_prefix → Keeper.
+        pack = context.get("pack")
+        if pack is not None:
+            from abx_familiar.ir.evidence_pack_v0 import EvidencePack
+
+            if isinstance(pack, EvidencePack):
+                from abx_familiar.runtime.v11_prefix import run_v11_prefix
+
+                return run_v11_prefix(
+                    pack,
+                    pack_ref=str(context.get("pack_ref", "")),
+                    run_id=str(context.get("run_id", "v11_prefix")),
+                    ledger_store=self._ledger_writer,
+                )
+
         run_id = str(context.get("run_id", ""))
         summoner = context.get("summoner", {})
         task_graph = TaskGraph({"summoner": summoner})
@@ -79,14 +95,10 @@ class FamiliarRuntime:
         }
         scheduled_ops: List[ScheduledOp] = []
 
-        # 7) Keeper (with stabilization window + prior run linking when ledger is configured)
         prior_entry = None
         if self._ledger_writer is not None:
-            # Safe: ledger_writer.read_all() returns iterable; store preserves insertion order.
             from abx_familiar.ledger.ledger_tools import get_last_entry
 
-            # NOTE: read_all() is a Protocol; some stores may not support multiple passes.
-            # In v0.1 we assume in-memory store or equivalent stable iterable.
             prior_entry = get_last_entry(self._ledger_writer.read_all())
 
         stabilization_enabled = bool(context.get("stabilization_enabled", False))
@@ -95,7 +107,6 @@ class FamiliarRuntime:
         prior_run_id = prior_entry.run_id if prior_entry is not None else None
         prior_task_graph_hash = prior_entry.task_graph_hash if prior_entry is not None else None
 
-        # Deterministic cycle increment when enabled
         if stabilization_enabled and prior_entry is not None:
             stabilization_cycle = prior_entry.stabilization_cycle + 1
         elif stabilization_enabled and prior_entry is None:
@@ -103,7 +114,6 @@ class FamiliarRuntime:
         else:
             stabilization_cycle = 0
 
-        # Mechanical delta summary: compare prior vs current task_graph hashes only.
         delta_summary = None
         if prior_entry is not None:
             from abx_familiar.ledger.diff_tools import diff_hashes
@@ -132,6 +142,7 @@ class FamiliarRuntime:
                 meta={
                     "stabilization_enabled": stabilization_enabled,
                     "stabilization_window_size": window_size,
+                    "keep_path": "execute_default_none",
                 },
                 not_computable=True,
                 missing_fields=["keeper"],
@@ -140,7 +151,6 @@ class FamiliarRuntime:
         artifacts["ledger_entry"] = ledger_entry
         scheduled_ops.append(ScheduledOp(invocation_id="keeper", rune_id="abx.familiar.keep.v0", state="completed"))
 
-        # Append to ledger store if configured (append-only)
         if self._ledger_writer is not None:
             self._ledger_writer.append(ledger_entry)
 
