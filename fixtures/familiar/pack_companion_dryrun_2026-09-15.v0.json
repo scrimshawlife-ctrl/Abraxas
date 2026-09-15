@@ -1,0 +1,53 @@
+{
+  "pack_id": "pack_companion_dryrun_2026-09-15",
+  "collection_context": {
+    "topic": "FAMILIAR receipt adapter dry-run",
+    "intent": "forage",
+    "lane": "SHADOW",
+    "operator": "companion",
+    "date": "2026-09-15"
+  },
+  "not_computable": false,
+  "missing_fields": [],
+  "items": [
+    {
+      "evidence_id": "ev_pr_244",
+      "source_type": "web",
+      "url": "https://github.com/scrimshawlife-ctrl/Abraxas/pull/244",
+      "path": null,
+      "source_id": null,
+      "timestamp": "2026-09-15T18:16:00Z",
+      "provenance_hash": null,
+      "confidence_class": "high",
+      "meta": {"title": "PR 244 squash-merged receipt adapter"},
+      "not_computable": false,
+      "missing_fields": []
+    },
+    {
+      "evidence_id": "ev_receipt_module",
+      "source_type": "file",
+      "url": null,
+      "path": "abx_familiar/ingest/familiar_ingestion_receipt.py",
+      "source_id": null,
+      "timestamp": "2026-09-15T18:16:00Z",
+      "provenance_hash": "9515affb0448e9ff328f6aaa0e807e617d61e475",
+      "confidence_class": "high",
+      "meta": {"title": "Execution-repo receipt module on main"},
+      "not_computable": false,
+      "missing_fields": []
+    },
+    {
+      "evidence_id": "ev_investigation",
+      "source_type": "web",
+      "url": "https://app.notion.com/p/3dc3e8ba2f5c81ee843fe0cd61017f2b",
+      "path": null,
+      "source_id": null,
+      "timestamp": "2026-09-15T18:17:00Z",
+      "provenance_hash": null,
+      "confidence_class": "medium",
+      "meta": {"title": "Seven-spirit orchestrator investigation 2026-09-15"},
+      "not_computable": false,
+      "missing_fields": []
+    }
+  ]
+}
