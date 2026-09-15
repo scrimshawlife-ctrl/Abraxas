@@ -12,7 +12,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from abx_familiar.ir.evidence_pack_v0 import EvidenceItem, EvidencePack
+from abx_familiar.ingest.pack_io import load_evidence_pack
+from abx_familiar.ir.evidence_pack_v0 import EvidencePack
 
 SCHEMA_VERSION = "FamiliarIngestionReceipt.v0"
 PIPELINE_ID = "familiar_ingestion"
@@ -182,47 +183,13 @@ def build_familiar_ingestion_receipt(
     )
 
 
-def _item_from_dict(raw: dict[str, Any]) -> EvidenceItem:
-    return EvidenceItem(
-        evidence_id=str(raw.get("evidence_id") or ""),
-        source_type=str(raw.get("source_type") or "none"),
-        url=raw.get("url"),
-        path=raw.get("path"),
-        source_id=raw.get("source_id"),
-        timestamp=raw.get("timestamp"),
-        provenance_hash=raw.get("provenance_hash"),
-        confidence_class=str(raw.get("confidence_class") or "unknown"),
-        meta=raw.get("meta") if isinstance(raw.get("meta"), dict) else {},
-        not_computable=bool(raw.get("not_computable", False)),
-        missing_fields=list(raw.get("missing_fields") or []),
-    )
-
-
 def build_familiar_ingestion_receipt_from_path(path: str | Path) -> dict[str, Any]:
     p = Path(path).expanduser()
     try:
-        raw = json.loads(p.read_text(encoding="utf-8"))
+        pack = load_evidence_pack(p)
     except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
         return build_familiar_ingestion_receipt(None, pack_ref=str(p), load_error=str(exc))
-    if not isinstance(raw, dict):
-        return build_familiar_ingestion_receipt(
-            None, pack_ref=str(p), load_error="pack root is not an object"
-        )
-    items_raw = raw.get("items") if isinstance(raw.get("items"), list) else []
-    items: list[EvidenceItem] = []
-    for row in items_raw:
-        if isinstance(row, dict):
-            items.append(_item_from_dict(row))
-    pack = EvidencePack(
-        pack_id=str(raw.get("pack_id") or ""),
-        items=items,
-        collection_context=raw.get("collection_context")
-        if isinstance(raw.get("collection_context"), dict)
-        else {},
-        not_computable=bool(raw.get("not_computable", False)),
-        missing_fields=list(raw.get("missing_fields") or []),
-    )
-    return build_familiar_ingestion_receipt(pack, pack_ref=str(p.resolve()))
+    return build_familiar_ingestion_receipt(pack, pack_ref=str(p))
 
 
 def build_familiar_ingestion_receipt_markdown(packet: dict[str, Any]) -> str:
