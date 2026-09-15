@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abraxas.local/contracts/familiar/familiar_binding.v0.schema.json",
+  "title": "FamiliarBinding.v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "binding_id",
+    "status",
+    "lane",
+    "advisory_only",
+    "authority",
+    "pack_id",
+    "pack_hash",
+    "receipt_id",
+    "receipt_hash",
+    "ward_pre_id",
+    "ward_pre_hash",
+    "blockers",
+    "binding_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "FamiliarBinding.v0" },
+    "binding_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["BOUND_SHADOW", "BIND_REJECTED"] },
+    "lane": { "const": "SHADOW" },
+    "advisory_only": { "const": true },
+    "authority": {
+      "type": "object",
+      "required": [
+        "execution_authority",
+        "promotion_authorized",
+        "forecast_routing_authorized",
+        "canon_mutation_allowed"
+      ],
+      "properties": {
+        "execution_authority": { "const": false },
+        "promotion_authorized": { "const": false },
+        "forecast_routing_authorized": { "const": false },
+        "canon_mutation_allowed": { "const": false }
+      }
+    },
+    "pack_id": { "type": "string" },
+    "pack_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "receipt_id": { "type": "string" },
+    "receipt_hash": { "type": "string" },
+    "ward_pre_id": { "type": "string" },
+    "ward_pre_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "binding_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}
