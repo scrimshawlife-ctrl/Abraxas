@@ -41,6 +41,7 @@ def test_prefix_runs_full_v11_tail():
     assert out["ward_pre"]["invariance_passed"] is True
     assert out["ward_post"]["invariance_passed"] is True
     assert out["ledger_entry"]["not_computable"] is False
+    assert out["ledger_entry"]["output_hash"] != out["binding"]["binding_hash"]
     assert out["herald"]["mode"] == "Analyst"
     assert out["herald"]["not_computable"] is False
     assert out["closed"] == []
