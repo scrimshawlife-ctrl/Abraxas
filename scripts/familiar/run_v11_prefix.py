@@ -27,7 +27,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     pack = load_evidence_pack(args.pack)
-    result = run_v11_prefix(pack, pack_ref=str(args.pack.resolve()), run_id=args.run_id)
+    # Keep pack_ref as the given path so hashes do not bake a machine absolute.
+    result = run_v11_prefix(pack, pack_ref=str(args.pack), run_id=args.run_id)
     if args.out is not None:
         out_path = args.out
     else:
