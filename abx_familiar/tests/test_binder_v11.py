@@ -19,7 +19,9 @@ def test_v11_plan_declares_ward_pre_before_forage():
     ids = [e.before_invocation_id + "->" + e.after_invocation_id for e in plan.dependency_edges]
     assert "ward_pre->forage" in ids
     assert "forage->bind" in ids
+    assert "weave->ward_post" in ids
     assert SEQUENCE[1][0] == "ward_pre"
+    assert all(not inv.not_computable for inv in plan.rune_invocations)
 
 
 def test_bind_rejects_failed_ward():
@@ -32,12 +34,15 @@ def test_bind_rejects_failed_ward():
     assert binding["status"] == "BIND_REJECTED"
 
 
-def test_prefix_binds_shadow_and_keeps():
+def test_prefix_runs_full_v11_tail():
     store = InMemoryAppendOnlyStore()
     out = run_v11_prefix(_pack(), run_id="t1", ledger_store=store)
     assert out["binding"]["status"] == "BOUND_SHADOW"
     assert out["ward_pre"]["invariance_passed"] is True
+    assert out["ward_post"]["invariance_passed"] is True
     assert out["ledger_entry"]["not_computable"] is False
-    assert out["ledger_entry"]["output_hash"] == out["binding"]["binding_hash"]
-    assert out["ledger_entry"]["meta"]["skipped_gates"] == ["weave", "ward_post", "herald"]
-    assert list(store.read_all())[0].run_id == "t1"
+    assert out["herald"]["mode"] == "Analyst"
+    assert out["herald"]["not_computable"] is False
+    assert out["closed"] == []
+    kinds = {row["kind"] for row in out["weave"]}
+    assert kinds == {"evidence", "receipt", "ward_report", "binding"}
