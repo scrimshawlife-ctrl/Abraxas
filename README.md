@@ -320,7 +320,7 @@ Use [docs/README.md](docs/README.md) for routing. Sibling and heading map: [docs
 
 ## License / Status
 
-A root `LICENSE` file is currently not present. `package.json` declares `MIT` for package scope; verify top-level licensing before redistribution.
+This repository is licensed under the MIT License. The root `LICENSE` file is MIT and matches `package.json` (`"license": "MIT"`).
 
 ---
 
