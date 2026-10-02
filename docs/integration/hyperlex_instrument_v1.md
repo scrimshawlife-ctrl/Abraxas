@@ -7,6 +7,8 @@ valid_for_forecast = false
 feature_flag      = ABX_HYPERLEX_INSTRUMENT (default off)
 ```
 
+**Notion mirror:** [Instrument V1 — settlement + Abraxas shadow | 2026-10-02](https://app.notion.com/p/3ed3e8ba2f5c81ea854de3dcb6a10958) · Hyperlex SoT [`docs/instrument-v1.md`](https://github.com/scrimshawlife-ctrl/Hyperlex/blob/main/docs/instrument-v1.md).
+
 ## Role
 
 Hyperlex is a **versioned semantic instrumentation dependency**.
