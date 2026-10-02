@@ -31,7 +31,8 @@ flowchart LR
 
 ## Start Here
 
-- [docs/SIBLING_REPOS.md](docs/SIBLING_REPOS.md) — doctrine sibling (`Abraxas-v2.0`) vs this runtime/proof repo.
+- [docs/SIBLING_REPOS.md](docs/SIBLING_REPOS.md) — doctrine sibling (`Abraxas-v2.0`) vs this runtime/proof repo; Hyperlex Instrument V1 shadow dependency.
+- [docs/integration/hyperlex_instrument_v1.md](docs/integration/hyperlex_instrument_v1.md) — Hyperlex as advisory SHADOW_SIGNAL evidence (`ABX_HYPERLEX_INSTRUMENT`, default off).
 - [docs/README_HEADING_MAP.md](docs/README_HEADING_MAP.md) — `v2.0.1` / `v2.0.5` heading strings are local modules.
 - [README.md](README.md) — front-door orientation and quickstart.
 - [docs/README.md](docs/README.md) — documentation navigation map.
