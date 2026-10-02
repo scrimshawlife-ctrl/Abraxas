@@ -1,0 +1,46 @@
+{
+  "subsystem_id": "hyperlex_instrument_v1",
+  "canon_status": "shadow_advisory",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "lane": "shadow",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "additive_patch"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "forecast_active_change"
+  ],
+  "required_receipts": [
+    "hyperlex_instrument_unit"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "shadow_only_until_explicit_promotion",
+    "no_forecast_influence",
+    "hyperlex_output_not_semantic_truth",
+    "classifier_release_remains_rejected"
+  ],
+  "revocation_triggers": [
+    "shadow_leakage_into_forecast",
+    "valid_for_forecast_true",
+    "promote_hyperlex_candidates_to_gold",
+    "treat_hyperlex_as_canonical_state"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "hyperlex_instrument_unit"
+  ],
+  "notes": [
+    "Hyperlex Instrument V1 as versioned semantic instrumentation dependency.",
+    "HYPERLEX_OUTPUT != SEMANTIC_TRUTH.",
+    "Roles allowed: OBSERVATION, EVIDENCE, SHADOW_SIGNAL only.",
+    "Feature flag ABX_HYPERLEX_INSTRUMENT defaults off.",
+    "V6 classifier release REJECTED; do not reopen classification research.",
+    "Settlement: Hyperlex specs/007-hyperlexical-model/classification-v6-program-settlement-20261002.md receipt 4ae7cddf…"
+  ]
+}
