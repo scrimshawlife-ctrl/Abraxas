@@ -5,6 +5,15 @@ All notable changes to the Abraxas project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+- **Hyperlex Instrument V1 shadow evidence adapter** (`abraxas.evidence.hyperlex_instrument`):
+  maps `hyperlex.instrument.v1` observations to advisory `SHADOW_SIGNAL` evidence.
+  Feature flag `ABX_HYPERLEX_INSTRUMENT` defaults off. Subsystem
+  `hyperlex_instrument_v1`. Docs: `docs/integration/hyperlex_instrument_v1.md`.
+  Merged via PR #261.
+
 ## [2.2.0] - 2026-01-04
 
 ### Added
