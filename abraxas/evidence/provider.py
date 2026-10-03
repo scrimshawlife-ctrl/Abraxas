@@ -164,16 +164,22 @@ def create_athanor_adapter(
             # Call the inference engine
             result = inference_engine(claim, context)
             
+            candidates = result.get("candidates", [])
+            
+            # Compute envelope confidence from candidates (max of top candidate)
+            envelope_confidence = max((c.confidence for c in candidates), default=0.0)
+            envelope_uncertainty = 1.0 - envelope_confidence if envelope_confidence > 0 else 1.0
+            
             # Convert to canonical envelope
             return create_athanor_envelope(
                 claim=claim,
-                candidates=result.get("candidates", []),
+                candidates=candidates,
                 model_identity=result.get("model_identity", self.get_model_identity()),
                 request_id=request_id,
                 relations=result.get("relations", []),
                 reasoning_steps=result.get("reasoning_steps", []),
-                confidence=result.get("confidence", 0.0),
-                uncertainty=result.get("uncertainty", 0.0),
+                confidence=envelope_confidence,
+                uncertainty=envelope_uncertainty,
                 provenance=result.get("provenance", {})
             )
     
