@@ -170,6 +170,22 @@ def create_athanor_adapter(
             envelope_confidence = max((c.confidence for c in candidates), default=0.0)
             envelope_uncertainty = 1.0 - envelope_confidence if envelope_confidence > 0 else 1.0
             
+            # Convert raw relation_steps dicts to RelationStep objects
+            raw_steps = result.get("reasoning_steps", [])
+            reasoning_steps = []
+            for step in raw_steps:
+                if isinstance(step, dict):
+                    reasoning_steps.append(RelationStep(
+                        relation=step.get("relation", ""),
+                        subject=step.get("subject", ""),
+                        object=step.get("object", ""),
+                        result=step.get("result"),
+                        confidence=step.get("confidence", 1.0),
+                        metadata=step.get("metadata", {})
+                    ))
+                else:
+                    reasoning_steps.append(step)
+            
             # Convert to canonical envelope
             return create_athanor_envelope(
                 claim=claim,
@@ -177,7 +193,7 @@ def create_athanor_adapter(
                 model_identity=result.get("model_identity", self.get_model_identity()),
                 request_id=request_id,
                 relations=result.get("relations", []),
-                reasoning_steps=result.get("reasoning_steps", []),
+                reasoning_steps=reasoning_steps,
                 confidence=envelope_confidence,
                 uncertainty=envelope_uncertainty,
                 provenance=result.get("provenance", {})
