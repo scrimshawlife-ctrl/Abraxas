@@ -1,0 +1,141 @@
+{
+  "benchmark": "abraxas_audio_trace_benchmark_v1",
+  "timestamp": "2026-10-03T08:21:02.333121Z",
+  "commit": "ce55da9",
+  "dataset": {
+    "source": "surveillance_survivor_audio",
+    "total_files": 136,
+    "categories": {
+      "runtime_sfx": 34,
+      "shared_ambient": 14,
+      "city_ambience": 20,
+      "city_sfx": 22,
+      "city_run_music": 20,
+      "city_boss_music": 26
+    }
+  },
+  "category_results": {
+    "runtime_sfx": {
+      "decision": "VERIFY",
+      "confidence": 0.85,
+      "file_count": 34,
+      "total_duration": 46.168376,
+      "total_size": 8934708
+    },
+    "shared_ambient": {
+      "decision": "VERIFY",
+      "confidence": 0.85,
+      "file_count": 14,
+      "total_duration": 412.200334,
+      "total_size": 79171444
+    },
+    "city_ambience": {
+      "decision": "VERIFY",
+      "confidence": 0.85,
+      "file_count": 20,
+      "total_duration": 807.167378,
+      "total_size": 155017536
+    },
+    "city_sfx": {
+      "decision": "VERIFY",
+      "confidence": 0.85,
+      "file_count": 22,
+      "total_duration": 51.274916,
+      "total_size": 9890324
+    },
+    "city_run_music": {
+      "decision": "VERIFY",
+      "confidence": 0.85,
+      "file_count": 20,
+      "total_duration": 1559.268542,
+      "total_size": 299420960
+    },
+    "city_boss_music": {
+      "decision": "VERIFY",
+      "confidence": 0.85,
+      "file_count": 26,
+      "total_duration": 1796.393876,
+      "total_size": 344961444
+    }
+  },
+  "cross_engine_batch": {
+    "engines": [
+      "athanor",
+      "hyperlex",
+      "semion",
+      "noesis",
+      "trutina"
+    ],
+    "decision": "ACCEPT",
+    "agreement_threshold": 0.7
+  },
+  "decision_record": {
+    "decision_id": "0483c949-cc52-407c-ab95-30626446e138",
+    "request_id": "audio-benchmark-001",
+    "evidence_ids": [
+      "ec9a7a86-a3ab-40e4-9261-f954bc684035",
+      "26a13cfe-e722-481a-97c6-a2b87a3e71c2",
+      "406e3b40-f2fa-4c65-b6fb-136ec8d56355",
+      "47490c25-b99e-4199-a938-7947e70d5db2",
+      "22945b2c-fdaf-47b5-acdc-4d74b10aed90",
+      "6a3b674e-b3e2-4716-a2f1-c954e891d28f",
+      "37181112-4f9f-41cd-8773-4bab71a52f26",
+      "2d104dd7-5ba7-484f-af7e-85e7ec5b6aea",
+      "be9caca9-cb9b-494b-971e-6494cb8e73b4",
+      "e4289f86-8d22-4c65-85af-39f62066e816",
+      "c50dfeed-5cd3-4f79-84b8-3ce1c3dc1a1e"
+    ],
+    "engines_used": [
+      "audio-benchmark",
+      "hyperlex",
+      "athanor",
+      "semion",
+      "trutina",
+      "noesis"
+    ],
+    "decision": "ACCEPT",
+    "confidence": 0.82,
+    "accepted_claims": [
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent"
+    ],
+    "rejected_claims": [],
+    "unresolved_claims": [],
+    "verification_results": [
+      {
+        "verifier": "RelationalVerifier",
+        "passed": true
+      },
+      {
+        "verifier": "LexicalConsistencyVerifier",
+        "passed": true
+      },
+      {
+        "verifier": "SignRelationVerifier",
+        "passed": true
+      },
+      {
+        "verifier": "LatentStructureVerifier",
+        "passed": true
+      }
+    ],
+    "contradictions": [],
+    "recomputation_history": [],
+    "provenance": [],
+    "policy_version": "1.0",
+    "timestamp": "2026-10-03T08:21:02.333033"
+  },
+  "verification": {
+    "verifiers_run": 4,
+    "all_passed": true
+  }
+}

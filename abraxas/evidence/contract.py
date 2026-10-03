@@ -21,6 +21,7 @@ class EvidenceType(str, Enum):
     FACTUAL = "FACTUAL"
     COUNTERFACTUAL = "COUNTERFACTUAL"
     MULTIMODAL = "MULTIMODAL"
+    SIGN_RELATION = "SIGN_RELATION"
 
 
 class Decision(str, Enum):
