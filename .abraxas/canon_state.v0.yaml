@@ -55,3 +55,20 @@ subsystems:
     path: client
     lane: canon-active
     implementation_state: implemented
+  - key: evidence_arbitration
+    path: abraxas/evidence
+    lane: canon-active
+    implementation_state: implemented
+    version: "3.0.0"
+    engines:
+      - athanor
+      - hyperlex
+      - semion
+      - noesis
+      - trutina
+    verifiers:
+      - RelationalVerifier
+      - LexicalConsistencyVerifier
+      - SignRelationVerifier
+      - LatentStructureVerifier
+    note: "All stubs deepened. E2E integration passed. Commit f72917c pushed to main."
