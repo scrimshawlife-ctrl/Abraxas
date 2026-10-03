@@ -39,6 +39,8 @@
       "to": "node.route"
     }
   ],
-  "projection_only": true,
-  "inference_authority": false
+  "projection_only": false,
+  "inference_authority": true,
+  "central_coordinator": true,
+  "evidence_layer": "abraxas"
 }

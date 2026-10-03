@@ -45,8 +45,10 @@ def build_topology_packet(nodes: list, edges: list) -> dict:
         "graph_hash": graph_hash,
         "nodes": nodes,
         "edges": edges,
-        "projection_only": True,
-        "inference_authority": False,
+        "projection_only": False,
+        "inference_authority": True,
+        "central_coordinator": True,
+        "evidence_layer": "abraxas",
     }
 
 
