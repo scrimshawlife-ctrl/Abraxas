@@ -276,35 +276,47 @@ def test_orchestrator_streaming_basic():
 
 def test_memory_layer_timechain_config():
     """Test memory layer Timechain configuration."""
-    from abraxas.yggdrasil.memory import TimechainConfig
+    from abraxas.yggdrasil.timechain import TimechainConfig
     
-    # Test default config
+    # Test default config (now from CypherTempre TimechainConfig)
     config = TimechainConfig()
-    assert config.enabled == False
-    assert config.chain_name == "abraxas_memory"
-    assert config.namespace == "evidence"
-    assert config.write_timeout == 30.0
-    assert config.read_timeout == 30.0
+    assert config.enabled == True  # CypherTempre defaults to True
+    assert config.endpoint == "http://localhost:8332"
+    assert config.difficulty == 4
+    assert config.fallback_to_file == True
+    assert config.file_storage_path == ".abraxas/timechain"
+    assert config.timeout == 10.0
+    assert config.max_retries == 3
     
     # Test custom config
     custom_config = TimechainConfig(
-        enabled=True,
-        chain_name="test_chain",
-        namespace="test_ns",
-        write_timeout=10.0,
-        read_timeout=20.0
+        enabled=False,
+        endpoint="http://test:8332",
+        difficulty=2,
+        fallback_to_file=False,
+        file_storage_path=".test/timechain",
+        timeout=5.0,
+        max_retries=5
     )
     
-    assert custom_config.enabled == True
-    assert custom_config.chain_name == "test_chain"
-    assert custom_config.namespace == "test_ns"
-    assert custom_config.write_timeout == 10.0
-    assert custom_config.read_timeout == 20.0
+    assert custom_config.enabled == False
+    assert custom_config.endpoint == "http://test:8332"
+    assert custom_config.difficulty == 2
+    assert custom_config.fallback_to_file == False
+    assert custom_config.file_storage_path == ".test/timechain"
+    assert custom_config.timeout == 5.0
+    assert custom_config.max_retries == 5
     
     # Test memory layer with Timechain config
+    from abraxas.yggdrasil.memory import CypherMemoryLayer
     memory = CypherMemoryLayer(timechain_config=custom_config)
-    assert memory.timechain_config.enabled == True
-    assert memory.timechain_config.chain_name == "test_chain"
+    assert memory.timechain_config.enabled == False
+    assert memory.timechain_config.endpoint == "http://test:8332"
+    assert memory.timechain_config.difficulty == 2
+    assert memory.timechain_config.fallback_to_file == False
+    assert memory.timechain_config.file_storage_path == ".test/timechain"
+    assert memory.timechain_config.timeout == 5.0
+    assert memory.timechain_config.max_retries == 5
 
 
 if __name__ == "__main__":

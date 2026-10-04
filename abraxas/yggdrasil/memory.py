@@ -1,8 +1,7 @@
-"""
-Yggdrasil Memory Layer — Cypher Persistent Memory for Evidence
+"""Yggdrasil Memory Layer — Cypher Persistent Memory for Evidence
 
 This module implements a persistent memory layer for storing evidence envelopes
-and decisions, backed by Cypher (Timechain) or a simple store for now.
+and decisions, backed by CypherTempre Timechain or file storage.
 """
 
 from __future__ import annotations
@@ -17,25 +16,21 @@ import enum
 
 logger = logging.getLogger(__name__)
 
-
-# Optional Timechain integration
+# Import CypherTempre Timechain
 try:
-    # Try to import Timechain if available
-    from timechain import Timechain, TimechainError
+    from abraxas.yggdrasil.timechain import CypherTempreTimechain, TimechainConfig, get_timechain
     TIMECHAIN_AVAILABLE = True
 except ImportError:
     TIMECHAIN_AVAILABLE = False
-    logger.debug("Timechain not available, using file storage only")
+    logger.debug("CypherTempre Timechain not available, using file storage only")
 
-
-@dataclass
-class TimechainConfig:
-    """Configuration for Timechain integration."""
-    enabled: bool = False
-    chain_name: str = "abraxas_memory"
-    namespace: str = "evidence"
-    write_timeout: float = 30.0
-    read_timeout: float = 30.0
+    # Fallback TimechainConfig for type hints when import fails
+    class TimechainConfig:
+        enabled: bool = False
+        chain_name: str = "abraxas_memory"
+        namespace: str = "evidence"
+        write_timeout: float = 30.0
+        read_timeout: float = 30.0
 
 
 def _json_serializer(obj):
@@ -70,17 +65,17 @@ class CypherMemoryLayer:
         self.timechain_config = timechain_config or TimechainConfig()
         self._timechain_client = None
         logger.info("Yggdrasil Memory Layer initialized")
-    
+
     def initialize(self) -> None:
         """Initialize the memory layer, load from storage if exists."""
         if self._initialized:
             return
-            
+
         try:
             # Initialize Timechain if configured
             if self.timechain_config.enabled:
                 self._initialize_timechain()
-                
+
             os.makedirs(self.storage_path, exist_ok=True)
             self._load_from_storage()
             self._initialized = True
@@ -93,19 +88,18 @@ class CypherMemoryLayer:
         """Initialize Timechain client if enabled and available."""
         if not self.timechain_config.enabled or not TIMECHAIN_AVAILABLE:
             return False
-            
+
         try:
-            self._timechain_client = Timechain(
-                chain_name=self.timechain_config.chain_name,
-                namespace=self.timechain_config.namespace
-            )
-            logger.info(f"Timechain client initialized for chain {self.timechain_config.chain_name}")
+            # Use CypherTempre Timechain
+            self._timechain_client = get_timechain()
+            self._timechain_client.initialize()
+            logger.info("CypherTempre Timechain client initialized")
             return True
         except Exception as e:
-            logger.warning(f"Failed to initialize Timechain client: {e}")
+            logger.warning(f"Failed to initialize CypherTempre Timechain client: {e}")
             self._timechain_client = None
             return False
-    
+
     def _load_from_storage(self) -> None:
         """Load memory records from storage."""
         index_file = os.path.join(self.storage_path, "index.json")
@@ -140,7 +134,7 @@ class CypherMemoryLayer:
         """Save record to Timechain if available and enabled."""
         if not self._timechain_client or not self.timechain_config.enabled:
             return False
-            
+
         try:
             # Prepare data for Timechain storage
             timechain_data = {
@@ -149,12 +143,11 @@ class CypherMemoryLayer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "metadata": {"source": "yggdrasil_memory_timechain"}
             }
-            
+
             # Write to Timechain with timeout
-            self._timechain_client.write(
-                key=record_id,
-                value=timechain_data,
-                timeout=self.timechain_config.write_timeout
+            self._timechain_client.store(
+                data=timechain_data,
+                metadata={"source": "yggdrasil_memory_timechain"}
             )
             logger.debug(f"Saved record {record_id} to Timechain")
             return True
@@ -166,14 +159,11 @@ class CypherMemoryLayer:
         """Load record from Timechain if available and enabled."""
         if not self._timechain_client or not self.timechain_config.enabled:
             return None
-            
+
         try:
             # Read from Timechain with timeout
-            result = self._timechain_client.read(
-                key=record_id,
-                timeout=self.timechain_config.read_timeout
-            )
-            
+            result = self._timechain_client.retrieve({"block_hash": record_id})
+
             if result and isinstance(result, dict) and "content" in result:
                 logger.debug(f"Loaded record {record_id} from Timechain")
                 return result["content"]
@@ -181,16 +171,16 @@ class CypherMemoryLayer:
         except Exception as e:
             logger.warning(f"Failed to load from Timechain: {e}")
             return None
-    
+
     def store_evidence(self, envelope: Any) -> str:
         """Store an evidence envelope in persistent memory.
-        
+
         Returns:
             The record ID of the stored envelope.
         """
         if not self._initialized:
             self.initialize()
-        
+
         record_id = f"env-{getattr(envelope, 'evidence_id', 'unknown')}"
         # Convert envelope to dict, handling enums and nested objects properly
         if hasattr(envelope, 'to_dict'):
@@ -266,30 +256,30 @@ class CypherMemoryLayer:
         )
         self._store[record_id] = record
         self._save_to_storage()
-        
+
         # Try to store in Timechain asynchronously (don't fail if Timechain fails)
         if self.timechain_config.enabled:
             try:
                 self._save_to_timechain(record_id, content)
             except Exception as e:
                 logger.debug(f"Timechain storage failed (non-critical): {e}")
-        
+
         logger.debug(f"Stored evidence envelope: {record_id}")
         return record_id
-    
+
     def store_decision(self, evidence_id: str, decision: Any) -> str:
         """Store a decision in persistent memory.
-        
+
         Args:
             evidence_id: The ID of the evidence this decision is for.
             decision: The decision object (or its value).
-            
+
         Returns:
             The record ID of the stored decision.
         """
         if not self._initialized:
             self.initialize()
-        
+
         record_id = f"dec-{evidence_id}"
         # Convert decision to string if it's an enum, otherwise use as-is
         decision_value = decision.value if hasattr(decision, 'value') else str(decision)
@@ -302,7 +292,7 @@ class CypherMemoryLayer:
             for key, value in details.items():
                 if hasattr(value, 'value'):
                     details[key] = value.value
-        
+
         record = MemoryRecord(
             record_id=record_id,
             record_type="decision",
@@ -316,24 +306,24 @@ class CypherMemoryLayer:
         )
         self._store[record_id] = record
         self._save_to_storage()
-        
+
         # Try to store in Timechain asynchronously (don't fail if Timechain fails)
         if self.timechain_config.enabled:
             try:
                 self._save_to_timechain(record_id, record.content)
             except Exception as e:
                 logger.debug(f"Timechain storage failed (non-critical): {e}")
-        
+
         logger.debug(f"Stored decision for evidence {evidence_id}: {record_id}")
         return record_id
-    
+
     def retrieve_evidence(self, record_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve an evidence envelope by record ID."""
         if not self._initialized:
             self.initialize()
         record = self._store.get(record_id)
         return record.content if record else None
-    
+
     def retrieve_decision(self, evidence_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a decision by evidence ID."""
         if not self._initialized:
@@ -341,7 +331,7 @@ class CypherMemoryLayer:
         record_id = f"dec-{evidence_id}"
         record = self._store.get(record_id)
         return record.content if record else None
-    
+
     def list_records(self, record_type: Optional[str] = None) -> List[str]:
         """List all record IDs, optionally filtered by type."""
         if not self._initialized:
@@ -352,7 +342,7 @@ class CypherMemoryLayer:
             record_id for record_id, record in self._store.items()
             if record.record_type == record_type
         ]
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get status of the memory layer."""
         if not self._initialized:
@@ -366,7 +356,7 @@ class CypherMemoryLayer:
             "envelope_count": envelope_count,
             "decision_count": decision_count
         }
-    
+
     def shutdown(self) -> None:
         """Shutdown the memory layer."""
         logger.info("Shutting down Yggdrasil Memory Layer")
