@@ -1,0 +1,385 @@
+# TRUTINA-Q1 Test Fixtures
+# Deterministic fixtures for calibration qualification evidence
+
+fixture_valid_calibration:
+  input:
+    schema: "trutina.brier.v1"
+    version: "TRUTINA_BRIER_V1"
+    observation_id: "abc12345deadbeef"
+    input_hash: "0000000000000000000000000000000000000000000000000000000000000000"
+    authority:
+      kind: "advisory"
+      source: "trutina"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "EVIDENCE"
+    forecasts:
+      - forecast_id: "f1"
+        probability: 0.8
+        signal_key: "btc_long"
+        mapping_version: "v1"
+      - forecast_id: "f2"
+        probability: 0.3
+        signal_key: "eth_short"
+        mapping_version: "v1"
+      - forecast_id: "f3"
+        probability: 0.6
+        signal_key: "sol_long"
+        mapping_version: "v1"
+      - forecast_id: "f4"
+        probability: 0.9
+        signal_key: "btc_long"
+        mapping_version: "v1"
+      - forecast_id: "f5"
+        probability: 0.2
+        signal_key: "eth_short"
+        mapping_version: "v1"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 1
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+      - forecast_id: "f3"
+        outcome_value: 1
+        settlement_id: "s3"
+      - forecast_id: "f4"
+        outcome_value: 1
+        settlement_id: "s4"
+      - forecast_id: "f5"
+        outcome_value: 0
+        settlement_id: "s5"
+    calibration:
+      method: "PLATT"
+      parameters: {A: 1.2, B: -0.3}
+      regimes: ["stable"]
+      brier_score: 0.12
+      reliability: 0.05
+      resolution: 0.25
+      uncertainty: 0.18
+    provenance:
+      instrument_version: "TRUTINA_BRIER_V1"
+      contract_version: "trutina.brier.v1"
+      ontology_version: "BRIER_SCORING_V1_FINAL"
+      manifest_sha256: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      schema_sha256: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      settlement_ref: "specs/trutina/brier-scoring-settlement.md"
+      settlement_receipt: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+      artifact_hashes: {}
+  expected_output:
+    engine: "trutina"
+    engine_version: "trutina.brier.v1"
+    model_identity: "trutina.brier.v1"
+    evidence_type: "CALIBRATION"
+    confidence: 0.88
+    uncertainty: 0.12
+    provenance:
+      brier_score: 0.12
+      reliability: 0.05
+      resolution: 0.25
+      uncertainty: 0.18
+      calibration_method: "PLATT"
+      regimes_tested: ["stable"]
+
+fixture_valid_regime_aware:
+  input:
+    schema: "trutina.brier.v1"
+    version: "TRUTINA_BRIER_V1"
+    observation_id: "abc12345feedface"
+    input_hash: "1111111111111111111111111111111111111111111111111111111111111111"
+    authority:
+      kind: "advisory"
+      source: "trutina"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "EVIDENCE"
+    forecasts:
+      - forecast_id: "f1"
+        probability: 0.7
+        signal_key: "btc_long"
+        mapping_version: "v1"
+        regime: "stable"
+      - forecast_id: "f2"
+        probability: 0.4
+        signal_key: "eth_short"
+        mapping_version: "v1"
+        regime: "stable"
+      - forecast_id: "f3"
+        probability: 0.8
+        signal_key: "btc_long"
+        mapping_version: "v1"
+        regime: "contagion"
+      - forecast_id: "f4"
+        probability: 0.3
+        signal_key: "sol_long"
+        mapping_version: "v1"
+        regime: "contagion"
+      - forecast_id: "f5"
+        probability: 0.6
+        signal_key: "btc_long"
+        mapping_version: "v1"
+        regime: "shock"
+      - forecast_id: "f6"
+        probability: 0.5
+        signal_key: "eth_short"
+        mapping_version: "v1"
+        regime: "shock"
+      - forecast_id: "f7"
+        probability: 0.9
+        signal_key: "btc_long"
+        mapping_version: "v1"
+        regime: "recovery"
+      - forecast_id: "f8"
+        probability: 0.2
+        signal_key: "sol_long"
+        mapping_version: "v1"
+        regime: "recovery"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 1
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+      - forecast_id: "f3"
+        outcome_value: 1
+        settlement_id: "s3"
+      - forecast_id: "f4"
+        outcome_value: 0
+        settlement_id: "s4"
+      - forecast_id: "f5"
+        outcome_value: 1
+        settlement_id: "s5"
+      - forecast_id: "f6"
+        outcome_value: 0
+        settlement_id: "s6"
+      - forecast_id: "f7"
+        outcome_value: 1
+        settlement_id: "s7"
+      - forecast_id: "f8"
+        outcome_value: 0
+        settlement_id: "s8"
+    calibration:
+      method: "REGIME_AWARE"
+      parameters: {}
+      regimes: ["stable", "contagion", "shock", "recovery"]
+      brier_score: 0.18
+      reliability: 0.08
+      resolution: 0.35
+      uncertainty: 0.22
+    provenance:
+      instrument_version: "TRUTINA_BRIER_V1"
+      contract_version: "trutina.brier.v1"
+      ontology_version: "BRIER_SCORING_V1_FINAL"
+      manifest_sha256: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      schema_sha256: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      settlement_ref: "specs/trutina/brier-scoring-settlement.md"
+      settlement_receipt: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+      artifact_hashes: {}
+  expected_verifier:
+    passed: true
+    escalate: false
+
+fixture_valid_brier_ledger:
+  input:
+    schema: "trutina.brier.v1"
+    version: "TRUTINA_BRIER_V1"
+    observation_id: "abc12345cafebabe"
+    input_hash: "2222222222222222222222222222222222222222222222222222222222222222"
+    authority:
+      kind: "advisory"
+      source: "trutina"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "SHADOW_SIGNAL"
+    forecasts:
+      - forecast_id: "f1"
+        probability: 0.7
+        signal_key: "btc_long"
+        mapping_version: "v1"
+      - forecast_id: "f2"
+        probability: 0.4
+        signal_key: "eth_short"
+        mapping_version: "v1"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 1
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+    calibration:
+      method: "PLATT"
+      brier_score: 0.15
+      reliability: 0.06
+      resolution: 0.30
+      uncertainty: 0.20
+    provenance:
+      instrument_version: "TRUTINA_BRIER_V1"
+      contract_version: "trutina.brier.v1"
+      ontology_version: "BRIER_SCORING_V1_FINAL"
+      manifest_sha256: "3333333333333333333333333333333333333333333333333333333333333333"
+      schema_sha256: "4444444444444444444444444444444444444444444444444444444444444444"
+      settlement_ref: "specs/trutina/brier-scoring-settlement.md"
+      settlement_receipt: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+      artifact_hashes:
+        ledger_entries: 1000
+        ledger_generation: 5
+  expected_output:
+    provenance:
+      ledger_entries: 1000
+      ledger_generation: 5
+
+fixture_valid_platt_scaling:
+  input:
+    schema: "trutina.brier.v1"
+    version: "TRUTINA_BRIER_V1"
+    observation_id: "abc12345badc0ffe"
+    input_hash: "5555555555555555555555555555555555555555555555555555555555555555"
+    authority:
+      kind: "advisory"
+      source: "trutina"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "OBSERVATION"
+    forecasts:
+      - forecast_id: "f1"
+        probability: 0.9
+        signal_key: "btc_long"
+        mapping_version: "v1"
+      - forecast_id: "f2"
+        probability: 0.1
+        signal_key: "eth_short"
+        mapping_version: "v1"
+      - forecast_id: "f3"
+        probability: 0.8
+        signal_key: "sol_long"
+        mapping_version: "v1"
+      - forecast_id: "f4"
+        probability: 0.2
+        signal_key: "btc_long"
+        mapping_version: "v1"
+      - forecast_id: "f5"
+        probability: 0.7
+        signal_key: "eth_short"
+        mapping_version: "v1"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 1
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+      - forecast_id: "f3"
+        outcome_value: 1
+        settlement_id: "s3"
+      - forecast_id: "f4"
+        outcome_value: 0
+        settlement_id: "s4"
+      - forecast_id: "f5"
+        outcome_value: 1
+        settlement_id: "s5"
+    calibration:
+      method: "PLATT"
+      parameters: {A: 1.5, B: -0.5}
+      regimes: ["stable"]
+      brier_score: 0.10
+      reliability: 0.03
+      resolution: 0.40
+      uncertainty: 0.15
+    provenance:
+      instrument_version: "TRUTINA_BRIER_V1"
+      contract_version: "trutina.brier.v1"
+      ontology_version: "BRIER_SCORING_V1_FINAL"
+      manifest_sha256: "6666666666666666666666666666666666666666666666666666666666666666"
+      schema_sha256: "7777777777777777777777777777777777777777777777777777777777777777"
+      settlement_ref: "specs/trutina/brier-scoring-settlement.md"
+      settlement_receipt: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+      artifact_hashes: {}
+  expected_verifier:
+    passed: true
+    escalate: false
+
+# Negative fixtures (must raise ValueError or appropriate error)
+fixture_invalid_probability_out_of_range:
+  description: "probability > 1 must be rejected"
+  input_modification:
+    forecasts:
+      - forecast_id: "f1"
+        probability: 1.5
+        signal_key: "test"
+        mapping_version: "v1"
+      - forecast_id: "f2"
+        probability: -0.1
+        signal_key: "test"
+        mapping_version: "v1"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 1
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+  expected_error: "ValueError"
+  expected_message: "probability out of [0,1]"
+
+fixture_invalid_outcome_not_binary:
+  description: "outcome not 0/1 must be rejected"
+  input_modification:
+    forecasts:
+      - forecast_id: "f1"
+        probability: 0.7
+        signal_key: "test"
+        mapping_version: "v1"
+      - forecast_id: "f2"
+        probability: 0.3
+        signal_key: "test"
+        mapping_version: "v1"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 2
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+  expected_error: "ValueError"
+  expected_message: "observed_outcome must be 0 or 1"
+
+fixture_mismatched_forecasts_outcomes:
+  description: "forecasts/outcomes length mismatch must be rejected"
+  input_modification:
+    forecasts:
+      - forecast_id: "f1"
+        probability: 0.7
+        signal_key: "test"
+        mapping_version: "v1"
+      - forecast_id: "f2"
+        probability: 0.3
+        signal_key: "test"
+        mapping_version: "v1"
+      - forecast_id: "f3"
+        probability: 0.5
+        signal_key: "test"
+        mapping_version: "v1"
+    outcomes:
+      - forecast_id: "f1"
+        outcome_value: 1
+        settlement_id: "s1"
+      - forecast_id: "f2"
+        outcome_value: 0
+        settlement_id: "s2"
+  expected_error: "ValueError"
+  expected_message: "length mismatch"
+
+fixture_empty_forecasts:
+  description: "empty forecasts must be rejected"
+  input_modification:
+    forecasts: []
+    outcomes: []
+  expected_error: "ValueError"
+  expected_message: "empty"

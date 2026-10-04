@@ -36,6 +36,7 @@ from abraxas.evidence.verifiers.relational import RelationalVerifier
 from abraxas.evidence.verifiers.lexical import LexicalConsistencyVerifier
 from abraxas.evidence.verifiers.sign import SignRelationVerifier
 from abraxas.evidence.verifiers.latent import LatentStructureVerifier
+from abraxas.evidence.verifiers.calibration import CalibrationVerifier
 from abraxas.evidence.policy import DecisionRecord, ArbitrationPolicyConfig
 
 logger = logging.getLogger(__name__)
@@ -161,6 +162,7 @@ class ProductionArbiter:
         self.arbiter.register_verifier("LEXICAL_SEMANTIC", LexicalConsistencyVerifier())
         self.arbiter.register_verifier("SIGN_RELATION", SignRelationVerifier())
         self.arbiter.register_verifier("LATENT_STRUCTURAL", LatentStructureVerifier())
+        self.arbiter.register_verifier("CALIBRATION", CalibrationVerifier())
         
         # Audit log
         self._audit_log: List[Dict[str, Any]] = []

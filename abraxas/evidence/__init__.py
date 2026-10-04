@@ -1129,7 +1129,7 @@ def to_brier_score_packet(forecast, score, forecast_hash=None):
     ).hexdigest()
     
     det = hashlib.sha256(
-        f"{forecast_hash}|{expected_probability:.6f}|{observed_outcome}|{brier_score:.6f}".encode()
+        f"{fh}|{p:.6f}|{o}|{bs:.6f}".encode()
     ).hexdigest()
     
     score_id = hashlib.sha256(f"{fh}|{det}".encode()).hexdigest()[:24]

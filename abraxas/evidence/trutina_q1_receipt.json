@@ -1,0 +1,24 @@
+{
+  "receipt_id": "TRUTINA-Q1-2026-10-04-001",
+  "receipt_type": "qualification",
+  "subsystem": "trutina_calibration_v1",
+  "status": "PROVISIONALLY_QUALIFIED",
+  "issued_at": "2026-10-04T00:00:00Z",
+  "issued_by": "operator",
+  "gates": {
+    "Q1-SPEC": { "passed": true, "artifact": "abraxas/evidence/trutina_calibration_v1.spec.md" },
+    "Q1-FIXTURE": { "passed": true, "artifact": "abraxas/evidence/trutina_q1_fixtures.yaml" },
+    "Q1-ADAPTER": { "passed": true, "artifact": "abraxas/evidence/test_trutina_q1.py" },
+    "Q1-SCHEMA": { "passed": true, "artifact": "trutina.brier.v1 (Brier scoring schema)" },
+    "Q1-VERIFIER": { "passed": true, "artifact": "abraxas/evidence/verifiers/calibration.py" },
+    "Q1-ARBITRATION": { "passed": true, "artifact": "integration tests in test_trutina_q1.py" }
+  },
+  "sha256": "pending_operator_computation",
+  "notes": [
+    "TRUTINA provides CALIBRATION evidence only",
+    "Brier scoring + calibration (Platt/Isotonic/Beta/Regime-Aware) validated",
+    "Pairwise NOESIS→TRUTINA unblocked upon NOESIS-Q1 completion ✅",
+    "Pairwise TRUTINA→ABRAXAS unblocked upon ABRAXAS-Q1",
+    "EXP-001 remains DEFERRED until AC-EIC-G1"
+  ]
+}

@@ -1,0 +1,324 @@
+# ABRAXAS-Q1 Test Fixtures
+# Deterministic fixtures for governance qualification evidence
+
+fixture_valid_governed_decision:
+  input:
+    schema: "abraxas.governance.v1"
+    version: "ABRAXAS_GOVERNANCE_V1"
+    observation_id: "abc12345deadbeef"
+    input_hash: "0000000000000000000000000000000000000000000000000000000000000000"
+    authority:
+      kind: "advisory"
+      source: "abraxas"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "GOVERNANCE_DECISION"
+    decision_record:
+      decision_id: "dec-001"
+      request_id: "req-001"
+      evidence_ids: ["env-1", "env-2", "env-3", "env-4", "env-5"]
+      engines_used: ["athanor", "hyperlex", "semion", "noesis", "trutina"]
+      decision: "ACCEPT"
+      confidence: 0.85
+      accepted_claims: ["claim-1"]
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+        - evidence_type: "SIGN_RELATION"
+          passed: true
+          details: {}
+        - evidence_type: "LATENT_STRUCTURAL"
+          passed: true
+          details: {}
+        - evidence_type: "CALIBRATION"
+          passed: true
+          details: {}
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+    governance:
+      governed: true
+      aggregate_score: 0.92
+      gate_results:
+        - gate: "provenance"
+          passed: true
+          score: 1.0
+          details: {evidence_count: 5, engine_count: 5}
+        - gate: "falsifiability"
+          passed: true
+          score: 0.8
+          details: {contradictions: 0, unresolved: 0}
+        - gate: "redundancy"
+          passed: true
+          score: 1.0
+          details: {engine_count: 5, engines: ["athanor", "hyperlex", "semion", "noesis", "trutina"]}
+        - gate: "rent"
+          passed: true
+          score: 0.95
+          details: {confidence: 0.85, estimated_cost: 0.5}
+        - gate: "ablation"
+          passed: true
+          score: 0.8
+          details: {top_engines: ["athanor", "hyperlex"]}
+        - gate: "stabilization"
+          passed: true
+          score: 1.0
+          details: {decision: "ACCEPT"}
+  expected_output:
+    governed: true
+    aggregate_score: 0.92
+
+fixture_valid_provenance_gate:
+  input:
+    decision_record:
+      decision_id: "dec-002"
+      request_id: "req-002"
+      evidence_ids: ["env-1", "env-2", "env-3", "env-4"]
+      engines_used: ["athanor", "hyperlex", "semion", "noesis"]
+      decision: "ACCEPT"
+      confidence: 0.8
+      accepted_claims: ["claim-1"]
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+        - evidence_type: "SIGN_RELATION"
+          passed: true
+          details: {}
+        - evidence_type: "LATENT_STRUCTURAL"
+          passed: true
+          details: {}
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_gate:
+    gate: "provenance"
+    passed: true
+    score: 1.0
+    details: {evidence_count: 4, engine_count: 4}
+
+fixture_valid_falsifiability_gate:
+  input:
+    decision_record:
+      decision_id: "dec-003"
+      request_id: "req-003"
+      evidence_ids: ["env-1", "env-2", "env-3"]
+      engines_used: ["athanor", "hyperlex", "semion"]
+      decision: "VERIFY"
+      confidence: 0.7
+      accepted_claims: []
+      rejected_claims: []
+      unresolved_claims: ["claim-x"]
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+        - evidence_type: "SIGN_RELATION"
+          passed: true
+          details: {}
+      contradictions: ["contradiction-1"]
+      unresolved_claims: ["claim-x"]
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_gate:
+    gate: "falsifiability"
+    passed: true
+    score: 0.8
+    details: {contradictions: 1, unresolved: 1}
+
+fixture_valid_redundancy_gate:
+  input:
+    decision_record:
+      decision_id: "dec-004"
+      request_id: "req-004"
+      evidence_ids: ["env-1", "env-2", "env-3", "env-4", "env-5"]
+      engines_used: ["athanor", "hyperlex", "semion", "noesis", "trutina"]
+      decision: "ACCEPT"
+      confidence: 0.85
+      accepted_claims: ["claim-1"]
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+        - evidence_type: "SIGN_RELATION"
+          passed: true
+          details: {}
+        - evidence_type: "LATENT_STRUCTURAL"
+          passed: true
+          details: {}
+        - evidence_type: "CALIBRATION"
+          passed: true
+          details: {}
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_gate:
+    gate: "redundancy"
+    passed: true
+    score: 1.0
+    details: {engine_count: 5, engines: ["athanor", "hyperlex", "semion", "noesis", "trutina"]}
+
+fixture_valid_rent_gate:
+  input:
+    decision_record:
+      decision_id: "dec-005"
+      request_id: "req-005"
+      evidence_ids: ["env-1", "env-2", "env-3"]
+      engines_used: ["athanor", "hyperlex", "semion"]
+      decision: "ACCEPT"
+      confidence: 0.85
+      accepted_claims: ["claim-1"]
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+        - evidence_type: "SIGN_RELATION"
+          passed: true
+          details: {}
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_gate:
+    gate: "rent"
+    passed: true
+    score: 0.95
+    details: {confidence: 0.85, estimated_cost: 0.3}
+
+fixture_valid_ablation_gate:
+  input:
+    decision_record:
+      decision_id: "dec-006"
+      request_id: "req-006"
+      evidence_ids: ["env-1", "env-2", "env-3"]
+      engines_used: ["engine-1", "engine-2", "engine-3"]
+      decision: "ACCEPT"
+      confidence: 0.8
+      accepted_claims: ["claim-1"]
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+        - evidence_type: "SIGN_RELATION"
+          passed: true
+          details: {}
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_gate:
+    gate: "ablation"
+    passed: true
+    score: 0.8
+    details: {top_engines: ["engine-1", "engine-2"]}
+
+fixture_valid_stabilization_gate:
+  input:
+    decision_record:
+      decision_id: "dec-007"
+      request_id: "req-007"
+      evidence_ids: ["env-1", "env-2"]
+      engines_used: ["engine-1", "engine-2"]
+      decision: "ACCEPT"
+      confidence: 0.75
+      accepted_claims: ["claim-1"]
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results:
+        - evidence_type: "RELATIONAL_REASONING"
+          passed: true
+          details: {}
+        - evidence_type: "LEXICAL_SEMANTIC"
+          passed: true
+          details: {}
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_gate:
+    gate: "stabilization"
+    passed: true
+    score: 1.0
+    details: {decision: "ACCEPT"}
+
+fixture_invalid_ungoverned:
+  description: "Decision with insufficient evidence fails governance"
+  input:
+    decision_record:
+      decision_id: "dec-008"
+      request_id: "req-008"
+      evidence_ids: ["env-1"]
+      engines_used: ["engine-1"]
+      decision: "ABSTAIN"
+      confidence: 0.1
+      accepted_claims: []
+      rejected_claims: []
+      unresolved_claims: []
+      verification_results: []
+      contradictions: []
+      unresolved_claims: []
+      recomputation_history: []
+      provenance: []
+      policy_version: "v2"
+  expected_governance:
+    governed: false
+    aggregate_score: 0.15
+    gate_results:
+      - gate: "provenance"
+        passed: false
+        score: 0.3
+      - gate: "falsifiability"
+        passed: false
+        score: 0.4
+      - gate: "redundancy"
+        passed: false
+        score: 0.33
+      - gate: "rent"
+        passed: false
+        score: 0.1
+      - gate: "ablation"
+        passed: false
+        score: 0.0
+      - gate: "stabilization"
+        passed: false
+        score: 0.2

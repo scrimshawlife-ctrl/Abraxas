@@ -1,0 +1,24 @@
+{
+  "receipt_id": "ABRAXAS-Q1-2026-10-04-001",
+  "receipt_type": "qualification",
+  "subsystem": "abraxas_governance_v1",
+  "status": "PROVISIONALLY_QUALIFIED",
+  "issued_at": "2026-10-04T00:00:00Z",
+  "issued_by": "operator",
+  "gates": {
+    "Q1-SPEC": { "passed": true, "artifact": "abraxas/evidence/abraxas_governance_v1.spec.md" },
+    "Q1-FIXTURE": { "passed": true, "artifact": "abraxas/evidence/abraxas_q1_fixtures.yaml" },
+    "Q1-ADAPTER": { "passed": true, "artifact": "abraxas/evidence/test_abraxas_q1.py" },
+    "Q1-SCHEMA": { "passed": true, "artifact": "abraxas.governance (6-gate system)" },
+    "Q1-VERIFIER": { "passed": true, "artifact": "abraxas/governance/production.py (SixGateGovernor)" },
+    "Q1-ARBITRATION": { "passed": true, "artifact": "integration tests in test_abraxas_q1.py" }
+  },
+  "sha256": "pending_operator_computation",
+  "notes": [
+    "ABRAXAS provides GOVERNANCE arbitration only",
+    "6-gate system (provenance, falsifiability, redundancy, rent, ablation, stabilization) validated",
+    "Pairwise NOESIS→ABRAXAS unblocked upon NOESIS-Q1 completion ✅",
+    "Pairwise TRUTINA→ABRAXAS unblocked upon TRUTINA-Q1 completion ✅",
+    "EXP-001 remains DEFERRED until AC-EIC-G1"
+  ]
+}
