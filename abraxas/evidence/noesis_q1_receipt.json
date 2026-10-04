@@ -1,0 +1,25 @@
+{
+  "receipt_id": "NOESIS-Q1-2026-10-04-001",
+  "receipt_type": "qualification",
+  "subsystem": "noesis_latent_v1",
+  "status": "PROVISIONALLY_QUALIFIED",
+  "issued_at": "2026-10-04T00:00:00Z",
+  "issued_by": "operator",
+  "gates": {
+    "Q1-SPEC": { "passed": true, "artifact": "abraxas/evidence/noesis_latent_v1.spec.md" },
+    "Q1-FIXTURE": { "passed": true, "artifact": "abraxas/evidence/noesis_q1_fixtures.yaml" },
+    "Q1-ADAPTER": { "passed": true, "artifact": "abraxas/evidence/test_noesis_q1.py" },
+    "Q1-SCHEMA": { "passed": true, "artifact": "noesis.latent.v1 (latent structure schema)" },
+    "Q1-VERIFIER": { "passed": true, "artifact": "abraxas/evidence/verifiers/latent.py" },
+    "Q1-ARBITRATION": { "passed": true, "artifact": "integration tests in test_noesis_q1.py" }
+  },
+  "sha256": "pending_operator_computation",
+  "notes": [
+    "NOESIS provides LATENT_STRUCTURAL evidence only",
+    "Structural coherence + intervention sensitivity + RSA correlation validated",
+    "Pairwise HYPERLEX→NOESIS unblocked upon HYPERLEX-Q1 completion ✅",
+    "Pairwise NOESIS→TRUTINA unblocked upon TRUTINA-Q1",
+    "Pairwise NOESIS→ABRAXAS unblocked upon ABRAXAS-Q1",
+    "EXP-001 remains DEFERRED until AC-EIC-G1"
+  ]
+}

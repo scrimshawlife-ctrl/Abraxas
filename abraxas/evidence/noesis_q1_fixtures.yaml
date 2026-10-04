@@ -1,0 +1,234 @@
+# NOESIS-Q1 Test Fixtures
+# Deterministic fixtures for qualification evidence
+
+fixture_valid_baseline_intervention:
+  description: "Baseline + intervention with coherent structure"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-001"
+    latent_captures:
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: null}
+      - condition: "baseline"
+        activations: [[1.1, 2.1, 3.1], [4.1, 5.1, 6.1]]
+        metadata: {layer: "layer_1", timestep: 1, intervention_type: null}
+      - condition: "intervention"
+        activations: [[1.2, 2.2, 3.2], [4.2, 5.2, 6.2]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "activation_shift"}
+    baseline_condition: "baseline"
+    analysis_config:
+      coherence_threshold: 0.7
+      sensitivity_threshold: 0.3
+      min_rsa_correlation: 0.6
+      min_manifold_integrity: 0.5
+  expected_analysis:
+    overall_structural_coherence: ">0.8"
+    conditions_tested: ["intervention"]
+    intervention_sensitivity: "<0.3"
+
+fixture_valid_multiple_conditions:
+  description: "6 conditions: baseline, intervention, counterfactual, ablation, noise, patch"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-002"
+    latent_captures:
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+      - condition: "baseline"
+        activations: [[1.05, 2.05, 3.05], [4.05, 5.05, 6.05]]
+        metadata: {layer: "layer_1", timestep: 1}
+      - condition: "intervention"
+        activations: [[1.3, 2.3, 3.3], [4.3, 5.3, 6.3]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "shift"}
+      - condition: "counterfactual"
+        activations: [[0.7, 1.7, 2.7], [3.7, 4.7, 5.7]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "inverse"}
+      - condition: "ablation"
+        activations: [[0.5, 1.0, 1.5], [2.0, 2.5, 3.0]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "zero_out"}
+      - condition: "noise"
+        activations: [[1.5, 2.5, 3.5], [4.5, 5.5, 6.5]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "gaussian"}
+      - condition: "patch"
+        activations: [[1.1, 2.1, 3.1], [4.1, 5.1, 6.1]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "repair"}
+    baseline_condition: "baseline"
+    analysis_config:
+      coherence_threshold: 0.7
+      sensitivity_threshold: 0.3
+      min_rsa_correlation: 0.6
+      min_manifold_integrity: 0.5
+  expected_analysis:
+    conditions_tested: ["intervention", "counterfactual", "ablation", "noise", "patch"]
+    overall_structural_coherence: ">0.5"
+
+fixture_valid_high_coherence:
+  description: "High structural coherence (>0.85), low sensitivity (<0.2)"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-003"
+    latent_captures:
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+      - condition: "baseline"
+        activations: [[1.01, 2.01, 3.01]]
+        metadata: {layer: "layer_1", timestep: 1}
+      - condition: "intervention"
+        activations: [[1.02, 2.02, 3.02]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "minimal"}
+    baseline_condition: "baseline"
+    analysis_config:
+      coherence_threshold: 0.7
+      sensitivity_threshold: 0.3
+  expected_verifier:
+    passed: true
+    escalate: false
+    structural_coherence: ">0.85"
+    intervention_sensitivity: "<0.2"
+
+fixture_valid_low_coherence:
+  description: "Low coherence (<0.4), high sensitivity (>0.6) -> should escalate"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-004"
+    latent_captures:
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0]]
+        metadata: {layer: "layer_1", timestep: 1}
+      - condition: "intervention"
+        activations: [[3.0, 6.0, 9.0]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "large_shift"}
+      - condition: "counterfactual"
+        activations: [[-3.0, -6.0, -9.0]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "inverse_large"}
+      - condition: "ablation"
+        activations: [[0.0, 0.0, 0.0]]
+        metadata: {layer: "layer_1", timestep: 0, intervention_type: "complete_zero"}
+    baseline_condition: "baseline"
+    analysis_config:
+      coherence_threshold: 0.7
+      sensitivity_threshold: 0.3
+  expected_verifier:
+    passed: false
+    escalate: true
+    structural_coherence: "<0.4"
+    intervention_sensitivity: ">0.6"
+
+fixture_empty_captures:
+  description: "Empty captures list -> error handling"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-005"
+    latent_captures: []
+    baseline_condition: "baseline"
+    analysis_config: {}
+  expected_analysis:
+    error: "No baseline captures"
+
+fixture_mismatched_dimensions:
+  description: "Captures with different activation dimensions -> error"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-006"
+    latent_captures:
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+      - condition: "baseline"
+        activations: [[1.0, 2.0]]
+        metadata: {layer: "layer_1", timestep: 1}
+      - condition: "intervention"
+        activations: [[1.0, 2.0, 3.0, 4.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+    baseline_condition: "baseline"
+    analysis_config: {}
+  expected_analysis:
+    skip_mismatched: true
+
+fixture_missing_baseline:
+  description: "No baseline condition -> error"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-007"
+    latent_captures:
+      - condition: "intervention"
+        activations: [[1.0, 2.0, 3.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+      - condition: "counterfactual"
+        activations: [[0.5, 1.0, 1.5]]
+        metadata: {layer: "layer_1", timestep: 0}
+    baseline_condition: "baseline"
+    analysis_config: {}
+  expected_analysis:
+    error: "Baseline 'baseline' not found"
+
+fixture_single_capture:
+  description: "Single capture edge case -> manifold integrity = 1.0"
+  input:
+    schema: "noesis.latent.v1"
+    version: "NOESIS_LATENT_V1"
+    request_id: "test-008"
+    latent_captures:
+      - condition: "baseline"
+        activations: [[1.0, 2.0, 3.0]]
+        metadata: {layer: "layer_1", timestep: 0}
+    baseline_condition: "baseline"
+    analysis_config: {}
+  expected_analysis:
+    manifold_integrity: 1.0
+    conditions_tested: []
+
+# Negative fixtures (authority boundary)
+fixture_semantic_truth_true:
+  description: "semantic_truth=true must be rejected"
+  envelope_modification:
+    provenance:
+      semantic_truth: true
+  expected_error: "assert_not_authoritative"
+
+fixture_non_advisory_authority:
+  description: "authority.kind != advisory must be rejected"
+  envelope_modification:
+    provenance:
+      authority: "authoritative"
+  expected_error: "assert_not_authoritative"
+
+fixture_valid_for_forecast_true:
+  description: "valid_for_forecast=true must be rejected"
+  envelope_modification:
+    provenance:
+      valid_for_forecast: true
+  expected_error: "assert_not_authoritative"
+
+fixture_influence_policy_not_none:
+  description: "influence_policy != NONE must be rejected"
+  envelope_modification:
+    provenance:
+      influence_policy: "INFLUENCE"
+  expected_error: "assert_not_authoritative"
+
+fixture_may_mutate_governing_state_true:
+  description: "may_mutate_governing_state=true must be rejected"
+  envelope_modification:
+    provenance:
+      may_mutate_governing_state: true
+  expected_error: "assert_not_authoritative"
+
+fixture_authoritative_kind:
+  description: "authoritative evidence kind must be rejected"
+  envelope_modification:
+    evidence_type: "CANONICAL_STATE"
+  expected_error: "assert_not_authoritative"

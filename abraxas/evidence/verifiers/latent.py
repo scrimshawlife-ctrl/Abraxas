@@ -383,6 +383,11 @@ class NoesisEvidenceProvider:
                 "geometric_integrity": coherence,
                 "manifold_integrity": manifold_int,
                 "conditions_tested": analysis.get("conditions_tested", []),
+                "authority": "advisory",
+                "semantic_truth": False,
+                "influence_policy": "NONE",
+                "valid_for_forecast": False,
+                "lane": "shadow",
             }
         )
         return envelope.to_dict()
