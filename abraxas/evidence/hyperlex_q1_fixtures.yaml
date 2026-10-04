@@ -1,0 +1,443 @@
+# HYPERLEX-Q1 Test Fixtures
+# Deterministic fixtures for qualification evidence
+
+fixture_minimal_valid:
+  input:
+    schema: "hyperlex.instrument.v1"
+    version: "HYPERLEX_INSTRUMENT_V1"
+    observation_id: "abc12345deadbeef"
+    input_hash: "0000000000000000000000000000000000000000000000000000000000000000"
+    authority:
+      kind: "advisory"
+      source: "hyperlex"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "OBSERVATION"
+    evidence:
+      present: true
+      score: 0.5
+      abstain: false
+      reason: null
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    candidates:
+      - concept_id: "domain.crypto"
+        score: 0.8
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+    neighborhood:
+      - concept_id: "domain.crypto"
+        similarity: 0.8
+    diagnostics:
+      margin: 0.2
+      ambiguity: 0.1
+      distribution_distance: null
+      representation_drift: null
+      unavailable: ["distribution_distance", "representation_drift"]
+    provenance:
+      instrument_version: "HYPERLEX_INSTRUMENT_V1"
+      contract_version: "hyperlex.instrument.v1"
+      ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+      manifest_sha256: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      schema_sha256: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      settlement_ref: "specs/007-hyperlexical-model/classification-v6-program-settlement-20261002.md"
+      settlement_receipt: "4ae7cddffcf72330adad8eb3dfd453025aa02c8cb12c5e6f5499a4e6cad06ca2"
+      artifact_hashes: {}
+  expected_output:
+    schema: "abraxas.evidence.hyperlex_instrument.v1"
+    kind: "SHADOW_SIGNAL"
+    source: "hyperlex"
+    authority: "advisory"
+    semantic_truth: false
+    may_authorize: false
+    may_mutate_governing_state: false
+    may_override_provenance: false
+    valid_for_forecast: false
+    influence_policy: "NONE"
+    lane: "shadow"
+    instrument_version: "HYPERLEX_INSTRUMENT_V1"
+    ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+    contract_version: "hyperlex.instrument.v1"
+    manifest_sha256: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    schema_sha256: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    settlement_ref: "specs/007-hyperlexical-model/classification-v6-program-settlement-20261002.md"
+    settlement_receipt: "4ae7cddffcf72330adad8eb3dfd453025aa02c8cb12c5e6f5499a4e6cad06ca2"
+    artifact_hashes: {}
+    evidence:
+      present: true
+      score: 0.5
+      abstain: false
+      reason: null
+    candidates:
+      - concept_id: "domain.crypto"
+        score: 0.8
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+    neighborhood:
+      - concept_id: "domain.crypto"
+        similarity: 0.8
+    ambiguity: 0.1
+    margin: 0.2
+    diagnostics:
+      distribution_distance: null
+      representation_drift: null
+      unavailable: ["distribution_distance", "representation_drift"]
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+
+fixture_abstain:
+  input:
+    schema: "hyperlex.instrument.v1"
+    version: "HYPERLEX_INSTRUMENT_V1"
+    observation_id: "abc12345feedface"
+    input_hash: "1111111111111111111111111111111111111111111111111111111111111111"
+    authority:
+      kind: "advisory"
+      source: "hyperlex"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "EVIDENCE"
+    evidence:
+      present: false
+      score: null
+      abstain: true
+      reason: "insufficient_confidence"
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: null
+    candidates: []
+    neighborhood: []
+    diagnostics:
+      margin: null
+      ambiguity: null
+      distribution_distance: null
+      representation_drift: null
+      unavailable: ["margin", "ambiguity", "distribution_distance", "representation_drift"]
+    provenance:
+      instrument_version: "HYPERLEX_INSTRUMENT_V1"
+      contract_version: "hyperlex.instrument.v1"
+      ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+      manifest_sha256: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      schema_sha256: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      settlement_ref: "specs/007-hyperlexical-model/classification-v6-program-settlement-20261002.md"
+      settlement_receipt: "4ae7cddffcf72330adad8eb3dfd453025aa02c8cb12c5e6f5499a4e6cad06ca2"
+      artifact_hashes: {}
+  expected_output:
+    schema: "abraxas.evidence.hyperlex_instrument.v1"
+    kind: "SHADOW_SIGNAL"
+    source: "hyperlex"
+    authority: "advisory"
+    semantic_truth: false
+    may_authorize: false
+    may_mutate_governing_state: false
+    may_override_provenance: false
+    valid_for_forecast: false
+    influence_policy: "NONE"
+    lane: "shadow"
+    instrument_version: "HYPERLEX_INSTRUMENT_V1"
+    ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+    contract_version: "hyperlex.instrument.v1"
+    evidence:
+      present: false
+      score: null
+      abstain: true
+      reason: "insufficient_confidence"
+    candidates: []
+    neighborhood: []
+    ambiguity: null
+    margin: null
+    diagnostics:
+      distribution_distance: null
+      representation_drift: null
+      unavailable: ["margin", "ambiguity", "distribution_distance", "representation_drift"]
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: null
+
+fixture_multi_candidate:
+  input:
+    schema: "hyperlex.instrument.v1"
+    version: "HYPERLEX_INSTRUMENT_V1"
+    observation_id: "abc12345cafebabe"
+    input_hash: "2222222222222222222222222222222222222222222222222222222222222222"
+    authority:
+      kind: "advisory"
+      source: "hyperlex"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "SHADOW_SIGNAL"
+    evidence:
+      present: true
+      score: 0.65
+      abstain: false
+      reason: null
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    candidates:
+      - concept_id: "domain.crypto"
+        score: 0.75
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+      - concept_id: "archetype.pump_fun"
+        score: 0.62
+        axis: "archetype"
+        advisory: true
+        status: "advisory"
+      - concept_id: "domain.defi"
+        score: 0.55
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+    neighborhood:
+      - concept_id: "domain.crypto"
+        similarity: 0.75
+      - concept_id: "archetype.pump_fun"
+        similarity: 0.62
+      - concept_id: "domain.defi"
+        similarity: 0.55
+    diagnostics:
+      margin: 0.13
+      ambiguity: 0.25
+      distribution_distance: 0.18
+      representation_drift: 0.05
+      unavailable: []
+    provenance:
+      instrument_version: "HYPERLEX_INSTRUMENT_V1"
+      contract_version: "hyperlex.instrument.v1"
+      ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+      manifest_sha256: "3333333333333333333333333333333333333333333333333333333333333333"
+      schema_sha256: "4444444444444444444444444444444444444444444444444444444444444444"
+      settlement_ref: "specs/007-hyperlexical-model/classification-v6-program-settlement-20261002.md"
+      settlement_receipt: "4ae7cddffcf72330adad8eb3dfd453025aa02c8cb12c5e6f5499a4e6cad06ca2"
+      artifact_hashes: {}
+  expected_output:
+    schema: "abraxas.evidence.hyperlex_instrument.v1"
+    kind: "SHADOW_SIGNAL"
+    source: "hyperlex"
+    authority: "advisory"
+    semantic_truth: false
+    may_authorize: false
+    may_mutate_governing_state: false
+    may_override_provenance: false
+    valid_for_forecast: false
+    influence_policy: "NONE"
+    lane: "shadow"
+    instrument_version: "HYPERLEX_INSTRUMENT_V1"
+    ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+    contract_version: "hyperlex.instrument.v1"
+    evidence:
+      present: true
+      score: 0.65
+      abstain: false
+      reason: null
+    candidates:
+      - concept_id: "domain.crypto"
+        score: 0.75
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+      - concept_id: "archetype.pump_fun"
+        score: 0.62
+        axis: "archetype"
+        advisory: true
+        status: "advisory"
+      - concept_id: "domain.defi"
+        score: 0.55
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+    neighborhood:
+      - concept_id: "domain.crypto"
+        similarity: 0.75
+      - concept_id: "archetype.pump_fun"
+        similarity: 0.62
+      - concept_id: "domain.defi"
+        similarity: 0.55
+    ambiguity: 0.25
+    margin: 0.13
+    diagnostics:
+      distribution_distance: 0.18
+      representation_drift: 0.05
+      unavailable: []
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+
+fixture_shadow_signal_role:
+  input:
+    schema: "hyperlex.instrument.v1"
+    version: "HYPERLEX_INSTRUMENT_V1"
+    observation_id: "abc12345badc0ffe"
+    input_hash: "5555555555555555555555555555555555555555555555555555555555555555"
+    authority:
+      kind: "advisory"
+      source: "hyperlex"
+      semantic_truth: false
+      may_authorize: false
+      may_mutate_governing_state: false
+      role: "SHADOW_SIGNAL"
+    evidence:
+      present: true
+      score: 0.7
+      abstain: false
+      reason: null
+    representation:
+      encoder_id: "sentence-transformers/msmarco-distilbert-base-v4"
+      encoder_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      embed_mode: "STATIC_HASH_EMBEDDING"
+      embedding_ref: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    candidates:
+      - concept_id: "domain.tech"
+        score: 0.7
+        axis: "domain"
+        advisory: true
+        status: "advisory"
+    neighborhood:
+      - concept_id: "domain.tech"
+        similarity: 0.7
+    diagnostics:
+      margin: 0.15
+      ambiguity: 0.2
+      distribution_distance: null
+      representation_drift: null
+      unavailable: ["distribution_distance", "representation_drift"]
+    provenance:
+      instrument_version: "HYPERLEX_INSTRUMENT_V1"
+      contract_version: "hyperlex.instrument.v1"
+      ontology_version: "HYPERLEX_V6_FAMILY_ONTOLOGY_V1_FINAL"
+      manifest_sha256: "6666666666666666666666666666666666666666666666666666666666666666"
+      schema_sha256: "7777777777777777777777777777777777777777777777777777777777777777"
+      settlement_ref: "specs/007-hyperlexical-model/classification-v6-program-settlement-20261002.md"
+      settlement_receipt: "4ae7cddffcf72330adad8eb3dfd453025aa02c8cb12c5e6f5499a4e6cad06ca2"
+      artifact_hashes: {}
+  expected_output:
+    kind: "SHADOW_SIGNAL"
+    role_preserved: true
+
+# Negative fixtures (must raise HyperlexAuthorityError)
+fixture_semantic_truth_true:
+  description: "semantic_truth=true must be rejected"
+  input_modification:
+    authority:
+      semantic_truth: true
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "refusing semantic_truth=true observation"
+
+fixture_non_advisory_candidate:
+  description: "non-advisory candidate must be rejected"
+  input_modification:
+    candidates:
+      - concept_id: "domain.crypto"
+        score: 0.8
+        axis: "domain"
+        advisory: false
+        status: "advisory"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "non-advisory candidate blocked at boundary"
+
+fixture_authoritative_kind_canonical_state:
+  description: "kind=CANONICAL_STATE must be rejected"
+  adapt_kind: "CANONICAL_STATE"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "forbidden authoritative kind"
+
+fixture_authoritative_kind_gold:
+  description: "kind=GOLD must be rejected"
+  adapt_kind: "GOLD"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "forbidden authoritative kind"
+
+fixture_authoritative_kind_final_interpretation:
+  description: "kind=FINAL_INTERPRETATION must be rejected"
+  adapt_kind: "FINAL_INTERPRETATION"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "forbidden authoritative kind"
+
+fixture_authoritative_kind_authorization:
+  description: "kind=AUTHORIZATION must be rejected"
+  adapt_kind: "AUTHORIZATION"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "forbidden authoritative kind"
+
+fixture_authority_kind_not_advisory:
+  description: "authority.kind != advisory must be rejected"
+  input_modification:
+    authority:
+      kind: "authoritative"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "observation authority must be advisory"
+
+fixture_assert_not_authoritative_forecast:
+  description: "assert_not_authoritative must reject valid_for_forecast=true"
+  adapter_output_modification:
+    valid_for_forecast: true
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "valid_for_forecast must be false"
+
+fixture_assert_not_authoritative_authority:
+  description: "assert_not_authoritative must reject authority != advisory"
+  adapter_output_modification:
+    authority: "authoritative"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "authority must be advisory"
+
+fixture_assert_not_authoritative_semantic_truth:
+  description: "assert_not_authoritative must reject semantic_truth=true"
+  adapter_output_modification:
+    semantic_truth: true
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "semantic_truth must be false"
+
+fixture_assert_not_authoritative_may_authorize:
+  description: "assert_not_authoritative must reject may_authorize=true"
+  adapter_output_modification:
+    may_authorize: true
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "may_authorize must be false"
+
+fixture_assert_not_authoritative_may_mutate:
+  description: "assert_not_authoritative must reject may_mutate_governing_state=true"
+  adapter_output_modification:
+    may_mutate_governing_state: true
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "may_mutate_governing_state must be false"
+
+fixture_assert_not_authoritative_influence_policy:
+  description: "assert_not_authoritative must reject influence_policy != NONE"
+  adapter_output_modification:
+    influence_policy: "INFLUENCE"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "influence_policy must be NONE"
+
+fixture_assert_not_authoritative_kind:
+  description: "assert_not_authoritative must reject authoritative kind"
+  adapter_output_modification:
+    kind: "CANONICAL_STATE"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "kind must not be authoritative"
+
+fixture_promote_to_canonical:
+  description: "promote_to_canonical_state must always raise"
+  expected_error: "HyperlexAuthorityError"
+  expected_message: "Hyperlex evidence cannot become CANONICAL_STATE"

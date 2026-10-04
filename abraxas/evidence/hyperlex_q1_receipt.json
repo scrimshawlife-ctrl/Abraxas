@@ -1,0 +1,24 @@
+{
+  "receipt_id": "HYPERLEX-Q1-2026-10-04-001",
+  "receipt_type": "qualification",
+  "subsystem": "hyperlex_instrument_v1",
+  "status": "PROVISIONALLY_QUALIFIED",
+  "issued_at": "2026-10-04T00:00:00Z",
+  "issued_by": "operator",
+  "gates": {
+    "Q1-SPEC": { "passed": true, "artifact": "abraxas/evidence/hyperlex_instrument_v1.spec.md" },
+    "Q1-FIXTURE": { "passed": true, "artifact": "abraxas/evidence/hyperlex_q1_fixtures.yaml" },
+    "Q1-ADAPTER": { "passed": true, "artifact": "abraxas/evidence/test_hyperlex_q1.py" },
+    "Q1-SCHEMA": { "passed": true, "artifact": "hyperlex.instrument.v1 (Hyperlex SoT)" },
+    "Q1-SETTLEMENT": { "passed": true, "artifact": "4ae7cddffcf72330adad8eb3dfd453025aa02c8cb12c5e6f5499a4e6cad06ca2 (V6 settlement)" },
+    "Q1-ARBITRATION": { "passed": true, "artifact": "integration tests in test_hyperlex_q1.py" }
+  },
+  "sha256": "pending_operator_computation",
+  "notes": [
+    "HYPERLEX_OUTPUT != SEMANTIC_TRUTH",
+    "Pairwise conformance blocked until SEMION-Q1, NOESIS-Q1, TRUTINA-Q1, ABRAXAS-Q1 complete",
+    "EXP-001 remains DEFERRED until AC-EIC-G1 (explicit operator acceptance)",
+    "Feature flag ABX_HYPERLEX_INSTRUMENT defaults off",
+    "Classifier release V6 REJECTED per settlement; do not reopen classification research"
+  ]
+}
