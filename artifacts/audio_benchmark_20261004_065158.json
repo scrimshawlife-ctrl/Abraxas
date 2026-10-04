@@ -1,0 +1,78 @@
+{
+  "benchmark": "abraxas_audio_trace_benchmark_v1",
+  "timestamp": "2026-10-04T06:51:58.818125+00:00Z",
+  "commit": "ce55da9",
+  "dataset": {
+    "source": "surveillance_survivor_audio",
+    "total_files": 0,
+    "categories": {}
+  },
+  "category_results": {},
+  "cross_engine_batch": {
+    "engines": [
+      "athanor",
+      "hyperlex",
+      "semion",
+      "noesis",
+      "trutina"
+    ],
+    "decision": "ACCEPT",
+    "agreement_threshold": 0.7
+  },
+  "decision_record": {
+    "decision_id": "4362d944-c0d1-471e-873f-270d544907eb",
+    "request_id": "audio-benchmark-001",
+    "evidence_ids": [
+      "2b7fa4b1-991a-4d5e-90a3-2487da5c7a46",
+      "6253320a-f44b-49ff-b603-30605f50bf70",
+      "38bd83aa-60e6-4f56-9523-428eb4e6cc09",
+      "18df5284-f0bc-45b6-9c40-86b8d95f669e",
+      "be2b3b60-785f-4214-8897-601cec47233c"
+    ],
+    "engines_used": [
+      "noesis",
+      "trutina",
+      "hyperlex",
+      "semion",
+      "athanor"
+    ],
+    "decision": "ACCEPT",
+    "confidence": 0.82,
+    "accepted_claims": [
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent",
+      "Coherent"
+    ],
+    "rejected_claims": [],
+    "unresolved_claims": [],
+    "verification_results": [
+      {
+        "verifier": "RelationalVerifier",
+        "passed": true
+      },
+      {
+        "verifier": "LexicalConsistencyVerifier",
+        "passed": true
+      },
+      {
+        "verifier": "SignRelationVerifier",
+        "passed": true
+      },
+      {
+        "verifier": "LatentStructureVerifier",
+        "passed": true
+      }
+    ],
+    "contradictions": [],
+    "recomputation_history": [],
+    "provenance": [],
+    "policy_version": "1.0",
+    "timestamp": "2026-10-04T06:51:58.818120"
+  },
+  "verification": {
+    "verifiers_run": 4,
+    "all_passed": true
+  }
+}

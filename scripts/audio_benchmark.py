@@ -2,18 +2,21 @@
 """
 Abraxas Evidence Arbitration — Audio Trace Benchmark
 
-Runs the 5-engine Abraxas system on Surveillance-Survivor audio traces
+Runs the Abraxas system on Surveillance-Survivor audio traces
 to produce empirical evidence arbitration results.
 """
 
 import sys
-sys.path.insert(0, "/Users/appliedalchemylabs/Abraxas")
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT))
 
 import os
 import json
 import hashlib
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any
 from dataclasses import dataclass, field
 
@@ -82,14 +85,19 @@ def classify_audio_category(filepath: str) -> str:
 
 # ─── BENCHMARK EXECUTION ──────────────────────────────────────────────
 
-def run_benchmark(audio_root: str = "/Users/appliedalchemylabs/Surveillance-Survivor/Resources/Audio") -> Dict[str, Any]:
+def run_benchmark(audio_root: str = "") -> Dict[str, Any]:
     """Run full Abraxas arbitration benchmark on audio dataset."""
+    if not audio_root:
+        audio_root = os.environ.get(
+            "AUDIO_DATA_ROOT",
+            str(REPO_ROOT.parent / "Surveillance-Survivor" / "Resources" / "Audio")
+        )
     
     print("=" * 70)
     print("ABRAXAS EVIDENCE ARBITRATION — AUDIO TRACE BENCHMARK")
     print("=" * 70)
     print(f"Dataset: {audio_root}")
-    print(f"Timestamp: {datetime.utcnow().isoformat()}Z\n")
+    print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}Z\n")
     
     # 1. Discover audio files
     audio_files = []
@@ -253,7 +261,7 @@ def run_benchmark(audio_root: str = "/Users/appliedalchemylabs/Surveillance-Surv
     # 6. Compile full results
     results = {
         "benchmark": "abraxas_audio_trace_benchmark_v1",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
         "commit": "ce55da9",
         "dataset": {
             "source": "surveillance_survivor_audio",
@@ -279,10 +287,11 @@ def run_benchmark(audio_root: str = "/Users/appliedalchemylabs/Surveillance-Surv
 # ─── MAIN ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import os
     results = run_benchmark()
     
     # Save results
-    output_path = f"/Users/appliedalchemylabs/Abraxas/artifacts/audio_benchmark_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    output_path = f"{REPO_ROOT}/artifacts/audio_benchmark_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     with open(output_path, "w") as f:

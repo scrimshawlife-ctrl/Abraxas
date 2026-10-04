@@ -13,12 +13,11 @@ multi-engine evidence arbitration system. It implements:
 from __future__ import annotations
 
 import sys
-sys.path.insert(0, "/Users/appliedalchemylabs/Abraxas")
-
 import hashlib
 import json
 import time
 import threading
+import enum
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Callable
@@ -35,6 +34,13 @@ from abraxas.evidence.verifiers.lexical import LexicalConsistencyVerifier
 from abraxas.evidence.verifiers.sign import SignRelationVerifier
 from abraxas.evidence.verifiers.latent import LatentStructureVerifier
 from abraxas.evidence.policy import DecisionRecord, ArbitrationPolicyConfig
+
+
+def _json_serializer(obj):
+    """JSON serializer for enums and other non-serializable objects."""
+    if isinstance(obj, enum.Enum):
+        return obj.value
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
 # ─── ENGINE LIFECYCLE & HEALTH ────────────────────────────────────────
@@ -125,13 +131,13 @@ class EngineRegistry:
         self._callbacks.append(callback)
 
 
-# ─── PRODUCTION ARBITER WITH GOVERNANCE ──────────────────────────────
+# ─── PRODUCTION ARBITER WITH GOVERNANCE ────────────────────────────────
 
 class ProductionArbiter:
     """Production-grade arbiter with full governance integration."""
     
-    def __init__(self, engine_registry: EngineRegistry, policy_config: ArbitrationPolicyConfig = None):
-        self.engine_registry = engine_registry
+    def __init__(self, engine_registry: Optional[EngineRegistry] = None, policy_config: ArbitrationPolicyConfig = None):
+        self.engine_registry = engine_registry or EngineRegistry()
         self.policy_config = policy_config or ArbitrationPolicyConfig()
         
         # Create arbiter with policy
@@ -155,6 +161,22 @@ class ProductionArbiter:
         self._audit_log: List[Dict[str, Any]] = []
         self._lock = threading.RLock()
     
+    def get_system_status(self) -> Dict[str, Any]:
+        """Get system status of the production arbiter."""
+        return {
+            "engine_registry_initialized": self.engine_registry is not None,
+            "engine_count": len(self.engine_registry.all()) if self.engine_registry else 0,
+            "total_audit_entries": len(self._audit_log),
+            "policy_config": {
+                "accept_confidence": self.policy_config.accept_confidence,
+                "verify_confidence": self.policy_config.verify_confidence,
+                "recompute_confidence": self.policy_config.recompute_confidence,
+                "max_uncertainty": self.policy_config.max_uncertainty,
+                "min_decision_margin": self.policy_config.min_decision_margin,
+                "max_entropy": self.policy_config.max_entropy,
+            }
+        }
+    
     def _audit(self, event: str, details: Dict[str, Any]) -> None:
         with self._lock:
             self._audit_log.append({
@@ -162,17 +184,16 @@ class ProductionArbiter:
                 "event": event,
                 "details": details,
                 "audit_hash": hashlib.sha256(
-                    f"{datetime.now(timezone.utc).isoformat()}|{event}|{json.dumps(details, sort_keys=True)}".encode()
+                    f"{datetime.now(timezone.utc).isoformat()}|{event}|{json.dumps(details, sort_keys=True, default=_json_serializer)}".encode()
                 ).hexdigest()[:16]
             })
     
-    def arbitrate(self, envelope: EvidenceEnvelope, 
-                  verify: bool = True) -> Decision:
+    def arbitrate(self, envelope: EvidenceEnvelope, verify: bool = True) -> Decision:
         """Arbitrate a single evidence envelope with governance checks."""
         start = time.perf_counter()
         
-        # Health check
-        if not self.engine_registry.is_healthy(envelope.engine):
+        # Health check (only if engine_registry is provided)
+        if self.engine_registry is not None and not self.engine_registry.is_healthy(envelope.engine):
             self._audit("ARBITRATION_SKIPPED", {
                 "reason": f"Engine {envelope.engine} not healthy",
                 "evidence_id": envelope.evidence_id
@@ -194,19 +215,20 @@ class ProductionArbiter:
         
         return decision
     
-    def arbitrate_batch(self, envelopes: List[EvidenceEnvelope],
-                        verify: bool = True) -> Decision:
+    def arbitrate_batch(self, envelopes: List[EvidenceEnvelope], verify: bool = True) -> Decision:
         """Arbitrate multiple envelopes with cross-engine governance."""
         start = time.perf_counter()
         
-        # Health check all engines
+        # Health check all engines (only if engine_registry is provided)
         engines = list(set(e.engine for e in envelopes))
-        unhealthy = [e for e in engines if not self.engine_registry.is_healthy(e)]
-        if unhealthy:
-            self._audit("BATCH_ARBITRATION_DEGRADED", {
-                "unhealthy_engines": unhealthy,
-                "evidence_ids": [e.evidence_id for e in envelopes]
-            })
+        unhealthy = []
+        if self.engine_registry is not None:
+            unhealthy = [e for e in engines if not self.engine_registry.is_healthy(e)]
+            if unhealthy:
+                self._audit("BATCH_ARBITRATION_DEGRADED", {
+                    "unhealthy_engines": unhealthy,
+                    "evidence_ids": [e.evidence_id for e in envelopes]
+                })
         
         # Run batch arbitration
         decision = self.arbiter.arbitrate_batch(envelopes) if verify else self.arbiter.policy.evaluate_batch(envelopes)
@@ -230,7 +252,7 @@ class ProductionArbiter:
             return list(self._audit_log)
 
 
-# ─── 6-GATE GOVERNANCE INTEGRATION ───────────────────────────────────
+# ─── 6-GATE GOVERNANCE INTEGRATION ────────────────────────────────────
 
 class GovernanceGate(str, Enum):
     PROVENANCE = "provenance"
@@ -376,7 +398,7 @@ class SixGateGovernor:
         )
 
 
-# ─── PRODUCTION ORCHESTRATOR ─────────────────────────────────────────
+# ─── PRODUCTION ORCHESTRATOR ──────────────────────────────────────────
 
 class ProductionOrchestrator:
     """Main production entry point for 5-engine governance."""
@@ -508,7 +530,7 @@ class ProductionOrchestrator:
         }
 
 
-# ─── EXPORT ──────────────────────────────────────────────────────────
+# ─── EXPORT ────────────────────────────────────────────────────────────
 
 __all__ = [
     "EngineRegistry",
