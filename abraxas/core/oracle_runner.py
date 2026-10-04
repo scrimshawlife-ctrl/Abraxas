@@ -9,6 +9,7 @@ from typing import Any, Dict, Tuple, Callable, Optional
 from ..io.config import OverlaysConfig, UserConfig
 from ..kernel.dispatcher import get_kernel_runner
 from .tier_router import tier_context
+from datetime import timezone
 
 
 def _sha256_json(obj: Any) -> str:
@@ -59,7 +60,7 @@ def run_oracle(uc: UserConfig, oc: OverlaysConfig, day: str, checkin: Optional[s
 
     provenance = {
         "schema": "provenance.v0",
-        "timestamp_utc": datetime.utcnow().isoformat() + "Z",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat() + "Z",
         "inputs_hash": _sha256_json(inputs.to_dict()),
         "tier": uc.tier,
         "admin": uc.admin,

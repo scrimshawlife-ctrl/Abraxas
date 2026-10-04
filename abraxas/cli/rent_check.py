@@ -1,3 +1,4 @@
+from datetime import timezone
 #!/usr/bin/env python3
 """
 Rent Check CLI — Enforce "Complexity Must Pay Rent"
@@ -168,7 +169,7 @@ def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
     # Save JSON report
     json_path = output_dir / f"rent_check_{timestamp}.json"

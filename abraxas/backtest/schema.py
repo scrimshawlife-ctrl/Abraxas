@@ -6,7 +6,7 @@ Defines data structures for backtest cases, triggers, and results.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -176,7 +176,7 @@ class BacktestResult(BaseModel):
     satisfied_falsifiers: List[str] = Field(default_factory=list)
     notes: List[str] = Field(default_factory=list)
     provenance: Dict[str, Any] = Field(default_factory=dict)
-    evaluated_at: datetime = Field(default_factory=datetime.utcnow)
+    evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Optional: Forecast scoring if forecast_branch_ref was present
     forecast_scoring: Optional[Dict[str, Any]] = Field(

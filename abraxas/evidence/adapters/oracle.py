@@ -3,6 +3,7 @@ Oracle adapter for Abraxas evidence provider interface.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Callable
 
 from abraxas.evidence.contract import (
@@ -15,44 +16,143 @@ from abraxas.evidence.provider import EvidenceProvider
 
 
 def _default_oracle_inference(claim: str, context: Dict[str, Any]) -> Dict[str, Any]:
-    """Default inference engine for Oracle - returns a fixed narrative synthesis."""
+    """Enhanced inference engine for Oracle - returns context-aware narrative synthesis."""
+    # Analyze claim characteristics for more sophisticated synthesis
+    claim_lower = claim.lower()
+    words = claim.split()
+    word_count = len(words)
+    
+    # Determine narrative tone based on claim characteristics
+    if any(word in claim_lower for word in ["why", "how", "explain", "reason"]):
+        tone = "explanatory"
+        coherence_indicators = ["logical", "systematic", "well-reasoned"]
+        incoherence_indicators = ["illogical", "inconsistent", "poorly reasoned"]
+    elif any(word in claim_lower for word in ["what", "who", "when", "where"]):
+        tone = "descriptive"
+        coherence_indicators = ["accurate", "precise", "detailed"]
+        incoherence_indicators = ["vague", "ambiguous", "inaccurate"]
+    elif any(word in claim_lower for word in ["should", "must", "ought", "need"]):
+        tone = "prescriptive"
+        coherence_indicators = ["justified", "reasonable", "well-founded"]
+        incoherence_indicators = ["unjustified", "arbitrary", "unfounded"]
+    else:
+        tone = "analytical"
+        coherence_indicators = ["coherent", "consistent", "well-structured"]
+        incoherence_indicators = ["incoherent", "inconsistent", "poorly structured"]
+    
+    # Calculate coherence score based on claim features
+    coherence_score = 0.5  # Base score
+    
+    # Adjust based on claim length (very short or very long claims might be less coherent)
+    if 5 <= word_count <= 25:
+        coherence_score += 0.1  # Sweet spot for coherence
+    elif word_count > 25:
+        coherence_score -= 0.05  # Very long claims might be overly complex
+    # Very short claims (<5) keep base score
+    
+    # Adjust based on specificity indicators
+    if any(indicator in claim_lower for indicator in ["specifically", "particularly", "exactly"]):
+        coherence_score += 0.15
+    if any(indicator in claim_lower for indicator in ["maybe", "perhaps", "possibly", "might"]):
+        coherence_score -= 0.1
+    
+    # Boost for well-formed questions
+    if claim.strip().endswith("?"):
+        coherence_score += 0.1
+    
+    # Ensure score stays in reasonable bounds
+    coherence_score = max(0.1, min(0.9, coherence_score))
+    
+    # Determine if we lean toward coherence or incoherence
+    is_coherent = coherence_score > 0.5
+    
+    # Generate appropriate answer and confidence
+    if is_coherent:
+        answer = f"Narrative synthesis indicates {tone} coherence"
+        confidence = coherence_score
+        reasoning_trace = f"Oracle engine performed {tone} narrative synthesis on claim with {word_count} words"
+        coherence_result = "high"
+    else:
+        answer = f"Narrative synthesis indicates {tone} incoherence"
+        confidence = 1.0 - coherence_score
+        reasoning_trace = f"Oracle engine identified potential {tone} issues in claim with {word_count} words"
+        coherence_result = "low"
+    
+    # Enhanced relation steps with more detailed analysis
+    relation_steps = [
+        RelationStep(
+            relation=f"narrative_{tone}_analysis",
+            subject=claim,
+            object="analysis_complete",
+            result=coherence_result,
+            confidence=confidence,
+            metadata={
+                "tone": tone,
+                "word_count": word_count,
+                "coherence_score": coherence_score,
+                "analysis_type": "narrative_synthesis"
+            }
+        ),
+        RelationStep(
+            relation="contextual_assessment",
+            subject="claim_analysis",
+            object="context_relevance",
+            result="evaluated",
+            confidence=0.8,
+            metadata={
+                "context_provided": bool(context),
+                "context_keys": list(context.keys()) if context else []
+            }
+        )
+    ]
+    
+    # Enhanced reasoning steps
+    reasoning_steps = [
+        RelationStep(
+            relation=f"narrative_{tone}_analysis",
+            subject=claim,
+            object="coherence_evaluation",
+            result=coherence_result,
+            confidence=confidence
+        )
+    ]
+    
+    # Add contextual reasoning if context is provided
+    if context:
+        reasoning_steps.append(
+            RelationStep(
+                relation="context_integration",
+                subject="external_factors",
+                object="claim_interpretation",
+                result="considered",
+                confidence=0.75,
+                metadata={"context_elements": len(context)}
+            )
+        )
+    
     return {
         "candidates": [
             CandidateOutput(
-                answer="Narrative synthesis indicates coherence",
-                confidence=0.85,
-                reasoning_trace="Oracle engine processed claim through narrative synthesis framework",
-                relation_steps=[
-                    RelationStep(
-                        relation="narrative_coherence",
-                        subject=claim,
-                        object="coherent",
-                        result="high",
-                        confidence=0.8
-                    )
-                ]
+                answer=answer,
+                confidence=confidence,
+                reasoning_trace=reasoning_trace,
+                relation_steps=relation_steps
             ),
             CandidateOutput(
-                answer="Narrative synthesis indicates incoherence",
-                confidence=0.15,
-                reasoning_trace="Alternative narrative path",
+                answer=f"Alternative narrative interpretation ({'coherent' if not is_coherent else 'incoherent'})",
+                confidence=1.0 - confidence,
+                reasoning_trace="Alternative narrative path considering different interpretive frameworks",
                 relation_steps=[]
             )
         ],
-        "model_identity": "oracle-model-v1",
-        "relations": ["narrative_coherence"],
-        "reasoning_steps": [
-            RelationStep(
-                relation="narrative_coherence",
-                subject=claim,
-                object="coherent",
-                result="high",
-                confidence=0.8
-            )
-        ],
+        "model_identity": "oracle-model-v2-enhanced",
+        "relations": [f"narrative_{tone}_analysis", "contextual_assessment"],
+        "reasoning_steps": reasoning_steps,
         "provenance": {
-            "source": "oracle_default_inference",
-            "engine": "oracle"
+            "source": "oracle_enhanced_inference",
+            "engine": "oracle",
+            "enhancement_version": "2.0",
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat()
         }
     }
 

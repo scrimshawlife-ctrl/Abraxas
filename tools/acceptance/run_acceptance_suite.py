@@ -1,3 +1,4 @@
+from datetime import timezone
 #!/usr/bin/env python3
 """Abraxas Acceptance Test Suite v1.0
 
@@ -494,7 +495,7 @@ class AcceptanceTestSuite:
     def _emit_drift_report(self, test_result: TestResult, envelopes: List[Dict[str, Any]]):
         """Emit drift report artifact on determinism failure."""
         drift_report = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "test": test_result.test_id,
             "verdict": test_result.verdict,
             "classification": test_result.details.get("drift_classification", "UNKNOWN"),
@@ -537,7 +538,7 @@ class AcceptanceTestSuite:
         hard_gate_failures = sum(1 for r in self.results if r.is_hard_gate and r.verdict == "FAIL")
 
         return AcceptanceSuiteResult(
-            timestamp=datetime.utcnow().isoformat() + "Z",
+            timestamp=datetime.now(timezone.utc).isoformat() + "Z",
             tests=self.results,
             hard_gate_passes=hard_gate_passes,
             hard_gate_failures=hard_gate_failures,
@@ -654,7 +655,7 @@ class AcceptanceTestSuite:
         failures = [t.test_id for t in tests if t.is_hard_gate and t.verdict != "PASS"]
         return {
             "schema_version": "1.0.0",
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(timezone.utc).isoformat() + "Z",
             "run_window": {
                 "artifact_count": len(tests),
                 "start_created_at": None,

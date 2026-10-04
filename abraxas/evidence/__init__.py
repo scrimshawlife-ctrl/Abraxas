@@ -6,7 +6,6 @@ Single source of truth for all evidence-related types and operations.
 from __future__ import annotations
 
 from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional, Tuple
@@ -102,7 +101,7 @@ class EvidenceEnvelope:
     artifact_refs: List[str] = field(default_factory=list)
     
     verification_metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     # Schema version for Alembic-style migration
     schema_version: str = "v2"
@@ -411,7 +410,7 @@ class DecisionRecord:
     provenance: List[Dict[str, Any]] = field(default_factory=list)
     
     policy_version: str = "v2"
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -596,7 +595,7 @@ class EvidenceSchemaMigrator:
             envelope.setdefault("engine_version", "1.0")
             envelope.setdefault("model_identity", envelope.get("engine", "unknown"))
             envelope.setdefault("request_id", str(uuid.uuid4()))
-            envelope.setdefault("timestamp", datetime.utcnow().isoformat())
+            envelope.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
             envelope.setdefault("dependencies", [])
             envelope.setdefault("assumptions", [])
             envelope.setdefault("artifact_refs", [])

@@ -1,10 +1,10 @@
+from datetime import timezone
 """
 Abraxas Evidence Arbiter — engine-independent arbitration of evidence.
 
 The arbiter evaluates EvidenceEnvelope objects and determines:
 ACCEPT, VERIFY, RECOMPUTE, ESCALATE, ABSTAIN
 """
-from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -153,4 +153,4 @@ class ArbitrationResult:
     envelope: EvidenceEnvelope
     policy_trace: Dict[str, Any] = field(default_factory=dict)
     verification_trace: Dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

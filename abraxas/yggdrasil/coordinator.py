@@ -69,17 +69,22 @@ class YggdrasilCoordinator:
         """Initialize all Yggdrasil subsystems."""
         if self._initialized:
             return
+        
+        try:
+            # Initialize rune registry with known engines
+            if self.config.rune_registry_enabled:
+                self._register_default_engines()
             
-        # Initialize rune registry with known engines
-        if self.config.rune_registry_enabled:
-            self._register_default_engines()
-        
-        # Initialize memory layer
-        if self.config.memory_enabled:
-            self.memory_layer.initialize()
-        
-        self._initialized = True
-        logger.info("Yggdrasil subsystems initialized")
+            # Initialize memory layer
+            if self.config.memory_enabled:
+                self.memory_layer.initialize()
+            
+            self._initialized = True
+            logger.info("Yggdrasil subsystems initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize Yggdrasil subsystems: {e}")
+            # Don't set _initialized to True on failure
+            raise
     
     def _register_default_engines(self) -> None:
         """Register the default set of engines in the rune registry."""

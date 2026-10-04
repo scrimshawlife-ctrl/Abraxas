@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Shadow Detector Base Types.
 
@@ -115,7 +116,7 @@ class ShadowDetectorResult(BaseModel):
     @staticmethod
     def now_iso_z() -> str:
         """Return current time in ISO8601 format with Z timezone."""
-        return datetime.utcnow().isoformat() + "Z"
+        return datetime.now(timezone.utc).isoformat() + "Z"
 
     @staticmethod
     def hash_inputs(inputs: Dict[str, Any]) -> str:

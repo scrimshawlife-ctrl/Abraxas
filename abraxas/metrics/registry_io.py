@@ -1,3 +1,4 @@
+from datetime import timezone
 """Registry I/O: Load/Save with Schema Validation
 
 Handles:
@@ -60,7 +61,7 @@ class CandidateRegistry:
         data = {
             "candidates": [c.to_dict() for c in self.candidates.values()],
             "count": len(self.candidates),
-            "last_updated": datetime.utcnow().isoformat() + "Z",
+            "last_updated": datetime.now(timezone.utc).isoformat() + "Z",
         }
 
         with open(self.registry_path, "w") as f:
@@ -204,7 +205,7 @@ def save_canonical_registry(data: Dict, registry_path: Optional[Path] = None):
     path = registry_path or DEFAULT_CANONICAL_REGISTRY_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    data["last_updated"] = datetime.utcnow().isoformat() + "Z"
+    data["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
 
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
@@ -235,7 +236,7 @@ def promote_candidate_to_canonical(
         "valid_range": candidate.provenance.valid_range,
         "dependencies": candidate.provenance.dependencies,
         "promoted_from_candidate": True,
-        "promotion_timestamp": datetime.utcnow().isoformat() + "Z",
+        "promotion_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
     }
 
     # Add to canonical registry

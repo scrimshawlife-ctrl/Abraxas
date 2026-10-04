@@ -1,3 +1,4 @@
+from datetime import timezone
 """Performance ledger - append-only JSONL for rent metrics.
 
 Performance Drop v1.0 - Provenance-tracked performance metrics.
@@ -108,7 +109,7 @@ def summarize_perf(
     Returns:
         Summary dict with metrics
     """
-    since_utc = (datetime.utcnow() - timedelta(hours=window_hours)).isoformat()
+    since_utc = (datetime.now(timezone.utc) - timedelta(hours=window_hours)).isoformat()
     events = read_perf_events(since_utc=since_utc, op_name=op_name, source_id=source_id)
 
     if not events:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from datetime import timezone
 
 
 @dataclass(frozen=True)
@@ -19,7 +20,7 @@ class KiteIngest:
     def create(kind: str, domain: str, tags: List[str], text: str, source: Optional[str]) -> "KiteIngest":
         return KiteIngest(
             schema="kite_ingest.v0",
-            timestamp_utc=datetime.utcnow().isoformat() + "Z",
+            timestamp_utc=datetime.now(timezone.utc).isoformat() + "Z",
             kind=kind,
             domain=domain,
             tags=tags,

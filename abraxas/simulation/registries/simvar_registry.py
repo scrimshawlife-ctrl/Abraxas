@@ -1,3 +1,4 @@
+from datetime import timezone
 """Simulation Variable Registry: Canonical storage for latent world state variables.
 
 Variables represent the hidden state that metrics observe through ABX-Runes.
@@ -170,7 +171,7 @@ class SimVarRegistry:
         data = {
             "variables": [v.to_dict() for v in self.vars.values()],
             "count": len(self.vars),
-            "last_updated": datetime.utcnow().isoformat() + "Z",
+            "last_updated": datetime.now(timezone.utc).isoformat() + "Z",
         }
 
         with open(self.registry_path, "w") as f:

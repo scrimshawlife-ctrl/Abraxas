@@ -7,7 +7,7 @@ No engine may emit evidence that does not conform to this contract.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from enum import Enum
 import uuid
@@ -28,6 +28,7 @@ class EvidenceType(str, Enum):
     MULTIMODAL_INTEGRATION = "MULTIMODAL_INTEGRATION"
     PERSISTENT_MEMORY = "PERSISTENT_MEMORY"
     YGGDRASIL_DECISION = "YGGDRASIL_DECISION"
+    VIDEO_ANALYSIS = "VIDEO_ANALYSIS"
 
 
 class Decision(str, Enum):
@@ -88,7 +89,7 @@ class EvidenceEnvelope:
     artifact_refs: List[str] = field(default_factory=list)
     
     verification_metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to canonical JSON for storage and transmission."""

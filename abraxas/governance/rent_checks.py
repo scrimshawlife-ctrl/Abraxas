@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Rent Checks — The Enforcement Gate
 
@@ -325,7 +326,7 @@ def run_all_rent_checks(
     """
     report = RentCheckReport(passed=True)
     report.provenance = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "repo_root": repo_root,
         "ter_spec_provided": ter_spec is not None,
         "observed_stats_provided": observed_stats is not None,

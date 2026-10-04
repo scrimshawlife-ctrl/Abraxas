@@ -7,6 +7,7 @@ from ...core.oracle_runner import OracleRunInputs
 from ...overlays.dispatcher import OVERLAY_REGISTRY, run_overlay_safe
 from ...schemas.oracle_readout_v0 import OracleReadoutV0
 from ...schemas.overlay_packet_v0 import OverlayPacketV0
+from datetime import timezone
 
 
 def _header(inputs: OracleRunInputs) -> Dict[str, Any]:
@@ -152,7 +153,7 @@ def run_oracle_v2(inputs: OracleRunInputs) -> Dict[str, Any]:
     provenance = {
         "schema": "oracle_provenance.v0",
         "kernel": "abraxas_kernel.v2.0",
-        "timestamp_utc": datetime.utcnow().isoformat() + "Z",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat() + "Z",
         "note": "Kernel v2 run. Runner adds inputs hash + config context.",
     }
 

@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Event Query Module
 
@@ -41,7 +42,7 @@ class SignalEvent:
         try:
             timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         return cls(
             event_id=data.get("event_id", ""),

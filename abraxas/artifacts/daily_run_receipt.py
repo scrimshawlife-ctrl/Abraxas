@@ -1,3 +1,4 @@
+from datetime import timezone
 """
 Daily Run Receipt — Execution Summary with Rent Metrics
 
@@ -136,7 +137,7 @@ def generate_run_receipt(
         DailyRunReceipt instance
     """
     return DailyRunReceipt(
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
         run_id=run_id,
         status=status,
         duration_seconds=duration_seconds,

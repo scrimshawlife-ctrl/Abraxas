@@ -7,7 +7,7 @@ DecisionRecord that serves as the governing artifact for all Abraxas decisions.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from enum import Enum
 from abraxas.evidence.contract import Decision, EvidenceEnvelope
@@ -83,7 +83,7 @@ class DecisionRecord:
     provenance: List[Dict[str, Any]] = field(default_factory=list)
     
     policy_version: str = "1.0"
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         return {

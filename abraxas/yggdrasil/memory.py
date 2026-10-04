@@ -18,10 +18,33 @@ import enum
 logger = logging.getLogger(__name__)
 
 
+# Optional Timechain integration
+try:
+    # Try to import Timechain if available
+    from timechain import Timechain, TimechainError
+    TIMECHAIN_AVAILABLE = True
+except ImportError:
+    TIMECHAIN_AVAILABLE = False
+    logger.debug("Timechain not available, using file storage only")
+
+
+@dataclass
+class TimechainConfig:
+    """Configuration for Timechain integration."""
+    enabled: bool = False
+    chain_name: str = "abraxas_memory"
+    namespace: str = "evidence"
+    write_timeout: float = 30.0
+    read_timeout: float = 30.0
+
+
 def _json_serializer(obj):
     """JSON serializer for enums and other non-serializable objects."""
     if isinstance(obj, enum.Enum):
         return obj.value
+    elif isinstance(obj, type) and issubclass(obj, enum.Enum):
+        # Handle enum classes (e.g., if somehow passed the class instead of instance)
+        return obj.__name__
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
@@ -38,22 +61,50 @@ class MemoryRecord:
 class CypherMemoryLayer:
     """Persistent memory layer for evidence and decisions."""
 
-    def __init__(self, storage_path: Optional[str] = None):
+    def __init__(self, storage_path: Optional[str] = None, timechain_config: Optional[TimechainConfig] = None):
         self._initialized = False
         self.storage_path = storage_path or os.path.join(
             os.path.expanduser("~"), ".abraxas", "memory"
         )
         self._store: Dict[str, MemoryRecord] = {}
+        self.timechain_config = timechain_config or TimechainConfig()
+        self._timechain_client = None
         logger.info("Yggdrasil Memory Layer initialized")
     
     def initialize(self) -> None:
         """Initialize the memory layer, load from storage if exists."""
         if self._initialized:
             return
-        os.makedirs(self.storage_path, exist_ok=True)
-        self._load_from_storage()
-        self._initialized = True
-        logger.debug(f"Yggdrasil Memory Layer initialized at {self.storage_path}")
+            
+        try:
+            # Initialize Timechain if configured
+            if self.timechain_config.enabled:
+                self._initialize_timechain()
+                
+            os.makedirs(self.storage_path, exist_ok=True)
+            self._load_from_storage()
+            self._initialized = True
+            logger.debug(f"Yggdrasil Memory Layer initialized at {self.storage_path}")
+        except Exception as e:
+            logger.error(f"Failed to initialize memory layer: {e}")
+            raise
+
+    def _initialize_timechain(self) -> bool:
+        """Initialize Timechain client if enabled and available."""
+        if not self.timechain_config.enabled or not TIMECHAIN_AVAILABLE:
+            return False
+            
+        try:
+            self._timechain_client = Timechain(
+                chain_name=self.timechain_config.chain_name,
+                namespace=self.timechain_config.namespace
+            )
+            logger.info(f"Timechain client initialized for chain {self.timechain_config.chain_name}")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to initialize Timechain client: {e}")
+            self._timechain_client = None
+            return False
     
     def _load_from_storage(self) -> None:
         """Load memory records from storage."""
@@ -70,7 +121,7 @@ class CypherMemoryLayer:
                 self._store = {}
         else:
             logger.info("No existing memory storage found, starting fresh")
-    
+
     def _save_to_storage(self) -> None:
         """Save memory records to storage."""
         index_file = os.path.join(self.storage_path, "index.json")
@@ -84,6 +135,52 @@ class CypherMemoryLayer:
             logger.debug(f"Saved {len(self._store)} records to storage")
         except Exception as e:
             logger.error(f"Failed to save memory storage: {e}")
+
+    def _save_to_timechain(self, record_id: str, content: Dict[str, Any]) -> bool:
+        """Save record to Timechain if available and enabled."""
+        if not self._timechain_client or not self.timechain_config.enabled:
+            return False
+            
+        try:
+            # Prepare data for Timechain storage
+            timechain_data = {
+                "record_id": record_id,
+                "content": content,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "metadata": {"source": "yggdrasil_memory_timechain"}
+            }
+            
+            # Write to Timechain with timeout
+            self._timechain_client.write(
+                key=record_id,
+                value=timechain_data,
+                timeout=self.timechain_config.write_timeout
+            )
+            logger.debug(f"Saved record {record_id} to Timechain")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to save to Timechain: {e}")
+            return False
+
+    def _load_from_timechain(self, record_id: str) -> Optional[Dict[str, Any]]:
+        """Load record from Timechain if available and enabled."""
+        if not self._timechain_client or not self.timechain_config.enabled:
+            return None
+            
+        try:
+            # Read from Timechain with timeout
+            result = self._timechain_client.read(
+                key=record_id,
+                timeout=self.timechain_config.read_timeout
+            )
+            
+            if result and isinstance(result, dict) and "content" in result:
+                logger.debug(f"Loaded record {record_id} from Timechain")
+                return result["content"]
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to load from Timechain: {e}")
+            return None
     
     def store_evidence(self, envelope: Any) -> str:
         """Store an evidence envelope in persistent memory.
@@ -95,7 +192,7 @@ class CypherMemoryLayer:
             self.initialize()
         
         record_id = f"env-{getattr(envelope, 'evidence_id', 'unknown')}"
-        # Convert envelope to dict, handling enums properly
+        # Convert envelope to dict, handling enums and nested objects properly
         if hasattr(envelope, 'to_dict'):
             content = envelope.to_dict()
             # Ensure evidence_type is serialized as string value
@@ -105,6 +202,59 @@ class CypherMemoryLayer:
             if 'verification_metadata' in content and isinstance(content['verification_metadata'], dict):
                 if 'decision' in content['verification_metadata'] and hasattr(content['verification_metadata']['decision'], 'value'):
                     content['verification_metadata']['decision'] = content['verification_metadata']['decision'].value
+            # Handle nested RelationStep objects in candidate_outputs and reasoning_steps
+            if 'candidate_outputs' in content and isinstance(content['candidate_outputs'], list):
+                for i, candidate in enumerate(content['candidate_outputs']):
+                    if isinstance(candidate, dict) and 'relation_steps' in candidate and isinstance(candidate['relation_steps'], list):
+                        for j, step in enumerate(candidate['relation_steps']):
+                            if isinstance(step, dict):
+                                # Ensure any enums in step metadata are handled
+                                if 'metadata' in step and isinstance(step['metadata'], dict):
+                                    for key, value in step['metadata'].items():
+                                        if hasattr(value, 'value'):
+                                            step['metadata'][key] = value.value
+                            # Handle RelationStep objects that weren't converted to dict by to_dict()
+                            elif hasattr(step, '__dict__'):
+                                # Convert RelationStep object to dict
+                                step_dict = {
+                                    'relation': step.relation,
+                                    'subject': step.subject,
+                                    'object': step.object,
+                                    'result': step.result,
+                                    'confidence': step.confidence,
+                                    'metadata': step.metadata.copy() if hasattr(step.metadata, 'copy') else step.metadata
+                                }
+                                # Handle any enums in metadata
+                                if 'metadata' in step_dict and isinstance(step_dict['metadata'], dict):
+                                    for key, value in step_dict['metadata'].items():
+                                        if hasattr(value, 'value'):
+                                            step_dict['metadata'][key] = value.value
+                                candidate['relation_steps'][j] = step_dict
+            if 'reasoning_steps' in content and isinstance(content['reasoning_steps'], list):
+                for i, step in enumerate(content['reasoning_steps']):
+                    if isinstance(step, dict):
+                        # Ensure any enums in step metadata are handled
+                        if 'metadata' in step and isinstance(step['metadata'], dict):
+                            for key, value in step['metadata'].items():
+                                if hasattr(value, 'value'):
+                                    step['metadata'][key] = value.value
+                    # Handle RelationStep objects that weren't converted to dict by to_dict()
+                    elif hasattr(step, '__dict__'):
+                        # Convert RelationStep object to dict
+                        step_dict = {
+                            'relation': step.relation,
+                            'subject': step.subject,
+                            'object': step.object,
+                            'result': step.result,
+                            'confidence': step.confidence,
+                            'metadata': step.metadata.copy() if hasattr(step.metadata, 'copy') else step.metadata
+                        }
+                        # Handle any enums in metadata
+                        if 'metadata' in step_dict and isinstance(step_dict['metadata'], dict):
+                            for key, value in step_dict['metadata'].items():
+                                if hasattr(value, 'value'):
+                                    step_dict['metadata'][key] = value.value
+                        content['reasoning_steps'][i] = step_dict
         else:
             content = {}
         record = MemoryRecord(
@@ -116,6 +266,14 @@ class CypherMemoryLayer:
         )
         self._store[record_id] = record
         self._save_to_storage()
+        
+        # Try to store in Timechain asynchronously (don't fail if Timechain fails)
+        if self.timechain_config.enabled:
+            try:
+                self._save_to_timechain(record_id, content)
+            except Exception as e:
+                logger.debug(f"Timechain storage failed (non-critical): {e}")
+        
         logger.debug(f"Stored evidence envelope: {record_id}")
         return record_id
     
@@ -158,6 +316,14 @@ class CypherMemoryLayer:
         )
         self._store[record_id] = record
         self._save_to_storage()
+        
+        # Try to store in Timechain asynchronously (don't fail if Timechain fails)
+        if self.timechain_config.enabled:
+            try:
+                self._save_to_timechain(record_id, record.content)
+            except Exception as e:
+                logger.debug(f"Timechain storage failed (non-critical): {e}")
+        
         logger.debug(f"Stored decision for evidence {evidence_id}: {record_id}")
         return record_id
     

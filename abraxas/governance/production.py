@@ -18,6 +18,9 @@ import json
 import time
 import threading
 import enum
+import queue
+import logging
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Callable
@@ -34,6 +37,8 @@ from abraxas.evidence.verifiers.lexical import LexicalConsistencyVerifier
 from abraxas.evidence.verifiers.sign import SignRelationVerifier
 from abraxas.evidence.verifiers.latent import LatentStructureVerifier
 from abraxas.evidence.policy import DecisionRecord, ArbitrationPolicyConfig
+
+logger = logging.getLogger(__name__)
 
 
 def _json_serializer(obj):
@@ -402,18 +407,24 @@ class SixGateGovernor:
 
 class ProductionOrchestrator:
     """Main production entry point for 5-engine governance."""
-    
+
     def __init__(self):
         self.engine_registry = EngineRegistry()
         self.arbiter = ProductionArbiter(self.engine_registry)
         self.governor = SixGateGovernor(self.arbiter)
         self._initialized = False
-    
+        # Streaming capabilities
+        self._stream_queue = queue.Queue()
+        self._stream_processor_thread = None
+        self._stream_results = {}
+        self._stream_lock = threading.RLock()
+        self._stop_streaming = threading.Event()
+
     def initialize(self) -> None:
         """Initialize all 5 engines."""
         from abraxas_multiengine_001_phase1_semion import SemionEvidenceProvider
         from abraxas.evidence.provider import MockEvidenceProvider
-        
+
         # Register all 5 engines
         engines = [
             # Athanor (relational)
@@ -451,13 +462,13 @@ class ProductionOrchestrator:
                 'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.CALIBRATION)
             })(),
         ]
-        
+
         for engine in engines:
             self.engine_registry.register(engine)
             self.engine_registry.update_health(engine.engine_name, EngineStatus.HEALTHY, latency_ms=10.0)
-        
+
         self._initialized = True
-    
+
     def _mock_evidence(self, request_id: str, claim: str, etype: EvidenceType) -> EvidenceEnvelope:
         return EvidenceEnvelope(
             engine="mock",
@@ -471,15 +482,15 @@ class ProductionOrchestrator:
             uncertainty=0.2,
             provenance={"mock": True}
         )
-    
+
     def run_pipeline(self, claim: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Run full 5-engine production pipeline."""
         if not self._initialized:
             self.initialize()
-        
+
         context = context or {}
         request_id = f"prod-{int(time.time() * 1000)}"
-        
+
         # Step 1: Collect evidence from all engines
         envelopes = []
         for engine in self.engine_registry.all():
@@ -492,12 +503,12 @@ class ProductionOrchestrator:
                 self.engine_registry.update_health(engine.engine_name, EngineStatus.HEALTHY, latency_ms=latency)
                 envelopes.append(env)
             except Exception as e:
-                self.engine_registry.update_health(engine.engine_name, EngineStatus.DEGRADED, error_rate=1.0, 
+                self.engine_registry.update_health(engine.engine_name, EngineStatus.DEGRADED, error_rate=1.0,
                                                  details={"error": str(e)})
-        
+
         # Step 2: Cross-engine arbitration
         decision = self.arbiter.arbitrate_batch(envelopes)
-        
+
         # Step 3: Create decision record
         record = DecisionRecord.from_arbitration(
             request_id=request_id,
@@ -505,10 +516,10 @@ class ProductionOrchestrator:
             decision=decision,
             confidence=sum(e.confidence for e in envelopes) / len(envelopes) if envelopes else 0.0,
         )
-        
+
         # Step 4: 6-gate governance
         governance = self.governor.evaluate(record)
-        
+
         return {
             "request_id": request_id,
             "claim": claim,
@@ -521,12 +532,177 @@ class ProductionOrchestrator:
             "governance_details": governance,
             "audit_log": self.arbiter.get_audit_log(),
         }
-    
+
+    def start_streaming_processor(self, num_workers: int = 3) -> None:
+        """Start the background stream processor for real-time evidence processing."""
+        if self._stream_processor_thread and self._stream_processor_thread.is_alive():
+            logger.warning("Stream processor already running")
+            return
+
+        self._stop_streaming.clear()
+        self._stream_processor_thread = threading.Thread(
+            target=self._stream_processor_worker,
+            args=(num_workers,),
+            daemon=True
+        )
+        self._stream_processor_thread.start()
+        logger.info(f"Started stream processor with {num_workers} workers")
+
+    def stop_streaming_processor(self) -> None:
+        """Stop the background stream processor."""
+        self._stop_streaming.set()
+        if self._stream_processor_thread:
+            self._stream_processor_thread.join(timeout=5.0)
+        logger.info("Stream processor stopped")
+
+    def submit_evidence_stream(self, evidence_id: str, claim: str, context: Dict[str, Any] = None) -> str:
+        """Submit evidence for streaming processing.
+        
+        Returns:
+            Stream ID for tracking results
+        """
+        stream_id = f"stream-{int(time.time() * 1000000)}-{evidence_id}"
+        self._stream_queue.put({
+            "stream_id": stream_id,
+            "evidence_id": evidence_id,
+            "claim": claim,
+            "context": context or {},
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        logger.debug(f"Submitted evidence {evidence_id} to stream with ID {stream_id}")
+        return stream_id
+
+    def get_stream_result(self, stream_id: str, timeout: Optional[float] = None) -> Optional[Dict[str, Any]]:
+        """Get result for a streamed evidence item.
+        
+        Args:
+            stream_id: ID returned from submit_evidence_stream
+            timeout: Maximum time to wait for result (None for no timeout)
+            
+        Returns:
+            Processing result or None if not available/timeout
+        """
+        start_time = time.time()
+        while True:
+            with self._stream_lock:
+                if stream_id in self._stream_results:
+                    result = self._stream_results.pop(stream_id)
+                    logger.debug(f"Retrieved stream result for {stream_id}")
+                    return result
+            
+            if timeout is not None and (time.time() - start_time) > timeout:
+                logger.debug(f"Timeout waiting for stream result {stream_id}")
+                return None
+                
+            time.sleep(0.01)  # Small sleep to prevent busy waiting
+
+    def _stream_processor_worker(self, num_workers: int) -> None:
+        """Worker function for streaming evidence processing."""
+        logger.info(f"Stream processor worker started with {num_workers} threads")
+        
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            while not self._stop_streaming.is_set():
+                try:
+                    # Get item from queue with timeout to allow checking stop condition
+                    try:
+                        item = self._stream_queue.get(timeout=1.0)
+                    except queue.Empty:
+                        continue
+                    
+                    # Process the evidence item
+                    future = executor.submit(self._process_stream_item, item)
+                    # We don't need to wait for the future here as it will call callback
+                    
+                except Exception as e:
+                    logger.error(f"Error in stream processor worker: {e}")
+        
+        logger.info("Stream processor worker stopped")
+
+    def _process_stream_item(self, item: Dict[str, Any]) -> None:
+        """Process a single item from the stream queue."""
+        stream_id = item["stream_id"]
+        evidence_id = item["evidence_id"]
+        claim = item["claim"]
+        context = item["context"]
+        
+        try:
+            logger.debug(f"Processing stream item {stream_id}: {claim[:50]}...")
+            
+            # Create evidence envelope (simplified for streaming)
+            envelope = EvidenceEnvelope(
+                engine="stream",
+                engine_version="1.0",
+                model_identity="stream-processor",
+                request_id=stream_id,
+                claim=claim,
+                candidate_outputs=[CandidateOutput(
+                    answer="Processed via stream",
+                    confidence=0.75,
+                    reasoning_trace="Stream processing pipeline",
+                    relation_steps=[]
+                )],
+                evidence_type=EvidenceType.RELATIONAL_REASONING,
+                confidence=0.75,
+                uncertainty=0.25,
+                provenance={"stream_processed": True, "original_evidence_id": evidence_id}
+            )
+            
+            # Run arbitration
+            decision = self.arbiter.arbitrate(envelope)
+            
+            # Create decision record
+            record = DecisionRecord.from_arbitration(
+                request_id=stream_id,
+                envelopes=[envelope],
+                decision=decision,
+                confidence=envelope.confidence,
+            )
+            
+            # Apply 6-gate governance
+            governance = self.governor.evaluate(record)
+            
+            # Prepare result
+            result = {
+                "stream_id": stream_id,
+                "evidence_id": evidence_id,
+                "claim": claim,
+                "decision": decision.value,
+                "governed": governance["governed"],
+                "governance_score": governance["aggregate_score"],
+                "processing_time_ms": 0,  # Simplified
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Store result
+            with self._stream_lock:
+                self._stream_results[stream_id] = result
+            
+            logger.debug(f"Completed stream processing for {stream_id}: {decision.value}")
+            
+        except Exception as e:
+            logger.error(f"Error processing stream item {stream_id}: {e}")
+            # Store error result
+            error_result = {
+                "stream_id": stream_id,
+                "evidence_id": evidence_id,
+                "claim": claim,
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            with self._stream_lock:
+                self._stream_results[stream_id] = error_result
+
     def get_system_status(self) -> Dict[str, Any]:
         return {
             "initialized": self._initialized,
             "engines": {h.engine_name: h.__dict__ for h in self.engine_registry.all_health()},
             "total_audit_entries": len(self.arbiter.get_audit_log()),
+            "streaming": {
+                "processor_running": self._stream_processor_thread is not None and self._stream_processor_thread.is_alive(),
+                "queue_size": self._stream_queue.qsize(),
+                "pending_results": len(self._stream_results),
+                "stop_requested": self._stop_streaming.is_set()
+            }
         }
 
 

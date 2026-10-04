@@ -1,3 +1,4 @@
+from datetime import timezone
 """END-TO-END EXEMPLAR: Media Competition Misinformation Pressure
 
 This exemplar demonstrates the full Abraxas simulation architecture with:
@@ -58,7 +59,7 @@ METRIC_MEDIA_COMPETITION = MetricDefinition(
     adversarial_risk=0.85,  # High manipulation risk
     layer_scope=["world", "media"],  # Observes both layers
     provenance=MetricProvenance(
-        created=datetime.utcnow().isoformat() + "Z",
+        created=datetime.now(timezone.utc).isoformat() + "Z",
         source="abraxas_simulation_architect",
         paper_refs=["ARXIV_SPATIAL_GAMES", "PMC10924450"],  # From SML registry
     ),
@@ -98,7 +99,7 @@ VAR_PUBLIC_OPINION = SimVarDefinition(
         ],
     },
     layer="world",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- MEDIA LAYER: Context Operator ---
@@ -122,7 +123,7 @@ VAR_FRAMING_CONTEXT = SimVarDefinition(
         "allowed_metric_classes": ["media_competition", "manipulation_risk"],
     },
     layer="media",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- MEDIA LAYER: Media Actor State ---
@@ -146,7 +147,7 @@ VAR_MEDIA_CREDIBILITY = SimVarDefinition(
         "allowed_metric_classes": ["media_competition", "strategic_behavior"],
     },
     layer="media",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- MEDIA LAYER: Strategy Profile ---
@@ -175,7 +176,7 @@ VAR_MISINFO_STRATEGY = SimVarDefinition(
         "allowed_metric_classes": ["media_competition", "strategic_behavior"],
     },
     layer="media",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- WORLD LAYER: Network State ---
@@ -203,7 +204,7 @@ VAR_SOCIAL_NETWORK = SimVarDefinition(
         ],
     },
     layer="world",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- WORLD LAYER: Community Structure (Quantum-Inspired Optimization) ---
@@ -227,7 +228,7 @@ VAR_COMMUNITIES = SimVarDefinition(
         "allowed_metric_classes": ["community_structure", "network_topology"],
     },
     layer="world",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- WORLD LAYER: Link Probability Field (Quantum-Walk Inspired) ---
@@ -251,7 +252,7 @@ VAR_LINK_PREDICTION = SimVarDefinition(
         "allowed_metric_classes": ["network_topology"],
     },
     layer="world",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- WORLD LAYER: Conformity Pressure ---
@@ -275,7 +276,7 @@ VAR_CONFORMITY = SimVarDefinition(
         "allowed_metric_classes": ["opinion_distribution", "peer_pressure"],
     },
     layer="world",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # --- WORLD LAYER: State-Over-Time (Temporal Correlation Container) ---
@@ -299,7 +300,7 @@ VAR_TEMPORAL_CORRELATION = SimVarDefinition(
         "allowed_metric_classes": ["temporal_dynamics"],
     },
     layer="world",
-    provenance={"created": datetime.utcnow().isoformat() + "Z", "source": "exemplar"},
+    provenance={"created": datetime.now(timezone.utc).isoformat() + "Z", "source": "exemplar"},
 )
 
 # ==============================================================================
@@ -359,7 +360,7 @@ RUNE_MEDIA_COMPETITION = RuneBinding(
         ],
     },
     provenance_manifest=ProvenanceManifest(
-        created=datetime.utcnow().isoformat() + "Z",
+        created=datetime.now(timezone.utc).isoformat() + "Z",
         input_hash="a" * 64,  # Placeholder (would compute actual hash)
         metric_version="1.0.0",
         var_versions={
@@ -382,7 +383,7 @@ RUNE_MEDIA_COMPETITION = RuneBinding(
 # ==============================================================================
 
 OUTCOME_LEDGER_EXAMPLE = {
-    "timestamp": datetime.utcnow().isoformat() + "Z",
+    "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
     "sim_seed": 42,
     "sim_version": "1.0.0",
     "active_metrics": [

@@ -1,3 +1,4 @@
+from datetime import timezone
 """ABX-Rune Binding Registry: MANDATORY coupler between metrics and simulation variables.
 
 IMMUTABLE LAW: No Simulation Without Runes.
@@ -271,7 +272,7 @@ class RuneRegistry:
         data = {
             "runes": [r.to_dict() for r in self.runes.values()],
             "count": len(self.runes),
-            "last_updated": datetime.utcnow().isoformat() + "Z",
+            "last_updated": datetime.now(timezone.utc).isoformat() + "Z",
         }
 
         with open(self.registry_path, "w") as f:

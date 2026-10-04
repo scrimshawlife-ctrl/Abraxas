@@ -1,3 +1,4 @@
+from datetime import timezone
 """Metric Registry: Canonical storage for all Abraxas metrics.
 
 IMMUTABLE LAW: Every metric MUST map to ≥1 simulation variable via ABX-Runes.
@@ -148,7 +149,7 @@ class MetricRegistry:
         data = {
             "metrics": [m.to_dict() for m in self.metrics.values()],
             "count": len(self.metrics),
-            "last_updated": datetime.utcnow().isoformat() + "Z",
+            "last_updated": datetime.now(timezone.utc).isoformat() + "Z",
         }
 
         with open(self.registry_path, "w") as f:

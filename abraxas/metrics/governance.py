@@ -1,3 +1,4 @@
+from datetime import timezone
 """Metric Governance: Candidate-First Lifecycle with Promotion Gates
 
 NON-NEGOTIABLE LAWS:
@@ -115,7 +116,7 @@ class CandidateMetric:
 
     def __post_init__(self):
         if self.created is None:
-            self.created = datetime.utcnow().isoformat() + "Z"
+            self.created = datetime.now(timezone.utc).isoformat() + "Z"
         if self.last_updated is None:
             self.last_updated = self.created
 
@@ -149,12 +150,12 @@ class CandidateMetric:
     def update_status(self, new_status: CandidateStatus):
         """Update status and timestamp."""
         self.status = new_status
-        self.last_updated = datetime.utcnow().isoformat() + "Z"
+        self.last_updated = datetime.now(timezone.utc).isoformat() + "Z"
 
     def add_evaluation(self, evaluation_result: Dict):
         """Add evaluation result to history."""
         self.evaluation_history.append(evaluation_result)
-        self.last_updated = datetime.utcnow().isoformat() + "Z"
+        self.last_updated = datetime.now(timezone.utc).isoformat() + "Z"
 
 
 @dataclass
@@ -371,7 +372,7 @@ class PromotionLedgerEntry:
     ) -> PromotionLedgerEntry:
         """Create new ledger entry with computed signature."""
         entry_data = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "metric_id": metric_id,
             "candidate_version": candidate_version,
             "sim_version": sim_version,

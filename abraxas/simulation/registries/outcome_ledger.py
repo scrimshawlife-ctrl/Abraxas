@@ -1,3 +1,4 @@
+from datetime import timezone
 """Outcome Ledger: Append-only log of simulation outcomes.
 
 IMMUTABLE LAW: Provenance Always.
@@ -213,7 +214,7 @@ class OutcomeLedger:
         data = {
             "entries": [e.to_dict() for e in self.entries],
             "count": len(self.entries),
-            "exported": datetime.utcnow().isoformat() + "Z",
+            "exported": datetime.now(timezone.utc).isoformat() + "Z",
         }
 
         with open(output_path, "w") as f:
