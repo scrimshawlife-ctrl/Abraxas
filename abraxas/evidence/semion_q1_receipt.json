@@ -1,0 +1,23 @@
+{
+  "receipt_id": "SEMION-Q1-2026-10-04-001",
+  "receipt_type": "qualification",
+  "subsystem": "semion_sign_relation_v1",
+  "status": "PROVISIONALLY_QUALIFIED",
+  "issued_at": "2026-10-04T00:00:00Z",
+  "issued_by": "operator",
+  "gates": {
+    "Q1-SPEC": { "passed": true, "artifact": "abraxas/evidence/semion_sign_relation_v1.spec.md" },
+    "Q1-FIXTURE": { "passed": true, "artifact": "abraxas/evidence/semion_q1_fixtures.yaml" },
+    "Q1-ADAPTER": { "passed": true, "artifact": "abraxas/evidence/test_semion_q1.py" },
+    "Q1-SCHEMA": { "passed": true, "artifact": "semion.sign.v1 (Peircean 27 combinations)" },
+    "Q1-VERIFIER": { "passed": true, "artifact": "abraxas/evidence/verifiers/sign.py" },
+    "Q1-ARBITRATION": { "passed": true, "artifact": "integration tests in test_semion_q1.py" }
+  },
+  "sha256": "pending_operator_computation",
+  "notes": [
+    "Semion provides SIGN_RELATION evidence only",
+    "All 27 Peircean combinations validated",
+    "Pairwise SEMION→HYPERLEX unblocked upon HYPERLEX-Q1 completion ✅",
+    "EXP-001 remains DEFERRED until AC-EIC-G1"
+  ]
+}
