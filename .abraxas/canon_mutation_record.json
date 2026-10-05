@@ -1,0 +1,31 @@
+{
+  "mutation_id": "canon-mutation-20261005-001",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "from_state": "CANON-SHADOW/ADVISORY_ONLY",
+  "to_state": "PRODUCTION_CANON_v2.0.1",
+  "authorized_by": "appliedalchemylabs",
+  "gates_satisfied": [
+    "AC-EIC-G1=ACCEPT",
+    "EXP-001=ACTIVE",
+    "N5=COMPLETE",
+    "PRODUCTION=APPROVED",
+    "CANON_MUTATION=AUTHORIZED",
+    "RITUAL_SYSTEM=UNLOCKED"
+  ],
+  "components_in_canon": [
+    "Domain Compression Engines",
+    "Oracle Pipeline v2",
+    "Phase Detection Engine",
+    "Resonance Narratives",
+    "Ritual System",
+    "CypherTempre Timechain",
+    "6-Gate Metric Governance",
+    "UI Dashboard v2.0.1"
+  ],
+  "verification": {
+    "tests_passing": 236,
+    "frontend_build": "success",
+    "helm_lint": "pass",
+    "deployment_verified": true
+  }
+}
