@@ -13,10 +13,7 @@ echo "Deploying Abraxas v2.0.0 to production..."
 # Create namespace
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
-# Apply ConfigMap
-kubectl apply -f ./deployment/helm-chart/abraxas/templates/configmap-prod.yaml -n "$NAMESPACE"
-
-# Deploy with Helm
+# Deploy with Helm (this will create the ConfigMap)
 helm upgrade --install "$RELEASE" "$CHART" \
   --namespace "$NAMESPACE" \
   --values "$VALUES" \
@@ -31,4 +28,4 @@ POD=$(kubectl get pods -n "$NAMESPACE" -l app="$RELEASE" -o jsonpath='{.items[0]
 kubectl exec -n "$NAMESPACE" "$POD" -- python scripts/health_check.py --check-all
 
 echo "Deployment complete!"
-echo "Access: https://abraxas.example.com"
+echo "Access: http://localhost:8082 (via port-forward) or via Ingress if configured"
