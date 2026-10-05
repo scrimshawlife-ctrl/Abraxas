@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: abraxas-alerts
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: abraxas.rules
+    rules:
+    - alert: AbraxasDown
+      expr: up{job="abraxas-dashboard"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Abraxas Dashboard API is down"
+    - alert: AbraxasHighErrorRate
+      expr: rate(abraxas_errors_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Abraxas error rate above 10%"
+    - alert: TimechainStalled
+      expr: abraxas_timechain_blocks_total - abraxas_timechain_blocks_total offset 1h < 1
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Timechain has not produced blocks in 1 hour"
