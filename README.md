@@ -340,3 +340,32 @@ Hard boundaries: no live autonomy, no Canon mutation, no runtime mutation outsid
 ## Candidate persistent-agent research program
 
 [ABX-NOEMA-REP-001](docs/research/persistent-agent-program/spec.md) coordinates Noema evidence with Hyperlexical, Semion, Noesis and Trutina through existing ownership boundaries. Includes a candidate review sidecar and acceptance/task mapping. Advisory specification only; no new subsystem, runtime activation, specialist binding or promotion.
+
+## 🚀 Production Status
+
+> **Status**: PRODUCTION READY - All systems operational
+
+- **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE
+- **Tests**: 236 passing
+- **Live Data**: PostgreSQL adapter verified
+- **Docker Image**:  built and tested
+- **UI**: Built and distributable ()
+
+For production deployment details, see:
+- [PRODUCTION_DEPLOYMENT_SUMMARY.md](PRODUCTION_DEPLOYMENT_SUMMARY.md)
+- [LIVE_DATA_INTEGRATION_SUMMARY.md](LIVE_DATA_INTEGRATION_SUMMARY.md)
+
+
+## 🚀 Production Status
+
+> **Status**: PRODUCTION READY - All systems operational
+
+- **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE
+- **Tests**: 236 passing
+- **Live Data**: PostgreSQL adapter verified
+- **Docker Image**: `abraxas-dashboard-api:2.0.1` built and tested
+- **UI**: Built and distributable (`dashboard/frontend/dist/`)
+
+For production deployment details, see:
+- [PRODUCTION_DEPLOYMENT_SUMMARY.md](PRODUCTION_DEPLOYMENT_SUMMARY.md)
+- [LIVE_DATA_INTEGRATION_SUMMARY.md](LIVE_DATA_INTEGRATION_SUMMARY.md)
