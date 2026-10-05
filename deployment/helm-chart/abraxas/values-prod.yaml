@@ -82,3 +82,21 @@ persistence:
   enabled: true
   size: 50Gi
   storageClass: fast-ssd
+
+# Dashboard API
+dashboard:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: abraxas-dashboard-api
+    tag: v2.0.0
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  service:
+    port: 8082
