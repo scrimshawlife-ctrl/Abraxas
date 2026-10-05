@@ -6,8 +6,7 @@
 
 ## To Do (Backlog - Deprioritized/Deferred)
 - [ ] **PostgreSQL Migration** — Deprioritized until artifact volume exceeds SQLite comfort (~100k bundles)
-- [ ] **WebSocket Integration** — Deprioritized until <1min latency needed for live phase transitions
-- [ ] **Mobile UI** — Deferred until UI Dashboard stable
+- [ ] **Mobile UI** — Deferred until field deployment requires mobile access
 - [ ] **Ritual System Extensions** — Custom protocols, integration with live Oracle/Phase engines
 - [ ] **Multi-domain cascade prediction with live data** — Production deployment & live operation
 

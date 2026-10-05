@@ -82,23 +82,21 @@ Signal → Compression → Forecast → Narrative
 ## 🚀 NEXT — High-Value Extensions (Q2 2025)
 
 ### 4. Resonance Narratives
-**Status:** New (output layer)
+**Status:** **COMPLETE** — Output layer operational
 
-**What:**
-Human-readable narrative generation from resonance vectors, phase alignments, and forecast artifacts.
+**Delivered:**
+- ✅ Narrative templates for phase transitions
+- ✅ Resonance spike explanations (why did X and Y align?)
+- ✅ Cascade trajectory summaries
+- ✅ Evidence-grade artifact packaging for external consumption
+- ✅ Diff mode for narrative comparison
+- ✅ Missing inputs / not computable constraint tracking
+- ✅ Pointer integrity validation
+- ✅ Schema validation with evidence gating
 
-**Why:**
-- Multi-Domain Analysis capability exists (via resonance vectors, domain maps, provenance bundles)
-- What's missing is **presentation**, not capability
-- This is an output layer, not core architecture
+**Files:** `abraxas/renderers/resonance_narratives/` (renderer.py, rules.py), `tests/test_resonance_narratives_*.py` (4 test files, 20+ tests passing)
 
-**Deliverables:**
-- [ ] Narrative templates for phase transitions
-- [ ] Resonance spike explanations (why did X and Y align?)
-- [ ] Cascade trajectory summaries
-- [ ] Evidence-grade artifact packaging for external consumption
-
-**Dependencies:** Phase Detection Engine (#3), Oracle v2 (#2)
+**Dependencies:** Phase Detection Engine (#3), Oracle v2 (#2) — ✅ Both complete
 
 ---
 
@@ -147,17 +145,15 @@ Human-readable narrative generation from resonance vectors, phase alignments, an
 ---
 
 ### 7. WebSocket Integration
-**Status:** In Progress → **DEPRIORITIZED**
+**Status:** **COMPLETE** — Integrated in UI Dashboard v2.0.1
 
-**Why Later:**
-- Abraxas is **phase-based**, not tick-based
-- Real-time streaming is seductive but premature
-- Current batch/cycle processing is sufficient
+**Delivered:**
+- ✅ Frontend: `useWebSocket` hook with auto-reconnection
+- ✅ Backend: `/ws` endpoint in `abraxas/dashboard/api.py` with ConnectionManager
+- ✅ Real-time updates for artifacts, alignments, narratives, ritual state, timechain
+- ✅ Fallback to polling when WebSocket unavailable
 
-**When to Resume:**
-- After Phase Detection Engine exists (#3)
-- When live phase transitions require <1min latency
-- When UI Dashboard needs sub-second updates
+**When Resumed:** — ✅ Complete (resumed after Phase Detection Engine #3 existed)
 
 ---
 
