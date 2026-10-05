@@ -13,8 +13,8 @@ export function DomainCompressionDashboard() {
       {artifacts.length === 0 ? (
         <p className="text-gray-500 text-center py-8">No compression artifacts</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {artifacts.slice(0, 6).map((artifact) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {artifacts.slice(0, 8).map((artifact) => (
             <div key={artifact.artifact_id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <p className="font-medium text-gray-900 truncate">{artifact.artifact_id}</p>
               <p className="text-sm text-gray-500 mt-1">{new Date(artifact.timestamp).toLocaleString()}</p>

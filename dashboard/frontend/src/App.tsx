@@ -33,7 +33,7 @@ export function App() {
         {/* Overview Metrics */}
         <section aria-label="System Overview" aria-live="polite" aria-atomic="true">
           <h2 className="text-2xl font-bold mb-4">System Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" role="list" aria-label="System metrics">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4" role="list" aria-label="System metrics">
             <MetricCard 
               title="Total Artifacts" 
               value={metrics?.total_artifacts || 0} 

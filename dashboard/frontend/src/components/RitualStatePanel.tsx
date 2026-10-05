@@ -19,10 +19,10 @@ export function RitualStatePanel() {
         {Object.keys(activeModulations).length === 0 ? (
           <p className="text-gray-500 text-center py-4">No active modulations</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {Object.entries(activeModulations).map(([target, params]) => (
               <div key={target} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                <p className="font-mono text-sm text-gray-700 mb-1">{target}</p>
+                <p className="font-mono text-sm text-gray-700 mb-1 truncate">{target}</p>
                 <div className="flex flex-wrap gap-1">
                   {Object.entries(params).map(([param, value]) => (
                     <span key={param} className="px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded">

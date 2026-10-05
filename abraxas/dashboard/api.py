@@ -191,6 +191,15 @@ async def get_metrics_summary():
         "timechain_blocks": 0,
     }
 
+@app.post("/api/telemetry")
+async def receive_telemetry(payload: dict):
+    """Receive telemetry events from frontend."""
+    events = payload.get("events", [])
+    for event in events:
+        # Log telemetry events (in production, send to observability backend)
+        print(f"TELEMETRY: {event.get('event')} | {event.get('properties')} | session={event.get('sessionId')}")
+    return {"status": "accepted", "count": len(events)}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8082)

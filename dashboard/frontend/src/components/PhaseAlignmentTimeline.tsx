@@ -14,22 +14,32 @@ export function PhaseAlignmentTimeline() {
       {alignments.length === 0 ? (
         <p className="text-gray-500 text-center py-8">No alignments detected</p>
       ) : (
-        <div className="space-y-4">
-          {alignments.map((alignment: PhaseAlignment) => (
-            <div key={alignment.alignment_id} className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">{alignment.aligned_phase}</p>
-                  <p className="text-sm text-gray-500">
-                    Domains: {alignment.domains.join(', ')} • Strength: {(alignment.alignment_strength * 100).toFixed(0)}%
-                  </p>
-                </div>
-                <span className="text-sm text-gray-400">
-                  {new Date(alignment.timestamp_utc).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="pb-2 font-medium text-gray-500">Aligned Phase</th>
+                <th className="pb-2 font-medium text-gray-500">Domains</th>
+                <th className="pb-2 font-medium text-gray-500">Strength</th>
+                <th className="pb-2 font-medium text-gray-500">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              {alignments.map((alignment: PhaseAlignment) => (
+                <tr key={alignment.alignment_id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-2 font-medium text-gray-900">{alignment.aligned_phase}</td>
+                  <td className="py-2 text-gray-600">{alignment.domains.join(', ')}</td>
+                  <td className="py-2">
+                    <div className="w-24 bg-gray-200 rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(alignment.alignment_strength * 100).toFixed(0)}%` }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500 ml-2">{(alignment.alignment_strength * 100).toFixed(0)}%</span>
+                  </td>
+                  <td className="py-2 text-gray-400 whitespace-nowrap">{new Date(alignment.timestamp_utc).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </section>

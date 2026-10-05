@@ -44,18 +44,6 @@ export function OnboardingFlow({ isOpen, onClose, onComplete }: OnboardingFlowPr
 
   const isLast = step === 4;
 
-  const handleNext = () => {
-    if (step === 4) {
-      onComplete();
-    } else {
-      setStep(s => s + 1);
-    }
-  };
-
-  const handleBack = () => {
-    setStep(s => s - 1);
-  };
-
   const handleClose = () => {
     if (dontShowAgain) {
       localStorage.setItem('onboarding_completed', 'true');
@@ -126,7 +114,6 @@ export function OnboardingFlow({ isOpen, onClose, onComplete }: OnboardingFlowPr
       document.body
     );
   }
-}
 
 function OnboardingWrapper() {
   const [showOnboarding, setShowOnboarding] = useState(false);
