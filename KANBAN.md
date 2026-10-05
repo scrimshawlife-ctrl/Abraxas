@@ -1,5 +1,9 @@
 # Kanban Board for Abraxas
 
+![CI](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg)
+![Auto-move](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/auto-move.yml/badge.svg)
+![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)
+
 ## To Do (Backlog - Deprioritized/Deferred)
 - [ ] **UI Dashboard** — Thin, artifact-driven dashboard (delayed until Oracle v2 artifacts stable)
 - [ ] **PostgreSQL Migration** — Deprioritized until artifact volume exceeds SQLite comfort (~100k bundles)
@@ -43,18 +47,20 @@
 
 ---
 
-## Column Definitions
+## Column Definitions & Automation
 
-| Column | Meaning |
-|--------|---------|
-| **To Do** | Backlog items - explicitly deprioritized/deferred per roadmap |
-| **In Progress** | Active work items currently being executed |
-| **Done** | Completed canonical actions with tests passing |
+| Column | Meaning | Automation |
+|--------|---------|------------|
+| **To Do** | Backlog items - explicitly deprioritized/deferred per roadmap | — |
+| **In Progress** | Active work items currently being executed | WIP limit: max 3 PRs per author, 10 total |
+| **Done** | Completed canonical actions with tests passing | Auto-move on PR merge |
 
----
+### CI/CD Automation
+- **CI** (`.github/workflows/ci.yml`): Tests, health checks, config validation, pipeline dry-run on every push/PR
+- **Auto-move** (`.github/workflows/auto-move.yml`): Moves merged PRs to "Done" column (requires GitHub Project "Kanban")
+- **WIP Limits** (`.github/workflows/wip-limits.yml`): Enforces max 3 PRs/author, 10 total PRs, 20 issues
 
-## Next Actions (Priority Order)
-
-1. **Production deployment preparation** — Config, monitoring, health checks for live operation
-2. **Canon mutation execution** — Formal transition from CANON-SHADOW to production canon
-3. **Live data integration** — Connect to real domain data streams for predictive operation
+### Badges
+![CI](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg)
+![Auto-move](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/auto-move.yml/badge.svg)
+![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)

@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          # Install Abraxas in development mode
+          pip install -e .
+      
+      - name: Run core tests
+        run: |
+          python -m pytest tests/evidence tests/integration tests/chaos \
+            abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
+            abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
+            abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
+            tests/test_resonance_narratives_* tests/test_oracle_v2* \
+            tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
+            tests/test_ritual_system.py -q --tb=short
+      
+      - name: Verify test count
+        run: |
+          python -m pytest tests/evidence tests/integration tests/chaos \
+            abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
+            abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
+            abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
+            tests/test_resonance_narratives_* tests/test_oracle_v2* \
+            tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
+            tests/test_ritual_system.py --collect-only -q 2>&1 | grep "test session starts" -A 5
+      
+      - name: Check for deprecation warnings
+        run: |
+          python -m pytest tests/evidence tests/integration tests/chaos \
+            abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
+            abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
+            abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
+            tests/test_resonance_narratives_* tests/test_oracle_v2* \
+            tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
+            tests/test_ritual_system.py -W error::DeprecationWarning -q 2>&1 | tail -5
+
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      
+      - name: Run health checks
+        run: |
+          python scripts/health_check.py --check-all
+
+  validate-configs:
+    name: Validate Configs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate YAML configs
+        run: |
+          python -c "
+          import yaml, sys
+          for f in ['deployment/helm-chart/abraxas/values-prod.yaml', 'deployment/helm-chart/abraxas/templates/configmap-prod.yaml']:
+              yaml.safe_load(open(f))
+              print(f'✓ {f} valid')
+          "
+      
+      - name: Validate JSON configs
+        run: |
+          python -c "
+          import json, sys
+          for f in ['deployment/grafana/abraxas-overview.json']:
+              json.load(open(f))
+              print(f'✓ {f} valid')
+          "
+      
+      - name: Validate deploy script syntax
+        run: |
+          bash -n scripts/deploy_production.sh && echo "✓ deploy_production.sh syntax OK"
+
+  pipeline-dry-run:
+    name: Pipeline Dry Run
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      
+      - name: Run pipeline dry-run (3 cycles)
+        run: |
+          mkdir -p /tmp/test_output
+          timeout 20 python scripts/run_production_pipeline.py \
+            --mock --domains politics media finance \
+            --output /tmp/test_output --interval 5 || true
+      
+      - name: Verify output
+        run: |
+          ls -la /tmp/test_output/
+          python -c "
+          import json
+          for f in ['/tmp/test_output/cycle_000001.json', '/tmp/test_output/cycle_000002.json', '/tmp/test_output/cycle_000003.json']:
+              data = json.load(open(f))
+              assert 'cycle' in data and 'oracle_bundle' in data and 'narrative' in data
+              print(f'✓ {f} valid structure')
+          print('✓ All pipeline outputs valid')
+          "

@@ -1,0 +1,26 @@
+name: Auto-move Cards on Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  auto-move:
+    name: Auto-move PR to Done
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Auto-move to Done column
+        uses: alex-page/github-project-automation-plus@v0.8.0
+        with:
+          project: Kanban
+          column: Done
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        # Note: Requires GitHub Project (classic) named "Kanban" 
+        # with columns: To Do, In Progress, Done
+        # Enable in repo Settings > Projects > Automation
