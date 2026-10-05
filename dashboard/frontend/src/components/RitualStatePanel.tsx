@@ -1,9 +1,10 @@
 import { useRitualState } from '../hooks/useArtifacts';
+import { CardSkeleton } from './LoadingSkeletons';
 
 export function RitualStatePanel() {
   const { data: ritualState, isLoading, error } = useRitualState();
   
-  if (isLoading) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">Loading ritual state...</div>;
+  if (isLoading) return <CardSkeleton />;
   if (error) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-red-500">Error: {error}</div>;
   
   const activeModulations = ritualState?.active_modulations || {};

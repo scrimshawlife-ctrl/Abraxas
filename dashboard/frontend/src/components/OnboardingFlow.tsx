@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import React from 'react';
 
 const STEPS = [
   { 
@@ -99,7 +100,7 @@ export function OnboardingFlow({ isOpen, onClose, onComplete }: OnboardingFlowPr
                 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setDontShowAgain(e.target.checked),
                 className: 'w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500'
               }),
-              React.createElement('span', { className: 'text-gray-600 dark:text-gray-400' }, 'Don't show again')
+              React.createElement('span', { className: 'text-gray-600 dark:text-gray-400' }, "Don't show again")
             )
           ),
           React.createElement('button', { 
@@ -152,6 +153,6 @@ function OnboardingWrapper() {
   return React.createElement(OnboardingFlow, { isOpen: true, onClose: handleClose, onComplete: handleComplete });
 }
 
-export function OnboardingWrapper() {
+export function OnboardingWrapperExport() {
   return React.createElement(OnboardingWrapper);
 }

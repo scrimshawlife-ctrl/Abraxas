@@ -7,13 +7,23 @@ import { ResonanceNarrativeViewer } from './components/ResonanceNarrativeViewer'
 import { RitualStatePanel } from './components/RitualStatePanel';
 import { TimechainStatus } from './components/TimechainStatus';
 import { Header } from './components/Header';
+import { OnboardingFlow } from './components/OnboardingFlow';
 import { useMetricsSummary } from './hooks/useArtifacts';
+import { useState, useEffect } from 'react';
 
 export function App() {
   const { data: metrics } = useMetricsSummary();
-  
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('abraxas-onboarding-complete');
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <main className="container mx-auto px-4 py-8 space-y-8" id="main-content" role="main">
         {/* Skip link for keyboard users */}
@@ -87,6 +97,11 @@ export function App() {
           <TimechainStatus />
         </section>
       </main>
+      <OnboardingFlow 
+        isOpen={showOnboarding} 
+        onClose={() => { localStorage.setItem('abraxas-onboarding-complete', 'true'); setShowOnboarding(false); }}
+        onComplete={() => { localStorage.setItem('abraxas-onboarding-complete', 'true'); setShowOnboarding(false); }}
+      />
     </div>
   );
 }

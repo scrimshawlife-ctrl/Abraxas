@@ -5,7 +5,6 @@
 ![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)
 
 ## To Do (Backlog - Deprioritized/Deferred)
-- [ ] **UI Dashboard** — Thin, artifact-driven dashboard (delayed until Oracle v2 artifacts stable)
 - [ ] **PostgreSQL Migration** — Deprioritized until artifact volume exceeds SQLite comfort (~100k bundles)
 - [ ] **WebSocket Integration** — Deprioritized until <1min latency needed for live phase transitions
 - [ ] **Mobile UI** — Deferred until UI Dashboard stable
@@ -23,6 +22,7 @@
 - [x] **Oracle Pipeline v2** — Signal → Compression → Forecast → Narrative with 6-gate governance
 - [x] **Phase Detection Engine** — Cross-domain alignment, synchronicity mapping, early warning, drift-resonance coupling
 - [x] **Resonance Narratives** — Human-readable output layer with diff mode, constraints, evidence gating
+- [x] **UI Dashboard** — Thin, artifact-driven dashboard (Oracle v2 stable, Phase Detection reliable)
 
 ### Q1 2025 Qualification Gates (Complete)
 - [x] **HYPERLEX-Q1** — Hyperlex Instrument qualification

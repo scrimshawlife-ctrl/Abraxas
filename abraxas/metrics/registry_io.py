@@ -1,4 +1,3 @@
-from datetime import timezone
 """Registry I/O: Load/Save with Schema Validation
 
 Handles:
@@ -9,6 +8,8 @@ Handles:
 """
 
 from __future__ import annotations
+
+from datetime import timezone
 
 import json
 from datetime import datetime

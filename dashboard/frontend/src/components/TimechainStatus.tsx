@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
+import { CardSkeleton } from './LoadingSkeletons';
 
 export function TimechainStatus() {
   const [data, setData] = useState<{ blocks: number; integrity: string; genesis: string; latest_block_hash: string } | null>(null);
@@ -15,7 +16,7 @@ export function TimechainStatus() {
     return () => { mounted = false; };
   }, []);
 
-  if (isLoading) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">Loading timechain status...</div>;
+  if (isLoading) return <CardSkeleton />;
   if (error) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-red-500">Error: {error}</div>;
   
   return (

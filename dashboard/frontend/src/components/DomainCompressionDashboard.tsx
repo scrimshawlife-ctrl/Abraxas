@@ -1,9 +1,10 @@
 import { useArtifacts } from '../hooks/useArtifacts';
+import { CardSkeleton } from './LoadingSkeletons';
 
 export function DomainCompressionDashboard() {
   const { data: artifacts, isLoading, error } = useArtifacts('domain_compression', 20);
   
-  if (isLoading) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">Loading compression data...</div>;
+  if (isLoading) return <CardSkeleton />;
   if (error) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-red-500">Error: {error}</div>;
   
   return (

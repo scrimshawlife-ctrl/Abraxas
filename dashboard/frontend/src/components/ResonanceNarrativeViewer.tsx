@@ -1,9 +1,10 @@
 import { useResonanceNarratives } from '../hooks/useArtifacts';
+import { CardSkeleton } from './LoadingSkeletons';
 
 export function ResonanceNarrativeViewer() {
   const { data: narratives, isLoading, error } = useResonanceNarratives(10);
   
-  if (isLoading) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">Loading narratives...</div>;
+  if (isLoading) return <CardSkeleton />;
   if (error) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-red-500">Error: {error}</div>;
   
   return (

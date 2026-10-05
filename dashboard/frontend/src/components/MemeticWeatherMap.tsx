@@ -1,9 +1,10 @@
 import { useSynchronicity } from '../hooks/useArtifacts';
+import { TableSkeleton } from './LoadingSkeletons';
 
 export function MemeticWeatherMap() {
   const { data: syncMap, isLoading, error } = useSynchronicity();
   
-  if (isLoading) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">Loading weather map...</div>;
+  if (isLoading) return <TableSkeleton rows={5} />;
   if (error) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-red-500">Error: {error}</div>;
   
   const patterns = syncMap?.patterns || [];

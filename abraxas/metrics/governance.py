@@ -1,4 +1,3 @@
-from datetime import timezone
 """Metric Governance: Candidate-First Lifecycle with Promotion Gates
 
 NON-NEGOTIABLE LAWS:
@@ -10,6 +9,8 @@ NON-NEGOTIABLE LAWS:
 """
 
 from __future__ import annotations
+
+from datetime import timezone
 
 import json
 from dataclasses import dataclass, field
