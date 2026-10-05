@@ -1,0 +1,28 @@
+{
+  "last_updated": "2026-10-04T00:00:00Z",
+  "updated_by": "operator",
+  "gates": {
+    "EXP-001": {
+      "status": "ACTIVE",
+      "previous": "DEFERRED",
+      "condition": "AC-EIC-G1 = ACCEPT",
+      "accepted_at": "2026-10-04T00:00:00Z",
+      "accepted_by": "appliedalchemylabs"
+    },
+    "N5": {
+      "status": "UNBLOCKED",
+      "previous": "BLOCKED",
+      "unblocked_at": "2026-10-04T00:00:00Z"
+    },
+    "PRODUCTION": {
+      "status": "PENDING",
+      "previous": "DENIED",
+      "requires": "Canon mutation approval"
+    },
+    "RITUAL_SYSTEM": {
+      "status": "UNLOCKED",
+      "previous": "LOCKED",
+      "dependencies_met": ["ORACLE_V2_COMPLETE", "PHASE_DETECTION_COMPLETE"]
+    }
+  }
+}
