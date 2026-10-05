@@ -5,6 +5,32 @@ All notable changes to the Abraxas project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.0] - 2026-10-04
+
+### Canon Mutation
+- CANON-SHADOW/ADVISORY_ONLY → PRODUCTION CANON
+- All gates authorized: EXP-001, N5, PRODUCTION, CANON_MUTATION, RITUAL_SYSTEM
+
+### Components Delivered
+- Domain Compression Engines (DCEs)
+- Oracle Pipeline v2 (Signal → Compression → Forecast → Narrative)
+- Phase Detection Engine (alignment, synchronicity, early warning, drift-resonance coupling)
+- Resonance Narratives (diff mode, constraints, evidence gating)
+- Ritual System (7 protocols, effect tracking)
+- CypherTempre Timechain (immutable records, PoW, file fallback)
+
+### Tests
+- 299 tests passing
+- 5 Q1 qualifications: HYPERLEX, SEMION, NOESIS, TRUTINA, ABRAXAS
+- Integrated pipeline: Phase Detection + Oracle v2 + Resonance Narratives + Ritual System
+
+### Gates
+- AC-EIC-G1 = ACCEPT (2026-10-04)
+- EXP-001: ACTIVE
+- N5: COMPLETE
+- PRODUCTION: APPROVED
+- CANON_MUTATION: AUTHORIZED
+
 ## Unreleased
 
 ### Added
