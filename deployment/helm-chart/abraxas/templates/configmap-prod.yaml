@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: abraxas-config
+  labels:
+    app: abraxas
+data:
+  ABRAXAS_ENV: "production"
+  ABRAXAS_LOG_LEVEL: "INFO"
+  ABRAXAS_ORACLE_MODE: "ANALYST"
+  ABRAXAS_PHASE_MIN_DOMAINS: "2"
+  ABRAXAS_TIMECHAIN_ENABLED: "true"
+  ABRAXAS_TIMECHAIN_DIFFICULTY: "4"
+  ABRAXAS_EVIDENCE_BUDGET: "100"
+  ABRAXAS_STABILIZATION_TICKS: "3"

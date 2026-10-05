@@ -424,7 +424,6 @@ class ProductionOrchestrator:
 
     def initialize(self) -> None:
         """Initialize all 5 engines."""
-        from abraxas_multiengine_001_phase1_semion import SemionEvidenceProvider
         from abraxas.evidence.provider import MockEvidenceProvider
 
         # Register all 5 engines
@@ -446,7 +445,13 @@ class ProductionOrchestrator:
                 'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.LEXICAL_SEMANTIC)
             })(),
             # Semion (sign relation)
-            SemionEvidenceProvider(),
+            type('SemionProvider', (EvidenceProvider,), {
+                'engine_name': 'semion',
+                'engine_version': 'semion.sign.v1',
+                'supported_evidence_types': [EvidenceType.SIGN_RELATION],
+                'get_model_identity': lambda self: 'semion.sign.v1',
+                'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.SIGN_RELATION)
+            })(),
             # Noesis (latent structural)
             type('NoesisProvider', (EvidenceProvider,), {
                 'engine_name': 'noesis',

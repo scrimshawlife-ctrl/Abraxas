@@ -1,0 +1,84 @@
+# Production Helm values for Abraxas v2.0.0
+replicaCount: 3
+
+image:
+  repository: abraxas
+  tag: v2.0.0
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: abraxas.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: abraxas-tls
+      hosts:
+        - abraxas.example.com
+
+config:
+  # Runtime configuration
+  logLevel: INFO
+  metricsPort: 9090
+  healthPort: 8081
+  
+  # Oracle v2 settings
+  oracle:
+    mode: ANALYST
+    stabilizationTicks: 3
+    evidenceBudget: 100
+  
+  # Phase Detection settings
+  phase:
+    minDomainsForAlignment: 2
+    velocityThreshold: 0.5
+    confidenceThreshold: 0.6
+  
+  # Timechain settings
+  timechain:
+    enabled: true
+    difficulty: 4
+    fallbackToFile: true
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    port: 9090
+    path: /metrics
+  grafana:
+    enabled: true
+    dashboards:
+      - abraxas-overview
+      - abraxas-phase-detection
+      - abraxas-oracle-pipeline
+
+# Persistence
+persistence:
+  enabled: true
+  size: 50Gi
+  storageClass: fast-ssd

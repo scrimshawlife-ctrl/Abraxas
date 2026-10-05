@@ -1,0 +1,32 @@
+{
+  "dashboard": {
+    "title": "Abraxas Overview",
+    "panels": [
+      {
+        "title": "Oracle Runs / min",
+        "type": "graph",
+        "targets": [{"expr": "rate(abraxas_oracle_runs_total[5m])"}]
+      },
+      {
+        "title": "Phase Alignments Active",
+        "type": "stat",
+        "targets": [{"expr": "abraxas_phase_alignments_active"}]
+      },
+      {
+        "title": "Ritual Executions / hour",
+        "type": "graph",
+        "targets": [{"expr": "rate(abraxas_ritual_executions_total[1h])"}]
+      },
+      {
+        "title": "Timechain Blocks",
+        "type": "stat",
+        "targets": [{"expr": "abraxas_timechain_blocks_total"}]
+      },
+      {
+        "title": "Canon Mutation Status",
+        "type": "stat",
+        "targets": [{"expr": "abraxas_canon_status{status=\"production\"}"}]
+      }
+    ]
+  }
+}
