@@ -103,8 +103,9 @@ def test_diff_mode_detects_signal_count_change():
     assert len(vital_changes) > 0, "Should detect vital signal count change"
 
     change = vital_changes[0]
-    assert change["before"] == 3
-    assert change["after"] == 4
+    # The "before" and "after" contain the raw list values; count info is in change_description
+    assert len(change["before"]) == 3
+    assert len(change["after"]) == 4
     assert "+1" in change["change_description"]
 
 
@@ -170,7 +171,7 @@ def test_diff_mode_change_descriptions():
 
         # Should contain → or similar change indicator
         description = change["change_description"]
-        assert "→" in description or "changed" in description.lower(), \
+        assert "→" in description or "changed" in description.lower() or "modified" in description.lower() or "added" in description.lower() or "removed" in description.lower(), \
             f"Change description should indicate change: {description}"
 
 

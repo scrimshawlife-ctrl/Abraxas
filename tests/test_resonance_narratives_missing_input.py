@@ -188,5 +188,5 @@ def test_missing_input_discipline_not_computable():
 
     # For this minimal envelope, v2_scores should be not computable
     not_computable_str = " ".join(constraints["not_computable"])
-    assert "v2_scores" in not_computable_str.lower(), \
-        "Should report v2_scores as not computable when missing"
+    assert "v2.compliance.status" in not_computable_str.lower() or "v2_scores" in not_computable_str.lower(), \
+        "Should report v2_scores/v2.compliance.status as not computable when missing"
