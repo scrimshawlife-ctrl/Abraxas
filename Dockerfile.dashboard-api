@@ -1,5 +1,6 @@
 FROM python:3.12-slim
 WORKDIR /app
+COPY abraxas/ /app/abraxas/
 COPY abraxas/dashboard/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 COPY abraxas/dashboard/api.py /app/
