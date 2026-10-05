@@ -23,6 +23,7 @@
 - [x] **Phase Detection Engine** — Cross-domain alignment, synchronicity mapping, early warning, drift-resonance coupling
 - [x] **Resonance Narratives** — Human-readable output layer with diff mode, constraints, evidence gating
 - [x] **UI Dashboard** — Thin, artifact-driven dashboard (Oracle v2 stable, Phase Detection reliable)
+- [x] **UI Dashboard Stabilization & UX** — Error boundaries, skeletons, WebSocket, accessibility, theme, PWA, telemetry
 
 ### Q1 2025 Qualification Gates (Complete)
 - [x] **HYPERLEX-Q1** — Hyperlex Instrument qualification
