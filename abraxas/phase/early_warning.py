@@ -144,9 +144,9 @@ class EarlyWarningSystem:
         evidence = {
             "tau_velocity": tau.tau_velocity,
             "tau_half_life": tau.tau_half_life,
-            "tau_pressure": tau.tau_pressure,
+            "tau_phase_proximity": tau.tau_phase_proximity,
             "observation_count": tau.observation_count,
-            "confidence_band": tau.confidence_band,
+            "confidence_level": tau.confidence.value,
         }
 
         # Create provenance
