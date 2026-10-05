@@ -1,10 +1,11 @@
 import { usePhaseAlignments } from '../hooks/useArtifacts';
 import type { PhaseAlignment } from '../types';
+import { TableSkeleton } from './LoadingSkeletons';
 
 export function PhaseAlignmentTimeline() {
   const { data: alignments, isLoading, error } = usePhaseAlignments(10);
   
-  if (isLoading) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">Loading alignments...</div>;
+  if (isLoading) return <TableSkeleton rows={5} />;
   if (error) return <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-red-500">Error: {error}</div>;
   
   return (
