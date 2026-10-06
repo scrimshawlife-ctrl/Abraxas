@@ -160,6 +160,30 @@ Standing rule: run BOTH orders before claiming a baseline or a fix. Three candid
 fixes in this stretch looked plausible in the canonical order and were only caught as
 regressions by the reversed-order run.
 
+### Attempted and REVERTED: injection point for the approval receipt
+
+Added `queue_items=None` to `run_self_build_approval_receipt` so the test could supply
+its own queue instead of reading live repo state, and rewrote the test to assert on
+those items. Result:
+
+    reversed: 30 -> 29   (good, fixed the target)
+    canonical: 28 -> 29  (REGRESSION)
+
+`tests/test_lexicon_generator_determinism.py::test_lexicon_generator_is_deterministic`
+failed in the canonical order as a direct consequence. Reverted both files.
+
+**The finding is more important than the fix.** `run_self_build_approval_receipt` had no
+mutation (`mutation: False, execution: False, observe_only: True`), but calling it still
+ran the dry run / safety gate / patch plan chain, which writes artifacts under `out/`.
+A later lexicon *determinism* test depends on those artifacts existing. So the approval
+test's live-state read has a **load-bearing side effect** on an unrelated test.
+
+Implication: **fixing these tests one at a time will keep surfacing hidden dependencies**
+-- each removal exposes whatever silently relied on the artifact being written. The
+correct fix is a shared fixture that materialises the required `out/` artifacts
+explicitly at session start, then converting tests in that order. Per-test patches are
+the wrong shape and will keep trading one failure for another.
+
 ## Order dependence (resolved 2026-10-06)
 
 **The suite is not randomly flaky. It was collection-order dependent, and the cause
