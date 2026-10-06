@@ -104,16 +104,16 @@ def test_retronic_tdd_analysis(expected_tdd_results):
     tdd_result = analyze_text(retronic.summary_text)
 
     # Check temporal mode
-    assert tdd_result.temporal_mode.value == expected_tdd_results["temporal_mode"]
+    assert tdd_result.temporal_mode == expected_tdd_results["temporal_mode"]
 
     # Check causality status
-    assert tdd_result.causality_status.value == expected_tdd_results["causality_status"]
+    assert tdd_result.causality_status == expected_tdd_results["causality_status"]
 
     # Check diagram role
-    assert tdd_result.diagram_role.value == expected_tdd_results["diagram_role"]
+    assert tdd_result.diagram_role == expected_tdd_results["diagram_role"]
 
     # Check sovereignty risk
-    assert tdd_result.sovereignty_risk.value == expected_tdd_results["sovereignty_risk"]
+    assert tdd_result.sovereignty_risk == expected_tdd_results["sovereignty_risk"]
 
     # Check operator hits (should have all expected operators)
     expected_ops = set(expected_tdd_results["operator_hits"])

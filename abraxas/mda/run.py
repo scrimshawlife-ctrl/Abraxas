@@ -6,6 +6,7 @@ import json
 import os
 
 from .registry import DomainRegistryV1
+from .tvm_flow import run_tvm_shadow_flow
 from .types import DomainSignalPack, FusionEdge, FusionGraph, MDARunEnvelope, ScoreVector, sorted_unique_strs
 
 
@@ -25,13 +26,18 @@ def _default_scores(events: List[Dict[str, Any]]) -> ScoreVector:
 
 
 def run_mda(
-    envelope: MDARunEnvelope,
+    envelope: MDARunEnvelope | Dict[str, Any],
     abraxas_version: str,
     registry: DomainRegistryV1 | None = None,
     *,
     domains: str = "*",
     subdomains: str = "*",
 ) -> Tuple[Tuple[DomainSignalPack, ...], Dict[str, Any]]:
+    # Backwards-compatible: accept a raw env payload dict as well as a
+    # MDARunEnvelope. A dict is treated as the run's inputs.
+    if isinstance(envelope, dict):
+        envelope = MDARunEnvelope(inputs=dict(envelope))
+
     if registry is None:
         registry = DomainRegistryV1()
     # Support both fixture-path mode and inputs-dict mode
@@ -50,10 +56,29 @@ def run_mda(
 
     # Build DSPs.
     for dom, sub in pairs:
-        events = (vectors.get(dom, {}) or {}).get(sub, []) or []
-        events_list = list(events)
-        scores = _default_scores(events_list)
-        status = "ok" if events_list else "not_computable"
+        raw = (vectors.get(dom, {}) or {}).get(sub)
+
+        # Canonical fixture format is a payload dict
+        # {"scores": {...}, "evidence_refs": [...], "events": [...]}.
+        # Tolerate a bare list of events as well.
+        if isinstance(raw, dict):
+            events_list = list(raw.get("events") or [])
+            provided_scores = raw.get("scores") if isinstance(raw.get("scores"), dict) else None
+        else:
+            events_list = list(raw or [])
+            provided_scores = None
+
+        # Domains/subdomains with no observations contribute no signal at all
+        # ("no domain prior"): they must not appear in dsp or domain_aggregates.
+        if not events_list:
+            continue
+
+        scores = (
+            ScoreVector(**provided_scores)
+            if provided_scores is not None
+            else _default_scores(events_list)
+        )
+        status = "ok"
         evidence_refs = sorted_unique_strs(
             [e.get("evidence_ref") for e in events_list if isinstance(e, dict)]
         )
@@ -110,6 +135,9 @@ def run_mda(
 
     fusion = FusionGraph(nodes=nodes, edges=tuple(edges))
 
+    # With no DSP nodes there is no graph at all (not an empty graph).
+    fusion_dict = fusion.to_dict() if nodes else {}
+
     out: Dict[str, Any] = {
         "envelope": {
             "env": envelope.env,
@@ -120,8 +148,21 @@ def run_mda(
         },
         "domain_aggregates": domain_aggs,
         "dsp": [d.to_dict() for d in dsps_sorted],
-        "fusion_graph": fusion.to_dict(),
+        "fusion_graph": fusion_dict,
     }
+
+    # Attach the TVM / influence / synchronicity shadow flow. This is
+    # observational only and never mutates prediction state.
+    run_inputs = envelope.inputs if isinstance(envelope.inputs, dict) else {}
+    shadow_flow = run_tvm_shadow_flow(
+        observations=run_inputs.get("observations"),
+        env={"git_hash": run_inputs.get("git_hash", "unknown")},
+        subsystem_id="mda",
+    )
+    out["run_id"] = shadow_flow["run_id"]
+    out["tvm_frames"] = shadow_flow["tvm_frames"]
+    out["shadow"] = shadow_flow["shadow"]
+
     return dsps_sorted, out
 
 
