@@ -120,6 +120,22 @@ class EngineRegistry:
                     except Exception:
                         pass
     
+    def mark_declared_unavailable(self, engine_name: str, reason: str = "") -> None:
+        """Record a declared engine that has no implementation.
+
+        Health has to be able to say "missing". Previously only registered engines
+        received a health entry and every one of them was stamped HEALTHY, so an
+        engine that did not exist was indistinguishable from a working one.
+        """
+        self._health[engine_name] = EngineHealth(
+            engine_name=engine_name,
+            status=EngineStatus.UNHEALTHY,
+            last_check=datetime.now(timezone.utc).isoformat(),
+            latency_ms=0.0,
+            error_rate=1.0,
+            details={"reason": reason or "no implementation", "implemented": False},
+        )
+
     def get_health(self, engine_name: str) -> Optional[EngineHealth]:
         with self._lock:
             return self._health.get(engine_name)
@@ -422,11 +438,33 @@ class ProductionOrchestrator:
         self._stream_lock = threading.RLock()
         self._stop_streaming = threading.Event()
 
-    def initialize(self) -> None:
-        """Initialize all 5 engines."""
+    def initialize(self, use_mocks: bool = False) -> None:
+        """Initialize the engine registry.
+
+        By default the REAL providers are registered, resolved from
+        abraxas.engines.manifest. Pass ``use_mocks=True`` for the legacy
+        fabricated-evidence path, which exists for tests and nothing else.
+
+        Engines the manifest marks ``planned`` have no implementation. They are not
+        registered as providers and their health is reported UNHEALTHY, because a
+        health report that cannot say "missing" is not a health report.
+        """
+        if not use_mocks:
+            resolved, failures = self._build_real_engines()
+            for engine in resolved:
+                self.engine_registry.register(engine)
+                self.engine_registry.update_health(
+                    engine.engine_name, EngineStatus.HEALTHY, latency_ms=10.0
+                )
+            for name, reason in failures:
+                self.engine_registry.mark_declared_unavailable(name, reason)
+            self._mark_planned_unavailable()
+            self._initialized = True
+            return
+
         from abraxas.evidence.provider import MockEvidenceProvider
 
-        # Register all 5 engines
+        # Legacy fabricated-evidence path (tests only).
         engines = [
             # Athanor (relational)
             type('AthanorProvider', (EvidenceProvider,), {
@@ -474,7 +512,42 @@ class ProductionOrchestrator:
             self.engine_registry.register(engine)
             self.engine_registry.update_health(engine.engine_name, EngineStatus.HEALTHY, latency_ms=10.0)
 
+        self._mark_planned_unavailable()
         self._initialized = True
+
+    def _build_real_engines(self):
+        """Resolve the manifest's live engines into providers.
+
+        Returns (providers, failures). A live engine that cannot be constructed is
+        reported as a failure rather than crashing initialisation -- and rather
+        than being silently replaced by a mock, which is how five fabricated
+        providers passed for five real engines.
+        """
+        from importlib import import_module
+
+        from abraxas.engines.manifest import ENGINES, LIVE
+
+        providers: List[EvidenceProvider] = []
+        failures: List[tuple] = []
+        for spec in ENGINES:
+            if spec.status != LIVE:
+                continue
+            try:
+                module_path, attribute = spec.implementation.split(":", 1)
+                target = getattr(import_module(module_path), attribute)
+                providers.append(target())
+            except Exception as error:  # noqa: BLE001 - reported, not swallowed
+                failures.append((spec.name, f"{type(error).__name__}: {error}"))
+        return providers, failures
+
+    def _mark_planned_unavailable(self) -> None:
+        """Report every planned engine as UNHEALTHY with its reason."""
+        from abraxas.engines.manifest import PLANNED, ENGINES
+
+        for spec in ENGINES:
+            if spec.status == PLANNED:
+                self.engine_registry.mark_declared_unavailable(spec.name, spec.note)
+
 
     def _mock_evidence(self, request_id: str, claim: str, etype: EvidenceType) -> EvidenceEnvelope:
         return EvidenceEnvelope(
