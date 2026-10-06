@@ -57,6 +57,22 @@ DIAGRAM_AUTHORITY_TERMS = [
     "obedience",
 ]
 
+# Token-extraction vocabulary for diagram authority. Deliberately SEPARATE from
+# DIAGRAM_AUTHORITY_TERMS, which feeds diagram_authority_density.
+#
+# The two consumers want different things and conflating them was the bug:
+#   * token extraction should REPORT base words the text actually uses
+#     ("diagram", "authority", "commands" -- see test_numogram_retronic_ingest.py:81)
+#   * density feeds a 0.1 threshold that test_tdd_classifier.py::test_passive_diagram_role
+#     depends on staying PASSIVE, so it must remain phrases-only.
+# Adding base words to DIAGRAM_AUTHORITY_TERMS fixed one test and broke the other.
+DIAGRAM_AUTHORITY_TOKEN_TERMS = DIAGRAM_AUTHORITY_TERMS + [
+    "diagram",
+    "authority",
+    "teleology",
+    "commands",
+]
+
 AGENCY_TERMS = [
     "time wants",
     "numbers act",

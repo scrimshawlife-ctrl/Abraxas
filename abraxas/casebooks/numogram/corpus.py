@@ -21,6 +21,7 @@ from abraxas.temporal.features import (
     RETRONIC_TERMS,
     ESCHATOLOGY_TERMS,
     DIAGRAM_AUTHORITY_TERMS,
+    DIAGRAM_AUTHORITY_TOKEN_TERMS,
     AGENCY_TERMS,
 )
 
@@ -29,7 +30,8 @@ from abraxas.temporal.features import (
 TRIGGER_LEXICON = {
     "retronic": RETRONIC_TERMS,
     "eschatology": ESCHATOLOGY_TERMS,
-    "diagram_authority": DIAGRAM_AUTHORITY_TERMS,
+    # Token extraction only. Density still uses DIAGRAM_AUTHORITY_TERMS directly.
+    "diagram_authority": DIAGRAM_AUTHORITY_TOKEN_TERMS,
     "agency": AGENCY_TERMS,
 }
 
