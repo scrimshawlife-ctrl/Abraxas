@@ -1,25 +1,27 @@
 # Test Debt Inventory
 
-Baseline as of 2026-10-05 (after the Phase 1/2 remediation): **42 failed / 3250 passed /
+Baseline as of 2026-10-05 (after applying the Phase 2 rulings): **38 failed / 3254 passed /
 4 skipped / 9 xfailed**.
 
 This file is the human-readable companion to `scripts/test_ratchet.sh`. When a cluster is
 resolved, lower `BASELINE_FAILURES` in that script and update the matching row here **in the
 same commit**.
 
-## Ruled by Jev, NOT YET APPLIED (behaviour-changing — needs a human go)
-
-Jev answered all of these, but then returned `noul = 0.13` on *"is it safe for the agent to
-apply these rulings autonomously, without further human review"*. So they are recorded and
-parked, not executed. Applying any of them changes runtime behaviour.
+## Rulings APPLIED (human go given after review)
 
 | Cluster | Tests | Jev's ruling | Confidence |
 |---|---|---|---|
-| Reverse coupling | 1 | `delete_legacy_package` — `abraxas/evidence/legacy/` has no importers and is in no registry | 0.85 |
-| Sandbox override maps | 1 | `override_else_evaluate` — treat an override as per-case, else evaluate normally | 0.85 |
-| `SandboxResult` None floats | 1 | `make_optional` — make the score fields `Optional[float]` to match what producers emit | 0.88 |
-| Analysis content | 7 | `trust_expected_values` — update the implementation to match recorded expectations | 0.73 |
-| Governance / policy scans | 12 | `fix_artifacts` — keep every rule, correct the artifacts | 0.94 |
+| Reverse coupling | 1 | `delete_legacy_package` | 0.85 |
+| Sandbox override maps | 1 | `override_else_evaluate` | 0.85 |
+| `SandboxResult` None floats | 1 | `make_optional` | 0.88 |
+| Memetic `operation_id` | 1 | `trust_expected_values` (taken narrowly) | 0.73 |
+
+## Ruled by Jev, STILL NOT APPLIED
+
+| Cluster | Tests | Jev's ruling | Confidence | Why parked |
+|---|---|---|---|---|
+| Governance / policy scans | 12 | `fix_artifacts` — keep every rule, correct the artifacts | 0.94 | Not yet reached; no rule may be weakened |
+| Analysis content, remainder | 6 | `trust_expected_values` | 0.73 | The memetic clustering expectation needs a redesigned similarity metric, not a label fix. Applying it would be test-fitting, so this part of the ruling is declined pending a real spec.
 
 ## ABSTENTION — Jev declined, do not treat as a decision
 
@@ -61,8 +63,11 @@ silently disappear.
 | 2026-10-05 | `050b07de` | Test-side defects: `yaml.safe_dump(model.dict())` → `model_dump(mode="json")` (3 sites, found by DRY grep); rune count as a floor; `pytest.approx`; builder-check xfail | 2 (+1 xfail) |
 | 2026-10-05 | `303bf2c4` | Jev rulings applied: `evidence_completeness` fixture was wrong, not the 0.80 threshold; `self_build_*` xfail | 2 (+8 xfail) |
 | 2026-10-05 | `fc3a6447` | Added the three missing `make` targets and documented the proof spine **truthfully** | 2 |
+| 2026-10-05 | `62150a8e` | Sandbox: per-case override maps; `SandboxResult` accepts absent metrics | 2 |
+| 2026-10-05 | `b15118b7` | Deleted dead `abraxas/evidence/legacy/` (40 of 41 reverse-coupling violations) | 1 |
+| 2026-10-05 | (memetic) | `claim_extract` operation_id corrected | 1 |
 
-Session total: **134 → 42 failures, zero regressions.**
+Session total: **134 → 38 failures, zero regressions.**
 
 ## Rules
 
