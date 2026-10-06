@@ -503,7 +503,17 @@ def test_promotion_creates_ticket(tmp_path):
             "formula": "test",
             "inputs": [],
             "output_range": [0, 1],
-            "computation": "local"
+            "computation": "local",
+            # promotion_gate._check_rent_manifest (line 361-370) requires a rent manifest
+            # draft for every kind EXCEPT PARAM_TWEAK: only param_tweak is exempt (it needs
+            # param_path instead). Without this the gate rejects the candidate with
+            # "Missing rent manifest draft for metric/operator candidate" before reaching the
+            # ticket behaviour this test exists to verify. The check is truthiness-only
+            # (implementation_spec.get("rent_manifest_draft")), so a minimal draft satisfies it.
+            "rent_manifest_draft": {
+                "metric": "test_metric_ticket",
+                "cost_class": "local_computation",
+            },
         },
         priority=5
     )
