@@ -56,19 +56,28 @@ def _scrub_fields(obj: Any, *, include_urls: bool) -> Any:
     return obj
 
 
-def _scrub_rune_evidence_rows(domains: Dict[str, Any]) -> Dict[str, Any]:
+def _scrub_rune_evidence_rows(domains: Any) -> Any:
     """
     Remove per-item evidence_rows from domain rune data (for psychonaut tier).
 
     Preserves: motif_stats, provenance (without input_hash details)
     Removes: evidence_rows, cluster_maps
-    """
-    scrubbed = {}
-    for domain_id, data in domains.items():
-        if not isinstance(data, dict):
-            scrubbed[domain_id] = data
-            continue
 
+    `domains` arrives as a LIST of {"descriptor": ..., "provenance": ...} entries
+    (engine.py:386 builds sdct_domains as List[dict]), and apply_tier already assumes that
+    shape at line 98 (`report.get("domains", [])`). The previous implementation called
+    .items() on it, so every psychonaut run raised AttributeError: 'list' object has no
+    attribute 'items'.
+
+    The list entries carry descriptor/provenance only -- evidence_rows are collected
+    separately in engine.py (`evidence.extend(evidence_rows)`), not nested here. The filter
+    below is therefore a no-op for the list shape, and that is correct: it still guards the
+    dict shape if one is ever passed, and it summarises provenance in both.
+    """
+
+    def scrub_entry(data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
         cleaned = {}
         for k, v in data.items():
             # Remove per-item evidence rows for lower tiers
@@ -83,8 +92,13 @@ def _scrub_rune_evidence_rows(domains: Dict[str, Any]) -> Dict[str, Any]:
                 }
             else:
                 cleaned[k] = v
-        scrubbed[domain_id] = cleaned
-    return scrubbed
+        return cleaned
+
+    if isinstance(domains, list):
+        return [scrub_entry(d) for d in domains]
+    if isinstance(domains, dict):
+        return {k: scrub_entry(v) for k, v in domains.items()}
+    return domains
 
 
 def apply_tier(report: Dict[str, Any], *, tier: str, safe_export: bool, include_urls: bool) -> Dict[str, Any]:
