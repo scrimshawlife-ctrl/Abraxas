@@ -47,6 +47,50 @@
 
 ---
 
+### Test Debt Remediation (Complete) — session 2026-10-06
+
+- [x] **Test failures 134 → 3** — 131 of 134 closed, zero regressions, zero policy/threshold
+      values moved. Passing 3,167 → 3,338. Detail and every diagnosis in `docs/TEST_DEBT.md`.
+- [x] **Regression ratchet added** — `scripts/test_ratchet.sh`, `BASELINE_FAILURES=3`.
+      The baseline may only decrease; raising it requires a written reason in the commit body.
+- [x] **Collection-order dependence fixed at root** — the suite imported script files that
+      purged `sys.modules` at import time. FIVE of eight root-level `test_*.py` files contained
+      ZERO tests; moved to `scripts/smoke/`. Baseline claims now require BOTH collection orders.
+- [x] **Yggdrasil ↔ ABX-Runes integration** — `YggdrasilEngineRegistry` (which declares itself
+      "Source of Truth for Engine Registration") now actually loads the 117 rune bindings; it
+      previously imported none of them and nothing imported it back.
+- [x] **Rune capability convention unified** — all 117 capability ids migrated to the declared
+      `RUNE.<PATH>` form (witness: `docs/runes/`, the Rune Specs Index). 67 files, 194 literals,
+      zero regressions. Sigil-numeral `rune_id`s deliberately left alone: the sigils ARE the
+      canon identity and the manifest enforces them.
+- [x] **Production engine wiring** — `ProductionOrchestrator` registers real providers (athanor,
+      cypher, noesis, oracle, trutina) instead of five inline mock types; mocks are opt-in only.
+      Health can now report an unimplemented engine as unhealthy rather than HEALTHY.
+- [x] **Model-agnostic inference adapter** — `abraxas/evidence/adapters/model_agnostic.py`;
+      athanor is constructible without a bespoke model. UI carries a "custom inference coming
+      soon" notice. Frontend build verified.
+- [x] **Jev consulted five times; no threshold was ever moved** — `move_threshold` 0.000 and
+      `lower_threshold` 0.000 on every occasion. Two of my own recommendations were retracted
+      after reading the code, and one governance allowlist was reverted.
+
+### Open Decisions (need an operator ruling)
+
+- [ ] **Non-censorship scan patterns** — `tools/non_censor_scan.py` reports 244 violations,
+      including `abraxas/synthesis/firewall.py` ITSELF (28) and its tests (76 + 68). The
+      `BANNED_PATTERNS` are bare-word regexes (`firewall`, `sanitize`, `response_mode`, ...),
+      so the repo's own synthesis-firewall subsystem cannot coexist with the guard as written.
+      Needs patterns that match censorship INTENT, not vocabulary. Generated bundles
+      (`dashboard/frontend/dist/assets/*.js`) should also be excluded.
+- [ ] **EPP proposal gating scope** — `epp_builder._build_proposals` gates every branch on a
+      single GLOBAL composite risk (`_risk_components(integrity_snapshot, osh_stats)`, built
+      once, dataset-level by construction). `SIW_TIGHTEN_SOURCE` needs risk ≥ 0.6 and
+      `SIW_LOOSEN_SOURCE` needs risk ≤ 0.3, so no single portfolio can produce both — yet
+      `test_epp_builds_ranked_proposals` asserts both from one fixture. Needs a second,
+      low-risk fixture.
+- [ ] **`test_memetic_claim_runes::test_cluster_claims_deterministic` — recommended to STAY RED.**
+      Token Jaccard scores 0.21 against an expected 0.42. Passing it means redesigning a
+      similarity metric to hit a number, i.e. test-fitting. Jev's weakest ruling (0.73).
+
 ## Column Definitions & Automation
 
 | Column | Meaning | Automation |

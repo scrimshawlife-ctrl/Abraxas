@@ -79,6 +79,17 @@ Signal → Compression → Forecast → Narrative
 
 ---
 
+## ✅ Test Debt Remediation (2026-10-06)
+
+- [x] **Test failures 134 -> 3**, zero regressions, zero policy/threshold values moved.
+      Ratchet at `BASELINE_FAILURES=3`. See `docs/TEST_REMEDIATION_2026-10.md` and
+      `docs/TEST_DEBT.md`.
+- [x] **Collection-order dependence fixed at root** — five root-level `test_*.py` files
+      contained zero tests and purged `sys.modules` at import.
+- [x] **Yggdrasil / ABX-Runes integrated** — one registry, 117 bindings, `RUNE.<PATH>` convention.
+- [x] **Production runs real evidence engines** — mocks are opt-in only.
+- [ ] **Open decisions** — non-censorship scan patterns; EPP dual-fixture. See the kanban.
+
 ## 🚀 NEXT — High-Value Extensions (Q2 2025)
 
 ### 4. Resonance Narratives
