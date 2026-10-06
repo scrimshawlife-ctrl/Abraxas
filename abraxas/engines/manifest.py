@@ -63,13 +63,17 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "athanor",
         LIVE,
         "RELATIONAL_REASONING",
-        "abraxas.evidence.provider:AthanorAdapter",
+        "abraxas.evidence.provider:create_athanor_adapter",
+        "Factory function. AthanorAdapter is built inside it and closes over "
+        "engine_name, so there is no module-level AthanorAdapter attribute.",
     ),
     _spec(
         "noesis",
         LIVE,
         "LATENT_STRUCTURAL",
         "abraxas.evidence.verifiers.latent:NoesisEvidenceProvider",
+        "Class. Did not subclass EvidenceProvider until the agreement guard "
+        "caught it; the interface is now declared explicitly.",
     ),
     _spec(
         "trutina",
@@ -81,13 +85,15 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "oracle",
         LIVE,
         "RELATIONAL_REASONING",
-        "abraxas.evidence.adapters.oracle",
+        "abraxas.evidence.adapters.oracle:create_oracle_adapter",
+        "Factory function.",
     ),
     _spec(
         "cypher",
         LIVE,
         "RELATIONAL_REASONING",
-        "abraxas.evidence.adapters.cypher",
+        "abraxas.evidence.adapters.cypher:create_cypher_adapter",
+        "Factory function.",
     ),
     _spec(
         "hyperlex",

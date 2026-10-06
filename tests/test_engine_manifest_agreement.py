@@ -51,11 +51,59 @@ def test_planned_engines_declare_no_implementation() -> None:
     assert claiming == [], f"planned engines claiming an implementation: {claiming}"
 
 
+def _resolve(spec):
+    """Resolve ``module:Attribute``. Importing the module is NOT enough —
+    an earlier version of this test did only that and therefore passed while the
+    manifest claimed a class that was factory-local and did not exist."""
+    module_path, attribute = spec.implementation.split(":", 1)
+    module = importlib.import_module(module_path)
+    assert hasattr(module, attribute), (
+        f"{spec.name}: {module_path} has no attribute {attribute!r}. "
+        f"Declare the real entry point (a factory function is fine)."
+    )
+    return getattr(module, attribute)
+
+
 @pytest.mark.parametrize("spec", LIVE_SPECS, ids=lambda spec: spec.name)
-def test_live_engine_implementation_is_importable(spec) -> None:
-    """Every engine marked live must actually import."""
-    module_path = spec.implementation.split(":", 1)[0]
-    importlib.import_module(module_path)
+def test_live_engine_entry_point_resolves(spec) -> None:
+    """Every engine marked live must have a resolvable, callable entry point."""
+    target = _resolve(spec)
+    assert callable(target), f"{spec.name}: entry point is not callable"
+
+
+@pytest.mark.parametrize("spec", LIVE_SPECS, ids=lambda spec: spec.name)
+def test_live_engine_entry_point_conforms_to_the_provider_interface(spec) -> None:
+    """A live engine must be an EvidenceProvider subclass, or a factory that
+    returns one. This is the boundary the architecture depends on:
+    Abraxas owns arbitration, engines own reasoning."""
+    from abraxas.evidence.provider import EvidenceProvider
+
+    target = _resolve(spec)
+    if isinstance(target, type):
+        assert issubclass(target, EvidenceProvider), (
+            f"{spec.name}: {target.__name__} does not subclass EvidenceProvider"
+        )
+        return
+    # A factory. Some wrap an external inference callable (that is the design:
+    # the engine owns reasoning, Abraxas owns arbitration), so supply a minimal
+    # stand-in when the signature requires one.
+    import inspect
+
+    params = inspect.signature(target).parameters
+    kwargs = {}
+    if "inference_engine" in params:
+        kwargs["inference_engine"] = lambda claim, context: {
+            "candidates": [],
+            "model_identity": "stub",
+            "relations": [],
+            "reasoning_steps": [],
+            "provenance": {},
+        }
+    produced = target(**kwargs)
+    assert isinstance(produced, EvidenceProvider), (
+        f"{spec.name}: factory returned {type(produced).__name__}, "
+        f"not an EvidenceProvider"
+    )
 
 
 def test_coordinator_registers_exactly_the_manifest() -> None:

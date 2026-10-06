@@ -16,6 +16,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from functools import lru_cache
 from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType, CandidateOutput, RelationStep
+from abraxas.evidence.provider import EvidenceProvider
 
 
 # ─── CORE MATH UTILITIES ──────────────────────────────────────────────
@@ -313,7 +314,7 @@ class LatentStructureVerifier:
 
 # ─── NOESIS EVIDENCE PROVIDER (enhanced) ────────────────────────────
 
-class NoesisEvidenceProvider:
+class NoesisEvidenceProvider(EvidenceProvider):
     """Noesis evidence provider — latent structure analysis across interventions."""
 
     @property
