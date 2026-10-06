@@ -16,7 +16,19 @@ def test_invoke_requires_ctx() -> None:
         invoke_rune("ϟ₁", {}, ctx=None)
 
 
-def test_invoke_logs_stub_blocked(tmp_path: Path) -> None:
+def test_invoke_logs_stub_blocked(tmp_path: Path, monkeypatch) -> None:
+    """Verify the stub-blocking mechanism, with a stub INJECTED.
+
+    This previously invoked rune ϟ₁ (RFA) and expected RuneStubError, because RFA was a
+    stub when the test was written. RFA has since been implemented -- apply_rfa returns a
+    real anchored-field result -- so the test silently stopped testing anything and failed
+    with DID NOT RAISE.
+
+    No rune in the repo is currently a stub, so a test that depends on one existing cannot
+    be stable. Inject the stub instead: that exercises the same mechanism in invoke_rune
+    (operator raises NotImplementedError -> ledger record with status="stub_blocked" ->
+    RuneStubError) without depending on which runes happen to be implemented.
+    """
     ledger_path = tmp_path / "runes.jsonl"
     ledger = RuneInvocationLedger(ledger_path)
     ctx = {
@@ -24,6 +36,14 @@ def test_invoke_logs_stub_blocked(tmp_path: Path) -> None:
         "subsystem_id": "test",
         "git_hash": "deadbeef",
     }
+
+    def _stub_operator(**kwargs):  # noqa: ANN003
+        raise NotImplementedError("operator is a stub")
+
+    monkeypatch.setattr(
+        "abraxas.runes.invoke._resolve_operator", lambda _path: _stub_operator
+    )
+
     with pytest.raises(RuneStubError):
         invoke_rune(
             "ϟ₁",
