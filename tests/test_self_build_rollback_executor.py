@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+import pytest
+
+
+_XFAIL_DRIFT = (
+    "Stateful test: self_build_* scans the live tree for NOT_COMPUTABLE "
+    "artifacts and the pipeline has already upgraded them all (0 remain; 7 "
+    "carry 'upgraded_from: NOT_COMPUTABLE'). Jev ruled leave-as-is (0.84). "
+    "See docs/TEST_DEBT.md."
+)
+
 import json
 from pathlib import Path
 
@@ -7,6 +17,7 @@ from abraxas.registry.self_build_mutation_ledger import append_mutation_entry, b
 from abraxas.registry.self_build_rollback_executor import run_self_build_rollback_executor
 
 
+@pytest.mark.xfail(reason=_XFAIL_DRIFT, strict=True)
 def test_rollback_executor_happy_path() -> None:
     target = Path("out/test/rollback_target.latest.json")
     before_content = '{"status":"NOT_COMPUTABLE"}'

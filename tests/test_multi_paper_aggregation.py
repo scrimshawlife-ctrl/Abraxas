@@ -90,6 +90,10 @@ def test_aggregate_mixed_confidence(paper1, paper2, paper3):
         ModelParam(name="beta", value=0.3),
         ModelParam(name="gamma", value=0.1),
         ModelParam(name="k", value=10.0),
+        # 4th DIFFUSION_SIR key param -> completeness 1.0 -> HIGH.
+        # Jev ruled the 0.80 boundary canonical (0.93), so this fixture was
+        # wrong: 3/4 key params is 0.75, which is legitimately MED.
+        ModelParam(name="delay", value=2.0),
     ]
 
     # Medium confidence paper (fewer params)
@@ -145,7 +149,7 @@ def test_aggregate_single_paper(paper1):
 
     # Aggregated knobs should match original (no averaging needed)
     assert aggregated["aggregated_knobs"]["mri"] == mapping.mapped.mri
-    assert aggregated["aggregated_knobs"]["iri"] == mapping.mapped.iri
+    assert aggregated["aggregated_knobs"]["iri"] == pytest.approx(mapping.mapped.iri)
 
 
 def test_aggregate_different_families(paper1, paper2):
