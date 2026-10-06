@@ -14,6 +14,8 @@ Navigation map for canonical governance docs, architecture specs, operator workf
 - [VALIDATION_AND_ATTESTATION.md](VALIDATION_AND_ATTESTATION.md) — validator and attestation boundaries.
 - [SUBSYSTEM_INVENTORY.md](SUBSYSTEM_INVENTORY.md) — subsystem maturity and role map.
 - [RELEASE_READINESS.md](RELEASE_READINESS.md) — readiness criteria and release posture.
+- [TEST_REMEDIATION_2026-10.md](TEST_REMEDIATION_2026-10.md) — test debt 134 -> 3: session record, defect taxonomy, transferable rules, open decisions.
+- [TEST_DEBT.md](TEST_DEBT.md) — per-failure diagnoses, reverts, Jev rulings and standing test rules.
 
 ---
 
