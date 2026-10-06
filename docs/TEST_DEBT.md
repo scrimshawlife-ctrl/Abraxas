@@ -224,6 +224,51 @@ Reading it:
 Net: of the 12 gated, **1 got a ruled direction**, **8 remain hand-over**, **3 abstained**.
 Nothing was applied.
 
+## Decision sheet: all 22 remaining failures, classified by cause
+
+Produced by pulling each error, following it to source, and classifying it. **No code
+was changed to produce this sheet.** The distinction that matters:
+
+- **MECHANICAL** -- one correct answer exists and is discoverable from the code/tests.
+- **CONTRACT** -- two contradictory statements of intent exist and nothing in the repo
+  adjudicates between them. A human or a spec must decide. NOT an effort problem.
+
+### CONTRACT (13) -- waiting on a decision, not on work
+
+| # | Test | Cause | The actual question |
+|---|---|---|---|
+| 1-8 | `test_firewall_metrics_delta` (8) | observed reduction ratios vs >=80%/>=50% targets | Are the targets unachievable, the reducer under-reducing, or the artifacts wrong? Jev: hand_over 0.74/0.96, `move_threshold` 0.000 |
+| 9 | `test_numogram_retronic_ingest::test_retronic_tdd_analysis` | `density = hits/token_count` vs 0.1 needs 1-in-10 words (measured 0.05682) | Jev RULED `renormalize` 0.89 (keep 0.1), but named a direction, not a formula |
+| 10 | `test_calibration_drift_report` | impl `agency_off` vs test `drift_blocked` | No external witness for either label. Jev ABSTAINED 0.53 |
+| 11 | `test_multi_domain_seedpack` | impl `finance` vs test `economics` | Same -- no witness. Jev ABSTAINED 0.53 (`per_case` 0.34) |
+| 12 | `test_canon_ledger_from_audit_v0` | range 2026-02-01 -> 02-03 vs expected -> 02-02 | The fixture mixes TWO schemas; record 3 nests its time under `commit.time.iso_utc`. Should a nested-schema record contribute to the date range? NOT a rotted date -- dates are synthetic |
+| 13 | `test_tier_gating_psychonaut` | `AttributeError: 'list' object has no attribute 'items'` at `abraxas_ase/tiering.py:67` | Caller passes `report["domains"]` = a LIST; function is typed `Dict[str, Any]`. Unknown element shape -- fixing needs the real structure, not a guess |
+
+### MECHANICAL (9) -- one discoverable correct answer
+
+| # | Test | Cause | Fix shape |
+|---|---|---|---|
+| 14 | `test_timesfm_shadow_lab::test_packet_rejects_forecast_lane_and_wrong_revision` | `ValidationError.__new__() missing 1 required positional argument: 'line_errors'` (`abraxas/sources/timesfm_shadow/packets.py:162`) | `raise ValidationError(message)` is not constructible in pydantic v2; needs `ValidationError.from_exception_data(...)`. Test already expects `ValidationError` matching `valid_for_forecast` |
+| 15 | `test_runes_registry::test_registry_integrity` | `AssertionError: Capability must be tagged` | Registry validation: a capability lacks its tag. Find which entry and tag it |
+| 16 | `test_runes_invocation::test_invoke_logs_stub_blocked` | `DID NOT RAISE RuneStubError` | The stub path is not blocking. Wiring gap, not a policy value |
+| 17 | `test_smv_build_units_from_vector_map` | ordering: got `['src_a',...,'node_b']`, expected `['node_a',...,'src_c']` | Source vs node ordering/naming. Determinism-class |
+| 18 | `test_sim_mappings_game::test_game_theoretic_low_discount` | `assert 0.2 > 0.75` | Inverted or mis-scaled discount. Check which operand is the discount |
+| 19 | `test_epp_builds_ranked_proposals` | `'SIW_LOOSEN_SOURCE' not in {COMPONENT_FOCUS_SUGGESTION, OFFLINE_EVIDENCE_ESCALATION, SIW_TIGHTEN_SOURCE, VECTOR_NODE_CADENCE_CHANGE}` | A proposal type is never emitted. Find the missing emit path |
+| 20 | `test_evolution_system::test_promotion_creates_ticket` | `ValueError: Cannot promote candidate: Missing rent manifest draft` (`abraxas/evolution/promotion_gate.py:142`) | Gate requires a draft the test does not supply. Determine whether the gate or the test omits the step |
+| 21 | `test_non_censorship_invariant::test_static_scan_enforced` | Static scan reports potential violations | A scan flagged real code. Either the flagged construct is a false positive for the rule, or the rule is correct and the code should change -- needs a look at what was flagged |
+| 22 | `test_memetic_claim_runes::test_cluster_claims_deterministic` | `[[0],[1],[2]]` vs expected `[[0,1],[2]]` | ALREADY DECLINED earlier this session (Q7): token Jaccard scores 0.21 vs the expected 0.42. Reaching it means redesigning the similarity metric = test-fitting. Jev's weakest ruling, 0.73 |
+
+### The headline
+
+**13 of 22 are CONTRACT, not effort.** The four that looked most mechanical at error
+level (`tiering`, `canon_ledger`, and the two enums) all turned out to be contract
+questions wearing mechanical clothes -- which is why this session produced three
+reverted "fixes": each traded one failure for another rather than resolving anything.
+
+**The enums have a concrete unlock:** Jev scored `fix_impl` and `fix_tests` at **0.000**
+for lack of an external witness. A schema, a spec line, or a doc naming the canonical
+label would let it rule in one pass. Nothing else is needed.
+
 ## Accounting after the ruling
 
 - 24 failures total
