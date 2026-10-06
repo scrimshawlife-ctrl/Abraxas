@@ -485,6 +485,53 @@ The green-making move is to prefix 62 strings with `rune:`. The skill forbids ex
 conventions plus a parallel registry is a RECONCILIATION decision, not a test bug. Do not
 rename contracts to quiet a validator.
 
+## Firewall mode inversion -- RESOLVED BY WITNESS 2026-10-06
+
+Six firewall failures were all downstream of ONE pairing error: the test suite's fixtures are
+swapped relative to the classifier's severity ranking.
+
+MEASURED (fixtures vs classifier):
+    draft_diagram_authority  49 words, temporal_mode=linear, diagram_role=commanding,
+                             diagram_auth=1.0, eschatology terms=0  -> risk HIGH -> DE_ESCALATE
+    draft_eschatology        48 words, temporal_mode=eschatological, 7 eschatology terms
+                                                                    -> risk CRITICAL -> REFUSE_EXTENSION
+
+TESTS ASSERT THE INVERSE:
+    draft_diagram_authority  paired with REFUSE_EXTENSION expectations (3 tests)
+    draft_eschatology        paired with a DE_ESCALATE expectation   (1 test)
+
+=== THE WITNESS (adjudicating) ===
+tests/test_tdd_classifier.py PASSES and pins the ranking directly:
+
+  test_critical_sovereignty_risk:
+      text = "The eschaton commands through the diagram, abolishing all agency through
+              retrocausal destiny."
+      assert risk == SovereigntyRisk.CRITICAL          # eschatological -> CRITICAL
+
+  test_operator_hits_diagram_authority:
+      mode = TemporalMode.LINEAR
+      diagram = DiagramRole.COMMANDING
+      risk = SovereigntyRisk.HIGH                       # diagram authority + linear -> HIGH
+
+That second profile is EXACTLY what draft_diagram_authority measures (linear + commanding +
+high). A passing test states the ranking, and it matches abraxas/temporal/classifier.py line
+for line (ESCHATOLOGICAL -> CRITICAL; diagram_auth >= 0.1 -> HIGH).
+
+=== RULING ===
+THE CLASSIFIER STANDS. The six firewall tests are the outliers and their fixture/mode pairing
+is inverted. Also explains the "impossible" percentages: they were being measured on the WRONG
+transformer. apply_de_escalate's documented remit is "soften certainty, limit metaphors" -- it
+never touches closure terms, so a >=50% closure reduction cannot come from it regardless of
+fixture. The percentages were not unachievable; they were measuring the wrong mode.
+
+Jev's move_threshold=0.000 ruling is vindicated a second time: the correct action was never to
+lower the ratio, it was to notice the wrong transformer was running.
+
+FIX SHAPE (not yet applied): swap the fixtures so each test pairs with the mode the classifier
+produces, then re-measure the reduction percentages on the CORRECT transformer and fix whatever
+genuinely remains. Expect the mode assertions to pass after the swap and some percentage
+assertions to still need attention -- do not assume the swap alone is sufficient.
+
 ## Accounting after the ruling
 
 - 24 failures total
