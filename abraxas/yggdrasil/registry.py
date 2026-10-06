@@ -53,11 +53,42 @@ class YggdrasilEngineRegistry:
         logger.info("Yggdrasil Engine Registry initialized")
     
     def initialize(self) -> None:
-        """Initialize the registry (placeholder for future DB integration)."""
+        """Initialize the registry by loading the ABX-Runes capability bindings.
+
+        This module declares itself the source of truth for engine registration, but it
+        had NO wiring to the rune registry: `abraxas/runes/registry.py` holds the 117
+        bindings, and nothing here imported them, while nothing there imported this.
+        Loading them is what makes this registry actually authoritative rather than a
+        placeholder.
+        """
         if self._initialized:
             return
+        self.load_rune_bindings()
         self._initialized = True
         logger.debug("Yggdrasil Engine Registry fully initialized")
+
+    def load_rune_bindings(self, registry_path: Optional[Any] = None) -> int:
+        """Register every ABX-Rune binding as an engine. Returns the number loaded.
+
+        The direction is rune data INTO the Yggdrasil plane: ABX-Runes define WHAT may be
+        done, YGGDRASIL defines HOW bounded capabilities connect.
+        """
+        from abraxas.runes.registry import load_registry
+
+        loaded = 0
+        for binding in load_registry(registry_path):
+            self.register_engine(
+                binding.rune_id,
+                {
+                    "capability": binding.capability,
+                    "operator_path": binding.operator_path,
+                    "inputs": list(binding.inputs or []),
+                    "outputs": list(binding.outputs or []),
+                },
+            )
+            loaded += 1
+        logger.info(f"Loaded {loaded} ABX-Rune bindings into the Yggdrasil registry")
+        return loaded
     
     def register_engine(self, engine_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """Register an engine in the rune registry."""
