@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from abraxas.casebooks.numogram.models import NumogramEpisode, NumogramCasebook
 from abraxas.core.provenance import ProvenanceBundle, ProvenanceRef, hash_canonical_json
+
+# Fixture-derived episodes have no source creation time, so provenance.created_at is
+# PINNED rather than stamped with datetime.now(). ProvenanceBundle defaults to now(),
+# which made hash_canonical_json(episode.model_dump()) differ between two loads of the
+# same fixture -- non-determinism inside a component whose whole purpose is to be
+# deterministic and hash-stable.
+FIXTURE_CREATED_AT = datetime(1970, 1, 1, tzinfo=timezone.utc)
 from abraxas.temporal.features import (
     RETRONIC_TERMS,
     ESCHATOLOGY_TERMS,
@@ -83,6 +91,7 @@ def _normalize_episode(data: dict[str, Any]) -> NumogramEpisode:
         transforms=["normalize_whitespace", "extract_claims", "extract_tokens"],
         metrics={"token_count": float(len(extracted_tokens))},
         created_by="numogram_corpus_loader",
+        created_at=FIXTURE_CREATED_AT,
     )
 
     return NumogramEpisode(
