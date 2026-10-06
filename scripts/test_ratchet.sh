@@ -10,7 +10,7 @@
 # Usage: bash scripts/test_ratchet.sh
 set -uo pipefail
 
-BASELINE_FAILURES=28
+BASELINE_FAILURES=26
 OUT="$(mktemp)"
 
 cd "$(dirname "$0")/.." || exit 2

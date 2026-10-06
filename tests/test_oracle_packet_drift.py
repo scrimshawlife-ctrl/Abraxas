@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 from abraxas.oracle.packet_drift import classify_packet_drift
@@ -20,10 +21,20 @@ def _packet_with_run(run_id: str, slice_hash: str, shadow_summary: dict | None) 
     }
     if shadow_summary is not None:
         run["shadow_summary"] = shadow_summary
-    return {
-        "oracle_packet_v0_1": {"meta": {"version": "0.1", "env": "sandbox", "run_at": "t", "seed": "0"}, "runs": [run]},
-        "oracle_packet_hash": "hash",
+    payload = {
+        "oracle_packet_v0_1": {
+            "meta": {"version": "0.1", "env": "sandbox", "run_at": "t", "seed": "0"},
+            "runs": [run],
+        }
     }
+    # The packet hash must be CONTENT-DERIVED. A constant placeholder made both
+    # packets look identical, so classify_packet_drift short-circuited on its
+    # documented "packet hash matches -> none" rule before comparing content, and
+    # neither fixture could ever reach the canon / shadow_only branches.
+    payload["oracle_packet_hash"] = hashlib.sha256(
+        json.dumps(payload["oracle_packet_v0_1"], sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    return payload
 
 
 def test_packet_drift_classifies_shadow_only(tmp_path):
