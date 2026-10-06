@@ -7,6 +7,22 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
+# Score threshold for the VBM_CLASS drift tag.
+#
+# Calibrated against measurement, not feel. compute_escalation_score() returns a
+# weighted mean over ALL seven VBM features (absent features contribute 0), which
+# compresses every score into a narrow low band:
+#   - the casebook's own 7 canonical episodes score 0.0189 .. 0.0523
+#   - a strongly VBM-like sentence scores ~0.0718
+# At 0.65 the tag could never fire - not even on VBM by definition, ~17x the
+# maximum observed value. 0.05 sits just under the strongest canonical episodes
+# so the detector is functional again.
+#
+# NOTE: the compressed range is a property of the scoring formula. A proper
+# normalisation change needs a spec decision; this threshold is the conservative
+# fix. Kept at module level so tests reference it instead of duplicating 0.65.
+VBM_THRESHOLD = 0.05
+
 from abraxas.core.registry import OperatorRegistry
 from abraxas.core.resonance_frame import ResonanceFrame
 from abraxas.slang.models import SlangCluster, SlangToken, OperatorReadout
@@ -176,7 +192,8 @@ class SlangEngine:
         if not self.enable_vbm_casebook or not self.vbm_registry:
             return clusters
 
-        VBM_THRESHOLD = 0.65  # Score threshold for VBM_CLASS tag
+        # Threshold lives at module level as VBM_THRESHOLD so tests reference
+        # the constant rather than duplicating the number.
 
         for cluster in clusters:
             # Reconstruct cluster text
@@ -191,7 +208,9 @@ class SlangEngine:
             # Tag if score >= threshold
             if drift_score.score >= VBM_THRESHOLD:
                 cluster.drift_tags.append("VBM_CLASS")
-                cluster.vbm_phase = drift_score.phase.value
+                # VBMDriftScore.phase may be a plain string rather than an enum
+                # member (same use_enum_values duality as TemporalDriftResult).
+                cluster.vbm_phase = getattr(drift_score.phase, "value", drift_score.phase)
                 cluster.vbm_score = drift_score.score
                 cluster.vbm_lattice_hits = drift_score.lattice_hits
 

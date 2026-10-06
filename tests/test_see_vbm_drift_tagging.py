@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from abraxas.core.resonance_frame import ResonanceFrame
 from abraxas.decodo.models import DecodoEvent
-from abraxas.slang.engine import SlangEngine
+from abraxas.slang.engine import VBM_THRESHOLD, SlangEngine
 
 
 def test_vbm_drift_tag_fires():
@@ -69,7 +69,7 @@ def test_vbm_phase_annotation():
         cluster = vbm_clusters[0]
         assert cluster.vbm_phase is not None, "VBM phase should be annotated"
         assert cluster.vbm_score is not None, "VBM score should be annotated"
-        assert cluster.vbm_score >= 0.65, "VBM score should be >= threshold"
+        assert cluster.vbm_score >= VBM_THRESHOLD, "VBM score should be >= threshold"
 
 
 def test_vbm_lattice_hits():

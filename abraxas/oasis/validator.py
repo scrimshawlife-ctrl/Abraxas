@@ -246,9 +246,13 @@ class OASValidator:
             "frequency",
         ]
 
-        # Check triggers and scope
+        # Check triggers and scope.
+        # Match scope VALUES only. str(candidate.scope) serialises the dict KEYS
+        # too, and every scope carries the key "pattern_type" — so "pattern"
+        # matched every candidate and nothing was ever out-of-scope.
         trigger_text = " ".join(candidate.triggers).lower()
-        scope_text = str(candidate.scope).lower()
+        scope = candidate.scope if isinstance(candidate.scope, dict) else {}
+        scope_text = " ".join(str(value) for value in scope.values()).lower()
 
         for term in vbm_trigger_terms:
             if term in trigger_text or term in scope_text:
