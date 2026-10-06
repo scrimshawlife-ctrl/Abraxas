@@ -318,6 +318,52 @@ reverted "fixes": each traded one failure for another rather than resolving anyt
 for lack of an external witness. A schema, a spec line, or a doc naming the canonical
 label would let it rule in one pass. Nothing else is needed.
 
+## Runes registry / YGGDRASIL integration -- discovery + Jev ruling 2026-10-06
+
+Operator directive: "runes registry should be integrated with yggdrasil".
+
+### OPEN-phase discovery
+
+`abraxas/runes/registry.py` holds **117 bindings speaking THREE conventions**:
+
+| Convention | Count | Examples |
+|---|---|---|
+| `rune:<short>` lowercase | ~55 | `rune:rfa`, `rune:tam`, `rune:influence_detect` (the canonical 21 sigil-numeral runes) |
+| `<subsystem>.<capability>.<action>` lowercase dotted | **62** | `oracle.v2.run`, `forecast.scoring.brier`, `evolve.ledger.append`, `evolve.evogate.build` |
+| `RUNE.<SUBSYSTEM>.<CAPABILITY>` uppercase (skill-canonical) | **0** | - |
+
+`test_registry_integrity` asserts `capability.startswith("rune:")`; **62 of 117 fail it.**
+
+A **PARALLEL registry** also exists, which the governing skill prohibits:
+`abraxas/yggdrasil/coordinator.py:49` -- `self.rune_registry = YggdrasilEngineRegistry()`,
+gated by `rune_registry_enabled: bool = True` (line 34).
+
+### Jev ruling
+
+| Question | Ruling | Conf. | Spread |
+|---|---|---|---|
+| Which naming convention for the unified registry? | **ABSTENTION** | **0.50** | uppercase_RUNE 0.600, keep_21_migrate_62 0.350, hand_over 0.040, lowercase_rune_colon 0.010, lowercase_dotted 0.000 |
+| Absorb YggdrasilEngineRegistry or keep separate? | **absorb** | **0.87** | absorb 0.910, hand_over 0.070, keep_separate 0.020 |
+| Apply autonomously? | **NO** | noul **0.08** | - |
+
+**The convention ABSTAINED at 0.50, below the 0.65 floor.** Reported as an abstention, NOT
+promoted to its top label: `uppercase_RUNE` took only 0.600 against `keep_21_migrate_62` at
+0.350, so the distribution is split rather than decisive. The naming question is genuinely
+unresolved and stays with the human.
+
+**The structure IS decided (0.87): absorb the parallel engine registry into
+`abraxas/runes/registry.py`.** Two registries for one capability namespace is the
+"parallel YGGDRASIL system" the skill prohibits.
+
+`apply_autonomously` = **0.08**, so neither half is applied here.
+
+### The prohibited shortcut, recorded so it is not taken later
+
+The green-making move is to prefix 62 strings with `rune:`. The skill forbids exactly this:
+"silent normalization of hidden coupling", "weakening validators for green receipts". Three
+conventions plus a parallel registry is a RECONCILIATION decision, not a test bug. Do not
+rename contracts to quiet a validator.
+
 ## Accounting after the ruling
 
 - 24 failures total
