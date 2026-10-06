@@ -180,7 +180,22 @@ def build_calibration_drift_report(
     else:
         promotion_status = "NOT_COMPUTABLE"
 
-    dominant_failure_mode = block_codes[0] if block_codes else ("none" if promotion_status == "PASS" else "review_required")
+    # The drift failure mode must come from the DRIFT domain when drift is what blocks.
+    #
+    # This previously took block_codes[0] verbatim -- the raw code of whichever gate
+    # blocked first. That code can belong to an unrelated subsystem: for a major drift
+    # class the first block code is the AGENCY gate's "agency_off" (defined in
+    # webpanel/agency_toggle.py:61 and webpanel/burst_dry_run.py:64), which is not a
+    # drift failure mode at all. drift_class is already computed above and was unused here.
+    #
+    # The drift-domain term is "drift_blocked", which is what a major drift class means:
+    # the run is blocked BECAUSE OF drift.
+    if drift_class not in {"none", "unknown", ""}:
+        dominant_failure_mode = "drift_blocked"
+    else:
+        dominant_failure_mode = block_codes[0] if block_codes else (
+            "none" if promotion_status == "PASS" else "review_required"
+        )
 
     report = build_calibration_report(
         drift_metrics={

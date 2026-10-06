@@ -52,6 +52,14 @@ class EconomicsExtractor(MetricExtractor):
             }
 
             def emit(metric_id: str, value: float | None, notes: str):
+                # Pass data_grade ONLY when the packet declares one. MetricPoint requires a
+                # string, so passing None for packets without the field raises ValidationError;
+                # omitting the keyword lets MetricPoint's own default apply, which is the
+                # behaviour packets without a declared grade relied on.
+                optional = {}
+                if packet.get("data_grade"):
+                    optional["data_grade"] = packet["data_grade"]
+
                 points.append(
                     MetricPoint(
                         metric_id=metric_id,
@@ -60,8 +68,16 @@ class EconomicsExtractor(MetricExtractor):
                         window_start_utc=window_start,
                         window_end_utc=window_end,
                         source_id=packet.get("source_id"),
+                        # Set the domain explicitly. Without this the point falls through to
+                        # domain_for_source_id, where the ECON_ prefix rule returns "finance"
+                        # -- a different label for the same concept, contradicting this
+                        # extractor's own extractor_name = "economics" (line 35) and its
+                        # economics.* metric ids. The extractor that PRODUCES the point names
+                        # its own domain.
+                        domain=self.extractor_name,
                         computability="computed" if value is not None else "not_computable",
                         provenance={**base_prov, "notes": notes},
+                        **optional,
                     )
                 )
 
