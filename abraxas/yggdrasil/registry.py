@@ -8,7 +8,7 @@ source of truth for all registered engines in the Yggdrasil system.
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Callable, Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -16,12 +16,51 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
+def _utc_now_iso() -> str:
+    """Default clock: current UTC, ISO-8601. Injected away in tests."""
+    return datetime.now(timezone.utc).isoformat()
+
+
 class EngineStatus(str, Enum):
-    REGISTERED = "registered"
-    ACTIVE = "active"
+    """Registry lifecycle for a registered name.
+
+    ``PLANNED`` exists so the canonical manifest's live/planned distinction SURVIVES
+    registration. Without it every registered name was stamped ``REGISTERED``, which
+    made ``aether`` (zero files anywhere in the repo) indistinguishable from
+    ``athanor`` (a working provider) — the exact condition the manifest forbids:
+
+        "A ``planned`` engine must never be presented as available."
+
+    ``ACTIVE`` therefore means "a real EvidenceProvider exists", and it is the only
+    status that counts as available.
+    """
+
+    ACTIVE = "active"          # live engine: a real EvidenceProvider implementation
+    PLANNED = "planned"        # named in the architecture; no implementation yet
+    REGISTERED = "registered"  # addressable, but not an engine: the coordinator, a
+                               # test double, or one ABX-Rune capability
     INACTIVE = "inactive"
     DEPRECATED = "deprecated"
     FAILED = "failed"
+
+
+def status_for(engine_name: str) -> EngineStatus:
+    """Translate the canonical manifest's status into a registry lifecycle value.
+
+    ``abraxas.engines.manifest`` decides live vs planned; this only maps it. Names that
+    are not engines at all — the coordinator, test doubles, individual rune
+    capabilities such as ``ϟ₁`` or ``RUNE.FIND_SKILLS`` — are ``REGISTERED``:
+    addressable, but never counted as live engines.
+    """
+    from abraxas.engines.manifest import COORDINATOR, LIVE, TEST_DOUBLES, get
+
+    if engine_name in TEST_DOUBLES or engine_name == COORDINATOR:
+        return EngineStatus.REGISTERED
+
+    spec = get(engine_name)
+    if spec is None:
+        return EngineStatus.REGISTERED
+    return EngineStatus.ACTIVE if spec.status == LIVE else EngineStatus.PLANNED
 
 
 @dataclass
@@ -47,9 +86,15 @@ class RegistryStats:
 class YggdrasilEngineRegistry:
     """Registry for tracking engine runes and registration status."""
     
-    def __init__(self):
+    def __init__(self, clock: Optional[Callable[[], str]] = None):
+        """``clock`` returns an ISO-8601 UTC timestamp string.
+
+        Injectable so registration is reproducible: a test can pin it and compare two
+        registries exactly, instead of racing the wall clock.
+        """
         self._engines: Dict[str, EngineRune] = {}
         self._initialized = False
+        self._clock = clock or _utc_now_iso
         logger.info("Yggdrasil Engine Registry initialized")
     
     def initialize(self) -> None:
@@ -90,17 +135,28 @@ class YggdrasilEngineRegistry:
         logger.info(f"Loaded {loaded} ABX-Rune bindings into the Yggdrasil registry")
         return loaded
     
-    def register_engine(self, engine_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
-        """Register an engine in the rune registry."""
+    def register_engine(
+        self,
+        engine_name: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        *,
+        status: Optional[EngineStatus] = None,
+    ) -> bool:
+        """Register a name, deriving its lifecycle from the canonical manifest.
+
+        ``status`` overrides the derived value; pass it only when the caller knows
+        something the manifest does not. Leaving it out is the normal path, and means
+        a ``planned`` engine can never be registered as an available one by accident.
+        """
         if engine_name in self._engines:
             logger.warning(f"Engine {engine_name} already registered, updating metadata")
         
-        now = datetime.now(timezone.utc).isoformat()
+        now = self._clock()
         rune_hash = self._compute_rune_hash(engine_name, metadata or {})
         
         rune = EngineRune(
             engine_name=engine_name,
-            status=EngineStatus.REGISTERED,
+            status=status or status_for(engine_name),
             registered_at=now,
             last_updated=now,
             metadata=metadata or {},
@@ -108,7 +164,7 @@ class YggdrasilEngineRegistry:
         )
         
         self._engines[engine_name] = rune
-        logger.info(f"Registered engine: {engine_name}")
+        logger.info(f"Registered engine: {engine_name} ({rune.status.value})")
         return True
     
     def update_engine_status(self, engine_name: str, status: EngineStatus, 
@@ -120,7 +176,7 @@ class YggdrasilEngineRegistry:
         
         rune = self._engines[engine_name]
         rune.status = status
-        rune.last_updated = datetime.now(timezone.utc).isoformat()
+        rune.last_updated = self._clock()
         if metadata:
             rune.metadata.update(metadata)
         rune.rune_hash = self._compute_rune_hash(engine_name, rune.metadata)
@@ -129,8 +185,40 @@ class YggdrasilEngineRegistry:
         return True
     
     def is_engine_registered(self, engine_name: str) -> bool:
-        """Check if an engine is registered in the rune registry."""
+        """Is this name addressable in the registry?
+
+        Addressable is NOT the same as available — see ``is_engine_available``.
+        """
         return engine_name in self._engines
+
+    def is_engine_available(self, engine_name: str) -> bool:
+        """May this name actually be used to produce evidence?
+
+        False for everything the manifest does not mark ``live``. A ``planned`` engine
+        stays addressable so it remains visible in the topology, but it has no
+        implementation and must never be presented as available. Unknown names and
+        non-engine registrations (the coordinator, test doubles, individual rune
+        capabilities) are likewise unavailable.
+
+        This is the fail-closed predicate. Prefer it over ``is_engine_registered``
+        anywhere a name is about to be *used* rather than merely listed.
+        """
+        rune = self._engines.get(engine_name)
+        return rune is not None and rune.status == EngineStatus.ACTIVE
+
+    def available_engines(self) -> List[str]:
+        """Names that could produce evidence, in registration order."""
+        return [
+            name for name, rune in self._engines.items()
+            if rune.status == EngineStatus.ACTIVE
+        ]
+
+    def planned_engines(self) -> List[str]:
+        """Addressable names with no implementation behind them."""
+        return [
+            name for name, rune in self._engines.items()
+            if rune.status == EngineStatus.PLANNED
+        ]
     
     def get_engine_rune(self, engine_name: str) -> Optional[EngineRune]:
         """Get the rune for a specific engine."""
@@ -171,19 +259,24 @@ class YggdrasilEngineRegistry:
         }
     
     def _compute_rune_hash(self, engine_name: str, metadata: Dict[str, Any]) -> str:
-        """Compute a cryptographic hash for the engine rune."""
-        import hashlib
-        import json
-        
-        # Create deterministic string for hashing
+        """Hash the engine's identity with the repo's canonical serializer.
+
+        This used to hand-roll ``json.dumps(..., sort_keys=True)``. The repo already has
+        a canonical authority — ``abraxas/core/canonical.py`` — and the architecture says
+        not to bypass it: two serializers give two answers for the same value, and that
+        difference surfaces later as provenance drift rather than as an error here.
+
+        The hash deliberately covers identity only (name + metadata + version), never a
+        timestamp, so it is stable across registrations.
+        """
+        from abraxas.core.canonical import canonical_json, sha256_hex
+
         rune_data = {
             "engine": engine_name,
             "metadata": metadata,
-            "version": "1.0.0"  # Could be made configurable
+            "version": "1.0.0",
         }
-        
-        rune_string = json.dumps(rune_data, sort_keys=True)
-        return hashlib.sha256(rune_string.encode()).hexdigest()[:32]
+        return sha256_hex(canonical_json(rune_data))[:32]
     
     def shutdown(self) -> None:
         """Shutdown the registry."""

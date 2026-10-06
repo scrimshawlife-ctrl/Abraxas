@@ -93,15 +93,26 @@ class YggdrasilCoordinator:
         It previously lived here as a literal that disagreed with both the
         production registry and the engines that actually exist.
         """
-        from abraxas.engines.manifest import registrable_names
+        from abraxas.engines.manifest import get, registrable_names
 
-        default_engines = list(registrable_names())
-        
-        for engine_name in default_engines:
-            self.rune_registry.register_engine(engine_name, {
-                "status": "registered",
-                "registered_at": datetime.now(timezone.utc).isoformat()
-            })
+        for engine_name in registrable_names():
+            spec = get(engine_name)
+            # Metadata carries the manifest's own immutable spec fields, so the registry
+            # is self-describing AND its rune hash is reproducible. It previously stored
+            # {"status": "registered", "registered_at": <wall clock>}: the timestamp fed
+            # the rune hash, so the same engine hashed differently on every process
+            # start, and the "status" key duplicated the registry's own lifecycle field
+            # while contradicting the manifest's live/planned distinction.
+            metadata = (
+                {
+                    "evidence_type": spec.evidence_type,
+                    "implementation": spec.implementation,
+                    "manifest_status": spec.status,
+                }
+                if spec is not None
+                else {}
+            )
+            self.rune_registry.register_engine(engine_name, metadata)
     
     def arbitrate_evidence(self, envelope: EvidenceEnvelope) -> Decision:
         """Arbitrate evidence through the full Yggdrasil decision layer."""
@@ -110,11 +121,25 @@ class YggdrasilCoordinator:
         
         logger.debug(f"Yggdrasil arbitrating evidence: {envelope.claim[:50]}...")
         
-        # Step 1: Check rune registry for engine validity
+        # Step 1: Confirm the engine may be used at all. Fail closed.
+        #
+        # This previously logged a warning and carried on, so an unregistered name — or a
+        # `planned` engine such as `aether`, which has no implementation anywhere in the
+        # repo — was arbitrated exactly like a working one. `is_engine_available` is false
+        # for every name the manifest does not mark live, so this path can no longer
+        # present a planned or unimplemented engine as available.
         if self.config.rune_registry_enabled:
-            if not self.rune_registry.is_engine_registered(envelope.engine):
-                logger.warning(f"Engine {envelope.engine} not registered in rune registry")
-                # Could reject or use fallback
+            if not self.rune_registry.is_engine_available(envelope.engine):
+                rune = self.rune_registry.get_engine_rune(envelope.engine)
+                if rune is None:
+                    reason = f"engine {envelope.engine!r} is not registered"
+                else:
+                    reason = (
+                        f"engine {envelope.engine!r} is registered as "
+                        f"{rune.status.value!r}, which is not available"
+                    )
+                logger.warning(f"Refusing to arbitrate: {reason}")
+                return Decision.REJECT
         
         # Step 2: Execute governance ritual
         if self.config.ritual_engine_enabled:

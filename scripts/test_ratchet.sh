@@ -20,9 +20,9 @@ set -uo pipefail
 
 BASELINE_FAILURES=0
 # Collected total (passed + xfailed + deselected), NOT the passed count -- read it off
-# the "collected N items" line, not the summary line. 3358 = 3347 passed + 9 xfailed
-# + 2 skipped.
-BASELINE_COLLECTED=3358
+# the "collected N items" line, not the summary line. 3372 = 3361 passed + 9 xfailed
+# + 2 skipped. Raise it when tests are added; never lower it without saying why.
+BASELINE_COLLECTED=3372
 OUT="$(mktemp)"
 RETRY="$(mktemp)"
 
