@@ -10,7 +10,12 @@ from abraxas.evidence.contract import (
     EvidenceEnvelope, EvidenceType, Decision, CandidateOutput, RelationStep,
     create_athanor_envelope
 )
-from abraxas.evidence.provider import EvidenceProvider, MockEvidenceProvider, provider_registry
+from abraxas.evidence.provider import (
+    EvidenceProvider,
+    MockEvidenceProvider,
+    ProviderRegistry,
+    provider_registry,
+)
 from abraxas.evidence.arbiter.arbiter import EvidenceArbiter, DefaultArbitrationPolicy, ArbitrationResult
 from abraxas.evidence.verifiers.relational import RelationalVerifier
 from abraxas.evidence.policy import DecisionRecord, SelectiveComputePolicy, FailureType
@@ -111,10 +116,16 @@ def test_mock_provider():
 
 
 def test_provider_registry():
-    """Test provider registry."""
-    registry = provider_registry
+    """Test provider registry.
+
+    Uses a LOCAL registry. This previously called register() on the module-level
+    provider_registry singleton and never cleaned up, so "mock" stayed registered
+    in process-global state for the rest of the session -- a leak that made
+    results depend on collection order.
+    """
+    registry = ProviderRegistry()
     registry.register(MockEvidenceProvider())
-    
+
     assert "mock" in registry.names()
     provider = registry.get("mock")
     assert provider is not None
