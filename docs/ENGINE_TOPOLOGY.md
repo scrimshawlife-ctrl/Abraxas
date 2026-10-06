@@ -77,13 +77,56 @@ Three lists existed and disagreed:
 That banner has been removed (a library module was printing ten lines on every import,
 which is how the stale claim survived). The topology now lives in one place.
 
-## Open item, deliberately not changed
+## The production mock-provider item — CLOSED 2026-10-06
 
-`production.py` still registers mock providers. Switching it to the real implementations
-will change arbitration output, and the mock path is very likely what current tests assert
-against. That is a behaviour change, so it is scheduled separately rather than folded into
-a test-debt pass. It is the highest-value remaining item in this area: production
-governance currently arbitrates on fabricated evidence.
+This section previously read *"production.py still registers mock providers … production
+governance currently arbitrates on fabricated evidence"*, and called itself the highest-value
+remaining item. **That was stale, and it caused a wrong recommendation** — a switch was
+proposed for something already switched.
+
+The actual state:
+
+| Claim | Reality |
+|---|---|
+| production registers mock providers | `initialize(use_mocks=False)` is the **default** and resolves the manifest's `live` engines into real providers |
+| mocks are the norm | `use_mocks=True` is an explicit legacy branch documented *"exists for tests and nothing else"*; its only caller anywhere is `tests/test_production_engine_wiring.py` |
+| nothing guards this | `test_production_engine_wiring.py` asserts the default registers no mocks and that planned engines report UNHEALTHY; `test_production_arbitration_e2e.py` was written to guard it |
+
+**Lesson worth keeping:** a status document is a claim, not evidence. This one contradicted
+the code it described, and the contradiction survived because nothing resolves a doc against
+the thing it documents — unlike the manifest's entry points, which a test does resolve.
+
+### Still open: fabricated evidence in the streaming path
+
+Not changed, and a Jev consultation on 2026-10-06 **abstained** on it:
+
+```
+delete_path       0.520   <- weak plurality, NOT a mandate (confidence 0.39 < 0.65 floor)
+revert_to_manifest 0.210
+mark_unsupported  0.190
+document_only     0.040
+hand_over         0.040
+
+present_risk                  0.43   (not clearly a present problem)
+doc-only is sufficient        0.24   (no)
+apply autonomously            0.19   (no)
+```
+
+The residual is `ProductionOrchestrator._process_stream_item`
+(`abraxas/governance/production.py` ~701-773), which constructs a fabricated
+`EvidenceEnvelope` (`engine="stream"`, answer `"Processed via stream"`, confidence 0.75)
+from no provider at all and hands it to the arbiter.
+
+`ProductionArbiter.arbitrate` checks engine health first and returns `Decision.ABSTAIN`
+because `"stream"` is not a registered engine — so the fabrication is currently **inert by
+accident rather than by design**. If `stream` were ever registered, or the health gate
+relaxed, it would become decidable immediately. `tests/integration/test_edge_cases.py`
+touches this path but only asserts the methods do not crash; it never waits for processing
+and never asserts a decision, so the path is functionally unverified.
+
+**Handed to the operator**, per Jev's `apply_autonomously = 0.19`. An abstention is not a
+weak yes: the top label has not been promoted to a decision.
+
 
 ## How to promote a planned engine
 
