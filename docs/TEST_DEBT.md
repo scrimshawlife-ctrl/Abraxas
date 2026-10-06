@@ -357,6 +357,43 @@ unresolved and stays with the human.
 
 `apply_autonomously` = **0.08**, so neither half is applied here.
 
+### ATTEMPTED AND REVERTED: the 62 capability_id migration is NOT zero-blast-radius
+
+I claimed the 62 dotted `capability_id` values had "zero canon risk, zero blast radius" and
+claimed the non-conforming count would drop 117 -> 55. The first half was right; the second
+was WRONG, and the suite said so immediately.
+
+Migrating `abraxas/runes/registry.json` capabilities[].capability_id from `oracle.v2.run`
+to `RUNE.ORACLE.V2.RUN` took the suite from **19 failures to 31** -- 12 newly failing:
+
+    test_capability_invocation_contracts  (3)
+    test_drift_log_append_only            (2)
+    test_oracle_kernel_capability         (1)
+    test_oracle_rune_provenance           (4)
+    test_smoke_determinism                (2)
+
+Reverted; the 5 affected files then pass 14/14.
+
+WHY: the dotted IDs are HARDCODED as call-site string literals across `abx/`:
+    abx/evolve_run.py:513            invoke_capability("evolve.ledger.append", ...)
+    abx/mwr.py:122 / abx/promote.py:42       "evolve.ledger.append"
+    abx/scoreboard.py:110 / abx/horizon_policy.py:120   capability="forecast.scoring.brier"
+    abx/horizon_policy_select_tc.py:74 / abx/horizon_audit.py:108,116
+                                     invoke_capability("forecast.scoring.brier", ...)
+
+So `capability_id` is a LIVE CONTRACT KEY, not registry data. Renaming it is an API change
+requiring every call site updated in the same commit -- in `abx/`, not just in the registry.
+
+CORRECTED PLAN: the migration must rename the registry entries AND update all call sites
+together, then re-baseline. Splitting it (registry first) cannot work. Estimate the call-site
+count with:
+    grep -rn "'[a-z_]*\.v[0-9]*\.[a-z_]*'\|\"[a-z_]*\.[a-z_]*\.\(append\|run\|build\)\"" --include=*.py abx/ abraxas/ | wc -l
+before committing to it.
+
+Lesson (third time this session, same shape): verify blast radius by MEASURING it, not by
+reasoning about it. "Low risk because it touches no canon identity" is a claim about SCOPE
+of the change, not about the number of DEPENDENTS.
+
 ### CORRECTION (operator): the integration direction is Yggdrasil-ward, not runes-ward
 
 I had this backwards and the operator caught it. The direction is: the rune capability
