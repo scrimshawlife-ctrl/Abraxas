@@ -357,6 +357,37 @@ unresolved and stays with the human.
 
 `apply_autonomously` = **0.08**, so neither half is applied here.
 
+### CORRECTION (operator): the integration direction is Yggdrasil-ward, not runes-ward
+
+I had this backwards and the operator caught it. The direction is: the rune capability
+data flows INTO the Yggdrasil plane, not Yggdrasil into the runes package.
+
+The repo states it outright. `abraxas/yggdrasil/registry.py:1-5`:
+
+    """
+    Yggdrasil Engine Registry -- Source of Truth for Engine Registration
+
+    This module implements the rune-based engine registry that serves as the
+    source of truth for all registered engines in the Yggdrasil system.
+    """
+
+Evidence for this direction:
+- `abraxas/yggdrasil/registry.py` DECLARES itself the source of truth for engine
+  registration, and says it "implements the rune-based engine registry".
+- `abraxas/runes/registry.py` holds the substance: 117 bindings loaded from
+  `abraxas/runes/registry.json`, plus load_registry / list_capabilities /
+  describe_rune / wiring_sanity_check.
+- `abraxas/yggdrasil/registry.py` imports NONE of that -- no cross-import in either
+  direction. Two registries, one declared authoritative, zero wiring between them.
+  That IS the integration gap the operator asked to close.
+- The skill names its artifact `yggdrasil_rune_route_binding_matrix` -- Yggdrasil first,
+  and its governing model reads "ABX-Runes define WHAT may be done. YGGDRASIL defines
+  HOW bounded capabilities connect." Yggdrasil is the container.
+
+So the surviving home is `abraxas/yggdrasil/registry.py`; the 117 bindings and the
+rune-registry validators move under it, and `abraxas/runes/registry.py` becomes a thin
+re-export or is retired. My earlier plan had it inverted.
+
 ### RESEARCH ANSWER: the convention is declared in the repo -- `RUNE.<PATH>` uppercase
 
 Jev abstained at 0.50 for lack of an external witness. The witness exists and is in-repo.
