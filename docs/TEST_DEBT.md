@@ -190,6 +190,40 @@ including `run_mda_for_oracle()` signature drift (`run_at`), `abraxas_ase/tierin
 list-vs-dict `AttributeError`, and the hand-constructed pydantic `ValidationError`
 missing `line_errors` (which needs `ValidationError.from_exception_data`).
 
+## Jev second consultation 2026-10-06: the human delegated, Jev differentiated
+
+The first ruling was hand_over across the board, which the human was shown. The human
+then explicitly directed that Jev rule on the technical merits. Re-consulted with that
+single change in the state (authority delegated; no new technical evidence) and with
+hand_over kept available.
+
+| Question | Ruling | Conf. | Spread |
+|---|---|---|---|
+| 8 firewall reduction ratios | **hand_over** | 0.74 | hand_over 0.810, fix_reducer 0.140, fix_fixtures 0.050, move_threshold 0.000 |
+| numogram density scale | **renormalize** | **0.89** | renormalize 0.930, hand_over 0.060, fix_expectation 0.010, lower_threshold 0.000 |
+| 3 enum/label mismatches | **ABSTENTION** | **0.53** | hand_over 0.660, per_case 0.340, fix_tests 0.000, fix_impl 0.000 |
+| Still safer to hand back? | yes (mild) | noul 0.66 | - |
+| Apply autonomously without review? | **NO** | noul **0.15** | - |
+
+Reading it:
+
+- **The delegation did NOT buy a blanket green light.** `apply_autonomously` moved only
+  0.03 -> 0.15. Jev's position is that delegating the decision does not make applying it
+  safe. That is consistent with the standing rule and it is the answer that governs.
+- **One real ruling: `renormalize` (0.89).** >= 0.85, so actionable on its merits: change
+  the density NORMALIZATION and keep the 0.1 threshold. `lower_threshold` scored 0.000 --
+  Jev distinguishes the two and forbids the threshold move specifically.
+  NOT YET APPLIED: `renormalize` names a direction, not a formula. Choosing the formula is
+  a separate decision and applying it changes output values.
+- **Enums ABSTAINED at 0.53**, below the 0.65 floor. Both `fix_tests` and `fix_impl`
+  scored 0.000, with the mass split hand_over 0.660 / per_case 0.340. Jev will not pick a
+  side of a contract with no external witness, and it declines to rule them as one group.
+  Per the method: report as an abstention, do not promote the top label.
+- **Firewall still hand_over** (0.74, weaker), `move_threshold` 0.000 again.
+
+Net: of the 12 gated, **1 got a ruled direction**, **8 remain hand-over**, **3 abstained**.
+Nothing was applied.
+
 ## Accounting after the ruling
 
 - 24 failures total
