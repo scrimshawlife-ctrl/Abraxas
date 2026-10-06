@@ -126,9 +126,39 @@ sequenced deliberately -- one enables access so a later one can use it. The flag
 sticky is load-bearing, not a leak. Reverted clean.
 
 The real fix is to make those specific tests self-contained (set the state they need in
-their own fixture) rather than depending on a predecessor having run. That is a
-test-authoring change across several files, not a one-line reset -- and it is not
-started.
+their own fixture) rather than depending on a predecessor having run.
+
+### Progress: 3 order-sensitive tests -> 2
+
+FIXED (verified both orders):
+- `test_patch_registry.py::test_get_current_version` used the shared `get_ledger()`
+  singleton, which carries patches other tests added. Now uses a fresh
+  `SSMPatchLedger()`. Reversed-order count 31 -> 30, canonical unchanged at 28, no
+  collateral, xfail tally intact at 9 in both orders.
+
+STILL ORDER-DEPENDENT (2), with the reason each resists the obvious fix:
+- `test_access_control.py::test_direct_module_access_blocked` depends on the **import
+  cache**, not just the flag: the guard fires only on the first import, so once
+  `abraxas.shadow_metrics.core` is in `sys.modules` a later import succeeds anyway.
+  Two attempted fixes, both reverted for collateral damage:
+    * resetting `_ALLOW_CORE_IMPORT` process-wide per test: 31 -> 35 (broke 4 self_build
+      tests, xfail 9 -> 5) -- the sticky flag is load-bearing for tests that opt in.
+    * purging `abraxas.shadow_metrics.*` from `sys.modules` around the test: 30 -> 33
+      (fixed this one, broke the same 4) -- re-import creates duplicate module objects.
+    * an autouse fixture in that file setting the flag False + restoring: also broke the
+      same 4, because forcing the guard to fire caches a partially-initialised module
+      that later tests then import. 31 -> 34. Reverted.
+  Any future attempt must isolate at PROCESS level (subprocess per test), not by
+  mutating sys.modules or the flag.
+- `test_self_build_approval_receipt.py::test_approval_receipt` calls
+  `run_self_build_approval_receipt([], [])` with empty inputs and asserts
+  `approval_count >= 1` -- it depends on artifacts on disk that earlier tests wrote,
+  i.e. state from `out/`, not from a singleton. Fixing it means injecting the artifact
+  path rather than reading live repo state.
+
+Standing rule: run BOTH orders before claiming a baseline or a fix. Three candidate
+fixes in this stretch looked plausible in the canonical order and were only caught as
+regressions by the reversed-order run.
 
 ## Order dependence (resolved 2026-10-06)
 

@@ -75,8 +75,12 @@ def test_same_version_patch_rejected():
 
 
 def test_get_current_version():
-    """Verify current version retrieval."""
-    ledger = get_ledger()
+    """Verify current version retrieval.
+
+    Uses a FRESH ledger. The shared get_ledger() singleton carries any patches other
+    tests added, so this assertion previously depended on collection order.
+    """
+    ledger = SSMPatchLedger()
     version = ledger.get_current_version()
 
     assert version == "1.0.0"  # Current baseline
