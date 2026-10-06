@@ -105,7 +105,7 @@ def main() -> int:
     calibration = {}
     for h, (pp, yy) in by_h.items():
         ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_audit", git_hash="unknown")
-        result = invoke_capability("forecast.scoring.brier", {"probs": pp, "outcomes": yy}, ctx=ctx, strict_execution=True)
+        result = invoke_capability("RUNE.FORECAST.SCORING.BRIER", {"probs": pp, "outcomes": yy}, ctx=ctx, strict_execution=True)
         calibration[h] = {"n": len(pp), "brier": result.get("brier_score", float("nan")), "sharpness": _sharpness(pp)}
 
     calibration_by_bucket: Dict[str, Any] = {}
@@ -113,7 +113,7 @@ def main() -> int:
         bucket_cal = {}
         for h, (pp, yy) in hmap.items():
             ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_audit", git_hash="unknown")
-            result = invoke_capability("forecast.scoring.brier", {"probs": pp, "outcomes": yy}, ctx=ctx, strict_execution=True)
+            result = invoke_capability("RUNE.FORECAST.SCORING.BRIER", {"probs": pp, "outcomes": yy}, ctx=ctx, strict_execution=True)
             bucket_cal[h] = {"n": len(pp), "brier": result.get("brier_score", float("nan")), "sharpness": _sharpness(pp)}
         calibration_by_bucket[bucket] = bucket_cal
 

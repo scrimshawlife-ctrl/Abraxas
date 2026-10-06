@@ -33,7 +33,7 @@ def test_append_ledger_deterministic_basic(tmp_path: Path):
 
     # Verify provenance
     prov = result1["provenance"]
-    assert prov["operation_id"] == "evolve.ledger.append"
+    assert prov["operation_id"] == "RUNE.EVOLVE.LEDGER.APPEND"
     assert "inputs_hash" in prov
     assert "timestamp" in prov
 

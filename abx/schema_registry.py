@@ -20,7 +20,7 @@ OVERRIDES = {
             "allow_extra": False,
         },
     },
-    "compression.detect": {
+    "RUNE.COMPRESSION.DETECT": {
         "payload": {
             "required": {"text_event": str, "config": dict},
             "optional": {"lexicon_ref": dict, "seed": int},

@@ -52,7 +52,7 @@ def detect_compression_deterministic(
         result=result,
         config=config,
         inputs={"text_event": text_event, "records": records, "lexicon": lexicon},
-        operation_id="compression.detect",
+        operation_id="RUNE.COMPRESSION.DETECT",
         seed=seed
     )
 

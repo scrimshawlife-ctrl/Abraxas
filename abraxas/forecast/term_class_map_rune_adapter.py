@@ -61,7 +61,7 @@ def load_term_class_map_deterministic(
         result={"success": True, "term_class_map": term_class_map},
         config={},
         inputs={"a2_phase_path": a2_phase_path},
-        operation_id="forecast.term_class_map.load",
+        operation_id="RUNE.FORECAST.TERM_CLASS_MAP.LOAD",
         seed=seed
     )
 

@@ -81,7 +81,7 @@ def compress_cmd(args: argparse.Namespace) -> int:
             lexicon = json.load(file)
 
     response = invoke(
-        rune_id="compression.detect",
+        rune_id="RUNE.COMPRESSION.DETECT",
         payload={
             "text_event": args.text,
             "lexicon": lexicon,
@@ -250,7 +250,7 @@ def counterfactual_cmd(args: argparse.Namespace) -> int:
 
     # Invoke capability
     result = invoke_capability(
-        "cli.counterfactual",
+        "RUNE.CLI.COUNTERFACTUAL",
         {"args": args_dict},
         ctx=ctx,
         strict_execution=True
@@ -273,7 +273,7 @@ def smv_cmd(args: argparse.Namespace) -> int:
 
     # Invoke capability
     result = invoke_capability(
-        "cli.smv",
+        "RUNE.CLI.SMV",
         {"args": args_dict},
         ctx=ctx,
         strict_execution=True

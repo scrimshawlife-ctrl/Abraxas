@@ -44,7 +44,7 @@ def decodo_status_deterministic(
         result={"status": status},
         config={},
         inputs={},
-        operation_id="acquire.decodo.status",
+        operation_id="RUNE.ACQUIRE.DECODO.STATUS",
         seed=seed
     )
 
@@ -84,7 +84,7 @@ def build_decodo_query_deterministic(
         result={"query": query},
         config={},
         inputs={"term": term, "domains": domains},
-        operation_id="acquire.decodo.build_query",
+        operation_id="RUNE.ACQUIRE.DECODO.BUILD_QUERY",
         seed=seed
     )
 
@@ -120,7 +120,7 @@ def default_vector_map_deterministic(
         result={"vector_map": vector_map},
         config={},
         inputs={},
-        operation_id="acquire.vector_map.default",
+        operation_id="RUNE.ACQUIRE.VECTOR_MAP.DEFAULT",
         seed=seed
     )
 

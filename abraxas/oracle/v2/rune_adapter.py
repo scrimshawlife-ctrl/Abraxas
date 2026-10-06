@@ -59,7 +59,7 @@ def run_oracle_deterministic(
         result=oracle_output,
         config=config,
         inputs={"run_id": run_id, "observations": observations},
-        operation_id="oracle.v2.run",
+        operation_id="RUNE.ORACLE.V2.RUN",
         seed=seed
     )
 

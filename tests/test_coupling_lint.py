@@ -129,7 +129,7 @@ def test_python_abx_no_direct_abraxas_imports() -> None:
             f"\n"
             f"Fix by using capability contracts instead:\n"
             f"  from abraxas.runes.invoke import invoke_capability\n"
-            f"  result = invoke_capability('oracle.v2.run', inputs, ctx=ctx)\n"
+            f"  result = invoke_capability('RUNE.ORACLE.V2.RUN', inputs, ctx=ctx)\n"
             f"\n"
             f"See docs/migration/abx_runes_coupling.md for migration guide."
         )

@@ -56,7 +56,7 @@ def test_cluster_claims_deterministic():
     assert result1["clusters"] == [[0, 1], [2]]
     assert result1["clusters"] == result2["clusters"]
     assert result1["metrics"] == result2["metrics"]
-    assert result1["provenance"]["operation_id"] == "memetic.claim_cluster.cluster"
+    assert result1["provenance"]["operation_id"] == "RUNE.MEMETIC.CLAIM_CLUSTER.CLUSTER"
     assert result1["provenance"]["inputs_sha256"] == result2["provenance"]["inputs_sha256"]
     assert result1["not_computable"] is None
 

@@ -92,7 +92,7 @@ def main() -> int:
     mwr_path = args.mwr or os.path.join(args.out_reports, f"mwr_{args.run_id}.json")
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_score", git_hash="unknown")
     dmx_result = invoke_capability(
-        "memetic.dmx_context.load",
+        "RUNE.MEMETIC.DMX_CONTEXT.LOAD",
         {"mwr_path": mwr_path},
         ctx=ctx,
         strict_execution=True
@@ -186,7 +186,7 @@ def main() -> int:
     }
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_score", git_hash="unknown")
     result = invoke_capability(
-        "evolve.policy.enforce_non_truncation",
+        "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         {"artifact": out_core, "raw_full": {"annotated": list(annotated)}},
         ctx=ctx,
         strict_execution=True

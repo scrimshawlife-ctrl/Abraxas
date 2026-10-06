@@ -29,7 +29,7 @@ def main() -> int:
 
     # Build DAP via capability contract
     dap_result = invoke_capability(
-        "acquire.dap.build",
+        "RUNE.ACQUIRE.DAP.BUILD",
         {
             "run_id": args.run_id,
             "out_dir": args.out_dir,

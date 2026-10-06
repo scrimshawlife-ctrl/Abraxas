@@ -47,7 +47,7 @@ def test_enforce_non_truncation_basic():
 
     # Verify provenance
     prov = result["provenance"]
-    assert prov["operation_id"] == "evolve.policy.enforce_non_truncation"
+    assert prov["operation_id"] == "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION"
     assert "inputs_hash" in prov
     assert "timestamp" in prov
 
@@ -223,7 +223,7 @@ def test_enforce_non_truncation_golden():
     assert result["artifact"]["policy"]["non_truncation"] is True
     assert result["artifact"]["raw_full"] == raw_full
     assert result["artifact"]["version"] == "golden.v1.0"
-    assert result["provenance"]["operation_id"] == "evolve.policy.enforce_non_truncation"
+    assert result["provenance"]["operation_id"] == "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION"
 
     # Verify determinism - second call should produce same inputs_hash
     result2 = enforce_non_truncation_deterministic(

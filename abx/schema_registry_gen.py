@@ -2,7 +2,7 @@
 # meta: {"count":8,"generated_at_utc":"2025-12-27T23:00:34.946924+00:00","registry_sha256":"1f626e140a3017e0cef62dd92d54cdaa88bad30408548623c8be764a4d9069f8"}
 
 PAYLOAD_SCHEMAS = {
-  "compression.detect": {
+  "RUNE.COMPRESSION.DETECT": {
     "required": {
       "text_event": str,
       "config": dict,
@@ -90,7 +90,7 @@ PAYLOAD_SCHEMAS = {
 }
 
 RESULT_SCHEMAS = {
-  "compression.detect": {
+  "RUNE.COMPRESSION.DETECT": {
     "required": {
       "compression_event": dict,
       "provenance_bundle": dict,

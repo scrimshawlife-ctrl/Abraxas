@@ -61,7 +61,7 @@ def classify_term_deterministic(
         result={"success": True, "classification": classification},
         config={},
         inputs={"profile": profile},
-        operation_id="forecast.term.classify",
+        operation_id="RUNE.FORECAST.TERM.CLASSIFY",
         seed=seed
     )
 

@@ -44,7 +44,7 @@ def main() -> int:
         run_id = args.run_id or rep.get("run_id") or "unknown"
         ctx = RuneInvocationContext(run_id=run_id, subsystem_id="abx.a2_registry", git_hash="unknown")
         result = invoke_capability(
-            "evolve.policy.enforce_non_truncation",
+            "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
             {
                 "artifact": rep,
                 "raw_full": {

@@ -210,7 +210,7 @@ def invoke(
                 from abraxas.runes.handlers.edge_deploy_orin import plan_edge_deploy
 
                 result = plan_edge_deploy(payload)
-            elif rune_id == "compression.detect":
+            elif rune_id == "RUNE.COMPRESSION.DETECT":
                 # Use capability contract
                 ctx = RuneInvocationContext(
                     run_id=run_id,
@@ -218,7 +218,7 @@ def invoke(
                     git_hash=git_commit
                 )
                 result = invoke_capability(
-                    "compression.detect",
+                    "RUNE.COMPRESSION.DETECT",
                     payload,
                     ctx=ctx,
                     strict_execution=True

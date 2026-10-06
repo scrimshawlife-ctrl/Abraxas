@@ -36,7 +36,7 @@ def test_load_term_class_map_basic():
         assert result["term_class_map"]["bitcoin"] == "stable"
         assert result["term_class_map"]["ethereum"] == "emerging"
         assert result["provenance"] is not None
-        assert result["provenance"]["operation_id"] == "forecast.term_class_map.load"
+        assert result["provenance"]["operation_id"] == "RUNE.FORECAST.TERM_CLASS_MAP.LOAD"
         assert "inputs_sha256" in result["provenance"]
         assert result["not_computable"] is None
     finally:
@@ -153,7 +153,7 @@ def test_load_term_class_map_golden():
         assert result["term_class_map"]["stable_term"] == "stable"
         assert result["term_class_map"]["emerging_term"] == "emerging"
         assert result["term_class_map"]["volatile_term"] == "volatile"
-        assert result["provenance"]["operation_id"] == "forecast.term_class_map.load"
+        assert result["provenance"]["operation_id"] == "RUNE.FORECAST.TERM_CLASS_MAP.LOAD"
         assert result["not_computable"] is None
     finally:
         os.unlink(temp_path)

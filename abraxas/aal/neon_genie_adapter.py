@@ -118,7 +118,7 @@ def generate_symbolic_v0(
         result=generated_output,
         config=config,
         inputs={"prompt": prompt, "context": context},
-        operation_id="aal.neon_genie.generate.v0",
+        operation_id="RUNE.AAL.NEON_GENIE.GENERATE.V0",
         seed=seed
     )
 

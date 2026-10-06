@@ -40,7 +40,7 @@ def main() -> int:
     mwr_path = args.mwr or os.path.join("out", "reports", f"mwr_{args.run_id}.json")
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_log", git_hash="unknown")
     dmx_result = invoke_capability(
-        "memetic.dmx_context.load",
+        "RUNE.MEMETIC.DMX_CONTEXT.LOAD",
         {"mwr_path": mwr_path},
         ctx=ctx,
         strict_execution=True
@@ -65,7 +65,7 @@ def main() -> int:
             policy = {}
     a2_path = os.path.join("out", "reports", f"a2_phase_{args.run_id}.json")
     term_class_result = invoke_capability(
-        "forecast.term_class_map.load",
+        "RUNE.FORECAST.TERM_CLASS_MAP.LOAD",
         {"a2_phase_path": a2_path},
         ctx=ctx,
         strict_execution=True

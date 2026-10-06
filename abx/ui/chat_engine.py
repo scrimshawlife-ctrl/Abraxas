@@ -38,7 +38,7 @@ def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None =
 
     # Render output via capability contract
     render_result = invoke_capability(
-        "core.rendering.render_output",
+        "RUNE.CORE.RENDERING.RENDER_OUTPUT",
         {"draft_text": draft_text, "context": context},
         ctx=ctx,
         strict_execution=True
@@ -60,7 +60,7 @@ def chat(messages: List[Dict[str, Any]], *, selected_modules: List[str] | None =
 
     # Analyze drift via capability contract
     drift_result = invoke_capability(
-        "drift.orchestrator.analyze_text_for_drift",
+        "RUNE.DRIFT.ORCHESTRATOR.ANALYZE_TEXT_FOR_DRIFT",
         {"text": rendered_text, "provenance": provenance},
         ctx=ctx,
         strict_execution=True

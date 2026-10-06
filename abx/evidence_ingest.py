@@ -65,7 +65,7 @@ def main() -> int:
         git_hash="unknown"
     )
     disinfo_result = invoke_capability(
-        "disinfo.apply.metrics",
+        "RUNE.DISINFO.APPLY.METRICS",
         {"item": b_item},
         ctx=ctx,
         strict_execution=True

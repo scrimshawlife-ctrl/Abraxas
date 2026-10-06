@@ -64,7 +64,7 @@ def compile_jobs_from_dap_deterministic(
             "allowlist_map_fallback_path": allowlist_map_fallback_path,
             "vector_map_path": vector_map_path,
         },
-        operation_id="osh.compile_jobs_from_dap",
+        operation_id="RUNE.OSH.COMPILE_JOBS_FROM_DAP",
         seed=seed
     )
 
@@ -104,7 +104,7 @@ def run_osh_jobs_deterministic(
         },
         config={"out_dir": out_dir},
         inputs={"job_count": len(jobs)},
-        operation_id="osh.run_jobs",
+        operation_id="RUNE.OSH.RUN_JOBS",
         seed=seed
     )
 

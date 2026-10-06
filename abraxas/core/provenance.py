@@ -98,7 +98,7 @@ def canonical_envelope(
         result: The actual computation result
         config: Configuration used
         inputs: Input data used
-        operation_id: Identifier for the operation (e.g., 'oracle.v2.run')
+        operation_id: Identifier for the operation (e.g., 'RUNE.ORACLE.V2.RUN')
         seed: Optional deterministic seed
 
     Returns:

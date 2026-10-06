@@ -13,7 +13,7 @@ from abraxas.core.rune_adapter import run_oracle_kernel_deterministic
 def test_capability_registered():
     """Verify oracle.kernel.run capability is in registry."""
     registry = load_capability_registry()
-    cap = registry.find_capability("oracle.kernel.run")
+    cap = registry.find_capability("RUNE.ORACLE.KERNEL.RUN")
     assert cap is not None, "oracle.kernel.run capability should be registered"
     assert cap.operator_path == "abraxas.core.rune_adapter:run_oracle_kernel_deterministic"
     assert cap.deterministic is True

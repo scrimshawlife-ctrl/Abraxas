@@ -42,7 +42,7 @@ def run_counterfactual_cli_deterministic(
         result={"exit_code": exit_code},
         config={},
         inputs={"args": args},
-        operation_id="cli.counterfactual",
+        operation_id="RUNE.CLI.COUNTERFACTUAL",
         seed=seed
     )
 
@@ -82,7 +82,7 @@ def run_smv_cli_deterministic(
         result={"exit_code": exit_code},
         config={},
         inputs={"args": args},
-        operation_id="cli.smv",
+        operation_id="RUNE.CLI.SMV",
         seed=seed
     )
 

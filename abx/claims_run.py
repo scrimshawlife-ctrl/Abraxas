@@ -68,7 +68,7 @@ def main() -> int:
 
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.claims_run", git_hash="unknown")
     result = invoke_capability(
-        "evolve.policy.enforce_non_truncation",
+        "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         {"artifact": core, "raw_full": {"sources": sources, "signals": sig, "items": items, "clusters": clusters}},
         ctx=ctx,
         strict_execution=True

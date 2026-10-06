@@ -50,7 +50,7 @@ def render_output_deterministic(
         result={"rendered_text": rendered_text},
         config=config_dict,
         inputs=inputs_dict,
-        operation_id="core.rendering.render_output",
+        operation_id="RUNE.CORE.RENDERING.RENDER_OUTPUT",
         seed=seed
     )
 
@@ -161,7 +161,7 @@ def run_oracle_kernel_deterministic(
             result={"readout": readout, "oracle_provenance": oracle_provenance},
             config=config_dict,
             inputs=inputs_dict,
-            operation_id="oracle.kernel.run",
+            operation_id="RUNE.ORACLE.KERNEL.RUN",
             seed=seed
         )
 

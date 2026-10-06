@@ -98,7 +98,7 @@ def run_oracle(
 
         # Invoke oracle kernel via capability contract (ABX-Runes compliant)
         oracle_result = invoke_capability(
-            "oracle.kernel.run",
+            "RUNE.ORACLE.KERNEL.RUN",
             {
                 "user": user_payload if isinstance(user_payload, dict) else {},
                 "overlays": overlays_payload if isinstance(overlays_payload, dict) else {},

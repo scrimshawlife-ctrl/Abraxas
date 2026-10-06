@@ -58,7 +58,7 @@ def main() -> int:
 
     # Build EPP via capability contract
     epp_result = invoke_capability(
-        "evolve.epp.build",
+        "RUNE.EVOLVE.EPP.BUILD",
         {
             "run_id": args.run_id,
             "out_dir": args.out_dir,

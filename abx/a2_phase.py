@@ -286,14 +286,14 @@ def main() -> int:
         if not term:
             return out_profile
         classify_result = invoke_capability(
-            "forecast.term.classify",
+            "RUNE.FORECAST.TERM.CLASSIFY",
             {"profile": out_profile},
             ctx=ctx,
             strict_execution=True
         )
         term_class = classify_result["classification"]
         csp_result = invoke_capability(
-            "conspiracy.csp.compute_term",
+            "RUNE.CONSPIRACY.CSP.COMPUTE_TERM",
             {
                 "term": term,
                 "profile": out_profile,
@@ -352,7 +352,7 @@ def main() -> int:
     out["views"]["top_by_phase"] = top_by_phase
 
     result = invoke_capability(
-        "evolve.policy.enforce_non_truncation",
+        "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         {"artifact": out, "raw_full": {"profiles": profiles_full_dicts}},
         ctx=ctx,
         strict_execution=True
@@ -391,7 +391,7 @@ def main() -> int:
 
     # Use capability contract for ledger append
     invoke_capability(
-        "evolve.ledger.append",
+        "RUNE.EVOLVE.LEDGER.APPEND",
         {"path": args.value_ledger, "record": {"run_id": args.run_id, "a2_phase_json": jpath, "registry": args.registry}},
         ctx=ctx,
         strict_execution=True

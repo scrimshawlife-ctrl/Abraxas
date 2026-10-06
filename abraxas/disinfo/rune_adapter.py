@@ -39,7 +39,7 @@ def apply_disinfo_metrics_deterministic(
         result={"enriched_item": enriched_item},
         config={},
         inputs={"item": item},
-        operation_id="disinfo.apply.metrics",
+        operation_id="RUNE.DISINFO.APPLY.METRICS",
         seed=seed
     )
 

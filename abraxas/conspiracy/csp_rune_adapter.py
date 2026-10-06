@@ -93,7 +93,7 @@ def compute_term_csp_deterministic(
             "dmx_overall": dmx_overall,
             "term_class": term_class
         },
-        operation_id="conspiracy.csp.compute_term",
+        operation_id="RUNE.CONSPIRACY.CSP.COMPUTE_TERM",
         seed=seed
     )
 

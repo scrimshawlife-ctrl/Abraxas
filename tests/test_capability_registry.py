@@ -14,7 +14,7 @@ def test_find_capability():
     """Must find capability by ID."""
     registry = load_capability_registry()
     # After Patch 002, oracle.v2.run will be registered
-    oracle_cap = registry.find_capability("oracle.v2.run")
+    oracle_cap = registry.find_capability("RUNE.ORACLE.V2.RUN")
     # Initially None, will pass after Patch 002
     # assert oracle_cap is not None if registered
 

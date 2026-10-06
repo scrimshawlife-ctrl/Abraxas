@@ -84,7 +84,7 @@ def enforce_non_truncation_deterministic(
             "raw_full_hash": hash_canonical_json(raw_full) if isinstance(raw_full, (dict, list)) else None,
             "raw_full_path": raw_full_path
         },
-        operation_id="evolve.policy.enforce_non_truncation",
+        operation_id="RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         seed=seed
     )
 

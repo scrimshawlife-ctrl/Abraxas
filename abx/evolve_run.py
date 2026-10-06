@@ -510,7 +510,7 @@ def _finalize(
     }
     # Use capability contract for ledger append
     ctx = RuneInvocationContext(run_id=run_id, subsystem_id="abx.evolve_run", git_hash="unknown")
-    invoke_capability("evolve.ledger.append", {"path": ledger_path, "record": record}, ctx=ctx, strict_execution=True)
+    invoke_capability("RUNE.EVOLVE.LEDGER.APPEND", {"path": ledger_path, "record": record}, ctx=ctx, strict_execution=True)
     summary_path = os.path.join(out_reports, f"run_bundle_{run_id}.json")
     os.makedirs(os.path.dirname(summary_path), exist_ok=True)
     with open(summary_path, "w", encoding="utf-8") as f:

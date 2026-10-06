@@ -124,27 +124,27 @@ def invoke_capability(
 ) -> dict[str, Any]:
     legacy_aliases: dict[str, tuple[str, Any, Any]] = {
         "evolve.non_truncation.enforce": (
-            "evolve.policy.enforce_non_truncation",
+            "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
             lambda x: x,
             lambda out: out,
         ),
         "evolve.ledger.append_chained_jsonl": (
-            "evolve.ledger.append",
+            "RUNE.EVOLVE.LEDGER.APPEND",
             lambda x: {"path": x.get("ledger_path"), "record": x.get("record")},
             lambda out: out,
         ),
         "forecast.horizon_bins.horizon_bucket": (
-            "forecast.horizon.classify",
+            "RUNE.FORECAST.HORIZON.CLASSIFY",
             lambda x: {"horizon": x.get("horizon")},
             lambda out: {**out, "bucket": out.get("horizon_bucket")},
         ),
         "forecast.scoring.brier_score": (
-            "forecast.scoring.brier",
+            "RUNE.FORECAST.SCORING.BRIER",
             lambda x: x,
             lambda out: {**out, "brier": out.get("brier_score")},
         ),
         "forecast.policy_candidates.v0_1": (
-            "forecast.policy.candidates_v0_1",
+            "RUNE.FORECAST.POLICY.CANDIDATES_V0_1",
             lambda x: x,
             lambda out: out,
         ),
@@ -170,7 +170,7 @@ def invoke_capability(
         )
         return output_adapter(out)
 
-    # Fall back to capability contracts (e.g., "oracle.v2.run")
+    # Fall back to capability contracts (e.g., "RUNE.ORACLE.V2.RUN")
     contract_registry = load_capability_registry()
     contract = contract_registry.find_capability(capability)
     if contract is None:

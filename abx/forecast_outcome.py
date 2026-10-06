@@ -34,7 +34,7 @@ def main() -> int:
 
     # Record outcome via capability contract
     invoke_capability(
-        "forecast.ledger.record_outcome",
+        "RUNE.FORECAST.LEDGER.RECORD_OUTCOME",
         {
             "pred_id": args.pred_id,
             "result": args.result,

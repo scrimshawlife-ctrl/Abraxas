@@ -37,7 +37,7 @@ def main() -> int:
     # Use capability contract for ledger append
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.canon_diff", git_hash="unknown")
     invoke_capability(
-        "evolve.ledger.append",
+        "RUNE.EVOLVE.LEDGER.APPEND",
         {"path": args.value_ledger, "record": {"run_id": args.run_id, "canon_diff_json": json_path, "meta": meta}},
         ctx=ctx,
         strict_execution=True

@@ -41,7 +41,7 @@ def main() -> int:
 
     # Compile jobs via capability
     compile_result = invoke_capability(
-        "osh.compile_jobs_from_dap",
+        "RUNE.OSH.COMPILE_JOBS_FROM_DAP",
         {
             "dap_json_path": args.dap,
             "run_id": args.run_id,
@@ -60,7 +60,7 @@ def main() -> int:
 
     # Run jobs via capability
     run_result = invoke_capability(
-        "osh.run_jobs",
+        "RUNE.OSH.RUN_JOBS",
         {
             "jobs": jobs,
             "out_dir": args.out_dir

@@ -46,7 +46,7 @@ def candidates_v0_1_deterministic(
         result={"success": True, "policy_candidates": policy_candidates},
         config={},
         inputs={},
-        operation_id="forecast.policy.candidates_v0_1",
+        operation_id="RUNE.FORECAST.POLICY.CANDIDATES_V0_1",
         seed=seed
     )
 

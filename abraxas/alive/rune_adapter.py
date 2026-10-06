@@ -42,7 +42,7 @@ def alive_run_deterministic(
         result=result,
         config={"tier": tier},
         inputs={"artifact": artifact, "profile": profile},
-        operation_id="alive.run",
+        operation_id="RUNE.ALIVE.RUN",
         seed=seed
     )
 
@@ -84,7 +84,7 @@ def alive_parse_field_signature_deterministic(
         result={"parsed_signature": parsed, "parse_error": parse_error},
         config={},
         inputs={"field_signature": field_signature},
-        operation_id="alive.parse_field_signature",
+        operation_id="RUNE.ALIVE.PARSE_FIELD_SIGNATURE",
         seed=seed
     )
 
@@ -127,7 +127,7 @@ def alive_parse_run_input_deterministic(
         result={"parsed_input": parsed, "parse_error": parse_error},
         config={},
         inputs={"run_input": run_input},
-        operation_id="alive.parse_run_input",
+        operation_id="RUNE.ALIVE.PARSE_RUN_INPUT",
         seed=seed
     )
 

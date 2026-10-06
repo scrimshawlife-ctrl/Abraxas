@@ -55,7 +55,7 @@ class ALIVERunOperator:
 
         # Invoke ALIVE capability
         result = invoke_capability(
-            "alive.run",
+            "RUNE.ALIVE.RUN",
             {
                 "artifact": artifact,
                 "tier": tier,

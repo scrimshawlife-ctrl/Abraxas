@@ -53,7 +53,7 @@ def compute_claim_csp_deterministic(
         result={"claim_csp": claim_csp},
         config={"evidence_support_weight": evidence_support_weight},
         inputs={"claim_text": claim_text, "term_csp": term_csp},
-        operation_id="conspiracy.csp.compute_claim",
+        operation_id="RUNE.CONSPIRACY.CSP.COMPUTE_CLAIM",
         seed=seed
     )
 
@@ -111,7 +111,7 @@ def compute_term_csp_deterministic(
             "dmx_overall": dmx_overall,
             "term_class": term_class
         },
-        operation_id="conspiracy.csp.compute_term",
+        operation_id="RUNE.CONSPIRACY.CSP.COMPUTE_TERM",
         seed=seed
     )
 
@@ -157,7 +157,7 @@ def csp_horizon_clamp_deterministic(
         result={"cap": cap, "flags": flags},
         config={},
         inputs={"csp": csp, "dmx_bucket": dmx_bucket, "term_class": term_class},
-        operation_id="conspiracy.policy.horizon_clamp",
+        operation_id="RUNE.CONSPIRACY.POLICY.HORIZON_CLAMP",
         seed=seed
     )
 
@@ -201,7 +201,7 @@ def apply_horizon_cap_deterministic(
         result={"final_cap": final_cap},
         config={},
         inputs={"policy_cap": policy_cap, "csp_cap": csp_cap},
-        operation_id="conspiracy.policy.apply_cap",
+        operation_id="RUNE.CONSPIRACY.POLICY.APPLY_CAP",
         seed=seed
     )
 

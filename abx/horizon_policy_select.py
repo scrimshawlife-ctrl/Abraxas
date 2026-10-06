@@ -72,7 +72,7 @@ def _rolling_stats(window: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str
         by[b] = {}
         for h, d in hmap.items():
             ctx = RuneInvocationContext(run_id="ROLLING_STATS", subsystem_id="abx.horizon_policy_select", git_hash="unknown")
-            result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
+            result = invoke_capability("RUNE.FORECAST.SCORING.BRIER", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
             by[b][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return by
 
@@ -136,7 +136,7 @@ def main() -> int:
         shadow_rate[bucket] = float(sb) / float(n) if n else 0.0
 
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select", git_hash="unknown")
-    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand_result = invoke_capability("RUNE.FORECAST.POLICY.CANDIDATES_V0_1", {}, ctx=ctx, strict_execution=True)
     cand = cand_result["policy_candidates"]
     results: Dict[str, Any] = {"candidates": cand, "by_bucket": {}}
 

@@ -97,7 +97,7 @@ def main() -> int:
     calibration = {}
     for horizon, (probs, outcomes) in by_horizon.items():
         ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_audit", git_hash="unknown")
-        result = invoke_capability("forecast.scoring.brier", {"probs": probs, "outcomes": outcomes}, ctx=ctx, strict_execution=True)
+        result = invoke_capability("RUNE.FORECAST.SCORING.BRIER", {"probs": probs, "outcomes": outcomes}, ctx=ctx, strict_execution=True)
         calibration[horizon] = {"brier": result.get("brier_score", float("nan")), "n": len(probs)}
 
     calibration_by_bucket: Dict[str, Any] = {}
@@ -105,7 +105,7 @@ def main() -> int:
         bucket_metrics: Dict[str, Any] = {}
         for horizon, (probs, outcomes) in horizons.items():
             ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_audit", git_hash="unknown")
-            result = invoke_capability("forecast.scoring.brier", {"probs": probs, "outcomes": outcomes}, ctx=ctx, strict_execution=True)
+            result = invoke_capability("RUNE.FORECAST.SCORING.BRIER", {"probs": probs, "outcomes": outcomes}, ctx=ctx, strict_execution=True)
             bucket_metrics[horizon] = {
                 "brier": result.get("brier_score", float("nan")),
                 "n": len(probs),
@@ -125,7 +125,7 @@ def main() -> int:
     }
     # Use capability contract for ledger append
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.forecast_audit", git_hash="unknown")
-    invoke_capability("evolve.ledger.append", {"path": args.audit_ledger, "record": row}, ctx=ctx, strict_execution=True)
+    invoke_capability("RUNE.EVOLVE.LEDGER.APPEND", {"path": args.audit_ledger, "record": row}, ctx=ctx, strict_execution=True)
     json_path = os.path.join(args.out_reports, f"forecast_audit_{args.run_id}.json")
     md_path = os.path.join(args.out_reports, f"forecast_audit_{args.run_id}.md")
     os.makedirs(os.path.dirname(json_path), exist_ok=True)

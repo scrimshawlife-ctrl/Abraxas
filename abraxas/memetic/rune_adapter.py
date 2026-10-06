@@ -58,7 +58,7 @@ def load_sources_from_osh_deterministic(
         result={"sources": sources, "stats": stats},
         config={},
         inputs={"osh_ledger_path": osh_ledger_path},
-        operation_id="memetic.claims_sources.load",
+        operation_id="RUNE.MEMETIC.CLAIMS_SOURCES.LOAD",
         seed=seed
     )
 
@@ -154,7 +154,7 @@ def cluster_claims_deterministic(
         result={"clusters": clusters, "metrics": metrics_dict},
         config={"sim_threshold": sim_threshold, "max_pairs": max_pairs},
         inputs={"items": items},
-        operation_id="memetic.claim_cluster.cluster",
+        operation_id="RUNE.MEMETIC.CLAIM_CLUSTER.CLUSTER",
         seed=seed
     )
 
@@ -193,7 +193,7 @@ def load_dmx_context_deterministic(
         result={"dmx_context": dmx_context},
         config={},
         inputs={"mwr_path": mwr_path},
-        operation_id="memetic.dmx_context.load",
+        operation_id="RUNE.MEMETIC.DMX_CONTEXT.LOAD",
         seed=seed
     )
 
@@ -231,7 +231,7 @@ def build_term_index_deterministic(
         result={"term_index": term_index},
         config={},
         inputs={"a2_phase": a2_phase},
-        operation_id="memetic.term_index.build",
+        operation_id="RUNE.MEMETIC.TERM_INDEX.BUILD",
         seed=seed
     )
 
@@ -271,7 +271,7 @@ def reduce_weighted_metrics_deterministic(
         result={"weighted_metrics": weighted_metrics},
         config={},
         inputs={"terms": terms, "term_index": term_index},
-        operation_id="memetic.term_index.reduce",
+        operation_id="RUNE.MEMETIC.TERM_INDEX.REDUCE",
         seed=seed
     )
 
@@ -314,7 +314,7 @@ def build_term_token_index_deterministic(
         result={"term_token_index": term_token_index},
         config={},
         inputs={"terms": terms},
-        operation_id="memetic.term_assign.build_index",
+        operation_id="RUNE.MEMETIC.TERM_ASSIGN.BUILD_INDEX",
         seed=seed
     )
 
@@ -368,7 +368,7 @@ def assign_claim_to_terms_deterministic(
         result={"assigned_terms": assigned_terms},
         config={"min_overlap": min_overlap, "max_terms": max_terms},
         inputs={"claim": claim, "term_token_index": term_token_index},
-        operation_id="memetic.term_assign.assign",
+        operation_id="RUNE.MEMETIC.TERM_ASSIGN.ASSIGN",
         seed=seed
     )
 
@@ -406,7 +406,7 @@ def reduce_provenance_means_deterministic(
         result={"means": means},
         config={},
         inputs={"profiles": profiles},
-        operation_id="memetic.metrics_reduce.reduce_provenance_means",
+        operation_id="RUNE.MEMETIC.METRICS_REDUCE.REDUCE_PROVENANCE_MEANS",
         seed=seed
     )
 
@@ -443,7 +443,7 @@ def load_term_consensus_map_deterministic(
         result={"term_consensus_map": term_consensus_map},
         config={},
         inputs={"path": path},
-        operation_id="memetic.term_consensus_map.load",
+        operation_id="RUNE.MEMETIC.TERM_CONSENSUS_MAP.LOAD",
         seed=seed
     )
 
@@ -494,7 +494,7 @@ def build_temporal_profiles_deterministic(
         result={"profiles": profiles},
         config={"max_terms": max_terms, "min_obs": min_obs},
         inputs={"registry_path": registry_path, "now_iso": now_iso},
-        operation_id="memetic.temporal.build_temporal_profiles",
+        operation_id="RUNE.MEMETIC.TEMPORAL.BUILD_TEMPORAL_PROFILES",
         seed=seed
     )
 
@@ -536,7 +536,7 @@ def compute_dmx_deterministic(
         result={"dmx": dmx},
         config={},
         inputs={"sources": sources, "signals": signals},
-        operation_id="memetic.dmx.compute",
+        operation_id="RUNE.MEMETIC.DMX.COMPUTE",
         seed=seed
     )
 
@@ -579,7 +579,7 @@ def read_oracle_texts_deterministic(
         result={"documents": documents_dicts},
         config={"max_items": max_items},
         inputs={"path": path},
-        operation_id="memetic.extract.read_oracle_texts",
+        operation_id="RUNE.MEMETIC.EXTRACT.READ_ORACLE_TEXTS",
         seed=seed
     )
 
@@ -634,7 +634,7 @@ def extract_terms_deterministic(
         result={"term_candidates": term_candidates},
         config={"n_values": n_values, "max_terms": max_terms},
         inputs={"documents": documents, "baseline_counts": baseline_counts},
-        operation_id="memetic.extract.extract_terms",
+        operation_id="RUNE.MEMETIC.EXTRACT.EXTRACT_TERMS",
         seed=seed
     )
 
@@ -687,7 +687,7 @@ def build_mimetic_weather_deterministic(
         result={"weather_units": weather_units},
         config={},
         inputs={"run_id": run_id, "term_candidates": term_candidates, "ts": ts},
-        operation_id="memetic.extract.build_mimetic_weather",
+        operation_id="RUNE.MEMETIC.EXTRACT.BUILD_MIMETIC_WEATHER",
         seed=seed
     )
 

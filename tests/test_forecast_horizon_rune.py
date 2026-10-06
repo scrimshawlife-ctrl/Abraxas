@@ -53,7 +53,7 @@ def test_classify_horizon_provenance():
 
     assert result["horizon_bucket"] == "days"
     assert result["provenance"] is not None
-    assert result["provenance"]["operation_id"] == "forecast.horizon.classify"
+    assert result["provenance"]["operation_id"] == "RUNE.FORECAST.HORIZON.CLASSIFY"
     assert "inputs_hash" in result["provenance"]
     assert "timestamp" in result["provenance"]
     assert result["not_computable"] is None
@@ -86,7 +86,7 @@ def test_classify_horizon_golden():
     for horizon_input, expected_bucket in test_cases:
         result = classify_horizon_deterministic(horizon_input, seed=123)
         assert result["horizon_bucket"] == expected_bucket
-        assert result["provenance"]["operation_id"] == "forecast.horizon.classify"
+        assert result["provenance"]["operation_id"] == "RUNE.FORECAST.HORIZON.CLASSIFY"
         assert result["not_computable"] is None
 
 

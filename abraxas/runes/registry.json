@@ -575,7 +575,7 @@
   ],
   "capabilities": [
     {
-      "capability_id": "oracle.v2.run",
+      "capability_id": "RUNE.ORACLE.V2.RUN",
       "rune_id": "ϟ_ORACLE_RUN",
       "operator_path": "abraxas.oracle.v2.rune_adapter:run_oracle_deterministic",
       "version": "2.0.0",
@@ -586,7 +586,7 @@
       "evidence_mode": "prediction_lane"
     },
     {
-      "capability_id": "forecast.scoring.brier",
+      "capability_id": "RUNE.FORECAST.SCORING.BRIER",
       "rune_id": "ϟ_FORECAST_BRIER",
       "operator_path": "abraxas.forecast.rune_adapter:compute_brier_score_deterministic",
       "version": "1.0.0",
@@ -597,7 +597,7 @@
       "evidence_mode": "prediction_lane"
     },
     {
-      "capability_id": "evolve.ledger.append",
+      "capability_id": "RUNE.EVOLVE.LEDGER.APPEND",
       "rune_id": "ϟ_EVOLVE_LEDGER_APPEND",
       "operator_path": "abraxas.evolve.rune_adapter:append_ledger_deterministic",
       "version": "1.0.0",
@@ -608,7 +608,7 @@
       "evidence_mode": "ledger_integrity"
     },
     {
-      "capability_id": "evolve.policy.enforce_non_truncation",
+      "capability_id": "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
       "rune_id": "ϟ_EVOLVE_NT_POLICY",
       "operator_path": "abraxas.evolve.rune_adapter:enforce_non_truncation_deterministic",
       "version": "1.0.0",
@@ -619,7 +619,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "evolve.evogate.build",
+      "capability_id": "RUNE.EVOLVE.EVOGATE.BUILD",
       "rune_id": "ϟ_EVOLVE_EVOGATE_BUILD",
       "operator_path": "abraxas.evolve.rune_adapter:build_evogate_deterministic",
       "version": "1.0.0",
@@ -630,7 +630,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evolve.rim.build_from_osh_ledger",
+      "capability_id": "RUNE.EVOLVE.RIM.BUILD_FROM_OSH_LEDGER",
       "rune_id": "ϟ_EVOLVE_RIM_BUILD",
       "operator_path": "abraxas.evolve.rune_adapter:build_rim_from_osh_ledger_deterministic",
       "version": "1.0.0",
@@ -641,7 +641,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evolve.epp.build",
+      "capability_id": "RUNE.EVOLVE.EPP.BUILD",
       "rune_id": "ϟ_EVOLVE_EPP_BUILD",
       "operator_path": "abraxas.evolve.rune_adapter:build_epp_deterministic",
       "version": "1.0.0",
@@ -652,7 +652,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evolve.canon_diff.build",
+      "capability_id": "RUNE.EVOLVE.CANON_DIFF.BUILD",
       "rune_id": "ϟ_EVOLVE_CANON_DIFF_BUILD",
       "operator_path": "abraxas.evolve.rune_adapter:build_canon_diff_deterministic",
       "version": "1.0.0",
@@ -663,7 +663,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evolve.promotion.build",
+      "capability_id": "RUNE.EVOLVE.PROMOTION.BUILD",
       "rune_id": "ϟ_EVOLVE_PROMOTION_BUILD",
       "operator_path": "abraxas.evolve.rune_adapter:build_promotion_packet_deterministic",
       "version": "1.0.0",
@@ -674,7 +674,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "forecast.horizon.classify",
+      "capability_id": "RUNE.FORECAST.HORIZON.CLASSIFY",
       "rune_id": "ϟ_FORECAST_HORIZON",
       "operator_path": "abraxas.forecast.rune_adapter:classify_horizon_deterministic",
       "version": "1.0.0",
@@ -685,7 +685,7 @@
       "evidence_mode": "classification"
     },
     {
-      "capability_id": "forecast.term.classify",
+      "capability_id": "RUNE.FORECAST.TERM.CLASSIFY",
       "rune_id": "ϟ_FORECAST_TERM_CLASS",
       "operator_path": "abraxas.forecast.rune_adapter:classify_term_deterministic",
       "version": "1.0.0",
@@ -696,7 +696,7 @@
       "evidence_mode": "classification"
     },
     {
-      "capability_id": "forecast.term_class_map.load",
+      "capability_id": "RUNE.FORECAST.TERM_CLASS_MAP.LOAD",
       "rune_id": "ϟ_FORECAST_TERM_MAP",
       "operator_path": "abraxas.forecast.rune_adapter:load_term_class_map_deterministic",
       "version": "1.0.0",
@@ -707,7 +707,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "forecast.uncertainty.horizon_multiplier",
+      "capability_id": "RUNE.FORECAST.UNCERTAINTY.HORIZON_MULTIPLIER",
       "rune_id": "ϟ_FORECAST_HORIZON_MULT",
       "operator_path": "abraxas.forecast.rune_adapter:horizon_uncertainty_multiplier_deterministic",
       "version": "1.0.0",
@@ -718,7 +718,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "forecast.policy.candidates_v0_1",
+      "capability_id": "RUNE.FORECAST.POLICY.CANDIDATES_V0_1",
       "rune_id": "ϟ_FORECAST_POLICY_CANDIDATES",
       "operator_path": "abraxas.forecast.rune_adapter:policy_candidates_v0_1_deterministic",
       "version": "1.0.0",
@@ -729,7 +729,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "memetic.claims_sources.load",
+      "capability_id": "RUNE.MEMETIC.CLAIMS_SOURCES.LOAD",
       "rune_id": "ϟ_MEMETIC_SOURCES_LOAD",
       "operator_path": "abraxas.memetic.rune_adapter:load_sources_from_osh_deterministic",
       "version": "1.0.0",
@@ -740,7 +740,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "memetic.claim_extract.extract",
+      "capability_id": "RUNE.MEMETIC.CLAIM_EXTRACT.EXTRACT",
       "rune_id": "ϟ_MEMETIC_EXTRACT_CLAIMS",
       "operator_path": "abraxas.memetic.rune_adapter:extract_claim_items_deterministic",
       "version": "1.0.0",
@@ -751,7 +751,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.claim_cluster.cluster",
+      "capability_id": "RUNE.MEMETIC.CLAIM_CLUSTER.CLUSTER",
       "rune_id": "ϟ_MEMETIC_CLUSTER_CLAIMS",
       "operator_path": "abraxas.memetic.rune_adapter:cluster_claims_deterministic",
       "version": "1.0.0",
@@ -762,7 +762,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.dmx_context.load",
+      "capability_id": "RUNE.MEMETIC.DMX_CONTEXT.LOAD",
       "rune_id": "ϟ_MEMETIC_DMX_CONTEXT",
       "operator_path": "abraxas.memetic.rune_adapter:load_dmx_context_deterministic",
       "version": "1.0.0",
@@ -773,7 +773,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "memetic.term_index.build",
+      "capability_id": "RUNE.MEMETIC.TERM_INDEX.BUILD",
       "rune_id": "ϟ_MEMETIC_TERM_INDEX_BUILD",
       "operator_path": "abraxas.memetic.rune_adapter:build_term_index_deterministic",
       "version": "1.0.0",
@@ -784,7 +784,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.term_index.reduce",
+      "capability_id": "RUNE.MEMETIC.TERM_INDEX.REDUCE",
       "rune_id": "ϟ_MEMETIC_TERM_INDEX_REDUCE",
       "operator_path": "abraxas.memetic.rune_adapter:reduce_weighted_metrics_deterministic",
       "version": "1.0.0",
@@ -795,7 +795,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.term_assign.build_index",
+      "capability_id": "RUNE.MEMETIC.TERM_ASSIGN.BUILD_INDEX",
       "rune_id": "ϟ_MEMETIC_TERM_TOKEN_INDEX",
       "operator_path": "abraxas.memetic.rune_adapter:build_term_token_index_deterministic",
       "version": "1.0.0",
@@ -806,7 +806,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.term_assign.assign",
+      "capability_id": "RUNE.MEMETIC.TERM_ASSIGN.ASSIGN",
       "rune_id": "ϟ_MEMETIC_TERM_ASSIGN",
       "operator_path": "abraxas.memetic.rune_adapter:assign_claim_to_terms_deterministic",
       "version": "1.0.0",
@@ -817,7 +817,7 @@
       "evidence_mode": "classification"
     },
     {
-      "capability_id": "memetic.metrics_reduce.reduce_provenance_means",
+      "capability_id": "RUNE.MEMETIC.METRICS_REDUCE.REDUCE_PROVENANCE_MEANS",
       "rune_id": "ϟ_MEMETIC_REDUCE_MEANS",
       "operator_path": "abraxas.memetic.rune_adapter:reduce_provenance_means_deterministic",
       "version": "1.0.0",
@@ -828,7 +828,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.term_consensus_map.load",
+      "capability_id": "RUNE.MEMETIC.TERM_CONSENSUS_MAP.LOAD",
       "rune_id": "ϟ_MEMETIC_TERM_CONSENSUS_LOAD",
       "operator_path": "abraxas.memetic.rune_adapter:load_term_consensus_map_deterministic",
       "version": "1.0.0",
@@ -839,7 +839,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "memetic.temporal.build_temporal_profiles",
+      "capability_id": "RUNE.MEMETIC.TEMPORAL.BUILD_TEMPORAL_PROFILES",
       "rune_id": "ϟ_MEMETIC_BUILD_TEMPORAL_PROFILES",
       "operator_path": "abraxas.memetic.rune_adapter:build_temporal_profiles_deterministic",
       "version": "1.0.0",
@@ -850,7 +850,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evidence.index.evidence_by_term",
+      "capability_id": "RUNE.EVIDENCE.INDEX.EVIDENCE_BY_TERM",
       "rune_id": "ϟ_EVIDENCE_INDEX_BY_TERM",
       "operator_path": "abraxas.evidence.rune_adapter:evidence_by_term_deterministic",
       "version": "1.0.0",
@@ -861,7 +861,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "evidence.support.support_weight",
+      "capability_id": "RUNE.EVIDENCE.SUPPORT.SUPPORT_WEIGHT",
       "rune_id": "ϟ_EVIDENCE_SUPPORT_WEIGHT",
       "operator_path": "abraxas.evidence.rune_adapter:support_weight_for_claim_deterministic",
       "version": "1.0.0",
@@ -872,7 +872,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evidence.lift.load_bundles_from_index",
+      "capability_id": "RUNE.EVIDENCE.LIFT.LOAD_BUNDLES_FROM_INDEX",
       "rune_id": "ϟ_EVIDENCE_LOAD_BUNDLES",
       "operator_path": "abraxas.evidence.rune_adapter:load_bundles_from_index_deterministic",
       "version": "1.0.0",
@@ -883,7 +883,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "evidence.lift.term_lift",
+      "capability_id": "RUNE.EVIDENCE.LIFT.TERM_LIFT",
       "rune_id": "ϟ_EVIDENCE_TERM_LIFT",
       "operator_path": "abraxas.evidence.rune_adapter:term_lift_deterministic",
       "version": "1.0.0",
@@ -894,7 +894,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "evidence.lift.uplift_factors",
+      "capability_id": "RUNE.EVIDENCE.LIFT.UPLIFT_FACTORS",
       "rune_id": "ϟ_EVIDENCE_UPLIFT_FACTORS",
       "operator_path": "abraxas.evidence.rune_adapter:uplift_factors_deterministic",
       "version": "1.0.0",
@@ -905,7 +905,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "conspiracy.csp.compute_claim",
+      "capability_id": "RUNE.CONSPIRACY.CSP.COMPUTE_CLAIM",
       "rune_id": "ϟ_CSP_COMPUTE_CLAIM",
       "operator_path": "abraxas.conspiracy.rune_adapter:compute_claim_csp_deterministic",
       "version": "1.0.0",
@@ -916,7 +916,7 @@
       "evidence_mode": "classification"
     },
     {
-      "capability_id": "conspiracy.csp.compute_term",
+      "capability_id": "RUNE.CONSPIRACY.CSP.COMPUTE_TERM",
       "rune_id": "ϟ_CSP_COMPUTE_TERM",
       "operator_path": "abraxas.conspiracy.rune_adapter:compute_term_csp_deterministic",
       "version": "1.0.0",
@@ -927,7 +927,7 @@
       "evidence_mode": "classification"
     },
     {
-      "capability_id": "forecast.gating_policy.decide_gate",
+      "capability_id": "RUNE.FORECAST.GATING_POLICY.DECIDE_GATE",
       "rune_id": "ϟ_FORECAST_GATING_POLICY",
       "operator_path": "abraxas.forecast.rune_adapter:decide_gate_deterministic",
       "version": "1.0.0",
@@ -938,7 +938,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "forecast.horizon_policy.compare",
+      "capability_id": "RUNE.FORECAST.HORIZON_POLICY.COMPARE",
       "rune_id": "ϟ_FORECAST_HORIZON_COMPARE",
       "operator_path": "abraxas.forecast.rune_adapter:compare_horizon_deterministic",
       "version": "1.0.0",
@@ -949,7 +949,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "forecast.horizon_policy.enforce",
+      "capability_id": "RUNE.FORECAST.HORIZON_POLICY.ENFORCE",
       "rune_id": "ϟ_FORECAST_HORIZON_ENFORCE",
       "operator_path": "abraxas.forecast.rune_adapter:enforce_horizon_policy_deterministic",
       "version": "1.0.0",
@@ -960,7 +960,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "forecast.ledger.issue",
+      "capability_id": "RUNE.FORECAST.LEDGER.ISSUE",
       "rune_id": "ϟ_FORECAST_LEDGER_ISSUE",
       "operator_path": "abraxas.forecast.rune_adapter:issue_prediction_deterministic",
       "version": "1.0.0",
@@ -971,7 +971,7 @@
       "evidence_mode": "data_write"
     },
     {
-      "capability_id": "forecast.ledger.record_outcome",
+      "capability_id": "RUNE.FORECAST.LEDGER.RECORD_OUTCOME",
       "rune_id": "ϟ_FORECAST_LEDGER_RECORD",
       "operator_path": "abraxas.forecast.rune_adapter:record_outcome_deterministic",
       "version": "1.0.0",
@@ -982,7 +982,7 @@
       "evidence_mode": "data_write"
     },
     {
-      "capability_id": "conspiracy.policy.horizon_clamp",
+      "capability_id": "RUNE.CONSPIRACY.POLICY.HORIZON_CLAMP",
       "rune_id": "ϟ_CONSPIRACY_HORIZON_CLAMP",
       "operator_path": "abraxas.conspiracy.rune_adapter:csp_horizon_clamp_deterministic",
       "version": "1.0.0",
@@ -993,7 +993,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "conspiracy.policy.apply_cap",
+      "capability_id": "RUNE.CONSPIRACY.POLICY.APPLY_CAP",
       "rune_id": "ϟ_CONSPIRACY_APPLY_CAP",
       "operator_path": "abraxas.conspiracy.rune_adapter:apply_horizon_cap_deterministic",
       "version": "1.0.0",
@@ -1004,7 +1004,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "acquire.decodo.status",
+      "capability_id": "RUNE.ACQUIRE.DECODO.STATUS",
       "rune_id": "ϟ_ACQUIRE_DECODO_STATUS",
       "operator_path": "abraxas.acquire.rune_adapter:decodo_status_deterministic",
       "version": "1.0.0",
@@ -1015,7 +1015,7 @@
       "evidence_mode": "data_access"
     },
     {
-      "capability_id": "acquire.decodo.build_query",
+      "capability_id": "RUNE.ACQUIRE.DECODO.BUILD_QUERY",
       "rune_id": "ϟ_ACQUIRE_DECODO_BUILD_QUERY",
       "operator_path": "abraxas.acquire.rune_adapter:build_decodo_query_deterministic",
       "version": "1.0.0",
@@ -1026,7 +1026,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "acquire.vector_map.default",
+      "capability_id": "RUNE.ACQUIRE.VECTOR_MAP.DEFAULT",
       "rune_id": "ϟ_ACQUIRE_VECTOR_MAP_DEFAULT",
       "operator_path": "abraxas.acquire.rune_adapter:default_vector_map_deterministic",
       "version": "1.0.0",
@@ -1037,7 +1037,7 @@
       "evidence_mode": "data_access"
     },
     {
-      "capability_id": "acquire.dap.build",
+      "capability_id": "RUNE.ACQUIRE.DAP.BUILD",
       "rune_id": "ϟ_ACQUIRE_DAP_BUILD",
       "operator_path": "abraxas.acquire.rune_adapter:build_dap_deterministic",
       "version": "1.0.0",
@@ -1048,7 +1048,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.dmx.compute",
+      "capability_id": "RUNE.MEMETIC.DMX.COMPUTE",
       "rune_id": "ϟ_MEMETIC_DMX_COMPUTE",
       "operator_path": "abraxas.memetic.rune_adapter:compute_dmx_deterministic",
       "version": "1.0.0",
@@ -1059,7 +1059,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.extract.read_oracle_texts",
+      "capability_id": "RUNE.MEMETIC.EXTRACT.READ_ORACLE_TEXTS",
       "rune_id": "ϟ_MEMETIC_READ_ORACLE_TEXTS",
       "operator_path": "abraxas.memetic.rune_adapter:read_oracle_texts_deterministic",
       "version": "1.0.0",
@@ -1070,7 +1070,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "memetic.extract.extract_terms",
+      "capability_id": "RUNE.MEMETIC.EXTRACT.EXTRACT_TERMS",
       "rune_id": "ϟ_MEMETIC_EXTRACT_TERMS",
       "operator_path": "abraxas.memetic.rune_adapter:extract_terms_deterministic",
       "version": "1.0.0",
@@ -1081,7 +1081,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.extract.build_mimetic_weather",
+      "capability_id": "RUNE.MEMETIC.EXTRACT.BUILD_MIMETIC_WEATHER",
       "rune_id": "ϟ_MEMETIC_BUILD_WEATHER",
       "operator_path": "abraxas.memetic.rune_adapter:build_mimetic_weather_deterministic",
       "version": "1.0.0",
@@ -1092,7 +1092,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.registry.append",
+      "capability_id": "RUNE.MEMETIC.REGISTRY.APPEND",
       "rune_id": "ϟ_MEMETIC_REGISTRY_APPEND",
       "operator_path": "abraxas.memetic.rune_adapter:append_a2_terms_to_registry_deterministic",
       "version": "1.0.0",
@@ -1103,7 +1103,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "memetic.registry.compute_missed",
+      "capability_id": "RUNE.MEMETIC.REGISTRY.COMPUTE_MISSED",
       "rune_id": "ϟ_MEMETIC_REGISTRY_COMPUTE_MISSED",
       "operator_path": "abraxas.memetic.rune_adapter:compute_missed_terms_deterministic",
       "version": "1.0.0",
@@ -1114,7 +1114,7 @@
       "evidence_mode": "data_processing"
     },
     {
-      "capability_id": "core.rendering.render_output",
+      "capability_id": "RUNE.CORE.RENDERING.RENDER_OUTPUT",
       "rune_id": "ϟ_CORE_RENDER_OUTPUT",
       "operator_path": "abraxas.core.rune_adapter:render_output_deterministic",
       "version": "1.0.0",
@@ -1125,7 +1125,7 @@
       "evidence_mode": "policy_enforcement"
     },
     {
-      "capability_id": "drift.orchestrator.analyze_text_for_drift",
+      "capability_id": "RUNE.DRIFT.ORCHESTRATOR.ANALYZE_TEXT_FOR_DRIFT",
       "rune_id": "ϟ_DRIFT_ANALYZE_TEXT",
       "operator_path": "abraxas.drift.rune_adapter:analyze_text_for_drift_deterministic",
       "version": "1.0.0",
@@ -1136,7 +1136,7 @@
       "evidence_mode": "observation"
     },
     {
-      "capability_id": "oracle.kernel.run",
+      "capability_id": "RUNE.ORACLE.KERNEL.RUN",
       "rune_id": "ϟ_ORACLE_KERNEL_RUN",
       "operator_path": "abraxas.core.rune_adapter:run_oracle_kernel_deterministic",
       "version": "1.0.0",
@@ -1148,7 +1148,7 @@
       "description": "Kernel-level oracle execution with UserConfig/OverlaysConfig"
     },
     {
-      "capability_id": "aal.neon_genie.generate.v0",
+      "capability_id": "RUNE.AAL.NEON_GENIE.GENERATE.V0",
       "rune_id": "ϟ_NEON_GENIE",
       "operator_path": "abraxas.aal.neon_genie_adapter:generate_symbolic_v0",
       "version": "0.1.0",
@@ -1161,7 +1161,7 @@
       "description": "Neon-Genie symbolic generation overlay (OBSERVATION/GENERATION lane only)"
     },
     {
-      "capability_id": "disinfo.apply.metrics",
+      "capability_id": "RUNE.DISINFO.APPLY.METRICS",
       "rune_id": "ϟ_DISINFO_APPLY_METRICS",
       "operator_path": "abraxas.disinfo.rune_adapter:apply_disinfo_metrics_deterministic",
       "version": "1.0.0",
@@ -1172,7 +1172,7 @@
       "evidence_mode": "analysis"
     },
     {
-      "capability_id": "compression.detect",
+      "capability_id": "RUNE.COMPRESSION.DETECT",
       "rune_id": "ϟ_COMPRESSION_DETECT",
       "operator_path": "abraxas.compression.rune_adapter:detect_compression_deterministic",
       "version": "1.0.0",
@@ -1183,7 +1183,7 @@
       "evidence_mode": "analysis"
     },
     {
-      "capability_id": "alive.run",
+      "capability_id": "RUNE.ALIVE.RUN",
       "rune_id": "ϟ_ALIVE_RUN",
       "operator_path": "abraxas.alive.rune_adapter:alive_run_deterministic",
       "version": "1.0.0",
@@ -1194,7 +1194,7 @@
       "evidence_mode": "analysis"
     },
     {
-      "capability_id": "alive.parse_field_signature",
+      "capability_id": "RUNE.ALIVE.PARSE_FIELD_SIGNATURE",
       "rune_id": "ϟ_ALIVE_PARSE_FIELD_SIGNATURE",
       "operator_path": "abraxas.alive.rune_adapter:alive_parse_field_signature_deterministic",
       "version": "1.0.0",
@@ -1205,7 +1205,7 @@
       "evidence_mode": "validation"
     },
     {
-      "capability_id": "alive.parse_run_input",
+      "capability_id": "RUNE.ALIVE.PARSE_RUN_INPUT",
       "rune_id": "ϟ_ALIVE_PARSE_RUN_INPUT",
       "operator_path": "abraxas.alive.rune_adapter:alive_parse_run_input_deterministic",
       "version": "1.0.0",
@@ -1216,7 +1216,7 @@
       "evidence_mode": "validation"
     },
     {
-      "capability_id": "cli.counterfactual",
+      "capability_id": "RUNE.CLI.COUNTERFACTUAL",
       "rune_id": "ϟ_CLI_COUNTERFACTUAL",
       "operator_path": "abraxas.cli.rune_adapter:run_counterfactual_cli_deterministic",
       "version": "1.0.0",
@@ -1227,7 +1227,7 @@
       "evidence_mode": "cli_execution"
     },
     {
-      "capability_id": "cli.smv",
+      "capability_id": "RUNE.CLI.SMV",
       "rune_id": "ϟ_CLI_SMV",
       "operator_path": "abraxas.cli.rune_adapter:run_smv_cli_deterministic",
       "version": "1.0.0",
@@ -1238,7 +1238,7 @@
       "evidence_mode": "cli_execution"
     },
     {
-      "capability_id": "osh.compile_jobs_from_dap",
+      "capability_id": "RUNE.OSH.COMPILE_JOBS_FROM_DAP",
       "rune_id": "ϟ_OSH_COMPILE_JOBS",
       "operator_path": "abraxas.osh.rune_adapter:compile_jobs_from_dap_deterministic",
       "version": "1.0.0",
@@ -1249,7 +1249,7 @@
       "evidence_mode": "data_loading"
     },
     {
-      "capability_id": "osh.run_jobs",
+      "capability_id": "RUNE.OSH.RUN_JOBS",
       "rune_id": "ϟ_OSH_RUN_JOBS",
       "operator_path": "abraxas.osh.rune_adapter:run_osh_jobs_deterministic",
       "version": "1.0.0",

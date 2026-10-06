@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 class CapabilityContract(BaseModel):
     """Contract definition for a capability."""
 
-    capability_id: str = Field(..., description="Unique capability identifier (e.g., 'oracle.v2.run')")
+    capability_id: str = Field(..., description="Unique capability identifier (e.g., 'RUNE.ORACLE.V2.RUN')")
     rune_id: str = Field(..., description="Associated rune ID (e.g., 'ϟ_ORACLE_RUN')")
     operator_path: str = Field(..., description="Python module:function path to operator")
     version: str = Field(..., description="Semantic version")

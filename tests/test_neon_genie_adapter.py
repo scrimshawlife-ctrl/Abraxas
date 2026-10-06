@@ -170,7 +170,7 @@ def test_artifact_handler_store_generation(tmp_path: Path) -> None:
         "timestamp_utc": "2026-01-18T00:00:00Z",
         "config_sha256": "a" * 64,
         "inputs_sha256": "b" * 64,
-        "operation_id": "aal.neon_genie.generate.v0"
+        "operation_id": "RUNE.AAL.NEON_GENIE.GENERATE.V0"
     }
 
     mock_metadata = {

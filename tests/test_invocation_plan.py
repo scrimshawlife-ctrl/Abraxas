@@ -29,7 +29,7 @@ def strict_invocation():
     """A strict determinism RuneInvocation."""
     return RuneInvocation(
         invocation_id="INV-001",
-        rune_id="oracle.v2.run",
+        rune_id="RUNE.ORACLE.V2.RUN",
         input_contract_ref="TaskGraphIR.v0",
         params={"seed": 42, "domain": "music"},
         determinism="strict",

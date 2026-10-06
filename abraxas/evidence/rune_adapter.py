@@ -44,7 +44,7 @@ def evidence_by_term_deterministic(
         result={"evidence_by_term": evidence_index},
         config={},
         inputs={"bundles_dir": bundles_dir},
-        operation_id="evidence.index.evidence_by_term",
+        operation_id="RUNE.EVIDENCE.INDEX.EVIDENCE_BY_TERM",
         seed=seed
     )
 
@@ -93,7 +93,7 @@ def support_weight_for_claim_deterministic(
         result={"support_weight": support_weight, "debug": debug},
         config={"max_bonus": max_bonus},
         inputs={"term": term, "claim_text": claim_text, "evidence_by_term": evidence_by_term},
-        operation_id="evidence.support.support_weight",
+        operation_id="RUNE.EVIDENCE.SUPPORT.SUPPORT_WEIGHT",
         seed=seed
     )
 
@@ -135,7 +135,7 @@ def load_bundles_from_index_deterministic(
         result={"bundles": bundles},
         config={},
         inputs={"bundles_dir": bundles_dir, "index_path": index_path},
-        operation_id="evidence.lift.load_bundles_from_index",
+        operation_id="RUNE.EVIDENCE.LIFT.LOAD_BUNDLES_FROM_INDEX",
         seed=seed
     )
 
@@ -172,7 +172,7 @@ def term_lift_deterministic(
         result={"lift_by_term": lift_by_term},
         config={},
         inputs={"bundles": bundles},
-        operation_id="evidence.lift.term_lift",
+        operation_id="RUNE.EVIDENCE.LIFT.TERM_LIFT",
         seed=seed
     )
 
@@ -209,7 +209,7 @@ def uplift_factors_deterministic(
         result={"attribution_uplift": attribution_uplift, "diversity_uplift": diversity_uplift},
         config={},
         inputs={"lift": lift},
-        operation_id="evidence.lift.uplift_factors",
+        operation_id="RUNE.EVIDENCE.LIFT.UPLIFT_FACTORS",
         seed=seed
     )
 

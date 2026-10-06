@@ -94,7 +94,7 @@ def compute_brier_score_deterministic(
         result={"brier_score": score},
         config={},
         inputs={"probs": probs, "outcomes": outcomes},
-        operation_id="forecast.scoring.brier",
+        operation_id="RUNE.FORECAST.SCORING.BRIER",
         seed=seed
     )
 
@@ -203,7 +203,7 @@ def classify_horizon_deterministic(
         result={"horizon_bucket": bucket},
         config={},
         inputs={"horizon": horizon},
-        operation_id="forecast.horizon.classify",
+        operation_id="RUNE.FORECAST.HORIZON.CLASSIFY",
         seed=seed
     )
 
@@ -273,7 +273,7 @@ def classify_term_deterministic(
         result={"term_class": term_class},
         config={},
         inputs={"profile": profile},
-        operation_id="forecast.term.classify",
+        operation_id="RUNE.FORECAST.TERM.CLASSIFY",
         seed=seed
     )
 
@@ -311,7 +311,7 @@ def load_term_class_map_deterministic(
         result={"term_class_map": term_map},
         config={},
         inputs={"a2_phase_path": a2_phase_path},
-        operation_id="forecast.term_class_map.load",
+        operation_id="RUNE.FORECAST.TERM_CLASS_MAP.LOAD",
         seed=seed
     )
 
@@ -372,7 +372,7 @@ def decide_gate_deterministic(
             "consensus_gap": consensus_gap,
             "manipulation_risk_mean": manipulation_risk_mean
         },
-        operation_id="forecast.gating_policy.decide_gate",
+        operation_id="RUNE.FORECAST.GATING_POLICY.DECIDE_GATE",
         seed=seed
     )
 
@@ -412,7 +412,7 @@ def compare_horizon_deterministic(
         result={"comparison_result": result},
         config={},
         inputs={"horizon": horizon, "max_horizon": max_horizon},
-        operation_id="forecast.horizon_policy.compare",
+        operation_id="RUNE.FORECAST.HORIZON_POLICY.COMPARE",
         seed=seed
     )
 
@@ -458,7 +458,7 @@ def enforce_horizon_policy_deterministic(
         result={"flags": flags, "shadow_horizon": shadow_horizon},
         config={"emit_shadow": emit_shadow},
         inputs={"horizon": horizon, "gate": gate},
-        operation_id="forecast.horizon_policy.enforce",
+        operation_id="RUNE.FORECAST.HORIZON_POLICY.ENFORCE",
         seed=seed
     )
 
@@ -540,7 +540,7 @@ def issue_prediction_deterministic(
             "evidence": evidence,
             "ts_issued": ts_issued
         },
-        operation_id="forecast.ledger.issue",
+        operation_id="RUNE.FORECAST.LEDGER.ISSUE",
         seed=seed
     )
 
@@ -578,7 +578,7 @@ def horizon_uncertainty_multiplier_deterministic(
         result={"multiplier": multiplier},
         config={},
         inputs={"horizon": horizon},
-        operation_id="forecast.uncertainty.horizon_multiplier",
+        operation_id="RUNE.FORECAST.UNCERTAINTY.HORIZON_MULTIPLIER",
         seed=seed
     )
 
@@ -678,7 +678,7 @@ def policy_candidates_v0_1_deterministic(
         result={"candidates": candidates},
         config={},
         inputs={},
-        operation_id="forecast.policy.candidates_v0_1",
+        operation_id="RUNE.FORECAST.POLICY.CANDIDATES_V0_1",
         seed=seed
     )
 

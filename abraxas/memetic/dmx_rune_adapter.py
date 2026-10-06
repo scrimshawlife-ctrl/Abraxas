@@ -61,7 +61,7 @@ def load_dmx_context_deterministic(
         result={"success": True, "dmx_context": dmx_context},
         config={},
         inputs={"mwr_path": str(mwr_path)},
-        operation_id="memetic.dmx_context.load",
+        operation_id="RUNE.MEMETIC.DMX_CONTEXT.LOAD",
         seed=seed
     )
 

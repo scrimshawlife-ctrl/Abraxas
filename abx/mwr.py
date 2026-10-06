@@ -60,7 +60,7 @@ def main() -> int:
     }
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.mwr", git_hash="unknown")
     result = invoke_capability(
-        "evolve.policy.enforce_non_truncation",
+        "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         {"artifact": a2, "raw_full": {"terms": [t.to_dict() for t in terms]}},
         ctx=ctx,
         strict_execution=True
@@ -91,7 +91,7 @@ def main() -> int:
         "provenance": {"oracle_paths": list(args.oracle_paths), "a2_terms": a2_json},
     }
     result = invoke_capability(
-        "evolve.policy.enforce_non_truncation",
+        "RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         {"artifact": mwr, "raw_full": {"units": [u.to_dict() for u in units]}},
         ctx=ctx,
         strict_execution=True
@@ -119,7 +119,7 @@ def main() -> int:
     # Use capability contract for ledger append
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.mwr", git_hash="unknown")
     invoke_capability(
-        "evolve.ledger.append",
+        "RUNE.EVOLVE.LEDGER.APPEND",
         {
             "path": args.value_ledger,
             "record": {

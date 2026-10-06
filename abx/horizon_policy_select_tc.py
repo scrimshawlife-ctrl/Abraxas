@@ -71,7 +71,7 @@ def _rolling_stats(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, 
             out[b][c] = {}
             for h, d in hmap.items():
                 ctx = RuneInvocationContext(run_id="ROLLING_STATS_TC", subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
-                result = invoke_capability("forecast.scoring.brier", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
+                result = invoke_capability("RUNE.FORECAST.SCORING.BRIER", {"probs": d["p"], "outcomes": d["y"]}, ctx=ctx, strict_execution=True)
                 out[b][c][h] = {"n": len(d["p"]), "brier": result.get("brier_score", float("nan"))}
     return out
 
@@ -97,7 +97,7 @@ def main() -> int:
     a2_path = args.a2_phase or os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
     ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.horizon_policy_select_tc", git_hash="unknown")
     term_class_result = invoke_capability(
-        "forecast.term_class_map.load",
+        "RUNE.FORECAST.TERM_CLASS_MAP.LOAD",
         {"a2_phase_path": a2_path},
         ctx=ctx,
         strict_execution=True
@@ -133,7 +133,7 @@ def main() -> int:
     window = resolved[-int(args.window_resolved) :] if resolved else []
     roll = _rolling_stats(window)
 
-    cand_result = invoke_capability("forecast.policy.candidates_v0_1", {}, ctx=ctx, strict_execution=True)
+    cand_result = invoke_capability("RUNE.FORECAST.POLICY.CANDIDATES_V0_1", {}, ctx=ctx, strict_execution=True)
     cand = cand_result["policy_candidates"]
     buckets = ("LOW", "MED", "HIGH", "UNKNOWN")
     classes = ("stable", "emerging", "volatile", "contested", "unknown")

@@ -23,7 +23,7 @@ def test_classify_term_stable():
 
     assert result["term_class"] == "stable"
     assert result["provenance"] is not None
-    assert result["provenance"]["operation_id"] == "forecast.term.classify"
+    assert result["provenance"]["operation_id"] == "RUNE.FORECAST.TERM.CLASSIFY"
     assert "inputs_sha256" in result["provenance"]
     assert result["not_computable"] is None
 
@@ -120,7 +120,7 @@ def test_classify_term_golden():
     for profile, expected_class in test_cases:
         result = classify_term_deterministic(profile, seed=123)
         assert result["term_class"] == expected_class
-        assert result["provenance"]["operation_id"] == "forecast.term.classify"
+        assert result["provenance"]["operation_id"] == "RUNE.FORECAST.TERM.CLASSIFY"
         assert result["not_computable"] is None
 
 

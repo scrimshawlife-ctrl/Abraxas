@@ -117,7 +117,7 @@ def main() -> int:
                 git_hash="unknown"
             )
             result = invoke_capability(
-                capability="forecast.scoring.brier",
+                capability="RUNE.FORECAST.SCORING.BRIER",
                 inputs={"probs": pp, "outcomes": yy},
                 ctx=ctx,
                 strict_execution=True

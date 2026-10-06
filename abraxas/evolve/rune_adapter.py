@@ -103,7 +103,7 @@ def append_ledger_deterministic(
         result={"success": True, "step_hash": step_hash},
         config={},
         inputs={"record_hash": record_hash},  # Don't include full record in provenance
-        operation_id="evolve.ledger.append",
+        operation_id="RUNE.EVOLVE.LEDGER.APPEND",
         seed=seed
     )
 
@@ -190,7 +190,7 @@ def enforce_non_truncation_deterministic(
         result={"artifact": enriched},
         config={},
         inputs={"artifact_keys": sorted(artifact.keys()), "raw_full_type": type(raw_full).__name__},
-        operation_id="evolve.policy.enforce_non_truncation",
+        operation_id="RUNE.EVOLVE.POLICY.ENFORCE_NON_TRUNCATION",
         seed=seed,
     )
 

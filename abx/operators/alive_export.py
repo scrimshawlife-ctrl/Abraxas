@@ -46,7 +46,7 @@ class ALIVEExportOperator:
         )
 
         parse_result = invoke_capability(
-            "alive.parse_field_signature",
+            "RUNE.ALIVE.PARSE_FIELD_SIGNATURE",
             {"field_signature": field_signature},
             ctx=ctx,
             strict_execution=True

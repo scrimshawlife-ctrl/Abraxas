@@ -132,7 +132,7 @@ def main() -> int:
         if not term:
             continue
         classify_result = invoke_capability(
-            "forecast.term.classify",
+            "RUNE.FORECAST.TERM.CLASSIFY",
             {"profile": p0},
             ctx=ctx,
             strict_execution=True
@@ -140,7 +140,7 @@ def main() -> int:
         tcls = classify_result["classification"]
         miss = _missing_signals(p0, dmx_overall)
         csp_result = invoke_capability(
-            "conspiracy.csp.compute_term",
+            "RUNE.CONSPIRACY.CSP.COMPUTE_TERM",
             {
                 "term": term,
                 "profile": p0,
