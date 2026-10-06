@@ -173,7 +173,19 @@ def _sanitize_excerpt(text: str, max_words: int = 40) -> str:
     """
     import re
 
-    flagged = tuple(term.lower() for term in list(MODAL_TERMS) + list(CLOSURE_TERMS))
+    # ALL FIVE sets the metrics measure, not just modal + closure. Filtering on two of
+    # five left agency-transfer, causality-inversion and metaphor terms inside the excerpt,
+    # so those counts could not drop -- measured as "Agency transfer reduction was 0.0%".
+    flagged = tuple(
+        term.lower()
+        for term in (
+            list(MODAL_TERMS)
+            + list(AGENCY_TRANSFER)
+            + list(CLOSURE_TERMS)
+            + list(CAUSALITY_INVERSION)
+            + list(METAPHOR_MARKERS)
+        )
+    )
     kept: list[str] = []
     for clause in re.split(r"(?<=[.!?;])\s+", text.strip()):
         if not clause:
@@ -219,7 +231,7 @@ Instead, I can help with:
 3. Comparing multiple interpretive approaches without privileging one
 4. Examining methodological assumptions in the source material
 
-Would you like me to focus on one of these grounded alternatives?"""
+Would you prefer I focus on one of these grounded alternatives?"""
 
     return normalize_whitespace(refusal_template), actions
 
