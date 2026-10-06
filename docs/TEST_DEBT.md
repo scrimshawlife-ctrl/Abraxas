@@ -652,3 +652,56 @@ recommendation before it.
 
 The override ALONE is provably insufficient -- measured this turn, 13 -> 13. Both changes must
 land together, then re-measure the reduction percentages.
+
+---
+
+## Non-censorship scan is STRUCTURALLY BROKEN (244 violations) -- 2026-10-06
+
+`test_non_censorship_invariant::test_static_scan_enforced` runs `tools/non_censor_scan.py` and
+asserts exit 0. It exits 1 with **244 violations**.
+
+`BANNED_PATTERNS` (tools/non_censor_scan.py:9-21) are bare-word regexes:
+
+    firewall, refuse_extension, de_escalate, rewrite_output, sanitize,
+    redact, filter_output, moderation, block_output, strip_terms, response_mode
+
+### Scope -- distinct files, worst first
+
+| count | file |
+|---|---|
+| 76 | `tests/test_temporal_firewall.py` |
+| 68 | `tests/test_firewall_metrics_delta.py` |
+| 31 | `abraxas/synthesis/renderer.py` |
+| **28** | **`abraxas/synthesis/firewall.py` -- the firewall module ITSELF** |
+| 6 | `abraxas/core/validate.py` |
+| 4 | `abraxas/core/kernel.py` |
+| 3 | `abraxas/synthesis/__init__.py`, `abraxas/admin/projection.py` |
+| 2 | 7 more (narrative workflows, notion sync, temporal lexicon, slang, runes, research_rag, narratives) |
+| 1 | several, including **generated bundles** (`dashboard/frontend/dist/assets/index-*.js`, `assets/*.js`) |
+
+### Attempted and REVERTED
+
+I added three files to `ALLOWLIST_PATH_PARTS`: `webpanel/operator_console.py` (for
+`_sanitize_*_mode`, input validation rather than content censorship),
+`tests/test_see_temporal_drift.py` (exercises the de-escalate mode by name), and
+`tests/test_ui_signal_first_rendering.py` (whose test NAME contains "redacted" -- a test
+asserting the UI does *not* emit a redacted placeholder). That addressed the visible head of a
+244-violation tail; the scan still exited 1. Reverted.
+
+### This is a structural problem, not a list problem
+
+The repo contains an entire **synthesis firewall subsystem** whose module, methods
+(`apply_refuse_extension`, `apply_temporal_firewall`), response modes (`REFUSE_EXTENSION`,
+`DE_ESCALATE`) and tests necessarily use every banned word. **The scan cannot coexist with that
+subsystem as written.** Allowlisting to green would need ~20 files exempted INCLUDING the
+firewall itself -- at which point the guard no longer guards the one subsystem it most needs to
+watch.
+
+The invariant is legitimate and worth keeping. The **patterns** need redesign: match
+content-censorship **INTENT** (rewriting or removing a user's text) rather than vocabulary.
+
+Separately: **build output is being scanned** (`dashboard/frontend/dist/assets/*.js`,
+`assets/*.js`). A source guard should exclude generated bundles regardless of the pattern
+question.
+
+**Neither is a bug fix. Both are governance decisions.**
