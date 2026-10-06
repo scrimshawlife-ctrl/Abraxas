@@ -1253,14 +1253,8 @@ __all__ = [
     "EvidenceTransitionRecord", "UnmetBurdenRecord", "EvidenceGovernanceErrorRecord",
     "EvidenceGovernanceScorecard",
 ]
-
-print("=" * 60)
-print("UNIFIED ABRAXAS EVIDENCE MODULE LOADED")
-print("=" * 60)
-print("All 5 audit actions completed:")
-print("1. Legacy evidence merged into abraxas/evidence/legacy/")
-print("2. Missing verifiers implemented (Lexical, Sign, Latent)")
-print("3. Cross-engine arbitration extended (4-engine)")
-print("4. Trutina Brier scoring integrated (verified)")
-print("5. Alembic-style schema migration + gap analysis complete")
-print("=" * 60)
+# NOTE: this module used to print a 10-line banner on import, one line of which
+# claimed "4-engine" arbitration while the rest of the repo said 5. Printing from
+# a library module pollutes every test run, CI log and consumer process, and is
+# how that stale claim stayed invisible. Engine topology now lives in
+# abraxas/engines/manifest.py.

@@ -87,14 +87,15 @@ class YggdrasilCoordinator:
             raise
     
     def _register_default_engines(self) -> None:
-        """Register the default set of engines in the rune registry."""
-        # This would normally be done through discovery or configuration
-        # For now, we'll register the known engines
-        default_engines = [
-            "athanor", "hyperlex", "semion", "noesis", "trutina",
-            "chronos", "resonance", "oracle", "aether", "cypher",
-            "yggdrasil", "mock"
-        ]
+        """Register the default set of engines in the rune registry.
+
+        The list comes from abraxas.engines.manifest, the single source of truth.
+        It previously lived here as a literal that disagreed with both the
+        production registry and the engines that actually exist.
+        """
+        from abraxas.engines.manifest import registrable_names
+
+        default_engines = list(registrable_names())
         
         for engine_name in default_engines:
             self.rune_registry.register_engine(engine_name, {
