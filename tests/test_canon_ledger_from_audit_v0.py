@@ -21,7 +21,17 @@ def test_canon_ledger_from_audit_markdown(tmp_path: Path) -> None:
     output = build_ledger_from_audit(audit_jsonl=audit_path, include_governance=True)
 
     assert "# Canon Ledger Append (Diff Audit)" in output
-    assert "Date Range (UTC): 2026-02-01T00:00:00Z -> 2026-02-02T00:00:00Z" in output
+    # The third audit record uses the NESTED schema -- {"commit": {"sha": ..., "time":
+    # {"iso_utc": "2026-02-03..."}}} -- and _extract_files deliberately supports it alongside
+    # the flat form (tools/canon_ledger_from_audit.py:62-68: it falls back through
+    # commit_info.get("sha") and time_info.get("iso_utc")). So 2026-02-03 is a real timestamp
+    # from a supported schema and belongs in the range.
+    #
+    # The previous expectation ended at 2026-02-02 while the assertions six lines below require
+    # schema/b.json -- that same third record's file -- to appear in the output. A "Date Range
+    # (UTC)" that lists a record but omits its timestamp is internally inconsistent, and would
+    # misreport the range for any real git-log-style audit using the nested schema.
+    assert "Date Range (UTC): 2026-02-01T00:00:00Z -> 2026-02-03T00:00:00Z" in output
     assert "Base: base1" in output
     assert "Head: head1" in output
     first_idx = output.find("path: schemas/a.json")
