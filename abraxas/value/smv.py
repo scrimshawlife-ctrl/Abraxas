@@ -44,7 +44,22 @@ def build_units_from_vector_map(
             )
 
     units = _dedupe_units(units)
-    return sorted(units, key=lambda u: (u.kind.value, u.unit_id))
+    # Sort by SEMANTIC kind order, not by the enum's string value.
+    #
+    # The enum members are SCREAMING_CASE labels whose alphabetical order is arbitrary:
+    # CLASS < DOMAIN < SOURCE_LABEL < VECTOR_NODE. Sorting on kind.value therefore placed
+    # SOURCE_LABEL before VECTOR_NODE -- every source listed ahead of the node that owns it,
+    # which is the reverse of the hierarchy these units describe. SMVUnitKind is a str Enum,
+    # so the alphabetical collapse was silent.
+    #
+    # Order below is container-before-contents: node, then its domain/class, then sources.
+    _KIND_ORDER = {
+        SMVUnitKind.VECTOR_NODE: 0,
+        SMVUnitKind.DOMAIN: 1,
+        SMVUnitKind.CLASS: 2,
+        SMVUnitKind.SOURCE_LABEL: 3,
+    }
+    return sorted(units, key=lambda u: (_KIND_ORDER.get(u.kind, 99), u.unit_id))
 
 
 def build_units_from_recent_ledgers(
