@@ -17,7 +17,7 @@ def manifest_discover(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:manifest_discover",
+        "RUNE.MANIFEST_DISCOVER",
         {
             "source_id": source_id,
             "seeds": seeds or [],
@@ -36,7 +36,7 @@ def bulk_plan(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:bulk_plan",
+        "RUNE.BULK_PLAN",
         {
             "manifest_artifact": manifest_artifact,
             "window": window or {},
@@ -54,7 +54,7 @@ def bulk_execute(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:bulk_execute",
+        "RUNE.BULK_EXECUTE",
         {
             "bulk_plan": bulk_plan,
             "offline": offline,
@@ -71,7 +71,7 @@ def manifest_only_enforce(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:manifest_only_enforce",
+        "RUNE.MANIFEST_ONLY_ENFORCE",
         {"stage": stage, "decodo_used": decodo_used},
         ctx=ctx,
     )
@@ -83,7 +83,7 @@ def plan_finite_enforce(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:plan_finite_enforce",
+        "RUNE.PLAN_FINITE_ENFORCE",
         {"steps": steps},
         ctx=ctx,
     )

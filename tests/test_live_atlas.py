@@ -13,9 +13,9 @@ from abraxas.live.windowing import LiveWindowConfig, compute_live_windows
 
 
 def _stub_invoke(capability: str, payload, ctx=None):
-    if capability == "rune:metric_extract":
+    if capability == "RUNE.METRIC_EXTRACT":
         return {"metrics": [{"metric_id": "test.metric", "value": 1.0, "timestamp_utc": "2025-01-01T00:00:00Z"}]}
-    if capability == "rune:tvm_frame":
+    if capability == "RUNE.TVM_FRAME":
         return {
             "frames": [
                 {
@@ -27,9 +27,9 @@ def _stub_invoke(capability: str, payload, ctx=None):
                 }
             ]
         }
-    if capability == "rune:influence_detect":
+    if capability == "RUNE.INFLUENCE_DETECT":
         return {"ics": {}, "provenance": {"inputs_hash": "influence_hash"}}
-    if capability == "rune:synchronicity_map":
+    if capability == "RUNE.SYNCHRONICITY_MAP":
         return {"envelopes": [], "provenance": {"inputs_hash": "sync_hash"}}
     raise AssertionError(f"Unexpected capability: {capability}")
 

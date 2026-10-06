@@ -9,16 +9,16 @@ from abraxas.runes.invoke import invoke_capability
 
 
 def profile_run(*, config: Dict[str, Any], run_ctx: Dict[str, Any], ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
-    return invoke_capability("rune:profile_run", {"config": config, "run_ctx": run_ctx}, ctx=ctx)
+    return invoke_capability("RUNE.PROFILE_RUN", {"config": config, "run_ctx": run_ctx}, ctx=ctx)
 
 
 def profile_export(*, profile_pack: Dict[str, Any], out_path: str, ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:profile_export",
+        "RUNE.PROFILE_EXPORT",
         {"profile_pack": profile_pack, "out_path": out_path},
         ctx=ctx,
     )
 
 
 def profile_ingest(*, profile_pack: Dict[str, Any], ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
-    return invoke_capability("rune:profile_ingest", {"profile_pack": profile_pack}, ctx=ctx)
+    return invoke_capability("RUNE.PROFILE_INGEST", {"profile_pack": profile_pack}, ctx=ctx)

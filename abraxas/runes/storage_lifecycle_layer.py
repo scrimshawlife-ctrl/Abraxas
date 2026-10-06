@@ -10,7 +10,7 @@ from abraxas.runes.invoke import invoke_capability
 
 def storage_summarize(*, index_path: str, now_utc: str, ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:storage_summarize",
+        "RUNE.STORAGE_SUMMARIZE",
         {"index_path": index_path, "now_utc": now_utc},
         ctx=ctx,
     )
@@ -24,7 +24,7 @@ def lifecycle_plan(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:lifecycle_plan",
+        "RUNE.LIFECYCLE_PLAN",
         {"index_path": index_path, "now_utc": now_utc, "allow_raw_delete": allow_raw_delete},
         ctx=ctx,
     )
@@ -37,7 +37,7 @@ def lifecycle_execute(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:lifecycle_execute",
+        "RUNE.LIFECYCLE_EXECUTE",
         {"plan": plan, "allow_raw_delete": allow_raw_delete},
         ctx=ctx,
     )
@@ -45,7 +45,7 @@ def lifecycle_execute(
 
 def lifecycle_revert(*, pointer_path: str, ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:lifecycle_revert",
+        "RUNE.LIFECYCLE_REVERT",
         {"pointer_path": pointer_path},
         ctx=ctx,
     )

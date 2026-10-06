@@ -156,7 +156,7 @@ def invoke_capability(
         capability, input_adapter, output_adapter = alias
         requested_inputs = input_adapter(inputs)
 
-    # Prefer canonical rune bindings first (e.g., "rune:sds")
+    # Prefer canonical rune bindings first (e.g., "RUNE.SDS")
     bindings = list_runes_by_capability(capability)
     if bindings:
         if len(bindings) > 1:

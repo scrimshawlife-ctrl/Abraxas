@@ -92,8 +92,8 @@ def run_year(config: YearRunConfig) -> Dict[str, Any]:
         coverage.extend(result.output_refs.get("coverage") or [])
 
     influence_frames = [_flatten_frame(frame) for frame in frames]
-    influence = invoke_capability("rune:influence_detect", {"frames": influence_frames}, ctx=ctx)
-    synchronicity = invoke_capability("rune:synchronicity_map", {"frames": influence_frames}, ctx=ctx)
+    influence = invoke_capability("RUNE.INFLUENCE_DETECT", {"frames": influence_frames}, ctx=ctx)
+    synchronicity = invoke_capability("RUNE.SYNCHRONICITY_MAP", {"frames": influence_frames}, ctx=ctx)
 
     return emit_seedpack(
         year=config.year,
@@ -158,9 +158,9 @@ def _process_window_unit(unit: WorkUnit, packets: List[Dict[str, Any]], ctx: Run
         )
         packets_by_domain[domain] = packets_by_domain.get(domain, 0) + 1
         packets_by_source[source_id] = packets_by_source.get(source_id, 0) + 1
-    metrics = invoke_capability("rune:metric_extract", {"packets": window_packets}, ctx=ctx)
+    metrics = invoke_capability("RUNE.METRIC_EXTRACT", {"packets": window_packets}, ctx=ctx)
     tvm_frame = invoke_capability(
-        "rune:tvm_frame",
+        "RUNE.TVM_FRAME",
         {
             "metrics": metrics.get("metrics") or [],
             "window_start_utc": window.get("start"),

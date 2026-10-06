@@ -25,7 +25,7 @@ def compute_gate(
         SDS gate bundle with keys: susceptibility_score, gate_state, etc.
     """
     return invoke_capability(
-        "rune:sds",
+        "RUNE.SDS",
         {
             "state_vector": state_vector,
             "context": context,
@@ -94,7 +94,7 @@ def schedule_insight_window(
         }
 
     return invoke_capability(
-        "rune:ipl",
+        "RUNE.IPL",
         {
             "phase_series": phase_series,
             "gate_bundle": gate_bundle,

@@ -9,7 +9,7 @@ from abraxas.runes.invoke import invoke_capability
 
 
 def source_resolve(source_ids: List[str], *, ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
-    return invoke_capability("rune:source_resolve", {"source_ids": source_ids}, ctx=ctx)
+    return invoke_capability("RUNE.SOURCE_RESOLVE", {"source_ids": source_ids}, ctx=ctx)
 
 
 def temporal_normalize(
@@ -21,7 +21,7 @@ def temporal_normalize(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:temporal_normalize",
+        "RUNE.TEMPORAL_NORMALIZE",
         {
             "timestamp": timestamp,
             "timezone": timezone,
@@ -33,7 +33,7 @@ def temporal_normalize(
 
 
 def source_redundancy_check(sources: List[Dict[str, Any]], *, ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
-    return invoke_capability("rune:source_redundancy_check", {"sources": sources}, ctx=ctx)
+    return invoke_capability("RUNE.SOURCE_REDUNDANCY_CHECK", {"sources": sources}, ctx=ctx)
 
 
 def source_discover(
@@ -45,7 +45,7 @@ def source_discover(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:source_discover",
+        "RUNE.SOURCE_DISCOVER",
         {
             "residuals": residuals or [],
             "anomalies": anomalies or [],
@@ -57,4 +57,4 @@ def source_discover(
 
 
 def provenance_seal(payload: Dict[str, Any], *, ctx: RuneInvocationContext | dict) -> Dict[str, Any]:
-    return invoke_capability("rune:provenance_seal", {"payload": payload}, ctx=ctx)
+    return invoke_capability("RUNE.PROVENANCE_SEAL", {"payload": payload}, ctx=ctx)

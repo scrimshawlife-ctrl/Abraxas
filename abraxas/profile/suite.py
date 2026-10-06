@@ -63,9 +63,9 @@ def _benchmark_tvm_frames(ctx: Dict[str, Any]) -> Dict[str, Any]:
     packet_payload = ctx.get("packets")
     if not packet_payload:
         return {"not_computable": True, "reason": "packets_missing"}
-    metrics = invoke_capability("rune:metric_extract", {"packets": packet_payload}, ctx=ctx["ctx"])
+    metrics = invoke_capability("RUNE.METRIC_EXTRACT", {"packets": packet_payload}, ctx=ctx["ctx"])
     frames = invoke_capability(
-        "rune:tvm_frame",
+        "RUNE.TVM_FRAME",
         {
             "metrics": metrics.get("metrics") or [],
             "window_start_utc": ctx.get("window_start"),
@@ -88,8 +88,8 @@ def _benchmark_influence_synch(ctx: Dict[str, Any]) -> Dict[str, Any]:
     if not frames:
         return {"not_computable": True, "reason": "frames_missing"}
     flat_frames = [_flatten_frame(frame) for frame in frames]
-    influence = invoke_capability("rune:influence_detect", {"frames": flat_frames}, ctx=ctx["ctx"])
-    synch = invoke_capability("rune:synchronicity_map", {"frames": flat_frames}, ctx=ctx["ctx"])
+    influence = invoke_capability("RUNE.INFLUENCE_DETECT", {"frames": flat_frames}, ctx=ctx["ctx"])
+    synch = invoke_capability("RUNE.SYNCHRONICITY_MAP", {"frames": flat_frames}, ctx=ctx["ctx"])
     payload = {"influence": influence, "synch": synch}
     output_hash = sha256_hex(canonical_json(payload))
     return {

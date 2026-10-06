@@ -22,19 +22,19 @@ def run_source_shadow_flow(*, env: Dict[str, Any], subsystem_id: str = "mda") ->
     domains = list_mda_domains()
     source_ids = declared_sources_for_domains(domains)
     source_resolution = invoke_capability(
-        "rune:source_resolve",
+        "RUNE.SOURCE_RESOLVE",
         {"source_ids": source_ids},
         ctx=ctx,
     )
 
     redundancy = invoke_capability(
-        "rune:source_redundancy_check",
+        "RUNE.SOURCE_REDUNDANCY_CHECK",
         {"sources": source_resolution.get("sources")},
         ctx=ctx,
     )
 
     temporal_norm = invoke_capability(
-        "rune:temporal_normalize",
+        "RUNE.TEMPORAL_NORMALIZE",
         {
             "timestamp": env.get("run_at") or env.get("timestamp") or "1970-01-01T00:00:00Z",
             "timezone": env.get("timezone") or "UTC",
@@ -45,7 +45,7 @@ def run_source_shadow_flow(*, env: Dict[str, Any], subsystem_id: str = "mda") ->
     )
 
     discover = invoke_capability(
-        "rune:source_discover",
+        "RUNE.SOURCE_DISCOVER",
         {
             "residuals": env.get("residuals") or [],
             "anomalies": env.get("anomalies") or [],
@@ -57,12 +57,12 @@ def run_source_shadow_flow(*, env: Dict[str, Any], subsystem_id: str = "mda") ->
 
     source_packets = env.get("source_packets") or []
     metrics = invoke_capability(
-        "rune:metric_extract",
+        "RUNE.METRIC_EXTRACT",
         {"packets": source_packets},
         ctx=ctx,
     )
     tvm_frames = invoke_capability(
-        "rune:tvm_frame",
+        "RUNE.TVM_FRAME",
         {
             "metrics": metrics.get("metrics") or [],
             "window_start_utc": env.get("window_start_utc") or env.get("run_at") or "1970-01-01T00:00:00Z",
@@ -82,7 +82,7 @@ def run_source_shadow_flow(*, env: Dict[str, Any], subsystem_id: str = "mda") ->
     }
 
     seal = invoke_capability(
-        "rune:provenance_seal",
+        "RUNE.PROVENANCE_SEAL",
         {"payload": shadow_payload},
         ctx=ctx,
     )

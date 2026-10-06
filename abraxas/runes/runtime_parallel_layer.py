@@ -16,7 +16,7 @@ def parallel_stage_run(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:parallel_stage_run",
+        "RUNE.PARALLEL_STAGE_RUN",
         {"work_units": work_units, "config": config, "stage": stage},
         ctx=ctx,
     )
@@ -28,7 +28,7 @@ def serial_commit(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:serial_commit",
+        "RUNE.SERIAL_COMMIT",
         {"results": results},
         ctx=ctx,
     )
@@ -40,7 +40,7 @@ def deterministic_commit_order(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:deterministic_commit_order",
+        "RUNE.DETERMINISTIC_COMMIT_ORDER",
         {"results": results},
         ctx=ctx,
     )
@@ -52,7 +52,7 @@ def no_time_branching(
     ctx: RuneInvocationContext | dict,
 ) -> Dict[str, Any]:
     return invoke_capability(
-        "rune:no_time_branching",
+        "RUNE.NO_TIME_BRANCHING",
         {"payload": payload},
         ctx=ctx,
     )

@@ -56,8 +56,8 @@ def test_execution_trace_deterministic_view() -> None:
     trace = ExecutionTrace(
         run_id="RUN-TRACE",
         events=[
-            ExecutionTraceEvent(rune_id="ϟ₂", capability="rune:tam", status="ok", input_hash="a", order=2),
-            ExecutionTraceEvent(rune_id="ϟ₁", capability="rune:rfa", status="ok", input_hash="b", order=1),
+            ExecutionTraceEvent(rune_id="ϟ₂", capability="RUNE.TAM", status="ok", input_hash="a", order=2),
+            ExecutionTraceEvent(rune_id="ϟ₁", capability="RUNE.RFA", status="ok", input_hash="b", order=1),
         ],
     )
     view = trace.deterministic_view()

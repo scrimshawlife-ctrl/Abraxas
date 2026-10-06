@@ -28,7 +28,7 @@ def drift_check(
         ADD drift bundle with keys: drift_magnitude, integrity_score, auto_recenter, etc.
     """
     return invoke_capability(
-        "rune:add",
+        "RUNE.ADD",
         {
             "anchor": anchor,
             "outputs_history": outputs_history,

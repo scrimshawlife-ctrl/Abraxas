@@ -43,32 +43,32 @@ def run_tvm_shadow_flow(
     frames_payload = [frame.model_dump() for frame in frames]
 
     influence = invoke_capability(
-        "rune:influence_detect",
+        "RUNE.INFLUENCE_DETECT",
         {"frames": frames_payload},
         ctx=ctx,
     )
     weights = invoke_capability(
-        "rune:influence_weight",
+        "RUNE.INFLUENCE_WEIGHT",
         {"ics_bundle": influence},
         ctx=ctx,
     )
     synchronicity = invoke_capability(
-        "rune:synchronicity_map",
+        "RUNE.SYNCHRONICITY_MAP",
         {"frames": frames_payload},
         ctx=ctx,
     )
     cohesion = invoke_capability(
-        "rune:cohesion_score",
+        "RUNE.COHESION_SCORE",
         {"synchronicity_envelopes": synchronicity},
         ctx=ctx,
     )
     guard_causal = invoke_capability(
-        "rune:no_causal_assert",
+        "RUNE.NO_CAUSAL_ASSERT",
         {"payload": {"influence": influence, "synchronicity": synchronicity}},
         ctx=ctx,
     )
     guard_domain = invoke_capability(
-        "rune:no_domain_prior",
+        "RUNE.NO_DOMAIN_PRIOR",
         {"payload": {"frames": frames_payload, "env": env}},
         ctx=ctx,
     )

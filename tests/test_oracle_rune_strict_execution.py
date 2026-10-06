@@ -39,7 +39,7 @@ def test_compute_gate_forwards_strict_execution(monkeypatch) -> None:
         strict_execution=False,
     )
 
-    assert seen == {"capability": "rune:sds", "strict_execution": False}
+    assert seen == {"capability": "RUNE.SDS", "strict_execution": False}
 
 
 def test_schedule_insight_window_forwards_strict_execution(monkeypatch) -> None:
@@ -64,7 +64,7 @@ def test_schedule_insight_window_forwards_strict_execution(monkeypatch) -> None:
         strict_execution=True,
     )
 
-    assert seen == {"capability": "rune:ipl", "strict_execution": True}
+    assert seen == {"capability": "RUNE.IPL", "strict_execution": True}
 
 
 def test_drift_check_forwards_strict_execution(monkeypatch) -> None:
@@ -88,4 +88,4 @@ def test_drift_check_forwards_strict_execution(monkeypatch) -> None:
         strict_execution=False,
     )
 
-    assert seen == {"capability": "rune:add", "strict_execution": False}
+    assert seen == {"capability": "RUNE.ADD", "strict_execution": False}

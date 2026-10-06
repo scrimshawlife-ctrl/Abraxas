@@ -39,7 +39,7 @@ def load_registry(registry_path: str | Path | None = None) -> list[RuneBinding]:
     for entry in payload.get("runes", []):
         definition_path = _repo_root() / entry["definition_path"]
         definition = RuneDefinition(**json.loads(definition_path.read_text()))
-        capability = f"rune:{definition.short_name.lower()}"
+        capability = f"RUNE.{definition.short_name.upper()}"
         operator_module = definition.short_name.lower()
         metadata = definition.metadata if isinstance(definition.metadata, dict) else {}
         operator_path = (
