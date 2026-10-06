@@ -24,6 +24,7 @@ BASELINE_FAILURES=0
 # + 2 skipped.
 BASELINE_COLLECTED=3358
 OUT="$(mktemp)"
+RETRY="$(mktemp)"
 
 cd "$(dirname "$0")/.." || exit 2
 
@@ -71,6 +72,34 @@ status=0
 if [ "$failures" -gt "$BASELINE_FAILURES" ]; then
   echo "REGRESSION: $failures failures exceeds baseline $BASELINE_FAILURES" >&2
   grep -E '^(FAILED|ERROR) ' "$OUT" >&2
+
+  # Diagnostic: a failure that PASSES when run alone is not a reproducible regression.
+  # That fingerprint means shared mutable state -- most often a concurrent suite run in
+  # the same working tree touching out/, data/ or .aal/ -- or a collection-order
+  # dependency. Report which kind of red this is.
+  #
+  # This ANNOTATES only. The run still fails closed below; it must never turn a red run
+  # green. Node-ids are collected into an array (not word-split) because parametrized
+  # ids can contain spaces. Capped at 10 so a broad breakage cannot stall the ratchet.
+  nids=0
+  while IFS= read -r _nid; do
+    [ -n "$_nid" ] || continue
+    ids[$nids]="$_nid"
+    nids=$((nids + 1))
+  done < <(grep -E '^FAILED ' "$OUT" | awk '{print $2}' | head -10)
+
+  if [ "$nids" -gt 0 ]; then
+    echo "--- re-running $nids failed node-id(s) in isolation ---" >&2
+    if python -m pytest "${ids[@]}" -q -p no:cacheprovider > "$RETRY" 2>&1; then
+      echo "NOTE: every failed node-id PASSES in isolation. This is NOT a reproducible" >&2
+      echo "      regression -- suspect a concurrent run, or shared out/ state. Re-run" >&2
+      echo "      with nothing else using this working tree before treating it as real." >&2
+    else
+      echo "NOTE: the failure REPRODUCES in isolation -- this is a real regression." >&2
+      tail -3 "$RETRY" >&2
+    fi
+  fi
+
   status=1
 fi
 
