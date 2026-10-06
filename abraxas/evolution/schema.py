@@ -90,10 +90,13 @@ class SandboxResult(BaseModel):
     hindcast_window_days: int  # How far back we tested
     cases_tested: int
 
-    # Scores before/after
-    score_before: Dict[str, float]  # e.g., {"brier_avg": 0.25, "log_avg": 0.52}
-    score_after: Dict[str, float]  # e.g., {"brier_avg": 0.20, "log_avg": 0.45}
-    score_delta: Dict[str, float]  # e.g., {"brier_delta": -0.05, "log_delta": -0.07}
+    # Scores before/after.
+    # Optional values: aggregate_scores_for_cases() returns None for a metric that
+    # no case supplied (e.g. log_avg / calibration_error / trend_acc when there is
+    # no forecast_scoring), so these must accept None rather than only float.
+    score_before: Dict[str, Optional[float]]  # e.g., {"brier_avg": 0.25, "log_avg": 0.52}
+    score_after: Dict[str, Optional[float]]  # e.g., {"brier_avg": 0.20, "log_avg": 0.45}
+    score_delta: Dict[str, Optional[float]]  # e.g., {"brier_delta": -0.05, "log_delta": -0.07}
 
     # Per-horizon breakdown
     horizon_scores: Dict[str, Dict[str, Any]] = Field(default_factory=dict)

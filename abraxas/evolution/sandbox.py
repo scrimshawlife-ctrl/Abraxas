@@ -517,15 +517,24 @@ def _evaluate_cases(
     overrides: Optional[Dict[str, Any]],
     key: str
 ) -> List[BacktestResult]:
+    cases = list(cases)
     if overrides and key in overrides:
         override_results = overrides.get(key) or {}
         if isinstance(override_results, list):
             results = override_results
         else:
             results = list(override_results.values())
-        case_ids = [case.case_id for case in cases]
         results_by_case = {result.case_id: result for result in results}
-        return [results_by_case[case_id] for case_id in sorted(case_ids)]
+        # An override is per-case: use it where supplied, otherwise evaluate the
+        # case normally. Previously this replaced the entire result set and raised
+        # KeyError for any case the override map did not mention.
+        evaluated = [
+            results_by_case[case.case_id]
+            if case.case_id in results_by_case
+            else evaluate_case(case, enable_learning=False, run_id="sandbox")
+            for case in cases
+        ]
+        return sorted(evaluated, key=lambda result: result.case_id)
 
     results = []
     for case in cases:
