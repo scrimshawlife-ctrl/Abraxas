@@ -96,36 +96,40 @@ The actual state:
 the code it described, and the contradiction survived because nothing resolves a doc against
 the thing it documents — unlike the manifest's entry points, which a test does resolve.
 
-### Still open: fabricated evidence in the streaming path
+### Fabricated evidence in the streaming path — RESOLVED 2026-10-06
 
-Not changed, and a Jev consultation on 2026-10-06 **abstained** on it:
+Jev **abstained** on this (top confidence 0.39, below the 0.65 floor; `delete_path` a 0.52
+plurality), scoring `present_risk 0.43`, `doc-only sufficient 0.24`,
+`apply_autonomously 0.19` — so it went to the operator rather than being applied.
 
-```
-delete_path       0.520   <- weak plurality, NOT a mandate (confidence 0.39 < 0.65 floor)
-revert_to_manifest 0.210
-mark_unsupported  0.190
-document_only     0.040
-hand_over         0.040
+The operator directed a best-practice fix; the option taken was **rewire**, for reasons the
+manifest itself supplies:
 
-present_risk                  0.43   (not clearly a present problem)
-doc-only is sufficient        0.24   (no)
-apply autonomously            0.19   (no)
-```
+| Option | Why not |
+|---|---|
+| `delete_path` | would remove a capability worth building rather than fix it |
+| `mark_unsupported` | *"a name with no implementation is worse than an absent one"* — the manifest's own words about `aether` |
+| `document_only` | Jev scored it 0.04, and it leaves a hazard guarded only by accident |
 
-The residual is `ProductionOrchestrator._process_stream_item`
-(`abraxas/governance/production.py` ~701-773), which constructs a fabricated
-`EvidenceEnvelope` (`engine="stream"`, answer `"Processed via stream"`, confidence 0.75)
-from no provider at all and hands it to the arbiter.
+`_process_stream_item` no longer constructs an envelope. It calls `_collect_evidence` — the
+same path `run_pipeline` uses. **One evidence path now, not two.**
 
-`ProductionArbiter.arbitrate` checks engine health first and returns `Decision.ABSTAIN`
-because `"stream"` is not a registered engine — so the fabrication is currently **inert by
-accident rather than by design**. If `stream` were ever registered, or the health gate
-relaxed, it would become decidable immediately. `tests/integration/test_edge_cases.py`
-touches this path but only asserts the methods do not crash; it never waits for processing
-and never asserts a decision, so the path is functionally unverified.
+`ProductionOrchestrator._collect_evidence` is the only place the orchestrator obtains
+evidence, and it cannot synthesise any: an engine that raises is recorded `DEGRADED` and
+contributes nothing, so failure yields an **absence** rather than a fabricated result.
+Unhealthy engines are skipped rather than asked, so health can actually withhold evidence.
+With no usable engine the streaming path records `ABSTAIN` with `engines_used: []`.
 
-**Handed to the operator**, per Jev's `apply_autonomously = 0.19`. An abstention is not a
-weak yes: the top label has not been promoted to a decision.
+Guard: `tests/test_governance_evidence_provenance.py` —
+
+1. a **static scan** asserting every literal engine name in a governance-built envelope is
+   declared in the manifest — this is what caught `engine="stream"`, and it fails if the
+   pattern reappears anywhere under `abraxas/governance/`, reachable or not;
+2. a **count** asserting the layer has exactly one construction site (the declared test
+   double), counted rather than line-pinned so an unrelated edit above it cannot cause a
+   false failure;
+3. two **behavioural** tests over the streaming path, including the no-usable-engine case.
+
 
 
 ## How to promote a planned engine

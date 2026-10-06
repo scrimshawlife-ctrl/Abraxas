@@ -563,6 +563,42 @@ class ProductionOrchestrator:
             provenance={"mock": True}
         )
 
+    def _collect_evidence(
+        self, request_id: str, claim: str, context: Dict[str, Any]
+    ) -> List[EvidenceEnvelope]:
+        """Ask every healthy registered engine for evidence; return what they produced.
+
+        This is the ONLY place the orchestrator obtains evidence, and it cannot synthesise
+        any: an engine that raises is recorded DEGRADED and simply contributes nothing, so
+        a failing engine yields an ABSENCE rather than a fabricated result. That asymmetry
+        is the point — absence is honest, invention is not.
+
+        Unhealthy engines are skipped rather than asked, so health can actually withhold
+        evidence.
+        """
+        envelopes: List[EvidenceEnvelope] = []
+        for engine in self.engine_registry.all():
+            if not self.engine_registry.is_healthy(engine.engine_name):
+                continue
+            start = time.perf_counter()
+            try:
+                env = engine.produce_evidence(request_id, claim, context)
+                if isinstance(env, dict):
+                    env = EvidenceEnvelope.from_dict(env)
+                latency = (time.perf_counter() - start) * 1000
+                self.engine_registry.update_health(
+                    engine.engine_name, EngineStatus.HEALTHY, latency_ms=latency
+                )
+                envelopes.append(env)
+            except Exception as e:
+                self.engine_registry.update_health(
+                    engine.engine_name,
+                    EngineStatus.DEGRADED,
+                    error_rate=1.0,
+                    details={"error": str(e)},
+                )
+        return envelopes
+
     def run_pipeline(self, claim: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Run full 5-engine production pipeline."""
         if not self._initialized:
@@ -572,19 +608,7 @@ class ProductionOrchestrator:
         request_id = f"prod-{int(time.time() * 1000)}"
 
         # Step 1: Collect evidence from all engines
-        envelopes = []
-        for engine in self.engine_registry.all():
-            start = time.perf_counter()
-            try:
-                env = engine.produce_evidence(request_id, claim, context)
-                if isinstance(env, dict):
-                    env = EvidenceEnvelope.from_dict(env)
-                latency = (time.perf_counter() - start) * 1000
-                self.engine_registry.update_health(engine.engine_name, EngineStatus.HEALTHY, latency_ms=latency)
-                envelopes.append(env)
-            except Exception as e:
-                self.engine_registry.update_health(engine.engine_name, EngineStatus.DEGRADED, error_rate=1.0,
-                                                 details={"error": str(e)})
+        envelopes = self._collect_evidence(request_id, claim, context)
 
         # Step 2: Cross-engine arbitration
         decision = self.arbiter.arbitrate_batch(envelopes)
@@ -699,60 +723,57 @@ class ProductionOrchestrator:
         logger.info("Stream processor worker stopped")
 
     def _process_stream_item(self, item: Dict[str, Any]) -> None:
-        """Process a single item from the stream queue."""
+        """Process a single item from the stream queue.
+
+        Evidence comes from the registered engines, through the SAME path run_pipeline
+        uses. This method previously built its own envelope — engine="stream", answer
+        "Processed via stream", confidence 0.75 — from no provider at all. That was
+        fabricated evidence constructed INSIDE the governance layer, and it was inert only
+        by accident: "stream" is not a registered engine, so the arbiter's health gate
+        happened to return ABSTAIN. Register that name, or relax the gate, and the
+        fabrication becomes decidable with nothing else in the way.
+
+        The queue and worker pool are a TRANSPORT. A transport is not a source of
+        evidence, and must not be able to look like one.
+        """
         stream_id = item["stream_id"]
         evidence_id = item["evidence_id"]
         claim = item["claim"]
         context = item["context"]
-        
+
         try:
             logger.debug(f"Processing stream item {stream_id}: {claim[:50]}...")
-            
-            # Create evidence envelope (simplified for streaming)
-            envelope = EvidenceEnvelope(
-                engine="stream",
-                engine_version="1.0",
-                model_identity="stream-processor",
-                request_id=stream_id,
-                claim=claim,
-                candidate_outputs=[CandidateOutput(
-                    answer="Processed via stream",
-                    confidence=0.75,
-                    reasoning_trace="Stream processing pipeline",
-                    relation_steps=[]
-                )],
-                evidence_type=EvidenceType.RELATIONAL_REASONING,
-                confidence=0.75,
-                uncertainty=0.25,
-                provenance={"stream_processed": True, "original_evidence_id": evidence_id}
-            )
-            
-            # Run arbitration
-            decision = self.arbiter.arbitrate(envelope)
-            
-            # Create decision record
-            record = DecisionRecord.from_arbitration(
-                request_id=stream_id,
-                envelopes=[envelope],
-                decision=decision,
-                confidence=envelope.confidence,
-            )
-            
-            # Apply 6-gate governance
-            governance = self.governor.evaluate(record)
-            
+
+            envelopes = self._collect_evidence(stream_id, claim, context)
+
+            if not envelopes:
+                # No engine could produce evidence. Record the absence; invent nothing.
+                decision = Decision.ABSTAIN
+                record = None
+                governance: Dict[str, Any] = {}
+            else:
+                decision = self.arbiter.arbitrate_batch(envelopes)
+                record = DecisionRecord.from_arbitration(
+                    request_id=stream_id,
+                    envelopes=envelopes,
+                    decision=decision,
+                    confidence=sum(e.confidence for e in envelopes) / len(envelopes),
+                )
+                governance = self.governor.evaluate(record)
+
             # Prepare result
             result = {
                 "stream_id": stream_id,
                 "evidence_id": evidence_id,
                 "claim": claim,
                 "decision": decision.value,
-                "governed": governance["governed"],
-                "governance_score": governance["aggregate_score"],
-                "processing_time_ms": 0,  # Simplified
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "governed": governance.get("governed", False),
+                "governance_score": governance.get("aggregate_score", 0.0),
+                "engines_used": list(record.engines_used) if record else [],
+                "evidence_count": len(envelopes),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-            
+
             # Store result
             with self._stream_lock:
                 self._stream_results[stream_id] = result
