@@ -305,7 +305,7 @@ was changed to produce this sheet.** The distinction that matters:
 | 19 | `test_epp_builds_ranked_proposals` | `'SIW_LOOSEN_SOURCE' not in {COMPONENT_FOCUS_SUGGESTION, OFFLINE_EVIDENCE_ESCALATION, SIW_TIGHTEN_SOURCE, VECTOR_NODE_CADENCE_CHANGE}` | **RESOLVED 2026-10-06** -- see `## EPP dual-fixture` below. Not a missing emit path: the builder derives ONE global composite risk per run, so TIGHTEN (risk >= 0.6) and LOOSEN (risk <= 0.3) are mutually exclusive within a single run. Test restructured to exercise both risk profiles. |
 | 20 | `test_evolution_system::test_promotion_creates_ticket` | `ValueError: Cannot promote candidate: Missing rent manifest draft` (`abraxas/evolution/promotion_gate.py:142`) | Gate requires a draft the test does not supply. Determine whether the gate or the test omits the step |
 | 21 | `test_non_censorship_invariant::test_static_scan_enforced` | Static scan reports potential violations | **RESOLVED 2026-10-06** -- the scan was STRUCTURALLY BROKEN (244 violations). Patterns were bare-word vocabulary regexes (`firewall`, `sanitize`, `redact`, ...) that flagged the synthesis firewall subsystem itself. Redesigned for intent (require user-content-modification context) + expanded allowlist. 244 -> 0. |
-| 22 | `test_memetic_claim_runes::test_cluster_claims_deterministic` | `[[0],[1],[2]]` vs expected `[[0,1],[2]]` | ALREADY DECLINED earlier this session (Q7): token Jaccard scores 0.21 vs the expected 0.42. Reaching it means redesigning the similarity metric = test-fitting. Jev's weakest ruling, 0.73 |
+| 22 | `test_memetic_claim_runes::test_cluster_claims_deterministic` | `[[0],[1],[2]]` vs expected `[[0,1],[2]]` | **RESOLVED 2026-10-06** -- see `## Memetic cluster fixture` below. The earlier "test-fitting / leave red" verdict was WRONG. The test was **born red**: run at the commit that introduced it (`7d03ad16`) it fails identically, and `claim_cluster.py` has never changed. 0.42 is canonical on four surfaces, so the **fixture** was the defect -- its two "related" claims shared 3 of 13 tokens (0.23). Fixture corrected to 0.78; threshold untouched. |
 
 ### The headline
 
@@ -365,6 +365,158 @@ same contract:
 
 **No production code changed.** No threshold moved. The builder's mutually-exclusive
 gating is correct; the test's single-run premise was the defect.
+
+## Memetic cluster fixture -- resolved 2026-10-06
+
+### The earlier verdict was wrong, and the reason is instructive
+
+This failure had been ruled **test-fitting / leave red** (Jev 0.73, the session's weakest
+ruling). That was wrong. The rule I should have applied first: **check whether the test
+ever passed.**
+
+```
+git log --follow -- tests/test_memetic_claim_runes.py     # introduced: 7d03ad16
+git diff 7d03ad16 HEAD -- abraxas/memetic/claim_cluster.py # EMPTY -- never changed
+git worktree add /tmp/wt 7d03ad16 && cd /tmp/wt \
+  && python -m pytest tests/test_memetic_claim_runes.py   # FAILS identically
+```
+
+The test was **born red**. The assertion `clusters == [[0,1],[2]]` has never held, and the
+implementation under it has never changed. So the failure could not be drift and could not
+be a threshold that drifted -- it was a contradiction between the test's *input* and its
+*expectation*, present on the day it was written.
+
+### Which side was canonical
+
+The threshold, decisively. `0.42` is a declared default on **four surfaces**:
+
+| Site | Declaration |
+|---|---|
+| `abraxas/memetic/claim_cluster.py:116` | `sim_threshold: float = 0.42` |
+| `abraxas/memetic/rune_adapter.py:122` | `sim_threshold: float = 0.42` |
+| `abx/claims_run.py:31` | `--sim-threshold ... default=0.42` (production CLI) |
+| `abx/term_claims_run.py:69` | `--sim-threshold ... default=0.42` (production CLI) |
+
+Four independent witnesses, two of them production entry points. The test did not
+originate the number; it inherited it.
+
+So the **fixture** was the defect. Clustering is token-Jaccard -- **lexical, not
+semantic** -- and the old fixture's two "related" claims shared only three tokens:
+
+```
+t0: across align alpha beta channels delta gamma signals        (8)
+t1: alpha beta consensus cycle gamma improves latest the       (8)
+jaccard(0,1) = 3/13 = 0.2308   -> separate at 0.42
+```
+
+The claims were *semantically* related ("alpha beta gamma" in both) but shared almost no
+vocabulary. No threshold below 0.23 could merge them, and lowering 0.42 to 0.23 is exactly
+the test-fitting the earlier ruling correctly refused to do.
+
+### The fix
+
+Corrected the fixture so the related pair genuinely clears the canonical threshold, while
+the unrelated claim stays isolated:
+
+```
+t0: across align alpha beta channels delta gamma signals       (8)
+t1: across alpha beta channels delta drift gamma signals       (8)   # same set, one token differs
+jaccard(0,1) = 7/9 = 0.7778   -> MERGE at 0.42
+jaccard(0,2) = 0.0000         -> separate
+jaccard(1,2) = 0.0000         -> separate
+clusters @ 0.42 -> [[0, 1], [2]]
+```
+
+**Threshold untouched. No production code changed.** Also added a guard the original test
+lacked -- the same input at `sim_threshold=0.90` must yield `[[0], [1], [2]]`. That pins
+the property that was silently unverified: if clustering ever ignored `sim_threshold`, the
+merge assertions would still pass, but this one would not.
+
+### The transferable lesson
+
+`[[0],[1],[2]]` vs `[[0,1],[2]]` is a fixture/expectation contradiction, and it looks
+**identical** to threshold drift. The two are distinguished by exactly one question: did
+this test ever pass? Git answers it in seconds. Establish that before ruling on which side
+is canonical -- a "leave it red" verdict on a born-red test silently accepts a broken test
+as a broken system.
+
+## Self-build cleaned-chain cluster -- resolved 2026-10-06
+
+### Symptom
+
+`tests/test_self_build_approval_receipt.py::test_approval_receipt` fails with
+`assert 0 >= 1` -- but it passed 15 minutes earlier with no code change. It looks like a
+regression and is not.
+
+### Diagnosed
+
+```python
+def test_approval_receipt() -> None:
+    result = run_self_build_approval_receipt([], [])
+    assert result["schema_version"] == "SelfBuildApprovalReceipt.v1"
+    assert result["approval_count"] >= 1        # <-- asserts LIVE REPO STATE
+```
+
+`approval_count` is `len(queue["items"])` where the queue comes from
+`run_self_build_operator_queue()` -> dry_run -> patch_plan -> the chain that scans the
+**live repo** for top-level `NOT_COMPUTABLE` targets. No injection point anywhere in the
+chain, and the test passes empty `approved_ids`/`rejected_ids`, so the queue is the only
+input.
+
+The skill's own diagnostic settled it:
+
+```
+out/ artifacts with top-level status=NOT_COMPUTABLE: 0
+out/ artifacts containing 'upgraded_from':            8
+```
+
+**Zero un-remediated targets, eight already upgraded.** The chain has drained. The queue is
+empty *legitimately* -- the work is done. Because the scan will not find new targets, the
+queue stays empty, so `approval_count >= 1` can **never pass again**. This was not a
+regression and not flakiness: it is a test asserting a property of mutable repo state.
+
+### The fix
+
+A testability seam, added additively so behaviour is unchanged when it is not used:
+
+```python
+def run_self_build_approval_receipt(
+    approved_ids, rejected_ids, queue: dict[str, Any] | None = None,
+):
+    if queue is None:
+        queue = run_self_build_operator_queue()   # default path, unchanged
+```
+
+The chain's other callers (`self_build_batch_cycle.py:102`,
+`self_build_controlled_apply.py:62`, `scripts/run_self_build_approval_receipt.py`) pass no
+`queue` and are unaffected -- verified by running both of their test modules.
+
+Three tests now replace the single brittle one:
+
+| Test | Covers |
+|---|---|
+| `..._maps_operator_decisions` | PENDING / APPROVED / REJECTED mapping, sort order, `target_path` passthrough -- **hermetic** |
+| `..._is_deterministic_and_observe_only` | canonical hash stability; `mutation`/`execution` false, `observe_only` true |
+| `..._mirrors_the_live_queue` | default path still reads the live queue and mirrors it **exactly** |
+
+The first two are the important ones: because the live queue was empty, the loop that maps
+decisions onto items **never executed** under the old test. The mapping -- the function's
+entire reason to exist -- was untested. Injecting the queue exercises it for the first time.
+
+`..._mirrors_the_live_queue` keeps the live dependency but asserts the *mirror* property
+(`count == len(queue["items"])`) instead of a non-zero depth, so it holds on a drained repo
+and on a full one.
+
+**No threshold moved. No governance rule touched.** The `>= 1` assertion was replaced
+because it asserted repo state, not behaviour -- it was never capable of testing the
+function it names.
+
+### The transferable lesson
+
+When a test failure's *input* is live repository state, first ask what would have to be true
+for the test to pass **forever**. Repairing the repo to satisfy such a test (hand-writing a
+`NOT_COMPUTABLE` artifact to re-arm the queue) would falsify state and make the assertion
+pass for one run. Add a seam and test the contract instead.
 
 ## Runes registry / YGGDRASIL integration -- discovery + Jev ruling 2026-10-06
 
