@@ -28,14 +28,14 @@
       "short_name": "Alignments",
       "description": "View phase alignment timeline",
       "url": "/#phase-alignments",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
     },
     {
       "name": "Resonance Narratives",
       "short_name": "Narratives",
       "description": "View resonance narratives",
       "url": "/#resonance-narratives",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
     }
   ]
 }
