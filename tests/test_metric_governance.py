@@ -328,9 +328,12 @@ def test_stabilization_gate_fail_high_variance():
     """Test stabilization gate fails with high performance variance."""
     evaluator = MetricEvaluator()
 
-    # 6 cycles but very unstable
+    # 6 cycles but very unstable.
+    # The spread must actually produce variance >= 0.05: np.var of
+    # 0.20 + i*0.1 over i in 0..5 is 0.0292, which contradicts this test's own
+    # premise. This spread gives ~0.18 while still failing the gate on drift.
     performance_history = [
-        {"forecast_error": 0.20 + i * 0.1, "brier_score": 0.18}
+        {"forecast_error": 0.10 + i * 0.25, "brier_score": 0.18}
         for i in range(6)
     ]
 

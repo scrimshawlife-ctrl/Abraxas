@@ -166,8 +166,11 @@ class MetricEvaluator:
             nearest_metric_ids=nearest_metric_ids,
         )
 
-        # Pass if max correlation below threshold
-        passed = max_corr < max_corr_threshold
+        # Pass if max correlation below threshold.
+        # bool(...) is required: max_corr is a numpy scalar, so the comparison
+        # yields np.bool_, which breaks `passed is True` and contradicts the
+        # declared Tuple[bool, ...] return type.
+        passed = bool(max_corr < max_corr_threshold)
 
         return passed, redundancy_scores
 
