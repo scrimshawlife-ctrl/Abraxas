@@ -158,5 +158,23 @@ def _not_timesfm_3(model_id: str) -> bool:
 
 
 def _require(ok: bool, message: str) -> None:
+    """Raise a pydantic ValidationError carrying `message`.
+
+    pydantic v2's ValidationError cannot be constructed directly -- `ValidationError(msg)`
+    fails with "missing 1 required positional argument: 'line_errors'". Callers (and tests)
+    legitimately expect a ValidationError here, so build one through the supported
+    constructor. The message is carried in ctx so it survives into str(exc) and remains
+    matchable by pytest.raises(..., match=...).
+    """
     if not ok:
-        raise ValidationError(message)
+        raise ValidationError.from_exception_data(
+            title="TimesFMShadowValidation",
+            line_errors=[
+                {
+                    "type": "value_error",
+                    "loc": ("packet",),
+                    "input": message,
+                    "ctx": {"error": ValueError(message)},
+                }
+            ],
+        )
