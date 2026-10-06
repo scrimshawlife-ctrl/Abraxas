@@ -224,6 +224,55 @@ Reading it:
 Net: of the 12 gated, **1 got a ruled direction**, **8 remain hand-over**, **3 abstained**.
 Nothing was applied.
 
+## Density formula: developed, and it PROVED Jev's renormalize ruling unsound
+
+Jev ruled `renormalize` at 0.89 ("change the normalization, keep 0.1"). I implemented the
+arithmetic before touching code. The premise is false.
+
+### Measurements (all three diagram-role constraints)
+
+| Case | Requirement | words | phrase hits | base hits | base/words |
+|---|---|---|---|---|---|
+| PASSIVE | **< 0.1** | 10 | 0 | 1 | **0.1000** |
+| COMMANDING | >= 0.1 | 11 | 3 | 3 | 0.2727 |
+| NUMOGRAM | **>= 0.1** | 88 | 0 | 5 | **0.0568** |
+
+**PASSIVE (0.1000) > NUMOGRAM (0.0568), while PASSIVE must sit BELOW the threshold that
+NUMOGRAM must clear.** No monotonic function of word count, sentence count, hit count,
+distinct-term count, or any weighting of them can satisfy both.
+
+Eight candidate formulas were tested and ALL FAIL: phrases/words, phrases/sentences,
+(2*phrases+base)/words, phrases/words+base/words, distinct_base/sentences,
+phrases/sentences+base/words, max(phrases,base)/sentences, distinct_base/distinct_words.
+
+### Root cause: the counting, not the scaling
+
+The PASSIVE text is "This is a simple description of events **without** authority
+claims." It contains `authority` NEGATED. Counting the bare word is a FALSE POSITIVE,
+and that single false positive is what lets a 10-word text outscore an 88-word one.
+
+Separately, the numogram text contains NO phrase from the phrase list -- only bare
+words -- so phrase-only matching gives it 0.0 and it can never clear 0.1.
+
+**A rescaling cannot fix a misordering. `renormalize` was the wrong class of fix.**
+
+### Jev, re-consulted with the correction
+
+| Question | Ruling | Conf. |
+|---|---|---|
+| Given renormalization is provably insufficient, which option is canonical? | **negation_aware** (count only NON-NEGATED authority language) | **0.75** (p 0.800; structural_claims 0.090, abandon 0.060, hand_over 0.040, phrases_only_ack 0.010) |
+| Was your renormalize ruling unsound because its premise is false? | **YES** | noul **0.96** |
+| Apply autonomously without further review? | **NO** | noul **0.12** |
+
+Jev reverses its own 0.89 ruling when handed the real discriminator, and confirms the
+earlier premise was false at 0.96 -- exactly the documented behaviour: a ruling is only
+as good as the state fed to it, and it reverses readily once the evidence is fixed.
+
+**NOT APPLIED.** `negation_aware` changes detection behaviour, and `apply_autonomously`
+came back 0.12. Per the method, the correct outcome is to hand it over with the
+confidence attached. What is settled is the FORM of the fix (negation-aware matching,
+not a rescaling) and that the 0.1 threshold stays.
+
 ## Decision sheet: all 22 remaining failures, classified by cause
 
 Produced by pulling each error, following it to source, and classifying it. **No code
