@@ -39,6 +39,12 @@ CLASSIFIED_PATHS = {
     "scripts/run_receiver_acceptance_audit.py",
     "scripts/run_large_run_promotion_barrier.py",
     "tools/acceptance/run_acceptance_suite.py",
+    # Discovered by HEAVY_SCRIPT_PATTERN but never registered. All four exist and
+    # are reachable, so they belong in the registry rather than being excluded.
+    "scripts/generate_promotion_preflight.py",
+    "scripts/run_green_state_attestation.py",
+    "scripts/run_self_build_recommendation_execution_ledger.py",
+    "scripts/run_shadow_execution.py",
 }
 
 CLASSIFIED_CLI_SUBCOMMANDS = {
@@ -61,6 +67,7 @@ CLASSIFIED_MAKE_TARGETS = {
     "seal",
     "governance-lint",
     "governance-summary",
+    "dependency-governance-check",
 }
 
 

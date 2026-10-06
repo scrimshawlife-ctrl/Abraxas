@@ -293,6 +293,7 @@ CORE_REQUIRED may affect runtime truth. ENTRYPOINT_REQUIRED may launch surfaces 
 
 - Tier 1: `python -m abx.cli proof-run --run-id <RUN_ID>`
 - Tier 2: `python -m abx.cli promotion-check --run-id <RUN_ID>`
+- Tier 2.5: `python -m abx.cli promotion-check --run-id <RUN_ID>` (federated readiness bridge)
 - Tier 2.75: `python -m abx.cli promotion-policy --run-id <RUN_ID>`
 - Tier 3: `python scripts/run_execution_attestation.py <RUN_ID>` (policy-gated)
 
