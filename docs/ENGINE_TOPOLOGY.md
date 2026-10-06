@@ -87,11 +87,18 @@ governance currently arbitrates on fabricated evidence.
 
 ## How to promote a planned engine
 
-1. Implement an `EvidenceProvider` emitting a canonical `EvidenceEnvelope`.
-2. Move its `EngineSpec` in `abraxas/engines/manifest.py` from `PLANNED` to `LIVE` and fill
-   in `implementation`.
-3. `tests/test_engine_manifest_agreement.py` will then require the module to import, and
-   will fail if you forget.
+1. **Check the engine's own spec first.** `hyperlex` and `semion` are *not* promotion
+   candidates, even though `production.py` claims them and an earlier version of the
+   manifest called hyperlex "the closest to promotion". `hyperlex_instrument.py`'s
+   `promote_to_canonical_state()` *always* raises, and `TestHYPERLEX_Q1_PromotionBlocked`
+   asserts that block; semion has no instrument module at all. Both are deliberate SHADOW
+   surfaces. Promoting either means changing its authority boundary first — writing an
+   `EvidenceProvider` is not sufficient, and would contradict the spec that blocks it.
+2. Implement an `EvidenceProvider` emitting a canonical `EvidenceEnvelope`.
+3. Move its `EngineSpec` in `abraxas/engines/manifest.py` from `PLANNED` to `LIVE` and fill
+   in `implementation` — which the manifest will then require to resolve.
+4. `tests/test_engine_manifest_agreement.py` will require the module to import, and will
+   fail if you forget.
 
 Never mark an engine `live` without an implementation, and never add a `planned` engine to
 anything that presents engines as available.

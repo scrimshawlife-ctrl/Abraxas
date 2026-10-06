@@ -100,18 +100,25 @@ ENGINES: Tuple[EngineSpec, ...] = (
         PLANNED,
         "LEXICAL_SEMANTIC",
         "",
-        "HyperlexProvider exists only as a test-local class in "
-        "abraxas/evidence/test_hyperlex_q1.py. abraxas/evidence/hyperlex_instrument.py "
-        "defines HyperlexAuthorityError but is not an EvidenceProvider. "
-        "production.py already claims this engine, so it is the closest to promotion.",
+        "HyperlexProvider exists only as a class INSIDE a test "
+        "(abraxas/evidence/test_hyperlex_q1.py, in the arbitration integration test). "
+        "abraxas/evidence/hyperlex_instrument.py is an instrument, not a provider: its "
+        "promote_to_canonical_state() ALWAYS raises HyperlexAuthorityError ('cannot "
+        "become CANONICAL_STATE'), and TestHYPERLEX_Q1_PromotionBlocked asserts that "
+        "block. So this is a deliberate SHADOW surface, NOT a promotion candidate -- "
+        "making it live means changing its authority boundary first, not writing a "
+        "provider. production.py claiming it is a separate defect."
     ),
     _spec(
         "semion",
         PLANNED,
         "SIGN_RELATION",
         "",
-        "SemionProvider exists only as a test-local class in "
-        "abraxas/evidence/test_semion_q1.py. production.py already claims it.",
+        "SemionProvider exists only as a class INSIDE a test "
+        "(abraxas/evidence/test_semion_q1.py). semion_sign_relation_v1.spec.md supplies "
+        "fixtures and an authority boundary but there is no instrument module at all "
+        "(compare abraxas/evidence/hyperlex_instrument.py), so nothing here can emit an "
+        "EvidenceEnvelope yet. production.py claiming it is a separate defect."
     ),
     _spec(
         "chronos",
