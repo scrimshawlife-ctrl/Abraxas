@@ -204,7 +204,7 @@ def map_paper_model(
     return MappingResult(
         paper=paper,
         family=family,
-        params=params,
+        input_params=params,
         mapped=knobs,
         mapped_components=mapped_components,
     )

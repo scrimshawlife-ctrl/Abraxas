@@ -208,9 +208,15 @@ def classify_horizon_deterministic(
     )
 
     # Return with renamed keys for clarity
+    prov = dict(envelope["provenance"])
+    # Convenience aliases expected by callers/tests (envelope exposes *_sha256 / *_utc).
+    if "inputs_sha256" in prov:
+        prov["inputs_hash"] = prov["inputs_sha256"]
+    if "timestamp_utc" in prov:
+        prov["timestamp"] = prov["timestamp_utc"]
     return {
         "horizon_bucket": bucket,
-        "provenance": envelope["provenance"],
+        "provenance": prov,
         "not_computable": None  # horizon classification never fails
     }
 

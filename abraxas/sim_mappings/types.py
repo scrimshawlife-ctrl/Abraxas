@@ -133,27 +133,36 @@ class MappingResult:
 
     paper: PaperRef
     family: ModelFamily
-    params: List[ModelParam]
+    input_params: List[ModelParam]
     mapped: KnobVector
-    mapped_components: Dict[str, List[str]]  # Breakdown: {"MRI":[...], "IRI":[...], "τ":[...]}
+    mapped_components: Dict[str, List[str]] = field(default_factory=dict)
+    notes: str = ""
+
+    @property
+    def params(self) -> List[ModelParam]:
+        """Backwards-compatible alias for ``input_params``."""
+        return self.input_params
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dict for JSON serialization."""
         return {
             "paper": self.paper.to_dict(),
             "family": self.family.value,
-            "params": [p.to_dict() for p in self.params],
+            "input_params": [p.to_dict() for p in self.input_params],
             "mapped": self.mapped.to_dict(),
             "mapped_components": self.mapped_components,
+            "notes": self.notes,
         }
 
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> MappingResult:
         """Create from dict."""
+        raw_params = data.get("input_params", data.get("params", []))
         return MappingResult(
             paper=PaperRef.from_dict(data["paper"]),
             family=ModelFamily(data["family"]),
-            params=[ModelParam.from_dict(p) for p in data["params"]],
+            input_params=[ModelParam.from_dict(p) for p in raw_params],
             mapped=KnobVector(**data["mapped"]),
-            mapped_components=data["mapped_components"],
+            mapped_components=data.get("mapped_components", {}),
+            notes=data.get("notes", ""),
         )
