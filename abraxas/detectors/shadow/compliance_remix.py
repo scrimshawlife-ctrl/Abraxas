@@ -218,14 +218,16 @@ def compute_detector(context: Dict[str, Any]) -> DetectorOutput:
     This is a lightweight, bounded proxy over the contextual features emitted
     by upstream pipelines (drift, CSP, tau, fog, etc.).
     """
-    required = [
-        "drift",
-        "appearances",
-        "csp",
-        "tau",
-        "fog_type_counts",
-    ]
-    missing = sorted([k for k in required if k not in context])
+    # Required inputs are reported at leaf granularity so callers know exactly
+    # which signal is missing (contract asserted by the missing-inputs tests).
+    missing = []
+    if (context.get("drift") or {}).get("drift_score") is None:
+        missing.append("drift_score")
+    if "lifecycle_state" not in context:
+        missing.append("lifecycle_state")
+    if (context.get("tau") or {}).get("tau_velocity") is None:
+        missing.append("tau_velocity")
+    missing = sorted(set(missing))
     if missing:
         return DetectorOutput(
             status=DetectorStatus.NOT_COMPUTABLE,

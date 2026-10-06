@@ -1,4 +1,4 @@
-from datetime import timezone
+#!/usr/bin/env python3
 """
 Event Query Module
 
@@ -8,6 +8,7 @@ Deterministic ordering, no network calls.
 
 from __future__ import annotations
 
+from datetime import timezone
 import json
 from datetime import datetime
 from pathlib import Path

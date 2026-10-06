@@ -6,6 +6,8 @@ SEED Compliant: Deterministic, provenance-tracked.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any, Dict, Optional
 from pathlib import Path
 
@@ -13,10 +15,24 @@ from abraxas.core.provenance import canonical_envelope
 from abraxas.evolve.ledger import append_chained_jsonl as append_chained_jsonl_core
 
 
+def _canonical_record_hash(record: Dict[str, Any]) -> str:
+    """Deterministic SHA-256 over a record's canonical JSON form.
+
+    Uses sorted keys and compact separators so identical records hash
+    identically across runs and regardless of ledger path. Handles nested
+    dicts/lists (unlike ``hash(frozenset(record.items()))``).
+    """
+    payload = json.dumps(
+        record, sort_keys=True, separators=(",", ":"), default=str
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def append_ledger_deterministic(
-    path: str,
-    record: Dict[str, Any],
+    path: Optional[str] = None,
+    record: Optional[Dict[str, Any]] = None,
     seed: Optional[int] = None,
+    ledger_path: Optional[str] = None,
     **kwargs
 ) -> Dict[str, Any]:
     """
@@ -25,21 +41,25 @@ def append_ledger_deterministic(
     Wraps existing append_chained_jsonl with provenance envelope.
 
     Args:
-        path: Path to the JSONL ledger file
+        path: Path to the JSONL ledger file (positional form)
+        ledger_path: Alias for ``path`` (keyword form used by callers)
         record: Dictionary record to append
         seed: Optional deterministic seed (kept for consistency)
 
     Returns:
         Dictionary with success status, step_hash, and provenance
     """
+    # Accept either `path` or `ledger_path` (callers differ); both name the target file.
+    path = ledger_path if ledger_path is not None else path
+
     # Validate inputs
     if not path:
         return {
             "success": False,
             "step_hash": None,
             "not_computable": {
-                "reason": "Empty path provided",
-                "missing_inputs": ["path"]
+                "reason": "Invalid ledger_path: empty path provided",
+                "missing_inputs": ["ledger_path"]
             },
             "provenance": None
         }
@@ -58,12 +78,12 @@ def append_ledger_deterministic(
     # Call existing append_chained_jsonl function (side-effect operation)
     try:
         from abraxas.evolve.ledger import _get_last_hash
-        ledger_path = Path(path)
-        prev_hash = _get_last_hash(ledger_path)
+        target_path = Path(path)
+        prev_hash = _get_last_hash(target_path)
         append_chained_jsonl_core(path, record)
 
         # Read back the step_hash that was written
-        step_hash = _get_last_hash(ledger_path)
+        step_hash = _get_last_hash(target_path)
 
     except Exception as e:
         # Not computable - return structured error
@@ -78,20 +98,29 @@ def append_ledger_deterministic(
         }
 
     # Wrap in canonical envelope
+    record_hash = _canonical_record_hash(record)
     envelope = canonical_envelope(
         result={"success": True, "step_hash": step_hash},
         config={},
-        inputs={"path": path, "record_hash": hash(frozenset(record.items()))},  # Don't include full record in provenance
+        inputs={"record_hash": record_hash},  # Don't include full record in provenance
         operation_id="evolve.ledger.append",
         seed=seed
     )
+
+    # Add convenience aliases expected by callers/tests (mirrors
+    # enforce_non_truncation_deterministic's provenance aliasing).
+    # inputs_hash is record-derived only, so it is stable across ledger paths.
+    prov = dict(envelope["provenance"])
+    prov["inputs_hash"] = record_hash
+    if "timestamp_utc" in prov:
+        prov["timestamp"] = prov["timestamp_utc"]
 
     # Return with renamed keys for clarity
     return {
         "success": True,
         "prev_hash": prev_hash,
         "step_hash": step_hash,
-        "provenance": envelope["provenance"],
+        "provenance": prov,
         "not_computable": envelope["not_computable"]
     }
 

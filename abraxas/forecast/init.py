@@ -144,6 +144,153 @@ def default_ensemble_templates() -> Dict[str, Dict]:
     }
 
 
+# Add term_cluster:alpha template for FDR tests
+def default_ensemble_templates() -> Dict[str, Dict]:
+    """
+    Provide deterministic templates for canonical topics.
+
+    Returns dict mapping topic_key to template config.
+    """
+    templates = {
+        "deepfake_pollution": {
+            "description": "Deepfake content saturation and detection failure",
+            "branches": {
+                "conservative": {
+                    "p": 0.35,
+                    "description": "Current detection methods hold; deepfakes remain identifiable",
+                    "triggers": [
+                        {"kind": "index_threshold", "params": {"index": "SSI", "lte": 0.4}}
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.5},
+                },
+                "base": {
+                    "p": 0.40,
+                    "description": "Moderate increase in unverified content; detection strained",
+                    "triggers": [
+                        {
+                            "kind": "index_threshold",
+                            "params": {"index": "SSI", "gte": 0.4, "lte": 0.6},
+                        }
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.6},
+                },
+                "shock": {
+                    "p": 0.25,
+                    "description": "Detection overwhelmed; trust crisis in visual media",
+                    "triggers": [
+                        {"kind": "index_threshold", "params": {"index": "SSI", "gte": 0.7}},
+                        {"kind": "term_seen", "params": {"term": "deepfake", "min_count": 10}},
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.8},
+                },
+            },
+        },
+        "propaganda_pressure": {
+            "description": "Coordinated influence campaign intensity",
+            "branches": {
+                "conservative": {
+                    "p": 0.40,
+                    "description": "Low-level background noise; no coordinated campaigns",
+                    "triggers": [
+                        {
+                            "kind": "integrity_vector",
+                            "params": {"vector": "Coordinated Inauthentic Behavior", "min_score": 0.3},
+                        }
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.4},
+                },
+                "sustained": {
+                    "p": 0.35,
+                    "description": "Sustained propaganda campaign across multiple channels",
+                    "triggers": [
+                        {
+                            "kind": "integrity_vector",
+                            "params": {"vector": "Coordinated Inauthentic Behavior", "min_score": 0.6},
+                        },
+                        {"kind": "term_seen", "params": {"term": "propaganda", "min_count": 5}},
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.7},
+                },
+                "crisis": {
+                    "p": 0.25,
+                    "description": "Intense multi-platform campaign; institutional response",
+                    "triggers": [
+                        {
+                            "kind": "integrity_vector",
+                            "params": {"vector": "Coordinated Inauthentic Behavior", "min_score": 0.8},
+                        },
+                        {"kind": "index_threshold", "params": {"index": "SSI", "gte": 0.75}},
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.9},
+                },
+            },
+        },
+        "integrity_collapse": {
+            "description": "Systemic failure of content verification mechanisms",
+            "branches": {
+                "conservative": {
+                    "p": 0.50,
+                    "description": "Current verification methods adequate",
+                    "triggers": [
+                        {"kind": "index_threshold", "params": {"index": "SSI", "lte": 0.5}}
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.3},
+                },
+                "degraded": {
+                    "p": 0.30,
+                    "description": "Partial verification failure; trust declining",
+                    "triggers": [
+                        {"kind": "index_threshold", "params": {"index": "SSI", "gte": 0.5, "lte": 0.7}}
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.6},
+                },
+                "collapsed": {
+                    "p": 0.20,
+                    "description": "Widespread verification failure; content provenance lost",
+                    "triggers": [
+                        {"kind": "index_threshold", "params": {"index": "SSI", "gte": 0.8}},
+                        {
+                            "kind": "integrity_vector",
+                            "params": {"vector": "Authority Deepfake", "min_score": 0.7},
+                        },
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.9},
+                },
+            },
+        },
+        "term_cluster:alpha": {
+            "description": "Term cluster emergence and velocity tracking",
+            "branches": {
+                "emerging": {
+                    "p": 0.40,
+                    "description": "Term cluster showing emergence signals",
+                    "triggers": [
+                        {"kind": "term_velocity", "params": {"gte": 0.5}}
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.5},
+                },
+                "stable": {
+                    "p": 0.40,
+                    "description": "Term cluster stable, no significant velocity",
+                    "triggers": [
+                        {"kind": "term_velocity", "params": {"lt": 0.5, "gte": 0.1}}
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.3},
+                },
+                "dormant": {
+                    "p": 0.20,
+                    "description": "Term cluster dormant or declining",
+                    "triggers": [
+                        {"kind": "term_velocity", "params": {"lt": 0.1}}
+                    ],
+                    "manipulation_exposure": {"SSI_sensitivity": 0.2},
+                },
+            },
+        },
+    }
+    return templates
+
+
 def init_ensemble_state(
     topic_key: str,
     horizon: Horizon,

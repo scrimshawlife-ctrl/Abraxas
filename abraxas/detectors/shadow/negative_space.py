@@ -302,6 +302,27 @@ def compute_detector(context: Dict[str, Any], history: List[Dict[str, Any]] | No
             missing_keys=["symbol_pool"],
         )
 
+    # A usable baseline requires at least MIN_HISTORY_ENTRIES prior windows that
+    # each contribute symbols. Below the threshold the detector reports
+    # "sufficient_history" as the missing input (contract asserted by tests).
+    MIN_HISTORY_ENTRIES = 3
+    usable_windows = 0
+    for h in history:
+        pool = h.get("symbol_pool") if isinstance(h, dict) else None
+        if isinstance(pool, list) and any(
+            isinstance(item, dict) and str(item.get("narrative_id", "")).strip()
+            for item in pool
+        ):
+            usable_windows += 1
+
+    if usable_windows < MIN_HISTORY_ENTRIES:
+        return DetectorOutput(
+            status=DetectorStatus.NOT_COMPUTABLE,
+            value=None,
+            subscores={},
+            missing_keys=["sufficient_history"],
+        )
+
     # Baseline topics from history
     baseline_topics: Set[str] = set()
     for h in history:
@@ -317,7 +338,7 @@ def compute_detector(context: Dict[str, Any], history: List[Dict[str, Any]] | No
             status=DetectorStatus.NOT_COMPUTABLE,
             value=None,
             subscores={},
-            missing_keys=["history.symbol_pool"],
+            missing_keys=["sufficient_history"],
         )
 
     current_topics: Set[str] = set()

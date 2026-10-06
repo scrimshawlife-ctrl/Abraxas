@@ -64,9 +64,11 @@ class BacktestLedger:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "backtest_run_id": backtest_run_id,
             "case_id": result.case_id,
-            "status": result.status.value,
+            # BacktestResult uses ConfigDict(use_enum_values=True), so enum
+            # fields serialize to plain strings; tolerate both forms.
+            "status": getattr(result.status, "value", result.status),
             "score": result.score,
-            "confidence": result.confidence.value,
+            "confidence": getattr(result.confidence, "value", result.confidence),
             "satisfied_triggers": result.satisfied_triggers,
             "satisfied_falsifiers": result.satisfied_falsifiers,
             "notes": result.notes,

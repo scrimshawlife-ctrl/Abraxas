@@ -278,6 +278,14 @@ def apply_temporal_firewall(
     )
 
     # Build metadata
+    def _enum_value(x):
+        """Coerce enum-or-string to its serialized value.
+
+        TemporalDriftResult is configured with use_enum_values=True, so enum
+        fields surface as plain strings; other call sites may pass enums.
+        """
+        return x.value if hasattr(x, "value") else x
+
     metadata = {
         "response_mode": response_mode,
         "firewall_actions": actions,
@@ -286,10 +294,10 @@ def apply_temporal_firewall(
         "delta": delta,
         "provenance": provenance,
         "tdd_result": {
-            "temporal_mode": tdd_result.temporal_mode.value,
-            "causality_status": tdd_result.causality_status.value,
-            "diagram_role": tdd_result.diagram_role.value,
-            "sovereignty_risk": tdd_result.sovereignty_risk.value,
+            "temporal_mode": _enum_value(tdd_result.temporal_mode),
+            "causality_status": _enum_value(tdd_result.causality_status),
+            "diagram_role": _enum_value(tdd_result.diagram_role),
+            "sovereignty_risk": _enum_value(tdd_result.sovereignty_risk),
             "operator_hits": tdd_result.operator_hits,
         },
     }

@@ -1,4 +1,4 @@
-from datetime import timezone
+#!/usr/bin/env python3
 """
 Shadow Detector Base Types.
 
@@ -12,6 +12,7 @@ Canonical output contract:
 
 from __future__ import annotations
 
+from datetime import timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Any, List, Optional, Literal, Tuple
@@ -71,6 +72,24 @@ class DetectorOutput:
     subscores: Dict[str, float]
     missing_keys: List[str]
     bounds: Tuple[float, float] = (0.0, 1.0)
+    inputs_hash: str = ""
+
+    def model_dump(self) -> Dict[str, Any]:
+        """Serialize to a deterministic, JSON-friendly dict.
+
+        Mirrors Pydantic's ``model_dump`` so ``compute_detector`` results are
+        interchangeable with ``ShadowDetectorResult``. Subscores and
+        missing_keys are emitted in sorted order to guarantee stable output.
+        """
+        status = self.status.value if hasattr(self.status, "value") else self.status
+        return {
+            "status": status,
+            "value": self.value,
+            "subscores": {k: self.subscores[k] for k in sorted(self.subscores)},
+            "missing_keys": sorted(self.missing_keys),
+            "bounds": list(self.bounds),
+            "inputs_hash": self.inputs_hash,
+        }
 
 
 def clamp01(value: float) -> float:

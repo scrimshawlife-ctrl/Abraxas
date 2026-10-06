@@ -142,6 +142,10 @@ class RunState(BaseModel):
     profile_id: Optional[str] = None
     profile_applied_utc: Optional[str] = None
 
+    # Dynamically attached by the webpanel continuity/consideration/export
+    # surfaces (set via setattr). Declared here so Pydantic v2 permits it.
+    ledger_events: Optional[List[Dict[str, Any]]] = None
+
     @property
     def actions_remaining(self) -> Optional[int]:
         if not self.deferral_active or self.quota_max_actions is None:

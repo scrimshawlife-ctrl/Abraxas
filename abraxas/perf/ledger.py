@@ -1,4 +1,4 @@
-from datetime import timezone
+#!/usr/bin/env python3
 """Performance ledger - append-only JSONL for rent metrics.
 
 Performance Drop v1.0 - Provenance-tracked performance metrics.
@@ -6,6 +6,7 @@ Performance Drop v1.0 - Provenance-tracked performance metrics.
 
 from __future__ import annotations
 
+from datetime import timezone
 import json
 import os
 from datetime import datetime, timedelta

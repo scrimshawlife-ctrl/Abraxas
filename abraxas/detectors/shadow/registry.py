@@ -11,12 +11,24 @@ Canonical exports:
 
 from __future__ import annotations
 
+import dataclasses
+import hashlib
+import json
 from typing import Any, Callable, Dict, List
 
-from abraxas.detectors.shadow.types import DetectorStatus, ShadowDetectorResult
-from abraxas.detectors.shadow.compliance_remix import ComplianceRemixDetector
-from abraxas.detectors.shadow.meta_awareness import MetaAwarenessDetector
-from abraxas.detectors.shadow.negative_space import NegativeSpaceDetector
+from abraxas.detectors.shadow.types import DetectorStatus, DetectorOutput, ShadowDetectorResult
+from abraxas.detectors.shadow.compliance_remix import (
+    ComplianceRemixDetector,
+    compute_detector as compute_compliance_remix,
+)
+from abraxas.detectors.shadow.meta_awareness import (
+    MetaAwarenessDetector,
+    compute_detector as compute_meta_awareness,
+)
+from abraxas.detectors.shadow.negative_space import (
+    NegativeSpaceDetector,
+    compute_detector as compute_negative_space,
+)
 
 
 # Global detector registry (for compute_all_detectors and legacy access)
@@ -25,6 +37,31 @@ DETECTOR_REGISTRY = {
     "meta_awareness": MetaAwarenessDetector(),
     "negative_space": NegativeSpaceDetector(),
 }
+
+# Canonical per-detector compute functions producing DetectorOutput.
+DETECTOR_COMPUTE_FUNCS = {
+    "compliance_remix": compute_compliance_remix,
+    "meta_awareness": compute_meta_awareness,
+    "negative_space": compute_negative_space,
+}
+
+# Detectors whose compute_detector accepts a (context, history) signature.
+_HISTORY_AWARE_DETECTORS = {"negative_space"}
+
+
+def _detector_inputs_hash(
+    detector_name: str,
+    inputs: Dict[str, Any],
+    history: List[Dict[str, Any]] | None,
+) -> str:
+    """Deterministic SHA-256 over a detector's inputs (stable across runs)."""
+    payload = json.dumps(
+        {"detector": detector_name, "inputs": inputs, "history": history or []},
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def get_shadow_tasks(_ctx: Dict[str, Any]) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
@@ -47,16 +84,22 @@ def get_shadow_tasks(_ctx: Dict[str, Any]) -> Dict[str, Callable[[Dict[str, Any]
         return {}
 
 
-def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorResult]:
+def compute_all_detectors(
+    inputs: Dict[str, Any],
+    history: List[Dict[str, Any]] | None = None,
+) -> Dict[str, DetectorOutput]:
     """
     Run all shadow detectors on inputs.
 
     Args:
         inputs: Dictionary of input data. Each detector will extract
                 what it needs from this dict.
+        history: Optional prior-window contexts. When provided it is merged
+                 into the inputs under the "history" key so detectors that
+                 consult prior windows (e.g. negative_space) can use it.
 
     Returns:
-        Dict mapping detector_name -> ShadowDetectorResult
+        Dict mapping detector_name -> DetectorOutput
 
     Example:
         inputs = {
@@ -66,13 +109,23 @@ def compute_all_detectors(inputs: Dict[str, Any]) -> Dict[str, ShadowDetectorRes
         }
         results = compute_all_detectors(inputs)
     """
-    results = {}
+    # Backwards-compatible: single-arg callers pass only the merged inputs.
+    if history is None:
+        history = inputs.get("history") or []
+
+    results: Dict[str, DetectorOutput] = {}
 
     # Run each detector in deterministic order (sorted by name)
-    for detector_name in sorted(DETECTOR_REGISTRY.keys()):
-        detector = DETECTOR_REGISTRY[detector_name]
-        result = detector.detect(inputs)
-        results[detector_name] = result
+    for detector_name in sorted(DETECTOR_COMPUTE_FUNCS.keys()):
+        compute_fn = DETECTOR_COMPUTE_FUNCS[detector_name]
+        if detector_name in _HISTORY_AWARE_DETECTORS:
+            out = compute_fn(inputs, history)
+        else:
+            out = compute_fn(inputs)
+        # Attach a deterministic inputs hash so callers can compare runs.
+        results[detector_name] = dataclasses.replace(
+            out, inputs_hash=_detector_inputs_hash(detector_name, inputs, history)
+        )
 
     return results
 
@@ -103,9 +156,20 @@ def aggregate_evidence(results: Dict[str, ShadowDetectorResult]) -> Dict[str, An
     provenance_hashes = {}
 
     for detector_name, result in results.items():
-        provenance_hashes[detector_name] = result.compute_provenance_hash()
+        # Provenance hash: ShadowDetectorResult exposes compute_provenance_hash();
+        # DetectorOutput is a plain dataclass, so derive a stable SHA-256 from
+        # its deterministic model_dump().
+        if hasattr(result, "compute_provenance_hash"):
+            provenance_hashes[detector_name] = result.compute_provenance_hash()
+        else:
+            payload = json.dumps(
+                result.model_dump(), sort_keys=True, separators=(",", ":"), default=str
+            )
+            provenance_hashes[detector_name] = hashlib.sha256(
+                payload.encode("utf-8")
+            ).hexdigest()
 
-        if result.status == DetectorStatus.OK and result.evidence:
+        if result.status == DetectorStatus.OK and getattr(result, "evidence", None):
             computed.append(detector_name)
             evidence_by_detector[detector_name] = result.evidence.model_dump()
         elif result.status == DetectorStatus.NOT_COMPUTABLE:

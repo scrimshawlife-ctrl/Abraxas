@@ -1,4 +1,3 @@
-from datetime import timezone
 #!/usr/bin/env python3
 """Abraxas Acceptance Test Suite v1.0
 
@@ -7,6 +6,7 @@ Implements the hard gates defined in docs/acceptance/ABRAXAS_ACCEPTANCE_SPEC_v1.
 """
 
 from __future__ import annotations
+from datetime import timezone
 import sys
 import json
 import argparse

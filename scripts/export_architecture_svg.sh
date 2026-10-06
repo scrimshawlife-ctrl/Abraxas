@@ -45,9 +45,18 @@ root = ET.fromstring(text)
 def strip_max_width(style: str | None) -> str | None:
     if style is None:
         return None
-    cleaned = re.sub(r"(?:^|;)\s*max-width\s*:\s*[^;]+", "", style)
+    cleaned = re.sub(r"(?:^|;)\s*max-width\s*:[^;]+", "", style)
     cleaned = re.sub(r";;+", ";", cleaned).strip(" ;")
     return cleaned or None
+
+def strip_max_width_from_css(css: str) -> str:
+    # Remove max-width rules from CSS - more robust regex
+    cleaned = re.sub(r"\s*max-width\s*:[^;}]+;?", "", css)
+    # Clean up any double semicolons or semicolon before }
+    cleaned = re.sub(r";\s*;", ";", cleaned)
+    cleaned = re.sub(r";\s*}", "}", cleaned)
+    cleaned = re.sub(r"\{\s*;", "{", cleaned)
+    return cleaned
 
 def numeric_dimension(value: str | None) -> float | None:
     if value is None:
@@ -68,6 +77,20 @@ if style is None:
     root.attrib.pop("style", None)
 else:
     root.set("style", style)
+
+# Also strip max-width from <style> tag content
+for style_elem in root.iter():
+    if style_elem.tag.endswith("style") and style_elem.text:
+        style_elem.text = strip_max_width_from_css(style_elem.text)
+
+# Also strip max-width from all style attributes on any element
+for elem in root.iter():
+    if "style" in elem.attrib:
+        cleaned_style = strip_max_width(elem.attrib["style"])
+        if cleaned_style is None:
+            elem.attrib.pop("style", None)
+        else:
+            elem.set("style", cleaned_style)
 
 view_box = root.get("viewBox")
 if view_box:

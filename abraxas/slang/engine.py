@@ -220,12 +220,16 @@ class SlangEngine:
             tdd_result = self.tdd_detector.analyze(text, operator_hits)
 
             # Always annotate temporal mode and sovereignty risk
-            cluster.temporal_mode = tdd_result.temporal_mode.value
-            cluster.sovereignty_risk = tdd_result.sovereignty_risk.value
+            # (TemporalDriftResult uses use_enum_values=True -> fields may be
+            # plain strings; tolerate both enum and string forms.)
+            temporal_mode_val = getattr(tdd_result.temporal_mode, "value", tdd_result.temporal_mode)
+            sovereignty_val = getattr(tdd_result.sovereignty_risk, "value", tdd_result.sovereignty_risk)
+            cluster.temporal_mode = temporal_mode_val
+            cluster.sovereignty_risk = sovereignty_val
             cluster.tdd_operator_hits = tdd_result.operator_hits
 
             # Tag if temporal drift detected
-            if tdd_result.temporal_mode.value in ["inverted", "eschatological"]:
+            if temporal_mode_val in ["inverted", "eschatological"]:
                 cluster.drift_tags.append("TEMPORAL_DRIFT")
 
             # Enforce de-escalate mode for high sovereignty risk

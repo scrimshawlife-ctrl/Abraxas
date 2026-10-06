@@ -34,7 +34,7 @@ def _context(signal_id: str) -> DecisionContext:
             risk_notes="",
         ),
         requires_human_confirmation=False,
-        recommended_interaction_mode="advisor",
+        recommended_interaction_mode="present_options",
     )
 
 
