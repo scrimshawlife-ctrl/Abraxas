@@ -105,7 +105,7 @@ def extract_claim_items_deterministic(
         result={"items": items},
         config={"max_per_source": max_per_source},
         inputs={"sources": sources, "run_id": run_id},
-        operation_id="memetic.claim_extract.extract",
+        operation_id="memetic.claim_extract.items",
         seed=seed
     )
 
