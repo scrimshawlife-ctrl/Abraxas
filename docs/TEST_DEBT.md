@@ -390,6 +390,24 @@ count with:
     grep -rn "'[a-z_]*\.v[0-9]*\.[a-z_]*'\|\"[a-z_]*\.[a-z_]*\.\(append\|run\|build\)\"" --include=*.py abx/ abraxas/ | wc -l
 before committing to it.
 
+MEASURED blast radius (the number I should have had first):
+
+    capability_id values in registry        :  62
+    referenced in code                      :  55 of 62
+    total string-literal occurrences        : 129
+    distinct FILES needing edits            :  63
+
+    top: evolve.policy.enforce_non_truncation x12, forecast.scoring.brier x10,
+         evolve.ledger.append x10, compression.detect x7, forecast.term.classify x6
+    files: abraxas/*/rune_adapter.py (many), abraxas/evolve/*, abraxas/forecast/*,
+           abx/evolve_run.py, abx/mwr.py, abx/promote.py, abx/scoreboard.py, ...
+
+The rename IS mechanical and consistent -- `capability_id` is used as an exact quoted string
+key everywhere, so a complete find/replace is well-defined. It is LARGE, not ambiguous. It
+must be ONE atomic commit: 62 registry entries + all 129 call-site literals + 63 files
+together, then re-baseline and verify both collection orders. A partial (registry-only) change
+provably cannot work, as the 19 -> 31 regression showed.
+
 Lesson (third time this session, same shape): verify blast radius by MEASURING it, not by
 reasoning about it. "Low risk because it touches no canon identity" is a claim about SCOPE
 of the change, not about the number of DEPENDENTS.
