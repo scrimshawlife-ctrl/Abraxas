@@ -166,7 +166,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         if shadow_context is None and isinstance(payload, dict):
             shadow_context = _shadow_context(payload, run_at=args.run_at)
 
-        mda_out = run_mda_for_oracle(payload, env=args.env, run_at=args.run_at)
+        # run_mda_for_oracle is keyword-only and takes run_at_iso / seed (int) /
+        # abraxas_version. This call had drifted: it passed payload positionally
+        # (TypeError) and a nonexistent `run_at`. _shadow_seed already existed at
+        # module level, unused, for exactly this conversion.
+        mda_out = run_mda_for_oracle(
+            env=args.env,
+            run_at_iso=args.run_at,
+            seed=_shadow_seed(args.seed),
+            abraxas_version=args.version,
+            payload=payload,
+        )
         sig = mda_to_oracle_signal_v2(mda_out)
         if args.signal_schema_check:
             shallow_schema_check(sig)
