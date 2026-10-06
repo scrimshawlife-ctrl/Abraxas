@@ -357,6 +357,41 @@ unresolved and stays with the human.
 
 `apply_autonomously` = **0.08**, so neither half is applied here.
 
+### RESEARCH ANSWER: the convention is declared in the repo -- `RUNE.<PATH>` uppercase
+
+Jev abstained at 0.50 for lack of an external witness. The witness exists and is in-repo.
+The governing skill's precedence order puts "current repo implementation + generated
+artifacts" FIRST, above Notion and historical records. That tier settles it:
+
+`docs/runes/` is the **Rune Specs Index** -- the contract declaration layer, not prose:
+
+    docs/runes/README.md:1   # Rune Specs Index
+    docs/runes/README.md:4   "deterministic payload contract for `RUNE.CODE.REVIEW`"
+    docs/runes/FIND_SKILLS.md:1   # RUNE.FIND_SKILLS
+    docs/runes/FIND_SKILLS.md:93  "skill_id": "RUNE.FIND_SKILLS"
+    docs/runes/CODE_REVIEW.md:1   # RUNE.CODE.REVIEW
+    docs/runes/CODE_REVIEW.md:26  provenance fixed to contract marker `RUNE.CODE.REVIEW.contract.v1`
+
+**So the canonical convention is `RUNE.<UPPERCASE.DOTTED.PATH>`**, matching the skill's
+`RUNE.<SUBSYSTEM>.<CAPABILITY>` and Jev's top choice (uppercase_RUNE 0.600). The repo uses
+both `RUNE.<CAPABILITY>` and `RUNE.<SUBSYSTEM>.<CAPABILITY>` depths, and even a versioned
+contract-marker form `RUNE.CODE.REVIEW.contract.v1`.
+
+**Consequence: the test's assertion is the outlier.** `test_registry_integrity` asserts
+`capability.startswith("rune:")` -- lowercase with a colon -- which matches NEITHER the
+declared convention NOR the 62 dotted entries. Only the ~55 legacy `rune:<short>` entries
+satisfy it, and those contradict the documented form too.
+
+**Therefore this is not a 3-way tie.** Research breaks it:
+  canonical  : `RUNE.<PATH>` uppercase, per docs/runes/ + skill
+  migrate     : all 117 entries
+  test        : update the assertion to the declared convention, with the witness cited
+  NOT DONE    : prefixing 62 strings with `rune:` -- that would cement the wrong convention
+                and is the "silent normalization" the skill prohibits
+
+Not applied here: `apply_autonomously` was 0.08, and migrating 117 capability identifiers
+plus a validator is a contract change, not a test fix.
+
 ### The prohibited shortcut, recorded so it is not taken later
 
 The green-making move is to prefix 62 strings with `rune:`. The skill forbids exactly this:
