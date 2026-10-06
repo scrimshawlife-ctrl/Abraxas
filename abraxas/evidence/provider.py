@@ -123,20 +123,32 @@ class MockEvidenceProvider(EvidenceProvider):
 
 
 def create_athanor_adapter(
-    inference_engine: Callable,
+    inference_engine: Optional[Callable] = None,
     engine_name: str = "athanor",
     engine_version: str = "1.0"
 ) -> EvidenceProvider:
     """
     Factory to create an Athanor adapter that wraps an inference callable.
-    
+
     The inference_engine must accept (claim, context) and return a dict with:
     - candidates: List[CandidateOutput] or raw responses
     - model_identity: str
     - relations: List[str]
     - reasoning_steps: List[RelationStep]
     - provenance: Dict[str, Any]
+
+    When no inference_engine is supplied the model-agnostic adapter is used, so
+    this engine is usable without a bespoke custom model. Configure a real
+    endpoint via ABX_INFERENCE_BASE_URL / ABX_INFERENCE_MODEL; otherwise the
+    adapter reports deterministic offline provenance. Engine-specific custom
+    inference is a future capability ("custom inference coming soon" in the UI).
     """
+    if inference_engine is None:
+        from abraxas.evidence.adapters.model_agnostic import (
+            create_model_agnostic_inference,
+        )
+
+        inference_engine = create_model_agnostic_inference()
     
     class AthanorAdapter(EvidenceProvider):
         @property

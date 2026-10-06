@@ -7,6 +7,7 @@ import { ResonanceNarrativeViewer } from './components/ResonanceNarrativeViewer'
 import { RitualStatePanel } from './components/RitualStatePanel';
 import { TimechainStatus } from './components/TimechainStatus';
 import { Header } from './components/Header';
+import { InferenceNotice } from './components/InferenceNotice';
 import { OnboardingFlow } from './components/OnboardingFlow';
 import { useMetricsSummary } from './hooks/useArtifacts';
 import { useState, useEffect } from 'react';
@@ -26,6 +27,7 @@ export function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <main className="container mx-auto px-4 py-8 space-y-8" id="main-content" role="main">
+        <InferenceNotice />
         {/* Skip link for keyboard users */}
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 px-4 py-2 bg-blue-600 text-white rounded">
           Skip to main content
