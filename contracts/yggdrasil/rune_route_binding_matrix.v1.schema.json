@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abraxas.local/contracts/yggdrasil/rune_route_binding_matrix.v1.schema.json",
+  "title": "RuneRouteBindingMatrix.v1",
+  "description": "Rune-to-YGGDRASIL binding matrix. One row per declared ABX-Rune binding, each carrying an EXPLICIT reason for its resolution verdict. Adapted from the second attempt (Abraxas-v2.0 contracts/yggdrasil/rune_route_binding_matrix.v1.schema.json): that version keyed off a route concept this repo does not have, so only the invariant is taken — every binding states why it is or is not usable, rather than looking bound because a path was written down.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "total",
+    "resolved",
+    "unresolved",
+    "by_reason",
+    "duplicate_rune_ids",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "RuneRouteBindingMatrix.v1"
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of binding rows."
+    },
+    "resolved": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Rows whose operator path resolves to a callable."
+    },
+    "unresolved": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Rows that are not usable. total == resolved + unresolved."
+    },
+    "by_reason": {
+      "type": "object",
+      "description": "Count per reason. Every reason in the closed set is present even at zero, so a consumer can rely on the key set without diffing runs.",
+      "required": [
+        "RESOLVED",
+        "IMPORT_FAILED",
+        "MISSING_OPERATOR",
+        "NO_OPERATOR_DECLARED",
+        "MALFORMED_OPERATOR_PATH",
+        "NOT_CALLABLE",
+        "NOT_COMPUTABLE"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Z_]+$": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "duplicate_rune_ids": {
+      "type": "array",
+      "description": "Rune ids declared more than once. Must be empty: a duplicated id means two bindings answer to one name.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rows": {
+      "type": "array",
+      "description": "Sorted by (rune_id, capability), so the matrix is byte-stable across runs.",
+      "items": {
+        "type": "object",
+        "required": ["rune_id", "capability", "operator_path", "reason", "resolved"],
+        "additionalProperties": false,
+        "properties": {
+          "rune_id": {
+            "type": "string"
+          },
+          "capability": {
+            "type": "string",
+            "description": "Declared capability id, e.g. RUNE.FIND_SKILLS. May be empty for a malformed binding."
+          },
+          "operator_path": {
+            "type": "string",
+            "description": "module:attribute, or empty when none was declared."
+          },
+          "reason": {
+            "enum": [
+              "RESOLVED",
+              "IMPORT_FAILED",
+              "MISSING_OPERATOR",
+              "NO_OPERATOR_DECLARED",
+              "MALFORMED_OPERATOR_PATH",
+              "NOT_CALLABLE",
+              "NOT_COMPUTABLE"
+            ]
+          },
+          "resolved": {
+            "type": "boolean",
+            "description": "True if and only if reason == RESOLVED."
+          }
+        }
+      }
+    }
+  }
+}
