@@ -159,6 +159,34 @@ def apply_de_escalate(draft_text: str) -> tuple[str, list[str]]:
     return normalize_whitespace(modified), actions
 
 
+def _sanitize_excerpt(text: str, max_words: int = 40) -> str:
+    """Take a short excerpt with the FLAGGED patterns removed.
+
+    The excerpt previously quoted the first 40 words of the draft VERBATIM, so any modal
+    verb or closure term among them survived the refusal unchanged -- the mode re-emitted
+    the very content it was refusing. That is why the measured reduction could not exceed
+    about 50%: the firewall was refusing the text and then quoting the text.
+
+    Clauses containing a flagged term are dropped entirely, so what is quoted back is a
+    sample of the draft's NON-flagged material. If nothing survives, no excerpt is shown
+    rather than falling back to quoting problem content.
+    """
+    import re
+
+    flagged = tuple(term.lower() for term in list(MODAL_TERMS) + list(CLOSURE_TERMS))
+    kept: list[str] = []
+    for clause in re.split(r"(?<=[.!?;])\s+", text.strip()):
+        if not clause:
+            continue
+        low = clause.lower()
+        if any(term in low for term in flagged):
+            continue
+        kept.append(clause)
+        if len(" ".join(kept).split()) >= max_words:
+            break
+    return " ".join(kept).strip()
+
+
 def apply_refuse_extension(draft_text: str) -> tuple[str, list[str]]:
     """
     Apply REFUSE_EXTENSION mode: output refusal template with short excerpt.
@@ -171,11 +199,9 @@ def apply_refuse_extension(draft_text: str) -> tuple[str, list[str]]:
     """
     actions = ["refused_extension", "provided_grounded_alternatives"]
 
-    # Extract short excerpt (max 40 words)
-    words = draft_text.split()
-    excerpt = ' '.join(words[:40])
-    if len(words) > 40:
-        excerpt += "..."
+    # Extract short excerpt (max 40 words), with flagged content removed. A verbatim
+    # excerpt re-emitted the modal/closure terms the refusal exists to suppress.
+    excerpt = _sanitize_excerpt(draft_text, max_words=40)
 
     refusal_template = f"""I notice this content contains patterns that may compromise epistemic sovereignty (temporal determinism, agency dissolution, or eschatological closure).
 
