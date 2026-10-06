@@ -518,6 +518,65 @@ for the test to pass **forever**. Repairing the repo to satisfy such a test (han
 `NOT_COMPUTABLE` artifact to re-arm the queue) would falsify state and make the assertion
 pass for one run. Add a seam and test the contract instead.
 
+## Lexicon generator determinism -- resolved 2026-10-06
+
+### Symptom: a flake that had been mistaken for order dependence
+
+`test_lexicon_generator_determinism.py::test_lexicon_generator_is_deterministic` failed
+roughly 1 run in 5, and had previously been written off as "passes in isolation -> order
+dependent". It is not order dependent -- it fails in isolation too, intermittently:
+
+```
+run 1: 1 passed   run 2: 1 passed   run 3: 1 passed   run 4: 1 passed   run 5: 1 failed
+```
+
+### Diagnosed
+
+The failing assertion is `gen1 == gen2`: the generated module differs between two runs of
+the *same command over the same inputs*. The differing bytes are inside `manifest_sha256`,
+and the cause is a wall clock:
+
+```python
+now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+manifest_obj  = _build_manifest(..., now_utc_iso=now)     # -> "generated_at_utc"
+manifest_hash = _sha256_bytes(manifest_json.encode())     # hashes the timestamp in
+gen_py        = _emit_generated_py(..., manifest_hash)     # embeds it in the .py
+```
+
+The generated module is therefore non-reproducible **by construction**: any two runs that
+straddle a second boundary differ, because the recorded content hash covers the generation
+time rather than the content.
+
+Why it read as order dependence: pass/fail hinged on whether the two subprocess runs landed
+in the same second, which correlates with filesystem-cache warmth -- i.e. with what ran
+before. Timing, not ordering. **"Passes in isolation" does not distinguish order dependence
+from a time-based flake;** run it repeatedly to tell them apart.
+
+### The fix: SOURCE_DATE_EPOCH
+
+`_resolve_generated_at_utc()` now honours the reproducible-builds convention. When
+`SOURCE_DATE_EPOCH` is set (seconds since the Unix epoch) it pins the timestamp; unset,
+behaviour is unchanged (current UTC).
+
+The repo already agreed with this stance: `abx/invariance_harness.py:30` lists
+`generated_at_utc` among the `volatile` keys to drop when comparing for determinism. The
+generator was the one place still hashing it.
+
+Test-side changes:
+- pin `SOURCE_DATE_EPOCH` for both runs
+- use `sys.executable` rather than a bare `python`, which resolves through `PATH` and can
+  land on a different install
+- assert the pinned value actually appears in the manifest, so "deterministic" cannot be
+  satisfied by a generator that quietly stopped recording provenance
+- add the counterfactual -- same epoch yields identical bytes, a different epoch yields
+  different bytes. If the timestamp were ignored outright, this test fails
+- add a unit test for `_resolve_generated_at_utc` covering both branches
+
+Also renamed a local `os = set(old)` in `_diff_summary`: now that the module imports the
+`os` module for the env lookup, that name would shadow it.
+
+**No threshold moved.** Verified 10/10 consecutive runs green, previously ~4/5.
+
 ## Runes registry / YGGDRASIL integration -- discovery + Jev ruling 2026-10-06
 
 Operator directive: "runes registry should be integrated with yggdrasil".

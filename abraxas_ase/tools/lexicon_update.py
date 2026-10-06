@@ -4,6 +4,7 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence, Tuple
@@ -139,11 +140,35 @@ def _build_manifest(
 
 
 def _diff_summary(old: List[str], new: List[str]) -> Dict[str, List[str]]:
-    os = set(old)
-    ns = set(new)
-    added = sorted(ns - os)
-    removed = sorted(os - ns)
+    # NB: don't name these `os` -- the module imports the `os` module for
+    # SOURCE_DATE_EPOCH handling in _resolve_generated_at_utc below.
+    old_set = set(old)
+    new_set = set(new)
+    added = sorted(new_set - old_set)
+    removed = sorted(old_set - new_set)
     return {"added": added, "removed": removed}
+
+
+def _resolve_generated_at_utc() -> str:
+    """Generation timestamp, honouring the reproducible-builds convention.
+
+    The manifest records when it was generated, and that value is hashed into
+    `manifest_sha256`, which is then embedded in the generated module. With a wall
+    clock, two runs over identical inputs produce different bytes -- so the lexicon
+    could not be reproduced or byte-compared across machines or across seconds.
+
+    When SOURCE_DATE_EPOCH is set (seconds since the Unix epoch), that value is used
+    instead, making the output fully reproducible for identical inputs. Unset, the
+    behaviour is unchanged: the current UTC time.
+    """
+    epoch = os.environ.get("SOURCE_DATE_EPOCH")
+    if epoch:
+        try:
+            stamp = dt.datetime.fromtimestamp(int(epoch), dt.timezone.utc)
+        except ValueError:
+            raise SystemExit(f"SOURCE_DATE_EPOCH must be an integer: {epoch!r}")
+        return stamp.replace(microsecond=0).isoformat()
+    return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
 
 
 def main() -> None:
@@ -185,7 +210,7 @@ def main() -> None:
     stopwords = sorted(set(stopwords_all))
     subwords = sorted(set(subwords_all))
 
-    now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+    now = _resolve_generated_at_utc()
 
     manifest_obj = _build_manifest(
         in_dir=in_dir,
