@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+# Packet timestamps here must be RELATIVE, never hardcoded.
+#
+# verify_remote_evidence_manifest (abx/federated_transport.py:111,143) compares a
+# packet's observed_at against now() with max_age_days=14. These manifests pinned
+# observed_at to 2026-03-30, so every packet silently became STALE on 2026-04-13 and
+# the tests rotted ~6 months later with no code change. A relative timestamp is fresh
+# by construction and cannot rot.
+FRESH_OBSERVED_AT = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
 
 from abx.federated_evidence import extract_federated_evidence
 
@@ -58,7 +68,7 @@ def test_extract_federated_evidence_manifest_valid_sets_state_valid(tmp_path: Pa
                         "run_id": "RUN-FED-1",
                         "ref": "remote://pkt/1",
                         "status": "VALID",
-                        "observed_at": "2026-03-30T00:00:00+00:00",
+                        "observed_at": FRESH_OBSERVED_AT,
                     }
                 ],
             }
@@ -97,14 +107,14 @@ def test_extract_federated_evidence_manifest_inconsistent_sets_state(tmp_path: P
                         "run_id": "RUN-FED-2",
                         "ref": "remote://pkt/1",
                         "status": "VALID",
-                        "observed_at": "2026-03-30T00:00:00+00:00",
+                        "observed_at": FRESH_OBSERVED_AT,
                     },
                     {
                         "packet_id": "pkt-2",
                         "run_id": "RUN-FED-2",
                         "ref": "remote://pkt/2",
                         "status": "FAIL",
-                        "observed_at": "2026-03-30T00:00:00+00:00",
+                        "observed_at": FRESH_OBSERVED_AT,
                     },
                 ],
             }
