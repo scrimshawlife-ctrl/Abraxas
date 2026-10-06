@@ -62,6 +62,20 @@ Every non-trivial subsystem must exist in `.abraxas/registries/expected_subsyste
 ## Testing Discipline
 Run deterministic checks tied to changed surfaces before completion (`pytest -q`, governance scripts, lint/check targets).
 
+**Use the Hermes toolchain interpreter** — bare `python` on this host
+(`~/.hermes/tools/python-*/bin/python3`). It carries the suite's dependencies (pytest,
+numpy, asyncpg) and resolves this repo's namespace package `core/` *locally*. A bare
+`python3` on `PATH` can resolve `core/` into a different checkout via a stale editable
+install, which fails 28 test modules to collect with `ModuleNotFoundError` — that is the
+wrong interpreter, not a broken repo. `scripts/test_ratchet.sh` preflights this and fails
+closed.
+
+**Run one writer per working tree at a time.** Concurrent full-suite runs share `out/`,
+`data/`, and `.aal/`, and produce failures and collection-count changes that belong to
+neither run. A test that is never collected emits no `FAILED`/`ERROR` line, so the
+failure ratchet cannot see it — which is why `scripts/test_ratchet.sh` also ratchets the
+collected count (a floor that may only rise).
+
 ## Projection/UI Downstream Law
 UI, summaries, and projections can report status but cannot mint authority, closure, or promotion.
 
