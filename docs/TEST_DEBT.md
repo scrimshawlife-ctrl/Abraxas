@@ -597,3 +597,58 @@ suite no longer depends on which tests ran before it.
 
 Known remaining risk: a single collection order proves nothing on its own. Any future
 baseline claim should be confirmed under at least two different collection orders.
+
+---
+
+## Firewall corrections 2026-10-06 (two, both caught by reading before editing)
+
+### CORRECTION 1: the fixtures are NOT swapped
+
+I recorded a "fixture swap" hypothesis for the six firewall failures. It is WRONG. Reading the
+file shows the same fixture asserted for two different modes:
+
+    :190  test_abx_core_complexity_reduction_refuse      (draft_diagram_authority) -> REFUSE_EXTENSION
+    :213  test_abx_core_complexity_reduction_de_escalate (draft_diagram_authority) -> DE_ESCALATE
+
+Nothing is swapped. The real mechanism is a context override (firewall.py:259-260):
+
+    if "force_response_mode" in context:
+        response_mode = context["force_response_mode"]
+
+The sibling tests already use it -- test_de_escalate_reduces_closure_terms_50_percent and
+test_abx_core_complexity_reduction_de_escalate both pass
+context = {"force_response_mode": "DE_ESCALATE"}. The FAILING tests expect REFUSE_EXTENSION
+WITHOUT forcing it, from a fixture the classifier maps to HIGH/DE_ESCALATE, so the assertion
+could never hold. (The classifier-stays ruling above is unaffected -- tests/test_tdd_classifier.py
+still pins the ranking and still passes.)
+
+### CORRECTION 2: the reduction failure is in the refusal TEMPLATE, not the excerpt
+
+I applied the force_response_mode override to the two mode-failing tests. The mode assertions
+then passed and the tests STILL failed, on reduction:
+
+    "REFUSE_EXTENSION must reduce at least one applied metric"
+
+The excerpt is already sanitized, so the remaining source is the refusal template itself:
+
+    "I notice this content contains patterns that MAY compromise epistemic sovereignty
+     (temporal determinism, agency dissolution, or ESCHATOLOGICAL CLOSURE)."
+
+"may" is a MODAL_TERM and "eschatological closure" contains a CLOSURE_TERM. So the refusal
+announces a refusal while shipping two of the patterns it flags -- the same class of defect as
+the excerpt, one level up: in the fixed boilerplate rather than the quoted draft.
+
+### OUTCOME: reverted, net neutral
+
+With the override applied the suite was UNCHANGED: 13 failed / 3328 passed, NEWLY FAILING none.
+The override fixed the mode assertions and revealed the reduction assertions without moving the
+number, so it was reverted for no-churn, like the registry-only rename and the tuning_layer
+recommendation before it.
+
+### NEXT STEP (precise, both parts required)
+
+1. Rewrite the refusal template so it contains no MODAL_TERMS and no CLOSURE_TERMS.
+2. Apply the force_response_mode override to the two mode-failing tests.
+
+The override ALONE is provably insufficient -- measured this turn, 13 -> 13. Both changes must
+land together, then re-measure the reduction percentages.
