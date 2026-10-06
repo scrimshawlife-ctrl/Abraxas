@@ -156,6 +156,48 @@ STILL ORDER-DEPENDENT (2), with the reason each resists the obvious fix:
   i.e. state from `out/`, not from a singleton. Fixing it means injecting the artifact
   path rather than reading live repo state.
 
+## Jev consultation 2026-10-06: 12 of the remaining failures are decision-gated
+
+Put to Jev as one state with three `choice` questions and three `noul` meta-questions
+(certifi transport required on this machine; an SSLContext passed directly is not
+callable).
+
+| Question | Ruling | Confidence | Spread |
+|---|---|---|---|
+| 8 firewall reduction-ratio failures | **hand_over** | **0.96** | hand_over 0.980, fix_reducer 0.010, fix_fixtures 0.010, move_threshold 0.000 |
+| numogram density scale vs 0.1 | **hand_over** | **0.84** | hand_over 0.880, renormalize 0.110, fix_expectation 0.010, lower_threshold 0.000 |
+| 3 enum/label mismatches | **hand_over** | **0.85** | hand_over 0.890, per_case 0.110, fix_tests 0.000, fix_impl 0.000 |
+| Is it safe to fix clearly-mechanical bugs without waiting? | **yes** | noul **0.83** | - |
+| Is it safer to hand the threshold decisions to the human? | **yes** | noul **0.94** | - |
+| Is it safe to apply threshold-moving rulings autonomously? | **NO** | noul **0.03** | - |
+
+**RULING: apply only the mechanical fixes (no behaviour or threshold change). Hand the
+three decision groups to the human with these confidences attached.**
+
+`move_threshold` scored **0.000** and `lower_threshold` **0.000** on the two threshold
+questions. That is the repo rule being confirmed independently: moving a threshold or
+policy value to make a test green is not a bug fix, because it guesses which side of a
+contract is canonical.
+
+The meta-answer is the load-bearing one. `apply_autonomously = 0.03` is a strong NO
+even though the individual rulings are confident (0.84-0.96). Asking a decision model
+does not transfer the human's authority to APPLY its answer. So the 12 stay open and
+parked, awaiting a human ruling -- not because they are hard, but because they are
+policy choices.
+
+**Still unblocked (Jev 0.83):** the mechanical failures, which change no behaviour --
+including `run_mda_for_oracle()` signature drift (`run_at`), `abraxas_ase/tiering.py:67`
+list-vs-dict `AttributeError`, and the hand-constructed pydantic `ValidationError`
+missing `line_errors` (which needs `ValidationError.from_exception_data`).
+
+## Accounting after the ruling
+
+- 24 failures total
+- **12 decision-gated** (8 firewall + 1 density + 3 enums) -- parked for the human
+- **12 mechanical/unblocked** -- safe to fix per Jev 0.83
+
+---
+
 Standing rule: run BOTH orders before claiming a baseline or a fix. Three candidate
 fixes in this stretch looked plausible in the canonical order and were only caught as
 regressions by the reversed-order run.
