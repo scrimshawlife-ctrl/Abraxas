@@ -105,6 +105,24 @@ python -m abx.cli promotion-check --run-id <RUN_ID>
 python -m abx.cli promotion-policy --run-id <RUN_ID>
 ```
 
+The same three paths are available as `make` shortcuts (each one wraps the CLI subcommand above):
+
+```bash
+make proof RUN_ID=<RUN_ID>
+make promotion-check RUN_ID=<RUN_ID>
+make promotion-policy RUN_ID=<RUN_ID>
+```
+
+Governance lint — must pass before promotion:
+
+```bash
+python scripts/run_governance_lint.py
+```
+
+Release readiness criteria live in [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
+
+Operator-facing surfaces consume the shared projection contract `OperatorProjectionSummary.v1`; see [docs/CANONICAL_RUNTIME.md](docs/CANONICAL_RUNTIME.md).
+
 ### Gap-closure additive lane (documented implemented path)
 
 ```bash

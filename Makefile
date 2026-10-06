@@ -41,6 +41,24 @@ proof-run:
 		exit 2; \
 	fi
 	$(PYTHON) scripts/run_proof.py --subsystem $(SUBSYSTEM)
+proof:
+	@if [ -z "$(RUN_ID)" ]; then \
+		echo "Usage: make proof RUN_ID=<id>"; \
+		exit 2; \
+	fi
+	$(PYTHON) -m abx.cli proof-run --run-id $(RUN_ID)
+promotion-check:
+	@if [ -z "$(RUN_ID)" ]; then \
+		echo "Usage: make promotion-check RUN_ID=<id>"; \
+		exit 2; \
+	fi
+	$(PYTHON) -m abx.cli promotion-check --run-id $(RUN_ID)
+promotion-policy:
+	@if [ -z "$(RUN_ID)" ]; then \
+		echo "Usage: make promotion-policy RUN_ID=<id>"; \
+		exit 2; \
+	fi
+	$(PYTHON) -m abx.cli promotion-policy --run-id $(RUN_ID)
 capture-receipts:
 	@if [ -z "$(SUBSYSTEM)" ] || [ -z "$(OUT)" ]; then \
 		echo "Usage: make capture-receipts SUBSYSTEM=<name> OUT=<path>"; \
