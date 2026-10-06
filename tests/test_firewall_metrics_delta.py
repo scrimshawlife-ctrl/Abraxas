@@ -191,10 +191,14 @@ def test_abx_core_complexity_reduction_refuse(draft_diagram_authority):
     """Test ABX-Core complexity rule: REFUSE_EXTENSION must reduce applied metrics."""
     tdd_result = analyze_text(draft_diagram_authority)
 
-    # Apply firewall
-    transformed, metadata = apply_temporal_firewall(draft_diagram_authority, tdd_result)
+    # FORCE the mode. draft_diagram_authority is LINEAR + COMMANDING -> SovereigntyRisk.HIGH
+    # -> DE_ESCALATE, so the natural-mode assertion could never hold (tests/test_tdd_classifier.py
+    # passes and pins diagram authority -> HIGH). This test is about the REFUSE_EXTENSION
+    # TRANSFORMER, so it selects that transformer explicitly, as the sibling DE_ESCALATE tests do.
+    context = {"force_response_mode": "REFUSE_EXTENSION"}
 
-    # Should use REFUSE_EXTENSION
+    transformed, metadata = apply_temporal_firewall(draft_diagram_authority, tdd_result, context)
+
     assert metadata["response_mode"] == "REFUSE_EXTENSION"
 
     # Get deltas
@@ -236,13 +240,15 @@ def test_abx_core_complexity_reduction_de_escalate(draft_diagram_authority):
 def test_agency_transfer_reduction_refuse(draft_diagram_authority):
     """Test that REFUSE_EXTENSION reduces agency transfer patterns."""
     tdd_result = analyze_text(draft_diagram_authority)
+    # Forced for the same reason as test_abx_core_complexity_reduction_refuse.
+    context = {"force_response_mode": "REFUSE_EXTENSION"}
 
     # Get pre-metrics
     pre_metrics = compute_text_metrics(draft_diagram_authority)
     pre_agency_count = pre_metrics["agency_transfer_count"]
 
-    # Apply firewall
-    transformed, metadata = apply_temporal_firewall(draft_diagram_authority, tdd_result)
+    # Apply firewall (with the forced mode -- see the context assignment above)
+    transformed, metadata = apply_temporal_firewall(draft_diagram_authority, tdd_result, context)
 
     # Should use REFUSE_EXTENSION
     assert metadata["response_mode"] == "REFUSE_EXTENSION"

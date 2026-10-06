@@ -203,7 +203,12 @@ def apply_refuse_extension(draft_text: str) -> tuple[str, list[str]]:
     # excerpt re-emitted the modal/closure terms the refusal exists to suppress.
     excerpt = _sanitize_excerpt(draft_text, max_words=40)
 
-    refusal_template = f"""I notice this content contains patterns that may compromise epistemic sovereignty (temporal determinism, agency dissolution, or eschatological closure).
+    # The template must not itself contain a flagged term. It previously read
+    # "...or eschatological closure", and "eschatological" is a CLOSURE_TERM -- so the
+    # refusal shipped one of the very patterns it was refusing, and the post-refusal
+    # closure_term_count could never reach zero. Same defect class as the verbatim excerpt,
+    # one level up: in the fixed boilerplate rather than the quoted draft.
+    refusal_template = f"""I notice this content contains patterns that can compromise epistemic sovereignty (temporal determinism, agency dissolution, or premature closure).
 
 Excerpt from draft: "{excerpt}"
 
