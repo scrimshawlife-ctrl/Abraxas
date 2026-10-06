@@ -109,9 +109,11 @@ class FailureAnalyzer:
             case_id=case.case_id,
             run_id=result.run_id,
             backtest_result={
-                "status": result.status.value,
+                # BacktestResult uses ConfigDict(use_enum_values=True), so enum
+                # fields surface as plain strings; tolerate both forms.
+                "status": getattr(result.status, "value", result.status),
                 "score": result.score,
-                "confidence": result.confidence.value,
+                "confidence": getattr(result.confidence, "value", result.confidence),
             },
             unmet_triggers=unmet_triggers,
             hit_falsifiers=hit_falsifiers,

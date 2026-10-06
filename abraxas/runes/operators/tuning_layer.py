@@ -3,11 +3,11 @@
 Performance Tuning Plane v0.1 - Runes for canary workflow.
 
 Implements five tuning runes:
-- ABX-PERF_SUMMARIZE (߂�): Reads ledger � summary stats
-- ABX-PERF_TUNE_PROPOSE (߂�): Summary � candidate IR
-- ABX-PERF_TUNE_CANARY (߂�): Apply candidate in canary mode
-- ABX-PERF_TUNE_PROMOTE (߂�): Promote canary to ACTIVE
-- ABX-PERF_TUNE_REVOKE (߂�): Revert to previous ACTIVE
+- ABX-PERF_SUMMARIZE (ß‚„): Reads ledger ’ summary stats
+- ABX-PERF_TUNE_PROPOSE (ß‚…): Summary ’ candidate IR
+- ABX-PERF_TUNE_CANARY (ß‚†): Apply candidate in canary mode
+- ABX-PERF_TUNE_PROMOTE (ß‚‡): Promote canary to ACTIVE
+- ABX-PERF_TUNE_REVOKE (ß‚ˆ): Revert to previous ACTIVE
 """
 
 from __future__ import annotations
