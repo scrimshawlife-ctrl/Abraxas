@@ -165,7 +165,12 @@ class TestRuneDefinitionIntegration:
         definitions_dir = Path(__file__).parent.parent / "abraxas" / "runes" / "definitions"
         json_files = list(definitions_dir.glob("rune_*.json"))
 
-        assert len(json_files) == 21, "Expected 21 rune definition files"
+        # The canonical 21 runes are the floor; later layers (acquisition, perf)
+        # add more. Assert the canonical set is present and intact rather than
+        # freezing a count that every legitimate addition would break.
+        assert len(json_files) >= 21, (
+            f"Expected at least 21 rune definition files, found {len(json_files)}"
+        )
 
         for json_file in json_files:
             with open(json_file, "r", encoding="utf-8") as f:

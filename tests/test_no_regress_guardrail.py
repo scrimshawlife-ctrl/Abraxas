@@ -72,11 +72,11 @@ def test_no_regress_guardrail(tmp_path):
 
     for case_id in target_case_ids:
         case = _make_case(case_id, horizon="H72H")
-        (cases_dir / f"{case_id}.yaml").write_text(yaml.safe_dump(case.dict(), sort_keys=False))
+        (cases_dir / f"{case_id}.yaml").write_text(yaml.safe_dump(case.model_dump(mode="json"), sort_keys=False))
 
     for case_id in protect_case_ids:
         case = _make_case(case_id, horizon="H72H")
-        (cases_dir / f"{case_id}.yaml").write_text(yaml.safe_dump(case.dict(), sort_keys=False))
+        (cases_dir / f"{case_id}.yaml").write_text(yaml.safe_dump(case.model_dump(mode="json"), sort_keys=False))
 
     portfolios_path = tmp_path / "portfolios.yaml"
     portfolios_path.write_text(

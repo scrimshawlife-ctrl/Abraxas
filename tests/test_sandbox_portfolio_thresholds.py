@@ -26,7 +26,7 @@ from abraxas.evolution.sandbox import run_sandbox_portfolios
 
 
 def _write_case(case: BacktestCase, path: Path) -> None:
-    path.write_text(yaml.safe_dump(case.dict(), sort_keys=False))
+    path.write_text(yaml.safe_dump(case.model_dump(mode="json"), sort_keys=False))
 
 
 def _make_case(case_id: str) -> BacktestCase:

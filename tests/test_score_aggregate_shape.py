@@ -4,6 +4,8 @@ Tests for score aggregation shape.
 
 from datetime import datetime, timezone
 
+import pytest
+
 from abraxas.backtest.schema import BacktestResult, BacktestStatus, Confidence
 from abraxas.scoreboard.aggregate import aggregate_scores_for_cases
 
@@ -55,7 +57,7 @@ def test_score_aggregate_shape():
         "crps_avg",
         "abstain_rate",
     }
-    assert aggregated["brier_avg"] == 0.3
+    assert aggregated["brier_avg"] == pytest.approx(0.3)
     assert aggregated["log_avg"] == 0.5
     assert aggregated["trend_acc"] == 0.7
     assert aggregated["crps_avg"] == 0.4
