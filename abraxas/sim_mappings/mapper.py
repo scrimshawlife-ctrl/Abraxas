@@ -109,7 +109,11 @@ def map_params_to_knobs(
             param = param_dict[param_name]
             if param.value is not None:
                 lo, hi = get_param_range(param_name)
+                inverted = is_inverted_param(param_name)
+
                 normalized = minmax_clip(param.value, lo, hi)
+                if inverted:
+                    normalized = 1.0 - normalized  # Invert
 
                 # Heuristic: delay-like params contribute to latency,
                 # memory/kernel params contribute to memory
