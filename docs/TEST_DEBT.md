@@ -102,6 +102,34 @@ Session total: **134 → 28 failures, zero regressions.**
 - Prove zero regressions after every batch by set-diffing failure lists.
 - Record every Jev ruling with its confidence, and record abstentions as abstentions.
 
+## The 28 baseline is NOT firm (found 2026-10-06)
+
+Re-running the suite with a **reversed** collection order (`find tests -name 'test_*.py'
+| sort -r`) yields **31 failures, not 28**. Three tests appear only in that order:
+
+    tests/shadow_metrics/test_access_control.py::test_direct_module_access_blocked
+    tests/shadow_metrics/test_patch_registry.py::test_get_current_version
+    tests/test_self_build_approval_receipt.py::test_approval_receipt
+
+So `scripts/test_ratchet.sh` (BASELINE_FAILURES=28) is measured against **one**
+collection order. Treat 28 as "the canonical-order number", not "the number". Any
+future baseline claim must be confirmed under at least two orders.
+
+`abraxas/shadow_metrics/__init__.py:12` defines `_ALLOW_CORE_IMPORT = False`, a
+module-level gate flipped via `global` at line 114.
+
+**Do NOT "fix" this by resetting that flag per test.** Tried it: resetting to False
+before every test took the reversed-order count from 31 to **35** and broke the xfail
+tally (9 -> 5), adding failures in `test_self_build_multi_apply`,
+`test_self_build_operator_queue` and `test_self_build_patch_plan`. These tests are
+sequenced deliberately -- one enables access so a later one can use it. The flag being
+sticky is load-bearing, not a leak. Reverted clean.
+
+The real fix is to make those specific tests self-contained (set the state they need in
+their own fixture) rather than depending on a predecessor having run. That is a
+test-authoring change across several files, not a one-line reset -- and it is not
+started.
+
 ## Order dependence (resolved 2026-10-06)
 
 **The suite is not randomly flaky. It was collection-order dependent, and the cause
