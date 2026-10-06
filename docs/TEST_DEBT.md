@@ -101,3 +101,33 @@ Session total: **134 → 28 failures, zero regressions.**
   **Never `git add` them.**
 - Prove zero regressions after every batch by set-diffing failure lists.
 - Record every Jev ruling with its confidence, and record abstentions as abstentions.
+
+## Order dependence (resolved 2026-10-06)
+
+**The suite is not randomly flaky. It was collection-order dependent, and the cause
+was module-level side effects in files that were not tests.**
+
+`tests/test_dashboard_api_prod.py` ran, at import time, a `sys.modules` purge of every
+`abraxas*` module plus `os.environ['ABRAXAS_ENV'] = 'production'` for the whole
+session. pytest imports every test module during collection, before any test runs, so
+this applied regardless of run order.
+
+Five of the eight files that had been moved from the repo root into `tests/` had **zero
+test functions** and carried 8 module-level side effects. They never ran while they sat
+at the root. Moving them into `tests/` activated their import-time effects and caused
+the regression. They now live in `scripts/smoke/`.
+
+Lesson: **before moving a file into a test directory, check that it contains tests.**
+A `test_` filename prefix is not evidence; `grep -c '^def test_'` is.
+
+Lesson: **collection order is not run order.** When state leaks at import time,
+bisecting on run order yields clean results while the failure persists. Test imports
+happen first, all at once.
+
+Verified by re-running with a deliberately changed collection order *and* a probe file
+that recreated the same pollution: failure set unchanged, both order-dependent tests
+clean. `tests/conftest.py` also resets process-global singletons per test, so the
+suite no longer depends on which tests ran before it.
+
+Known remaining risk: a single collection order proves nothing on its own. Any future
+baseline claim should be confirmed under at least two different collection orders.
