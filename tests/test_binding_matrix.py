@@ -33,17 +33,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = REPO_ROOT / "contracts" / "yggdrasil" / "rune_route_binding_matrix.v1.schema.json"
 
 #: Ratchet. Was 7 before the stale forecast operator name was corrected to
-#: `record_forecast_outcome_deterministic`. This number may only ever DECREASE — lower it
-#: in the same commit that fixes a binding, and never raise it without saying why in the
-#: commit body. Same idiom as tests/test_coupling_lint.py (MAX_ALLOWED_VIOLATIONS).
-MAX_UNRESOLVED_BINDINGS = 6
+#: `record_forecast_outcome_deterministic`, then 6 before `ϟ_ORACLE_RUN` was repaired.
+#: This number may only ever DECREASE — lower it in the same commit that fixes a binding,
+#: and never raise it without saying why in the commit body. Same idiom as
+#: tests/test_coupling_lint.py (MAX_ALLOWED_VIOLATIONS).
+MAX_UNRESOLVED_BINDINGS = 5
 
 #: Bindings known to be unusable, pinned so that fixing one is a conscious edit here too.
 #: Reported, not hidden: each needs a different fix, which is why the reasons differ.
 KNOWN_UNUSABLE = {
-    # module cannot be imported at all: it imports `run_oracle` from
-    # abraxas/oracle/v2/pipeline.py, which does not define it.
-    "ϟ_ORACLE_RUN": IMPORT_FAILED,
     # module imports, but names no such symbol. The builders live in their own modules
     # (e.g. abraxas/evolve/epp_builder.py:build_epp); these adapter functions were never
     # written.
@@ -189,8 +187,14 @@ def test_known_unusable_bindings_are_exactly_as_recorded(matrix) -> None:
 
 def test_import_failed_bindings_are_a_broken_module_not_a_typo(matrix) -> None:
     """`IMPORT_FAILED` means nothing using that binding can work at all — the loudest
-    reason, so it is asserted separately rather than folded into the count."""
+    reason, so it is asserted separately rather than folded into the count.
+
+    Zero is the correct number here: a binding that references an unimportable module is
+    dead, not merely degraded. `ϟ_ORACLE_RUN` was the sole instance (its adapter imported a
+    `run_oracle` that pipeline.py never defined) and has been repaired.
+    """
     broken = [row["rune_id"] for row in matrix["rows"] if row["reason"] == IMPORT_FAILED]
-    assert broken == ["ϟ_ORACLE_RUN"], (
-        f"expected exactly the known broken module, got {broken}"
+    assert broken == [], (
+        "no binding may reference a module that cannot be imported. "
+        f"Found: {broken}"
     )
