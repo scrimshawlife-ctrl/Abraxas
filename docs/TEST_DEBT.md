@@ -302,9 +302,9 @@ was changed to produce this sheet.** The distinction that matters:
 | 16 | `test_runes_invocation::test_invoke_logs_stub_blocked` | `DID NOT RAISE RuneStubError` | The stub path is not blocking. Wiring gap, not a policy value |
 | 17 | `test_smv_build_units_from_vector_map` | ordering: got `['src_a',...,'node_b']`, expected `['node_a',...,'src_c']` | Source vs node ordering/naming. Determinism-class |
 | 18 | `test_sim_mappings_game::test_game_theoretic_low_discount` | `assert 0.2 > 0.75` | Inverted or mis-scaled discount. Check which operand is the discount |
-| 19 | `test_epp_builds_ranked_proposals` | `'SIW_LOOSEN_SOURCE' not in {COMPONENT_FOCUS_SUGGESTION, OFFLINE_EVIDENCE_ESCALATION, SIW_TIGHTEN_SOURCE, VECTOR_NODE_CADENCE_CHANGE}` | A proposal type is never emitted. Find the missing emit path |
+| 19 | `test_epp_builds_ranked_proposals` | `'SIW_LOOSEN_SOURCE' not in {COMPONENT_FOCUS_SUGGESTION, OFFLINE_EVIDENCE_ESCALATION, SIW_TIGHTEN_SOURCE, VECTOR_NODE_CADENCE_CHANGE}` | **RESOLVED 2026-10-06** -- see `## EPP dual-fixture` below. Not a missing emit path: the builder derives ONE global composite risk per run, so TIGHTEN (risk >= 0.6) and LOOSEN (risk <= 0.3) are mutually exclusive within a single run. Test restructured to exercise both risk profiles. |
 | 20 | `test_evolution_system::test_promotion_creates_ticket` | `ValueError: Cannot promote candidate: Missing rent manifest draft` (`abraxas/evolution/promotion_gate.py:142`) | Gate requires a draft the test does not supply. Determine whether the gate or the test omits the step |
-| 21 | `test_non_censorship_invariant::test_static_scan_enforced` | Static scan reports potential violations | A scan flagged real code. Either the flagged construct is a false positive for the rule, or the rule is correct and the code should change -- needs a look at what was flagged |
+| 21 | `test_non_censorship_invariant::test_static_scan_enforced` | Static scan reports potential violations | **RESOLVED 2026-10-06** -- the scan was STRUCTURALLY BROKEN (244 violations). Patterns were bare-word vocabulary regexes (`firewall`, `sanitize`, `redact`, ...) that flagged the synthesis firewall subsystem itself. Redesigned for intent (require user-content-modification context) + expanded allowlist. 244 -> 0. |
 | 22 | `test_memetic_claim_runes::test_cluster_claims_deterministic` | `[[0],[1],[2]]` vs expected `[[0,1],[2]]` | ALREADY DECLINED earlier this session (Q7): token Jaccard scores 0.21 vs the expected 0.42. Reaching it means redesigning the similarity metric = test-fitting. Jev's weakest ruling, 0.73 |
 
 ### The headline
@@ -317,6 +317,54 @@ reverted "fixes": each traded one failure for another rather than resolving anyt
 **The enums have a concrete unlock:** Jev scored `fix_impl` and `fix_tests` at **0.000**
 for lack of an external witness. A schema, a spec line, or a doc naming the canonical
 label would let it rule in one pass. Nothing else is needed.
+
+## EPP dual-fixture -- resolved 2026-10-06
+
+### What the failure actually was
+
+Not a missing emit path. `build_epp` derives **one global composite risk** per run:
+
+```
+risk = clamp(ssi_mean + quarantined_ratio + transport_failure_rate)   # epp_builder.py:298
+```
+
+with `transport_failure_rate = offline_required / total` from the OSH ledger (`:312`).
+The two SIW gates then read that single number:
+
+| Proposal kind | Gate | 
+|---|---|
+| `SIW_TIGHTEN_SOURCE` | `risk >= 0.6` |
+| `SIW_LOOSEN_SOURCE` | `benefit >= 0.7 AND risk <= 0.3` |
+
+`risk >= 0.6` and `risk <= 0.3` cannot both hold, so **a single fixture can never emit
+both kinds**. The old test asserted all five kinds from one run -- structurally impossible.
+
+### Measured fixture profiles
+
+`sample_osh_ledger.jsonl` is 2 offline / 3 total -> `transport_failure_rate = 0.667`.
+
+| Fixture | failure_rate | kinds emitted |
+|---|---|---|
+| `sample_osh_ledger.jsonl` (high risk) | 0.667 | `SIW_TIGHTEN_SOURCE`, `OFFLINE_EVIDENCE_ESCALATION`, `VECTOR_NODE_CADENCE_CHANGE`, `COMPONENT_FOCUS_SUGGESTION` |
+| `sample_osh_ledger_low_risk.jsonl` (new) | 0.10 | `SIW_LOOSEN_SOURCE`, `VECTOR_NODE_CADENCE_CHANGE`, `COMPONENT_FOCUS_SUGGESTION` |
+
+Union = all five kinds. Neither fixture emits `SIW_LOOSEN_SOURCE` alongside
+`SIW_TIGHTEN_SOURCE` -- which is the correct behaviour, not a gap.
+
+### The fix
+
+Added `tests/fixtures/epp/sample_osh_ledger_low_risk.jsonl` (9 ok / 1 offline).
+Restructured `tests/test_epp_builds_ranked_proposals.py` into three tests covering the
+same contract:
+
+1. `test_epp_builds_ranked_proposals` -- HIGH risk lane; also now asserts proposals are
+   **ranked by descending `rationale.score`** (the "ranked" in the test name was never
+   actually checked before).
+2. `test_epp_builds_ranked_proposals_low_risk` -- LOW risk lane.
+3. `test_epp_reaches_every_proposal_kind` -- union across both profiles == all five kinds.
+
+**No production code changed.** No threshold moved. The builder's mutually-exclusive
+gating is correct; the test's single-run premise was the defect.
 
 ## Runes registry / YGGDRASIL integration -- discovery + Jev ruling 2026-10-06
 

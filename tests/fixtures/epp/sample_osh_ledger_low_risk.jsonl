@@ -1,0 +1,10 @@
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j1"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j2"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j3"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j4"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j5"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j6"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j7"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j8"}
+{"run_id":"run123","status":"ok","transport_mode":"decodo","job_id":"j9"}
+{"run_id":"run123","status":"offline_required","transport_mode":"offline","job_id":"j10"}
