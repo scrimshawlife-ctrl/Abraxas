@@ -38,12 +38,29 @@ That is a published schema for the missing representation. It also names a prope
 concept of at all: **expiry**. Our grades are permanent; the literature says a claim's strength
 decays, and that a field is needed to record when it does.[11]
 
-The same work identifies **trust inflation**: when signals are aggregated by averaging, aggregate
-confidence can substantially exceed the reliability of the weakest signal.[11] Nothing in this
-repository names or implements a weakest-link rule — a grep for `weakest` across the source roots
-returns zero files — and grading is a single-label assignment (`data_grade` is one string field)
-rather than an aggregation. So the exposure is not that we aggregate badly; it is that we do not
-represent claim strength at all.
+**Trust inflation** is the second finding: when signals are aggregated by averaging, aggregate
+confidence can substantially exceed the reliability of the weakest signal, and the authors show
+top-five models ranked by mean and by weakest-link are completely disjoint on the HELM
+leaderboard.[11]
+
+**CORRECTION, added after reading the code rather than grepping it.** My first pass said no
+weakest-link rule exists here, on the strength of `grep weakest` returning zero files. That was a
+*name-based* check and it was wrong. The concept is present: `promotion_eligible` in
+`abraxas/metrics/evidence.py` requires
+
+    all(gates_passed.get(gate, False) for gate in PROMOTION_REQUIRED_GATES)
+
+a conjunction over every required gate — a weakest-link rule under another name — and
+`PROMOTION_REQUIRED_GATES` carries a gate for each dimension the composite weights
+(`non_redundant`, `forecast_lift`, `ablation_proof`, `stability_verified`, `drift_robust`).
+
+So the accurate statement is narrower and more useful than the one I first wrote. Nothing is
+*named* weakest-link, and `data_grade` is a single-label assignment with no aggregation at all, so
+claim *strength* is not represented — that part stands. But where strength **is** aggregated, the
+weighted `_compute_composite_score` (0.35/0.20/0.25/0.20, threshold 0.70) cannot promote anything
+the per-dimension gates have not already permitted, because promotion requires all of them.
+The residual exposure is in **ranking**, not promotion: candidate order comes from the mean, and a
+mean dilutes a weak dimension differently than a minimum does.
 
 ### A score measures less than it is usually read as measuring
 
@@ -155,7 +172,11 @@ Not applied — these change what the doctrine *means*, which is a decision rath
 
 1. **Define RESEARCH as claim metadata** (formality tier, scope declaration, validity window,
    grounding level) rather than as a missing runtime environment.[11][9]
-2. **Add a weakest-link rule** for aggregated grades; we currently have none.[11]
+2. **Apply weakest-link to RANKING, not to promotion.** Promotion already conjuncts every required
+   gate, so a weakest-link rule there would be redundant and would add a constraint the gates
+   already imply. Candidate *order*, however, still comes from the weighted mean — and a mean and a
+   minimum rank differently by construction, with the authors measuring top-five by mean and by
+   weakest-link as completely disjoint.[11]
 3. **Add expiry** to evidence qualification — our grades are presently permanent.[11]
 4. **Adopt "producer and selection mechanism determine evidentiary meaning"** into the provenance
    section.[12]
