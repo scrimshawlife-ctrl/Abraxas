@@ -229,7 +229,8 @@ at all**.
    criteria → `satisfiable True`
 6. registered in production with a REAL provider — `tests/test_production_engine_wiring.py` asserts the
    registry's names equal `live_engines()` and are disjoint from `planned_engines()`
-7. a **corroborated** technical settlement claim — currently claimed by nobody
+7. a **corroborated** technical settlement claim — claimed by `oracle` as of 2026-10-07; the other four
+   live engines are measured, passing and unclaimed (see "What would move each tier")
 
 **Repo ladder** — the engine's own repository, 5 stages, equal weight:
 
@@ -379,8 +380,26 @@ match is not a component boundary.
 ### What would move each tier
 
 - **Live engines (6/7):** declare a technical settlement with its evidence path, or deliberately record
-  that none is claimed. Nothing else is missing. This is the operator's call and remains the only
-  integration stage unclaimed by anyone.
+  that none is claimed. **`oracle` now holds the first** (2026-10-07); the survey lists `['athanor',
+  'noesis', 'trutina', 'cypher']` as measured, passing and **unclaimed**, so each is the same one-line act
+  with a different evidence set. One engine was claimed on purpose: a first claim should be a precedent
+  rather than a batch.
+- **`semion`'s DEC-004 cannot be closed from Abraxas's side, and that is the finding.** The register asks for
+  the consumer action enum and the `SemiosisFrame.v1` schema, with closure evidence *"pinned schema and
+  compatibility tests"* from the *"Abraxas consumer maintainer"*. Measured: **Abraxas has no
+  `SemiosisFrame.v1` consumer at all.** The export exists (`semion/compat.py`, explicitly *"Export-only
+  bridge"*), but nothing in this tree consumes it — so there is no consumer schema to conform to, and
+  Semion's own `specs/contracts.md` already states the correct consequence: *"Unknown consumer schema:
+  compatibility NOT_COMPUTABLE. A SemiosisFrame.v1 string alone proves no external schema conformance."*
+  That is the honest answer, not a gap to fill by inventing a schema.
+
+  **A name collision to know about before anyone wires it.** Abraxas *does* have an `action_type` field — in
+  the evolution/self-build subsystem, with values like `param_override`, `implementation_ticket`,
+  `HOLD_APPROVAL_FOR_REVIEW`. Semion's `action_type` means something else entirely (a closed enum of
+  `STATE_UPDATE | ATTENTION_SHIFT | OUTPUT | NO_ACTION | NOT_COMPUTABLE`). Two vocabularies under one name,
+  in a system where a name-based check cannot tell them apart: connecting them by field name would be a
+  silent semantic error. Semion's own example export compounds it by carrying
+  `"action_type": "STATE_UPDATE:alert"` — a value outside its own closed enum.
 - **The five scaffolds:** ~~render the template, add the `compat/` package, then implement.~~
   **DONE this session** — all five rendered, specified, implemented and pushed, each with boundary tests.
   What remains for them is promotion, not construction: `chronos`, `resonance` and `aether` stay `planned`
