@@ -338,7 +338,7 @@ class NoesisEvidenceProvider(EvidenceProvider):
         claim: str,
         context: Dict[str, Any],
         budget: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    ) -> EvidenceEnvelope:
         captures = context.get("latent_captures", [])
         if not captures:
             captures = self._generate_synthetic_captures()
@@ -391,7 +391,7 @@ class NoesisEvidenceProvider(EvidenceProvider):
                 "lane": "shadow",
             }
         )
-        return envelope.to_dict()
+        return envelope
 
     def _generate_synthetic_captures(self) -> List[Dict[str, Any]]:
         """Generate synthetic latent captures for testing."""
@@ -473,14 +473,14 @@ if __name__ == "__main__":
     print(f"Version: {provider.engine_version}")
     print(f"Types: {[t.value for t in provider.supported_evidence_types]}")
     
-    envelope_dict = provider.produce_evidence(
+    envelope = provider.produce_evidence(
         request_id="test-001",
         claim="Test latent structure",
         context={}
     )
-    print(f"Envelope type: {envelope_dict.get('evidence_type')}")
-    print(f"Confidence: {envelope_dict.get('confidence'):.3f}")
-    print(f"Provenance keys: {list(envelope_dict.get('provenance', {}).keys())}")
+    print(f"Envelope type: {envelope.evidence_type.value}")
+    print(f"Confidence: {envelope.confidence:.3f}")
+    print(f"Provenance keys: {list(envelope.provenance.keys())}")
     
     print("\n" + "=" * 60)
     print("NOESIS VERIFIER + PROVIDER TEST COMPLETE")

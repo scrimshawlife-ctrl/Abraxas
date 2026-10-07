@@ -14,20 +14,16 @@ import uuid
 import hashlib
 import json
 
-from abraxas.evidence.contract import EvidenceEnvelope  # canonical home; re-exported
+from abraxas.evidence.contract import (  # canonical home; re-exported
+    EvidenceEnvelope,
+    EvidenceType,
+    RelationStep,
+    CandidateOutput,
+    create_athanor_envelope,
+)
+from abraxas.evidence.provider import EvidenceProvider  # canonical home; re-exported
 
 # ─── ENUMS ──────────────────────────────────────────────────────────────
-
-class EvidenceType(str, Enum):
-    RELATIONAL_REASONING = "RELATIONAL_REASONING"
-    LEXICAL_SEMANTIC = "LEXICAL_SEMANTIC"
-    LATENT_STRUCTURAL = "LATENT_STRUCTURAL"
-    CALIBRATION = "CALIBRATION"
-    FACTUAL = "FACTUAL"
-    COUNTERFACTUAL = "COUNTERFACTUAL"
-    MULTIMODAL = "MULTIMODAL"
-    SIGN_RELATION = "SIGN_RELATION"
-    BRIER_SCORING = "BRIER_SCORING"
 
 class Decision(str, Enum):
     ACCEPT = "ACCEPT"
@@ -54,82 +50,10 @@ class FailureType(str, Enum):
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
     POLICY_REJECTION = "POLICY_REJECTION"
 
-# ─── CORE EVIDENCE CONTRACT ────────────────────────────────────────────
-
-@dataclass
-class RelationStep:
-    relation: str
-    subject: str
-    object: str
-    result: Optional[str] = None
-    confidence: float = 1.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-@dataclass
-class CandidateOutput:
-    answer: str
-    confidence: float
-    reasoning_trace: str
-    relation_steps: List[RelationStep] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-# EvidenceEnvelope is single-homed in abraxas.evidence.contract; re-exported above.
-# See Plan: single-home-the-evidence-contract, Phase 1.
-
-def create_athanor_envelope(
-    claim: str,
-    candidates: List[CandidateOutput],
-    model_identity: str,
-    request_id: str,
-    relations: List[str] = None,
-    reasoning_steps: List[RelationStep] = None,
-    confidence: float = 0.0,
-    uncertainty: float = 0.0,
-    provenance: Dict[str, Any] = None
-) -> EvidenceEnvelope:
-    return EvidenceEnvelope(
-        engine="athanor",
-        engine_version="1.0",
-        model_identity=model_identity,
-        request_id=request_id,
-        claim=claim,
-        candidate_outputs=candidates,
-        evidence_type=EvidenceType.RELATIONAL_REASONING,
-        relations=relations or [],
-        reasoning_steps=[],
-        confidence=confidence,
-        uncertainty=uncertainty,
-        provenance=provenance or {"source": "athanor"},
-    )
-
-# ─── EVIDENCE PROVIDER INTERFACE ──────────────────────────────────────
-
-class EvidenceProvider:
-    """Base interface for all evidence providers."""
-    
-    @property
-    def engine_name(self) -> str:
-        raise NotImplementedError
-    
-    @property
-    def engine_version(self) -> str:
-        raise NotImplementedError
-    
-    @property
-    def supported_evidence_types(self) -> List[str]:
-        raise NotImplementedError
-    
-    def produce_evidence(
-        self,
-        request_id: str,
-        claim: str,
-        context: Dict[str, Any],
-        budget: Optional[Dict[str, Any]] = None
-    ) -> EvidenceEnvelope:
-        raise NotImplementedError
-    
-    def get_model_identity(self) -> str:
-        raise NotImplementedError
+# EvidenceEnvelope, EvidenceType, RelationStep, CandidateOutput, create_athanor_envelope
+# are single-homed in abraxas.evidence.contract; re-exported above.
+# EvidenceProvider is single-homed in abraxas.evidence.provider; re-exported above.
+# See Plan: single-home-the-evidence-contract, Phase 2.
 
 # ─── PROVIDER REGISTRY ────────────────────────────────────────────────
 

@@ -184,6 +184,44 @@ def test_a_settled_settlement_must_cite_evidence() -> None:
     assert empty == [], f"settled without evidence: {empty}"
 
 
+@pytest.mark.parametrize("spec", LIVE_SPECS, ids=lambda spec: spec.name)
+def test_live_engine_produce_evidence_returns_the_canonical_envelope(spec) -> None:
+    """Every LIVE engine must return an EvidenceEnvelope from produce_evidence,
+    not a bare dict or any other type. The boundary states: Abraxas owns
+    arbitration, engines own reasoning, and the envelope is the contract at
+    that boundary."""
+    from abraxas.evidence.contract import EvidenceEnvelope
+
+    target = _resolve(spec)
+    # Resolve the provider -- same pattern as the conformance test.
+    if isinstance(target, type):
+        provider = target()
+    else:
+        import inspect
+
+        params = inspect.signature(target).parameters
+        kwargs = {}
+        if "inference_engine" in params:
+            kwargs["inference_engine"] = lambda claim, context: {
+                "candidates": [],
+                "model_identity": "stub",
+                "relations": [],
+                "reasoning_steps": [],
+                "provenance": {},
+            }
+        provider = target(**kwargs)
+
+    result = provider.produce_evidence(
+        request_id="guard-001",
+        claim="Does this engine return the canonical envelope?",
+        context={},
+    )
+    assert isinstance(result, EvidenceEnvelope), (
+        f"{spec.name}: produce_evidence returned {type(result).__name__}, "
+        f"not EvidenceEnvelope"
+    )
+
+
 def test_a_planned_engine_claims_no_empirical_settlement() -> None:
     """Extends the manifest's own invariant: a planned engine must not be presented as available,
     and empirical settlement is the strongest claim there is."""

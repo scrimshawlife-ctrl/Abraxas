@@ -52,7 +52,12 @@ This section must always reflect the actual state of the work. Timestamps are UT
       `schema_version` to the canonical envelope (the first attempt deleted it, which silently broke
       migration idempotence -- see Surprises). A 6-test guard file now covers identity, the field list,
       serialization, and migration idempotence, and the idempotence test has been observed failing.
-- [ ] Phase 2 -- `EvidenceProvider` single-homed; `noesis` returns the envelope rather than a dict.
+- [x] (2026-10-06) Phase 2 -- `EvidenceProvider` single-homed (all 11 consumers already imported from
+      `abraxas.evidence.provider`; zero consumers used the package copy). `RelationStep`,
+      `CandidateOutput`, `EvidenceType`, and `create_athanor_envelope` also single-homed on
+      `abraxas/evidence/contract.py`. `latent.py` now returns `EvidenceEnvelope` (not `dict`). A
+      return-type guard over all 5 LIVE engines added and observed failing against the reverted fix.
+      Full suite TBD.
 - [ ] Phase 3 -- two new guards in `tests/test_engine_manifest_agreement.py`, each driven to fail.
 - [ ] Phase 4 -- the three tracked `.bak` files removed from inside the package.
 - [ ] Phase 5 -- execution harness measuring determinism / provenance / canonical artifacts; wired
@@ -128,6 +133,41 @@ This section must always reflect the actual state of the work. Timestamps are UT
   Evidence: `grep -rn "EvidenceSchemaMigrator"` shows only `__init__.py` references and the `__all__`
   export; no external `from abraxas.evidence import EvidenceSchemaMigrator` exists.
 
+- Observation: `EvidenceProvider` had 11 consumers (production + test), all importing from
+  `abraxas.evidence.provider`. Zero consumers imported it from the package level. The package copy
+  was used only by its own `ProviderRegistry` (also duplicated), which trivially resolves after
+  the re-export.
+  Evidence: `grep -rn "from abraxas.evidence.provider import.*EvidenceProvider"` returned 11 files;
+  `grep -rn "from abraxas.evidence import.*EvidenceProvider"` returned zero.
+
+- Observation: `EvidenceType` in `__init__.py` defined 10 values including `BRIER_SCORING`; the
+  `contract.py` copy defined 15 values without `BRIER_SCORING` (but with 6 additional values:
+  `TEMPORAL_REASONING`, `RESONANCE_ANALYSIS`, `NARRATIVE_SYNTHESIS`, `MULTIMODAL_INTEGRATION`,
+  `PERSISTENT_MEMORY`, `YGGDRASIL_DECISION`, `VIDEO_ANALYSIS`). `BRIER_SCORING` was NEVER used
+  anywhere in the repo. All consumers imported from `contract.py`. The contract copy is richer and
+  is the one every consumer already uses; the package copy was only a subset.
+  Evidence: `grep -rn "BRIER_SCORING"` hits only `__init__.py:30` (definition); zero use-sites.
+  `grep -rn "from abraxas.evidence.contract import.*EvidenceType"` returned 11 files.
+
+- Observation: `RelationStep` and `CandidateOutput` in `__init__.py` and `contract.py` are
+  structurally identical (same fields, same types). All 8 consumers import from `contract.py`; zero
+  import these from the package level.
+  Evidence: `grep -rn "from abraxas.evidence.contract import.*RelationStep"` returned 8 files;
+  `grep -rn "from abraxas.evidence import.*RelationStep"` returned zero.
+
+- Observation: the `__init__` copy of `create_athanor_envelope` had a bug: it ignored the
+  `reasoning_steps` parameter and always passed `reasoning_steps=[]` to the envelope constructor.
+  The `contract.py` copy correctly passes `reasoning_steps=reasoning_steps or []`. The only
+  consumer (`abraxas/evidence/provider.py:202`) already imported from `contract`, so the buggy copy
+  was unused.
+  Evidence: diff of `__init__.py:99` (`reasoning_steps=[]`) vs `contract.py:164`
+  (`reasoning_steps=reasoning_steps or []`).
+
+- Observation: `Decision` enum is ALSO duplicated between `__init__.py` and `contract.py` with a
+  divergence: the contract copy has an extra `REJECT` member. This was not listed in the Phase 1
+  executor's disclosure and is not addressed in Phase 2. It remains a latent divergence.
+  Evidence: `contract.py:34` has `REJECT = "REJECT"`; `__init__.py:28` does not.
+
 ## Decision Log
 
 - Decision: treat `abraxas/evidence/contract.py` as the canonical home, and reduce
@@ -192,6 +232,37 @@ This section must always reflect the actual state of the work. Timestamps are UT
   very non-idempotence being fixed. Restoring the original semantics avoids inventing behaviour while
   repairing a deletion.
   Date/Author: 2026-10-06, Bob Vajeen.
+
+- Decision: single-home `EvidenceProvider` on `abraxas/evidence/provider.py`.
+  Rationale: the package `__init__` copy was a plain class with `NotImplementedError` stubs (not
+  an ABC), while `provider.py` defines the real `ABC` with `@abstractmethod`. All 11 external
+  consumers already import from `provider.py`; zero import from the package level. The only
+  internal user of the package copy was its own `ProviderRegistry`, which trivially resolves after
+  the re-export.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 2).
+
+- Decision: single-home `RelationStep`, `CandidateOutput`, and `EvidenceType` on `contract.py`.
+  Rationale: `RelationStep` and `CandidateOutput` are structurally identical between the two copies.
+  `EvidenceType` diverges: the package copy has 10 members including `BRIER_SCORING` (used zero times),
+  while the contract copy has 15 members including 6 not in the package copy. All consumers already
+  import from `contract.py` (8 for RelationStep, 11 for CandidateOutput, 11 for EvidenceType); zero
+  import these from the package level. The contract copy is the richer, actively used version.
+  `BRIER_SCORING` is dead code.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 2).
+
+- Decision: single-home `create_athanor_envelope` on `contract.py`.
+  Rationale: the package copy had a bug (ignored the `reasoning_steps` parameter, always passing `[]`).
+  The contract copy correctly passes the parameter. The only consumer (`provider.py:202`) already
+  imports from `contract.py`. Single-homing also removes the bug.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 2).
+
+- Decision: NOT single-homing `Decision` enum, despite it being duplicated.
+  Rationale: `Decision` is duplicated between `__init__.py` and `contract.py` with a divergence
+  (contract has an extra `REJECT` member). It was not listed in the Phase 1 executor's disclosure
+  and is not in Phase 2's scope. The `__init__.py` copy is used by `ArbitrationPolicy` methods
+  within the same module; changing it now would expand scope beyond what the plan calls for. It is
+  recorded as a Surprise for the next phase.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 2).
 
 ## Outcomes & Retrospective
 
