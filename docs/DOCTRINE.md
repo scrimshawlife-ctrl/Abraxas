@@ -105,6 +105,59 @@ coverage:
 - `SHADOW` mode — `docs/EMERGENT_METRICS.md:10`. This is **lifecycle authority** (observe-only,
   no state influence), also a different axis.
 
+## Data grades and claim strength
+
+The mapping above says `data_grade` is where LAB and FIELD evidence are distinguished. Two properties
+of how it behaves are doctrine rather than implementation detail, because both have been violated in
+this repository's history.
+
+**An undeclared grade supports no claim.** The grades are `real`, `derived`, `simulated` and
+`undeclared` — the last defined at `abraxas/evidence/data_grade.py:34` and deliberately the weakest
+member of every aggregate. A packet that declares nothing is `undeclared`, never `real`: absence is
+not a licence to claim, and it is never upgraded by its neighbours. The model defaults are
+`UNDECLARED` (for example `abraxas/metric_extractors/base.py:21`), and an unrecognised value
+normalises to `undeclared` rather than being guessed at, so a typo cannot become the strongest grade.
+
+**Aggregation is weakest-link.** An aggregate is only as strong as its weakest member
+(`abraxas/evidence/data_grade.py:56`), applied where a frame's grade is decided
+(`abraxas/tvm/frame.py:302`). The opposite rule held until recently and is worth remembering because
+it was wrong in a quiet way: a frame's grade was the *highest* among its points, so one `real`
+observation among twenty `simulated` ones labelled the whole frame `real`.
+
+**Only `real` declares an observation.** `derived` is computed from other data and carries no
+independent observation of its own; `simulated` is a LAB artefact; `undeclared` claims nothing at all.
+
+### Claim strength
+
+A grade says where data came from. It does not say how strongly the claim built on that data is
+supported, how far it reaches, or whether it is still true. Those are three separate properties,
+declared rather than inferred, on `abraxas/evidence/claim_strength.py:41`:
+
+| Property | What it declares |
+| --- | --- |
+| `formality` | how the claim was assessed — `assessed`, `verified` or `automated` |
+| `scope` | what the claim covers; may not be blank |
+| `validity_days` | how long the claim lasts before it expires |
+
+Expiry is evaluated against an **injected** clock, and an undeclared declaration time is treated as
+**expired** — the same rule as above, one level up: not recording when a claim was made is not a
+licence to assume it is fresh. A claim strength attaches to a source packet as an optional
+declaration (`abraxas/sources/packets.py:26`) and is **excluded from packet identity**
+(`abraxas/sources/packets.py:29`): declared strength is metadata *about* the claim, not part of the
+observation — the same identity-versus-metadata rule this repository applied to the rune hash and the
+lexicon content fingerprint.
+
+### LAB output reaching FIELD standing
+
+The prohibition above stands **unchanged**: simulator or LAB output may never be *reported* as FIELD
+or physical evidence. What follows is not an exception to it.
+
+Two engineering strategies make a LAB-trained result **survive** the field, rather than licensing it
+to be **called** field evidence: improve the simulator's physical fidelity, or harden the policy with
+in-simulation robustness training and verify on the real device. Both are ways to make the crossing
+succeed. Neither changes which environment the evidence came from, and neither permits a LAB result
+to be described as a physical one.
+
 ## Prohibited moves
 
 These are the moves the doctrine exists to prevent. Each is grounded in a mechanism or invariant

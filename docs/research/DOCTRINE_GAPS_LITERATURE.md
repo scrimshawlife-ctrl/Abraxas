@@ -166,25 +166,47 @@ Assessing external validity over worst-case subpopulations guards "against britt
 are invalidated by unanticipated population shifts", rather than validating on the average.[2]
 FIELD→RESEARCH promotion by average performance is therefore a known-weak inference.
 
-## Proposed edits to the doctrine document
+## Proposed edits to the doctrine document — status
 
-Not applied — these change what the doctrine *means*, which is a decision rather than a fix.
+These were written as proposals. Five have since landed, one was rejected, and the status of each is
+given with commit SHAs so it is checkable with `git show` rather than taken on trust.
 
-1. **Define RESEARCH as claim metadata** (formality tier, scope declaration, validity window,
-   grounding level) rather than as a missing runtime environment.[11][9]
-2. **Apply weakest-link to RANKING, not to promotion.** Promotion already conjuncts every required
-   gate, so a weakest-link rule there would be redundant and would add a constraint the gates
-   already imply. Candidate *order*, however, still comes from the weighted mean — and a mean and a
-   minimum rank differently by construction, with the authors measuring top-five by mean and by
-   weakest-link as completely disjoint.[11]
-3. **Add expiry** to evidence qualification — our grades are presently permanent.[11]
-4. **Adopt "producer and selection mechanism determine evidentiary meaning"** into the provenance
-   section.[12]
-5. **Restate LAB→FIELD as transferable under conditions**, naming the two strategy families,
-   instead of only prohibiting.[10]
-6. **Define settlement records per capability**, with the evidence cited for each settlement.[1][8]
-   **Then enforce the field with a test** rather than trusting documentation, because the empirical
-   base says such fields decay.[7][6]
+| # | Edit | Status |
+| --- | --- | --- |
+| 1 | RESEARCH as claim metadata (formality / scope / validity window / grounding) | **LANDED** — `150e257d`, `6961ade8`: `abraxas/evidence/claim_strength.py`. `research` now exists as a grounding level, and **no mechanism produces it yet**. |
+| 2 | Weakest-link | **LANDED, retargeted twice** — `43ea1b66`, `7831447d`. See the correction history below. |
+| 3 | Expiry on evidence qualification | **LANDED** — `150e257d`: `ClaimStrength.is_expired` with an injectable clock, and an undeclared declaration time treated as expired. |
+| 4 | "Producer and selection mechanism determine evidentiary meaning" | **LANDED in its actionable form** — `671b24b5`: ten eager `or "real"` sites, so absence is no longer read as the strongest claim. |
+| 5 | LAB→FIELD transferable under conditions | **LANDED as a clarification only** — the prohibition was NOT softened. The two strategies are recorded as ways to make the crossing succeed, not as grounds for reclassifying LAB evidence. See `docs/DOCTRINE.md`. |
+| 6 | Settlement records per capability | **LANDED in its cheap form** — `2c19c6f9`, `f0393e7e`: on the EXISTING `EngineSpec`, not a new artefact type. **All ten engines read `unsettled`.** |
+| — | A fourth `data_grade` value named `research` | **REJECTED** — see below. |
+
+### Edit 2: the correction history, because the target moved twice
+
+1. **First claim — wrong.** "No weakest-link rule exists here", inferred from `grep weakest` returning
+   zero files. That was a *name-based* check, and a name-based check can only ever find the name.
+2. **Disproved by reading the code.** `promotion_eligible` in `abraxas/metrics/evidence.py` is
+   `all(gates_passed.get(gate, False) for gate in PROMOTION_REQUIRED_GATES)` — a conjunction over
+   every required gate, which is weakest-link under another name. A weakest-link rule for
+   **promotion** would therefore be redundant.
+3. **Retargeted to ranking.** The weighted `_compute_composite_score` (0.35/0.20/0.25/0.20) still
+   sets candidate order, and a mean and a minimum rank disjointly by construction.[11]
+4. **Retargeted again — and this was the live instance.** `_select_data_grade` in
+   `abraxas/tvm/frame.py` ranked grades (`{"real": 3, "derived": 2, "simulated": 1}`) and kept the
+   **maximum**, so a frame built from twenty simulated points and one real point was labelled `real`.
+   That is trust inflation in running code, and it was pinned by a passing test
+   (`tests/test_multi_domain_seedpack.py`). It is now weakest-link — `43ea1b66`.
+
+The pattern worth keeping: each correction came from reading the code, and the first was wrong
+*because* it grepped for a name instead of looking for the mechanism.
+
+### Why the fourth `data_grade` value is rejected
+
+A fourth scalar is still a scalar. The gap was never the missing label `research`; it was that claim
+*strength* had no representation at all — which is why edit 1 built the representation rather than
+adding a value. `research` now exists as a grounding level in
+`abraxas/evidence/claim_strength.py`, and nothing produces it yet. That remains an open gap, recorded
+rather than papered over.
 
 ## What I did NOT find — limitations of this scan
 
