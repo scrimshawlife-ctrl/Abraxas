@@ -45,7 +45,14 @@ def get_policy_snapshot() -> Dict[str, Any]:
     snapshot = {
         "kind": "PolicySnapshot.v0",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "thresholds": {"drift_pause_threshold": DRIFT_PAUSE_THRESHOLD},
+        # Read per call, not from the module-level constant. The constant is bound at
+        # import, so a runtime change to ABX_DRIFT_PAUSE_THRESHOLD never reached the
+        # snapshot -- and since this value is part of the policy hash, that made
+        # policy-change detection unable to detect a policy change:
+        # runs_routes.ui_run compares the ingest hash against the current one and can
+        # only ever answer MATCH. Verified by test_policy_hash_lock, which sets the
+        # threshold, GETs the run page, and expects CHANGED.
+        "thresholds": {"drift_pause_threshold": _env_int("ABX_DRIFT_PAUSE_THRESHOLD", 3)},
         "caps": {
             "max_diff_paths": MAX_DIFF_PATHS,
             "max_diff_metrics": MAX_DIFF_METRICS,
