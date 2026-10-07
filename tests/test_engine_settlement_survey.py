@@ -60,27 +60,42 @@ def test_every_engine_in_the_manifest_is_surveyed() -> None:
     assert surveyed == expected, f"unsurveyed: {sorted(expected - surveyed)}"
 
 
-def test_no_engine_currently_claims_technical_settlement() -> None:
-    """Pin the truthful state, which has moved.
+#: Engines that DELIBERATELY declare a technical settlement. Each entry is a governance claim — that the
+#: capability reliably meets its specification — and the survey must corroborate it. Adding or removing a
+#: name is an operator decision; the test below fails if the manifest changes without this set changing too.
+DECLARED_TECHNICAL_SETTLEMENTS = {"oracle"}
 
-    This test used to assert that NO engine was satisfiable, because `replay` was unmeasurable and a `?`
-    cannot support a settlement. `replay` is now measured, so every live engine clears all six criteria
-    and the survey would corroborate a technical settlement for any of them.
 
-    That does NOT mean a settlement is claimed: `declared` is still empty below, and moving one is the
-    operator's decision. What this now pins is the *capability*: if a criterion regresses to `?` or `no`,
-    the live engines stop being satisfiable and this fails.
+def test_only_deliberately_declared_engines_claim_technical_settlement() -> None:
+    """Pin the declared set EXPLICITLY, and pin every claim to what the survey can corroborate.
+
+    This test used to assert that NO engine was satisfiable, and then that none CLAIMED a settlement because
+    moving one is the operator's decision. The second half of that history is now moved: `oracle` claims
+    one, deliberately. The test's own failure message said what to do about it — *"If that was deliberate,
+    this test should assert the declared set explicitly rather than be deleted"* — so it does.
+
+    Two different things are pinned here:
+
+    * WHICH engines claim it, as an equality against `DECLARED_TECHNICAL_SETTLEMENTS`, so neither a new
+      claim nor a silent withdrawal passes unnoticed;
+    * that every claim is CORROBORATED. The previous assertion checked only that the set was empty, which
+      cannot distinguish a deliberate claim from an unjustified one; `declared <= satisfiable` can.
     """
     from abraxas.engines.manifest import LIVE
 
     rows = survey()
-    declared = [r["engine"] for r in rows if r["declared_technical"] == "settled"]
+    declared = {r["engine"] for r in rows if r["declared_technical"] == "settled"}
     satisfiable = {r["engine"] for r in rows if r["technical_satisfiable"]}
     live = {r["engine"] for r in rows if r["status"] == LIVE}
 
-    assert declared == [], (
-        f"an engine now claims technical settlement: {declared}. If that was deliberate, this test "
-        "should assert the declared set explicitly rather than be deleted."
+    assert declared == DECLARED_TECHNICAL_SETTLEMENTS, (
+        f"the set of engines claiming technical settlement is {sorted(declared)}, expected "
+        f"{sorted(DECLARED_TECHNICAL_SETTLEMENTS)}. If a claim was made deliberately, update "
+        f"DECLARED_TECHNICAL_SETTLEMENTS in the same commit; if it was not, remove the claim."
+    )
+    assert declared <= satisfiable, (
+        f"{sorted(declared - satisfiable)} claim a technical settlement the survey cannot corroborate. "
+        f"A settlement is not a wish: every criterion must measure PRESENT."
     )
     assert satisfiable == live, (
         f"the survey corroborates {sorted(satisfiable)}, expected exactly the live engines "

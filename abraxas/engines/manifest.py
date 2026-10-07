@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Tuple
 
-from abraxas.engines.settlement import Settlement
+from abraxas.engines.settlement import SETTLED, Settlement
 
 LIVE = "live"
 PLANNED = "planned"
@@ -92,7 +92,22 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "NARRATIVE_SYNTHESIS",
         "abraxas.evidence.adapters.oracle:create_oracle_adapter",
         "Factory function. Declared RELATIONAL_REASONING until the evidence-type guard caught it -- "
-        "which is the EvidenceEnvelope dataclass DEFAULT, so the field had never been filled in.",
+        "which is the EvidenceEnvelope dataclass DEFAULT, so the field had never been filled in. "
+        "Holds the FIRST technical settlement claimed in this manifest. scripts/survey_engine_settlements.py "
+        "measures entry_point, conformance, collected tests, determinism, replay, provenance and canonical "
+        "artifacts all PRESENT for this engine, and the claim cites its evidence; the survey exits non-zero "
+        "if it ever stops being able to corroborate what is declared here. Empirical and economic remain "
+        "UNSETTLED on purpose: an engine that reliably meets its specification is not thereby shown to beat "
+        "a baseline, nor to produce consequences anyone adopts, and those are different claims.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/adapters/oracle.py",
+                "abraxas/contracts/oracle_signal_item_v2.py",
+                ".abraxas/subsystems/oracle_signal_layer_v2.yaml",
+                "tests/test_engine_manifest_agreement.py",
+            ),
+        ),
     ),
     _spec(
         "cypher",
@@ -160,8 +175,18 @@ ENGINES: Tuple[EngineSpec, ...] = (
         PLANNED,
         "",
         "",
-        "Zero files in the repo. Either build it or drop it from the architecture — "
-        "a name with no implementation is worse than an absent one.",
+        "Still PLANNED, and now deliberately rather than pending a build-or-drop choice. The previous note "
+        "read 'Zero files in the repo. Either build it or drop it from the architecture -- a name with no "
+        "implementation is worse than an absent one.' Its premise no longer holds: the engine's own "
+        "repository now carries a spec whose every component row reads 'Exists: no', and a provider whose "
+        "produce_evidence() and get_model_identity() RAISE -- so the hazard that note described, an "
+        "unimplemented name mistaken for a real one at arbitration, is closed by construction. Meanwhile "
+        "the name still does work here: tests/test_engine_lifecycle_registration.py uses it as the clearest "
+        "case of a registered-but-never-available engine, and dropping it would remove that case. Two "
+        "measurements settle the other direction: EvidenceType.MULTIMODAL_INTEGRATION has no consumer "
+        "anywhere in this tree, and building it would mean four modality encoders plus a fusion policy -- "
+        "the component carrying the confidence-laundering risk -- with no demand to validate against. "
+        "Build on a real multimodal consumer, not on a placeholder's existence."
     ),
 )
 
