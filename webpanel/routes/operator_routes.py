@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
 import json
 from datetime import datetime, timezone
@@ -44,6 +45,9 @@ from ..operator_console import (
     write_viz_render_artifact,
 )
 from ..panel_context import templates, require_token, _panel_host, _panel_port, _panel_token, _token_enabled
+
+if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
+    from typing import Any, Dict
 
 _OPERATOR_LOCAL_STATE: dict[str, dict[str, object]] = {}
 _ERS_TRIGGER_ALLOWLIST: dict[str, str] = {

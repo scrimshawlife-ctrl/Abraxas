@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
 import json
 
@@ -52,6 +53,9 @@ def _profile_label(run: Any, current_policy_hash: str) -> str:
     profile_id = str(rec.get("recommended_profile_id") or "")
     return PROFILE_LABELS.get(profile_id, profile_id)
 from .shared import _select_action
+
+if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
+    from typing import Any, Dict
 
 
 def _strip_policy(snapshot):

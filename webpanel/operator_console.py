@@ -6,10 +6,13 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Set
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Set
 
 from abx.execution_validator import emit_validation_result, validate_run
 from webpanel.ui_signal_sections import normalize_signal_sections
+
+if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
+    from typing import Sequence
 
 @dataclass(frozen=True)
 class ViewState:

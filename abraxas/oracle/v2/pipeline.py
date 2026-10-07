@@ -34,12 +34,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from abraxas.core.provenance import Provenance
 from abraxas.core.canonical import sha256_hex, canonical_json
 from abraxas.core.temporal_tau import TauCalculator, TauSnapshot, ConfidenceLevel
 from abraxas.slang.lifecycle import LifecycleEngine, LifecycleState as SlangLifecycleState, TransitionThresholds
+
+if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
+    from typing import DomainCompressionEngine
+    from abraxas.oracle.v2.domain_compression import DomainCompressionEngine
 
 
 @dataclass(frozen=True)

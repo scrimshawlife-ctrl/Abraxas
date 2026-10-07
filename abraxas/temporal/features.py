@@ -1,6 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 """Feature extraction for Temporal Drift Detection."""
 
-from __future__ import annotations
+
+if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
+    from typing import Sequence
 
 
 # Lexeme groups for temporal drift detection

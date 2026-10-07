@@ -32,7 +32,11 @@ Wire shape: ``semion.sign.v1`` / ``SEMION_SIGN_RELATION_V1``, from
 from __future__ import annotations
 
 import os
-from typing import Any, Mapping, NoReturn, Optional
+from typing import TYPE_CHECKING, Any, Mapping, NoReturn, Optional
+
+if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
+    from typing import EvidenceEnvelope
+    from abraxas.evidence.contract import EvidenceEnvelope
 
 SCHEMA = "abraxas.evidence.semion_instrument.v1"
 ALLOWED_KINDS = ("OBSERVATION", "EVIDENCE", "SHADOW_SIGNAL")

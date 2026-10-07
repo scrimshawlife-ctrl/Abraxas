@@ -1,4 +1,5 @@
 from __future__ import annotations
+import ast
 
 import argparse
 import datetime as dt
@@ -292,7 +293,11 @@ def main() -> None:
             for ln in lines[start:end]:
                 s = ln.strip().rstrip(",")
                 if s.startswith("'") or s.startswith('"'):
-                    vals.append(eval(s))  # deterministic, controlled file
+                    # ast.literal_eval, not eval: this parses a string literal out of a
+                    # generated file. literal_eval has identical behaviour for literals and
+                    # no code-execution path, so the "controlled file" assumption is no longer
+                    # load-bearing. A comment asserting control is not a control.
+                    vals.append(ast.literal_eval(s))
             return vals
 
         old_stop = _extract_tuple(old_gen, "STOPWORDS")
