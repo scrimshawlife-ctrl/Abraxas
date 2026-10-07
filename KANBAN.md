@@ -199,6 +199,100 @@
       one defined input and a `Settlement` cannot carry that qualification. Recorded in
       `docs/ENGINE_TOPOLOGY.md`.
 
+## Engine Completion Audit — session 2026-10-07
+
+Requested view of how complete each engine is. **Engines live in their own repositories**, so completion
+has **two axes** — and they disagree in a way that is itself the finding: an engine can be fully integrated
+inside Abraxas and have an empty repo (`noesis`), or have a substantial repo and not yet be an Abraxas
+provider (`hyperlex`).
+
+### How the numbers are computed (stated so anyone can recompute them)
+
+**Integration ladder** — in Abraxas, 7 stages, equal weight, from `abraxas/engines/manifest.py` and
+`scripts/survey_engine_settlements.py`:
+
+1. declared in the canonical manifest
+2. lifecycle derivable — `register_engine` accepts the name and derives status from the manifest
+3. provider resolves — the declared `module:attribute` imports (survey `entry_point`)
+4. conforms to `EvidenceProvider` (survey `conforms`)
+5. every measured criterion passes — determinism, provenance, canonical_artifacts, replay plus the presence
+   criteria → `satisfiable True`
+6. registered in production with a REAL provider — `tests/test_production_engine_wiring.py` asserts the
+   registry's names equal `live_engines()` and are disjoint from `planned_engines()`
+7. a **corroborated** technical settlement claim — currently claimed by nobody
+
+**Repo ladder** — the engine's own repository, 5 stages, equal weight:
+
+1. repository directory exists
+2. under version control with at least one commit
+3. template rendered — no `{{ }}` cookiecutter placeholders remain
+4. implementation present — ≥5 source modules
+5. tests present — ≥1 test module
+
+`Combined` is the plain mean of the two ladders, included only to give one sort order. It is a presentation
+choice, not a measurement — the two ladders are the measurements.
+
+### Results
+
+| engine | Abraxas status | own repo | src modules | test modules | integration | repo | combined |
+|---|---|---|---|---|---|---|---|
+| `athanor` | live | yes | 63 | 21 | 86% (6/7) | 100% (5/5) | **93%** |
+| `trutina` | live | yes | 19 | 10 | 86% (6/7) | 100% (5/5) | **93%** |
+| `hyperlex` | planned | yes | 214 | 70 | 29% (2/7) | 100% (5/5) | **65%** |
+| `oracle` | live | directory only | 1 stub | 0 | 86% (6/7) | 20% (1/5) | **53%** |
+| `cypher` | live | directory only | 1 stub | 0 | 86% (6/7) | 20% (1/5) | **53%** |
+| `chronos` | planned | yes | 1 stub | 0 | 29% (2/7) | 40% (2/5) | **35%** |
+| `resonance` | planned | yes | 1 stub | 0 | 29% (2/7) | 40% (2/5) | **35%** |
+| `noesis` | live | **none** | — | — | 86% (6/7) | 0% (0/5) | **43%** |
+| `aether` | planned | yes, 0 commits | 1 stub | 0 | 29% (2/7) | 20% (1/5) | **25%** |
+| `semion` | planned | **none** | — | — | 29% (2/7) | 0% (0/5) | **15%** |
+
+Every live engine sits at 6/7 on the integration ladder and is blocked only by stage 7, which is a **claim**
+nobody has made, not a capability anybody lacks.
+
+### Findings
+
+1. **Five of the ten engine repos are unrendered cookiecutter templates.** `Oracle`, `Cypher`, `Chronos`,
+   `Resonance` and `Aether` each hold the same 5 files and a byte-identical 42-line `SPEC.md`. Their
+   `src/<name>/__init__.py` still contains the raw placeholder:
+
+   ```python
+   from .compat.abraxas import {{ EngineName }}EvidenceProvider
+   ```
+
+   That is **not valid Python** — every one of those files fails `ast.parse` — and `.compat.abraxas` does
+   not exist in the repo at all. Their `KANBAN.md` is the template's own placeholder ("Define future work
+   items / Current sprint work"). These are not partial implementations; nothing was ever rendered or
+   built.
+2. **`noesis` and `semion` have no repository at all**, yet `noesis` is `live` in Abraxas (its provider is
+   `abraxas/evidence/verifiers/latent.py`) and `semion` has 33 tests and a spec inside Abraxas. "No repo"
+   does not mean "no work" — it means the work lives only in the Abraxas tree.
+3. **Three repos are real:** `athanor` (63 source / 21 test modules), `hyperlex` (214 / 70), `trutina`
+   (19 / 10).
+4. **Two engines have no version control.** `Oracle/` and `Cypher/` are plain directories with no `.git`.
+   `Aether/.git` exists but has **zero commits and zero tracked files**.
+5. **`athanor` carries the same defect class found in Abraxas this session:** `scripts/batch_jev_harvest.py:209`
+   — unterminated string literal, and tracked, so that module cannot be imported. Reported here, not fixed:
+   it is a different repository.
+6. **All five live engines remain `unsettled`.** Every measured criterion passes and no technical
+   settlement is claimed. Capability is not a claim; declaring one is the operator's call, and the survey
+   (`scripts/survey_engine_settlements.py`) will corroborate it when made.
+7. **The five unresolved rune bindings are NOT engine-related.** All five are `ϟ_EVOLVE_*` with reason
+   `MISSING_OPERATOR` in `abraxas/evolve/rune_adapter.py`. Stated because "5 unresolved bindings" reads as
+   though it bears on the five live engines; it does not.
+
+### What would move each tier
+
+- **Live engines (6/7):** declare a technical settlement with its evidence path, or deliberately record
+  that none is claimed. Nothing else is missing.
+- **The five scaffolds:** render the template (`{{ EngineName }}` → the real name), add the `compat/`
+  package the stub imports, then implement. As they stand they cannot be imported.
+- **`noesis` / `semion`:** decide whether they need standalone repos at all, or whether living in the
+  Abraxas tree is their intended home. `semion` is additionally a deliberate SHADOW surface (its provider
+  exists only inside a test).
+- **`oracle` / `cypher` / `aether`:** put the directories under version control (aether has a repo with no
+  commits), since an uncommitted scaffold cannot be reviewed, diffed or reverted.
+
 ## Column Definitions & Automation
 
 | Column | Meaning | Automation |
