@@ -17,8 +17,8 @@ def _packet() -> AbraxasSignalPacket:
         payload={
             "alpha": {"beta": 1, "url": "https://example.com"},
             "claims": [{"id": "c1", "text": "x"}],
-            "empty": {},
-            "none": None,
+            "nested": {"empty": {}},
+            "nested_none": {"none": None},
         },
         confidence={"score": "0.5"},
         provenance_status="complete",
