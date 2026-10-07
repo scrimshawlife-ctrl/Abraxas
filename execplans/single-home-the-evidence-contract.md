@@ -81,7 +81,12 @@ This section must always reflect the actual state of the work. Timestamps are UT
       fake, positive control, and both directions of the NON_CONTENT_FIELDS counterfactual.
       Survey now shows `yes`/`no` instead of `?` for the three measured run-required criteria.
       Full suite TBD.
-- [ ] Phase 6 -- documentation, `PLANS.md` closure, `TEST_DEBT.md` update.
+- [x] (2026-10-06) Phase 6 -- documentation, `PLANS.md` closure, `TEST_DEBT.md` update. `docs/DOCTRINE.md`
+      gained "The evidence contract has exactly one home" and "Metadata stays on the artifact and out of
+      its identity"; `docs/ENGINE_TOPOLOGY.md` now states the measured settlement values; `TEST_DEBT.md`
+      records the root-status-document cluster; `PLANS.md` moved this entry to `Completed` with a closure
+      note and the nine commit SHAs. Guards: `tests/test_doctrine_citations.py` 13 passed, non-censorship
+      invariant 7 passed with the scan exiting 0. Ratchet green at `collected=3555 floor=3555`.
 
 ### Phase 5 verification (2026-10-06)
 
