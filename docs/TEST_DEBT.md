@@ -1032,10 +1032,16 @@ ledger growth above was responsible was tested, not assumed:
 
 Same commit, same tests, and the tree with FEWER artifacts ran SLOWER. The hypothesis is dead.
 
+**The spread is wider still than the three runs above suggested.** A fourth run of the identical
+suite on the identical commit finished in **192s** -- so the observed range on unchanged code is
+**192s to 764s, a 3.96x spread**, which no repository property can explain. The ratchet run that
+produced it reported `failures=0 baseline=0 collected=3440 floor=3440 / OK: within baseline`.
+
 Corroborating: the slowest tests (`--durations=25`; the top 25 are ~165s of the run) are all
 governance/closure/proof/self-build work with **zero wall-clock references and no subprocess
 use** -- pure in-process compute, whose duration tracks available CPU. The variance is CPU
-contention on this machine.
+contention on this machine, and it is large enough that any single timing must be treated as one
+sample from a wide distribution rather than as a measurement of the suite.
 
 An earlier attempt to settle this by comparing `du -h` output between two runs was worthless: it
 rounds to whole units, so a +3.5 MB append was invisible. Coarse measurements are not evidence;
