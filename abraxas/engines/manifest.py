@@ -121,11 +121,18 @@ ENGINES: Tuple[EngineSpec, ...] = (
         PLANNED,
         "SIGN_RELATION",
         "",
-        "SemionProvider exists only as a class INSIDE a test "
-        "(abraxas/evidence/test_semion_q1.py). semion_sign_relation_v1.spec.md supplies "
-        "fixtures and an authority boundary but there is no instrument module at all "
-        "(compare abraxas/evidence/hyperlex_instrument.py), so nothing here can emit an "
-        "EvidenceEnvelope yet. production.py claiming it is a separate defect."
+        "Instrument only, and deliberately not a provider. abraxas/evidence/semion_instrument.py "
+        "now exists: it CONSUMES a semion.sign.v1 frame and maps it to the canonical "
+        "EvidenceEnvelope (to_evidence_envelope), refusing semantic_truth / may_authorize / "
+        "may_mutate_governing_state frames and raising on promotion -- the same boundary "
+        "hyperlex_instrument holds, mirrored deliberately. It does NOT classify: Semion's own docs "
+        "declare the direction ('Semion does not import Abraxas. Abraxas may consume this dict at "
+        "RUNE.SEMIOSIS.CHAIN'), so the classifier stays in the Semion repository and a second one "
+        "here would invert that dependency. It stays PLANNED, not live, for the same reason as "
+        "hyperlex: an instrument is not a registered provider, and promotion is an authority "
+        "decision, not a missing-code problem. This note previously said nothing here could emit "
+        "an EvidenceEnvelope and that no instrument module existed; both were true when written "
+        "and are now recorded as fixed rather than quietly deleted."
     ),
     _spec(
         "chronos",
