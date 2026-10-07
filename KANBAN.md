@@ -250,6 +250,36 @@ choice, not a measurement — the two ladders are the measurements.
 Every live engine sits at 6/7 on the integration ladder and is blocked only by stage 7, which is a **claim**
 nobody has made, not a capability anybody lacks.
 
+### Where each engine actually lives (in-tree footprint in Abraxas)
+
+Added because the two ladders cannot explain an engine being `live` in Abraxas while its standalone repo
+is an empty scaffold. Counted as TRACKED files whose path contains the engine name as a whole segment —
+**a proxy, and a coarse one** (see the `oracle` caveat below):
+
+| engine | in-tree files | where they concentrate |
+|---|---|---|
+| `oracle` | 227 | `abraxas/oracle/` (68), `tests/oracle/` (13), `core/oracle/` (11) |
+| `resonance` | 18 | `tests/fixtures/` (5), `abraxas/renderers/` (4) |
+| `hyperlex` | 8 | `abraxas/evidence/` (5) |
+| `noesis` | 5 | `abraxas/evidence/` (4) |
+| `trutina` | 5 | `abraxas/evidence/` (5) |
+| `semion` | 4 | `abraxas/evidence/` (4) |
+| `cypher` | 2 | `abraxas/evidence/` (1) |
+| `athanor`, `chronos`, `aether` | 0 | nothing in-tree |
+
+**The engines split into two homes.** `athanor`, `chronos` and `aether` have nothing in the Abraxas tree —
+their work is (or would be) entirely in their own repo. The rest live in-tree, mostly as providers under
+`abraxas/evidence/`. That is the resolution of the apparent contradiction above: **`oracle` and `cypher`
+are `live` because their working implementation is the in-tree adapter (`abraxas/evidence/adapters/`),
+while the standalone repo was scaffolded and never built.** The standalone repo is not where those engines
+live today.
+
+**`oracle`'s number is not an engine count.** The 227 spans a whole in-tree *subsystem* — `abraxas/oracle/`
+(the v2 collectors/renderers), plus tests, schemas and contracts — whereas the engine's provider is the thin
+adapter `abraxas/evidence/adapters/oracle.py`. Read it as "there is a large oracle subsystem in the tree",
+never as "the oracle engine has 227 implementation files". The same caution applies to every row: a name
+match is not a component boundary.
+
 ### Findings
 
 1. **Five of the ten engine repos are unrendered cookiecutter templates.** `Oracle`, `Cypher`, `Chronos`,
