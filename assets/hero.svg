@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 220" width="1000" height="220" role="img" aria-label="Abraxas — Dynamic Memetic Analysis Engine">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="100%" stop-color="#151b30"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.83" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1000" height="220" rx="16" fill="url(#bg)"/>
+  <rect width="1000" height="220" rx="16" fill="url(#glow)"/>
+
+  <!-- Original motif: concentric rings, sized and centred to sit whole inside the frame, with enough
+       contrast to be legible on the dark plate. -->
+  <g fill="none" stroke="url(#accent)" stroke-opacity="0.9">
+    <circle cx="836" cy="110" r="92" stroke-width="2"/>
+    <circle cx="836" cy="110" r="64" stroke-width="1.8"/>
+    <circle cx="836" cy="110" r="36" stroke-width="1.6"/>
+  </g>
+  <path d="M836 56 v108 M782 110 h108" stroke="url(#accent)" stroke-width="1.4" stroke-opacity="0.55"/>
+  <circle cx="836" cy="110" r="7" fill="#22d3ee"/>
+
+  <rect x="0" y="0" width="8" height="220" rx="4" fill="url(#accent)"/>
+
+  <text x="56" y="104" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="54" font-weight="700" fill="#f8fafc" letter-spacing="-1">Abraxas</text>
+  <text x="58" y="140" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="21" font-weight="500" fill="#22d3ee">Dynamic Memetic Analysis Engine</text>
+  <text x="58" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+        font-size="14" fill="#93a3b8">Governed evidence · provenance · settled claims</text>
+</svg>

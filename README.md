@@ -1,3 +1,12 @@
+<p align="center"><img src="assets/hero.svg" alt="Abraxas — Dynamic Memetic Analysis Engine" width="860"></p>
+
+<p align="center">
+  <a href="https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml"><img src="https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <img src="https://img.shields.io/badge/python-3.11%2B-3776ab?logo=python&logoColor=white" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/license-MIT-22c55e" alt="MIT">
+  <img src="https://img.shields.io/badge/status-live%20%C2%B7%20v2.0.1-7c3aed" alt="status">
+</p>
+
 # Abraxas
 
 Deterministic runtime, proof surfaces, and governance tooling for ABX/Abraxas execution closure.
