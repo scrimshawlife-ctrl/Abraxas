@@ -395,3 +395,9 @@ For production deployment details, see:
 
 For production deployment details, see:
 - [docs/EXECUTION_HISTORY.md](docs/EXECUTION_HISTORY.md) — the consolidated record of the deployment and live-data work, with every named artifact verified present.
+
+## Project status
+
+- [ROADMAP.md](ROADMAP.md) — what is shipped, what is in progress, and what is deliberately not planned, each with its reason.
+- [KANBAN.md](KANBAN.md) — the board, with every blocker named and evidenced.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — the working rules for this repository.
