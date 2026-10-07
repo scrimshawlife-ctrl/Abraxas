@@ -59,7 +59,7 @@ def test_select_action_builds_checklist():
     assert run.execution_checklist["kind"] == "ExecutionChecklist.v0"
 
     events = list(webpanel_app.ledger.list_events(run_id))
-    assert any(event.get("event_type") == "action_selected" for event in events)
+    assert any(event.event_type == "action_selected" for event in events)
 
     checklist_first = run.execution_checklist
     webpanel_app._select_action(run_id, selected_action_id)
