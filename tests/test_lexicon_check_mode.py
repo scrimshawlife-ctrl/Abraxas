@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -107,20 +108,52 @@ def test_check_is_not_racing_the_clock(tmp_path: Path) -> None:
     )
 
 
-def test_check_still_detects_stale_when_the_pinned_time_changes(tmp_path: Path) -> None:
-    """Pinning must not make `--check` blind: a different generation time is a real
-    difference, and the check must still see it. This is what stops the pin from being a
-    way of switching the guardrail off."""
+def test_check_is_not_blind_to_content(tmp_path: Path) -> None:
+    """The guard against blinding `--check`, asserted on the CONTENT axis.
+
+    CORRECTION: an earlier version of this test asserted that regenerating with a different
+    pinned SOURCE_DATE_EPOCH must still report stale. That test encoded the defect -- a pure
+    timestamp difference is not staleness, and `--check` reporting it *was* the bug (it made
+    `--check` fail on every run). It has been replaced rather than deleted, because the
+    guardrail it was reaching for is real: a pin must not be able to switch the comparison off.
+
+    The correct axis is content. So the manifest's content section is corrupted here; its
+    timestamp is left alone.
+    """
     root = _workspace(tmp_path)
     gen_cmd = _gen_cmd()
 
     rc, out = _run(gen_cmd, root)
     assert rc == 0, out
 
-    other_env = {**os.environ, "SOURCE_DATE_EPOCH": "1800000000"}
-    rc2, out2 = _run(gen_cmd + ["--check"], root, env=other_env)
+    manifest_path = root / "abraxas_ase" / "lexicon_manifest.json"
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    victim = sorted(data["files"]["sha256"])[0]
+    data["files"]["sha256"][victim] = "0" * 64
+    manifest_path.write_text(
+        json.dumps(data, sort_keys=True, separators=(",", ":")), encoding="utf-8"
+    )
+
+    rc2, out2 = _run(gen_cmd + ["--check"], root)
     assert rc2 != 0, (
-        "--check passed despite being regenerated with a different SOURCE_DATE_EPOCH, so "
-        "it is no longer comparing anything meaningful"
+        "--check passed despite a corrupted manifest CONTENT section, so it is no longer "
+        "comparing anything meaningful:\n" + out2
     )
     assert "stale" in out2.lower()
+
+
+def test_check_tolerates_a_newer_timestamp(tmp_path: Path) -> None:
+    """Stated directly, because it is the property the old test got backwards: the artifact's
+    build time may advance without the lexicon becoming stale."""
+    root = _workspace(tmp_path)
+    gen_cmd = _gen_cmd()
+
+    rc, out = _run(gen_cmd, root)
+    assert rc == 0, out
+
+    later = {**os.environ, "SOURCE_DATE_EPOCH": "1800000000"}
+    rc2, out2 = _run(gen_cmd + ["--check"], root, env=later)
+    assert rc2 == 0, (
+        "a later generation time was reported as stale content. The build clock is provenance, "
+        "not identity:\n" + out2
+    )

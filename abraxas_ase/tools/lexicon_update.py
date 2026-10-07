@@ -46,6 +46,46 @@ def _stable_json(obj) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
+#: Manifest sections that describe the lexicon's CONTENT. These, and only these, feed the
+#: content fingerprint.
+#:
+#: The fingerprint exists to answer one question: *is this the same lexicon?* Everything else
+#: in the manifest is provenance or an invocation detail -- it may describe the build, but it
+#: must not change the lexicon's identity. Two such fields were feeding the hash:
+#:
+#:   generated_at_utc  the wall clock, so identical content hashed differently every second
+#:   inputs_dir        the input path AS SPELLED on the command line, so `--in lexicon_sources`
+#:                     and `--in /abs/path/lexicon_sources` -- identical content -- produced
+#:                     different hashes
+#:
+#: A version that changes when nothing changed is not a version. The rule is already
+#: established in this repo for engine identity: a hash covers identity only, never a
+#: timestamp (`abraxas/yggdrasil/registry.py`).
+#:
+#: The noise leaves the HASH, not the artifact -- both fields are still written to the
+#: manifest, so the generated lexicon can still say when and from where it was built.
+_CONTENT_SECTIONS: Tuple[str, ...] = ("files", "merged")
+
+
+def _content_projection(manifest: Dict) -> Dict:
+    """The content-only view of a manifest.
+
+    Tolerant by construction: a manifest missing a section (or an older format) yields a
+    projection that differs from a current one, so `--check` reports it stale rather than
+    raising.
+    """
+    return {key: manifest.get(key) for key in _CONTENT_SECTIONS}
+
+
+def _content_fingerprint(manifest: Dict) -> str:
+    """SHA-256 over the manifest's CONTENT only -- stable across clock and invocation.
+
+    Used both for the lexicon's version identity and for `--check`'s manifest comparison, so
+    the two can never drift into disagreeing about what "the same lexicon" means.
+    """
+    return _sha256_bytes(_stable_json(_content_projection(manifest)).encode("utf-8"))
+
+
 def _read_tokens_file(path: Path, min_len: int) -> List[str]:
     toks: List[str] = []
     raw = path.read_text(encoding="utf-8").splitlines()
@@ -222,7 +262,9 @@ def main() -> None:
         now_utc_iso=now,
     )
     manifest_json = _stable_json(manifest_obj) + "\n"
-    manifest_hash = _sha256_bytes(manifest_json.encode("utf-8"))
+    # Identity over content only. The manifest is still written whole -- it carries provenance
+    # -- but the lexicon's version must not move when only the clock or the invocation moves.
+    manifest_hash = _content_fingerprint(manifest_obj)
 
     gen_py = _emit_generated_py(out_dir, stopwords, subwords, manifest_hash)
 
@@ -264,14 +306,37 @@ def main() -> None:
         print(_stable_json(rep))
 
     if args.check:
-        # Compute whether writing would change files
-        would_change = False
+        # "Is the committed lexicon out of date with its sources?" -- a CONTENT question, so
+        # each artifact is compared on the axis that actually carries content:
+        #
+        #   lexicon_generated.py    byte equality. Now achievable, because the fingerprint is
+        #                           content-only so the module is byte-reproducible. It never
+        #                           was while the hash moved with the clock.
+        #   lexicon_manifest.json   content FINGERPRINT equality, not byte equality. The
+        #                           manifest legitimately carries generated_at_utc and
+        #                           inputs_dir, so byte comparison reported stale on every run
+        #                           -- even with no gap at all between generation and check.
+        #
+        # The fingerprint is the same function that produces the version identity, so `--check`
+        # and the identity cannot drift into disagreeing about what "the same lexicon" means.
+        stale: List[str] = []
         if not gen_path.exists() or gen_path.read_text(encoding="utf-8") != gen_py:
-            would_change = True
-        if not man_path.exists() or man_path.read_text(encoding="utf-8") != manifest_json:
-            would_change = True
-        if would_change:
-            raise SystemExit("Lexicon generated artifacts are stale. Run without --check to regenerate.")
+            stale.append("lexicon_generated.py")
+        if not man_path.exists():
+            stale.append("lexicon_manifest.json")
+        else:
+            try:
+                existing_manifest = json.loads(man_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                existing_manifest = {}
+            if _content_fingerprint(existing_manifest) != manifest_hash:
+                stale.append("lexicon_manifest.json")
+        if stale:
+            raise SystemExit(
+                "Lexicon generated artifacts are stale (content differs): "
+                + ", ".join(stale)
+                + ". Run without --check to regenerate."
+            )
         return
 
     wrote_gen = _write_if_changed(gen_path, gen_py)

@@ -965,7 +965,7 @@ question.
 
 **Neither is a bug fix. Both are governance decisions.**
 
-## Lexicon `--check` is effectively always-stale -- SEMANTICS DECISION PENDING 2026-10-06
+## Lexicon `--check` was effectively always-stale -- RESOLVED 2026-10-06
 
 Found by the probe that diagnosed the `test_lexicon_check_mode` flake. The flake itself is
 fixed (SOURCE_DATE_EPOCH pin, commit `abfc60a0`), but the probe exposed a larger problem.
@@ -995,6 +995,55 @@ module bytes). Both are decisions.
 The test-side pin is not the fix: it makes the suite deterministic while leaving the guardrail
 misleading. That is why the pin ships with two counterfactual tests asserting `--check` still
 detects a genuinely different pinned time, rather than replacing this entry.
+
+### RESOLUTION 2026-10-06 -- the cause was upstream of `--check`
+
+The framing above ("make `--check` tolerant") treated the symptom. The real defect is that
+`manifest_sha256` **was not a content fingerprint**: it was `sha256(serialize(manifest))` over a
+manifest containing two non-content fields.
+
+    generated_at_utc   the wall clock
+    inputs_dir         the input path AS SPELLED on the command line
+
+Proven, with the clock pinned so it could not be the clock:
+
+    inputs_dir  relative: 'lexicon_sources'
+    inputs_dir  absolute: '/var/folders/.../w/lexicon_sources'
+    manifest_sha256 (relative) : fe87ded014fb1d33...   <- identical content
+    manifest_sha256 (absolute) : d686f4d009e5580e...   <- identical content
+    identical content, identical clock -> hash MATCHES: False
+
+So the lexicon's "version" changed when nothing changed -- and any provenance built on it was
+worthless. The committed `lexicon_generated.py` carried a hash that **could not be reproduced
+from its own sources**.
+
+**Fix, two parts landed jointly (they are measured jointly):**
+
+1. `manifest_sha256` now covers the manifest's content sections only (`files`, `merged`) via
+   `_content_fingerprint()`. `generated_at_utc` and `inputs_dir` are still written to the
+   manifest -- the noise leaves the HASH, not the artifact, so provenance is preserved.
+2. `--check` compares each artifact on the axis that carries content: byte equality for
+   `lexicon_generated.py` (now achievable, because the fingerprint is content-only so the module
+   is byte-reproducible) and **fingerprint** equality for `lexicon_manifest.json`. The same
+   function produces both the identity and the check, so they cannot drift into disagreeing
+   about what "the same lexicon" means.
+
+**Verified after the fix:** fingerprint stable at `422c9dcb...` across three generations 1.1s
+apart; `--check` exits 0 on the committed output both after a gap and via an absolute path; and
+regenerating the committed lexicon changed the module by **exactly one line -- the hash comment**
+-- with the manifest's content sections byte-identical, proving the token content had never
+drifted. The only thing wrong was the identity.
+
+**Contract correction worth recording:** an earlier test asserted that regenerating with a
+different pinned `SOURCE_DATE_EPOCH` must still report stale. That test **encoded the defect** --
+it required a pure timestamp difference to count as staleness, which was the bug. It was
+replaced (not deleted) by `test_check_is_not_blind_to_content`, which corrupts the manifest's
+CONTENT section instead, plus `test_check_tolerates_a_newer_timestamp` stating the corrected
+property directly. A counterfactual written to protect a guardrail can just as easily protect
+the bug it was meant to catch.
+
+The rule applied here is already established in this repo for engine identity
+(`abraxas/yggdrasil/registry.py`): a hash covers identity only, never a timestamp.
 
 ## ~80 MB of tracked, write-only, unbounded ledgers in `out/` and `.aal/` -- 2026-10-06
 
