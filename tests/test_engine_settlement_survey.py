@@ -350,3 +350,135 @@ def test_non_content_fields_exclusion_content_diff_is_detected() -> None:
         "if the exclusion strips so much that a content change is missed, "
         "the harness would label a genuinely non-deterministic engine as 'yes'"
     )
+
+
+# --------------------------------------------------------------------------------------------
+# The VERDICT itself: measure() must be exercised with a FAILING case
+# --------------------------------------------------------------------------------------------
+#
+# Everything above tests `_content_dict` and the fakes; none of it calls `measure()`. That is the
+# function that produces the verdict the survey actually prints. Without the tests below, `measure()`
+# could return `determinism: "yes"` unconditionally and every earlier test would still pass -- while
+# the survey reported a green column built on nothing. A comparison helper being correct does not make
+# the verdict that consumes it correct, and only a failing case can tell the two apart.
+#
+# These drive the verdict through `_construct_engine`, the same seam `measure()` uses in production.
+
+
+def test_measure_reports_no_for_a_non_deterministic_engine(monkeypatch) -> None:
+    """`measure()` on a provider that varies each call must return determinism == 'no'."""
+    from abraxas.engines import execution_harness as harness
+
+    _FakeNonDeterministicProvider.call_count = 0
+    monkeypatch.setattr(harness, "_construct_engine", lambda spec: _FakeNonDeterministicProvider())
+
+    verdict = harness.measure("noesis")
+
+    assert verdict["determinism"] == "no", (
+        f"a provider that differs on every call must be reported non-deterministic; got {verdict}"
+    )
+    assert "non-deterministic" in verdict["reason"], (
+        f"the failure must be explained, not merely flagged; got reason={verdict['reason']!r}"
+    )
+
+
+def test_measure_reports_no_for_an_engine_with_empty_provenance(monkeypatch) -> None:
+    """`measure()` must flag empty provenance independently of the determinism verdict."""
+    from abraxas.engines import execution_harness as harness
+
+    monkeypatch.setattr(harness, "_construct_engine", lambda spec: _FakeNoProvenanceProvider())
+
+    verdict = harness.measure("noesis")
+
+    assert verdict["provenance"] == "no", f"empty provenance must be reported; got {verdict}"
+    assert "provenance" in verdict["reason"], verdict
+
+
+def test_measure_reports_yes_for_a_deterministic_engine(monkeypatch) -> None:
+    """Positive control. A checker that answers 'no' to everything is vacuously safe and enforces
+    nothing, so the pass path has to be demonstrated too."""
+    from abraxas.engines import execution_harness as harness
+
+    monkeypatch.setattr(harness, "_construct_engine", lambda spec: _FakeDeterministicProvider())
+
+    verdict = harness.measure("noesis")
+
+    assert verdict["determinism"] == "yes", verdict
+    assert verdict["provenance"] == "yes", verdict
+    assert verdict["canonical_artifacts"] == "yes", verdict
+    assert verdict["reason"] == "", (
+        f"a passing verdict should carry no complaint; got {verdict['reason']!r}"
+    )
+
+
+def test_measure_reports_no_when_construction_fails(monkeypatch) -> None:
+    """A provider that cannot be built cannot be certified."""
+    from abraxas.engines import execution_harness as harness
+
+    def _boom(spec):
+        raise RuntimeError("cannot construct")
+
+    monkeypatch.setattr(harness, "_construct_engine", _boom)
+
+    verdict = harness.measure("noesis")
+
+    assert verdict["determinism"] == "no" and verdict["provenance"] == "no", verdict
+    assert "construction failed" in verdict["reason"], verdict
+
+
+def test_measure_stays_unmeasured_for_a_planned_engine() -> None:
+    """A PLANNED engine must never be certified: its criteria are '?', not 'yes'."""
+    from abraxas.engines import execution_harness as harness
+
+    verdict = harness.measure("aether")  # planned, zero files
+
+    assert verdict["determinism"] == "?", verdict
+    assert verdict["provenance"] == "?", verdict
+    assert verdict["canonical_artifacts"] == "?", verdict
+
+
+def test_measure_leaves_replay_unmeasured_for_a_live_engine() -> None:
+    """`replay` is honestly '?' -- it needs artifact persistence this harness does not own, and the
+    survey's rule is that a '?' cannot support a settlement."""
+    from abraxas.engines import execution_harness as harness
+
+    assert harness.measure("noesis")["replay"] == "?"
+
+
+# --------------------------------------------------------------------------------------------
+# The survey table must not understate what is now known
+# --------------------------------------------------------------------------------------------
+
+
+def test_conformance_is_measured_for_factory_engines() -> None:
+    """`?` means "not measurable without running it" -- the table's own legend.
+
+    Three live engines are factories. Their conformance was reported `?` because the survey could not
+    build them without guessing constructor arguments. The execution harness supplies a DEFINED
+    stand-in, so building them is now a measurement rather than a guess. Reporting `?` after that
+    capability existed would be a status the code no longer supports.
+    """
+    rows = {r["engine"]: r for r in survey()}
+
+    for name in ("athanor", "oracle", "cypher"):
+        criteria = rows[name]["criteria"]
+        assert criteria["conforms"] != UNMEASURED, (
+            f"{name} is a live factory whose conformance is measurable via the harness; "
+            f"reporting '?' understates what is known"
+        )
+        assert criteria["conforms"] == PRESENT, (name, criteria)
+
+
+def test_only_replay_remains_unmeasured_for_live_engines() -> None:
+    """Pin the honest state: the gap between the live engines and a technical settlement is exactly
+    ONE criterion, and it is named. If this list grows, something regressed; if it shrinks, an engine
+    may be settleable and the manifest should say so with cited evidence."""
+    for row in survey():
+        if row["status"] != "live":
+            continue
+        unmeasured = sorted(k for k, v in row["criteria"].items() if v == UNMEASURED)
+        assert unmeasured == ["replay"], (
+            f"{row['engine']}: unmeasured criteria are {unmeasured}, expected exactly ['replay']. "
+            "Either a measurement was lost, or replay became measurable -- in which case raise the "
+            "settlement in the manifest and cite the evidence rather than editing this test."
+        )

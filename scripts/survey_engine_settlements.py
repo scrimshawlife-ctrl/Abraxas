@@ -75,20 +75,36 @@ def _entry_point_status(implementation: str) -> str:
     return PRESENT if (callable(target) or isinstance(target, type)) else ABSENT
 
 
-def _conformance_status(implementation: str) -> str:
-    """Conformance for a CLASS is checkable here. For a FACTORY it is established by
-    tests/test_engine_manifest_agreement.py, which supplies stand-in constructor arguments -- this
-    survey returns `?` rather than re-deriving it, because re-deriving it would mean calling the
-    factory with guessed arguments and reporting the guess as a measurement.
+def _conformance_status(spec) -> str:
+    """Conformance, MEASURED rather than assumed.
+
+    A CLASS is checked by subclass. A FACTORY is checked by actually building it with the same
+    deterministic stand-in that `abraxas/engines/execution_harness.py` uses, and asking whether the
+    result satisfies the interface -- the same construction `tests/test_engine_manifest_agreement.py`
+    performs.
+
+    This returned `?` until the harness existed, on the reasoning that calling a factory with guessed
+    arguments would mean reporting a guess as a measurement. That reasoning was right about guessing and
+    wrong about the fix: the harness supplies a *defined* stand-in, so the construction is a measurement,
+    not a guess. Since this table's own legend defines `?` as "not measurable without running it",
+    leaving `?` here after the capability existed would have been a status the code no longer supported.
     """
     from abraxas.evidence.provider import EvidenceProvider
 
-    target = _resolve(implementation)
+    target = _resolve(spec.implementation)
     if target is None:
         return ABSENT
     if isinstance(target, type):
         return PRESENT if issubclass(target, EvidenceProvider) else ABSENT
-    return UNMEASURED
+
+    # A factory: build it with the harness's stand-in and inspect what comes out.
+    try:
+        from abraxas.engines.execution_harness import _construct_engine
+
+        produced = _construct_engine(spec)
+    except Exception:
+        return ABSENT
+    return PRESENT if isinstance(produced, EvidenceProvider) else ABSENT
 
 
 def _collected_test_ids() -> List[str]:
@@ -144,7 +160,7 @@ def survey() -> List[Dict[str, object]]:
     for spec in ENGINES:
         criteria: Dict[str, str] = {
             "entry_point": _entry_point_status(spec.implementation),
-            "conforms": _conformance_status(spec.implementation),
+            "conforms": _conformance_status(spec),
             "collected_tests": _collected_tests_status(spec.name),
         }
         if spec.status == LIVE:

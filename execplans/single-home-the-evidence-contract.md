@@ -83,6 +83,31 @@ This section must always reflect the actual state of the work. Timestamps are UT
       Full suite TBD.
 - [ ] Phase 6 -- documentation, `PLANS.md` closure, `TEST_DEBT.md` update.
 
+### Phase 5 verification (2026-10-06)
+
+Phase 5 landed via `035e4698`, and verification found two gaps in it, both closed here.
+
+**Gap 1 -- the verdict was never tested with a failing case.** All 15 shipped tests exercise
+`_content_dict()` or the fakes; none called `measure()`, which is what produces the `yes`/`no` the survey
+prints. Forcing the verdict to lie (`determinism = "yes"` unconditionally) left **20 of 21 tests
+passing** -- the whole original suite reported green while the verdict was broken, so the survey's `yes`
+column could have been built on nothing. Six tests now drive `measure()` through `_construct_engine`,
+the same seam production uses, and one of them is the test that catches the forced lie.
+Evidence: `FAILED test_measure_reports_no_for_a_non_deterministic_engine`, `1 failed, 20 passed`.
+
+**Gap 2 -- a stale `?`.** The survey reported `conforms: ?` for the three factory engines, and its own
+legend defines `?` as "not measurable without running it". That stopped being true once the harness
+existed, since the harness supplies a defined stand-in -- so `_conformance_status` now builds the factory
+through the harness and checks the result is an `EvidenceProvider`. Left as `?`, it would have been
+exactly the defect this plan exists to remove: a status the code no longer supports.
+
+**Resulting honest state:** every live engine reports `yes` on `entry_point`, `conforms`,
+`collected_tests`, `determinism`, `provenance`, and `canonical_artifacts`. `replay` is the ONLY
+unmeasured criterion, for all five -- so the gap to a technical settlement is exactly one named thing,
+and two tests pin that (`test_only_replay_remains_unmeasured_for_live_engines`,
+`test_conformance_is_measured_for_factory_engines`). No engine is settleable today; that is now a
+specific, checkable statement rather than a blanket `?`.
+
 ## Surprises & Discoveries
 
 - Observation: the two `EvidenceEnvelope` definitions are not the same object and differ by exactly one
