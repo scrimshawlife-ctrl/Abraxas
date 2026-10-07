@@ -64,6 +64,34 @@ def _resolve(spec):
     return getattr(module, attribute)
 
 
+def _provider(spec):
+    """Resolve the engine's actual EvidenceProvider: the class itself, or a factory
+    called with the minimal stand-in its signature needs.
+
+    Extracted so the conformance test, the envelope test and the evidence-type test
+    all resolve providers the SAME way. Three copies of this logic would drift, and
+    the one that drifted would be the one deciding what "the engine" means.
+    """
+    import inspect
+
+    target = _resolve(spec)
+    if isinstance(target, type):
+        return target()
+    params = inspect.signature(target).parameters
+    kwargs = {}
+    if "inference_engine" in params:
+        # Some engines wrap an external inference callable (that is the design: the
+        # engine owns reasoning, Abraxas owns arbitration), so supply a minimal stand-in.
+        kwargs["inference_engine"] = lambda claim, context: {
+            "candidates": [],
+            "model_identity": "stub",
+            "relations": [],
+            "reasoning_steps": [],
+            "provenance": {},
+        }
+    return target(**kwargs)
+
+
 @pytest.mark.parametrize("spec", LIVE_SPECS, ids=lambda spec: spec.name)
 def test_live_engine_entry_point_resolves(spec) -> None:
     """Every engine marked live must have a resolvable, callable entry point."""
@@ -192,24 +220,7 @@ def test_live_engine_produce_evidence_returns_the_canonical_envelope(spec) -> No
     that boundary."""
     from abraxas.evidence.contract import EvidenceEnvelope
 
-    target = _resolve(spec)
-    # Resolve the provider -- same pattern as the conformance test.
-    if isinstance(target, type):
-        provider = target()
-    else:
-        import inspect
-
-        params = inspect.signature(target).parameters
-        kwargs = {}
-        if "inference_engine" in params:
-            kwargs["inference_engine"] = lambda claim, context: {
-                "candidates": [],
-                "model_identity": "stub",
-                "relations": [],
-                "reasoning_steps": [],
-                "provenance": {},
-            }
-        provider = target(**kwargs)
+    provider = _provider(spec)
 
     result = provider.produce_evidence(
         request_id="guard-001",
@@ -250,3 +261,36 @@ def test_settlement_evidence_references_resolve() -> None:
         if not (repo / ref).exists()
     ]
     assert missing == [], f"settlement evidence pointing at nothing: {missing}"
+
+
+@pytest.mark.parametrize("spec", LIVE_SPECS, ids=lambda spec: spec.name)
+def test_live_engine_declared_evidence_type_matches_what_it_produces(spec) -> None:
+    """The manifest's DECLARED evidence_type must match the type the engine actually emits.
+
+    Why this guard exists
+    ---------------------
+    The manifest is the single source of truth for engine TOPOLOGY, and its stated purpose is to stop
+    the engine list from disagreeing with itself. Its ``evidence_type`` field was never checked against
+    the engines it describes, and two entries had drifted: ``oracle`` and ``cypher`` both declared
+    ``RELATIONAL_REASONING`` while their providers emit ``NARRATIVE_SYNTHESIS`` and
+    ``PERSISTENT_MEMORY``.
+
+    The value they carried is the tell: ``RELATIONAL_REASONING`` is the ``EvidenceEnvelope`` dataclass
+    DEFAULT, so a declaration that was never filled in looks exactly like one considered and chosen. A
+    default standing in for a decision is the class of drift this file exists to prevent, one field over.
+
+    The neighbouring test asserts a live engine returns the canonical ENVELOPE. It does not assert the
+    envelope's TYPE, so it stayed green while the declaration was wrong — a shape guard verifying that a
+    field is present without ever checking what it says.
+    """
+    produced = _provider(spec).produce_evidence(
+        request_id="guard-002",
+        claim="Does this engine emit the evidence type the manifest declares?",
+        context={},
+    )
+    declared, actual = spec.evidence_type, produced.evidence_type.value
+    assert declared == actual, (
+        f"{spec.name}: the manifest declares evidence_type={declared!r} but the engine emits "
+        f"{actual!r}. The manifest describes the engines that exist — when the code moves, the "
+        f"declaration moves with it."
+    )

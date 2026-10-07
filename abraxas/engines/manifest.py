@@ -89,16 +89,18 @@ ENGINES: Tuple[EngineSpec, ...] = (
     _spec(
         "oracle",
         LIVE,
-        "RELATIONAL_REASONING",
+        "NARRATIVE_SYNTHESIS",
         "abraxas.evidence.adapters.oracle:create_oracle_adapter",
-        "Factory function.",
+        "Factory function. Declared RELATIONAL_REASONING until the evidence-type guard caught it -- "
+        "which is the EvidenceEnvelope dataclass DEFAULT, so the field had never been filled in.",
     ),
     _spec(
         "cypher",
         LIVE,
-        "RELATIONAL_REASONING",
+        "PERSISTENT_MEMORY",
         "abraxas.evidence.adapters.cypher:create_cypher_adapter",
-        "Factory function.",
+        "Factory function. Declared RELATIONAL_REASONING until the evidence-type guard caught it, "
+        "same dataclass-default defect as oracle.",
     ),
     _spec(
         "hyperlex",
@@ -137,7 +139,14 @@ ENGINES: Tuple[EngineSpec, ...] = (
         PLANNED,
         "",
         "",
-        "Only ResonanceFrame and DriftResonanceCoupling exist; neither is an engine.",
+        "The phase layer exists -- abraxas/phase/detector.py (PhaseAlignmentDetector, "
+        "SynchronicityMap), coupling.py (CouplingDetector) and early_warning.py "
+        "(EarlyWarningSystem) -- along with ResonanceFrame and DriftResonanceCoupling. Those are "
+        "detectors and data structures, not a provider: abraxas.evidence.adapters.resonance does "
+        "not exist, so nothing here can emit an EvidenceEnvelope. The sibling Resonance repo now "
+        "composes them into a provider, but it is not an installed dependency, so no entry point "
+        "resolves from this tree and the engine stays planned. This note previously claimed that "
+        "only ResonanceFrame and DriftResonanceCoupling existed, which understated the phase layer.",
     ),
     _spec(
         "aether",
