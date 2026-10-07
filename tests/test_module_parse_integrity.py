@@ -7,7 +7,7 @@ dependency-boundary checks. Such a file is invisible: present in the tree, dead 
 Measured 2026-10-07: 3 of 3613 tracked `.py` files did not parse. One was a real defect --
 `abx/media_origin_verify.py` used `args.in` on two lines, and `in` is a reserved keyword, so the file
 had been unimportable since its only commit while `abx/cycle_runner.py` invokes it as a module. The other
-two are legitimately unparseable and are allowlisted below by exact path with a stated reason.
+one is legitimately unparseable and is allowlisted below by exact path with a stated reason.
 
 The parser stops at the FIRST error, so fixing `the syntax error` in a file with a repeated pattern can
 leave the file still broken -- the second occurrence only surfaces on the next parse. This guard parses
@@ -27,9 +27,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 UNPARSEABLE_BY_DESIGN = {
     # A cookiecutter template: contains `{{ ... }}` placeholders by design, so it is not valid Python.
     ".github/engine-cookiecutter/engine_template/src/engine_template/__init__.py",
-    # A generated script under `.abraxas/` (a directory rewritten by test runs), not a source module.
-    ".abraxas/scripts/proof_requirement_lookup.py",
 }
+
+# REMOVED 2026-10-07: ".abraxas/scripts/proof_requirement_lookup.py" was allowlisted as "a generated
+# script under `.abraxas/` (a directory rewritten by test runs), not a source module". That reason was
+# FALSE -- the file is tracked, committed and hand-written; only *some* of `.abraxas/` is rewritten by test
+# runs, and that directory is not the reason its file did not parse. It did not parse because it had been
+# mangled by an automated edit (`print("` followed by a literal newline, the string split across two
+# lines). Repaired, it parses and imports, and this list's own counterfactual test immediately reported the
+# entry as stale. The entry outlived the excuse for it, which is precisely why the test exists.
 
 
 def _tracked_python_files() -> list[str]:

@@ -8,7 +8,6 @@ def main()->int:
     a=p.parse_args()
     s=load_subsystem(a.subsystem)
     req=s.get("receipt_overrides",{}).get(a.change_class, s.get("required_receipts",[]))
-    print("
-".join(req))
+    print("\n".join(req))
     return 0
 if __name__=="__main__": raise SystemExit(main())

@@ -16,13 +16,13 @@ intended topology:
 | `athanor` | **live** | RELATIONAL_REASONING | `abraxas.evidence.provider:create_athanor_adapter` |
 | `noesis` | **live** | LATENT_STRUCTURAL | `abraxas.evidence.verifiers.latent:NoesisEvidenceProvider` |
 | `trutina` | **live** | CALIBRATION | `abraxas.evidence.providers.trutina:TrutinaEvidenceProvider` |
-| `oracle` | **live** | RELATIONAL_REASONING | `abraxas.evidence.adapters.oracle:create_oracle_adapter` |
-| `cypher` | **live** | RELATIONAL_REASONING | `abraxas.evidence.adapters.cypher:create_cypher_adapter` |
+| `oracle` | **live** | NARRATIVE_SYNTHESIS | `abraxas.evidence.adapters.oracle:create_oracle_adapter` |
+| `cypher` | **live** | PERSISTENT_MEMORY | `abraxas.evidence.adapters.cypher:create_cypher_adapter` |
 | `hyperlex` | planned | LEXICAL_SEMANTIC | test-local class only |
-| `semion` | planned | SIGN_RELATION | test-local class only |
+| `semion` | planned | SIGN_RELATION | test-local class only; an instrument now exists (`abraxas/evidence/semion_instrument.py`) |
 | `chronos` | planned | — | none found |
 | `resonance` | planned | — | none found |
-| `aether` | planned | — | **zero files in the repo** |
+| `aether` | planned | — | none in this repo; its own repository carries a spec plus a provider that RAISES |
 
 Implementation paths are copied from the manifest, and
 `tests/test_engine_manifest_agreement.py` *resolves* each one — so a wrong path fails the
@@ -159,12 +159,24 @@ planned engine cannot be presented as available without editing the manifest its
 `EngineSpec.settlements` (added in Phase 4) defaults every engine to `unsettled` on
 `empirical`/`technical`/`economic`, with empty evidence tuples.
 
-**No engine claims any settlement today — not empirical and not technical.** All ten read
-`unsettled` on all three axes.
+**All five live engines claim a `technical` settlement as of 2026-10-07** — `athanor`, `cypher`,
+`noesis`, `oracle` and `trutina` — each with its own cited evidence set. **No engine claims
+`empirical` or `economic` on any axis**, and no planned engine claims anything. This section
+previously read *"No engine claims any settlement today"*, which was true when written and is now
+recorded as changed rather than quietly deleted.
 
-What exists is the ENFORCEMENT, not a settlement. Four tests in
-`tests/test_engine_manifest_agreement.py` hold the machinery, each named here so this claim is
-checkable rather than prose:
+**Only `technical`, and that distinction is the point.** A technical settlement says the capability
+reliably meets its specification. It is silent on whether the capability beats a baseline
+(`empirical`) or produces consequences anyone adopts (`economic`) — the harder claims, and the ones
+still open on every engine.
+
+The evidence sets differ widely and each manifest note states which it is rather than implying a
+uniform base: `noesis` and `trutina` cite a specification, a Q1 suite and a qualification receipt;
+`oracle` cites its adapter, contract and governance record; `athanor` cites only its implementation
+and the conformance guard; `cypher` cites only its adapter and behavioural suite.
+
+What exists beyond the declarations is the ENFORCEMENT, and it is what makes a claim checkable
+rather than prose. Each test is named here so the claim can be verified instead of believed:
 
 | Test | What it holds |
 | --- | --- |
@@ -172,9 +184,10 @@ checkable rather than prose:
 | `test_a_settled_settlement_must_cite_evidence` | `settled` without evidence paths is forbidden |
 | `test_a_planned_engine_claims_no_empirical_settlement` | extends the manifest's planned/live invariant |
 | `test_settlement_evidence_references_resolve` | every cited evidence path exists |
+| `test_only_deliberately_declared_engines_claim_technical_settlement` | the declared set is pinned by equality, and every claim must be corroborated (`declared <= satisfiable`) |
 
-So a future `settled` claim costs cited evidence, and the operator alone decides when evidence
-suffices to move one. `unsettled` is the honest state, not a stub.
+`unsettled` remains the honest state for the nine axes nobody has claimed — not a stub, and not a gap
+to close for its own sake.
 
 ### Corroboration, not just shape
 
