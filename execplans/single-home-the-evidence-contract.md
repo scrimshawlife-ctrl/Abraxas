@@ -1,0 +1,349 @@
+# Single-home the evidence contract, then measure the settlement criteria
+
+This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
+
+This repository carries its own plan surface at `/Users/appliedalchemylabs/Abraxas/PLANS.md`
+("AAL-Core Active Plan Surface"), an append-first execution queue. This ExecPlan must be registered
+there as an active-queue entry, and that entry must be moved to `Completed` with a closure note when
+this work finishes. This document is maintained in accordance with the ExecPlan methodology in the
+`execplan` skill (`references/PLANS.md`, the Codex ExecPlan methodology), which is distinct from this
+repository's `PLANS.md`.
+
+## Purpose / Big Picture
+
+Every engine in Abraxas -- the components that actually do reasoning -- reports its findings through
+one shared shape called an **evidence envelope**: a record carrying the claim, the candidate outputs,
+the confidence, and the provenance of where the answer came from. Abraxas itself owns arbitration;
+engines own reasoning. That boundary is expressed by the envelope type.
+
+Right now that boundary type exists **twice**, and the two copies are not the same object. A caller
+that checks "is this an evidence envelope?" using one copy receives a real engine's output and is told
+**no**. Nothing in the test suite notices, because the only conformance check asks whether a class
+inherits from a base class, never what its output actually is.
+
+After this work, there is exactly one evidence envelope and exactly one provider interface in the
+repository, every live engine returns that single envelope, and two new guards fail loudly if either
+copy is ever reintroduced or if an engine returns a bare dictionary again. Then, because all five live
+engines finally return a uniform shape, a measurement harness can run each of them twice on identical
+input and report whether it is deterministic and whether it carries provenance -- which is what the
+settlement records added previously were waiting on.
+
+You can see it working by running two commands. First, one Python line that must print `True`:
+
+    python3 -c "from abraxas.evidence import EvidenceEnvelope as A; \
+    from abraxas.evidence.contract import EvidenceEnvelope as B; print(A is B)"
+
+Second, the settlement survey, which must show real `yes`/`no` values in the run-required columns
+instead of `?` for the five live engines:
+
+    python3 scripts/survey_engine_settlements.py
+
+## Progress
+
+This section must always reflect the actual state of the work. Timestamps are UTC.
+
+- [ ] (2026-10-06) Phase 0 -- baseline captured: full-suite result, ratchet result, and the four
+      duplicate definitions recorded with file:line evidence.
+- [ ] Phase 1 -- `EvidenceEnvelope` single-homed on `abraxas/evidence/contract.py`; the package
+      `__init__` re-exports rather than redefines; the `schema_version` divergence resolved.
+- [ ] Phase 2 -- `EvidenceProvider` single-homed; `noesis` returns the envelope rather than a dict.
+- [ ] Phase 3 -- two new guards in `tests/test_engine_manifest_agreement.py`, each driven to fail.
+- [ ] Phase 4 -- the three tracked `.bak` files removed from inside the package.
+- [ ] Phase 5 -- execution harness measuring determinism / provenance / canonical artifacts; wired
+      into `scripts/survey_engine_settlements.py`.
+- [ ] Phase 6 -- documentation, `PLANS.md` closure, `TEST_DEBT.md` update.
+
+## Surprises & Discoveries
+
+- Observation: the two `EvidenceEnvelope` definitions are not the same object and differ by exactly one
+  field. The package-level one (`abraxas/evidence/__init__.py:75`) has 22 fields including
+  `schema_version`; the contract one (`abraxas/evidence/contract.py:63`) has 21 and omits it.
+  Evidence: `abraxas.evidence.EvidenceEnvelope is abraxas.evidence.contract.EvidenceEnvelope`
+  evaluates to `False`.
+
+- Observation: a real live engine returns the contract copy, so a type check against the package copy
+  rejects genuine output.
+  Evidence: `isinstance(TrutinaEvidenceProvider().produce_evidence(...), abraxas.evidence.EvidenceEnvelope)`
+  is `False`, while the same object is an instance of the contract copy.
+
+- Observation: `noesis` returns a plain `dict`, not an envelope at all, and passes every existing
+  guard. The conformance test checks `issubclass(NoesisEvidenceProvider, EvidenceProvider)` and never
+  inspects a returned value, so the declared return type is unenforced.
+  Evidence: a direct call printed returned type `builtins.dict`.
+
+- Observation: three backup files are tracked inside the package directory:
+  `abraxas/evidence/__init__.py.bak`, `abraxas/evidence/provider.py.bak`, and
+  `abraxas/evidence/adapters/cypher.py.bak`. A `.bak` file inside an importable package is both
+  clutter and a hazard, since some tooling will collect it.
+  Evidence: `git ls-files abraxas/evidence/` lists all three.
+
+- Observation: the repository root carries a cluster of status documents each asserting completion --
+  `PLAN_COMPLETE.md`, `PLAN_IS_DONE.md`, `PLAN_FINISHED.md`, `PLAN_EXECUTION_COMPLETE.md`,
+  `PLAN_COMPLETION_FINAL.md`, `PLAN_EXECUTION_SUMMARY.md`, `FURTHER_WORK_PLAN_COMPLETE.md`. This is the
+  anti-pattern this repository has already named: a status document is a claim, not evidence. No action
+  is taken on them here; it is recorded so the next contributor is not misled by them.
+
+## Decision Log
+
+- Decision: treat `abraxas/evidence/contract.py` as the canonical home, and reduce
+  `abraxas/evidence/__init__.py` to re-exports.
+  Rationale: every real consumer imports from `contract` -- the verifiers
+  (`abraxas/evidence/verifiers/latent.py`, `relational.py`, `lexical.py`, `sign.py`, `calibration.py`),
+  the arbiter (`abraxas/evidence/arbiter/arbiter.py`), the policy layer
+  (`abraxas/evidence/policy.py`), and all five live engine modules. Moving the small number of
+  package-level importers is cheaper and less risky than moving the many contract-level importers, and
+  it keeps the interface next to the code that dominates it.
+  Date/Author: 2026-10-06, Bob Vajeen.
+
+- Decision: the `schema_version` field must be resolved deliberately, not dropped silently.
+  Rationale: the two copies differ by exactly this field, so whichever copy loses will change a hashed
+  or serialized payload. The executor must first measure whether `schema_version` is read anywhere. If
+  it is read, it is promoted to the canonical envelope with a test; if it is not, it is recorded as
+  deliberate removal in the Decision Log with the grep that proves it is unread. Silently keeping the
+  smaller copy would repeat the exact defect class this task exists to fix.
+  Date/Author: 2026-10-06, Bob Vajeen.
+
+- Decision: create the execution harness only after the contract is single-homed.
+  Rationale: a harness that runs all engines can only compare their outputs if their outputs share a
+  type. Building it first would mean writing per-engine special cases that the single-homing removes.
+  Date/Author: 2026-10-06, Bob Vajeen.
+
+## Outcomes & Retrospective
+
+To be completed at the end of each phase and at completion. At completion this section must compare
+the result against the Purpose above, state what remains, and record the lessons.
+
+## Context and Orientation
+
+This repository is a Python project rooted at `/Users/appliedalchemylabs/Abraxas`. Tests live in
+`tests/`, and the test suite is run through `scripts/test_ratchet.sh`, which enforces that the number of
+failing tests never rises above zero and that the number of collected tests never falls below a floor.
+At the time of writing the ratchet reports `failures=0 baseline=0 collected=3525 floor=3525`.
+
+Terms used in this plan, defined plainly:
+
+An **engine** is a component that produces reasoning output. Its identity, status, and entry point are
+declared in one place, `abraxas/engines/manifest.py`, in a tuple named `ENGINES`. Each entry is an
+`EngineSpec`. An engine whose status equals the module constant `LIVE` is expected to work; one whose
+status equals `PLANNED` is a declared-but-unimplemented surface.
+
+An **evidence provider** is the interface an engine implements. It is defined by
+`abraxas/evidence/provider.py` as an abstract base class named `EvidenceProvider` with two methods:
+`get_model_identity()` returning a string, and `produce_evidence(request_id, claim, context, budget=None)`
+returning an evidence envelope.
+
+An **evidence envelope** is the record an engine returns: the claim, the candidate outputs, confidence,
+uncertainty, the reasoning steps, the provenance, and a timestamp.
+
+A **settlement** is a claim about how far a capability has been established, recorded on each
+`EngineSpec`. There are three kinds: empirical (is the claim supported by evidence), technical (does the
+instrument perform to specification), and economic (does it produce consequences someone adopts). This
+plan concerns **technical** settlement only.
+
+The **settlement survey** is `scripts/survey_engine_settlements.py`. It evaluates every engine against
+the six criteria the doctrine names for technical settlement -- determinism, schemas, tests, replay,
+provenance, canonical artifacts -- and refuses to certify a settlement resting on an unmeasured
+criterion. It currently reports `?` (not measurable without running the engine) for determinism, replay,
+provenance, and canonical artifacts, which is why no engine can be settled. Its guard lives at
+`tests/test_engine_settlement_survey.py`.
+
+## Plan of Work
+
+**Phase 0 -- Baseline.** Run the full suite through the ratchet and save the output. Record, with
+commands and pasted output, the four duplicate definitions (`abraxas/evidence/provider.py:19`,
+`abraxas/evidence/__init__.py:75`, `abraxas/evidence/__init__.py:175`, `abraxas/evidence/contract.py:63`)
+and the three tracked `.bak` files. Record how many import sites reference the package-level names,
+because that number is the real cost of this change and must appear in the Decision Log:
+
+    grep -rn "from abraxas.evidence import\|abraxas\.evidence\.EvidenceEnvelope\|abraxas\.evidence\.EvidenceProvider" \
+      abraxas tests tools scripts --include="*.py"
+
+**Phase 1 -- Single-home the envelope.** In `abraxas/evidence/__init__.py`, replace the class definition
+at line 75 with an import and re-export of the canonical type from `abraxas/evidence/contract.py`. Resolve
+`schema_version` per the Decision Log rule. Write a test asserting identity -- that
+`abraxas.evidence.EvidenceEnvelope is abraxas.evidence.contract.EvidenceEnvelope` -- and assert the field
+count of the single envelope so a silent re-divergence is caught. If any site imported the package-level
+copy and relied on `schema_version`, that site must be updated in this same phase; a change whose two
+parts are measured jointly must land jointly.
+
+**Phase 2 -- Single-home the provider, and fix the dict return.** In `abraxas/evidence/__init__.py`,
+reduce the provider definition at line 175 to a re-export of `abraxas/evidence/provider.py`. Then make
+`abraxas/evidence/verifiers/latent.py` return an envelope from `produce_evidence` instead of a
+dictionary: construct the canonical envelope with the same values it currently puts in the dict. Add a
+test that every `LIVE` engine's `produce_evidence` returns an instance of the single envelope. That test
+must fail before Phase 2's code change and pass after.
+
+**Phase 3 -- Enforce with guards that fail.** Extend `tests/test_engine_manifest_agreement.py` with two
+participants. First, an identity guard asserting one definition of each contract type, driven to fail by
+temporarily reintroducing a duplicate and observing the failure. Second, a return-type guard over every
+live engine, driven to fail by temporarily reverting the `latent.py` fix. Record both observed failures
+verbatim in `Artifacts and Notes`. An enforcement check nobody has watched reject anything is not known
+to enforce anything.
+
+**Phase 4 -- Remove the tracked backups.** Confirm no module imports the `.bak` paths, then remove the
+three files with `git rm`, which both deletes and unstages them in one step.
+
+**Phase 5 -- Measure the criteria.** Create `abraxas/engines/execution_harness.py`. For each `LIVE`
+engine it constructs the engine -- passing a deterministic stand-in inference callable to the three that
+are factories, since their signatures take `inference_engine` -- calls `produce_evidence` twice with
+identical `request_id`, `claim`, and `context`, and compares the two results. It then reports three
+measured verdicts per engine: determinism (the two canonical payloads are identical), provenance (the
+`provenance` mapping is present and non-empty), and canonical artifacts (the canonical payload hashes
+stably across repeated runs and after a re-import).
+
+There is a trap here that must be handled explicitly. The envelope carries a `timestamp` field and an
+`evidence_id`, which are **metadata**, not content, exactly as `generated_at_utc` was metadata rather
+than content in the lexicon fingerprint fixed earlier in this repository. If the harness compares whole
+envelopes, every engine will look non-deterministic for reasons that have nothing to do with its
+reasoning. The harness must separate identity from metadata: compare and hash the content while
+excluding the fields it has established to be non-content, and it must state which fields it excludes
+and why. The dangerous fix -- deleting the timestamp to make the comparison pass -- must not be taken,
+because the timestamp is legitimate metadata; the correct fix is to exclude it from the identity
+comparison.
+
+Then extend `scripts/survey_engine_settlements.py` so that the run-required criteria consult this
+harness. `?` becomes `yes` where the harness measured a pass, `no` where it measured a failure, and only
+remains `?` where measurement is genuinely impossible. The survey's existing rule stands: a criterion
+that is `?` cannot support a settlement.
+
+**Phase 6 -- Documentation.** Add the contract rule to `docs/DOCTRINE.md` in the same style as the
+existing sections: the envelope is single-homed, engine output must satisfy it, and metadata fields are
+excluded from identity rather than deleted. Update `docs/ENGINE_TOPOLOGY.md` where it describes the
+settlement criteria with the newly measured values. Add a `TEST_DEBT.md` entry recording the root-status
+document cluster named in Surprises. Move this work's entry in `PLANS.md` to `Completed` with a closure
+note and links to the commits.
+
+## Concrete Steps
+
+All commands run from `/Users/appliedalchemylabs/Abraxas`.
+
+The interpreter matters. A bare `python3` in this environment resolves a foreign checkout through a
+stale editable install and produces roughly 28 spurious collection errors. Always select the toolchain
+interpreter:
+
+    PY=$(ls -d /Users/appliedalchemylabs/.hermes/tools/python-3.14*/bin/python3 | head -1)
+    "$PY" -V
+
+Expected: `Python 3.14.7`.
+
+Run the full suite through the ratchet, which takes between three and thirteen minutes and must not be
+run concurrently with another suite run in the same working tree, because two runs share the generated
+`out/`, `data/`, and `.aal/` directories and manufacture failures belonging to neither run:
+
+    bash scripts/test_ratchet.sh
+
+Expected final lines:
+
+    ===== 3514 passed, 4 skipped, 9 xfailed in NNN.NNs ======
+    failures=0 baseline=0  collected=3525 floor=3525
+    OK: within baseline
+    RATCHET_EXIT=0
+
+Run a single test file while developing:
+
+    "$PY" -m pytest tests/test_engine_manifest_agreement.py -q --no-header
+
+Never use `git add -A` or `git add .` in this repository: `out/`, `data/`, `.aal/`, and `.abraxas/`
+are tracked but rewritten by every test run, so a blanket add stages hundreds of generated files and
+the pre-receive hook rejects the push. Stage explicit paths only.
+
+A `git push` in this repository has hung and been killed at its timeout, leaving the commit local while
+the remote stayed behind. Push in the background with an output log, then verify by comparing
+`git rev-parse HEAD` against `git ls-remote origin main`; do not conclude a push landed merely because
+the command returned.
+
+## Validation and Acceptance
+
+Two assertions, both checkable by a human at a terminal.
+
+First, there is one envelope. This must print `True`:
+
+    "$PY" -c "from abraxas.evidence import EvidenceEnvelope as A; \
+    from abraxas.evidence.contract import EvidenceEnvelope as B; print(A is B)"
+
+Before this work it prints `False`, which is the defect.
+
+Second, every live engine returns that envelope and is deterministic under identical input:
+
+    "$PY" -m pytest tests/test_engine_manifest_agreement.py tests/test_engine_settlement_survey.py -q
+
+Expected: all pass, including the new guards. The return-type guard must have been observed failing
+before the `latent.py` change; that observed failure is the evidence the guard works.
+
+Third, the survey reports measured values rather than `?` for the criteria the harness can establish:
+
+    "$PY" scripts/survey_engine_settlements.py
+
+Expected: the live engines show `yes` or `no` in the determinism, provenance, and canonical-artifact
+columns, with `no` accompanied by the harness's stated reason. The process exits 0.
+
+Finally the ratchet must be green with the collected floor raised to the new count, since this work adds
+tests: `failures=0 baseline=0 collected=N floor=N` where N is the new count taken verbatim from the
+`collected N items` line of the run, because the passed/skipped/xfailed components do not reconcile with
+it.
+
+## Idempotence and Recovery
+
+Every phase is additive or a re-export, so re-running a phase is safe. The one destructive step is
+Phase 4's `git rm` of three backup files; it is recoverable from git history with
+`git checkout <sha> -- <path>` because the files are tracked.
+
+If the suite reports failures that disappear when a single test file is run alone, suspect a concurrent
+suite run in the same tree rather than a real defect, and re-run the file in isolation before changing
+anything. Do not modify source to satisfy a checker: if a guard fails, fix the guard or fix the code the
+guard is complaining about, never the wording of the code the guard reads.
+
+## Artifacts and Notes
+
+The four duplicate definitions, as measured:
+
+    abraxas/evidence/provider.py:19    class EvidenceProvider(ABC):
+    abraxas/evidence/__init__.py:75    class EvidenceEnvelope:
+    abraxas/evidence/__init__.py:175   class EvidenceProvider:
+    abraxas/evidence/contract.py:63    class EvidenceEnvelope:
+
+The field divergence, as measured (package copy first, contract copy second):
+
+    only in __init__ : ['schema_version']
+    only in contract : []
+    identical object? False
+
+A live engine returning the contract copy while the package copy is not an instance of it, and a second
+live engine returning a bare dictionary:
+
+    trutina envelope is a package one?  False | is contract one?  True
+    noesis returned type: builtins.dict
+
+## Interfaces and Dependencies
+
+No new third-party dependency is introduced. The harness uses only the standard library plus the
+repository's own canonical serialization helpers, `hash_canonical_json` and `canonical_json` from
+`abraxas/core/provenance.py` and `abraxas/core/canonical.py`, which already exist and are already used
+by `abraxas/forecast/store.py` and `abraxas/narratives/generator.py`.
+
+At the end of Phase 1, `abraxas/evidence/__init__.py` must expose:
+
+    from abraxas.evidence.contract import EvidenceEnvelope, EvidenceProvider  # re-export, not redefinition
+
+At the end of Phase 2, in `abraxas/evidence/verifiers/latent.py`, the method
+
+    def produce_evidence(self, request_id: str, claim: str,
+                         context: Dict[str, Any],
+                         budget: Optional[Dict[str, Any]] = None) -> EvidenceEnvelope:
+
+must return an `EvidenceEnvelope` instance rather than a `dict`.
+
+At the end of Phase 5, in a new module `abraxas/engines/execution_harness.py`, define:
+
+    def run_once(engine: EvidenceProvider, request_id: str, claim: str,
+                 context: Dict[str, Any]) -> Dict[str, Any]:
+        """Return one evidence envelope as a plain mapping."""
+
+    def measure(engine_name: str) -> Dict[str, str]:
+        """Return {'determinism': 'yes'|'no', 'provenance': ..., 'canonical_artifacts': ...,
+        'reason': <text>} for one engine, by running it twice on identical input."""
+
+    NON_CONTENT_FIELDS: Tuple[str, ...] = (...)
+        """Envelope fields excluded from the identity comparison because they are metadata:
+        the timestamp and the evidence identifier. Named explicitly so the exclusion is reviewable."""

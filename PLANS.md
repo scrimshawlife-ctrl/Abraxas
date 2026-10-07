@@ -9,6 +9,24 @@ This file is the append-first execution queue for implementation runs.
 
 ## Active Queue
 
+### P0 — Single-Home the Evidence Contract, Then Measure the Settlement Criteria
+- **Status:** ACTIVE
+- **Owner:** Bob Vajeen
+- **Date:** 2026-10-06
+- **ExecPlan:** `execplans/single-home-the-evidence-contract.md` (self-contained; follow it to the letter).
+- **Intent:** The boundary type that expresses "Abraxas owns arbitration, engines own reasoning" exists
+  twice and the copies are not the same object, so a type check against the package-level envelope
+  rejects a real engine's output. `abraxas/evidence/verifiers/latent.py` returns a bare `dict` where the
+  interface declares an envelope, and no guard inspects a returned value, so it passes. Three `.bak`
+  files are tracked inside the package. Single-home the contract, then measure the per-engine criteria
+  that the settlement records were waiting on.
+- **Definition of done:** `abraxas.evidence.EvidenceEnvelope is abraxas.evidence.contract.EvidenceEnvelope`
+  prints `True`; every `LIVE` engine's `produce_evidence` returns an instance of that single envelope;
+  two new guards enforce both properties and have each been observed failing before their fix; the
+  tracked `.bak` files are gone; `scripts/survey_engine_settlements.py` reports measured `yes`/`no` for
+  determinism, provenance, and canonical artifacts instead of `?`; the ratchet is green with the
+  collected floor raised to the new count; commits pushed to `origin/main`.
+
 ### P0 — Validator Artifact Linkage Closure
 - **Status:** ACTIVE
 - **Intent:** ensure rune execution artifacts link cleanly into validator/ledger surfaces.
