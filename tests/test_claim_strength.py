@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
+import pytest
+
 from abraxas.evidence.claim_strength import (
     FORMALITY_TIERS,
     ClaimStrength,
@@ -113,8 +115,63 @@ def test_a_packet_may_declare_claim_strength() -> None:
             "declared_at_utc": "2026-01-01T00:00:00+00:00",
         },
     )
-    strength = ClaimStrength(**packet.claim_strength)
-    assert strength.is_expired(now=NOW + timedelta(days=10)) is False
+    # The field is a VALIDATED ClaimStrength, not a loose dict: the schema enforces itself at the
+    # boundary rather than relying on a caller to remember to construct the model.
+    assert isinstance(packet.claim_strength, ClaimStrength)
+    assert packet.claim_strength.is_expired(now=NOW + timedelta(days=10)) is False
+
+
+def test_a_malformed_claim_strength_is_rejected_at_construction() -> None:
+    """A packet may not carry an unvalidated claim strength.
+
+    `SourcePacket.claim_strength` was typed `Optional[Dict[str, Any]]`, so this passed silently while
+    `ClaimStrength` -- which rejects exactly these values -- sat unused in production and was constructed
+    only inside a test. A field whose type cannot fail is not a check; the validation existed and never
+    ran on real data.
+    """
+    from pydantic import ValidationError
+
+    from abraxas.sources.packets import SourcePacket
+
+    with pytest.raises(ValidationError):
+        SourcePacket(
+            source_id="s1",
+            observed_at_utc="2026-01-01T00:00:00Z",
+            window_start_utc=None,
+            window_end_utc=None,
+            payload={},
+            claim_strength={"formality": "vibes", "scope": "x", "validity_days": 1, "grounding": "moon"},
+        )
+
+
+def test_claim_strength_does_not_affect_the_packet_hash() -> None:
+    """Typing the field must NOT pull it into the content hash -- it is metadata (Risk 3).
+
+    Pins the exclusion through the type change: two packets identical except for `claim_strength` must
+    hash identically.
+    """
+    from abraxas.sources.packets import SourcePacket
+
+    common = {
+        "source_id": "s1",
+        "observed_at_utc": "2026-01-01T00:00:00Z",
+        "window_start_utc": None,
+        "window_end_utc": None,
+        "payload": {"a": 1},
+    }
+    without = SourcePacket(**common)
+    with_strength = SourcePacket(
+        **common,
+        claim_strength={
+            "formality": "automated",
+            "scope": "this sample",
+            "validity_days": 30,
+            "grounding": "field",
+            "declared_at_utc": "2026-01-01T00:00:00+00:00",
+        },
+    )
+    assert without.packet_hash() == with_strength.packet_hash()
+    assert "claim_strength" not in without.canonical_payload()
 
 
 def test_a_packet_without_claim_strength_declares_none() -> None:
@@ -168,12 +225,25 @@ class TestClaimStrengthDoesNotChangePacketIdentity:
         )
 
     def test_claim_strength_is_excluded_from_canonical_payload(self) -> None:
+        from abraxas.evidence.claim_strength import ClaimStrength
         from abraxas.sources.packets import SourcePacket
 
-        packet = SourcePacket(**self.BASE, claim_strength={"formality": "automated"})
+        # A COMPLETE declaration: the field is a validated `ClaimStrength`, so a partial dict is
+        # rejected at construction (see test_a_malformed_claim_strength_is_rejected_at_construction).
+        # This test's subject is the EXCLUSION, not how permissive the field is.
+        declared = {
+            "formality": "automated",
+            "scope": "this sample",
+            "validity_days": 30,
+            "grounding": "field",
+        }
+        packet = SourcePacket(**self.BASE, claim_strength=declared)
+
         assert "claim_strength" not in packet.canonical_payload()
         # ...while remaining present on the model, so the declaration is not lost.
-        assert packet.claim_strength == {"formality": "automated"}
+        assert isinstance(packet.claim_strength, ClaimStrength)
+        assert packet.claim_strength.formality == "automated"
+        assert packet.claim_strength.scope == "this sample"
 
     def test_the_exclusion_is_scoped_and_identity_still_tracks_content(self) -> None:
         """The counterfactual. A blanket exclusion would also satisfy the test above.

@@ -147,6 +147,19 @@
       were each driven to fail and are real gates.
 - [x] Full detail in `docs/TEST_DEBT.md`.
 
+- [x] **The doctrine arc's four open questions are all answered** — three were already resolved and
+      recorded (the `--allow-simulated` gate deliberately admits `undeclared`; `claim_strength` is
+      excluded from `packet_hash`; `derived` has no producer so its rank is unexercised). The fourth is
+      the operator's to declare (which engine, if any, claims *technical* settlement) and the mechanism
+      plus a corroborating survey now exist for it.
+- [x] **A real gap found while checking them and closed:** `SourcePacket.claim_strength` was an
+      unvalidated `Dict[str, Any]` while the validating `ClaimStrength` model had **no production
+      caller** — the test performed by hand the validation production never did, so
+      `{"formality": "vibes"}` was accepted. Now typed as the model: malformed input is rejected, the
+      packet hash is unchanged, and it was done while no producer emits the field (free now, breaking
+      later).
+- [x] Full detail in `docs/TEST_DEBT.md`.
+
 ### Open Decisions (all three RESOLVED) — session 2026-10-06
 
 - [x] **Non-censorship scan patterns** — RESOLVED. `tools/non_censor_scan.py` now exits 0. The patterns

@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.evidence.claim_strength import ClaimStrength
 from abraxas.evidence.data_grade import UNDECLARED
 
 
@@ -23,7 +24,12 @@ class SourcePacket(BaseModel):
     data_grade: str = Field(default=UNDECLARED)  # see abraxas/evidence/data_grade.py
     payload: Dict[str, Any]
     provenance: Dict[str, Any] = Field(default_factory=dict)
-    claim_strength: Optional[Dict[str, Any]] = None  # metadata; excluded from canonical_payload per Risk 3
+    #: Metadata, and excluded from `canonical_payload` (Risk 3). Typed as the VALIDATED model rather
+    #: than `Dict[str, Any]`: it was a loose dict, so a malformed claim strength passed silently while
+    #: `ClaimStrength` had no production caller at all. Typing it here means the schema enforces itself
+    #: at the boundary. Typed BEFORE any producer emits the field, which is what makes it cheap -- after
+    #: a producer exists, tightening the type would reject data already in flight.
+    claim_strength: Optional[ClaimStrength] = None
 
     def canonical_payload(self) -> Dict[str, Any]:
         payload = self.model_dump(exclude={"claim_strength"})

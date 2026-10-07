@@ -1143,7 +1143,7 @@ Measured by grepping the source roots for each name and excluding the defining s
 | Symbol | Production uses | Read by |
 | --- | --- | --- |
 | `declares_observation` | **0** | its own unit test only |
-| `ClaimStrength` | **0** | `tests/test_claim_strength.py` only |
+| `ClaimStrength` | **1** | `sources/packets.py` — typed the field 2026-10-07 (was 0) |
 | `groundings_for` | **0** | nothing at all |
 | `weakest_grade` | 3 | `tvm/frame.py` (Phase 2 — consumed) |
 | `normalize_grade` | 15 | many (Phase 1 — consumed) |
@@ -1427,3 +1427,41 @@ turn it red.
    which reads exactly like "the gate is broken". The assertion `assert t2 != t` caught it and prevented
    that conclusion. **A fault that does not land produces the same output as a gate that cannot fail.**
    Assert the fault landed before reading the verdict.
+
+---
+
+## The doctrine arc's four open questions — where each one actually stands
+
+Checked 2026-10-07, by reading the code and the existing records rather than re-deriving from the plan.
+All four are answered; only one needed work, and it was a **follow-on gap the plan had not considered**.
+
+| question | status |
+|---|---|
+| Should `--allow-simulated` also gate `undeclared`? | **DECIDED — no** (see the entry above). Filtering would empty the three `run_year` test files, which declare 0 grades, and would conflate *unknown* with *synthetic*. Reached independently here and already recorded. |
+| Should `claim_strength` participate in `packet_hash`? | **IMPLEMENTED — no.** `packets.py:canonical_payload()` excludes it, with the reason in-line, and `TestClaimStrengthDoesNotChangePacketIdentity` pins it with counterfactuals in both directions. |
+| Which engines can claim *technical* settlement? | **OPEN, operator's call — and correctly left alone.** All engines are `unsettled`; the manifest carries the mechanism and `scripts/survey_engine_settlements.py` now corroborates any claim. Declaring one means adding `settled` plus the evidence path; the survey then checks it, so the operator can declare with confidence and an invented claim cannot pass unnoticed. |
+| Is `derived` weaker than `simulated`, or incomparable? | **UNEXERCISABLE — no change.** `DERIVED` is never assigned: it appears only in the taxonomy module and `claim_strength.py`'s grounding map, so nothing produces the case. The recorded insight is that they are plausibly on different axes (`derived` = lineage, `simulated` = generation), so a derived metric computed from simulated inputs would outrank `simulated` while resting on synthetic data. Any producer must decide that case explicitly. |
+
+### The gap that was open, and closed
+
+`SourcePacket.claim_strength` was typed `Optional[Dict[str, Any]]` — a **loose dict** — while the
+validated `ClaimStrength` model sat unused in production, constructed only inside a test
+(`ClaimStrength(**packet.claim_strength)`: the test performed by hand the validation production never
+did). So `claim_strength={"formality": "vibes", "grounding": "moon"}` was accepted, and only the
+exclusion from `packet_hash` was tested.
+
+The field is now the validated model, so the schema enforces itself at the boundary. Verified: the model
+is constructed (`isinstance(packet.claim_strength, ClaimStrength)`), malformed input is rejected with a
+`ValidationError`, and **the packet hash is unchanged** — two packets identical except for
+`claim_strength` still hash identically, so typing it did not pull metadata into identity.
+
+Done now rather than later on purpose: **no producer emits the field**, so tightening the type costs
+nothing. After a producer exists it would reject data already in flight. The window was open, which is
+the whole argument for doing it in this order.
+
+One existing test changed: `test_claim_strength_is_excluded_from_canonical_payload` passed a partial
+dict (`{"formality": "automated"}`) and asserted equality with a dict. Its subject is the EXCLUSION, not
+the field's permissiveness, so it now uses a complete declaration and asserts the model — the old
+expectation was incidental, and the reason is recorded in the test.
+
+Suite: `tests/test_claim_strength.py` 17 passed; packet/source-selected suites 169 passed, 2 skipped.
