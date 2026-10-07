@@ -202,9 +202,19 @@
 ## Engine Completion Audit — session 2026-10-07
 
 Requested view of how complete each engine is. **Engines live in their own repositories**, so completion
-has **two axes** — and they disagree in a way that is itself the finding: an engine can be fully integrated
-inside Abraxas and have an empty repo (`noesis`), or have a substantial repo and not yet be an Abraxas
-provider (`hyperlex`).
+has **two axes** — and they disagree in a way that is itself the finding: `hyperlex` has a substantial repo
+and is not yet an Abraxas provider, while `oracle` and `cypher` were `live` in Abraxas with **no repository
+at all**.
+
+> **CORRECTED — same session.** The first version of this table reported `noesis` and `semion` as having
+> **no repository**. Both have public repositories with substantial history (131 and 121 files; 36 and 39
+> commits) that had simply never been cloned to this machine: the audit listed directories under `$HOME` and
+> treated absence there as absence anywhere. The method is fixed — see "How the repo ladder is measured" —
+> and the two rows are rewritten below. The tell that the method was wrong is in the original table: two rows
+> that were simultaneously complete inside Abraxas and empty everywhere obvious.
+>
+> Everything below is now measured against the remote (`gh repo list` + `git ls-remote`, then clone), never
+> against a filesystem listing.
 
 ### How the numbers are computed (stated so anyone can recompute them)
 
@@ -234,18 +244,41 @@ choice, not a measurement — the two ladders are the measurements.
 
 ### Results
 
-| engine | Abraxas status | own repo | src modules | test modules | integration | repo | combined |
-|---|---|---|---|---|---|---|---|
-| `athanor` | live | yes | 63 | 21 | 86% (6/7) | 100% (5/5) | **93%** |
-| `trutina` | live | yes | 19 | 10 | 86% (6/7) | 100% (5/5) | **93%** |
-| `hyperlex` | planned | yes | 214 | 70 | 29% (2/7) | 100% (5/5) | **65%** |
-| `oracle` | live | directory only | 1 stub | 0 | 86% (6/7) | 20% (1/5) | **53%** |
-| `cypher` | live | directory only | 1 stub | 0 | 86% (6/7) | 20% (1/5) | **53%** |
-| `chronos` | planned | yes | 1 stub | 0 | 29% (2/7) | 40% (2/5) | **35%** |
-| `resonance` | planned | yes | 1 stub | 0 | 29% (2/7) | 40% (2/5) | **35%** |
-| `noesis` | live | **none** | — | — | 86% (6/7) | 0% (0/5) | **43%** |
-| `aether` | planned | yes, 0 commits | 1 stub | 0 | 29% (2/7) | 20% (1/5) | **25%** |
-| `semion` | planned | **none** | — | — | 29% (2/7) | 0% (0/5) | **15%** |
+| engine | Abraxas status | own repo | src `.py` | test `.py` | commits | integration | repo | combined |
+|---|---|---|---|---|---|---|---|---|
+| `athanor` | live | yes | 19 | 21 | 221 | 86% (6/7) | 100% (5/5) | **93%** |
+| `trutina` | live | yes | 9 | 10 | 66 | 86% (6/7) | 100% (5/5) | **93%** |
+| `noesis` | live | yes | 46 | 29 | 36 | 86% (6/7) | 100% (5/5) | **93%** |
+| `oracle` | live | yes ‡ | 3 | 1 | 1 | 86% (6/7) | 80% (4/5) | **83%** |
+| `cypher` | live | yes ‡ | 3 | 1 | 1 | 86% (6/7) | 80% (4/5) | **83%** |
+| `hyperlex` | planned | yes | 86 | 66 | 4 † | 29% (2/7) | 100% (5/5) | **65%** |
+| `semion` | planned | yes | 5 | 4 | 39 | 29% (2/7) | 100% (5/5) | **65%** |
+| `chronos` | planned | yes | 3 | 1 | 3 | 29% (2/7) | 80% (4/5) | **55%** |
+| `resonance` | planned | yes | 3 | 1 | 2 | 29% (2/7) | 80% (4/5) | **55%** |
+| `aether` | planned | yes | 3 | 1 | 1 | 29% (2/7) | 80% (4/5) § | **55%** |
+
+† **`hyperlex`'s local clone is SHALLOW** (`.git/shallow` exists; `git rev-parse --is-shallow-repository` is
+`true`), so its commit count and any "N commits behind main" figure computed from it are artifacts of the
+shallow boundary, not measurements. The count is shown only because the column exists; do not read it as
+history. Its branch question was settled by **content**, not by ancestry: the three commits on
+`docs/pytrends-evidence-design` create exactly the two documents that already exist on `main`, and `main`
+additionally carries the implementation (`src/hyperlex/intake/trends.py`, `tests/test_trends_evidence.py`). The
+branch is superseded.
+
+‡ **`oracle` and `cypher` had no repository at all** — `gh repo view scrimshawlife-ctrl/Oracle` and `…/Cypher`
+both returned *"Could not resolve to a Repository"*. Both were created this session (private) and now carry
+the engine spec, a `compat/abraxas/` bridge to the in-tree adapter, and boundary tests. Their repo ladder sits
+at 4/5 rather than 5/5 because each has 3 source modules, below the ≥5 threshold — the threshold is the
+ladder's, not a judgement about the work.
+
+§ **`aether`'s repo score overstates it.** Stage 4 of the repo ladder asks whether an implementation is
+present; `aether` has 3 modules, and every one of them refuses to produce evidence. The ladder cannot tell a
+boundary from an engine, so read that 4/5 as "the repository is structurally complete" and never as "the
+engine exists". Its own `SPEC.md` marks every component `Exists: no`.
+
+**These counts are not comparable with the first version of this table.** That version measured a different
+scope (it recorded 63 source modules for `athanor`, where this measures 19 `.py` files under `src/`). The
+ladders are the measurements; the counts are orientation.
 
 Every live engine sits at 6/7 on the integration ladder and is blocked only by stage 7, which is a **claim**
 nobody has made, not a capability anybody lacks.
@@ -269,10 +302,16 @@ is an empty scaffold. Counted as TRACKED files whose path contains the engine na
 
 **The engines split into two homes.** `athanor`, `chronos` and `aether` have nothing in the Abraxas tree —
 their work is (or would be) entirely in their own repo. The rest live in-tree, mostly as providers under
-`abraxas/evidence/`. That is the resolution of the apparent contradiction above: **`oracle` and `cypher`
-are `live` because their working implementation is the in-tree adapter (`abraxas/evidence/adapters/`),
-while the standalone repo was scaffolded and never built.** The standalone repo is not where those engines
-live today.
+`abraxas/evidence/`. That explains **why `oracle` and `cypher` were `live` while their standalone
+repositories had never been built**: the working implementation is the in-tree adapter
+(`abraxas/evidence/adapters/`).
+
+The engine repositories now mirror that rather than duplicating it. `Oracle` and `Cypher` hold the spec plus
+a `compat/abraxas/` bridge that RESOLVES the canonical adapter, and their tests assert the wrapped provider's
+**module path** is Abraxas's — so a second implementation cannot appear in the repo without failing a test.
+The same rule holds in the other direction for `Resonance`, which had code in Abraxas but no adapter
+anywhere: its repository composes the in-tree phase detectors, and its tests assert those factories'
+module paths in turn.
 
 **`oracle`'s number is not an engine count.** The 227 spans a whole in-tree *subsystem* — `abraxas/oracle/`
 (the v2 collectors/renderers), plus tests, schemas and contracts — whereas the engine's provider is the thin
@@ -282,28 +321,54 @@ match is not a component boundary.
 
 ### Findings
 
-1. **Five of the ten engine repos are unrendered cookiecutter templates.** `Oracle`, `Cypher`, `Chronos`,
-   `Resonance` and `Aether` each hold the same 5 files and a byte-identical 42-line `SPEC.md`. Their
-   `src/<name>/__init__.py` still contains the raw placeholder:
+1. **Five of the ten engine repos were unrendered cookiecutter templates** — `Oracle`, `Cypher`, `Chronos`,
+   `Resonance` and `Aether`, each holding the same 5 files and a byte-identical 42-line `SPEC.md`, their
+   `src/<name>/__init__.py` still containing the raw placeholder:
 
    ```python
    from .compat.abraxas import {{ EngineName }}EvidenceProvider
    ```
 
-   That is **not valid Python** — every one of those files fails `ast.parse` — and `.compat.abraxas` does
-   not exist in the repo at all. Their `KANBAN.md` is the template's own placeholder ("Define future work
-   items / Current sprint work"). These are not partial implementations; nothing was ever rendered or
-   built.
-2. **`noesis` and `semion` have no repository at all**, yet `noesis` is `live` in Abraxas (its provider is
-   `abraxas/evidence/verifiers/latent.py`) and `semion` has 33 tests and a spec inside Abraxas. "No repo"
-   does not mean "no work" — it means the work lives only in the Abraxas tree.
-3. **Three repos are real:** `athanor` (63 source / 21 test modules), `hyperlex` (214 / 70), `trutina`
-   (19 / 10).
-4. **Two engines have no version control.** `Oracle/` and `Cypher/` are plain directories with no `.git`.
-   `Aether/.git` exists but has **zero commits and zero tracked files**.
-5. **`athanor` carries the same defect class found in Abraxas this session:** `scripts/batch_jev_harvest.py:209`
-   — unterminated string literal, and tracked, so that module cannot be imported. Reported here, not fixed:
-   it is a different repository.
+   That is **not valid Python** — every one of those files fails `ast.parse` — and `.compat.abraxas` did
+   not exist in the repo at all (the cookiecutter had created `src/<name>/compat/abraxas/` as an **empty
+   directory**). Their `KANBAN.md` was the template's own placeholder ("Define future work items / Current
+   sprint work"). These were not partial implementations; nothing had ever been rendered or built.
+   **All five are now rendered, specified, implemented, tested and pushed** (`Chronos` a5d772a+8869225,
+   `Resonance` 81ae30c, `Oracle` a9a3377, `Cypher` f21f622, `Aether` 9245248). `Resonance` was the worst
+   damaged: its `pyproject.toml` carried *nested, doubly-substituted* description text and did not parse at
+   all.
+2. **CORRECTED: `noesis` and `semion` both have substantial repositories.** `Noesis` is 131 files / 36
+   commits — 27 runtime slices implemented, 16 spec documents, 20 contract schemas, CI workflows, and
+   accepted acceptance evidence from a pinned real-model run. `Semion` is 121 files / 39 commits — 66 spec
+   documents, 4 contracts, a dual-use gate, a model card. Neither was ever cloned to this machine, which is
+   the whole of the original error. Both are now cloned and in sync with their remotes.
+3. **Most repos are real.** Beyond `athanor` (19 source / 21 test files), `trutina` (9 / 10) and `hyperlex`
+   (86 / 66), add `noesis` (46 / 29) and `semion` (5 / 4). The counts for the five newly-rendered engines are
+   small by design: each is a spec, a bridge to (or composition of) the machinery that lives in Abraxas, and
+   boundary tests — not a reimplementation.
+4. **Version control is now universal.** `Oracle` and `Cypher` were plain directories with no `.git` and no
+   remote — `gh repo view` for both returned *"Could not resolve to a Repository"*. Both were created this
+   session as private repositories on `main`. `Aether`'s repository existed but was **empty at both ends**
+   (0 commits locally, and `git clone` reported an empty remote); it now carries its spec, a fail-closed
+   provider and tests. `Chronos` had no `.gitignore` and had committed four `__pycache__` artifacts; they are
+   untracked via `git rm --cached` and the file is committed.
+5. **`athanor` still carries an unimportable tracked module.** `scripts/batch_jev_harvest.py:209` fails
+   `ast.parse` (65 `.py` files examined, exactly 1 unparseable — measured, not inferred). The line is a
+   mangled f-string that builds `pair_id`:
+
+   ```python
+   "pair_id": f"corr.{family}.{role}.{hashlib.sha256((family+"."+role+"."+atom.get("atom_id","")).encode()).hexdigest()[:6]}". + role + ...,
+   ```
+
+   quoted three ways over, the same corruption class as the mangled `pyproject.toml` headers in the
+   scaffolds. **Left unfixed deliberately:** the plausible reconstruction
+   (`f"corr.{family}.{role}.{sha256(…)[:6]}"`) is a guess about the intended `pair_id` format, and an id
+   format is a data effect, not a cosmetic one — a wrong reconstruction silently changes harvest identity.
+   The fix needs the harness owner. Athanor also has **10 untracked artifacts** (an execution receipt,
+   RUN-001/002/003 reports, seals and preregistrations, two training configs, one `.clean` fixture) dated
+   four days after its `STATUS.md`, whose README says *"Full receipts live in STATUS.md"* — so the sealed
+   runs are unrecorded in the repo. Also left to its owner: the repo's anti-goals list a *"copyright
+   dump"*, so whether the corpus fixture may be tracked at all is a policy question, not a cleanup.
 6. **All five live engines remain `unsettled`.** Every measured criterion passes and no technical
    settlement is claimed. Capability is not a claim; declaring one is the operator's call, and the survey
    (`scripts/survey_engine_settlements.py`) will corroborate it when made.
@@ -314,14 +379,30 @@ match is not a component boundary.
 ### What would move each tier
 
 - **Live engines (6/7):** declare a technical settlement with its evidence path, or deliberately record
-  that none is claimed. Nothing else is missing.
-- **The five scaffolds:** render the template (`{{ EngineName }}` → the real name), add the `compat/`
-  package the stub imports, then implement. As they stand they cannot be imported.
-- **`noesis` / `semion`:** decide whether they need standalone repos at all, or whether living in the
-  Abraxas tree is their intended home. `semion` is additionally a deliberate SHADOW surface (its provider
-  exists only inside a test).
-- **`oracle` / `cypher` / `aether`:** put the directories under version control (aether has a repo with no
-  commits), since an uncommitted scaffold cannot be reviewed, diffed or reverted.
+  that none is claimed. Nothing else is missing. This is the operator's call and remains the only
+  integration stage unclaimed by anyone.
+- **The five scaffolds:** ~~render the template, add the `compat/` package, then implement.~~
+  **DONE this session** — all five rendered, specified, implemented and pushed, each with boundary tests.
+  What remains for them is promotion, not construction: `chronos`, `resonance` and `aether` stay `planned`
+  until Abraxas has an adapter for them (the engine repositories are not dependencies here, so no entry
+  point resolves from this tree).
+- **`noesis` / `semion`:** ~~decide whether they need standalone repos at all.~~ **Answered by the
+  evidence: they already have them**, and substantial ones. The open question is the reverse — when does an
+  engine that lives in the Abraxas tree get its repository connected to it. `semion` remains a deliberate
+  SHADOW surface (its provider exists only inside a test).
+- **`oracle` / `cypher` / `aether`:** ~~put the directories under version control.~~ **DONE** — all three
+  are now version-controlled with remotes, on `main`, with `.gitignore` and reviewed history.
+- **`aether` (the only genuinely unfinished engine):** the manifest poses its own choice — *"Either build
+  it or drop it from the architecture."* The repository is in the honest state for either branch. If
+  **building**, the fusion policy comes before the encoders: encoders are mechanical, and the policy is
+  where a laundered confidence would hide.
+- **`athanor` (not Abraxas's to finish):** one unimportable tracked module, and 10 untracked sealed-run
+  artifacts that its own convention says belong in `STATUS.md`. Both need its owner — see finding 5.
+- **`hyperlex`:** the local `docs/pytrends-evidence-design` branch is superseded (its content is on
+  `main`, which also carries the implementation). No PR needed; the branch can be deleted.
+- **Every engine repo:** the defect class found in Abraxas is worth one guard in each tree — a
+  parse-integrity test over tracked modules, so a file that cannot be imported cannot sit unnoticed. It was
+  found in `abraxas/` and again in `athanor/`; two trees is a pattern, not a coincidence.
 
 ## Column Definitions & Automation
 
