@@ -28,6 +28,8 @@ def _packet() -> AbraxasSignalPacket:
 
 
 def _run_steps(run_id: str) -> None:
+    # The routes gate on policy ack, session and human ack; satisfy them first.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     webpanel_app._start_deferral(run_id, DeferralStart(quota_max_actions=3))
     webpanel_app._step_deferral(run_id)
     webpanel_app._step_deferral(run_id)
