@@ -64,7 +64,14 @@ This section must always reflect the actual state of the work. Timestamps are UT
       EvidenceProvider, RelationStep, CandidateOutput, EvidenceType, Decision). Both the Decision guard
       and the generalized parametrized guard observed FAILING when a local duplicate was reintroduced,
       then passing once removed. Full suite TBD. Guard file: 12 tests (was 6).
-- [ ] Phase 4 -- the three tracked `.bak` files removed from inside the package.
+- [x] (2026-10-06) Phase 4 -- the three tracked `.bak` files removed with `git rm`. Verified inert
+      before removal: nothing in `abraxas/tests/tools/scripts` references them, and none is loadable as a
+      module (`.bak` is not a Python extension, so pytest never collected them). Note that
+      `__init__.py.bak` was not a backup at all -- it was a stray 51-byte single-line fragment
+      (`INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"`). That member is live at
+      `abraxas/evidence/__init__.py:44` and `:339` and asserted by
+      `tests/evidence/test_evidence_contract.py:338`, so nothing was lost. Removals remain recoverable
+      from history (last carrying commit `3694394f`).
 - [ ] Phase 5 -- execution harness measuring determinism / provenance / canonical artifacts; wired
       into `scripts/survey_engine_settlements.py`.
 - [ ] Phase 6 -- documentation, `PLANS.md` closure, `TEST_DEBT.md` update.
