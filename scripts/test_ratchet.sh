@@ -21,10 +21,10 @@ set -uo pipefail
 BASELINE_FAILURES=0
 # Collected total (passed + xfailed + deselected), NOT the passed count -- read it off
 # the "collected N items" line, not the summary line. Take that line VERBATIM: the summary's
-# passed+skipped+xfailed does NOT reconcile with it (measured twice this session: 3442 against
-# 3440, and 3449 against 3447). Raise the floor when tests are added; never lower it without
+# passed+skipped+xfailed does NOT reconcile with it (e.g. this run gave 3496 passed but
+# collected 3507 items). Raise the floor when tests are added; never lower it without
 # saying why.
-BASELINE_COLLECTED=3496
+BASELINE_COLLECTED=3507
 OUT="$(mktemp)"
 RETRY="$(mktemp)"
 

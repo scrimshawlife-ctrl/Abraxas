@@ -23,9 +23,10 @@ class SourcePacket(BaseModel):
     data_grade: str = Field(default=UNDECLARED)  # see abraxas/evidence/data_grade.py
     payload: Dict[str, Any]
     provenance: Dict[str, Any] = Field(default_factory=dict)
+    claim_strength: Optional[Dict[str, Any]] = None  # metadata; excluded from canonical_payload per Risk 3
 
     def canonical_payload(self) -> Dict[str, Any]:
-        payload = self.model_dump()
+        payload = self.model_dump(exclude={"claim_strength"})
         payload["payload"] = _sort_obj(payload.get("payload") or {})
         payload["provenance"] = _sort_obj(payload.get("provenance") or {})
         return payload
