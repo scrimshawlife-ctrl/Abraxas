@@ -58,13 +58,12 @@ This section must always reflect the actual state of the work. Timestamps are UT
       `abraxas/evidence/contract.py`. `latent.py` now returns `EvidenceEnvelope` (not `dict`). A
       return-type guard over all 5 LIVE engines added and observed failing against the reverted fix.
       Full suite TBD.
-- [ ] Phase 3 -- two new guards in `tests/test_engine_manifest_agreement.py`, each driven to fail.
-      **Extended after Phase 2:** single-home `Decision` as well. It is still a stale duplicate: the
-      contract copy has six members including `REJECT`, the package copy has five and lacks it, and
-      `Decision` is the value the coordination layer uses to fail closed. No file imports it from the
-      package today, so nothing is broken yet -- which is exactly why it should be single-homed before
-      something does. Measured: `abraxas.evidence.Decision is abraxas.evidence.contract.Decision` is
-      `False`; the package copy's members do not include `REJECT`.
+- [x] (2026-10-06) Phase 3 -- `Decision` single-homed on `abraxas/evidence/contract.py` (the package
+      copy lacked `REJECT`; `A is B` now `True`). Generalized identity guard added as parametrized test
+      in `tests/test_evidence_contract_single_home.py` covering all 6 contract types (EvidenceEnvelope,
+      EvidenceProvider, RelationStep, CandidateOutput, EvidenceType, Decision). Both the Decision guard
+      and the generalized parametrized guard observed FAILING when a local duplicate was reintroduced,
+      then passing once removed. Full suite TBD. Guard file: 12 tests (was 6).
 - [ ] Phase 4 -- the three tracked `.bak` files removed from inside the package.
 - [ ] Phase 5 -- execution harness measuring determinism / provenance / canonical artifacts; wired
       into `scripts/survey_engine_settlements.py`.
@@ -171,8 +170,17 @@ This section must always reflect the actual state of the work. Timestamps are UT
 
 - Observation: `Decision` enum is ALSO duplicated between `__init__.py` and `contract.py` with a
   divergence: the contract copy has an extra `REJECT` member. This was not listed in the Phase 1
-  executor's disclosure and is not addressed in Phase 2. It remains a latent divergence.
-  Evidence: `contract.py:34` has `REJECT = "REJECT"`; `__init__.py:28` does not.
+  executor's disclosure and is not addressed in Phase 2. **Resolved in Phase 3:** single-homed on
+  `contract.py`; zero external consumers imported the package copy.
+  Evidence: `contract.py:34` has `REJECT = "REJECT"`; `__init__.py:28` (pre-Phase 3) does not.
+
+- Observation: zero files import `Decision` from the package level. All consumers import from
+  `abraxas.evidence.contract` (coordinator.py:20, benchmark_suite.py:13, test_trutina_q1.py:17,
+  test_abraxas_q1.py:16, policy.py:13). The package copy was used only internally by __init__.py's
+  own classes (ArbitrationPolicy, EvidenceArbiter, DecisionRecord, SelectiveComputePolicy), which
+  trivially resolve after re-export.
+  Evidence: `grep -rn "from abraxas\\.evidence import.*Decision" abraxas tests tools scripts`
+  returns zero hits.
 
 ## Decision Log
 
@@ -269,8 +277,26 @@ This section must always reflect the actual state of the work. Timestamps are UT
   within the same module; changing it now would expand scope beyond what the plan calls for. It is
   recorded as a Surprise for the next phase.
   Date/Author: 2026-10-06, Hermes Agent (Phase 2).
+  **SUPERSEDED** by the decision below in Phase 3.
+
+- Decision: single-home `Decision` on `abraxas/evidence/contract.py`.
+  Rationale: the Phase 2 decision to defer was conservative and reasonable, but Phase 3's extended
+  scope explicitly calls for it. The contract copy has `REJECT` (needed for fail-closed coordination),
+  the package copy lacked it. Zero external consumers imported the package copy; internal __init__.py
+  consumers resolve trivially through module-level name resolution after the re-export. The
+  parametrized identity guard covers it so a regression is caught on one line.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 3).
 
 ## Outcomes & Retrospective
+
+**Phase 3 (2026-10-06):** `Decision` single-homed. The package copy had 5 members (missing `REJECT`);
+the contract copy has 6. `A is B` is now `True`. A generalized parametrized identity guard covers
+all 6 contract types (EvidenceEnvelope, EvidenceProvider, RelationStep, CandidateOutput,
+EvidenceType, Decision) — a new duplicate is caught by adding one line to a table. Both the
+Decision-specific guard and the generalized guard were driven to fail by temporarily reintroducing
+the local duplicate, observed failing, then removed. Guard file grew from 6 to 12 tests.
+Two new observations recorded: zero external consumers import Decision from the package, and
+policy.py (the only external consumer) already imports from contract.
 
 To be completed at the end of each phase and at completion. At completion this section must compare
 the result against the Purpose above, state what remains, and record the lessons.

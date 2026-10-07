@@ -23,6 +23,8 @@ content and identity hashes -- the same identity-versus-metadata rule this repos
 
 from dataclasses import fields
 
+import pytest
+
 from abraxas.evidence import EvidenceEnvelope, EvidenceSchemaMigrator
 from abraxas.evidence.contract import EvidenceEnvelope as ContractEnvelope
 
@@ -104,3 +106,44 @@ def test_migration_is_a_no_op_for_an_already_current_envelope():
     out = EvidenceSchemaMigrator.migrate(current, target_version="v2")
     assert out is current, "an already-current envelope must be returned unchanged, not rebuilt"
     assert current == snapshot
+
+
+# --- Generalized object-identity guard over every contract type the package exports ---
+
+# Each row: (name-for-error-message, package-module, home-module, attribute-name)
+# The package module is where consumers import from (`abraxas.evidence`).
+# The home module is the single canonical definition.
+# Adding one line here catches a new duplicate.
+_CONTRACT_TYPE_TABLE = [
+    ("EvidenceEnvelope",  "abraxas.evidence",             "abraxas.evidence.contract",  "EvidenceEnvelope"),
+    ("EvidenceProvider",  "abraxas.evidence",             "abraxas.evidence.provider",  "EvidenceProvider"),
+    ("RelationStep",      "abraxas.evidence",             "abraxas.evidence.contract",  "RelationStep"),
+    ("CandidateOutput",   "abraxas.evidence",             "abraxas.evidence.contract",  "CandidateOutput"),
+    ("EvidenceType",      "abraxas.evidence",             "abraxas.evidence.contract",  "EvidenceType"),
+    ("Decision",          "abraxas.evidence",             "abraxas.evidence.contract",  "Decision"),
+]
+
+
+def _resolve(pkg_module: str, home_module: str, attr: str):
+    """Import and return (package_copy, home_copy) for a single type."""
+    import importlib
+    pkg = importlib.import_module(pkg_module)
+    home = importlib.import_module(home_module)
+    return getattr(pkg, attr), getattr(home, attr)
+
+
+@pytest.mark.parametrize("name, pkg_mod, home_mod, attr", _CONTRACT_TYPE_TABLE)
+def test_contract_type_has_a_single_canonical_home(name, pkg_mod, home_mod, attr):
+    """Every contract type exported by the package must be the SAME OBJECT
+    as its single canonical home -- not merely equal, not structurally similar.
+
+    This guard catches a duplicate definition in the package __init__ before
+    any consumer is silently given the wrong type.
+    """
+    pkg_copy, home_copy = _resolve(pkg_mod, home_mod, attr)
+    assert pkg_copy is home_copy, (
+        f"{name} must be single-homed. "
+        f"The package {pkg_mod} must re-export the canonical {attr} "
+        f"from {home_mod}, not redefine it. "
+        f"Got {pkg_copy!r} is not {home_copy!r}."
+    )

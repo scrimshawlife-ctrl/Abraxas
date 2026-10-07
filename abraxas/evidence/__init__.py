@@ -19,18 +19,12 @@ from abraxas.evidence.contract import (  # canonical home; re-exported
     EvidenceType,
     RelationStep,
     CandidateOutput,
+    Decision,
     create_athanor_envelope,
 )
 from abraxas.evidence.provider import EvidenceProvider  # canonical home; re-exported
 
 # ─── ENUMS ──────────────────────────────────────────────────────────────
-
-class Decision(str, Enum):
-    ACCEPT = "ACCEPT"
-    VERIFY = "VERIFY"
-    RECOMPUTE = "RECOMPUTE"
-    ESCALATE = "ESCALATE"
-    ABSTAIN = "ABSTAIN"
 
 class SourceType(str, Enum):
     URL = "url"
@@ -50,10 +44,10 @@ class FailureType(str, Enum):
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
     POLICY_REJECTION = "POLICY_REJECTION"
 
-# EvidenceEnvelope, EvidenceType, RelationStep, CandidateOutput, create_athanor_envelope
-# are single-homed in abraxas.evidence.contract; re-exported above.
+# EvidenceEnvelope, EvidenceType, RelationStep, CandidateOutput, Decision,
+# create_athanor_envelope are single-homed in abraxas.evidence.contract; re-exported above.
 # EvidenceProvider is single-homed in abraxas.evidence.provider; re-exported above.
-# See Plan: single-home-the-evidence-contract, Phase 2.
+# See Plan: single-home-the-evidence-contract, Phase 3.
 
 # ─── PROVIDER REGISTRY ────────────────────────────────────────────────
 
