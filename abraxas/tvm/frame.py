@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
-from abraxas.evidence.data_grade import UNDECLARED, normalize_grade, weakest_grade
+from abraxas.evidence.data_grade import UNDECLARED, weakest_grade
 from abraxas.metric_extractors.base import MetricPoint
 from abraxas.schema.tvm import TVMVectorId, _round_float
 
