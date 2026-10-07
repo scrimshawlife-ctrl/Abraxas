@@ -153,3 +153,15 @@ anything that presents engines as available.
 The second half of that rule is now mechanical rather than editorial: registration derives
 its lifecycle from this manifest, and `is_engine_available` is true only for `ACTIVE`. A
 planned engine cannot be presented as available without editing the manifest itself.
+
+## Settlement records (current truth)
+
+`EngineSpec.settlements` (added in Phase 4) defaults every engine to `unsettled` on
+`empirical`/`technical`/`economic` (with empty evidence tuples). No engine claims
+empirical settlement. Technical settlement is corroborated only by
+`test_every_engine_declares_its_three_settlements`,
+`test_a_settled_settlement_must_cite_evidence`,
+`test_a_planned_engine_claims_no_empirical_settlement`, and
+`test_settlement_evidence_references_resolve` in `tests/test_engine_manifest_agreement.py`.
+A `settled` claim without evidence paths is forbidden by test. This is the truthful
+state today; the operator alone decides when evidence suffices to move one to `settled`.

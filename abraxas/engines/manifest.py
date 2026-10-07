@@ -24,8 +24,10 @@ A ``planned`` engine must never be presented as available. See
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Tuple
+
+from abraxas.engines.settlement import Settlement
 
 LIVE = "live"
 PLANNED = "planned"
@@ -40,6 +42,7 @@ class EngineSpec:
     evidence_type: str
     implementation: str
     note: str = ""
+    settlements: Settlement = field(default_factory=Settlement)
 
 
 def _spec(
@@ -48,6 +51,7 @@ def _spec(
     evidence_type: str,
     implementation: str,
     note: str = "",
+    settlements: Settlement | None = None,
 ) -> EngineSpec:
     return EngineSpec(
         name=name,
@@ -55,6 +59,7 @@ def _spec(
         evidence_type=evidence_type,
         implementation=implementation,
         note=note,
+        settlements=settlements or Settlement(),
     )
 
 

@@ -152,3 +152,63 @@ def test_production_registry_names_are_all_known() -> None:
 def test_live_and_planned_partition_the_manifest() -> None:
     assert set(live_engines()) | set(planned_engines()) == set(all_engine_names())
     assert set(live_engines()) & set(planned_engines()) == set()
+
+
+def test_every_engine_declares_its_three_settlements() -> None:
+    from abraxas.engines.manifest import ENGINES
+    from abraxas.engines.settlement import SETTLEMENT_VALUES
+
+    bad = [
+        spec.name
+        for spec in ENGINES
+        if any(
+            getattr(spec.settlements, s) not in SETTLEMENT_VALUES
+            for s in ("empirical", "technical", "economic")
+        )
+    ]
+    assert bad == [], f"engines declaring an unknown settlement value: {bad}"
+
+
+def test_a_settled_settlement_must_cite_evidence() -> None:
+    """A settlement field will go unfilled unless something forces it -- and a 'settled' claim
+    with no evidence is worse than 'unsettled'."""
+    from abraxas.engines.manifest import ENGINES
+
+    empty = [
+        f"{spec.name}.{name}"
+        for spec in ENGINES
+        for name in ("empirical", "technical", "economic")
+        if getattr(spec.settlements, name) == "settled"
+        and not getattr(spec.settlements, f"{name}_evidence")
+    ]
+    assert empty == [], f"settled without evidence: {empty}"
+
+
+def test_a_planned_engine_claims_no_empirical_settlement() -> None:
+    """Extends the manifest's own invariant: a planned engine must not be presented as available,
+    and empirical settlement is the strongest claim there is."""
+    from abraxas.engines.manifest import ENGINES, PLANNED
+
+    claiming = [
+        spec.name
+        for spec in ENGINES
+        if spec.status == PLANNED and spec.settlements.empirical == "settled"
+    ]
+    assert claiming == [], f"planned engines claiming empirical settlement: {claiming}"
+
+
+def test_settlement_evidence_references_resolve() -> None:
+    """Every evidence reference is a repo-relative path that exists."""
+    from pathlib import Path
+
+    from abraxas.engines.manifest import ENGINES
+
+    repo = Path(__file__).resolve().parents[1]
+    missing = [
+        ref
+        for spec in ENGINES
+        for name in ("empirical", "technical", "economic")
+        for ref in getattr(spec.settlements, f"{name}_evidence")
+        if not (repo / ref).exists()
+    ]
+    assert missing == [], f"settlement evidence pointing at nothing: {missing}"
