@@ -337,7 +337,17 @@ def _step_deferral(run_id: str) -> dict:
         event_payload["claims_count"] = len(result.get("claims_preview", []))
     if step.kind == "compress_signal_v0":
         pressure = result.get("plan_pressure", {}).get("score")
-        event_payload["pressure_score"] = pressure
+        # Canonical-safe. Ledger event payloads are canonically hashed, and
+        # abraxas.util.canonical_hash forbids floats by design (float formatting is not
+        # stable across platforms, so a hash over one is not reproducible). A raw float
+        # here made the ledger event unhashable -- CanonicalHashError, and the runplan
+        # hash with it. Normalised to a fixed-precision decimal string, which is the
+        # canonical-hash idiom: a stable textual form. Nothing reads this field back out
+        # of the payload, so the type is free to be the representation the hash needs.
+        # None is left as None -- an absent score is not-computable, not zero.
+        event_payload["pressure_score"] = (
+            None if pressure is None else f"{float(pressure):.6f}"
+        )
         event_payload["metrics_count"] = len(result.get("salient_metrics", []))
         event_payload["unknown_groups"] = len(result.get("uncertainty_map", {}))
         event_payload["refs_count"] = sum(
