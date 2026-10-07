@@ -239,8 +239,20 @@ def main() -> int:
         return 1
 
     declared = [str(r["engine"]) for r in rows if r["declared_technical"] == "settled"]
+    corroborable = [
+        str(r["engine"]) for r in rows
+        if r["technical_satisfiable"] and r["declared_technical"] != "settled"
+    ]
     print()
     print(f"  engines declaring technical settlement and corroborated: {declared or 'none'}")
+    if corroborable:
+        # Without this line the summary above reads as "nothing is corroborated", when in fact these
+        # engines have every criterion measured and passing -- they simply do not CLAIM a settlement.
+        # The survey corroborates; the operator decides. See docs/ENGINE_TOPOLOGY.md.
+        print(
+            "  engines with every criterion measured and passing but NOT claiming a settlement "
+            f"(available, unclaimed): {corroborable}"
+        )
     return 0
 
 

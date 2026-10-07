@@ -210,10 +210,22 @@ for runes (`core/execution/replay_runner.py`). It is not determinism repeated: a
 two in-process runs can still fail to survive persistence, and only replay sees that.
 
 So `satisfiable` is now **true for all five live engines**: the survey would corroborate a technical
-settlement for any of them. That is a capability, not a claim — every engine is still `unsettled`, and
-moving one is the operator's decision, not the survey's.
+settlement for any of them. That is a capability, not a claim.
+
+### The operator's decision: corroboration available, settlement NOT claimed
+
+Asked and answered on 2026-10-06, when all six criteria first measured as passing: **leave the
+settlements `unsettled`, record the corroboration, and revisit later.** Every engine therefore remains
+`unsettled` even though the survey would now corroborate a `settled` technical claim for all five live
+engines.
+
+The reason on record is scope. The criteria are measured under **one defined input** — the harness's
+deterministic stub inference callable — so the evidence supports "performs to specification on a defined
+input", not universal determinism. A `Settlement` value is `settled` / `unsettled` / `not_applicable` and
+cannot carry that qualification, so the qualification lives here instead. The measurement exists, is
+kept honest by tests, and can be cited the moment the operator decides the scope is sufficient.
 
 Two tests hold this line: `test_no_criterion_remains_unmeasured_for_live_engines` fails if any criterion
 regresses to `?` (a lost measurement) or `no` (measured and failing), and
 `test_no_engine_currently_claims_technical_settlement` asserts that corroboration is available while no
-settlement has been claimed.
+settlement has been claimed — so this stays a decision rather than drifting into an unexamined default.

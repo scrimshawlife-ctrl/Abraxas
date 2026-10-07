@@ -390,6 +390,19 @@ docstrings instructed, and were re-pinned to the new truth rather than relaxed.
   parametrized identity guard covers it so a regression is caught on one line.
   Date/Author: 2026-10-06, Hermes Agent (Phase 3).
 
+- Decision: **leave every settlement `unsettled` even though all six technical criteria now measure as
+  passing for the five live engines.**
+  Rationale: the criteria are measured under ONE defined input -- the harness's deterministic stub
+  inference callable -- so the evidence supports "performs to specification on a defined input", not
+  universal determinism. A `Settlement` carries `settled` / `unsettled` / `not_applicable` and cannot
+  express that qualification, so claiming `settled` would assert more than was measured. The operator was
+  asked explicitly when the corroboration first became available and chose to record it and revisit, which
+  is the doctrine's own rule: the survey corroborates, the operator decides. The corroboration is
+  therefore documented in `docs/ENGINE_TOPOLOGY.md` under "The operator's decision", and two tests hold
+  the line so the corroboration cannot silently disappear and no settlement can be claimed without the
+  decision being revisited.
+  Date/Author: 2026-10-06, Bob Vajeen (operator decision).
+
 ## Outcomes & Retrospective
 
 **Phase 3 (2026-10-06):** `Decision` single-homed. The package copy had 5 members (missing `REJECT`);
