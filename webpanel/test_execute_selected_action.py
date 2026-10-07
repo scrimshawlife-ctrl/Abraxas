@@ -40,9 +40,11 @@ def test_execute_selected_action_micro_steps():
 
     resp = webpanel_app.ingest(_packet())
     run_id = resp["run_id"]
+    # Gates are enforced by the routes; they must be satisfied BEFORE the first
+    # gated call, which happens before this test fetches the run object.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     # The panel gates session-dependent steps; the session must be active BEFORE any of
     # them is called, so it is opened as soon as the run id exists.
-    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     _run_steps(run_id)
 
     run = webpanel_app.store.get(run_id)

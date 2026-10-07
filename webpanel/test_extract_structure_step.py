@@ -36,6 +36,9 @@ def test_extract_structure_step():
     resp = webpanel_app.ingest(_packet())
     run_id = resp["run_id"]
 
+    # Gates are enforced by the routes; they must be satisfied BEFORE the first
+    # gated call, which happens before this test fetches the run object.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     # The panel gates session-dependent steps; the session must be active BEFORE any of
     # them is called, so it is opened as soon as the run id exists.
     satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
@@ -63,9 +66,13 @@ def test_extract_structure_deterministic():
     resp_a = webpanel_app.ingest(_packet())
     resp_b = webpanel_app.ingest(_packet())
 
+    satisfy_panel_gates(webpanel_app.store.get(resp_a["run_id"]), ledger=webpanel_app.ledger)
+    satisfy_panel_gates(webpanel_app.store.get(resp_a["run_id"]), ledger=webpanel_app.ledger)
     webpanel_app._start_deferral(resp_a["run_id"], DeferralStart(quota_max_actions=2))
     webpanel_app._step_deferral(resp_a["run_id"])
 
+    satisfy_panel_gates(webpanel_app.store.get(resp_b["run_id"]), ledger=webpanel_app.ledger)
+    satisfy_panel_gates(webpanel_app.store.get(resp_b["run_id"]), ledger=webpanel_app.ledger)
     webpanel_app._start_deferral(resp_b["run_id"], DeferralStart(quota_max_actions=2))
     webpanel_app._step_deferral(resp_b["run_id"])
 

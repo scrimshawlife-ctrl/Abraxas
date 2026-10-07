@@ -43,6 +43,7 @@ def test_runplan_steps_and_quota():
     kinds = [step.kind for step in run.runplan.steps]
     assert "surface_unknowns" in kinds
 
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     webpanel_app._start_deferral(run_id, DeferralStart(quota_max_actions=2))
     webpanel_app._step_deferral(run_id)
     webpanel_app._step_deferral(run_id)

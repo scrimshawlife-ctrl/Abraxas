@@ -42,10 +42,6 @@ def test_propose_actions_step():
     _run_steps(resp["run_id"])
 
     run = webpanel_app.store.get(resp["run_id"])
-
-
-    satisfy_panel_gates(run, ledger=webpanel_app.ledger)
-    satisfy_panel_gates(run, ledger=webpanel_app.ledger)
     assert run is not None
     result = run.last_step_result
     assert result is not None
@@ -66,13 +62,6 @@ def test_propose_actions_determinism():
     _run_steps(resp_b["run_id"])
 
     run_a = webpanel_app.store.get(resp_a["run_id"])
-
-
-    satisfy_panel_gates(run_a, ledger=webpanel_app.ledger)
-    satisfy_panel_gates(run_a, ledger=webpanel_app.ledger)
     run_b = webpanel_app.store.get(resp_b["run_id"])
-
-    satisfy_panel_gates(run_b, ledger=webpanel_app.ledger)
-    satisfy_panel_gates(run_b, ledger=webpanel_app.ledger)
     assert run_a is not None and run_b is not None
     assert run_a.last_step_result == run_b.last_step_result
