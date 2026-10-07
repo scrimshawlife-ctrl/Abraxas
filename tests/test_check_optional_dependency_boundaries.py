@@ -154,3 +154,63 @@ def test_boundary_checker_fails_unclassified_surface_when_fallback_disabled(tmp_
     assert violations
     assert "unclassified" in violations[0]
     assert warnings == []
+
+
+# --------------------------------------------------------------------------------------
+# The real repository's declarations.
+#
+# The tests above use synthetic fixtures to exercise the checker's logic. The three below
+# deliberately point at the REAL `.aal/` files, so they fail if this repository's actual
+# surface classifications drift from reality -- which is exactly how the dashboard went
+# unnoticed: it was never classified at all, so it silently inherited the `abraxas/`
+# catch-all (truth_authoritative) and its `fastapi` imports were flagged.
+# --------------------------------------------------------------------------------------
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+REAL_MANIFEST = REPO_ROOT / ".aal" / "dependency_manifest.v0.yaml"
+REAL_POLICY = REPO_ROOT / ".aal" / "dependency_surface_policy.v0.yaml"
+
+
+def test_dashboard_entrypoint_is_a_launch_surface(tmp_path: Path) -> None:
+    """`abraxas/dashboard/api.py` is an entrypoint service, so it may import `fastapi`.
+
+    Evidence: `Dockerfile.dashboard-api` launches it (`CMD ["python", "api.py"]`) and it is
+    read/serve only (8 GET routes, one telemetry POST, no INSERT/UPDATE/DELETE, no file writes).
+    RED before the policy entry exists: the path inherits the `abraxas/` catch-all, so its three
+    `fastapi` imports are reported as forbidden in a truth-authoritative surface.
+    """
+    _write(tmp_path / "abraxas/dashboard/api.py", "from fastapi import FastAPI\n")
+    violations, _warnings = check_boundaries_with_report(
+        manifest_path=REAL_MANIFEST,
+        policy_path=REAL_POLICY,
+        root=tmp_path,
+    )
+    assert violations == [], violations
+
+
+def test_dashboard_exemption_is_file_scoped_not_directory_scoped(tmp_path: Path) -> None:
+    """The launch-surface entry is scoped to the entrypoint FILE, not to `abraxas/dashboard/`.
+
+    This is the guard that keeps the exemption narrow: a sibling module in the same directory is
+    still truth-authoritative, so truth computation added there later cannot silently inherit the
+    entrypoint's exemption. This test PASSES before the change and must still pass after it --
+    if it ever fails, someone has widened the entry to the whole directory and un-done the point.
+    """
+    _write(tmp_path / "abraxas/dashboard/truth_helper.py", "from fastapi import FastAPI\n")
+    violations, _warnings = check_boundaries_with_report(
+        manifest_path=REAL_MANIFEST,
+        policy_path=REAL_POLICY,
+        root=tmp_path,
+    )
+    assert violations, "the launch-surface exemption leaked to the whole directory"
+    assert "forbidden in truth-authoritative surface" in violations[0]
+
+
+def test_real_repo_passes_the_dependency_boundary_check() -> None:
+    """The CI step `python scripts/check_optional_dependency_boundaries.py` must exit 0 here.
+
+    Scans the actual working tree. This is the acceptance criterion of the whole change, asserted
+    where the suite will see it rather than only in CI.
+    """
+    violations, _warnings = check_boundaries_with_report(root=REPO_ROOT)
+    assert violations == [], violations
