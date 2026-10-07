@@ -229,8 +229,9 @@ at all**.
    criteria → `satisfiable True`
 6. registered in production with a REAL provider — `tests/test_production_engine_wiring.py` asserts the
    registry's names equal `live_engines()` and are disjoint from `planned_engines()`
-7. a **corroborated** technical settlement claim — claimed by `oracle` as of 2026-10-07; the other four
-   live engines are measured, passing and unclaimed (see "What would move each tier")
+7. a **corroborated** technical settlement claim — **claimed by all five live engines** as of 2026-10-07
+   (`athanor`, `cypher`, `noesis`, `oracle`, `trutina`), each with its own cited evidence set; the survey
+   corroborates every one of them and exits 0
 
 **Repo ladder** — the engine's own repository, 5 stages, equal weight:
 
@@ -379,11 +380,17 @@ match is not a component boundary.
 
 ### What would move each tier
 
-- **Live engines (6/7):** declare a technical settlement with its evidence path, or deliberately record
-  that none is claimed. **`oracle` now holds the first** (2026-10-07); the survey lists `['athanor',
-  'noesis', 'trutina', 'cypher']` as measured, passing and **unclaimed**, so each is the same one-line act
-  with a different evidence set. One engine was claimed on purpose: a first claim should be a precedent
-  rather than a batch.
+- **Live engines (6/7):** ~~declare a technical settlement with its evidence path, or deliberately record
+  that none is claimed.~~ **DONE for all five** (2026-10-07): `oracle` first, alone, so the word "precedent"
+  would mean something; then `athanor`, `noesis`, `trutina` and `cypher`, each independently corroborated by
+  the survey and individually cited. **The evidence sets differ widely, and each manifest note says which
+  it is** — `noesis` and `trutina` cite a spec, a Q1 suite and a qualification receipt; `oracle` cites its
+  adapter, contract and governance record; `athanor` cites only its implementation and the conformance
+  guard; `cypher` cites only its adapter and behavioural suite. Claiming the last two was the judgement
+  call, and the notes state the thinness rather than implying a uniform base.
+  **Empirical and economic remain `unsettled` on every engine, deliberately.** A `technical` settlement says
+  the capability reliably meets its specification; it says nothing about usefulness or adoption, and those
+  are the harder claims. Plan: `.hermes/plans/2026-10-07_031025-settlements-and-semion-decisions.md`.
 - **`semion`'s DEC-004 cannot be closed from Abraxas's side, and that is the finding.** The register asks for
   the consumer action enum and the `SemiosisFrame.v1` schema, with closure evidence *"pinned schema and
   compatibility tests"* from the *"Abraxas consumer maintainer"*. Measured: **Abraxas has no
