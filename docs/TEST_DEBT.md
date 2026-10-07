@@ -1045,7 +1045,7 @@ the bug it was meant to catch.
 The rule applied here is already established in this repo for engine identity
 (`abraxas/yggdrasil/registry.py`): a hash covers identity only, never a timestamp.
 
-## ~80 MB of tracked, write-only, unbounded ledgers in `out/` and `.aal/` -- 2026-10-06
+## ~80 MB of tracked, write-only, unbounded ledgers in `out/` and `.aal/` -- RESOLVED 2026-10-06
 
 Found while chasing the suite-duration question (which turned out to be environmental -- see the
 next entry). These files are appended to on every test run and grow forever:
@@ -1070,6 +1070,39 @@ pre-receive hook rejected.
 every run, which is what the existing `git add -A` rule already implies -- or rotate/cap them at
 write time. Their path anchoring was fixed separately (the `.aal` path authority commit), but
 anchoring does not bound growth.
+
+### RESOLUTION 2026-10-06 -- untracked, and this enforced existing policy rather than changing it
+
+Both options above turned out to be the wrong frame, because the research found that the repo had
+**already decided**: `.gitignore:55` declared `.aal/` ignored, and the ledger matched that rule
+verbatim -- yet the file was tracked and 11 commits had touched it. `.gitignore` only governs
+untracked files, so a file committed earlier stays tracked forever. Same for the replay ledgers,
+which `out/replay/` never had a rule against.
+
+So the fix was to make the repo's own declaration true, not to invent a retention policy:
+
+    git rm --cached .aal/ledger/rune_invocations.jsonl out/replay/replay_runs.jsonl \
+                    out/replay/multi_cycle.jsonl
+
+Files are NOT deleted -- all three remain on disk, they simply stop being versioned.
+
+Two latent `.gitignore` bugs were fixed in the same pass. `.aal/` became `.aal/*`, because **git
+cannot re-include a file whose parent DIRECTORY is excluded**, so the existing `!.aal/cap/` and
+`!.aal/cap/GOLDEN_STATE.json` rules could never fire. Verified with `git check-ignore -v
+--no-index`: `GOLDEN_STATE.json` previously reported `.aal/` as its matching rule and now reports
+`!.aal/cap/GOLDEN_STATE.json`. And `out/replay/*.jsonl` was added; the artifact directories beside
+it (`out/replay/artifacts/`) are evidence and stay tracked.
+
+Deliberately NOT done: the 13 tracked `.aal/` config and policy files (`policy.json`,
+`subsystem_registry`, `readiness_policy`, the dependency manifests, `device_profiles`, ...) are
+read by 2-14 source files each and remain tracked. This was a surgical untracking of three
+write-only ledgers, not a purge of `.aal/`. Nor was history rewritten -- the existing blobs are
+under the limit, and stopping the growth is sufficient.
+
+Sizing the risk that made this worth doing now: `replay_runs.jsonl` grew 66.6 MB -> 81 MB across a
+single session's test runs (~2.5-3 MB per suite run), against GitHub's **100 MB per-file hard
+limit**. Roughly six more runs from a rejected push -- and recovering from a committed 100 MB
+blob means rewriting history, not deleting a file.
 
 ## The suite-duration spread is ENVIRONMENTAL, not repository growth -- 2026-10-06
 
