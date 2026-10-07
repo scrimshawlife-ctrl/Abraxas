@@ -49,7 +49,7 @@ class ConnectionManager:
         for connection in self.active_connections.copy():
             try:
                 await connection.send_json(message)
-            except:
+            except Exception:  # never bare: bare except swallows KeyboardInterrupt/SystemExit
                 self.active_connections.discard(connection)
 
 manager = ConnectionManager()
@@ -143,7 +143,7 @@ async def get_artifact(artifact_id: str):
             try:
                 with open(f) as ff:
                     files[str(rel)] = json.load(ff)
-            except:
+            except Exception:  # never bare: bare except swallows KeyboardInterrupt/SystemExit
                 files[str(rel)] = f.read_text()
     
     return {"manifest": manifest, "files": files}
@@ -226,7 +226,7 @@ async def get_metrics_summary():
         # Get recent signals (this would be empty if no DB, but that's ok)
         signals = await domain_adapter.fetch_domain_signals("production", since_str)
         recent_signals_count = len(signals)
-    except:
+    except Exception:  # never bare: bare except swallows KeyboardInterrupt/SystemExit
         recent_signals_count = 0
     
     return {
