@@ -39,6 +39,26 @@ class RunPlan(BaseModel):
     deterministic_hash: str
 
 
+def _step_hash_content(step: "RunPlanStep") -> Dict[str, Any]:
+    """A step's content as it participates in the plan hash, with run-scoped ids removed.
+
+    input_refs.context_id is generated per run (core_bridge: new_id("ctx")), so including
+    it made deterministic_hash differ between two ingests of the SAME signal -- five
+    differing fields, all of them that one value. plan_id derives from this hash, so a
+    plan for identical input has to hash identically for the id to mean anything.
+
+    Only the run-scoped identifier is dropped. signal_id is part of the input and stays,
+    as does every other field. Verified by diffing the payloads of two identical ingests:
+    before, the only differences were input_refs.context_id on each step; after, none.
+    """
+    content = step.model_dump()
+    refs = content.get("input_refs")
+    if isinstance(refs, dict) and "context_id" in refs:
+        refs = {k: v for k, v in refs.items() if k != "context_id"}
+        content["input_refs"] = refs
+    return content
+
+
 def _plan_content_hash(run_state: "RunState", steps: List[RunPlanStep]) -> str:
     payload = {
         "signal_id": run_state.signal.signal_id,
@@ -46,7 +66,7 @@ def _plan_content_hash(run_state: "RunState", steps: List[RunPlanStep]) -> str:
         "lane": run_state.signal.lane,
         "requires_human_confirmation": run_state.requires_human_confirmation,
         "unknowns": run_state.context.unknowns,
-        "steps": [step.model_dump() for step in steps],
+        "steps": [_step_hash_content(step) for step in steps],
     }
     return canonical_hash(payload)
 
