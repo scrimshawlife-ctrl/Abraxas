@@ -104,40 +104,17 @@ abraxas-oracle = "abraxas.oracle.cli:main"
 [project.entry-points."abx.plugins"]
 abraxas = "abraxas.plugin:register"
 
-[tool.setuptools]
-packages = ["abraxas", "abraxas.cli", "abraxas.kernel", "abraxas.linguistic",
-            "abraxas.operators", "abraxas.overlay", "abraxas.pipelines",
-            "abraxas.storage", "abraxas.core", "abraxas.decodo", "abraxas.slang",
-            "abraxas.slang.operators", "abraxas.oasis", "abraxas.policy", "abraxas.drift",
-            "abraxas.disinfo",
-            "abraxas.renderers", "abraxas.renderers.resonance_narratives",
-            "abraxas.schema", "abraxas.schemas", "abraxas.seeds", "abraxas.sources", "abraxas.sources.adapters",
-            "abraxas.sources.timesfm_shadow",
-            "abraxas.temporal", "abraxas.metric_extractors", "abraxas.influence",
-            "abraxas.synchronicity", "abraxas.tvm", "abraxas.linguistics",
-            "abraxas.economics", "abraxas.governance", "abraxas.lens", "abraxas.detectors",
-            "abraxas.modules", "abraxas.modules.gtx", "abraxas.modules.gtx.sim",
-            "abraxas.oracle", "abraxas.lexicon", "abraxas.events", "abraxas.api",
-            "abraxas.mda", "abraxas.research_rag",
-            "abx", "abx.util", "abx.runtime", "abx.assets",
-            "abx.overlays", "abx.core", "abx.server", "abx.ingest",
-            "abx.resilience",
-            "abx.scale",
-            "abx.operator",
-            "abx.artifacts",
-            "abx.scheduler",
-            "abx.boundary",
-            "abx.trace",
-            "abx.explain",
-            "abx.observability",
-            "abx.decision",
-            "abx.knowledge",
-            "abx.federation",
-            "abx.deployment",
-            "abraxas.io", "abraxas.web", "abraxas.render",
-            "abraxas.kernel.v2", "abraxas.overlays",
-            "abraxas_ase", "abraxas_ase.tools",
-            "abx_familiar", "abx_familiar.ir"]
+[tool.setuptools.packages.find]
+# DISCOVERY, NOT A HAND LIST. This was an explicit `packages = [...]` naming 73 entries against 133 real
+# subpackages in the tree, so 85 were absent from every install -- including abraxas.evidence,
+# abraxas.engines, abraxas.phase and abraxas.yggdrasil. Every engine repository declares this project as a
+# git dependency, so a clean install could not import any of them. Measured by installing in a fresh venv
+# and watching `import abraxas.evidence` raise ModuleNotFoundError.
+#
+# `tests/test_packaging_covers_the_tree.py` asserts the configured set covers every `abraxas.*` subpackage
+# with an __init__.py, whatever form the configuration takes -- so this can be a list again if anyone
+# prefers, but it cannot silently disagree with the tree.
+include = ["abraxas*", "abx*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
