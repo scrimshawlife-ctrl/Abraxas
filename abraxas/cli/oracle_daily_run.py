@@ -19,7 +19,8 @@ import json
 import logging
 import re
 import urllib.request
-import xml.etree.ElementTree as ET
+# defusedxml, not xml.etree: this parses a document fetched from a third-party host.
+from defusedxml import ElementTree as ET
 from dataclasses import asdict
 from datetime import datetime, timezone
 from html import unescape

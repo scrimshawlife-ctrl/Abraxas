@@ -90,6 +90,15 @@ dev = [
     # starlette.testclient imports httpx. The webpanel tests use TestClient, so without
     # this a fresh `pip install -e ".[dev]"` cannot run them -- the harness depended on a
     # package nothing declared.
+    # defusedxml: sitemap/RSS parsing in abraxas/acquisition takes input fetched from
+    # third-party hosts. xml.etree is not hardened against entity-expansion attacks.
+    "defusedxml>=0.7.1",
+    # starlette ceiling, MEASURED: with jinja2 held constant at 3.1.6, starlette 0.37.2
+    # passes all 67 webpanel tests and starlette 1.7.0 fails 7 with
+    #   TypeError: cannot use 'tuple' as a dict key (unhashable type: 'dict')
+    # surfacing at jinja2/utils.py:515 through the test client. Test harness only --
+    # the [server] extra is left free.
+    "starlette<1.0",
     "httpx>=0.27.0",
 ]
 

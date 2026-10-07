@@ -7,7 +7,7 @@ import re
 from html.parser import HTMLParser
 from typing import Iterable, List
 from urllib.parse import urlsplit, urlunsplit
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 
 
 URL_RE = re.compile(r"https?://[^\s\"'>]+", re.IGNORECASE)

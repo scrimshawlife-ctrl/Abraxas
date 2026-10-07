@@ -30,11 +30,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           # Install Abraxas in development mode
-          pip install -e .
+          pip install -e ".[dev,server]"
       
       - name: Run core tests
         run: |
-          python -m pytest tests/evidence tests/integration tests/chaos \
+          python -m pytest tests/evidence tests/integration tests/chaos webpanel \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
@@ -44,7 +44,7 @@ jobs:
       
       - name: Verify test count
         run: |
-          python -m pytest tests/evidence tests/integration tests/chaos \
+          python -m pytest tests/evidence tests/integration tests/chaos webpanel \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
@@ -54,7 +54,7 @@ jobs:
       
       - name: Check for deprecation warnings
         run: |
-          python -m pytest tests/evidence tests/integration tests/chaos \
+          python -m pytest tests/evidence tests/integration tests/chaos webpanel \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
@@ -81,7 +81,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
+          pip install -e ".[dev,server]"
       
       - name: Run health checks
         run: |
@@ -137,7 +137,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
+          pip install -e ".[dev,server]"
       
       - name: Run pipeline dry-run (3 cycles)
         run: |
