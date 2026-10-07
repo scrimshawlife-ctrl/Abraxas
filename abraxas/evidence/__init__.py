@@ -14,6 +14,8 @@ import uuid
 import hashlib
 import json
 
+from abraxas.evidence.contract import EvidenceEnvelope  # canonical home; re-exported
+
 # ─── ENUMS ──────────────────────────────────────────────────────────────
 
 class EvidenceType(str, Enum):
@@ -71,78 +73,8 @@ class CandidateOutput:
     relation_steps: List[RelationStep] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-@dataclass
-class EvidenceEnvelope:
-    """Canonical evidence contract for Abraxas arbitration."""
-    
-    evidence_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    engine: str = ""
-    engine_version: str = ""
-    model_identity: str = ""
-    request_id: str = ""
-    
-    claim: str = ""
-    candidate_outputs: List[CandidateOutput] = field(default_factory=list)
-    
-    evidence_type: EvidenceType = EvidenceType.RELATIONAL_REASONING
-    reasoning_steps: List[RelationStep] = field(default_factory=list)
-    relations: List[str] = field(default_factory=list)
-    intermediate_states: List[Dict[str, Any]] = field(default_factory=list)
-    
-    confidence: float = 0.0
-    uncertainty: float = 0.0
-    decision_margin: float = 0.0
-    entropy: float = 0.0
-    
-    dependencies: List[str] = field(default_factory=list)
-    assumptions: List[str] = field(default_factory=list)
-    
-    provenance: Dict[str, Any] = field(default_factory=dict)
-    artifact_refs: List[str] = field(default_factory=list)
-    
-    verification_metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    
-    # Schema version for Alembic-style migration
-    schema_version: str = "v2"
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "evidence_id": self.evidence_id,
-            "engine": self.engine,
-            "engine_version": self.engine_version,
-            "model_identity": self.model_identity,
-            "request_id": self.request_id,
-            "claim": self.claim,
-            "candidate_outputs": [c.__dict__ for c in self.candidate_outputs],
-            "evidence_type": self.evidence_type.value,
-            "reasoning_steps": [s.__dict__ for s in self.reasoning_steps],
-            "relations": self.relations,
-            "intermediate_states": self.intermediate_states,
-            "confidence": self.confidence,
-            "uncertainty": self.uncertainty,
-            "decision_margin": self.decision_margin,
-            "entropy": self.entropy,
-            "dependencies": self.dependencies,
-            "assumptions": self.assumptions,
-            "provenance": self.provenance,
-            "artifact_refs": self.artifact_refs,
-            "verification_metadata": self.verification_metadata,
-            "timestamp": self.timestamp,
-            "schema_version": self.schema_version,
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'EvidenceEnvelope':
-        data = data.copy()
-        data["evidence_type"] = EvidenceType(data["evidence_type"])
-        data["candidate_outputs"] = [
-            CandidateOutput(**c) for c in data.get("candidate_outputs", [])
-        ]
-        data["reasoning_steps"] = [
-            RelationStep(**s) for s in data.get("reasoning_steps", [])
-        ]
-        return cls(**data)
+# EvidenceEnvelope is single-homed in abraxas.evidence.contract; re-exported above.
+# See Plan: single-home-the-evidence-contract, Phase 1.
 
 def create_athanor_envelope(
     claim: str,
@@ -574,7 +506,7 @@ class EvidenceSchemaMigrator:
                        "claim", "candidate_outputs", "evidence_type", "reasoning_steps", "relations",
                        "intermediate_states", "confidence", "uncertainty", "decision_margin", "entropy",
                        "dependencies", "assumptions", "provenance", "artifact_refs",
-                       "verification_metadata", "timestamp", "schema_version"],
+                       "verification_metadata", "timestamp"],
             "required": ["evidence_id", "engine", "claim", "evidence_type", "confidence"],
         },
     }
@@ -587,7 +519,7 @@ class EvidenceSchemaMigrator:
         
         if current_version == "v1" and target_version == "v2":
             envelope = envelope.copy()
-            envelope["schema_version"] = "v2"
+            # schema_version removed from canonical envelope per Plan: single-home-the-evidence-contract
             envelope.setdefault("uncertainty", 1.0 - envelope.get("confidence", 0.0))
             envelope.setdefault("decision_margin", 0.0)
             envelope.setdefault("entropy", 0.0)

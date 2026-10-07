@@ -43,9 +43,9 @@ instead of `?` for the five live engines:
 
 This section must always reflect the actual state of the work. Timestamps are UTC.
 
-- [ ] (2026-10-06) Phase 0 -- baseline captured: full-suite result, ratchet result, and the four
+- [x] (2026-10-06) Phase 0 -- baseline captured: full-suite result, ratchet result, and the four
       duplicate definitions recorded with file:line evidence.
-- [ ] Phase 1 -- `EvidenceEnvelope` single-homed on `abraxas/evidence/contract.py`; the package
+- [x] (2026-10-06) Phase 1 -- `EvidenceEnvelope` single-homed on `abraxas/evidence/contract.py`; the package
       `__init__` re-exports rather than redefines; the `schema_version` divergence resolved.
 - [ ] Phase 2 -- `EvidenceProvider` single-homed; `noesis` returns the envelope rather than a dict.
 - [ ] Phase 3 -- two new guards in `tests/test_engine_manifest_agreement.py`, each driven to fail.
@@ -84,6 +84,20 @@ This section must always reflect the actual state of the work. Timestamps are UT
   anti-pattern this repository has already named: a status document is a claim, not evidence. No action
   is taken on them here; it is recorded so the next contributor is not misled by them.
 
+- Observation: zero production or test files import `EvidenceEnvelope` from the package level
+  (`from abraxas.evidence import EvidenceEnvelope`). The only package-level imports are for Brier
+  scoring helper functions. All consumers of the envelope type import from
+  `abraxas.evidence.contract` directly.
+  Evidence: `grep -rn "from abraxas.evidence import" abraxas tests tools scripts --include="*.py"`
+  returns only `trutina.py:13` and `test_trutina_q1.py:19`, both importing Brier functions, not the
+  envelope.
+
+- Observation: the `schema_version` field on `EvidenceEnvelope` (present only in the package copy,
+  not in the contract copy) has zero external readers. The only code that accesses it is the
+  `EvidenceSchemaMigrator` class within `__init__.py` itself, which is never imported externally.
+  Evidence: `grep -rn "EvidenceSchemaMigrator"` shows only `__init__.py` references and the `__all__`
+  export; no external `from abraxas.evidence import EvidenceSchemaMigrator` exists.
+
 ## Decision Log
 
 - Decision: treat `abraxas/evidence/contract.py` as the canonical home, and reduce
@@ -103,6 +117,24 @@ This section must always reflect the actual state of the work. Timestamps are UT
   deliberate removal in the Decision Log with the grep that proves it is unread. Silently keeping the
   smaller copy would repeat the exact defect class this task exists to fix.
   Date/Author: 2026-10-06, Bob Vajeen.
+
+- Decision: import-site count for `abraxas.evidence.EvidenceEnvelope` / `EvidenceProvider` is 2 files.
+  Rationale: `grep -rn` across `abraxas tests tools scripts --include="*.py"` found only
+  `abraxas/evidence/providers/trutina.py:13` and `abraxas/evidence/test_trutina_q1.py:19`, both
+  importing Brier scoring helpers, never `EvidenceEnvelope` or `EvidenceProvider`. Zero dotted-name
+  references to `abraxas.evidence.EvidenceEnvelope` or `abraxas.evidence.EvidenceProvider` exist in
+  the entire repo. The cost of the package-level redefinition is low at the import site but the cost
+  of the divergence (rejected genuine engine output) is high.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 0 measurement).
+
+- Decision: deliberately remove `schema_version` from the canonical `EvidenceEnvelope`.
+  Rationale: zero external code reads `EvidenceEnvelope.schema_version`. The only reader is the
+  `EvidenceSchemaMigrator` class internal to `__init__.py`, which is itself never imported externally.
+  Safe to drop. The field is removed from the `EvidenceSchemaMigrator.SCHEMA_VERSIONS["v2"]["fields"]`
+  list and the `migrate` method no longer writes `schema_version = "v2"` to migrated envelopes.
+  Evidence: `grep -rn "EvidenceSchemaMigrator" abraxas tests tools scripts` returns only
+  `__init__.py` references; no external import site exists.
+  Date/Author: 2026-10-06, Hermes Agent.
 
 - Decision: create the execution harness only after the contract is single-homed.
   Rationale: a harness that runs all engines can only compare their outputs if their outputs share a
@@ -314,6 +346,28 @@ live engine returning a bare dictionary:
 
     trutina envelope is a package one?  False | is contract one?  True
     noesis returned type: builtins.dict
+
+Phase 1 new test file: `tests/test_evidence_contract_single_home.py`
+- `test_evidence_envelope_single_home_identity`: asserts `EvidenceEnvelope is ContractEnvelope`
+- `test_evidence_envelope_field_count`: asserts 21 fields, no `schema_version`
+
+Identity guard driven to FAIL (observed at 2026-10-06):
+```
+FAILED tests/test_evidence_contract_single_home.py::test_evidence_envelope_single_home_identity
+AssertionError: EvidenceEnvelope must be a single canonical type.
+The package __init__ must re‑export the contract copy, not redefine it.
+assert EvidenceEnvelope is ContractEnvelope
+```
+The guard was driven to fail by temporarily replacing the re-export in `__init__.py`
+with a new local `@dataclass EvidenceEnvelope` definition, causing `A is B` to be
+`False`. The duplicate was then removed and the test passed.
+
+Phase 0 baseline (ratchet, with pre-change code):
+```
+===== 3514 passed, 4 skipped, 9 xfailed, 38 warnings in 224.40s (0:03:44) ======
+failures=0 baseline=0  collected=3525 floor=3525
+OK: within baseline
+```
 
 ## Interfaces and Dependencies
 
