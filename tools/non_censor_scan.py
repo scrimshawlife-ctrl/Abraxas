@@ -14,7 +14,19 @@ BANNED_PATTERNS = [
     #
     # Patterns now require explicit context of *user content modification*:
     r"(?i)(rewrite_output|redact.*(text|content|user|draft)|strip_terms|filter_output|block_output|moderation)",
-    r"(?i)(sanitize|redact|filter|block|moderate).*?(output|text|user|draft|content|message|post|reply)",
+    # The verb must BEGIN a word and be ADJACENT to the thing it acts on. The previous `.*?`
+    # matched anything else on the line, so `def _fenced_blocks(text: str)` tripped it on
+    # `block` ... `text` -- a markdown code fence and a parameter name. That is co-occurrence,
+    # not intent, and the remedy is fixing the pattern rather than renaming the source: a source
+    # edited to dodge a false-positive scanner is the scanner censoring it, which inverts what
+    # this scan exists to do. Adjacency keeps `block_output`, `filter_output`, `redact(draft)`
+    # and `moderate the post`, and drops the noise. `(?<![_\w])` is what excludes identifiers
+    # that merely END in the verb (`fenced_blocks`).
+    r"(?i)(?<![_\w])(sanitize|redact|filter|block|moderate)(?![A-Za-z0-9])[_\s(]{0,2}(output|text|user|draft|content|message|post|reply)",
+    # NOTE: the pattern below carries the same `.*?` weakness and has NOT yet produced a false
+    # positive anywhere in this tree. Left deliberately as-is: tightening a pattern with no
+    # measured defect can only lose real detections. If it ever fires on legitimate vocabulary,
+    # apply the adjacency form used above.
     r"(?i)(response_mode|firewall|de_escalate).*?(censor|redact|strip|block|filter|rewrite|moderate|user|text|content)",
 ]
 

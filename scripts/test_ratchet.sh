@@ -24,7 +24,7 @@ BASELINE_FAILURES=0
 # passed+skipped+xfailed does NOT sum to it (measured 3436+4+9=3449 against collected 3447),
 # so reconstructing the number from components is wrong. Raise the floor when tests are added;
 # never lower it without saying why.
-BASELINE_COLLECTED=3447
+BASELINE_COLLECTED=3460
 OUT="$(mktemp)"
 RETRY="$(mktemp)"
 

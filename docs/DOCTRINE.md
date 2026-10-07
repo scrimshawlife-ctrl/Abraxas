@@ -27,6 +27,20 @@ documentation, which is worse than having no document: a doc that cites a missin
 authority while being unverifiable. What was harvested instead is the **doctrine**, restated
 against the mechanisms that actually exist here — with gaps marked as gaps.
 
+**This document is machine-checked.** Every citation below is verified by
+`tests/test_doctrine_citations.py`, which resolves each `path:line`, requires any block introduced
+as *verbatim* to appear in the source, and asserts that the surfaces in the table above stay
+absent. Two conventions make that possible, and both are load-bearing:
+
+- A fenced block counts as a **quotation** only when the paragraph introducing it contains the word
+  "verbatim". Otherwise it is illustrative — the flywheel diagram — and is not matched against the
+  source, because it does not claim to be from it.
+- A row of the table above ending in `no` declares its paths **absent**. If one is ever added, the
+  guard fails and this table has to be updated.
+
+The point of checking it: prose has no resolver, so a sentence about the code can contradict the
+code indefinitely. This document tries to be the kind that cannot.
+
 ## The three settlements
 
 Every capability worth building is seeking three separate settlements. They are independent, and
