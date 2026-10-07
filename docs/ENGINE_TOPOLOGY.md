@@ -175,3 +175,28 @@ checkable rather than prose:
 
 So a future `settled` claim costs cited evidence, and the operator alone decides when evidence
 suffices to move one. `unsettled` is the honest state, not a stub.
+
+### Corroboration, not just shape
+
+Those four tests enforce the settlement's **shape** — the value comes from a closed set, and `settled`
+must cite an evidence path. They cannot enforce that the claim is **true**: a `settled` value carrying
+a plausible-looking path satisfies every one of them. Measured, not asserted — injecting a false
+settlement for `athanor` (technical = `settled`, citing `tests/test_engine_manifest_agreement.py`)
+leaves the shape guard entirely green:
+
+    23 passed, 8 warnings in 0.42s
+
+`scripts/survey_engine_settlements.py` supplies the missing half. It evaluates every engine against
+the doctrine's technical-settlement criteria and *refuses to certify a settlement resting on an
+unmeasured criterion*. The same injected fault:
+
+    survey verdict: ['athanor']
+    exit would be : 1
+
+`tests/test_engine_settlement_survey.py` links the two, so a `settled` declaration must be
+corroborated by the survey as well as well-formed. Current survey state: the five live engines clear
+`entry_point` and `collected_tests`; `conforms` is `?` for the three factories (`athanor`, `oracle`,
+`cypher`) whose conformance is established by the agreement guard with stand-in arguments; and every
+run-required criterion — `determinism`, `replay`, `provenance`, `canonical_artifacts` — is `?`,
+because establishing them needs a real execution comparison. **No engine is satisfiable today**, which
+is why all ten are `unsettled`.

@@ -1128,3 +1128,63 @@ sample from a wide distribution rather than as a measurement of the suite.
 An earlier attempt to settle this by comparing `du -h` output between two runs was worthless: it
 rounds to whole units, so a +3.5 MB append was invisible. Coarse measurements are not evidence;
 the controlled clean-worktree run is what settled it.
+
+---
+
+## Declarations with no consumer — the doctrine is stated but nothing acts on it
+
+Entry added while researching the open questions from the doctrine arc. Three of the artefacts that
+phase added are **declarations nothing reads**. This is the decay the arXiv scan predicted ([7]:
+evaluation and limitations fields have the lowest fill-out rates of any model-card section), and it
+happened here inside one session.
+
+Measured by grepping the source roots for each name and excluding the defining site:
+
+| Symbol | Production uses | Read by |
+| --- | --- | --- |
+| `declares_observation` | **0** | its own unit test only |
+| `ClaimStrength` | **0** | `tests/test_claim_strength.py` only |
+| `groundings_for` | **0** | nothing at all |
+| `weakest_grade` | 3 | `tvm/frame.py` (Phase 2 — consumed) |
+| `normalize_grade` | 15 | many (Phase 1 — consumed) |
+| `Settlement` | 4 | the manifest + agreement guard |
+
+So the doctrine's rule — *an undeclared grade supports no claim* — is **enforced at the reporting
+layer by a guard, and by nothing in the pipeline**. A packet with an undeclared grade flows through
+`run_year` and every downstream consumer exactly as any other packet does; what changes is only that
+the grade travels with it and `declares_observation` would return `False` if anything asked.
+
+**Do not fix this by deleting the symbols.** They encode the doctrine, and deleting them would remove
+the vocabulary the rule needs. The real question is which pipeline point *makes a claim* — a forecast,
+a canon promotion, an escalation across an environment boundary — because that is where
+`declares_observation` should gate. That point has not been identified, and identifying it is the
+prerequisite for wiring it.
+
+## The `--allow-simulated` gate admits `undeclared` packets, deliberately
+
+`abraxas/seeds/year_run.py` filters packets whose grade is exactly `simulated` when the flag is
+absent. An `undeclared` packet is therefore admitted.
+
+This is a deliberate decision, taken after measuring the alternative. Gating `undeclared` as well
+would be fail-closed on paper, but the three test files that exercise `run_year`
+(`test_coverage_emitted.py`, `test_frame_domain_preserved.py`, `test_year_run_determinism.py`) declare
+**0** `data_grade` mentions — their packets are all undeclared, so filtering would empty those runs.
+It would also conflate *unknown* with *synthetic*, and those are different things.
+
+The rule is therefore enforced where it belongs — on claims, not on computation. See the entry above
+for the gap that leaves.
+
+## `derived` has no producer, so its rank in the taxonomy is unexercised
+
+The taxonomy ranks `real > derived > simulated > undeclared` (`abraxas/evidence/data_grade.py:41`).
+Grepping the source roots for the constant: `DERIVED` appears **only** in the taxonomy module and in
+`claim_strength.py`'s grounding map. Nothing ever assigns it to a point or a packet.
+
+So the open question *"is `derived` weaker than `simulated`, or incomparable?"* is currently
+unanswerable **because nothing produces either** the value or the case that would distinguish them.
+
+Worth recording before a producer exists: the two are plausibly on **different axes** — `derived`
+describes lineage (computed from other data), `simulated` describes generation (synthetic). A derived
+metric computed *from simulated inputs* would be labelled `derived` and would outrank `simulated`
+while resting entirely on synthetic data. The rank order silently drops the lineage of the inputs.
+Any producer of `derived` must decide that case explicitly rather than inherit the current order.
