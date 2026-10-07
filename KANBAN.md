@@ -502,6 +502,45 @@ what is missing. Its `EXECUTION-RECEIPT.md` gained a verification note rather th
 
 **Ratchet:** 3768 passed, 0 failed, collected 3773 → **3779** (floor raised).
 
+### Fleet CI completion: Trutina's missing workflow, Hyperlex's failures dissected (Complete) — session 2026-10-07
+
+Follow-on from the presentation pass. Two repos were left with a known gap; both are now closed or precisely
+characterised.
+
+**Trutina had tests and no workflow.** `git log -- .github/` was empty — nothing had ever run its suite.
+Running it gives **70 failed, 141 passed**, and the cause is drift rather than breakage:
+`tests/test_score_contract.py` was last touched 2026-09-13; `src/brier/score.py` changed 2026-09-15 in
+`7de239b` ("resolve: spec-000 score guards onto current main"), which rewrote it by 166 lines and updated
+`tests/test_score.py` — but not the contract test. `specs/001-score/` documents the newer behaviour, so the
+test is the stale side. **That call belongs to the author**, so it is recorded as blocked with its evidence
+rather than edited.
+
+Added: `validate.yml` (3.10/3.11/3.12 — 3.10 is pyproject's declared floor), the CI badge the roadmap had
+listed as blocked on it, and a populated kanban. **Its kanban was the unpopulated template** — "Define future
+work items / Current sprint work / Completed tasks". The earlier inventory checked the file's *existence* and
+not its contents, which is exactly how a template passes a check meant to prove the board is real.
+
+**Hyperlex's failures are two classes, not one.** Measured on one host, three consecutive runs, identical:
+**26 failed / 1626 passed / 18 skipped**.
+
+| Class | Count | Cause |
+|---|---|---|
+| env-cached mode | 22 here, ~22 in CI | `classification_v2.py:75` reads `HLX_V2_FORWARD_ONTOLOGY` once at import; 25 files under `tests/shadow/` set it at module level. `test_classification_v2.py` alone: 21 passed. Plus `test_classification_v3_reserve.py`: 3 failed. Order-dependent — and stable, because pytest's collection order is fixed. |
+| host detection | 4, macOS only | `test_p1_fail_closed.py` (2), `test_memetic_memory.py` (1), `test_claude_host.py` (1). Invisible in CI because CI is ubuntu. Platform, not order. |
+
+The 23-vs-26 gap between CI and a macOS host is exactly those four.
+
+**Two corrections worth keeping, because both were mine:**
+
+1. A blanket `tests/shadow/conftest.py` was written and **reverted**. Right shape for class 1, but an autouse
+   fixture that *imports* `classification_v2` breaks `test_no_hyperlex_or_abraxas_imports`, whose purpose is
+   asserting that module is not imported. Measured, it changed nothing (26/1626 with it and without). The fix
+   belongs per-file: the variable also affects tests outside `tests/shadow/`.
+2. I first reported that conftest as having made things worse (26 vs CI's 23). **That was a false
+   attribution** — I compared a macOS/3.14 run against CI's ubuntu runs, and the failing *files* are almost
+   entirely different. Three runs on one host settled it: the count is stable per host, so the gap is
+   platform. An inter-environment comparison is not a measurement of a change.
+
 ## Column Definitions & Automation
 
 | Column | Meaning | Automation |
