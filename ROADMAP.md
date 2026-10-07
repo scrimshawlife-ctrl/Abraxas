@@ -358,3 +358,9 @@ Signal → Compression → Forecast → Narrative
 **End of Roadmap**
 
 *This roadmap prioritizes epistemic leverage over engineering familiarity. Abraxas is an instrument for understanding symbolic intelligence, not a feature factory.*
+
+  ### Infrastructure & Integration (Complete) — continued
+  - [x] **Webpanel CI Coverage** — the panel's 61 routes are exercised by CI for the first time;
+        `starlette<1.0` pinned in `[dev]` by measurement. Suite: 19 collection errors → 376 passed in CI.
+  - [x] **Security & Behavioural Audit** — 11 findings in the webpanel/dashboard surfaces, all fixed and
+        verified; root cause was the absent coverage above.

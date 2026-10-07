@@ -5,6 +5,37 @@ All notable changes to the Abraxas project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [Unreleased] — Security & Behavioural Audit of Webpanel + Dashboard
+
+### Fixed
+- **Webpanel app could not be constructed at all** — all 61 routes unreachable. `Optional[Request]`
+  dependency annotation.
+- **`GET /runs/{id}` raised on every render** — undefined template variable; label now sourced from
+  `PROFILE_LABELS` with raw-id fallback.
+- **Ledger events were unhashable** — a float `pressure_score` reached canonical hashing, which forbids
+  floats by design. Fixed at the producing site, not at the hash boundary.
+- **Run plan hash was non-deterministic** — it covered a per-run id.
+- **Policy-change detection could only ever return `MATCH`** — threshold was read once at import.
+- **Dashboard bound `0.0.0.0` with no auth** — now defaults to `127.0.0.1` via `ABX_DASHBOARD_HOST`,
+  with a bind guard refusing a non-loopback host without a token.
+- **Token comparison leaked prefix length and failed open** — `secrets.compare_digest`, fail-closed.
+- **`eval` on generated content** → `ast.literal_eval`.
+- **13 undefined names (F821)** → `TYPE_CHECKING` imports; ruff clean.
+- **`xml.etree` on third-party-fetched documents** → `defusedxml`.
+
+### Added
+- **`webpanel/` is now covered by CI — for the first time.** 61 routes had never been executed by any
+  pipeline, which is why the app could ship unbuildable. `starlette<1.0` pinned in the `[dev]` extra
+  only, established by measurement (jinja2 held constant: 0.37.2 → 67 passed, 1.7.0 → 7 failed) after
+  three other hypotheses were refuted and reverted.
+- `webpanel/test_bind_safety.py`, `webpanel/test_token_comparison.py`.
+- `defusedxml>=0.7.1`; `httpx>=0.27.0` and `jsonschema>=4.22.0` declared in `[dev]` (the harness had
+  depended on them undeclared).
+
+### Verified
+- CI green on `2b104b0c`: 4/4 workflows, `376 passed`, panel tests named in the run log.
+
 ## [Unreleased]
 
 ### Fixed

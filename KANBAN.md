@@ -541,6 +541,32 @@ The 23-vs-26 gap between CI and a macOS host is exactly those four.
    entirely different. Three runs on one host settled it: the count is stable per host, so the gap is
    platform. An inter-environment comparison is not a measurement of a change.
 
+
+### Security & Behavioural Audit of the Webpanel + Dashboard (2026-10-07)
+
+**Status: DONE** — 11 findings, all verified by execution, all on `main` (`2b104b0c`).
+
+| ID | Finding | Severity | Fix |
+|----|---------|----------|-----|
+| F7 | Panel app could not be constructed — **all 61 routes unreachable** | High | `Optional[Request]` dep |
+| F8 | `GET /runs/{id}` raised `UndefinedError` on **every render** | High | label from `PROFILE_LABELS` |
+| F1 | Dashboard: 15 routes, zero auth, bound `0.0.0.0` | Medium | `ABX_DASHBOARD_HOST` → `127.0.0.1` |
+| F2 | `require_token` failed open; `==` leaked prefix length | Medium | `secrets.compare_digest` + fail-closed |
+| O6 | `pressure_score` float made the ledger **unhashable** | Governance | fixed at the production site, not the hash boundary |
+| O7 | Plan hash covered a **per-run id** | Governance | hash now deterministic across runs |
+| O8 | Policy-change detection could **only ever answer `MATCH`** | Governance | read `drift_pause_threshold` per call |
+| O3 | `eval` on generated content | Low | `ast.literal_eval` |
+| O5 | 13 `F821` undefined names | Low | `TYPE_CHECKING` imports — ruff clean |
+| O2 | `xml.etree` on third-party-fetched sitemaps/RSS | Medium | `defusedxml` |
+| **O1** | **`webpanel/` was not in CI — 61 routes, never executed by any pipeline** | **Root cause** | **in CI and green: 376 passed** |
+
+**Suite progression:** 19 collection errors → 67 local → **376 in CI**.
+**Root cause of everything above:** O1. Every other finding was downstream of a surface no
+pipeline had ever tested.
+
+**Still open:** O4 — 108 broad `except` clauses, per-site judgement, needs a human call.
+**Flagged:** `Check for deprecation warnings` step reports 35 collection errors (non-blocking).
+
 ## Column Definitions & Automation
 
 | Column | Meaning | Automation |
