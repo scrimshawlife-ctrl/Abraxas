@@ -50,9 +50,19 @@ out/reports_daily/
 out/test_daily/
 out/ledger/
 out/perf_ledgers/
+# Append-only receipt ledgers under out/replay. Appended to by every test run and read by
+# NOTHING -- one reference in the whole tree, the append site in scripts/run_replay_cycle.py.
+# Unbounded by construction: replay_runs.jsonl reached 66 MB against GitHub's 100 MB per-file
+# hard limit, and appends are O(1), so it is pure storage cost.
+# The artifact directories beside them (out/replay/artifacts/) ARE evidence and stay tracked.
+out/replay/*.jsonl
 artifacts_seal/
 artifacts_gate/
-.aal/
+# Exclude the CONTENTS of .aal/, not the directory itself. Git cannot re-include a file whose
+# parent DIRECTORY is excluded, so a bare `.aal/` silently defeated the `!.aal/cap/` rules below
+# (verified with `git check-ignore -v --no-index`, which reported `.aal/` as the matching rule
+# for the supposedly re-included GOLDEN_STATE.json). Ignoring `.aal/*` makes the negations work.
+.aal/*
 .aal/kite/
 !.aal/cap/
 !.aal/cap/GOLDEN_STATE.json
