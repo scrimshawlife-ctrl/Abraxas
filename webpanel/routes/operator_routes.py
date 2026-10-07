@@ -1106,8 +1106,45 @@ def _view_from_request(request: Request, selected_run_id: str | None = None):
         }
     return view
 
+def _inference_status() -> Dict[str, Any]:
+    """What produced the engine output, in the form the console displays it.
+
+    Split out of the route so it can be tested without a request or a template renderer -- the claim it makes
+    is about honesty, and it should be verifiable on its own.
+    """
+    from abraxas.evidence.adapters.model_agnostic import OFFLINE_IDENTITY, is_configured
+
+    configured = is_configured()
+    return {
+        "configured": configured,
+        "identity": _inference_identity() if configured else OFFLINE_IDENTITY,
+        "headline": (
+            "A model endpoint is configured" if configured
+            else "No model is loaded — the deterministic path is running"
+        ),
+        "note": "Engine inference is model-agnostic; custom inference coming soon.",
+    }
+
+
+def _inference_identity() -> str:
+    """The identity of the configured inference path, as reported by the adapter itself."""
+    from abraxas.evidence.adapters.model_agnostic import create_model_agnostic_inference
+
+    return str(getattr(create_model_agnostic_inference(), "model_identity", "model-agnostic/unspecified"))
+
+
 def ui_operator_console(request: Request):
     view = _view_from_request(request)
+
+    # Which inference path is in force, surfaced live rather than written into the page.
+    #
+    # The console shows engine output, and until now nothing on it said what produced that output. Major
+    # findings: every engine reports a `model_identity`, and the honest values are
+    # `model-agnostic/<model>` (an endpoint is configured) or `model-agnostic/offline-deterministic` (none is,
+    # and the deterministic path ran). No bespoke custom model is loaded -- hence the standing note. Reading
+    # this at render time means the console cannot claim a model that has since been removed or unconfigured.
+    inference_status = _inference_status()
+
     developer_readiness = read_developer_readiness_payload().get("projection", {})
     gap_closure_invariance = read_gap_closure_invariance_payload().get("projection", {})
     readiness_alignment = read_latest_comparison().get("comparison")
@@ -1123,6 +1160,7 @@ def ui_operator_console(request: Request):
         {
             "request": request,
             "view": view,
+            "inference_status": inference_status,
             "developer_readiness": developer_readiness,
             "gap_closure_invariance": gap_closure_invariance,
             "readiness_alignment": readiness_alignment,

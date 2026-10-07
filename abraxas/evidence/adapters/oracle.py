@@ -15,148 +15,6 @@ from abraxas.evidence.contract import (
 from abraxas.evidence.provider import EvidenceProvider
 
 
-def _default_oracle_inference(claim: str, context: Dict[str, Any]) -> Dict[str, Any]:
-    """Enhanced inference engine for Oracle - returns context-aware narrative synthesis."""
-    # Analyze claim characteristics for more sophisticated synthesis
-    claim_lower = claim.lower()
-    words = claim.split()
-    word_count = len(words)
-    
-    # Determine narrative tone based on claim characteristics
-    if any(word in claim_lower for word in ["why", "how", "explain", "reason"]):
-        tone = "explanatory"
-        coherence_indicators = ["logical", "systematic", "well-reasoned"]
-        incoherence_indicators = ["illogical", "inconsistent", "poorly reasoned"]
-    elif any(word in claim_lower for word in ["what", "who", "when", "where"]):
-        tone = "descriptive"
-        coherence_indicators = ["accurate", "precise", "detailed"]
-        incoherence_indicators = ["vague", "ambiguous", "inaccurate"]
-    elif any(word in claim_lower for word in ["should", "must", "ought", "need"]):
-        tone = "prescriptive"
-        coherence_indicators = ["justified", "reasonable", "well-founded"]
-        incoherence_indicators = ["unjustified", "arbitrary", "unfounded"]
-    else:
-        tone = "analytical"
-        coherence_indicators = ["coherent", "consistent", "well-structured"]
-        incoherence_indicators = ["incoherent", "inconsistent", "poorly structured"]
-    
-    # Calculate coherence score based on claim features
-    coherence_score = 0.5  # Base score
-    
-    # Adjust based on claim length (very short or very long claims might be less coherent)
-    if 5 <= word_count <= 25:
-        coherence_score += 0.1  # Sweet spot for coherence
-    elif word_count > 25:
-        coherence_score -= 0.05  # Very long claims might be overly complex
-    # Very short claims (<5) keep base score
-    
-    # Adjust based on specificity indicators
-    if any(indicator in claim_lower for indicator in ["specifically", "particularly", "exactly"]):
-        coherence_score += 0.15
-    if any(indicator in claim_lower for indicator in ["maybe", "perhaps", "possibly", "might"]):
-        coherence_score -= 0.1
-    
-    # Boost for well-formed questions
-    if claim.strip().endswith("?"):
-        coherence_score += 0.1
-    
-    # Ensure score stays in reasonable bounds
-    coherence_score = max(0.1, min(0.9, coherence_score))
-    
-    # Determine if we lean toward coherence or incoherence
-    is_coherent = coherence_score > 0.5
-    
-    # Generate appropriate answer and confidence
-    if is_coherent:
-        answer = f"Narrative synthesis indicates {tone} coherence"
-        confidence = coherence_score
-        reasoning_trace = f"Oracle engine performed {tone} narrative synthesis on claim with {word_count} words"
-        coherence_result = "high"
-    else:
-        answer = f"Narrative synthesis indicates {tone} incoherence"
-        confidence = 1.0 - coherence_score
-        reasoning_trace = f"Oracle engine identified potential {tone} issues in claim with {word_count} words"
-        coherence_result = "low"
-    
-    # Enhanced relation steps with more detailed analysis
-    relation_steps = [
-        RelationStep(
-            relation=f"narrative_{tone}_analysis",
-            subject=claim,
-            object="analysis_complete",
-            result=coherence_result,
-            confidence=confidence,
-            metadata={
-                "tone": tone,
-                "word_count": word_count,
-                "coherence_score": coherence_score,
-                "analysis_type": "narrative_synthesis"
-            }
-        ),
-        RelationStep(
-            relation="contextual_assessment",
-            subject="claim_analysis",
-            object="context_relevance",
-            result="evaluated",
-            confidence=0.8,
-            metadata={
-                "context_provided": bool(context),
-                "context_keys": list(context.keys()) if context else []
-            }
-        )
-    ]
-    
-    # Enhanced reasoning steps
-    reasoning_steps = [
-        RelationStep(
-            relation=f"narrative_{tone}_analysis",
-            subject=claim,
-            object="coherence_evaluation",
-            result=coherence_result,
-            confidence=confidence
-        )
-    ]
-    
-    # Add contextual reasoning if context is provided
-    if context:
-        reasoning_steps.append(
-            RelationStep(
-                relation="context_integration",
-                subject="external_factors",
-                object="claim_interpretation",
-                result="considered",
-                confidence=0.75,
-                metadata={"context_elements": len(context)}
-            )
-        )
-    
-    return {
-        "candidates": [
-            CandidateOutput(
-                answer=answer,
-                confidence=confidence,
-                reasoning_trace=reasoning_trace,
-                relation_steps=relation_steps
-            ),
-            CandidateOutput(
-                answer=f"Alternative narrative interpretation ({'coherent' if not is_coherent else 'incoherent'})",
-                confidence=1.0 - confidence,
-                reasoning_trace="Alternative narrative path considering different interpretive frameworks",
-                relation_steps=[]
-            )
-        ],
-        "model_identity": "oracle-model-v2-enhanced",
-        "relations": [f"narrative_{tone}_analysis", "contextual_assessment"],
-        "reasoning_steps": reasoning_steps,
-        "provenance": {
-            "source": "oracle_enhanced_inference",
-            "engine": "oracle",
-            "enhancement_version": "2.0",
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat()
-        }
-    }
-
-
 def create_oracle_adapter(
     inference_engine: Optional[Callable] = None,
     engine_name: str = "oracle",
@@ -171,9 +29,25 @@ def create_oracle_adapter(
     - relations: List[str]
     - reasoning_steps: List[RelationStep]
     - provenance: Dict[str, Any]
+
+    When no inference_engine is supplied the **model-agnostic adapter** is used, so this engine is usable
+    without a bespoke custom model: configure an OpenAI-compatible endpoint via `ABX_INFERENCE_BASE_URL` /
+    `ABX_INFERENCE_MODEL`, or run the deterministic offline path. Engine-specific custom inference is a future
+    capability ("custom inference coming soon" in the UI).
+
+    This replaced `_default_oracle_inference`, which manufactured a `coherence_score` from word counts
+    (`+= 0.1  # Sweet spot for coherence`) and published it as the envelope's confidence -- a word-count
+    heuristic presenting itself as a narrative-synthesis model's assessment. Nothing about a claim's wording
+    is evidence of a model's reading.
     """
+    from abraxas.evidence.adapters.model_agnostic import (
+        create_model_agnostic_inference,
+        identity_of,
+        to_candidate_outputs,
+    )
+
     if inference_engine is None:
-        inference_engine = _default_oracle_inference
+        inference_engine = create_model_agnostic_inference()
 
     class OracleAdapter(EvidenceProvider):
         @property
@@ -189,8 +63,8 @@ def create_oracle_adapter(
             return [EvidenceType.NARRATIVE_SYNTHESIS]
 
         def get_model_identity(self) -> str:
-            # Try to get from inference engine if possible, else default
-            return "oracle-model-v1"
+            # Report the identity of the path that actually ran, rather than naming a model.
+            return identity_of(inference_engine)
 
         def produce_evidence(
             self,
@@ -204,11 +78,14 @@ def create_oracle_adapter(
 
             # Expect result to be a dict with the following keys:
             #   candidates, model_identity, relations, reasoning_steps, provenance
-            candidates = result.get("candidates", [])
+            #
+            # The model-agnostic adapter yields plain readings; the evidence contract requires
+            # CandidateOutput. One shared converter does that, so the shape cannot drift per engine.
+            candidates = to_candidate_outputs(result.get("candidates", []))
 
-            # If candidates are not already CandidateOutput objects, convert them.
-            # We assume the inference engine returns CandidateOutput objects.
-            # If not, we would need to convert here.
+            # `source` names the engine; the adapter's own keys (inference path, input digest) come with the
+            # result and are merged on top, so provenance always states both who read the claim and HOW.
+            provenance = {"source": self.engine_name, **result.get("provenance", {})}
 
             # Compute envelope confidence from candidates (max of top candidate)
             envelope_confidence = max((c.confidence for c in candidates), default=0.0)
@@ -243,7 +120,7 @@ def create_oracle_adapter(
                 reasoning_steps=reasoning_steps,
                 confidence=envelope_confidence,
                 uncertainty=envelope_uncertainty,
-                provenance=result.get("provenance", {})
+                provenance=provenance
             )
 
     return OracleAdapter()

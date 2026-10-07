@@ -2,6 +2,16 @@
 {% from "_signal_sections.html" import render_signal_sections %}
 {% block content %}
 <h1>Operator Console v1.5 — Minimal Control Spine</h1>
+{% if inference_status %}
+{# What produced the engine output shown below. Honest by construction: it reads the adapter at render time,
+   so it cannot claim a model that was removed or unconfigured, and it says plainly when nothing is loaded. #}
+<div class="card">
+  <h2>Inference</h2>
+  <p>{{ inference_status.headline }}</p>
+  <p>Model identity: <code>{{ inference_status.identity }}</code></p>
+  <p>{{ inference_status.note }}</p>
+</div>
+{% endif %}
 <div class="card">
   <h2>Operator Family Role Law</h2>
   <p><b>Canonical entrypoint:</b> Operator Console</p>

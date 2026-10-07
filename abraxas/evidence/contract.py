@@ -164,5 +164,5 @@ def create_athanor_envelope(
         reasoning_steps=reasoning_steps or [],
         confidence=confidence,
         uncertainty=uncertainty,
-        provenance=provenance or {"source": "lora-out-transfer-001-t1/checkpoint-48"},
+        provenance=provenance or {"source": "unspecified"},
     )

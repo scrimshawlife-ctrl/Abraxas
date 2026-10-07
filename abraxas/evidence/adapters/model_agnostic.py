@@ -170,6 +170,78 @@ def is_configured() -> bool:
     return bool(_env(DEFAULT_BASE_URL_ENV) and _env(DEFAULT_MODEL_ENV))
 
 
+def to_candidate_outputs(
+    raw_candidates: Any,
+    *,
+    confidence: float = 0.0,
+) -> List[Any]:
+    """Convert an inference result's candidates into the canonical `CandidateOutput` objects.
+
+    The two sides of this boundary speak differently: the adapter yields plain readings (`list[str]`, because
+    a deterministic offline path has no model opinion to score), while the evidence contract requires
+    `CandidateOutput`. Engines used to do this conversion inline, each in its own way, which is how one shape
+    drifts from another. It lives here once.
+
+    **The default confidence is 0.0, deliberately.** A reading produced without a model has no model's
+    confidence behind it, and inventing one is the defect this whole module exists to remove. An envelope
+    built from this path therefore reports a zero-confidence candidate alongside
+    `provenance["inference"] == "offline-deterministic"` -- the pair is the honest statement: here is a reading,
+    and nothing was scored.
+
+    Anything already shaped like a `CandidateOutput` is passed through untouched, so an engine that injects a
+    real model's output keeps its own confidences.
+    """
+    from abraxas.evidence.contract import CandidateOutput
+
+    if raw_candidates is None:
+        return []
+
+    items = raw_candidates if isinstance(raw_candidates, (list, tuple)) else [raw_candidates]
+
+    converted: List[Any] = []
+    for item in items:
+        if isinstance(item, CandidateOutput):
+            converted.append(item)
+        elif isinstance(item, str):
+            converted.append(
+                CandidateOutput(
+                    answer=item,
+                    confidence=confidence,
+                    reasoning_trace="model-agnostic adapter (no model scored this reading)",
+                    relation_steps=[],
+                )
+            )
+        elif isinstance(item, dict):
+            converted.append(
+                CandidateOutput(
+                    answer=str(item.get("answer") or item.get("text") or item),
+                    confidence=float(item.get("confidence", confidence)),
+                    reasoning_trace=str(item.get("reasoning_trace", "")),
+                    relation_steps=[],
+                )
+            )
+    return converted
+
+
+def identity_of(inference: Callable[..., Any]) -> str:
+    """The model identity an engine should REPORT for a given inference callable.
+
+    Every evidence envelope carries a `model_identity`, and the honest value is the one belonging to the
+    inference path that actually ran. A callable built by :func:`create_model_agnostic_inference` carries its
+    own (`model-agnostic/<model>`, or the offline marker); an injected bespoke callable has no identity of its
+    own, and is reported as an unlabelled custom callable rather than borrowing a name it has not earned.
+
+    Why this exists: engines used to hand-write this string -- `"oracle-model-v1"`,
+    `"lora-out-transfer-001-t1/checkpoint-48"` -- which named a model that was not loaded, was not present,
+    and in one case had never been trained. A provenance field that names something imaginary is worse than
+    an empty one, because it reads as evidence of which model produced the reading.
+    """
+    ident = getattr(inference, "model_identity", None)
+    if isinstance(ident, str) and ident:
+        return ident
+    return "custom/unlabelled"
+
+
 def create_model_agnostic_inference(
     model: Optional[str] = None,
     *,
@@ -222,7 +294,13 @@ def create_model_agnostic_inference(
             timeout=resolved_timeout,
         )
 
-    infer.model_identity = f"model-agnostic/{resolved_model}"  # type: ignore[attr-defined]
+    # The callable's declared identity must agree with the path it will actually take. Before this, an
+    # unconfigured adapter announced `model-agnostic/unspecified` while returning results stamped
+    # `model-agnostic/offline-deterministic` -- one state, two names, so an engine reporting its identity and
+    # an engine reading its own envelope's provenance would disagree about which path ran.
+    infer.model_identity = (  # type: ignore[attr-defined]
+        f"model-agnostic/{resolved_model}" if configured else OFFLINE_IDENTITY
+    )
     infer.is_configured = configured  # type: ignore[attr-defined]
     return infer
 
@@ -231,5 +309,7 @@ __all__ = [
     "InferenceUnavailable",
     "OFFLINE_IDENTITY",
     "create_model_agnostic_inference",
+    "identity_of",
     "is_configured",
+    "to_candidate_outputs",
 ]

@@ -44,7 +44,7 @@ def test_evidence_envelope_creation():
     envelope = create_athanor_envelope(
         claim="Does A cause C?",
         candidates=candidates,
-        model_identity="lora-out-transfer-001-t1/checkpoint-48",
+        model_identity="fixture/contract-test-model",
         request_id="test_001",
         relations=["causes"],
         reasoning_steps=candidates[0].relation_steps,
@@ -417,7 +417,7 @@ def test_athanor_adapter_interface():
             "candidates": [
                 CandidateOutput(answer="Yes", confidence=0.9, reasoning_trace="Mock", relation_steps=[])
             ],
-            "model_identity": "lora-out-transfer-001-t1/checkpoint-48",
+            "model_identity": "fixture/contract-test-model",
             "relations": ["causes"],
             "reasoning_steps": [],
             "provenance": {"source": "test"}
@@ -437,7 +437,7 @@ def test_athanor_adapter_interface():
     )
     
     assert envelope.engine == "athanor"
-    assert envelope.model_identity == "lora-out-transfer-001-t1/checkpoint-48"
+    assert envelope.model_identity == "fixture/contract-test-model"
     assert envelope.evidence_type == EvidenceType.RELATIONAL_REASONING
     assert len(envelope.candidate_outputs) == 1
     print("  athanor adapter: PASS")

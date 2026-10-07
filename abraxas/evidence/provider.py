@@ -7,6 +7,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional, Callable
+from abraxas.evidence.adapters.model_agnostic import (
+    create_model_agnostic_inference,
+    identity_of,
+    to_candidate_outputs,
+)
 from abraxas.evidence.contract import (
     EvidenceEnvelope,
     EvidenceType,
@@ -164,7 +169,11 @@ def create_athanor_adapter(
             return [EvidenceType.RELATIONAL_REASONING, EvidenceType.COUNTERFACTUAL]
         
         def get_model_identity(self) -> str:
-            return "lora-out-transfer-001-t1/checkpoint-48"
+            # Report the identity of the path that actually ran. This used to name
+            # "lora-out-transfer-001-t1/checkpoint-48", a checkpoint that is not loaded, is not present in
+            # the repository, and whose training is not reproducible from here -- provenance naming an
+            # imaginary model reads as evidence of which model produced the reading.
+            return identity_of(inference_engine)
         
         def produce_evidence(
             self,
@@ -176,7 +185,12 @@ def create_athanor_adapter(
             # Call the inference engine
             result = inference_engine(claim, context)
             
-            candidates = result.get("candidates", [])
+            # The model-agnostic adapter yields plain readings; the evidence contract requires
+            # CandidateOutput. This line used to trust the shape -- `max((c.confidence for c in candidates))`
+            # -- and raised `AttributeError: 'str' object has no attribute 'confidence'` on the adapter's own
+            # default path. Nothing caught it because every test injected a mock inference that returned
+            # objects: the default was wired in and never once executed.
+            candidates = to_candidate_outputs(result.get("candidates", []))
             
             # Compute envelope confidence from candidates (max of top candidate)
             envelope_confidence = max((c.confidence for c in candidates), default=0.0)
