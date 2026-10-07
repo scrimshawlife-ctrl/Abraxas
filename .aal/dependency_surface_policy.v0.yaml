@@ -38,6 +38,18 @@ path_role_map:
     role: launch_surface
   - prefix: abraxas/cli/
     role: launch_surface
+  # SCOPED TO THE FILE, NOT THE DIRECTORY, deliberately.
+  #
+  # `abraxas/dashboard/api.py` is the dashboard entrypoint: `Dockerfile.dashboard-api` launches it with
+  # `CMD ["python", "api.py"]` and it is read/serve only (8 GET routes, one telemetry POST, no
+  # INSERT/UPDATE/DELETE, no file writes), so it must be able to import its web framework.
+  #
+  # Any OTHER module under abraxas/dashboard/ still inherits the `abraxas/` catch-all below and remains
+  # truth_authoritative, so truth computation added there later cannot inherit this exemption.
+  # Guard: tests/test_check_optional_dependency_boundaries.py::
+  #        test_dashboard_exemption_is_file_scoped_not_directory_scoped
+  - prefix: abraxas/dashboard/api.py
+    role: launch_surface
   - prefix: abx/ui/
     role: launch_surface
   - prefix: abx/server/

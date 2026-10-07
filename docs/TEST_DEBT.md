@@ -1215,7 +1215,10 @@ whatever survives into `PLANS.md` (the actual plan surface) or delete it as supe
 
 ---
 
-## `guardrails` CI check is RED on main — the dashboard is misclassified as truth-authoritative
+## `guardrails` CI check was RED on main — the dashboard is misclassified as truth-authoritative
+
+**RESOLVED 2026-10-07** — see *Resolution* at the end of this entry. The original diagnosis is kept verbatim
+below, because the reasoning is the useful part and it is what the fix rests on.
 
 Recorded 2026-10-07. **Pre-existing and unrelated to the hygiene merge**; it has been failing on `main`
 for every push today (observed at 05:07, 05:16, 05:23, 05:36, 05:48 and on the PR branch), and it
@@ -1251,15 +1254,58 @@ That misclassification is contradicted by the repository's own manifest, which d
 i.e. `fastapi` is explicitly designed to live in an api surface and explicitly not to affect truth.
 `abraxas/dashboard/api.py` IS the dashboard's api surface.
 
-**Recommended fix (NOT applied — it is a governance policy change, so it is the operator's call):** add a
-specific mapping for the dashboard beside its siblings:
+**Recommended fix** — a specific mapping for the dashboard beside its siblings. **RESOLVED 2026-10-07 with
+the operator's sign-off**, and deliberately NARROWED from the directory form originally proposed here:
 
-    - prefix: abraxas/dashboard/
+    - prefix: abraxas/dashboard/api.py
       role: launch_surface
 
 **Why this is not "loosening a scan to go green".** The check's own manifest says `fastapi` belongs to an
 `api` boundary and cannot affect truth, and the policy already classifies the equivalent sibling paths
 (`abraxas/web/`, `abraxas/api/`, `webpanel/`) as `launch_surface`. The entry is a genuine omission, not a
-strict rule being relaxed. But it *does* make a failing check pass by exempting a path, which is exactly
-the shape of a loosening — so it needs the operator's sign-off rather than a unilateral edit, and if
-applied it should be accompanied by a test that the dashboard role is what was intended.
+strict rule being relaxed. It *did* need the operator's sign-off because it makes a failing check pass by
+exempting a path — that is the shape of a loosening, and the shape is what was approved, not assumed.
+
+### Resolution (2026-10-07)
+
+Applied the file-scoped entry above, plus three tests, plus the manifest correction described next. The
+evidence that the classification is correct, all measured rather than assumed:
+
+- `Dockerfile.dashboard-api` launches the file (`CMD ["python", "api.py"]`), so it is an entrypoint service.
+- It is **read/serve only**: 8 `GET` routes plus one telemetry `POST`, and grep for
+  `INSERT|UPDATE|DELETE|.write_text|open(...,'w')|commit()` returns nothing. It reads through the
+  postgresql domain adapter and JSON manifests, so it cannot affect truth.
+- Every sibling web surface is already `launch_surface`, and file-scoped entries already existed as
+  precedent (`abx/cli.py`, `abx/optional_dependencies.py`).
+
+**A second defect found while fixing this.** The manifest's own `import_locations` for `fastapi` — its
+declaration of record for where the dependency is used — listed only `abraxas/api/app.py:5` and
+`webpanel/app.py:1`, omitting `abraxas/dashboard/api.py`, the file that imports it on **three** lines. Both
+declaration surfaces omitted the dashboard, which is why nothing flagged the surface as unclassified. The
+list is now complete (5 locations). Note that `import_locations` is required by schema but read by **no**
+consumer, so it can silently disagree with the code; a guard that reconciles it against actual imports is
+worthwhile but is a separate change.
+
+**Guards, and proof they work.** `tests/test_check_optional_dependency_boundaries.py` gained three tests
+that point at the REAL `.aal/` files rather than synthetic fixtures:
+
+- `test_dashboard_entrypoint_is_a_launch_surface` — the entrypoint may import `fastapi`.
+- `test_dashboard_exemption_is_file_scoped_not_directory_scoped` — a sibling module under
+  `abraxas/dashboard/` is **still** truth-authoritative, so the exemption cannot leak to the directory.
+- `test_real_repo_passes_the_dependency_boundary_check` — the CI step's own condition, asserted in the suite.
+
+Both failure modes were driven deliberately, not assumed:
+
+| sabotage | result |
+|---|---|
+| entry removed entirely | `2 failed, 8 passed` — the entry is load-bearing |
+| entry widened to `abraxas/dashboard/` | `1 failed, 9 passed` — the narrowness guard catches it |
+
+Restored byte-identical afterwards and re-verified `10 passed`. This is the evidence that the file-scoping
+is enforced by a test rather than by convention.
+
+**Deliberately NOT done.** 105 of `abraxas/`'s 112 subdirectories still inherit the `abraxas/` catch-all
+(including presentation-ish names such as `visuals/`, `viz/`, `menus/`, `render/`, `renderers/`,
+`sonification/`, `scoreboard/`). Bulk-mapping them would loosen the scan with no per-directory evidence.
+The catch-all stays fail-closed; the remedy for a future surface is this same process — evidence, then a
+narrow entry.

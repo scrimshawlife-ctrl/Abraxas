@@ -59,8 +59,22 @@ dependencies:
         line: 1
         top_level: true
         symbol: FastAPI
+      - path: abraxas/dashboard/api.py
+        line: 13
+        top_level: true
+        symbol: FastAPI
+      - path: abraxas/dashboard/api.py
+        line: 14
+        top_level: true
+        symbol: CORSMiddleware
+      - path: abraxas/dashboard/api.py
+        line: 15
+        top_level: true
+        symbol: FileResponse
     notes:
       - Required to expose API/web surfaces, but not truth-authoritative for governed computation.
+      - Imported by the dashboard entrypoint (abraxas/dashboard/api.py), classified as a launch surface
+        by a file-scoped entry in .aal/dependency_surface_policy.v0.yaml.
     provenance:
       source: ast_scan
       confidence: medium

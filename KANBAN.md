@@ -92,16 +92,26 @@
       `lower_threshold` 0.000 on every occasion. Two of my own recommendations were retracted
       after reading the code, and one governance allowlist was reverted.
 
-### Open Decision — CI guardrail RED on main (needs an operator ruling)
+### CI guardrail RED on main (RESOLVED) — session 2026-10-07
 
-- [ ] **`guardrails` / Dependency Boundary Check fails on every push to main.** Pre-existing, unrelated to
-      PR #264 (which touched no code). `abraxas/dashboard/api.py:13-15` import `fastapi`, and the policy's
-      catch-all maps `abraxas/` to `truth_authoritative`; `abraxas/dashboard/` has no specific entry while
-      its siblings (`abraxas/web/`, `abraxas/api/`, `webpanel/`, `server/`) are all `launch_surface`. The
-      manifest itself declares `fastapi` as `execution_boundary_role: api` with
-      `allowed_to_affect_truth: false`, so the classification contradicts the repository's own manifest.
-      Full diagnosis and the one-line fix in `docs/TEST_DEBT.md`. **Not applied**: it is a governance
-      policy change and it makes a red check pass by exempting a path, which needs sign-off.
+- [x] **`guardrails` / Dependency Boundary Check now passes.** Pre-existing and unrelated to PR #264 (which
+      touched no code): `abraxas/dashboard/api.py:13-15` import `fastapi`, and the policy's catch-all maps
+      `abraxas/` to `truth_authoritative` with no specific entry for `abraxas/dashboard/`, while its
+      siblings (`abraxas/web/`, `abraxas/api/`, `webpanel/`, `server/`) are all `launch_surface`.
+      **Operator ruled: classify it, scoped to the entrypoint FILE rather than the directory.**
+- [x] **The classification is evidence-backed, not convenience.** `Dockerfile.dashboard-api` launches the
+      file (`CMD ["python", "api.py"]`) and it is read/serve only — 8 `GET` routes, one telemetry `POST`,
+      no `INSERT`/`UPDATE`/`DELETE`, no file writes — so it cannot affect truth; and the manifest already
+      declares `fastapi` as `execution_boundary_role: api`, `allowed_to_affect_truth: false`. The catch-all
+      is untouched, so new truth code stays fail-closed.
+- [x] **Two guards, each driven to fail deliberately.** Removing the entry → `2 failed, 8 passed` (it is
+      load-bearing); widening it to `abraxas/dashboard/` → `1 failed, 9 passed` (the file-scoping is
+      enforced by a test, not by convention). A third test asserts the real repository passes the CI step.
+- [x] **Second defect found while fixing it** — the manifest's `import_locations` for `fastapi` omitted
+      `abraxas/dashboard/api.py`, the file that imports it on three lines. Both declaration surfaces
+      omitted the dashboard, which is why the surface went unclassified. Now complete (5 locations).
+      Follow-up noted in `docs/TEST_DEBT.md`: `import_locations` has no consumer, so it can drift silently.
+- [x] Full diagnosis, resolution, and the deliberate non-goals in `docs/TEST_DEBT.md`.
 
 ### Open Decisions (all three RESOLVED) — session 2026-10-06
 
