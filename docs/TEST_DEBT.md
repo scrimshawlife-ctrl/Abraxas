@@ -1374,3 +1374,56 @@ which would only loosen the check.
 docstring describes a no-op rewrite that replaces `datetime.now(timezone.utc)` with itself) and
 `test_log.py` rehomed to `scripts/smoke/` (the established home for manual harness scripts). Both were
 unreferenced; a `test_` prefix is not evidence that a file contains tests.
+
+---
+
+## Which CI gates can actually FAIL — an audit, and the one that could not
+
+Recorded 2026-10-07. The two defects found earlier in the session shared one shape — an instrument that
+cannot register a failure — so every gate CI enforces was audited by injecting a fault and reading the
+exit code. Reading the code was tried first and proved unreliable: static analysis kept counting the
+`raise SystemExit(main())` dispatch idiom as a failure path.
+
+| gate | verdict | evidence (fault → result) |
+|---|---|---|
+| Dependency Boundary Check | **real** | violations → exit 1; driven red and green repeatedly |
+| Dependency Metadata Check | **COULD NOT FAIL** | fault detected, **exit 0** — see below |
+| proof-check (`make proof-check`) | **real** | forbidden term in a temp `.md` → `VIOLATION … -> attested`, exit 1; clean dir → exit 0 |
+| registry-consistency (`make registry-check`) | **real** | a subsystem file moved aside → `MISSING oracle_signal_layer_v2`, exit 1; control → exit 0 |
+| governance-lint (`make governance-lint`) | **real** | required key removed → `oracle_signal_layer_v2: missing ['tier']`, exit 1; control → exit 0 |
+| svg-validate (`make svg-validate`) | **real by construction** | `set -e` plus `exit 1` |
+| the report generators | weak gate | CI wraps each in an inline assertion that the output file exists |
+
+### The one that could not fail
+
+`scripts/check_dependency_metadata_alignment.py` is a CI step named "Dependency Metadata Check". It
+counted four kinds of discrepancy and **`main()` returned 0 unconditionally** — so every finding was
+printed into the log and the step went green. Measured: injecting a manifest dependency that does not
+exist in packaging produced `manifest_only_count=1` **and exit 0**; removing a `CORE_REQUIRED`
+dependency's packaging declaration produced `missing_core_declarations_count=2` **and exit 0**.
+
+Now it fails, and the distinction matters:
+
+- `manifest_only` → **FAIL** (the manifest names a dependency the project does not declare; the record is
+  simply wrong).
+- `missing_core_declarations` / `missing_optional_declarations` → **FAIL** (a manifest class claims
+  something packaging does not provide).
+- `declared_only` → **informational, never fails.** A dependency declared in packaging but not classified
+  for boundary purposes is normal; 9 exist on this repo and the check has been green throughout. There is
+  a control test for exactly this, because a check that fails on everything is vacuously "safe".
+
+Verified after the fix: injected fault → exit 1; the real repo → `PASS (declared_only=9 is informational
+and does not fail)`, exit 0. The invariants hold today, so **CI stays green** and only a genuine fault can
+turn it red.
+
+### Two measurement errors worth recording
+
+1. A first attempt to test `registry-consistency` and `governance-lint` on a copy of `.abraxas/` failed
+   because `_common.py` resolves its root as `parents[2]` of its own path — copying the directory's
+   *contents* one level up broke that convention, so the scripts crashed instead of testing anything. The
+   copy had to be nested as `<tmp>/.abraxas/` to reproduce the layout.
+2. A `governance-lint` fault silently failed to land, because the subsystem files are **JSON**
+   (`load_yaml` calls `json.loads`), so `tier:` never matched `"tier":`. The run then reported exit 0 —
+   which reads exactly like "the gate is broken". The assertion `assert t2 != t` caught it and prevented
+   that conclusion. **A fault that does not land produces the same output as a gate that cannot fail.**
+   Assert the fault landed before reading the verdict.

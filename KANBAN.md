@@ -139,6 +139,12 @@
 - [x] **Unclassified surfaces documented as fail-closed** (267 of 3612 tracked files, 105 of 112
       `abraxas/` subdirs) with an explicit instruction in the policy not to bulk-map them; two
       unreferenced root-level scripts retired.
+- [x] **Every CI gate audited by injecting a fault** — the "Dependency Metadata Check" was a CI step that
+      **could not fail**: it detected real discrepancies (`manifest_only_count=1`) and still exited 0, so
+      its findings were printed and ignored. It now fails on the three genuine invariants and stays
+      informational for `declared_only` (9 harmless cases on this repo), with a control test so it cannot
+      degrade into failing on everything. Boundary check, proof-check, registry-check and governance-lint
+      were each driven to fail and are real gates.
 - [x] Full detail in `docs/TEST_DEBT.md`.
 
 ### Open Decisions (all three RESOLVED) — session 2026-10-06

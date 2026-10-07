@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import re
 from pathlib import Path
-from typing import Any, Dict, Mapping, Set, Tuple
+from typing import Any, Dict, List, Mapping, Set, Tuple
 
 try:
     import tomllib  # py311+
@@ -139,6 +139,46 @@ def main() -> int:
     for name in missing_optional_declarations:
         print(f"  - {name}")
 
+    # ------------------------------------------------------------------------------------------
+    # A check that reports a fault while reporting SUCCESS is not a check.
+    #
+    # Measured 2026-10-07: this script detected an injected fault (manifest_only_count=1,
+    # missing_core_declarations_count=2) and still exited 0, so as a CI step it could never fail --
+    # every finding was printed into the log and ignored.
+    #
+    # `declared_only` is deliberately NOT a failure: a dependency declared in packaging but not
+    # classified for boundary purposes is normal (9 exist on this repo, and the check has been green
+    # throughout). Failing on it would break the check for no reason. The other three are real faults:
+    # `manifest_only` means the manifest names something that does not exist, and the `missing_*`
+    # counters mean a manifest CLASS claims something packaging does not provide.
+    # ------------------------------------------------------------------------------------------
+    hard_failures: List[str] = []
+    if manifest_only:
+        hard_failures.append(
+            f"manifest_only={len(manifest_only)}: the manifest names dependencies the project does not "
+            f"declare: {', '.join(manifest_only)}"
+        )
+    if missing_core_declarations:
+        hard_failures.append(
+            f"missing_core_declarations={len(missing_core_declarations)}: CORE_REQUIRED is claimed but "
+            f"not declared in packaging: {', '.join(missing_core_declarations)}"
+        )
+    if missing_optional_declarations:
+        hard_failures.append(
+            f"missing_optional_declarations={len(missing_optional_declarations)}: OPTIONAL_ADAPTER is "
+            f"claimed but not declared in packaging: {', '.join(missing_optional_declarations)}"
+        )
+
+    if hard_failures:
+        print("\ndependency-metadata-alignment: FAIL")
+        for row in hard_failures:
+            print(f"- {row}")
+        return 1
+
+    print(
+        "\ndependency-metadata-alignment: PASS "
+        f"(declared_only={len(declared_only)} is informational and does not fail)"
+    )
     return 0
 
 
