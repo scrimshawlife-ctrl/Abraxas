@@ -1188,3 +1188,22 @@ describes lineage (computed from other data), `simulated` describes generation (
 metric computed *from simulated inputs* would be labelled `derived` and would outrank `simulated`
 while resting entirely on synthetic data. The rank order silently drops the lineage of the inputs.
 Any producer of `derived` must decide that case explicitly rather than inherit the current order.
+
+
+---
+
+## A cluster of root-level status documents each asserting completion — 2026-10-06
+
+Recorded, not acted on. The repository root carries seven documents whose names all assert that work
+finished: `PLAN_COMPLETE.md`, `PLAN_IS_DONE.md`, `PLAN_FINISHED.md`, `PLAN_EXECUTION_COMPLETE.md`,
+`PLAN_COMPLETION_FINAL.md`, `PLAN_EXECUTION_SUMMARY.md`, and `FURTHER_WORK_PLAN_COMPLETE.md`.
+
+This repository has already named the anti-pattern: **a status document is a claim, not evidence.** Seven
+of them, none machine-checked, is the pattern at its clearest — a reader cannot tell which refers to what,
+whether the claims held, or which is current.
+
+No action is taken here for two honest reasons: the documents are outside this ExecPlan's scope, and
+deleting repo-root documents on the strength of a filename alone would repeat the mistake this repository
+keeps making — concluding something is dead from its name rather than from its content and its consumers.
+The work, when someone takes it, is to read each one, check whether its claims still hold, and consolidate
+whatever survives into `PLANS.md` (the actual plan surface) or delete it as superseded.

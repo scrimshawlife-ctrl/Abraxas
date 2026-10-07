@@ -361,8 +361,51 @@ the local duplicate, observed failing, then removed. Guard file grew from 6 to 1
 Two new observations recorded: zero external consumers import Decision from the package, and
 policy.py (the only external consumer) already imports from contract.
 
-To be completed at the end of each phase and at completion. At completion this section must compare
-the result against the Purpose above, state what remains, and record the lessons.
+**Completion (2026-10-06):** The plan is done. Achieved, against the Purpose: the evidence envelope is
+single-homed with one identity, enforced by a table-driven guard asserting object identity across all six
+contract types, so a newly duplicated type is caught by adding one row. Every live engine's
+`produce_evidence` returns that one envelope — `noesis` no longer returns a bare `dict`, which it had
+done while every guard in this repository passed. `Decision` no longer has a weaker variant missing
+`REJECT`. `schema_version` is on the canonical artifact and excluded from identity rather than deleted.
+Three tracked `.bak` files are gone. And the payoff landed: the survey reports *measured* values for
+determinism, provenance, and canonical artifacts, established by running each engine twice on identical
+input, so the gap to a technical settlement is one named criterion (`replay`) instead of a blanket `?`.
+
+**What remains.** `replay` is unmeasured; it needs artifact persistence the harness does not own. No
+engine claims a settlement, which is correct — `satisfiable` is false for all ten, and a test fails if
+that changes without the manifest citing evidence. The harness proves determinism under one defined input,
+which is what this criterion can honestly support at this stage, not determinism in general.
+
+**Lessons, each earned by a specific failure in this plan.**
+
+*One truth, one home — and the failure it prevents is silent.* The duplicate contract type raised no
+error; it made an `isinstance` check return `False` for genuine engine output, and the weaker `Decision`
+could not express a rejection at all. Nothing surfaced. Only measuring the objects against each other
+found them.
+
+*A guard that checks the wrong property certifies the wrong thing.* Every conformance test here asked
+whether a class inherits from a base class. None asked what `produce_evidence` returns, so a provider
+returning a dictionary conformed perfectly.
+
+*Deleting to satisfy a comparison is a distinct failure from deleting to satisfy a checker.* A field was
+removed to resolve a one-field divergence. The suite stayed green while `EvidenceSchemaMigrator` silently
+lost idempotence, because the class that owned the field read it. Searching for a symbol's *owner* is not
+searching for the symbol, and the case of the name matters: a search for `Brier_Scoring` proved nothing
+about `BRIER_SCORING`.
+
+*Correctness of a helper does not certify the verdict that consumes it.* Fifteen tests exercised the
+comparison helper and the fakes; none exercised `measure()`. Forcing the verdict to always answer `yes`
+left **20 of 21 tests passing**. Only a test that drives the verdict with a failing case separates them.
+
+*`?` has a meaning and it must be re-earned.* The legend defines `?` as "not measurable without running
+it". Once the harness made factories runnable, `conforms: ?` was no longer true. A stale `?` is the same
+defect as an unearned `yes`, just quieter.
+
+*Enforcement requires a demonstration.* Every guard was driven to fail before being trusted — and the
+first two attempts at the harness guard were themselves worthless: one injected a duplicate *before* the
+import that binds the name, so the import overwrote it and the guard passed; the other broke
+`from __future__` ordering so nothing ran. Injecting at runtime, then printing the injected state in the
+same run, is what made the result mean anything.
 
 ## Context and Orientation
 

@@ -9,24 +9,6 @@ This file is the append-first execution queue for implementation runs.
 
 ## Active Queue
 
-### P0 — Single-Home the Evidence Contract, Then Measure the Settlement Criteria
-- **Status:** ACTIVE
-- **Owner:** Bob Vajeen
-- **Date:** 2026-10-06
-- **ExecPlan:** `execplans/single-home-the-evidence-contract.md` (self-contained; follow it to the letter).
-- **Intent:** The boundary type that expresses "Abraxas owns arbitration, engines own reasoning" exists
-  twice and the copies are not the same object, so a type check against the package-level envelope
-  rejects a real engine's output. `abraxas/evidence/verifiers/latent.py` returns a bare `dict` where the
-  interface declares an envelope, and no guard inspects a returned value, so it passes. Three `.bak`
-  files are tracked inside the package. Single-home the contract, then measure the per-engine criteria
-  that the settlement records were waiting on.
-- **Definition of done:** `abraxas.evidence.EvidenceEnvelope is abraxas.evidence.contract.EvidenceEnvelope`
-  prints `True`; every `LIVE` engine's `produce_evidence` returns an instance of that single envelope;
-  two new guards enforce both properties and have each been observed failing before their fix; the
-  tracked `.bak` files are gone; `scripts/survey_engine_settlements.py` reports measured `yes`/`no` for
-  determinism, provenance, and canonical artifacts instead of `?`; the ratchet is green with the
-  collected floor raised to the new count; commits pushed to `origin/main`.
-
 ### P0 — Validator Artifact Linkage Closure
 - **Status:** ACTIVE
 - **Intent:** ensure rune execution artifacts link cleanly into validator/ledger surfaces.
@@ -99,6 +81,7 @@ This file is the append-first execution queue for implementation runs.
    - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
 
 ## Completed
+- 2026-10-06 — Single-homed the evidence contract, then measured the settlement criteria (`execplans/single-home-the-evidence-contract.md`). `EvidenceEnvelope`, `RelationStep`, `CandidateOutput`, `EvidenceType`, and `Decision` re-export from `abraxas/evidence/contract.py`; `EvidenceProvider` from `abraxas/evidence/provider.py`; a parametrized guard asserts object identity for all six, and a return-type guard asserts every LIVE engine's `produce_evidence` returns that one envelope. `noesis` no longer returns a bare dict. `schema_version` was PROMOTED onto the canonical envelope (an earlier attempt deleted it and silently broke `EvidenceSchemaMigrator` idempotence). Three tracked `.bak` files removed. `abraxas/engines/execution_harness.py` now runs each LIVE engine twice on identical input, so `scripts/survey_engine_settlements.py` reports MEASURED values for determinism, provenance, and canonical artifacts — `replay` is the only criterion still `?`, so the gap to a technical settlement is exactly one named thing. Commits `a79e5098`, `42e1fc78`, `a7b5b542`, `d6a99628`, `52687912`, `086ba50e`, `64741d6e`, `035e4698`, `2a85e43c`.
 - 2026-04-09 — Notion sync wave-state convergence pass: `build_notion_sync_artifact.py` now consumes `notion_next_steps` closure flags and emits `wave_5_completed` only when both gap metrics and ranked/listed next-step closures are satisfied; refreshed sync + next-step artifacts now agree on Wave-5 completion.
 - 2026-04-09 — Notion Wave-5 closure evidence pass: `run_notion_next_steps.py` now evaluates ranked Wave-5 tasks directly (`wave_5_task_status`, `remaining_wave5_task_ids`, `all_wave5_ranked_tasks_completed`) and reports all three ranked items complete with deterministic code-evidence checks, with Makefile entrypoints added for repeatable operator execution.
 - 2026-04-09 — Notion next-step artifact consistency pass: `run_notion_next_steps.py` now emits split task views (`repo_grounded_tasks`, `completed_repo_grounded_tasks`, `remaining_repo_grounded_tasks`) so closure state is non-contradictory when `all_listed_next_steps_completed=true`.

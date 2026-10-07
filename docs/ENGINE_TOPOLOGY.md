@@ -194,9 +194,21 @@ unmeasured criterion*. The same injected fault:
     exit would be : 1
 
 `tests/test_engine_settlement_survey.py` links the two, so a `settled` declaration must be
-corroborated by the survey as well as well-formed. Current survey state: the five live engines clear
-`entry_point` and `collected_tests`; `conforms` is `?` for the three factories (`athanor`, `oracle`,
-`cypher`) whose conformance is established by the agreement guard with stand-in arguments; and every
-run-required criterion — `determinism`, `replay`, `provenance`, `canonical_artifacts` — is `?`,
-because establishing them needs a real execution comparison. **No engine is satisfiable today**, which
-is why all ten are `unsettled`.
+corroborated by the survey as well as well-formed.
+
+Current survey state, measured. All five live engines — `athanor`, `noesis`, `trutina`, `oracle`,
+`cypher` — clear `entry_point`, `conforms`, `collected_tests`, `determinism`, `provenance`, and
+`canonical_artifacts`. The last three are established by *running each engine twice on identical input*
+(`abraxas/engines/execution_harness.py`) and comparing the canonical content of the two envelopes, not by
+inspection. `conforms` is measured the same way for the factory engines, which are built with a defined
+stand-in inference callable.
+
+**`replay` is the only criterion still unmeasured, for all five.** It requires loading a stored artifact
+and reproducing the result, which needs artifact persistence the harness does not own. Because a `?`
+cannot support a settlement, **no engine is satisfiable today** — and that is now a specific, checkable
+statement ("exactly one criterion, named") rather than a blanket "not measurable".
+
+Two tests hold that line:
+`test_only_replay_remains_unmeasured_for_live_engines` fails if the gap widens or if replay silently
+becomes measurable, and `test_conformance_is_measured_for_factory_engines` fails if a live factory
+regresses to `?`.

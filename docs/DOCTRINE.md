@@ -158,6 +158,47 @@ in-simulation robustness training and verify on the real device. Both are ways t
 succeed. Neither changes which environment the evidence came from, and neither permits a LAB result
 to be described as a physical one.
 
+## The evidence contract has exactly one home
+
+Every engine reports through one shape: the evidence envelope. That type *is* the architecture boundary —
+Abraxas owns arbitration, engines own reasoning — and it must exist once.
+
+A duplicate copy is not a style problem. If the type is defined twice, a consumer that checks "is this
+an evidence envelope?" using one copy receives a real engine's output and is told **no**. That happened
+here: the package-level copy and the contract copy were different objects diverging by a single field,
+and a real engine returned the copy that the package-level check rejected. A duplicate is also how a
+weaker variant survives: one copy of `Decision` was missing `REJECT`, the value the coordination layer
+uses to fail closed, so a consumer importing the weaker copy could not express a rejection at all.
+
+So the rule is: one home per contract type, the package re-exports rather than redefines, and a guard
+asserts **object identity** between the two paths — not equality, not structural similarity.
+`abraxas.evidence.EvidenceEnvelope` and `abraxas.evidence.contract.EvidenceEnvelope` must be the same
+object, and a newly duplicated type must be catchable by adding one row to a table rather than writing
+another bespoke test.
+
+**Engine output must satisfy that one type.** An engine that returns a plain dictionary where the
+interface declares an envelope is not conforming, and a guard checking only that a class inherits a base
+class will not notice — that is how such a return passed every test in this repository. The check that
+catches it inspects what `produce_evidence` actually returns.
+
+### Metadata stays on the artifact and out of its identity
+
+An envelope carries fields that describe the artifact rather than its content: the `timestamp` it was
+created at, its `evidence_id`, and its `schema_version`. These are legitimate metadata and belong on the
+record — a consumer needs to know when a record was made and what format it is in.
+
+They are excluded from content and identity comparison, under a named constant, so that two runs over
+identical input compare equal. This is the same identity-versus-metadata rule applied to the rune hash,
+the lexicon content fingerprint, and the packet hash.
+
+The failure mode to avoid is the opposite fix. Deleting a field so that a comparison passes destroys
+information and can break behaviour elsewhere: `schema_version` was once removed to resolve exactly this
+kind of divergence, and because the schema migrator read that field to decide whether migration was
+needed — and wrote it so a second migration would be a no-op — its removal made migration silently
+non-idempotent while the whole test suite stayed green. When a field is metadata, exclude it from the
+comparison and say why; do not remove it. And when you conclude a field is unused, search for the exact
+field name rather than for the class that owns it.
+
 ## Prohibited moves
 
 These are the moves the doctrine exists to prevent. Each is grounded in a mechanism or invariant
