@@ -11,18 +11,18 @@ manifest wins. It exists to record *why* the labels are what they are.
 Yggdrasil's coordinator declared this set (`default_engines`). It is the architecture's
 intended topology:
 
-| Engine | Status | Evidence type | Implementation |
-|---|---|---|---|
-| `athanor` | **live** | RELATIONAL_REASONING | `abraxas.evidence.provider:create_athanor_adapter` |
-| `noesis` | **live** | LATENT_STRUCTURAL | `abraxas.evidence.verifiers.latent:NoesisEvidenceProvider` |
-| `trutina` | **live** | CALIBRATION | `abraxas.evidence.providers.trutina:TrutinaEvidenceProvider` |
-| `oracle` | **live** | NARRATIVE_SYNTHESIS | `abraxas.evidence.adapters.oracle:create_oracle_adapter` |
-| `cypher` | **live** | PERSISTENT_MEMORY | `abraxas.evidence.adapters.cypher:create_cypher_adapter` |
-| `hyperlex` | planned | LEXICAL_SEMANTIC | test-local class only |
-| `semion` | planned | SIGN_RELATION | test-local class only; an instrument now exists (`abraxas/evidence/semion_instrument.py`) |
-| `chronos` | planned | — | none found |
-| `resonance` | planned | — | none found |
-| `aether` | planned | — | none in this repo; its own repository carries a spec plus a provider that RAISES |
+| Engine | Status | Evidence type | Implementation | Inference |
+|---|---|---|---|---|
+| `athanor` | **live** | RELATIONAL_REASONING | `abraxas.evidence.provider:create_athanor_adapter` | **model-agnostic** |
+| `noesis` | **live** | LATENT_STRUCTURAL | `abraxas.evidence.verifiers.latent:NoesisEvidenceProvider` | none — consumes supplied captures |
+| `trutina` | **live** | CALIBRATION | `abraxas.evidence.providers.trutina:TrutinaEvidenceProvider` | none — scores given forecasts |
+| `oracle` | **live** | NARRATIVE_SYNTHESIS | `abraxas.evidence.adapters.oracle:create_oracle_adapter` | **model-agnostic** |
+| `cypher` | **live** | PERSISTENT_MEMORY | `abraxas.evidence.adapters.cypher:create_cypher_adapter` | none — reads the memory layer |
+| `hyperlex` | planned | LEXICAL_SEMANTIC | test-local class only | feature-gated package call |
+| `semion` | planned | SIGN_RELATION | test-local class only; an instrument now exists (`abraxas/evidence/semion_instrument.py`) | none — consumes a sign frame |
+| `chronos` | planned | — | none found | none — rune orchestration |
+| `resonance` | planned | — | none found | none — phase detectors |
+| `aether` | planned | — | none in this repo; its own repository carries a spec plus a provider that RAISES | n/a — refuses |
 
 Implementation paths are copied from the manifest, and
 `tests/test_engine_manifest_agreement.py` *resolves* each one — so a wrong path fails the
@@ -32,6 +32,63 @@ so it was unreachable under that name. An earlier version of the guard imported 
 and stopped there, which is why it passed while claiming a class that did not exist.
 
 `yggdrasil` is the coordinator, not an engine it routes to. `mock` is a test double.
+
+## Where an engine needs a model, the model is model-agnostic
+
+Five of the ten engines need no model at all: `noesis` consumes latent captures supplied to it, `trutina`
+scores forecasts it is given, `cypher` reads the memory layer, and `chronos` and `resonance` run rune and
+phase logic. `semion` consumes a sign frame. None of them has an inference step to serve.
+
+Two need one — `athanor` (relation extraction over atoms) and `oracle` (narrative synthesis) — and both
+resolve it through `abraxas.evidence.adapters.model_agnostic`:
+
+| Connection | Identity reported | Note |
+|---|---|---|
+| `ABX_INFERENCE_BASE_URL` + `ABX_INFERENCE_MODEL` set | `model-agnostic/<model>` | any OpenAI-compatible endpoint |
+| nothing set | `model-agnostic/offline-deterministic` | a deterministic reading, confidence **0.0** |
+| a custom callable injected | its own `model_identity`, else `custom/unlabelled` | the escape hatch for a trained model |
+
+`aether` is the third engine with an inference requirement, and it refuses: `produce_evidence()` and
+`get_model_identity()` raise `AetherNotImplemented`. That refusal is the pattern working — an engine with no
+model says so rather than guessing.
+
+**No reading produced without a model carries a confidence.** The offline path yields candidates with
+`confidence=0.0` and stamps `provenance["inference"] == "offline-deterministic"`; the pair is the honest
+statement *here is a reading, and nothing scored it*. Both halves are asserted in
+`tests/test_engines_name_no_model_they_do_not_have.py`.
+
+Two defects prompted this, both of the same shape — a provenance field naming a model that produced nothing:
+
+- Oracle's `_default_oracle_inference` built a `coherence_score` from word counts (`+= 0.1  # Sweet spot for
+  coherence`) and published it as the envelope's **confidence**. A keyword heuristic scored as a model's
+  assessment. Deleted; the model-agnostic adapter is the default.
+- Athanor reported `lora-out-transfer-001-t1/checkpoint-48`. Its default path also **crashed** —
+  `AttributeError: 'str' object has no attribute 'confidence'` — because the adapter was wired in as the
+  default and never executed: every test injected a mock that returned objects.
+
+### The custom models, measured
+
+The engines above were expected to run on custom-trained adapters. Checked on 2026-10-07, from
+`~/Athanor` — they cannot, and not because the weights are poor:
+
+| Evidence | Result |
+|---|---|
+| `t1_bias_corrected_adapter/` contents | `adapter_config.json`, `tokenizer.json`, `chat_template.jinja` — **no weight file** |
+| `git ls-files \| grep -c safetensors` (Athanor) | `0` |
+| every `*adapter*` / `lora-out*` / `merged-*` dir on this machine | weight files: `0` |
+| `specs/003-qwen-adapter/model-lock.json` | `"weight_downloaded": false`, `"allow_train": false`, `"status": "MODEL_REVISION_SELECTED_ENVIRONMENT_NOT_COMPUTABLE"` |
+| `python -m athanor.adapter_preflight` | `{"status": "HOLD", "weights_verified": false, "training_authorized": false}` |
+| `... --model-dir t1_bias_corrected_adapter` | `{"status": "INVALID", "reason": "Missing, unsafe or oversized model config"}` |
+| `EXECUTION-RECEIPT.md` claims | 2 of 7 artifacts present; both *weight files* absent (see its verification note) |
+
+The adapter directory is a freeze record, not a model: its config advertises `"inference_mode": true` with no
+`adapter_model.safetensors` beside it, and names base `nvidia/Llama-3.1-Nemotron-Nano-8B-v1` while the spec it
+sits near pins `Qwen/Qwen3.8-27B`. Training ran on a different host entirely (`/home/delphi`, GB10, torch
+2.15.0.dev).
+
+So the model-agnostic adapter is not a stopgap while better models arrive — **it is the only working inference
+path**, and it stays the default until weights exist somewhere a consumer can reach. When they do, they arrive
+through the injection point: a callable that declares its own `model_identity` and its own confidences.
 
 ## Addressable is not available
 
