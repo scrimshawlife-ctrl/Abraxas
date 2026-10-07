@@ -5,6 +5,7 @@ from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket, DeferralStart, HumanAck
 from webpanel.store import InMemoryStore
+from webpanel._session_helpers import start_test_session
 
 
 def _packet() -> AbraxasSignalPacket:
@@ -42,12 +43,15 @@ def test_execute_selected_action_micro_steps():
     _run_steps(run_id)
 
     run = webpanel_app.store.get(run_id)
+
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     actions = run.last_step_result["actions"]
     selected_action_id = actions[0]["action_id"]
 
     webpanel_app._select_action(run_id, selected_action_id)
     run = webpanel_app.store.get(run_id)
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.selected_action_id == selected_action_id
 
@@ -64,6 +68,7 @@ def test_execute_selected_action_micro_steps():
     webpanel_app._start_deferral(run_id, DeferralStart(quota_max_actions=3))
     webpanel_app._step_deferral(run_id)
     run = webpanel_app.store.get(run_id)
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
 
     result = run.last_step_result

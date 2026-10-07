@@ -34,6 +34,23 @@ from ..preference_kernel import (
 )
 from ..stability import run_stabilization
 from .. import panel_context
+from ..task_router import PROFILE_LABELS, recommend_profile
+
+
+def _profile_recommendation(run: Any, current_policy_hash: str) -> Dict[str, Any]:
+    """The run's profile recommendation, recomputed for the run page.
+
+    Single-run view, so there is no previous run to compare against -- recommend_profile
+    takes prev as Optional and export_bundle passes None in the same situation.
+    """
+    return recommend_profile(run, None, current_policy_hash)
+
+
+def _profile_label(run: Any, current_policy_hash: str) -> str:
+    """Human-readable label for the recommended profile id."""
+    rec = _profile_recommendation(run, current_policy_hash)
+    profile_id = str(rec.get("recommended_profile_id") or "")
+    return PROFILE_LABELS.get(profile_id, profile_id)
 from .shared import _select_action
 
 
@@ -169,6 +186,12 @@ def ui_run(request: Request, run_id: str):
             "delta_notifications": delta_notifications,
             "execution_validation": execution_validation,
             "operator_projection_summary": operator_projection_summary,
+            # run.html renders a Profiles card that needs both of these. Neither was ever
+            # passed, so this page raised UndefinedError on every render -- it has never
+            # worked. The label comes from PROFILE_LABELS, the registry the router already
+            # uses; the fallback keeps an unknown id visible rather than blank.
+            "profile_recommendation": _profile_recommendation(run, current_hash),
+            "recommended_profile_label": _profile_label(run, current_hash),
         },
     )
 

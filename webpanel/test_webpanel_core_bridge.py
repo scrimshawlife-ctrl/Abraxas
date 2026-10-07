@@ -7,6 +7,7 @@ from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.store import InMemoryStore
+from webpanel._session_helpers import start_test_session
 
 
 def _packet() -> AbraxasSignalPacket:
@@ -33,6 +34,8 @@ def test_core_bridge_ingest_and_quota_boundary():
     run_id = resp["run_id"]
 
     run = webpanel_app.store.get(run_id)
+
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.run_id == run_id
     assert run.context.context_id
@@ -44,6 +47,8 @@ def test_core_bridge_ingest_and_quota_boundary():
     webpanel_app.defer_step(run_id)
 
     run = webpanel_app.store.get(run_id)
+
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.actions_taken == 2
     assert run.pause_required is True

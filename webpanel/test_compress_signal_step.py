@@ -5,6 +5,7 @@ from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.store import InMemoryStore
+from webpanel._session_helpers import start_test_session
 
 
 def _packet() -> AbraxasSignalPacket:
@@ -39,6 +40,8 @@ def test_compress_signal_step():
     webpanel_app._step_deferral(run_id)
 
     run = webpanel_app.store.get(run_id)
+
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     result = run.last_step_result
     assert result is not None
@@ -65,7 +68,10 @@ def test_compress_signal_determinism():
     webpanel_app._step_deferral(resp_b["run_id"])
 
     run_a = webpanel_app.store.get(resp_a["run_id"])
+
+    start_test_session(run_a, ledger=webpanel_app.ledger)
     run_b = webpanel_app.store.get(resp_b["run_id"])
 
+    start_test_session(run_b, ledger=webpanel_app.ledger)
     assert run_a is not None and run_b is not None
     assert run_a.last_step_result == run_b.last_step_result

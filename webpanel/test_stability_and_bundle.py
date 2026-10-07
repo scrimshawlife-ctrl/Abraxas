@@ -12,6 +12,7 @@ from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.policy import get_policy_snapshot
 from webpanel.store import InMemoryStore
 from webpanel.stability import run_stabilization
+from webpanel._session_helpers import start_test_session
 
 
 def _packet(signal_id: str, payload: dict) -> AbraxasSignalPacket:
@@ -50,7 +51,10 @@ def test_stability_and_bundle():
     _run_extract_compress(resp_b["run_id"])
 
     run_a = webpanel_app.store.get(resp_a["run_id"])
+
+    start_test_session(run_a, ledger=webpanel_app.ledger)
     run_b = webpanel_app.store.get(resp_b["run_id"])
+    start_test_session(run_b, ledger=webpanel_app.ledger)
     assert run_a is not None and run_b is not None
 
     snapshot = get_policy_snapshot()

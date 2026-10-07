@@ -6,6 +6,7 @@ from webpanel import app as webpanel_app
 from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.store import InMemoryStore
+from webpanel._session_helpers import start_test_session
 
 
 def _packet() -> dict:
@@ -34,6 +35,8 @@ def test_policy_hash_lock(monkeypatch):
     run_id = response.json()["run_id"]
 
     run = webpanel_app.store.get(run_id)
+
+    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.policy_hash_at_ingest
 
