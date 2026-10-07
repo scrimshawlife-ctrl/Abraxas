@@ -30,9 +30,9 @@ def ui_compare(request: Request):
     ingest_diff = bool(left_ingest and right_ingest and left_ingest != right_ingest)
 
     return templates.TemplateResponse(
+        request,
         "compare.html",
         {
-            "request": request,
             "left": left,
             "right": right,
             "compare": compare_summary,

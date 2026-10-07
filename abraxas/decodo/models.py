@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class DecodoEvent(BaseModel):
@@ -18,8 +18,6 @@ class DecodoEvent(BaseModel):
     content: str = Field(..., description="Scraped content")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class DecodoStream(BaseModel):
@@ -31,8 +29,6 @@ class DecodoStream(BaseModel):
     end_time: datetime | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
     def add_event(self, event: DecodoEvent) -> None:
         """Add event to stream."""

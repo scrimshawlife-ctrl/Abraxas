@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 from abraxas.core.provenance import ProvenanceBundle, ProvenanceRef
 
@@ -66,8 +66,6 @@ class OperatorCandidate(BaseModel):
         default=None, description="When candidate was proposed"
     )
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class ValidationReport(BaseModel):
@@ -87,11 +85,8 @@ class ValidationReport(BaseModel):
     provenance: ProvenanceBundle = Field(..., description="Validation provenance")
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="Validation timestamp",
-    )
+        description="Validation timestamp")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class StabilizationState(BaseModel):
@@ -107,14 +102,11 @@ class StabilizationState(BaseModel):
     notes: list[str] = Field(default_factory=list, description="Stabilization notes")
     started_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="Stabilization start time",
-    )
+        description="Stabilization start time")
     completed_at: datetime | None = Field(
         default=None, description="Stabilization completion time"
     )
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class CanonDecision(BaseModel):
@@ -131,9 +123,6 @@ class CanonDecision(BaseModel):
     provenance: ProvenanceBundle = Field(..., description="Decision provenance")
     decided_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        description="Decision timestamp",
-    )
+        description="Decision timestamp")
     decided_by: str = Field(default="oasis_canonizer", description="Decision maker")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}

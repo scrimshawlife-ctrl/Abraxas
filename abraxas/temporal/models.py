@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 from abraxas.core.provenance import ProvenanceBundle
 
@@ -68,5 +68,4 @@ class TemporalDriftResult(BaseModel):
     )
     provenance: ProvenanceBundle = Field(..., description="Analysis provenance")
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)

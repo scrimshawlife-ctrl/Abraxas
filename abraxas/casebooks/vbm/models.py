@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 from abraxas.core.provenance import ProvenanceBundle
 
@@ -42,8 +42,7 @@ class VBMEpisode(BaseModel):
     )
     provenance: ProvenanceBundle = Field(..., description="Provenance record")
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class VBMCasebook(BaseModel):
@@ -61,8 +60,7 @@ class VBMCasebook(BaseModel):
     )
     provenance: ProvenanceBundle = Field(..., description="Casebook provenance")
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class VBMDriftScore(BaseModel):
@@ -83,5 +81,4 @@ class VBMDriftScore(BaseModel):
     )
     provenance: ProvenanceBundle = Field(..., description="Scoring provenance")
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)

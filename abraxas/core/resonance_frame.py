@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class ResonanceFrame(BaseModel):
@@ -27,8 +27,6 @@ class ResonanceFrame(BaseModel):
     phonetic_signature: str | None = Field(default=None, description="Phonetic representation")
     features: dict[str, float] = Field(default_factory=dict, description="Extracted features")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
     def __hash__(self) -> int:
         """Hash based on immutable event_id."""

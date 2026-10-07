@@ -135,6 +135,18 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --strict-markers"
+filterwarnings = [
+    # Deprecations are ERRORS here -- the policy the CI step always intended, now expressed
+    # in config instead of a CLI flag. Measured: the CLI -W form is applied AFTER these and
+    # overrides them, which is why an identical ignore in this file had no effect while the
+    # step passed -W error::DeprecationWarning (exit 2 with the CLI flag, 0 without).
+    "error::DeprecationWarning",
+    # NAMED third-party ignore. anyio raises this from library code when the test client
+    # spins a portal; ZERO call sites exist in this repo, so no code change can fix it.
+    # Matched on the exact message, not the category, so a NEW deprecation still fails.
+    # Later entries take precedence, so this must follow the error above.
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]
 
 [tool.coverage.run]
 source = ["abraxas", "abx", "abx_familiar"]

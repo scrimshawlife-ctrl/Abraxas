@@ -167,6 +167,7 @@ class TestTRUTINA_Q1_Fixtures:
     """Tests using the deterministic Q1 fixtures."""
 
     @pytest.fixture(scope="class")
+    @classmethod
     def fixtures(self):
         return load_fixtures()
 

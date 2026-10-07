@@ -1160,9 +1160,9 @@ def ui_operator_console(request: Request):
     report_manifest_change_summary = read_manifest_change_summary().get("summary")
     report_manifest_watchlist = read_report_manifest_watchlist().get("watchlist")
     return templates.TemplateResponse(
+        request,
         "operator_console.html",
         {
-            "request": request,
             "view": view,
             "inference_status": inference_status,
             "developer_readiness": developer_readiness,
@@ -1499,9 +1499,9 @@ async def ui_run_compliance_probe(request: Request):
         "mode": view_after.workbench_mode,
     }
     return templates.TemplateResponse(
+        request,
         "operator_console.html",
         {
-            "request": request,
             "view": view_after,
             "developer_readiness": read_developer_readiness_payload().get("projection", {}),
             "gap_closure_invariance": read_gap_closure_invariance_payload().get("projection", {}),

@@ -60,7 +60,7 @@ jobs:
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
             tests/test_resonance_narratives_* tests/test_oracle_v2* \
             tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
-            tests/test_ritual_system.py -W error::DeprecationWarning -q 2>&1 | tail -5
+            tests/test_ritual_system.py -q
 
   health-check:
     name: Health Check

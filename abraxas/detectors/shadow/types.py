@@ -16,7 +16,7 @@ from datetime import timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Any, List, Optional, Literal, Tuple
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 from datetime import datetime
 import hashlib
 import json
@@ -112,10 +112,7 @@ class ShadowEvidence(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in detection [0,1]")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional evidence metadata")
 
-    class Config:
-        frozen = True
-
-
+    model_config = ConfigDict(frozen = True)
 class ShadowDetectorResult(BaseModel):
     """
     Result from a shadow detector execution.
@@ -156,10 +153,7 @@ class ShadowDetectorResult(BaseModel):
         canonical = json.dumps(data, sort_keys=True, separators=(',', ':'))
         return hashlib.sha256(canonical.encode('utf-8')).hexdigest()
 
-    class Config:
-        frozen = True
-
-
+    model_config = ConfigDict(frozen = True)
 class ShadowDetectorBase:
     """
     Base class for all shadow detectors.

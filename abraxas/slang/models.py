@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class SlangToken(BaseModel):
@@ -61,8 +61,6 @@ class SlangCluster(BaseModel):
     response_mode: str | None = Field(default=None, description="Response mode (de-escalate if high risk)")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
     def add_readout(self, readout: OperatorReadout) -> None:
         """Add an operator readout to this cluster."""

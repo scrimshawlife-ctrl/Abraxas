@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 OpName = Literal[
@@ -39,12 +39,8 @@ class PerfEvent(BaseModel):
     reason_code: str | None = Field(None, description="Reason code for operation")
     provenance_hashes: dict[str, str] = Field(
         default_factory=dict,
-        description="Provenance hashes (input_hash, output_hash)",
-    )
+        description="Provenance hashes (input_hash, output_hash)")
     timestamp_utc: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
-        description="Event timestamp",
-    )
+        description="Event timestamp")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}

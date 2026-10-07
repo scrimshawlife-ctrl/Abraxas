@@ -25,9 +25,9 @@ def ui_run_console(request: Request, run_id: str):
     except Exception as exc:
         raise HTTPException(status_code=404, detail=f"run console unavailable: {exc}")
     return templates.TemplateResponse(
+        request,
         "run_console.html",
         {
-            "request": request,
             "summary": summary,
             "run_id": run_id,
             "panel_host": _panel_host(),
@@ -50,9 +50,9 @@ def ui_run_compare(request: Request):
         raise HTTPException(status_code=400, detail="run_a and run_b are required")
     payload = compare_runs(run_a, run_b).to_dict()
     return templates.TemplateResponse(
+        request,
         "run_compare.html",
         {
-            "request": request,
             "diff": payload,
             "run_a": run_a,
             "run_b": run_b,
@@ -73,9 +73,9 @@ def ui_release_readiness(request: Request):
     run_id = request.query_params.get("run_id", "RUN-RELEASE-READY-001")
     payload = build_release_view(run_id).to_dict()
     return templates.TemplateResponse(
+        request,
         "release_readiness.html",
         {
-            "request": request,
             "run_id": run_id,
             "release": payload,
             "panel_host": _panel_host(),
@@ -94,9 +94,9 @@ def ui_release_readiness_json(run_id: str):
 def ui_evidence(request: Request, run_id: str):
     payload = build_evidence_view(run_id).to_dict()
     return templates.TemplateResponse(
+        request,
         "run_evidence.html",
         {
-            "request": request,
             "run_id": run_id,
             "evidence": payload,
             "panel_host": _panel_host(),

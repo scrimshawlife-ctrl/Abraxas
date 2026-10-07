@@ -26,9 +26,9 @@ def _render_runs_page(request: Request):
     run_views = [build_run_view(run) for run in filtered[:50]]
     prev_run_id_prefill = request.query_params.get("prev_run_id")
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "runs": run_views,
             "runs_total": len(filtered),
             "filters": params,
@@ -56,9 +56,9 @@ def ui_ledger(request: Request, run_id: str):
     events = panel_context.ledger.list_events(run_id)
     chain_valid = panel_context.ledger.chain_valid(run_id)
     return templates.TemplateResponse(
+        request,
         "ledger.html",
         {
-            "request": request,
             "run": run,
             "events": events,
             "chain_valid": chain_valid,
@@ -135,9 +135,9 @@ async def ui_ingest(request: Request):
     except Exception as exc:
         runs = panel_context.store.list(limit=50)
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "runs": runs,
                 "error": str(exc),
                 "packet_json": raw,
@@ -151,9 +151,9 @@ async def ui_ingest(request: Request):
     if prev_run_id and panel_context.store.get(prev_run_id) is None:
         runs = panel_context.store.list(limit=50)
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "runs": runs,
                 "error": f"prev_run_id not found: {prev_run_id}",
                 "packet_json": raw,
@@ -179,9 +179,9 @@ async def ui_upload_payload(request: Request):
     if not tier or not lane:
         runs = panel_context.store.list(limit=50)
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "runs": runs,
                 "error": "tier and lane are required",
                 "panel_token": _panel_token(),
@@ -194,9 +194,9 @@ async def ui_upload_payload(request: Request):
     if payload_file is None or not hasattr(payload_file, "read"):
         runs = panel_context.store.list(limit=50)
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "runs": runs,
                 "error": "payload file is required",
                 "panel_token": _panel_token(),
@@ -219,9 +219,9 @@ async def ui_upload_payload(request: Request):
     except Exception as exc:
         runs = panel_context.store.list(limit=50)
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "runs": runs,
                 "error": str(exc),
                 "panel_token": _panel_token(),

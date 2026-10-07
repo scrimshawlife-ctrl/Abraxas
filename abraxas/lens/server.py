@@ -69,9 +69,9 @@ def create_app(cfg: LensConfig) -> FastAPI:
     def home(request: Request, limit: int = 40, min_score: float = 0.5):
         rows = _candidate_rows(limit=limit, min_score=min_score)
         return templates.TemplateResponse(
+            request,
             "home.html",
             {
-                "request": request,
                 "cfg": cfg,
                 "rows": rows,
                 "limit": limit,
@@ -94,9 +94,9 @@ def create_app(cfg: LensConfig) -> FastAPI:
             payload = json.loads(row["payload_json"])
             dec = latest_decision(conn, candidate_id)
             return templates.TemplateResponse(
+                request,
                 "candidate.html",
                 {
-                    "request": request,
                     "row": dict(row),
                     "payload_pretty": json.dumps(
                         payload, indent=2, sort_keys=True, ensure_ascii=False

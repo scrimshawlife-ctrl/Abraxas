@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class ProvenanceRef(BaseModel):
@@ -32,8 +32,6 @@ class ProvenanceBundle(BaseModel):
     created_by: str = Field(default="oasis", description="System or component that created this bundle")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 def hash_canonical_json(obj: Any) -> str:
@@ -87,8 +85,7 @@ def canonical_envelope(
     config: dict,
     inputs: dict,
     operation_id: str,
-    seed: Optional[int] = None,
-) -> dict[str, Any]:
+    seed: Optional[int] = None) -> dict[str, Any]:
     """
     Create canonical provenance envelope for rune outputs.
 

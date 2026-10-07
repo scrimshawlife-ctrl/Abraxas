@@ -160,9 +160,9 @@ def ui_run(request: Request, run_id: str):
         run.execution_validation = execution_validation
     operator_projection_summary = build_operator_projection_summary(run.run_id).to_dict()
     return templates.TemplateResponse(
+        request,
         "run.html",
         {
-            "request": request,
             "run": run,
             "events": events,
             "chain_valid": chain_valid,
@@ -211,9 +211,9 @@ def ui_oracle_signal_artifact(request: Request, path: str):
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return templates.TemplateResponse(
+        request,
         "oracle_signal_artifact.html",
         {
-            "request": request,
             "artifact_path": artifact["artifact_path"],
             "payload": artifact["payload"],
             "authority": artifact["authority"],
@@ -249,9 +249,9 @@ def ui_stability(request: Request, run_id: str):
     if not run or not run.stability_report:
         raise HTTPException(status_code=404, detail="stability report not found")
     return templates.TemplateResponse(
+        request,
         "stability.html",
         {
-            "request": request,
             "run": run,
             "report": run.stability_report,
             "panel_host": _panel_host(),
@@ -328,9 +328,9 @@ async def ui_select_action(run_id: str, request: Request):
         if policy_status == "CHANGED":
             policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
         return templates.TemplateResponse(
+            request,
             "run.html",
             {
-                "request": request,
                 "run": run,
                 "events": events,
                 "chain_valid": chain_valid,

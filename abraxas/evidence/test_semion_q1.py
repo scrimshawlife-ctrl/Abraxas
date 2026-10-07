@@ -62,6 +62,7 @@ class TestSEMION_Q1_PeirceanValidation:
     """Tests for Peircean sign class validation (core SEMION logic)."""
 
     @pytest.fixture(scope="class")
+    @classmethod
     def fixtures(self):
         return load_fixtures()
 
@@ -224,6 +225,7 @@ class TestSEMION_Q1_Fixtures:
     """Tests using the deterministic Q1 fixtures."""
 
     @pytest.fixture(scope="class")
+    @classmethod
     def fixtures(self):
         return load_fixtures()
 

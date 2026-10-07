@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class CapabilityContract(BaseModel):
@@ -26,10 +26,7 @@ class CapabilityContract(BaseModel):
     deterministic: bool = Field(True, description="Must be deterministic")
     evidence_mode: str = Field("prediction_lane", description="prediction_lane | shadow_lane | detector_only")
 
-    class Config:
-        frozen = True
-
-
+    model_config = ConfigDict(frozen = True)
 class CapabilityRegistry(BaseModel):
     """Registry of all capability contracts."""
 

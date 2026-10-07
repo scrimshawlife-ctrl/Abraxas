@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 from abraxas.core.resonance_frame import ResonanceFrame
 from abraxas.slang.models import OperatorReadout
@@ -38,10 +38,7 @@ class Operator(ABC, BaseModel):
         default_factory=list, description="Known failure modes or edge cases"
     )
 
-    class Config:
-        # Allow subclassing with pydantic
-        arbitrary_types_allowed = True
-
+    model_config = ConfigDict(arbitrary_types_allowed = True)
     @abstractmethod
     def apply(self, text: str, frame: ResonanceFrame | None = None) -> OperatorReadout | None:
         """

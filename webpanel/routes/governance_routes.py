@@ -30,9 +30,9 @@ def ui_policy(request: Request):
         rendered = json.dumps(snapshot, sort_keys=True, ensure_ascii=True)
         return Response(content=rendered, media_type="application/json")
     return templates.TemplateResponse(
+        request,
         "policy.html",
         {
-            "request": request,
             "policy": snapshot,
             "panel_host": _panel_host(),
             "panel_port": _panel_port(),
