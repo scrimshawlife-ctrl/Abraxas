@@ -24,6 +24,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
 from survey_engine_settlements import (  # noqa: E402
+    ABSENT,
     PRESENT,
     UNMEASURED,
     _collected_test_ids,
@@ -60,16 +61,34 @@ def test_every_engine_in_the_manifest_is_surveyed() -> None:
 
 
 def test_no_engine_currently_claims_technical_settlement() -> None:
-    """Pin the truthful state. Every engine is `unsettled`, and the survey corroborates that none
-    could be `settled` today -- because no engine has all six criteria measured, let alone satisfied.
-    Declaring one would require the survey to corroborate it, which is the point."""
+    """Pin the truthful state, which has moved.
+
+    This test used to assert that NO engine was satisfiable, because `replay` was unmeasurable and a `?`
+    cannot support a settlement. `replay` is now measured, so every live engine clears all six criteria
+    and the survey would corroborate a technical settlement for any of them.
+
+    That does NOT mean a settlement is claimed: `declared` is still empty below, and moving one is the
+    operator's decision. What this now pins is the *capability*: if a criterion regresses to `?` or `no`,
+    the live engines stop being satisfiable and this fails.
+    """
+    from abraxas.engines.manifest import LIVE
+
     rows = survey()
     declared = [r["engine"] for r in rows if r["declared_technical"] == "settled"]
-    satisfiable = [r["engine"] for r in rows if r["technical_satisfiable"]]
-    assert declared == [], f"an engine now claims technical settlement: {declared}"
-    assert satisfiable == [], (
-        f"the survey now corroborates a settlement: {satisfiable} -- if this is real, raise the "
-        "settlement in the manifest AND cite the evidence; do not merely relax this test."
+    satisfiable = {r["engine"] for r in rows if r["technical_satisfiable"]}
+    live = {r["engine"] for r in rows if r["status"] == LIVE}
+
+    assert declared == [], (
+        f"an engine now claims technical settlement: {declared}. If that was deliberate, this test "
+        "should assert the declared set explicitly rather than be deleted."
+    )
+    assert satisfiable == live, (
+        f"the survey corroborates {sorted(satisfiable)}, expected exactly the live engines "
+        f"{sorted(live)}. A missing engine means a criterion regressed to '?' or 'no' -- find out "
+        "which, and fix that rather than this assertion."
+    )
+    assert all(r["criteria"]["replay"] == PRESENT for r in rows if r["status"] == LIVE), (
+        "replay is measured for live engines now; a '?' here means the replay probe stopped working"
     )
 
 
@@ -437,12 +456,109 @@ def test_measure_stays_unmeasured_for_a_planned_engine() -> None:
     assert verdict["canonical_artifacts"] == "?", verdict
 
 
-def test_measure_leaves_replay_unmeasured_for_a_live_engine() -> None:
-    """`replay` is honestly '?' -- it needs artifact persistence this harness does not own, and the
-    survey's rule is that a '?' cannot support a settlement."""
+def test_measure_measures_replay_for_a_live_engine() -> None:
+    """`replay` used to be honestly '?' -- it needed artifact persistence. It is now measured: the
+    harness writes an envelope out, reads it back, reproduces the run, and compares."""
     from abraxas.engines import execution_harness as harness
 
-    assert harness.measure("noesis")["replay"] == "?"
+    assert harness.measure("noesis")["replay"] == harness.REPLAY_YES
+
+
+# --------------------------------------------------------------------------------------------
+# Replay -- and why it is NOT determinism repeated
+# --------------------------------------------------------------------------------------------
+
+
+class _FakeRoundTripLossyProvider:
+    """Deterministic, but its content does not survive the JSON round trip.
+
+    A tuple lives inside ``verification_metadata`` (typed ``Dict[str, Any]``, so this is type-clean).
+    Canonical JSON writes the tuple as an array and it reloads as a LIST, so the stored artifact no
+    longer equals what was written. Two in-process runs still agree, so determinism passes -- only
+    replay can see this.
+    """
+
+    def produce_evidence(self, request_id: str, claim: str, context, budget=None):
+        from abraxas.evidence.contract import EvidenceEnvelope
+
+        return EvidenceEnvelope(
+            engine="fake-roundtrip",
+            request_id=request_id,
+            claim="stable",
+            verification_metadata={"degenerate": ("a", "b")},  # tuple -> JSON array -> list
+            provenance={"source": "fake-roundtrip"},
+        )
+
+
+def test_replay_passes_for_a_deterministic_engine() -> None:
+    """Positive control for the replay probe."""
+    from abraxas.engines.execution_harness import REPLAY_YES, replay_probe
+
+    status, reason = replay_probe(_FakeDeterministicProvider(), "r", "c", {})
+
+    assert status == REPLAY_YES, f"a deterministic engine must replay; got {status!r} ({reason})"
+
+
+def test_replay_fails_for_a_non_deterministic_engine() -> None:
+    """A stored artifact cannot reproduce an engine that varies each call."""
+    from abraxas.engines.execution_harness import REPLAY_NO, replay_probe
+
+    _FakeNonDeterministicProvider.call_count = 0
+    status, reason = replay_probe(_FakeNonDeterministicProvider(), "r", "c", {})
+
+    assert status == REPLAY_NO, f"got {status!r} ({reason})"
+    assert "does not reproduce" in reason or "mismatch" in reason, reason
+
+
+def test_replay_catches_a_round_trip_loss_that_determinism_misses() -> None:
+    """The measurement that makes `replay` a criterion in its own right.
+
+    A tuple in the content serializes to an array and reloads as a list. Both in-process runs agree, so
+    `determinism` says yes; the stored artifact does not equal what was written, so `replay` says no. If
+    the probe ever compared against the in-memory content instead of the RELOADED artifact, this test
+    would pass a broken probe -- which is why it exists.
+    """
+    from abraxas.engines import execution_harness as harness
+
+    provider = _FakeRoundTripLossyProvider()
+
+    first = harness._content_dict(harness.run_once(provider, "r", "c", {}))
+    second = harness._content_dict(harness.run_once(provider, "r", "c", {}))
+    assert first == second, "this fake must be deterministic, or the test proves nothing"
+
+    status, reason = harness.replay_probe(provider, "r", "c", {})
+
+    assert status == harness.REPLAY_NO, (
+        f"a round-trip loss must fail replay even though determinism passes; got {status!r} ({reason})"
+    )
+    assert "does not reproduce" in reason or "mismatch" in reason, reason
+
+
+def test_replay_is_unmeasured_only_when_the_artifact_cannot_be_persisted(monkeypatch) -> None:
+    """'?' means the harness could not measure -- an environment limit, NOT a property of the engine.
+    Reporting 'no' there would blame the engine for the harness."""
+    from abraxas.engines import execution_harness as harness
+
+    class _BadPath:
+        def __init__(self, *_a, **_k):
+            pass
+
+        def write_text(self, *_a, **_k):
+            raise OSError("read-only filesystem")
+
+        def read_text(self, *_a, **_k):
+            raise OSError("read-only filesystem")
+
+    monkeypatch.setattr(harness, "Path", _BadPath, raising=False)
+
+    status, reason = harness.replay_probe(
+        _FakeDeterministicProvider(), "r", "c", {}, artifact_dir="/nonexistent-dir"
+    )
+
+    assert status in (harness.REPLAY_UNMEASURED, harness.REPLAY_NO), (
+        f"expected an honest unmeasured/no verdict; got {status!r} ({reason})"
+    )
+    assert reason, "an unmeasured or failed replay must carry a reason"
 
 
 # --------------------------------------------------------------------------------------------
@@ -469,16 +585,26 @@ def test_conformance_is_measured_for_factory_engines() -> None:
         assert criteria["conforms"] == PRESENT, (name, criteria)
 
 
-def test_only_replay_remains_unmeasured_for_live_engines() -> None:
-    """Pin the honest state: the gap between the live engines and a technical settlement is exactly
-    ONE criterion, and it is named. If this list grows, something regressed; if it shrinks, an engine
-    may be settleable and the manifest should say so with cited evidence."""
+def test_no_criterion_remains_unmeasured_for_live_engines() -> None:
+    """Pin the honest state. This test previously asserted that `replay` was the ONLY unmeasured
+    criterion -- the named gap between the live engines and a technical settlement.
+
+    That gap is now closed: every criterion is measured for every live engine. This asserts the closure,
+    so if a criterion regresses to `?` (unmeasurable) or `no` (measured and failing), it fails here.
+
+    Note what is NOT asserted: that a settlement has been CLAIMED. Moving one is the operator's decision;
+    the corroboration being available is not the same as the claim being made.
+    """
     for row in survey():
         if row["status"] != "live":
             continue
         unmeasured = sorted(k for k, v in row["criteria"].items() if v == UNMEASURED)
-        assert unmeasured == ["replay"], (
-            f"{row['engine']}: unmeasured criteria are {unmeasured}, expected exactly ['replay']. "
-            "Either a measurement was lost, or replay became measurable -- in which case raise the "
-            "settlement in the manifest and cite the evidence rather than editing this test."
+        assert unmeasured == [], (
+            f"{row['engine']}: criteria {unmeasured} are unmeasured. All six were measured; a '?' here "
+            "means the harness lost a measurement, not that the engine regressed."
+        )
+        failing = sorted(k for k, v in row["criteria"].items() if v == ABSENT)
+        assert failing == [], (
+            f"{row['engine']}: measured and FAILING: {failing}. That is a real finding about the "
+            "engine -- fix the engine, or record why the criterion genuinely does not apply."
         )

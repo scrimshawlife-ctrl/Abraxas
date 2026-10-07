@@ -203,12 +203,17 @@ Current survey state, measured. All five live engines — `athanor`, `noesis`, `
 inspection. `conforms` is measured the same way for the factory engines, which are built with a defined
 stand-in inference callable.
 
-**`replay` is the only criterion still unmeasured, for all five.** It requires loading a stored artifact
-and reproducing the result, which needs artifact persistence the harness does not own. Because a `?`
-cannot support a settlement, **no engine is satisfiable today** — and that is now a specific, checkable
-statement ("exactly one criterion, named") rather than a blanket "not measurable".
+**All six criteria are now measured for all five live engines, `replay` included.** Replay is measured by
+persisting an envelope as a canonical artifact, reading it back, reproducing the run, and comparing
+against the *reloaded* artifact — mirroring the `RuneReplayPacket` contract this repository already uses
+for runes (`core/execution/replay_runner.py`). It is not determinism repeated: an envelope that survives
+two in-process runs can still fail to survive persistence, and only replay sees that.
 
-Two tests hold that line:
-`test_only_replay_remains_unmeasured_for_live_engines` fails if the gap widens or if replay silently
-becomes measurable, and `test_conformance_is_measured_for_factory_engines` fails if a live factory
-regresses to `?`.
+So `satisfiable` is now **true for all five live engines**: the survey would corroborate a technical
+settlement for any of them. That is a capability, not a claim — every engine is still `unsettled`, and
+moving one is the operator's decision, not the survey's.
+
+Two tests hold this line: `test_no_criterion_remains_unmeasured_for_live_engines` fails if any criterion
+regresses to `?` (a lost measurement) or `no` (measured and failing), and
+`test_no_engine_currently_claims_technical_settlement` asserts that corroboration is available while no
+settlement has been claimed.

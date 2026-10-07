@@ -113,6 +113,41 @@ and two tests pin that (`test_only_replay_remains_unmeasured_for_live_engines`,
 `test_conformance_is_measured_for_factory_engines`). No engine is settleable today; that is now a
 specific, checkable statement rather than a blanket `?`.
 
+### Replay closed (2026-10-06, after Phase 6)
+
+Phase 6 recorded `replay` as the single criterion still unmeasured, needing "artifact persistence the
+harness does not own". That framing was wrong: the repository already had the contract, and the harness
+did not need to own persistence to use it.
+
+`replay_probe` in `abraxas/engines/execution_harness.py` now measures replay by persisting an envelope as
+a canonical artifact, reading it back, reproducing the run, and comparing against the **reloaded**
+artifact. It mirrors the `RuneReplayPacket` contract already used for runes
+(`core/execution/replay_runner.py`, output at `out/replay/latest.json`: `source_execution_hash`,
+`replay_execution_hash`, `identical_output`) rather than forcing that type, which operates on a
+`ShadowExecutionRun` and does not fit an engine envelope.
+
+**Replay is not determinism repeated, and the difference is measured.** A tuple inside
+`verification_metadata` serializes to a JSON array and reloads as a list: two in-process runs agree, so
+determinism is `yes`, while the stored artifact no longer equals what was written, so replay is `no`.
+`test_replay_catches_a_round_trip_loss_that_determinism_misses` pins that. Driving the probe to compare
+against the in-memory content instead of the reloaded artifact — the subtle bug its comment warns about —
+fails exactly that one test and nothing else, which is how it was confirmed to have teeth:
+
+    FAILED test_replay_catches_a_round_trip_loss_that_determinism_misses
+    1 failed, 26 passed
+
+Failure kinds are separated deliberately: `no` is a property of the engine's output (not serializable,
+or does not reproduce); `?` is an environment limit (the artifact could not be written). Blaming the
+engine for the harness would be as wrong as the reverse.
+
+**Result: `satisfiable` is now true for all five live engines** and the gap to a technical settlement is
+closed. The guarantee is now "nothing is unmeasured" rather than "exactly one thing is unmeasured", and
+`test_no_engine_currently_claims_technical_settlement` asserts that corroboration is *available* while
+no settlement has been claimed — moving one remains the operator's decision.
+
+Three tests that pinned the old state failed by design when replay became measurable, exactly as their
+docstrings instructed, and were re-pinned to the new truth rather than relaxed.
+
 ## Surprises & Discoveries
 
 - Observation: the two `EvidenceEnvelope` definitions are not the same object and differ by exactly one

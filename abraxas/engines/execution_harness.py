@@ -32,7 +32,8 @@ from __future__ import annotations
 
 import importlib
 import inspect
-from typing import Any, Dict, Tuple
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
 from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.engines.manifest import ENGINES, LIVE, EngineSpec
@@ -107,6 +108,92 @@ def run_once(
 ) -> Dict[str, Any]:
     """Return one evidence envelope as a plain mapping."""
     return engine.produce_evidence(request_id, claim, context).to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Replay -- persist an artifact, reload it, and reproduce the run
+# ---------------------------------------------------------------------------
+#
+# This mirrors the replay contract this repository already uses for runes: a
+# source hash, a replay hash, and an ``identical_output`` verdict, emitted as a
+# ``RuneReplayPacket`` by ``core/execution/replay_runner.py`` and written to
+# ``out/replay/latest.json``.  That implementation operates on a
+# ``ShadowExecutionRun``, which an engine envelope is not, so this mirrors the
+# CONTRACT rather than forcing a type that does not fit it.
+#
+# Replay is NOT determinism repeated.  Determinism compares two in-process runs.
+# Replay additionally requires the result to survive PERSISTENCE: the artifact is
+# written out, read back, and must match a fresh run.  An envelope that cannot
+# round-trip through canonical JSON fails replay while passing determinism, and
+# that difference is the measurement.
+
+REPLAY_YES = "yes"
+REPLAY_NO = "no"
+REPLAY_UNMEASURED = "?"
+
+
+def replay_probe(
+    engine,
+    request_id: str,
+    claim: str,
+    context: Dict[str, Any],
+    *,
+    artifact_dir: Optional[str] = None,
+) -> Tuple[str, str]:
+    """Persist one envelope, reload it, reproduce the run, and compare.
+
+    Returns ``(status, reason)`` where status is ``yes``, ``no``, or ``?``.
+
+    The two failure kinds are deliberately separated, because blaming the engine
+    for the harness would be wrong and so would the reverse:
+
+    ``no``  -- the envelope cannot be replayed: it is not canonically
+               serializable, or the stored artifact does not reproduce.  That is
+               a property of the engine's output.
+    ``?``   -- the artifact could not be persisted at all (a filesystem or
+               environment limitation).  Nothing was learned about the engine.
+    """
+    import json
+    import shutil
+    import tempfile
+
+    first = run_once(engine, request_id, claim, context)
+    source_content = _content_dict(first)
+
+    try:
+        serialized = canonical_json(source_content)
+        source_hash = sha256_hex(serialized)
+    except Exception as exc:
+        return REPLAY_NO, (
+            f"the envelope is not canonically serializable, so it cannot be replayed: {exc}"
+        )
+
+    scratch = artifact_dir or tempfile.mkdtemp(prefix="abx-replay-")
+    try:
+        artifact = Path(scratch) / "envelope.json"
+        artifact.write_text(serialized, encoding="utf-8")
+
+        # Reload -- the artifact must survive the round trip.
+        reloaded = json.loads(artifact.read_text(encoding="utf-8"))
+
+        # Reproduce the run and compare against the RELOADED artifact, not the
+        # in-memory one; comparing against the original would test nothing new.
+        reproduced = _content_dict(run_once(engine, request_id, claim, context))
+    except OSError as exc:
+        return REPLAY_UNMEASURED, f"could not persist a replay artifact: {exc}"
+    except Exception as exc:
+        return REPLAY_NO, f"replay could not be completed: {exc}"
+    finally:
+        if artifact_dir is None:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+    replay_hash = sha256_hex(canonical_json(reproduced))
+    if reloaded != reproduced:
+        return REPLAY_NO, (
+            "replay mismatch: the stored artifact does not reproduce "
+            f"(stored {source_hash[:12]}..., reproduced {replay_hash[:12]}...)"
+        )
+    return REPLAY_YES, ""
 
 
 def measure(engine_name: str) -> Dict[str, str]:
@@ -217,11 +304,22 @@ def measure(engine_name: str) -> Dict[str, str]:
             canonical = "no"
             reason_parts.append("canonical hash is empty")
 
+    # ---- Replay: persist the artifact, reload it, reproduce the run ------------
+    #
+    # Distinct from determinism above: that compares two in-process runs; this
+    # requires the result to survive being written, read back, and reproduced.
+    try:
+        replay, replay_reason = replay_probe(provider, request_id, claim, context)
+    except Exception as exc:  # the probe handles its own failures; belt and braces
+        replay, replay_reason = REPLAY_UNMEASURED, f"replay probe raised: {exc}"
+    if replay_reason:
+        reason_parts.append(replay_reason)
+
     return {
         "determinism": determinism,
         "provenance": provenance,
         "canonical_artifacts": canonical,
-        "replay": "?",
+        "replay": replay,
         "reason": "; ".join(reason_parts) if reason_parts else "",
     }
 
