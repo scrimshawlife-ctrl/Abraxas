@@ -62,7 +62,15 @@ class CandidateOutput:
 @dataclass
 class EvidenceEnvelope:
     """Canonical evidence contract for Abraxas."""
-    
+
+    #: Describes the FORMAT of this artifact, not its content. It exists because
+    #: `EvidenceSchemaMigrator` reads it to decide whether migration is needed
+    #: (`abraxas/evidence/__init__.py`, `current_version = envelope.get("schema_version", "v1")`),
+    #: and writes it back so that a second migration call is a no-op. It is therefore present on the
+    #: artifact but excluded from any identity/content hash, the same identity-versus-metadata rule this
+    #: repository applies to `timestamp` and to the lexicon content fingerprint.
+    schema_version: str = "v2"
+
     evidence_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     engine: str = ""
     engine_version: str = ""
@@ -115,6 +123,7 @@ class EvidenceEnvelope:
             "artifact_refs": self.artifact_refs,
             "verification_metadata": self.verification_metadata,
             "timestamp": self.timestamp,
+            "schema_version": self.schema_version,
         }
     
     @classmethod

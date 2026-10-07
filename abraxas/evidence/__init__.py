@@ -519,7 +519,13 @@ class EvidenceSchemaMigrator:
         
         if current_version == "v1" and target_version == "v2":
             envelope = envelope.copy()
-            # schema_version removed from canonical envelope per Plan: single-home-the-evidence-contract
+            # Stamp the version, so the migration records that it happened. Without this line the early
+            # return above can never fire for a migrated envelope: nothing else records the migration,
+            # so the envelope keeps reading as "v1" and migrate() re-runs its defaults on every call.
+            # This line was removed once and the suite stayed green, because no test covered
+            # idempotence -- see tests/test_evidence_contract_single_home.py. Restored verbatim from
+            # the pre-change file, so the semantics are unchanged from the original.
+            envelope["schema_version"] = "v2"
             envelope.setdefault("uncertainty", 1.0 - envelope.get("confidence", 0.0))
             envelope.setdefault("decision_margin", 0.0)
             envelope.setdefault("entropy", 0.0)

@@ -43,10 +43,15 @@ instead of `?` for the five live engines:
 
 This section must always reflect the actual state of the work. Timestamps are UTC.
 
-- [x] (2026-10-06) Phase 0 -- baseline captured: full-suite result, ratchet result, and the four
-      duplicate definitions recorded with file:line evidence.
-- [x] (2026-10-06) Phase 1 -- `EvidenceEnvelope` single-homed on `abraxas/evidence/contract.py`; the package
-      `__init__` re-exports rather than redefines; the `schema_version` divergence resolved.
+- [x] (2026-10-06) Phase 0 -- baseline captured: ratchet green at `3514 passed, 4 skipped, 9 xfailed`,
+      `collected=3525 floor=3525`; the four duplicate definitions recorded with file:line evidence; the
+      three tracked `.bak` files listed; and the import-site count measured (the honest answer is
+      **zero** -- nothing imports `EvidenceEnvelope` or `EvidenceProvider` from the package level).
+- [x] (2026-10-06) Phase 1 -- `EvidenceEnvelope` single-homed on `abraxas/evidence/contract.py`; the
+      package `__init__` re-exports rather than redefines; the divergence resolved by **promoting**
+      `schema_version` to the canonical envelope (the first attempt deleted it, which silently broke
+      migration idempotence -- see Surprises). A 6-test guard file now covers identity, the field list,
+      serialization, and migration idempotence, and the idempotence test has been observed failing.
 - [ ] Phase 2 -- `EvidenceProvider` single-homed; `noesis` returns the envelope rather than a dict.
 - [ ] Phase 3 -- two new guards in `tests/test_engine_manifest_agreement.py`, each driven to fail.
 - [ ] Phase 4 -- the three tracked `.bak` files removed from inside the package.
@@ -83,6 +88,31 @@ This section must always reflect the actual state of the work. Timestamps are UT
   `PLAN_COMPLETION_FINAL.md`, `PLAN_EXECUTION_SUMMARY.md`, `FURTHER_WORK_PLAN_COMPLETE.md`. This is the
   anti-pattern this repository has already named: a status document is a claim, not evidence. No action
   is taken on them here; it is recorded so the next contributor is not misled by them.
+
+- Observation: **`schema_version` IS read -- by the schema migrator itself.** The field looked like dead
+  metadata, and it was deleted on that reasoning. But `EvidenceSchemaMigrator.migrate()` reads it
+  (`current_version = envelope.get("schema_version", "v1")`) to decide whether migration is needed, and
+  the early return fires only when the version equals the target. Deleting the field forced the deletion
+  of the line that wrote it, which silently made migration **non-idempotent**: a migrated envelope keeps
+  reading as `"v1"`, so `migrate()` re-runs its defaults on every call and the early return becomes
+  unreachable. The full suite stayed green, because no test covered idempotence.
+  Evidence: with the version stamp removed,
+  `tests/test_evidence_contract_single_home.py::test_migration_is_idempotent` fails with
+  `1 failed, 5 passed`; restored, `6 passed`.
+
+- Observation: the grep performed to justify the deletion did not measure the field. The instruction was
+  to grep `schema_version`; the executed grep searched for `EvidenceSchemaMigrator` instead and concluded
+  no external consumer read the field. That conclusion was true of *external* consumers and false of the
+  module that owns the field -- which is the consumer that mattered. Searching for a symbol's owner is
+  not searching for the symbol.
+  Evidence: the recorded evidence named `EvidenceSchemaMigrator` line numbers only, while
+  `grep -n "schema_version" abraxas/evidence/__init__.py` returns line 516 reading it.
+
+- Observation: two further duplicate types remain in the package `__init__`, plus a duplicated helper.
+  The executor disclosed these unprompted: `RelationStep`, `CandidateOutput`, and `EvidenceType` exist in
+  both the package and `contract.py`, and `create_athanor_envelope` is defined in both. They are out of
+  Phase 1's scope and are Phase 2's work, but the same defect shape applies to each.
+  Evidence: LSP type warnings on the `__init__` copies after Phase 1, plus the executor's own report.
 
 - Observation: zero production or test files import `EvidenceEnvelope` from the package level
   (`from abraxas.evidence import EvidenceEnvelope`). The only package-level imports are for Brier
@@ -139,6 +169,28 @@ This section must always reflect the actual state of the work. Timestamps are UT
 - Decision: create the execution harness only after the contract is single-homed.
   Rationale: a harness that runs all engines can only compare their outputs if their outputs share a
   type. Building it first would mean writing per-engine special cases that the single-homing removes.
+  Date/Author: 2026-10-06, Bob Vajeen.
+
+  - Decision: **`schema_version` is PROMOTED to the canonical envelope, superseding an earlier decision in
+  this same plan to remove it.** The canonical `abraxas/evidence/contract.py` envelope now declares
+  `schema_version: str = "v2"` as its first field, and `to_dict()` serializes it.
+  Rationale: the removal rested on the claim that nothing reads the field. That claim was measured
+  wrongly -- the grep searched for `EvidenceSchemaMigrator` rather than for `schema_version`, so it never
+  found the line in that very class which reads the field (`__init__.py:516`). Removing the field then
+  required removing the write, which broke migration idempotence without failing a single test. The
+  correct resolution follows this plan's own stated rule -- if any site READS the field, promote it --
+  and it also matches the repository's identity-versus-metadata doctrine: a format descriptor belongs on
+  the artifact, and is excluded from content hashes rather than deleted. The rule is unchanged; the
+  measurement that fed it was.
+  Date/Author: 2026-10-06, Bob Vajeen.
+
+  - Decision: the version stamp in `migrate()` is restored **verbatim** as
+  `envelope["schema_version"] = "v2"` -- assignment, not `setdefault`.
+  Rationale: `git show 5773c6ff:abraxas/evidence/__init__.py` shows the pre-change line used assignment.
+  An initial restoration used `setdefault`, which would leave an envelope that declared `"v1"`
+  still declaring `"v1"` after being migrated to v2 -- recording the wrong state, and preserving the
+  very non-idempotence being fixed. Restoring the original semantics avoids inventing behaviour while
+  repairing a deletion.
   Date/Author: 2026-10-06, Bob Vajeen.
 
 ## Outcomes & Retrospective
@@ -347,9 +399,30 @@ live engine returning a bare dictionary:
     trutina envelope is a package one?  False | is contract one?  True
     noesis returned type: builtins.dict
 
-Phase 1 new test file: `tests/test_evidence_contract_single_home.py`
+The idempotence guard, observed failing against the deletion it exists to catch, and passing once the
+version stamp is restored:
+
+    $ "$PY" -m pytest tests/test_evidence_contract_single_home.py -q --no-header -o addopts=""
+    # with `envelope["schema_version"] = "v2"` removed:
+    FAILED tests/test_evidence_contract_single_home.py::test_migration_is_idempotent
+    1 failed, 5 passed, 8 warnings in 0.44s
+
+    # restored:
+    6 passed, 8 warnings in 0.56s
+
+Note the `-o addopts=""` flag: this repository's `pyproject.toml` sets `addopts = "-v --strict-markers"`,
+which overrides a plain `-q` and emits pytest's tree output instead of `::`-joined test ids. Any tooling
+that parses collected ids must neutralize the inherited options, or it will silently parse nothing.
+
+Phase 1 new test file: `tests/test_evidence_contract_single_home.py` (6 tests)
 - `test_evidence_envelope_single_home_identity`: asserts `EvidenceEnvelope is ContractEnvelope`
-- `test_evidence_envelope_field_count`: asserts 21 fields, no `schema_version`
+- `test_canonical_envelope_field_count`: asserts 22 fields AND that `schema_version` is among them,
+  superseding the earlier version of this test which asserted 21 and its absence
+- `test_the_package_export_cannot_diverge_from_the_contract`: asserts both field lists agree
+- `test_schema_version_is_serialized`: asserts `to_dict()` carries the format marker
+- `test_migration_is_idempotent`: the guard for the regression; observed failing when the version stamp
+  is removed
+- `test_migration_is_a_no_op_for_an_already_current_envelope`: asserts the early return
 
 Identity guard driven to FAIL (observed at 2026-10-06):
 ```
