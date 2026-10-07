@@ -376,6 +376,25 @@ class TestSEMION_Q1_AuthorityBoundary:
         assert VALID_COMBINATIONS == expected
 
 
+def _instrument_envelope(fixture_name: str, request_id: str, claim: str):
+    """Build an EvidenceEnvelope from one of the repo's OWN SEMION fixtures.
+
+    The integration tests used to type their envelopes in by hand — the same
+    `answer="qualisign-rheme-icon"`, `confidence=0.85` literal appearing twice in one method. That proved
+    arbitration accepts a dict SHAPED like semion evidence, using a number this file invented. Driving the
+    real fixture through abraxas.evidence.semion_instrument instead means the integration tests now exercise
+    semion's actual boundary: the confidence is the frame's own coherence, and every authority field comes
+    from the frame rather than from the test author.
+    """
+    from abraxas.evidence.semion_instrument import adapt_observation, to_evidence_envelope
+
+    frame = load_fixtures()[fixture_name]["input"]
+    envelope = to_evidence_envelope(
+        adapt_observation(frame), request_id=request_id, claim=claim
+    )
+    return envelope, frame
+
+
 class TestSEMION_Q1_Integration:
     """Integration tests with ProductionArbiter."""
 
@@ -383,107 +402,43 @@ class TestSEMION_Q1_Integration:
         """SEMION evidence should arbitrate through ProductionArbiter."""
         from abraxas.governance.production import ProductionOrchestrator, EngineStatus
         from abraxas.evidence.provider import EvidenceProvider
-        from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType, CandidateOutput
-        
+
+        envelope, frame = _instrument_envelope(
+            "fixture_valid_qualisign_rheme_icon", "test-q1-001", "Test semion integration"
+        )
+
+        # The confidence is the fixture's own coherence, not a literal chosen here.
+        assert envelope.confidence == pytest.approx(
+            frame["peircean_analysis"]["coherence_score"]
+        )
+        assert envelope.provenance["lane"] == "shadow"
+        assert envelope.provenance["influence_policy"] == "NONE"
+        assert envelope.provenance["valid_for_forecast"] is False
+
         orchestrator = ProductionOrchestrator()
-        
-        # Register mock semion provider
+
+        # Registered so the arbiter has an engine to attribute the evidence to. The envelope it returns is
+        # the instrument's; this class exists for registration only.
         class SemionProvider(EvidenceProvider):
             engine_name = "semion"
             engine_version = "semion.sign.v1"
             supported_evidence_types = [EvidenceType.SIGN_RELATION]
-            
+
             def get_model_identity(self):
                 return "semion-sign-v1"
-            
+
             def produce_evidence(self, request_id, claim, context, budget=None):
-                return EvidenceEnvelope(
-                    engine=self.engine_name,
-                    engine_version=self.engine_version,
-                    model_identity=self.get_model_identity(),
-                    request_id=request_id,
-                    claim=claim,
-                    candidate_outputs=[
-                        CandidateOutput(
-                            answer="qualisign-rheme-icon",
-                            confidence=0.85,
-                            reasoning_trace="Peircean sign classification",
-                            relation_steps=[
-                                RelationStep(
-                                    relation="resembles",
-                                    subject="sign_a",
-                                    object="sign_b",
-                                    result="similar",
-                                    confidence=0.9
-                                )
-                            ]
-                        )
-                    ],
-                    evidence_type=EvidenceType.SIGN_RELATION,
-                    confidence=0.85,
-                    uncertainty=0.15,
-                    provenance={
-                        "source": "semion",
-                        "authority": "advisory",
-                        "semantic_truth": False,
-                        "influence_policy": "NONE",
-                        "valid_for_forecast": False,
-                        "lane": "shadow",
-                        "sign_class": "qualisign-rheme-icon",
-                        "sign_class_valid": True,
-                        "interpretant_coherence": 1.0,
-                    }
-                )
-        
+                return envelope
+
         orchestrator.engine_registry.register(SemionProvider())
         orchestrator.engine_registry.update_health("semion", EngineStatus.HEALTHY, latency_ms=10.0)
-        
-        # Create semion evidence
-        envelope = EvidenceEnvelope(
-            engine="semion",
-            engine_version="semion.sign.v1",
-            model_identity="semion-sign-v1",
-            request_id="test-q1-001",
-            claim="Test semion integration",
-            candidate_outputs=[
-                CandidateOutput(
-                    answer="qualisign-rheme-icon",
-                    confidence=0.85,
-                    reasoning_trace="Peircean sign classification",
-                    relation_steps=[
-                        RelationStep(
-                            relation="resembles",
-                            subject="sign_a",
-                            object="sign_b",
-                            result="similar",
-                            confidence=0.9
-                        )
-                    ]
-                )
-            ],
-            evidence_type=EvidenceType.SIGN_RELATION,
-            confidence=0.85,
-            uncertainty=0.15,
-            provenance={
-                "source": "semion",
-                "authority": "advisory",
-                "semantic_truth": False,
-                "influence_policy": "NONE",
-                "valid_for_forecast": False,
-                "lane": "shadow",
-                "sign_class": "qualisign-rheme-icon",
-                "sign_class_valid": True,
-                "interpretant_coherence": 1.0,
-            }
-        )
-        
+
         # Run through arbiter
         decision = orchestrator.arbiter.arbitrate(envelope)
-        
-        from abraxas.evidence.contract import Decision
+
         assert isinstance(decision, Decision)
         assert decision in [Decision.ACCEPT, Decision.VERIFY, Decision.RECOMPUTE, Decision.ABSTAIN, Decision.ESCALATE]
-        
+
         # Check audit log
         audit = orchestrator.arbiter.get_audit_log()
         assert len(audit) >= 1
@@ -494,108 +449,50 @@ class TestSEMION_Q1_Integration:
         from abraxas.governance.production import ProductionOrchestrator, EngineStatus
         from abraxas.evidence.policy import DecisionRecord
         from abraxas.evidence.provider import EvidenceProvider
-        from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType, CandidateOutput, Decision, RelationStep
-        
+
+        envelope, frame = _instrument_envelope(
+            "fixture_valid_sinsign_dicent_index", "test-q1-002", "Test semion 6-gate"
+        )
+
+        # The fixture's own coherence for this frame is 0.88. The hand-typed envelope this replaces asserted
+        # 0.9 — so that literal was not merely redundant, it disagreed with the fixture it stood in for.
+        assert envelope.confidence == pytest.approx(
+            frame["peircean_analysis"]["coherence_score"]
+        )
+        assert envelope.confidence != 0.9, "0.9 was the hand-typed value, not the fixture's"
+
         orchestrator = ProductionOrchestrator()
-        
+
         class SemionProvider(EvidenceProvider):
             engine_name = "semion"
             engine_version = "semion.sign.v1"
             supported_evidence_types = [EvidenceType.SIGN_RELATION]
-            
+
             def get_model_identity(self):
                 return "semion-sign-v1"
-            
+
             def produce_evidence(self, request_id, claim, context, budget=None):
-                return EvidenceEnvelope(
-                    engine=self.engine_name,
-                    engine_version=self.engine_version,
-                    model_identity=self.get_model_identity(),
-                    request_id=request_id,
-                    claim=claim,
-                    candidate_outputs=[
-                        CandidateOutput(
-                            answer="sinsign-dicent-index",
-                            confidence=0.9,
-                            reasoning_trace="Peircean sign classification",
-                            relation_steps=[
-                                RelationStep(
-                                    relation="indicates",
-                                    subject="smoke",
-                                    object="fire",
-                                    result="present",
-                                    confidence=0.85
-                                )
-                            ]
-                        )
-                    ],
-                    evidence_type=EvidenceType.SIGN_RELATION,
-                    confidence=0.9,
-                    uncertainty=0.1,
-                    provenance={
-                        "source": "semion",
-                        "authority": "advisory",
-                        "semantic_truth": False,
-                        "influence_policy": "NONE",
-                        "valid_for_forecast": False,
-                        "lane": "shadow",
-                    }
-                )
-        
+                return envelope
+
         orchestrator.engine_registry.register(SemionProvider())
         orchestrator.engine_registry.update_health("semion", EngineStatus.HEALTHY, latency_ms=10.0)
-        
-        envelope = EvidenceEnvelope(
-            engine="semion",
-            engine_version="semion.sign.v1",
-            model_identity="semion-sign-v1",
-            request_id="test-q1-002",
-            claim="Test semion 6-gate",
-            candidate_outputs=[
-                CandidateOutput(
-                    answer="sinsign-dicent-index",
-                    confidence=0.9,
-                    reasoning_trace="Peircean sign classification",
-                    relation_steps=[
-                        RelationStep(
-                            relation="indicates",
-                            subject="smoke",
-                            object="fire",
-                            result="present",
-                            confidence=0.85
-                        )
-                    ]
-                )
-            ],
-            evidence_type=EvidenceType.SIGN_RELATION,
-            confidence=0.9,
-            uncertainty=0.1,
-            provenance={
-                "source": "semion",
-                "authority": "advisory",
-                "semantic_truth": False,
-                "influence_policy": "NONE",
-                "valid_for_forecast": False,
-                "lane": "shadow",
-            }
-        )
-        
+
         decision = orchestrator.arbiter.arbitrate(envelope)
-        
+
         record = DecisionRecord.from_arbitration(
             request_id="test-q1-002",
             envelopes=[envelope],
             decision=decision,
             confidence=envelope.confidence,
         )
-        
+
         governance = orchestrator.governor.evaluate(record)
-        
+
         assert "governed" in governance
         assert "aggregate_score" in governance
         assert "gate_results" in governance
         assert len(governance["gate_results"]) == 6
-        
+
         gate_names = {g["gate"] for g in governance["gate_results"]}
         expected_gates = {
             "provenance", "falsifiability", "redundancy",
@@ -621,41 +518,18 @@ class TestSEMION_Q1_Verifier:
     def test_sign_verifier_verify_method(self):
         """SignRelationVerifier.verify should return expected structure."""
         from abraxas.evidence.verifiers.sign import SignRelationVerifier
-        from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType, CandidateOutput, RelationStep
-        
+
         verifier = SignRelationVerifier()
-        
-        envelope = EvidenceEnvelope(
-            engine="semion",
-            engine_version="semion.sign.v1",
-            model_identity="semion-sign-v1",
-            request_id="test-verify-001",
-            claim="Test sign verification",
-            candidate_outputs=[
-                CandidateOutput(
-                    answer="qualisign-rheme-icon",
-                    confidence=0.8,
-                    reasoning_trace="Peircean classification",
-                    relation_steps=[
-                        RelationStep(
-                            relation="resembles",
-                            subject="a",
-                            object="b",
-                            result="similar",
-                            confidence=0.9,
-                            metadata={"sign_class": "qualisign-rheme-icon"}
-                        )
-                    ]
-                )
-            ],
-            evidence_type=EvidenceType.SIGN_RELATION,
-            confidence=0.8,
-            uncertainty=0.2,
-            provenance={"source": "semion"}
+
+        # Built from a SEMION fixture through the instrument, like the integration tests: the verifier is
+        # exercised on evidence of the shape it will actually receive, rather than on a hand-assembled
+        # envelope whose candidate answer this file chose.
+        envelope, _frame = _instrument_envelope(
+            "fixture_valid_qualisign_rheme_icon", "test-verify-001", "Test sign verification"
         )
-        
+
         result = verifier.verify(envelope)
-        
+
         assert "passed" in result
         assert "escalate" in result
         assert "details" in result
