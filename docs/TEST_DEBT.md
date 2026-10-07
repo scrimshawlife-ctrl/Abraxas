@@ -1211,3 +1211,55 @@ deleting repo-root documents on the strength of a filename alone would repeat th
 keeps making — concluding something is dead from its name rather than from its content and its consumers.
 The work, when someone takes it, is to read each one, check whether its claims still hold, and consolidate
 whatever survives into `PLANS.md` (the actual plan surface) or delete it as superseded.
+
+
+---
+
+## `guardrails` CI check is RED on main — the dashboard is misclassified as truth-authoritative
+
+Recorded 2026-10-07. **Pre-existing and unrelated to the hygiene merge**; it has been failing on `main`
+for every push today (observed at 05:07, 05:16, 05:23, 05:36, 05:48 and on the PR branch), and it
+predates the work in PR #264, which touched no code at all.
+
+**Symptom** — the `abraxas-repo-guardrails` workflow fails in its "Dependency Boundary Check" step:
+
+    optional-dependency-boundary-check: FAIL
+    - abraxas/dashboard/api.py:13: entrypoint dependency import 'fastapi' is forbidden in truth-authoritative surface
+    - abraxas/dashboard/api.py:14: same
+    - abraxas/dashboard/api.py:15: same
+
+Reproduces locally with `python scripts/check_optional_dependency_boundaries.py`.
+
+**Mechanism, read from the policy rather than guessed.** `.aal/dependency_surface_policy.v0.yaml`
+resolves a file's role by LONGEST matching prefix (`_classify_surface_role`, "winner = max(...len(prefix))").
+Its last entry is a catch-all:
+
+    - prefix: abraxas/
+      role: truth_authoritative
+
+There is a specific entry for `abraxas/web/`, `abraxas/api/`, `webpanel/`, `server/`, `abx/ui/` and
+`abx/server/` — all `launch_surface` — but **none for `abraxas/dashboard/`**. So the dashboard inherits
+the catch-all `truth_authoritative`, where `fastapi` is forbidden.
+
+That misclassification is contradicted by the repository's own manifest, which declares `fastapi` as
+
+    class: ENTRYPOINT_REQUIRED
+    execution_boundary_role: api
+    allowed_to_affect_truth: false
+    truth_authoritative: false
+
+i.e. `fastapi` is explicitly designed to live in an api surface and explicitly not to affect truth.
+`abraxas/dashboard/api.py` IS the dashboard's api surface.
+
+**Recommended fix (NOT applied — it is a governance policy change, so it is the operator's call):** add a
+specific mapping for the dashboard beside its siblings:
+
+    - prefix: abraxas/dashboard/
+      role: launch_surface
+
+**Why this is not "loosening a scan to go green".** The check's own manifest says `fastapi` belongs to an
+`api` boundary and cannot affect truth, and the policy already classifies the equivalent sibling paths
+(`abraxas/web/`, `abraxas/api/`, `webpanel/`) as `launch_surface`. The entry is a genuine omission, not a
+strict rule being relaxed. But it *does* make a failing check pass by exempting a path, which is exactly
+the shape of a loosening — so it needs the operator's sign-off rather than a unilateral edit, and if
+applied it should be accompanied by a test that the dashboard role is what was intended.

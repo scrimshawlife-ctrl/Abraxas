@@ -92,6 +92,17 @@
       `lower_threshold` 0.000 on every occasion. Two of my own recommendations were retracted
       after reading the code, and one governance allowlist was reverted.
 
+### Open Decision — CI guardrail RED on main (needs an operator ruling)
+
+- [ ] **`guardrails` / Dependency Boundary Check fails on every push to main.** Pre-existing, unrelated to
+      PR #264 (which touched no code). `abraxas/dashboard/api.py:13-15` import `fastapi`, and the policy's
+      catch-all maps `abraxas/` to `truth_authoritative`; `abraxas/dashboard/` has no specific entry while
+      its siblings (`abraxas/web/`, `abraxas/api/`, `webpanel/`, `server/`) are all `launch_surface`. The
+      manifest itself declares `fastapi` as `execution_boundary_role: api` with
+      `allowed_to_affect_truth: false`, so the classification contradicts the repository's own manifest.
+      Full diagnosis and the one-line fix in `docs/TEST_DEBT.md`. **Not applied**: it is a governance
+      policy change and it makes a red check pass by exempting a path, which needs sign-off.
+
 ### Open Decisions (all three RESOLVED) — session 2026-10-06
 
 - [x] **Non-censorship scan patterns** — RESOLVED. `tools/non_censor_scan.py` now exits 0. The patterns
