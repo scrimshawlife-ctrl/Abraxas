@@ -445,6 +445,63 @@ match is not a component boundary.
   parse-integrity test over tracked modules, so a file that cannot be imported cannot sit unnoticed. It was
   found in `abraxas/` and again in `athanor/`; two trees is a pattern, not a coincidence.
 
+### Model-agnostic inference everywhere an engine needs a model (Complete) — session 2026-10-07
+
+**Directive:** wherever an engine requires a model, it must go through a model-agnostic adapter; custom models
+are a later capability and stay off the critical path. And: check whether the custom models actually work.
+
+**Audit — which engines need a model.** Seven of ten need none, and each says why: `noesis` (consumes latent
+captures handed to it), `trutina` (scores given forecasts), `cypher` (reads the memory layer), `chronos` and
+`resonance` (rune and phase logic), `semion` (consumes a sign frame), `aether` (raises). Two do — `athanor`
+and `oracle` — and now both resolve through `abraxas.evidence.adapters.model_agnostic`. Full table in
+`docs/ENGINE_TOPOLOGY.md`.
+
+**The custom models are absent, verified three independent ways:**
+
+| Check | Result |
+|---|---|
+| weight files in any adapter dir on this machine | `0` |
+| `git ls-files \| grep -c safetensors` in `~/Athanor` | `0` |
+| `athanor.adapter_preflight` | `HOLD`, `weights_verified: false`, `training_authorized: false` |
+| `... --model-dir t1_bias_corrected_adapter` | `INVALID` — "Missing, unsafe or oversized model config" |
+| `specs/003-qwen-adapter/model-lock.json` | `"weight_downloaded": false` — `ENVIRONMENT_NOT_COMPUTABLE` |
+| `EXECUTION-RECEIPT.md` | 2 of 7 artifacts present; **both weight files absent** |
+
+`t1_bias_corrected_adapter/` is a freeze record, not a model: config + tokenizer, no weights, advertising
+`"inference_mode": true`, naming a base (`Llama-3.1-Nemotron-Nano-8B-v1`) different from the spec beside it
+(`Qwen3.8-27B`). Training ran on another host (`/home/delphi`, GB10). **"Broken" understates it: they were
+never built.** The verdict is the repo's own, not an inference from a directory listing.
+
+**Two defects fixed, same shape — a provenance field naming a model that produced nothing:**
+
+- `_default_oracle_inference` (142 lines, deleted) built a `coherence_score` from word counts
+  (`+= 0.1  # Sweet spot for coherence`) and published it as the envelope's **confidence**.
+- Athanor reported `lora-out-transfer-001-t1/checkpoint-48`, and its default path **crashed**
+  (`AttributeError: 'str' object has no attribute 'confidence'`) — the model-agnostic adapter had been wired in
+  as the default and never executed, because every test injected a mock returning objects.
+- `contract.py`'s default provenance named the same nonexistent checkpoint.
+- The adapter's own callable announced `model-agnostic/unspecified` while stamping results
+  `model-agnostic/offline-deterministic` — one state, two names.
+
+**Rule now enforced:** a reading produced without a model carries `confidence=0.0` and
+`provenance["inference"] == "offline-deterministic"`. The pair is the honest statement *here is a reading, and
+nothing scored it*. An injected model keeps its own identity and confidences.
+
+**Guards (both driven to fail before being trusted):** `tests/test_engines_name_no_model_they_do_not_have.py`
+scans engine modules for checkpoint paths and hand-written model versions, with a counterfactual proving it
+catches the exact strings removed here, plus an end-to-end check that unconfigured `oracle` and `athanor` both
+report the offline path. `tests/test_console_declares_its_inference.py` holds the route and the console
+template in agreement in both directions — a key the template reads that the route never sets renders as an
+empty string, and an empty model identity reads as "no model", the exact ambiguity being ended.
+
+**Also:** the operator console gained an Inference card, read live at render time, so it can no longer display
+engine output while saying nothing about what produced it. `~/Oracle/SPEC.md` documented `oracle-model-v1`;
+corrected. `~/Athanor`'s archived composition eval hardcoded `/home/delphi` paths and imported the model stack
+first, so it died in `import torch` saying nothing about the adapter; it now checks for the artifacts and names
+what is missing. Its `EXECUTION-RECEIPT.md` gained a verification note rather than an edit to its history.
+
+**Ratchet:** 3768 passed, 0 failed, collected 3773 → **3779** (floor raised).
+
 ## Column Definitions & Automation
 
 | Column | Meaning | Automation |
