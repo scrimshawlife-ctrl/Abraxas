@@ -53,3 +53,30 @@ def start_test_session_http(client: Any, run_id: str, *, max_steps: int = 5) -> 
         raise AssertionError(
             f"session start failed: {resp.status_code} {resp.text[:200]}"
         )
+
+
+def satisfy_panel_gates(run: Any, *, max_steps: int = 5, ledger: Optional[Any] = None) -> None:
+    """Put a run past every gate the panel enforces before a step can run.
+
+    The panel gates gated steps three times over (webpanel/routes/shared.py
+    _start_deferral):
+
+        enforce_policy_ack  -> 409 policy_ack_required
+        enforce_session     -> 409 session_required
+        human ack           -> 409 "ack required before deferral"
+
+    Each was added after these tests were written, so the tests call gated steps
+    without satisfying any of them. Established directly on the run object, which is
+    the idiom the repo's own passing tests already use -- tests/test_gate_stack_v0.py
+    sets run.policy_ack directly rather than driving a route.
+
+    Session still goes through start_session() rather than a field assignment, because
+    that is the function that also writes the session_start ledger entry; setting
+    session_active alone would leave the ledger without the event.
+    """
+    start_session_for_tests = start_test_session
+    start_session_for_tests(run, max_steps=max_steps, ledger=ledger)
+    if hasattr(run, "policy_ack"):
+        run.policy_ack = True
+    if hasattr(run, "human_ack"):
+        run.human_ack = True

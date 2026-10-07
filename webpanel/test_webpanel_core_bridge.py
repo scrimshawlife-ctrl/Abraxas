@@ -7,7 +7,7 @@ from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.store import InMemoryStore
-from webpanel._session_helpers import start_test_session
+from webpanel._session_helpers import satisfy_panel_gates
 
 
 def _packet() -> AbraxasSignalPacket:
@@ -33,9 +33,10 @@ def test_core_bridge_ingest_and_quota_boundary():
     resp = webpanel_app.ingest(_packet())
     run_id = resp["run_id"]
 
+    # The panel gates session-dependent steps; the session must be active BEFORE any of
+    # them is called, so it is opened as soon as the run id exists.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     run = webpanel_app.store.get(run_id)
-
-    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.run_id == run_id
     assert run.context.context_id
@@ -47,8 +48,6 @@ def test_core_bridge_ingest_and_quota_boundary():
     webpanel_app.defer_step(run_id)
 
     run = webpanel_app.store.get(run_id)
-
-    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.actions_taken == 2
     assert run.pause_required is True

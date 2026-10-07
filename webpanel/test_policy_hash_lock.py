@@ -6,7 +6,7 @@ from webpanel import app as webpanel_app
 from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.store import InMemoryStore
-from webpanel._session_helpers import start_test_session
+from webpanel._session_helpers import satisfy_panel_gates
 
 
 def _packet() -> dict:
@@ -34,9 +34,10 @@ def test_policy_hash_lock(monkeypatch):
     assert response.status_code == 200
     run_id = response.json()["run_id"]
 
+    # The panel gates session-dependent steps; the session must be active BEFORE any of
+    # them is called, so it is opened as soon as the run id exists.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     run = webpanel_app.store.get(run_id)
-
-    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.policy_hash_at_ingest
 

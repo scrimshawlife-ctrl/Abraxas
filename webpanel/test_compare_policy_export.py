@@ -10,6 +10,7 @@ from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.store import InMemoryStore
+from webpanel._session_helpers import satisfy_panel_gates
 
 
 def _packet(signal_id: str, payload: dict) -> AbraxasSignalPacket:
@@ -29,6 +30,9 @@ def _packet(signal_id: str, payload: dict) -> AbraxasSignalPacket:
 
 
 def _run_extract_compress(run_id: str) -> None:
+    # The panel gates these steps (policy ack, session, human ack); the session
+    # must be active BEFORE the first gated call, so satisfy them here.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     webpanel_app._start_deferral(run_id, DeferralStart(quota_max_actions=3))
     webpanel_app._step_deferral(run_id)
     webpanel_app._step_deferral(run_id)

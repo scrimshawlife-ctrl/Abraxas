@@ -5,7 +5,7 @@ from webpanel.core_bridge import _STEP_STATE
 from webpanel.ledger import LedgerChain
 from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.store import InMemoryStore
-from webpanel._session_helpers import start_test_session
+from webpanel._session_helpers import satisfy_panel_gates
 
 
 def _packet(with_unknowns: bool) -> AbraxasSignalPacket:
@@ -34,9 +34,10 @@ def test_runplan_steps_and_quota():
     resp = webpanel_app.ingest(_packet(with_unknowns=True))
     run_id = resp["run_id"]
 
+    # The panel gates session-dependent steps; the session must be active BEFORE any of
+    # them is called, so it is opened as soon as the run id exists.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     run = webpanel_app.store.get(run_id)
-
-    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.runplan is not None
     kinds = [step.kind for step in run.runplan.steps]
@@ -47,8 +48,6 @@ def test_runplan_steps_and_quota():
     webpanel_app._step_deferral(run_id)
 
     run = webpanel_app.store.get(run_id)
-
-    start_test_session(run, ledger=webpanel_app.ledger)
     assert run is not None
     assert run.actions_taken == 2
     assert run.last_step_result is not None
@@ -63,11 +62,7 @@ def test_runplan_hash_determinism():
     resp_b = webpanel_app.ingest(_packet(with_unknowns=False))
 
     run_a = webpanel_app.store.get(resp_a["run_id"])
-
-    start_test_session(run_a, ledger=webpanel_app.ledger)
     run_b = webpanel_app.store.get(resp_b["run_id"])
-
-    start_test_session(run_b, ledger=webpanel_app.ledger)
     assert run_a is not None and run_b is not None
     assert run_a.runplan is not None and run_b.runplan is not None
     assert run_a.runplan.deterministic_hash == run_b.runplan.deterministic_hash

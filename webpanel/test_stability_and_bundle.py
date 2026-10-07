@@ -12,7 +12,7 @@ from webpanel.models import AbraxasSignalPacket, DeferralStart
 from webpanel.policy import get_policy_snapshot
 from webpanel.store import InMemoryStore
 from webpanel.stability import run_stabilization
-from webpanel._session_helpers import start_test_session
+from webpanel._session_helpers import satisfy_panel_gates
 
 
 def _packet(signal_id: str, payload: dict) -> AbraxasSignalPacket:
@@ -32,6 +32,9 @@ def _packet(signal_id: str, payload: dict) -> AbraxasSignalPacket:
 
 
 def _run_extract_compress(run_id: str) -> None:
+    # The panel gates these steps (policy ack, session, human ack); the session
+    # must be active BEFORE the first gated call, so satisfy them here.
+    satisfy_panel_gates(webpanel_app.store.get(run_id), ledger=webpanel_app.ledger)
     webpanel_app._start_deferral(run_id, DeferralStart(quota_max_actions=3))
     webpanel_app._step_deferral(run_id)
     webpanel_app._step_deferral(run_id)
@@ -52,9 +55,12 @@ def test_stability_and_bundle():
 
     run_a = webpanel_app.store.get(resp_a["run_id"])
 
-    start_test_session(run_a, ledger=webpanel_app.ledger)
+
+    satisfy_panel_gates(run_a, ledger=webpanel_app.ledger)
+    satisfy_panel_gates(run_a, ledger=webpanel_app.ledger)
     run_b = webpanel_app.store.get(resp_b["run_id"])
-    start_test_session(run_b, ledger=webpanel_app.ledger)
+    satisfy_panel_gates(run_b, ledger=webpanel_app.ledger)
+    satisfy_panel_gates(run_b, ledger=webpanel_app.ledger)
     assert run_a is not None and run_b is not None
 
     snapshot = get_policy_snapshot()
