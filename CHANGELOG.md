@@ -5,6 +5,43 @@ All notable changes to the Abraxas project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **The evidence contract was defined twice and the copies were not the same object.** `EvidenceEnvelope`,
+  `RelationStep`, `CandidateOutput`, `EvidenceType` and `Decision` are now single-homed on
+  `abraxas/evidence/contract.py` (and `EvidenceProvider` on `abraxas/evidence/provider.py`), with the
+  package re-exporting rather than redefining. Consequences that were silently present before: an
+  `isinstance` check against the package copy rejected a real engine's output, and one `Decision` copy
+  was missing `REJECT` — the value the coordination layer uses to fail closed.
+- `abraxas/evidence/verifiers/latent.py` returned a bare `dict` where the interface declares an
+  `EvidenceEnvelope`, and passed every guard: the conformance check asked whether a class inherits a base
+  class, never what `produce_evidence` actually returns.
+- `EvidenceSchemaMigrator` idempotence — `schema_version` was promoted onto the canonical envelope rather
+  than deleted, because the migrator reads it to decide whether migration is needed and writes it so a
+  second call is a no-op.
+
+### Added
+- `abraxas/engines/execution_harness.py` — runs each `LIVE` engine twice on identical input and measures
+  determinism, provenance, canonical artifacts, and replay. Replay persists an envelope, reloads it,
+  reproduces the run, and compares against the reloaded artifact; it mirrors the existing
+  `RuneReplayPacket` contract in `core/execution/replay_runner.py` rather than forcing that type.
+- `scripts/survey_engine_settlements.py` — evaluates every engine against the doctrine's six
+  technical-settlement criteria and refuses to certify a settlement resting on an unmeasured criterion.
+  All six now measure as passing for all five live engines.
+- `docs/DOCTRINE.md`, `docs/EXECUTION_HISTORY.md`, `execplans/` — doctrine, consolidated execution history,
+  and the ExecPlan the contract work was delivered under.
+- Guards: object-identity across every contract type (parametrized, one table row per type), a return-type
+  check over every live engine, and failure-mode tests for the harness verdict.
+
+### Changed
+- Every engine remains `unsettled`. The survey would now corroborate a technical settlement for all five
+  live engines, but the criteria are measured under one defined input and a `Settlement` cannot carry that
+  qualification, so the operator decision is to keep them unset and record the corroboration in
+  `docs/ENGINE_TOPOLOGY.md`.
+- 36 root-level status documents consolidated into `docs/EXECUTION_HISTORY.md` and removed; root `.md`
+  count 57 → 18.
+
 ## [v2.0.0] - 2026-10-04
 
 ### Canon Mutation

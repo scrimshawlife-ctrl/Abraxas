@@ -365,14 +365,13 @@ Hard boundaries: no live autonomy, no Canon mutation, no runtime mutation outsid
 > **Status**: PRODUCTION READY - All systems operational
 
 - **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE
-- **Tests**: 236 passing
+- **Tests**: 3,548 passing, 3,559 collected (was reported here as 236 — stale by more than an order of magnitude)
 - **Live Data**: PostgreSQL adapter verified
 - **Docker Image**:  built and tested
-- **UI**: Built and distributable ()
+- **UI**: Built and distributable (`dashboard/frontend/dist/`)
 
 For production deployment details, see:
-- [PRODUCTION_DEPLOYMENT_SUMMARY.md](PRODUCTION_DEPLOYMENT_SUMMARY.md)
-- [LIVE_DATA_INTEGRATION_SUMMARY.md](LIVE_DATA_INTEGRATION_SUMMARY.md)
+- [docs/EXECUTION_HISTORY.md](docs/EXECUTION_HISTORY.md) — the consolidated record of the deployment and live-data work, with every named artifact verified present.
 
 
 ## 🚀 Production Status
@@ -380,11 +379,10 @@ For production deployment details, see:
 > **Status**: PRODUCTION READY - All systems operational
 
 - **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE
-- **Tests**: 236 passing
+- **Tests**: 3,548 passing, 3,559 collected (was reported here as 236 — stale by more than an order of magnitude)
 - **Live Data**: PostgreSQL adapter verified
 - **Docker Image**: `abraxas-dashboard-api:2.0.1` built and tested
 - **UI**: Built and distributable (`dashboard/frontend/dist/`)
 
 For production deployment details, see:
-- [PRODUCTION_DEPLOYMENT_SUMMARY.md](PRODUCTION_DEPLOYMENT_SUMMARY.md)
-- [LIVE_DATA_INTEGRATION_SUMMARY.md](LIVE_DATA_INTEGRATION_SUMMARY.md)
+- [docs/EXECUTION_HISTORY.md](docs/EXECUTION_HISTORY.md) — the consolidated record of the deployment and live-data work, with every named artifact verified present.

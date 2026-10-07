@@ -174,7 +174,9 @@ docstrings instructed, and were re-pinned to the new truth rather than relaxed.
 
 - Observation: the repository root carries a cluster of status documents each asserting completion --
   `PLAN_COMPLETE.md`, `PLAN_IS_DONE.md`, `PLAN_FINISHED.md`, `PLAN_EXECUTION_COMPLETE.md`,
-  `PLAN_COMPLETION_FINAL.md`, `PLAN_EXECUTION_SUMMARY.md`, `FURTHER_WORK_PLAN_COMPLETE.md`. This is the
+  `PLAN_COMPLETION_FINAL.md`, `PLAN_EXECUTION_SUMMARY.md`, `FURTHER_WORK_PLAN_COMPLETE.md`.
+  (Since recorded: all 36 such documents were consolidated into `docs/EXECUTION_HISTORY.md` and removed;
+  the names above no longer exist in the tree.) This is the
   anti-pattern this repository has already named: a status document is a claim, not evidence. No action
   is taken on them here; it is recorded so the next contributor is not misled by them.
 

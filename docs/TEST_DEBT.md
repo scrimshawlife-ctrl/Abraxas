@@ -1194,9 +1194,13 @@ Any producer of `derived` must decide that case explicitly rather than inherit t
 
 ## A cluster of root-level status documents each asserting completion — 2026-10-06
 
-Recorded, not acted on. The repository root carries seven documents whose names all assert that work
-finished: `PLAN_COMPLETE.md`, `PLAN_IS_DONE.md`, `PLAN_FINISHED.md`, `PLAN_EXECUTION_COMPLETE.md`,
-`PLAN_COMPLETION_FINAL.md`, `PLAN_EXECUTION_SUMMARY.md`, and `FURTHER_WORK_PLAN_COMPLETE.md`.
+**RESOLVED 2026-10-06.** The cluster turned out to be 36 documents, not seven, and they have been
+consolidated into `docs/EXECUTION_HISTORY.md` and removed from the root (root `.md` count 57 -> 18).
+Every claim was verified before removal rather than deleted on its filename: all 16 artifacts the plan
+named exist and its five code claims hold. The original seven were `PLAN_COMPLETE.md`, `PLAN_IS_DONE.md`,
+`PLAN_FINISHED.md`, `PLAN_EXECUTION_COMPLETE.md`, `PLAN_COMPLETION_FINAL.md`,
+`PLAN_EXECUTION_SUMMARY.md`, and `FURTHER_WORK_PLAN_COMPLETE.md`; the last commit carrying them is
+`8300d76d`. The body below is kept as the reasoning that led to the consolidation.
 
 This repository has already named the anti-pattern: **a status document is a claim, not evidence.** Seven
 of them, none machine-checked, is the pattern at its clearest — a reader cannot tell which refers to what,
