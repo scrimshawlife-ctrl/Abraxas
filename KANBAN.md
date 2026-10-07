@@ -387,9 +387,24 @@ match is not a component boundary.
   until Abraxas has an adapter for them (the engine repositories are not dependencies here, so no entry
   point resolves from this tree).
 - **`noesis` / `semion`:** ~~decide whether they need standalone repos at all.~~ **Answered by the
-  evidence: they already have them**, and substantial ones. The open question is the reverse — when does an
-  engine that lives in the Abraxas tree get its repository connected to it. `semion` remains a deliberate
-  SHADOW surface (its provider exists only inside a test).
+  evidence: they already have them**, and substantial ones (`Noesis` 131 files / 36 commits; `Semion` 121 /
+  39). `noesis`'s provider already lives in-tree (`abraxas/evidence/verifiers/latent.py`).
+
+  `semion` now has the instrument the manifest said was missing — `abraxas/evidence/semion_instrument.py`,
+  added this session. It **consumes** a `semion.sign.v1` frame and maps it to the canonical
+  `EvidenceEnvelope`, refusing `semantic_truth` / `may_authorize` / `may_mutate_governing_state` frames and
+  raising on promotion, mirroring `hyperlex_instrument`. It does **not** classify: the Semion repo's own docs
+  declare the direction (*"Semion does not import Abraxas. Abraxas may consume this dict at
+  RUNE.SEMIOSIS.CHAIN"*), so the classifier stays in that repository and a second one here would invert a
+  declared dependency. `semion` remains `planned` for the same reason as `hyperlex` — an instrument is not a
+  registered provider, and promotion is an authority decision, not a missing-code problem.
+
+  **The stub it replaced is worth recording.** The test-only `SemionProvider` ignored its claim entirely and
+  returned a hardcoded `answer="qualisign-rheme-icon"` at a fixed `confidence=0.85`: a rubber stamp that no
+  downstream consumer could distinguish from evidence. Extracting *that* would have been the wrong
+  completion, and the `planned` label was what held it back. Its two copies are still in
+  `abraxas/evidence/test_semion_q1.py`; the instrument is the honest replacement, and the stub should be
+  retired once Semion's own qualification gates are settled.
 - **`oracle` / `cypher` / `aether`:** ~~put the directories under version control.~~ **DONE** — all three
   are now version-controlled with remotes, on `main`, with `.gitignore` and reviewed history.
 - **`aether` (the only genuinely unfinished engine):** the manifest poses its own choice — *"Either build
