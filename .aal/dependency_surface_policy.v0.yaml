@@ -1,5 +1,29 @@
 policy_version: dependency_surface_policy.v0
 repo: scrimshawlife-ctrl/Abraxas
+# ---------------------------------------------------------------------------------------------
+# HOW A PATH'S ROLE IS RESOLVED, AND WHY AN UNCLASSIFIED PATH IS NOT AN OVERSIGHT
+#
+# The role comes from the LONGEST matching prefix in `path_role_map` below. `allow_fallback_heuristic`
+# is false, so there is no guessing: a path is either classified explicitly or it is not.
+#
+# A path matching NO prefix at all resolves to role `None`, and `None` is FAIL-CLOSED: if that file
+# imports a manifest-tracked optional/entrypoint dependency, the boundary check reports
+# "... module surface role is unclassified and fallback is disabled". So an unclassified path is
+# ENFORCED, not ignored.
+#
+# Measured 2026-10-07 across the 3612 TRACKED .py files: 267 match no prefix, including whole
+# directories (core/, tools/, vendor/, abx_familiar/, abraxas_ase/, aal_core/, examples/), and 105 of
+# abraxas/'s 112 subdirectories -- e.g. visuals/, viz/, menus/, render/, scoreboard/ -- inherit the
+# `abraxas/` catch-all instead of a specific entry. That is deliberate and safe. DO NOT "fix" it by
+# bulk-classifying those paths: a role is a CLAIM about what a surface may do, so every entry needs
+# per-path evidence, and a blanket mapping only loosens what the check enforces.
+#
+# When a path genuinely needs to be named -- typically because it must legally import an entrypoint
+# dependency -- scope the entry as narrowly as the evidence supports, prefer a FILE over a DIRECTORY,
+# and pin the narrowness with a test that fails if someone widens it. Worked example: the file-scoped
+# `abraxas/dashboard/api.py` entry below, guarded by
+# tests/test_check_optional_dependency_boundaries.py::test_dashboard_exemption_is_file_scoped_not_directory_scoped
+# ---------------------------------------------------------------------------------------------
 allow_fallback_heuristic: false
 roles:
   - truth_authoritative

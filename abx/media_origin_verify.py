@@ -140,7 +140,12 @@ def main() -> int:
     ap.add_argument("--max", type=int, default=40)
     args = ap.parse_args()
 
-    batch = _read_json(args.in)
+    # `--in` yields the argparse attribute name `in`, which is a PYTHON KEYWORD and therefore cannot be
+    # written as `args.in` -- that is invalid syntax, so this file did not parse (and could not be
+    # imported, tested, or dependency-checked) from the day it was committed. `getattr` is the required
+    # idiom. The flag name is deliberately unchanged: `abx/cycle_runner.py` passes `["--in", path]`.
+    # Guarded by tests/test_module_parse_integrity.py.
+    batch = _read_json(getattr(args, "in"))
     tasks = batch.get("tasks") if isinstance(batch.get("tasks"), list) else []
     vt = [
         t
@@ -289,7 +294,7 @@ def main() -> int:
             "version": "media_origin_verify.v0.1",
             "ts": _utc_now_iso(),
             "run_id": args.run_id,
-            "batch_in": args.in,
+            "batch_in": getattr(args, "in"),
             "n_tasks": len(vt),
             "n_items": len(items),
             "items": items,

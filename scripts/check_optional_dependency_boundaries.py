@@ -173,6 +173,7 @@ def check_boundaries_with_report(
     optional_deps, entrypoint_deps, entrypoint_only = _manifest_dependency_sets(manifest)
     violations: List[str] = []
     warnings: List[str] = []
+    unparseable: List[str] = []
     for rel in _iter_python_files(root):
         path = root / rel
         rel_str = str(rel)
@@ -183,6 +184,12 @@ def check_boundaries_with_report(
         try:
             tree = ast.parse(source)
         except SyntaxError:
+            # Do NOT skip silently. A file that does not parse cannot be scanned, so its imports go
+            # unchecked -- and invisible is indistinguishable from clean. Reported as a WARNING rather
+            # than a violation because two tracked files are legitimately unparseable (a cookiecutter
+            # template and a generated `.abraxas/` script), and failing on those would be wrong.
+            # Real defects here are the parse guard's job: tests/test_module_parse_integrity.py.
+            unparseable.append(rel_str)
             continue
         surface_role, used_fallback = _classify_surface_role(
             rel_path=rel_str,
@@ -226,6 +233,11 @@ def check_boundaries_with_report(
             violations.append(
                 f"{rel_str}:{lineno}: top-level optional dependency import '{dep_root}' requires lazy guard"
             )
+
+    for rel in unparseable:
+        warnings.append(
+            f"{rel}: skipped -- the file does not parse, so its dependency imports were NOT checked"
+        )
 
     undeclared: List[str] = []
     deps = manifest.get("dependencies", {})

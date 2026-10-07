@@ -20,6 +20,10 @@ dependencies:
         line: 32
         top_level: false
         symbol: cbor2
+      - path: abraxas/storage/packet_codec.py
+        line: 65
+        top_level: false
+        symbol: cbor2
     notes:
       - Packet codec dependency used for canonical packet serialization pathways.
     provenance:
@@ -36,6 +40,18 @@ dependencies:
         line: 103
         top_level: false
         symbol: Ed25519PrivateKey
+      - path: shared/signing.py
+        line: 104
+        top_level: false
+        symbol: Encoding
+      - path: shared/signing.py
+        line: 125
+        top_level: false
+        symbol: InvalidSignature
+      - path: shared/signing.py
+        line: 126
+        top_level: false
+        symbol: Ed25519PublicKey
     notes:
       - Signature verification materially affects trust and validator semantics.
     provenance:
@@ -51,14 +67,22 @@ dependencies:
     truth_authoritative: false
     execution_boundary_role: api
     import_locations:
+      - path: abraxas/admin/kite/cli.py
+        line: 106
+        top_level: false
+        symbol: FastAPI
       - path: abraxas/api/app.py
         line: 5
         top_level: true
         symbol: FastAPI
-      - path: webpanel/app.py
-        line: 1
+      - path: abraxas/api/routes.py
+        line: 9
         top_level: true
-        symbol: FastAPI
+        symbol: APIRouter
+      - path: abraxas/api/ws.py
+        line: 9
+        top_level: true
+        symbol: WebSocket
       - path: abraxas/dashboard/api.py
         line: 13
         top_level: true
@@ -71,6 +95,158 @@ dependencies:
         line: 15
         top_level: true
         symbol: FileResponse
+      - path: abraxas/lens/server.py
+        line: 9
+        top_level: true
+        symbol: FastAPI
+      - path: abraxas/lens/server.py
+        line: 10
+        top_level: true
+        symbol: HTMLResponse
+      - path: abraxas/lens/server.py
+        line: 11
+        top_level: true
+        symbol: StaticFiles
+      - path: abraxas/lens/server.py
+        line: 12
+        top_level: true
+        symbol: Jinja2Templates
+      - path: abraxas/web/admin_panel.py
+        line: 6
+        top_level: true
+        symbol: APIRouter
+      - path: abraxas/web/app.py
+        line: 6
+        top_level: true
+        symbol: FastAPI
+      - path: abraxas/web/app.py
+        line: 7
+        top_level: true
+        symbol: JSONResponse
+      - path: abraxas/web/kite_api.py
+        line: 6
+        top_level: true
+        symbol: APIRouter
+      - path: abx/fn_exports.py
+        line: 24
+        top_level: false
+        symbol: APIRouter
+      - path: abx/server/app.py
+        line: 11
+        top_level: false
+        symbol: FastAPI
+      - path: abx/ui/server.py
+        line: 5
+        top_level: false
+        symbol: FastAPI
+      - path: tests/test_webpanel_boot_smoke_v0.py
+        line: 11
+        top_level: false
+        symbol: TestClient
+      - path: tools/aatf/aatf/api.py
+        line: 3
+        top_level: true
+        symbol: FastAPI
+      - path: webpanel/app.py
+        line: 5
+        top_level: true
+        symbol: FastAPI
+      - path: webpanel/panel_context.py
+        line: 8
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/panel_context.py
+        line: 9
+        top_level: true
+        symbol: Jinja2Templates
+      - path: webpanel/routes/compare_routes.py
+        line: 3
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/routes/compare_routes.py
+        line: 4
+        top_level: true
+        symbol: HTMLResponse
+      - path: webpanel/routes/export_routes.py
+        line: 5
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/routes/export_routes.py
+        line: 6
+        top_level: true
+        symbol: StreamingResponse
+      - path: webpanel/routes/governance_routes.py
+        line: 7
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/routes/governance_routes.py
+        line: 8
+        top_level: true
+        symbol: RedirectResponse
+      - path: webpanel/routes/index_routes.py
+        line: 5
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/routes/index_routes.py
+        line: 6
+        top_level: true
+        symbol: HTMLResponse
+      - path: webpanel/routes/operator_routes.py
+        line: 7
+        top_level: true
+        symbol: Request
+      - path: webpanel/routes/operator_routes.py
+        line: 8
+        top_level: true
+        symbol: HTMLResponse
+      - path: webpanel/routes/operator_surfaces_routes.py
+        line: 5
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/routes/operator_surfaces_routes.py
+        line: 6
+        top_level: true
+        symbol: HTMLResponse
+      - path: webpanel/routes/runs_routes.py
+        line: 5
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/routes/runs_routes.py
+        line: 6
+        top_level: true
+        symbol: HTMLResponse
+      - path: webpanel/routes/shared.py
+        line: 5
+        top_level: true
+        symbol: HTTPException
+      - path: webpanel/test_compare_policy_export.py
+        line: 6
+        top_level: true
+        symbol: TestClient
+      - path: webpanel/test_compare_view.py
+        line: 3
+        top_level: true
+        symbol: TestClient
+      - path: webpanel/test_lan_banner.py
+        line: 3
+        top_level: true
+        symbol: TestClient
+      - path: webpanel/test_policy_hash_lock.py
+        line: 3
+        top_level: true
+        symbol: TestClient
+      - path: webpanel/test_prefill_prev_run_id.py
+        line: 3
+        top_level: true
+        symbol: TestClient
+      - path: webpanel/test_stability_and_bundle.py
+        line: 6
+        top_level: true
+        symbol: TestClient
+      - path: webpanel/test_token_guard.py
+        line: 3
+        top_level: true
+        symbol: TestClient
     notes:
       - Required to expose API/web surfaces, but not truth-authoritative for governed computation.
       - Imported by the dashboard entrypoint (abraxas/dashboard/api.py), classified as a launch surface
@@ -85,14 +261,14 @@ dependencies:
     fallback_policy: execution_time_error
     allowed_to_affect_truth: false
     import_locations:
-      - path: tests/test_gate_stack_v0.py
-        line: 3
-        top_level: true
-        symbol: Environment
-      - path: tests/test_webpanel_oracle_render.py
-        line: 5
-        top_level: true
-        symbol: importorskip
+      - path: abx/optional_jinja2.py
+        line: 9
+        top_level: false
+        symbol: jinja2
+      - path: webpanel/panel_context.py
+        line: 22
+        top_level: false
+        symbol: jinja2
     notes:
       - Jinja2 participates in rendering surfaces only and must never affect canonical authority.
       - Runtime usages must route through abx.optional_dependencies/abx.optional_jinja2.
@@ -106,9 +282,125 @@ dependencies:
     fallback_policy: hard_setup_failure
     allowed_to_affect_truth: true
     import_locations:
+      - path: aal_viz/projections/skill_graph.py
+        line: 11
+        top_level: true
+        symbol: jsonschema
       - path: abraxas/core/validate.py
         line: 8
         top_level: true
+        symbol: jsonschema
+      - path: abraxas/familiar/kernel/familiar_kernel.py
+        line: 7
+        top_level: true
+        symbol: jsonschema
+      - path: abraxas/runes/find_skills.py
+        line: 10
+        top_level: true
+        symbol: jsonschema
+      - path: abraxas/runes/invoke.py
+        line: 43
+        top_level: false
+        symbol: jsonschema
+      - path: abraxas/semantic/contracts.py
+        line: 8
+        top_level: true
+        symbol: ValidationError
+      - path: abraxas/sources/timesfm_shadow_projection.py
+        line: 16
+        top_level: true
+        symbol: Draft202012Validator
+      - path: abraxas/sources/timesfm_shadow_projection.py
+        line: 17
+        top_level: true
+        symbol: ValidationError
+      - path: abx/developer_readiness.py
+        line: 11
+        top_level: true
+        symbol: jsonschema
+      - path: abx/gap_closure_invariance.py
+        line: 9
+        top_level: true
+        symbol: jsonschema
+      - path: abx/promotion_preflight.py
+        line: 9
+        top_level: true
+        symbol: jsonschema
+      - path: abx/readiness_comparison.py
+        line: 9
+        top_level: true
+        symbol: jsonschema
+      - path: abx/report_manifest.py
+        line: 8
+        top_level: true
+        symbol: jsonschema
+      - path: abx/report_manifest_diff.py
+        line: 8
+        top_level: true
+        symbol: jsonschema
+      - path: abx/report_manifest_diff_ledger.py
+        line: 8
+        top_level: true
+        symbol: jsonschema
+      - path: abx/report_manifest_summary.py
+        line: 8
+        top_level: true
+        symbol: jsonschema
+      - path: abx/report_manifest_watchlist.py
+        line: 8
+        top_level: true
+        symbol: jsonschema
+      - path: abx_familiar/binder/schema.py
+        line: 75
+        top_level: false
+        symbol: Draft7Validator
+      - path: server/abraxas/upgrade_spine/upgrade_manager.py
+        line: 10
+        top_level: true
+        symbol: ValidationError
+      - path: tests/test_code_review_contract.py
+        line: 6
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_osl_v2_schema.py
+        line: 4
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_report_manifest.py
+        line: 6
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_report_manifest_diff.py
+        line: 6
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_report_manifest_summary.py
+        line: 6
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_report_manifest_watchlist.py
+        line: 6
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_resonance_narratives_schema.py
+        line: 10
+        top_level: true
+        symbol: jsonschema
+      - path: tests/test_timesfm_shadow_projection.py
+        line: 14
+        top_level: true
+        symbol: Draft202012Validator
+      - path: tools/aatf/aatf/tests/test_schema_validation.py
+        line: 22
+        top_level: false
+        symbol: jsonschema
+      - path: tools/acceptance/run_acceptance_suite.py
+        line: 23
+        top_level: true
+        symbol: ValidationError
+      - path: webpanel/oracle_output.py
+        line: 51
+        top_level: false
         symbol: jsonschema
     notes:
       - Validation results can affect PASS/FAIL and truth-bearing schema enforcement.
@@ -126,6 +418,10 @@ dependencies:
         line: 40
         top_level: false
         symbol: msgpack
+      - path: abraxas/storage/packet_codec.py
+        line: 72
+        top_level: false
+        symbol: msgpack
     notes:
       - Packet serialization dependency for core storage channels.
     provenance:
@@ -138,8 +434,16 @@ dependencies:
     fallback_policy: hard_setup_failure
     allowed_to_affect_truth: true
     import_locations:
+      - path: abraxas/metrics/cli.py
+        line: 16
+        top_level: true
+        symbol: np
       - path: abraxas/metrics/evaluate.py
         line: 14
+        top_level: true
+        symbol: np
+      - path: tests/test_metric_governance.py
+        line: 12
         top_level: true
         symbol: np
     notes:
@@ -158,6 +462,10 @@ dependencies:
         line: 10
         top_level: false
         symbol: psycopg
+      - path: abraxas/db/pg.py
+        line: 13
+        top_level: false
+        symbol: psycopg
     notes:
       - PostgreSQL bridge adapter; not required for canonical in-memory execution paths.
     provenance:
@@ -172,6 +480,46 @@ dependencies:
     import_locations:
       - path: abraxas/lexicon/pg_registry.py
         line: 30
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/lexicon/pg_registry.py
+        line: 65
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/lexicon/pg_registry.py
+        line: 66
+        top_level: false
+        symbol: Json
+      - path: abraxas/lexicon/pg_registry.py
+        line: 104
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/lexicon/pg_registry.py
+        line: 135
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/lexicon/pg_registry.py
+        line: 168
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/oracle/pg_store.py
+        line: 31
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/oracle/pg_store.py
+        line: 67
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/oracle/pg_store.py
+        line: 68
+        top_level: false
+        symbol: Json
+      - path: abraxas/oracle/pg_store.py
+        line: 107
+        top_level: false
+        symbol: psycopg2
+      - path: abraxas/oracle/pg_store.py
+        line: 147
         top_level: false
         symbol: psycopg2
     notes:
@@ -206,6 +554,10 @@ dependencies:
         line: 9
         top_level: false
         symbol: requests
+      - path: abraxas/osh/transport.py
+        line: 10
+        top_level: false
+        symbol: requests
     notes:
       - External transport adapter for bridge integrations.
     provenance:
@@ -225,6 +577,14 @@ dependencies:
         line: 8
         top_level: true
         symbol: Console
+      - path: abraxas/cli/app.py
+        line: 9
+        top_level: true
+        symbol: Panel
+      - path: abraxas/cli/app.py
+        line: 10
+        top_level: true
+        symbol: Syntax
     notes:
       - CLI display enhancement dependency.
     provenance:
@@ -240,8 +600,20 @@ dependencies:
     truth_authoritative: false
     execution_boundary_role: cli
     import_locations:
+      - path: abraxas/cli/aalmanac_cmd.py
+        line: 5
+        top_level: true
+        symbol: typer
+      - path: abraxas/cli/aalmanac_review_cmd.py
+        line: 8
+        top_level: true
+        symbol: typer
       - path: abraxas/cli/app.py
         line: 7
+        top_level: true
+        symbol: typer
+      - path: abraxas/cli/lens_cmd.py
+        line: 6
         top_level: true
         symbol: typer
     notes:
@@ -259,6 +631,26 @@ dependencies:
     truth_authoritative: false
     execution_boundary_role: server
     import_locations:
+      - path: abraxas/admin/kite/cli.py
+        line: 107
+        top_level: false
+        symbol: uvicorn
+      - path: abraxas/cli/lens_cmd.py
+        line: 36
+        top_level: false
+        symbol: uvicorn
+      - path: abraxas/dashboard/api.py
+        line: 325
+        top_level: false
+        symbol: uvicorn
+      - path: abx/cli.py
+        line: 170
+        top_level: false
+        symbol: uvicorn
+      - path: abx/cli.py
+        line: 224
+        top_level: false
+        symbol: uvicorn
       - path: webpanel/run.py
         line: 6
         top_level: true
@@ -311,6 +703,14 @@ dependencies:
     import_locations:
       - path: abraxas/storage/compress.py
         line: 137
+        top_level: false
+        symbol: zstd
+      - path: abraxas/storage/compress.py
+        line: 176
+        top_level: false
+        symbol: zstd
+      - path: abraxas/storage/dict_train.py
+        line: 38
         top_level: false
         symbol: zstd
     notes:

@@ -206,6 +206,33 @@ def test_dashboard_exemption_is_file_scoped_not_directory_scoped(tmp_path: Path)
     assert "forbidden in truth-authoritative surface" in violations[0]
 
 
+def test_unparseable_file_is_reported_not_silently_skipped(tmp_path: Path) -> None:
+    """A file that does not parse cannot be scanned, so SAY SO instead of skipping it silently.
+
+    Silent skipping is indistinguishable from a clean result. Measured 2026-10-07: a tracked module with
+    a syntax error (`abx/media_origin_verify.py`) was invisible to this checker, so its imports would
+    never have been boundary-checked no matter what it imported.
+
+    It is a WARNING rather than a violation because two tracked files are legitimately unparseable (a
+    cookiecutter template and a generated `.abraxas/` script) and failing on those would break the
+    check. Real defects here are the parse guard's job: tests/test_module_parse_integrity.py.
+    """
+    _write(tmp_path / ".aal/dependency_manifest.v0.yaml", _manifest_text())
+    _write(tmp_path / ".aal/dependency_surface_policy.v0.yaml", _policy_text())
+    _write(tmp_path / "launch/broken.py", "from fastapi import FastAPI\nthis is not python(\n")
+
+    violations, warnings = check_boundaries_with_report(
+        manifest_path=tmp_path / ".aal/dependency_manifest.v0.yaml",
+        policy_path=tmp_path / ".aal/dependency_surface_policy.v0.yaml",
+        root=tmp_path,
+    )
+
+    assert violations == [], violations
+    assert any("does not parse" in row for row in warnings), (
+        f"the unparseable file was skipped silently; warnings were {warnings}"
+    )
+
+
 def test_real_repo_passes_the_dependency_boundary_check() -> None:
     """The CI step `python scripts/check_optional_dependency_boundaries.py` must exit 0 here.
 
