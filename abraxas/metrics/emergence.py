@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from abraxas.core.provenance import ProvenanceBundle, ProvenanceRef, hash_canonical_json
+from abraxas.paths import runtime_paths
 
 
 class HypothesisType:
@@ -63,7 +64,9 @@ class MetricEmergence:
             runes_registry_path: Path to rune bindings registry
             output_path: Path to write candidate metrics (default: registry/metrics_candidate.json)
         """
-        self.ledger_path = Path(ledger_path) if ledger_path else Path(".aal/ledger/outcomes.jsonl")
+        self.ledger_path = (
+            Path(ledger_path) if ledger_path else runtime_paths().aal_ledger_dir / "outcomes.jsonl"
+        )
         self.canonical_metrics_path = (
             Path(canonical_metrics_path)
             if canonical_metrics_path

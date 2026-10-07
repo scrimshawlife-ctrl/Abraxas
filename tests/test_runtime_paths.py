@@ -173,3 +173,90 @@ def test_is_output_is_false_for_source_paths(clean_env) -> None:
     assert not paths.is_output(paths.root / "abraxas")
     assert not paths.is_output(paths.contracts_dir)
     assert paths.is_output(paths.out_dir)
+
+
+# --------------------------------------------------------------------------
+# the .aal state directory
+# --------------------------------------------------------------------------
+#
+# `.aal/ledger/*` and `.aal/registry/*` were spelled `Path(".aal/...")` inline in four
+# separate modules, which made the target a function of the process CWD: the same call
+# wrote a different file depending on where the process was started. They now share the
+# authority below, so these tests pin the anchoring rather than the spelling.
+
+
+def test_aal_paths_derive_from_the_root(clean_env) -> None:
+    paths = RuntimePaths.from_env()
+    assert paths.aal_dir == paths.root / ".aal"
+    assert paths.aal_ledger_dir == paths.aal_dir / "ledger"
+    assert paths.aal_registry_dir == paths.aal_dir / "registry"
+
+
+def test_aal_paths_are_inside_the_root(clean_env) -> None:
+    paths = RuntimePaths.from_env()
+    assert paths.contains(paths.aal_ledger_dir / "rune_invocations.jsonl")
+    assert paths.contains(paths.aal_registry_dir / "operators.json")
+
+
+def test_aal_ledger_dir_does_not_move_with_the_working_directory(tmp_path) -> None:
+    """The regression being replaced: resolving from a foreign CWD must not move the path.
+
+    Run in a real subprocess with a foreign CWD, because the defect was CWD-relative
+    resolution — asserting it in-process could pass while the defect survived.
+    """
+    import os
+    import subprocess
+    import sys
+
+    repo = Path(__file__).resolve().parents[1]
+    probe = (
+        "import sys; sys.path.insert(0, {0!r});"
+        "from abraxas.paths import runtime_paths;"
+        "print(runtime_paths().aal_ledger_dir)".format(str(repo))
+    )
+    env = {k: v for k, v in os.environ.items() if not k.startswith("ABX_")}
+    result = subprocess.run(
+        [sys.executable, "-c", probe],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        env=env,
+        check=True,
+    )
+    assert Path(result.stdout.strip()) == repo / ".aal" / "ledger", (
+        f"the ledger path moved with the CWD: {result.stdout.strip()!r}"
+    )
+
+
+def test_rune_ledger_default_is_the_authority_not_the_cwd(tmp_path, monkeypatch) -> None:
+    """End-to-end: the ledger the runes actually write is anchored, not CWD-relative.
+
+    `_ensure_ledger_exists` is stubbed out so the assertion does not touch the live
+    repository ledger — a test that mutates tracked state is the exact problem these
+    paths exist to remove.
+    """
+    from abraxas.runes.ledger import RuneInvocationLedger
+
+    monkeypatch.chdir(tmp_path)
+    for name in ("ABX_ROOT", "ABX_OUT_DIR", "ABX_CONTRACTS_DIR"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(RuneInvocationLedger, "_ensure_ledger_exists", lambda self: None)
+
+    ledger = RuneInvocationLedger()
+    assert ledger.ledger_path == runtime_paths().aal_ledger_dir / "rune_invocations.jsonl"
+    assert ledger.ledger_path.is_absolute()
+
+
+def test_explicit_ledger_path_still_wins(tmp_path) -> None:
+    """The override must keep working — the default changed, the contract did not."""
+    from abraxas.runes.ledger import RuneInvocationLedger
+
+    chosen = tmp_path / "mine.jsonl"
+    assert RuneInvocationLedger(chosen).ledger_path == chosen
+
+
+def test_abx_root_redirects_the_aal_ledger_dir(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("ABX_ROOT", str(tmp_path))
+    monkeypatch.delenv("ABX_OUT_DIR", raising=False)
+    monkeypatch.delenv("ABX_CONTRACTS_DIR", raising=False)
+    assert runtime_paths().aal_ledger_dir == tmp_path.resolve() / ".aal" / "ledger"

@@ -10,6 +10,7 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field
 
 from abraxas.core.provenance import hash_canonical_json
+from abraxas.paths import runtime_paths
 
 
 class Versioned(Protocol):
@@ -86,7 +87,7 @@ class OperatorRegistry:
 
     def __init__(self, registry_path: str | Path | None = None):
         if registry_path is None:
-            registry_path = Path(".aal/registry/operators.json")
+            registry_path = runtime_paths().aal_registry_dir / "operators.json"
         self.registry_path = Path(registry_path)
         self.registry = self._load()
 

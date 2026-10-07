@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from abraxas.core.provenance import ProvenanceRef, hash_canonical_json
+from abraxas.paths import runtime_paths
 
 
 class OASLedger:
@@ -22,10 +23,10 @@ class OASLedger:
         Initialize ledger.
 
         Args:
-            ledger_path: Path to ledger file (default: .aal/ledger/oasis_operators.jsonl)
+            ledger_path: Path to ledger file (default: <ABX_ROOT>/.aal/ledger/oasis_operators.jsonl)
         """
         if ledger_path is None:
-            ledger_path = Path(".aal/ledger/oasis_operators.jsonl")
+            ledger_path = runtime_paths().aal_ledger_dir / "oasis_operators.jsonl"
         self.ledger_path = Path(ledger_path)
         self._ensure_ledger_exists()
 

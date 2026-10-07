@@ -10,6 +10,7 @@ from typing import Any
 
 from abraxas.core.provenance import hash_canonical_json
 from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.paths import runtime_paths
 
 
 @dataclass(frozen=True)
@@ -33,7 +34,7 @@ class RuneInvocationLedger:
 
     def __init__(self, ledger_path: str | Path | None = None) -> None:
         if ledger_path is None:
-            ledger_path = Path(".aal/ledger/rune_invocations.jsonl")
+            ledger_path = runtime_paths().aal_ledger_dir / "rune_invocations.jsonl"
         self.ledger_path = Path(ledger_path)
         self._ensure_ledger_exists()
 

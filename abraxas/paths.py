@@ -128,6 +128,28 @@ class RuntimePaths:
     def reports_out_dir(self) -> Path:
         return self.out_dir / "reports"
 
+    @property
+    def aal_dir(self) -> Path:
+        """The ``.aal`` state directory (ledgers and registries).
+
+        Derived from ``root`` rather than from the process CWD. Four modules used to
+        spell ``Path(".aal/...")`` by hand as a default, which made the target a function
+        of where the process happened to be started — the same call wrote a different
+        file depending on the caller's working directory. They now share this accessor,
+        so ``ABX_ROOT`` redirects all of them at once.
+        """
+        return self.root / ".aal"
+
+    @property
+    def aal_ledger_dir(self) -> Path:
+        """Append-only JSONL ledgers (rune invocations, outcomes, oasis operators)."""
+        return self.aal_dir / "ledger"
+
+    @property
+    def aal_registry_dir(self) -> Path:
+        """Mutable JSON registries persisted under ``.aal``."""
+        return self.aal_dir / "registry"
+
     # -- containment -------------------------------------------------------
 
     def contains(self, path: Union[str, Path]) -> bool:

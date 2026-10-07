@@ -964,3 +964,79 @@ Separately: **build output is being scanned** (`dashboard/frontend/dist/assets/*
 question.
 
 **Neither is a bug fix. Both are governance decisions.**
+
+## Lexicon `--check` is effectively always-stale -- SEMANTICS DECISION PENDING 2026-10-06
+
+Found by the probe that diagnosed the `test_lexicon_check_mode` flake. The flake itself is
+fixed (SOURCE_DATE_EPOCH pin, commit `abfc60a0`), but the probe exposed a larger problem.
+
+Measured: generate, then immediately run `--check`, with **no gap at all** between the calls:
+
+    no pin, no gap (immediate) -> STALE (rc=1)
+    no pin, 1.2s gap           -> STALE (rc=1)
+    PINNED, 1.2s gap           -> PASS (rc=0)
+
+So `--check` reports STALE on output it wrote moments earlier, and passes only when the
+generation timestamp happens to be pinned or identical. As a CI guardrail -- "is the committed
+lexicon stale?" -- it cannot distinguish *content changed* from *a second passed*, which makes
+it unusable in the role it exists to fill.
+
+Cause: `--check` compares whole-file bytes, and the generated module embeds `manifest_sha256`,
+which is a hash over a manifest that includes the volatile `generated_at_utc`.
+
+The repo already has the right notion elsewhere: `abx/invariance_harness.py:30` lists
+`generated_at_utc` among the keys to drop before comparison. Applying the same treatment inside
+`--check` would make it mean what it says.
+
+**Not fixed here because it changes `--check` SEMANTICS -- a behaviour change, not a bug fix.**
+A narrower option also exists (compare the token sets / per-file hashes only, not the whole
+module bytes). Both are decisions.
+
+The test-side pin is not the fix: it makes the suite deterministic while leaving the guardrail
+misleading. That is why the pin ships with two counterfactual tests asserting `--check` still
+detects a genuinely different pinned time, rather than replacing this entry.
+
+## ~80 MB of tracked, write-only, unbounded ledgers in `out/` and `.aal/` -- 2026-10-06
+
+Found while chasing the suite-duration question (which turned out to be environmental -- see the
+next entry). These files are appended to on every test run and grow forever:
+
+    out/replay/replay_runs.jsonl        22.9 MB committed -> 66.0 MB working  (2.9x, +10,224 lines)
+    out/replay/multi_cycle.jsonl         2.8 MB committed ->  8.5 MB working  (3.0x)
+    .aal/ledger/rune_invocations.jsonl   4.4 MB committed -> 15.3 MB working  (3.5x)
+
+`git log` shows 11 commits have touched the invocation ledger, so commit-and-append is baked
+into the workflow and the growth is monotonic.
+
+**They have no readers.** An exhaustive grep over `abraxas/`, `abx/`, `tools/`, `scripts/`,
+`webpanel/` finds exactly one reference to `replay_runs.jsonl` -- the append site in
+`scripts/run_replay_cycle.py:193`. Nothing reads it. Same for `multi_cycle.jsonl`. Appending is
+O(1), so this cannot slow anything down; it is pure storage and repository-noise cost.
+
+It is also why this repo needs its own rule *"never `git add -A`"*: these files are rewritten by
+every run, and one accidental `git add -A` in this session swept them into a commit the
+pre-receive hook rejected.
+
+**Options (a policy decision, not taken):** stop committing them -- the directory is rewritten
+every run, which is what the existing `git add -A` rule already implies -- or rotate/cap them at
+write time. Their path anchoring was fixed separately (the `.aal` path authority commit), but
+anchoring does not bound growth.
+
+## The suite-duration spread is ENVIRONMENTAL, not repository growth -- 2026-10-06
+
+Three full-suite runs on identical code varied **433s / 471s / 764s**. The hypothesis that the
+ledger growth above was responsible was tested, not assumed:
+
+    working tree   (77 MB of out/)  ->  433s
+    clean worktree (28 MB of out/)  ->  596s
+
+Same commit, same tests, and the tree with FEWER artifacts ran SLOWER. The hypothesis is dead.
+
+Corroborating: the slowest tests (`--durations=25`; the top 25 are ~165s of the run) are all
+governance/closure/proof/self-build work with **zero wall-clock references and no subprocess
+use** -- pure in-process compute, whose duration tracks available CPU. The variance is CPU
+contention on this machine.
+
+An earlier attempt to settle this by comparing `du -h` output between two runs was worthless: it
+rounds to whole units, so a +3.5 MB append was invisible. Coarse measurements are not evidence;
+the controlled clean-worktree run is what settled it.
