@@ -21,10 +21,10 @@ set -uo pipefail
 BASELINE_FAILURES=0
 # Collected total (passed + xfailed + deselected), NOT the passed count -- read it off
 # the "collected N items" line, not the summary line. Take that line VERBATIM: the summary's
-# passed+skipped+xfailed does NOT sum to it (measured 3436+4+9=3449 against collected 3447),
-# so reconstructing the number from components is wrong. Raise the floor when tests are added;
+# passed+skipped+xfailed does NOT sum to it (e.g. measured 3481 after Phase 1's data_grade
+# taxonomy tests which added ~21 parametrized cases). Raise the floor when tests are added;
 # never lower it without saying why.
-BASELINE_COLLECTED=3460
+BASELINE_COLLECTED=3481
 OUT="$(mktemp)"
 RETRY="$(mktemp)"
 

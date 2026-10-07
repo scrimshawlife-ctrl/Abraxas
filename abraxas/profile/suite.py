@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Tuple
 
 from abraxas.atlas.construct import build_atlas_pack
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.evidence.data_grade import normalize_grade
 from abraxas.runes.invoke import invoke_capability
 from abraxas.sonification.emit import emit_audio_controls
 from abraxas.visuals.emit import emit_visual_controls
@@ -177,7 +178,7 @@ def _flatten_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
         "window_start_utc": frame.get("window_start_utc"),
         "window_end_utc": frame.get("window_end_utc"),
         "domain": frame.get("domain") or "unknown",
-        "data_grade": frame.get("data_grade") or "real",
+        "data_grade": normalize_grade(frame.get("data_grade")),
         "vectors": flattened,
         "provenance": frame.get("provenance") or {},
     }

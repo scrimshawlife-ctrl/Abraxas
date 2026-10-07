@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.evidence.data_grade import UNDECLARED
 
 
 class MetricPoint(BaseModel):
@@ -17,7 +18,7 @@ class MetricPoint(BaseModel):
     window_end_utc: Optional[str]
     source_id: str
     domain: str = Field(default="unknown")
-    data_grade: str = Field(default="real")
+    data_grade: str = Field(default=UNDECLARED)
     provenance: Dict[str, Any] = Field(default_factory=dict)
     computability: str = "computed"
 

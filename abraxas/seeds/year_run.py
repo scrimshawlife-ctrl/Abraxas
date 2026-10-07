@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 
 from abraxas.runes.ctx import RuneInvocationContext
 from abraxas.runes.invoke import invoke_capability
+from abraxas.evidence.data_grade import normalize_grade
 from abraxas.seeds.emit_seedpack import emit_seedpack
 from abraxas.policy.utp import load_active_utp
 from abraxas.runtime.concurrency import ConcurrencyConfig
@@ -60,7 +61,7 @@ def run_year(config: YearRunConfig) -> Dict[str, Any]:
     if not config.allow_simulated:
         filtered = []
         for packet in packets:
-            grade = str(packet.get("data_grade") or (packet.get("provenance") or {}).get("data_grade") or "real")
+            grade = normalize_grade(packet.get("data_grade") or (packet.get("provenance") or {}).get("data_grade"))
             if grade == "simulated":
                 continue
             filtered.append(packet)
@@ -117,7 +118,7 @@ def _flatten_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
         "window_start_utc": frame.get("window_start_utc"),
         "window_end_utc": frame.get("window_end_utc"),
         "domain": frame.get("domain") or "unknown",
-        "data_grade": frame.get("data_grade") or "real",
+        "data_grade": normalize_grade(frame.get("data_grade")),
         "vectors": flattened,
         "provenance": frame.get("provenance") or {},
     }

@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.evidence.data_grade import UNDECLARED, normalize_grade
 from abraxas.metric_extractors import EXTRACTORS, MetricPoint
 from abraxas.sources.domain_map import domain_for_source_id
 
@@ -44,7 +45,7 @@ def apply_metric_extract(packets: List[Dict[str, Any]], *, strict_execution: boo
         domain = packet.get("domain") or (packet.get("provenance") or {}).get("domain")
         packet_domain_by_source[source_id] = str(domain or domain_for_source_id(source_id))
         data_grade = packet.get("data_grade") or (packet.get("provenance") or {}).get("data_grade")
-        packet_grade_by_source[source_id] = str(data_grade or "real")
+        packet_grade_by_source[source_id] = normalize_grade(data_grade)
 
     metrics: List[MetricPoint] = []
     for extractor in EXTRACTORS:
@@ -54,8 +55,8 @@ def apply_metric_extract(packets: List[Dict[str, Any]], *, strict_execution: boo
     for point in metrics:
         if not getattr(point, "domain", None) or point.domain == "unknown":
             point.domain = packet_domain_by_source.get(point.source_id) or domain_for_source_id(point.source_id)
-        if not getattr(point, "data_grade", None):
-            point.data_grade = packet_grade_by_source.get(point.source_id) or "real"
+        if normalize_grade(getattr(point, "data_grade", None)) == UNDECLARED:
+            point.data_grade = packet_grade_by_source.get(point.source_id) or UNDECLARED
 
     payload = [point.canonical_payload() for point in metrics]
     provenance = {

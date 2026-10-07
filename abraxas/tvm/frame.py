@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.evidence.data_grade import UNDECLARED, normalize_grade
 from abraxas.metric_extractors.base import MetricPoint
 from abraxas.schema.tvm import TVMVectorId, _round_float
 
@@ -22,7 +23,7 @@ class TVMFrame(BaseModel):
     window_start_utc: str
     window_end_utc: str
     domain: str = Field(default="unknown")
-    data_grade: str = Field(default="real")
+    data_grade: str = Field(default=UNDECLARED)
     vectors: Dict[str, VectorValue]
     provenance: Dict[str, Any]
 
@@ -303,7 +304,7 @@ def _select_data_grade(points: List[MetricPoint]) -> str:
     best_grade = "real"
     best_rank = -1
     for point in points:
-        grade = str(getattr(point, "data_grade", None) or "real")
+        grade = normalize_grade(getattr(point, "data_grade", None))
         rank = priority.get(grade, 0)
         if rank > best_rank:
             best_grade = grade

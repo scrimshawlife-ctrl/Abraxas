@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
+from abraxas.evidence.data_grade import UNDECLARED
 
 
 SOURCE_PACKET_SCHEMA_VERSION = "source_packet.v0.2"
@@ -19,7 +20,7 @@ class SourcePacket(BaseModel):
     window_end_utc: Optional[str]
     schema_version: str = Field(default=SOURCE_PACKET_SCHEMA_VERSION)
     domain: str = Field(default="unknown")
-    data_grade: str = Field(default="real")  # real | simulated | derived
+    data_grade: str = Field(default=UNDECLARED)  # see abraxas/evidence/data_grade.py
     payload: Dict[str, Any]
     provenance: Dict[str, Any] = Field(default_factory=dict)
 
