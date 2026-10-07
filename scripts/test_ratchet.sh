@@ -24,7 +24,7 @@ BASELINE_FAILURES=0
 # passed+skipped+xfailed does NOT reconcile with it (measured: 3504 passed, 4 skipped, 9 xfailed
 # vs collected 3515 items). Raise the floor when tests are added; never lower it
 # without saying why.
-BASELINE_COLLECTED=3559
+BASELINE_COLLECTED=3730
 OUT="$(mktemp)"
 RETRY="$(mktemp)"
 
@@ -59,7 +59,13 @@ then
   exit 1
 fi
 
-python -m pytest tests/ -q --no-header -p no:cacheprovider > "$OUT" 2>&1
+# NOTE: `abraxas/evidence/` is included because CI's "Run core tests" step names those five files
+# explicitly and this gate did not run them. On 2026-10-07 a real regression shipped through that gap:
+# `noesis`'s `produce_evidence` was changed to return the canonical `EvidenceEnvelope` (the correct fix
+# -- it had returned a bare dict), which broke `abraxas/evidence/test_noesis_q1.py`, whose assertions
+# subscripted the result. The ratchet stayed green because it never looked there; CI went red on main.
+# A gate that does not cover what CI covers is not a gate.
+python -m pytest tests/ abraxas/evidence/ -q --no-header -p no:cacheprovider > "$OUT" 2>&1
 
 failures=$(grep -cE '^(FAILED|ERROR) ' "$OUT")
 collected=$(grep -oE 'collected [0-9]+ items' "$OUT" | grep -oE '[0-9]+' | head -1)

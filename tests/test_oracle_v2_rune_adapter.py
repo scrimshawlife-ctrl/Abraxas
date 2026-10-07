@@ -92,12 +92,49 @@ def test_envelope_is_json_serializable() -> None:
     json.dumps(result)
 
 
+#: `provenance` records WHEN a run happened alongside WHAT it was. `timestamp_utc` is therefore
+#: metadata, not content, and is excluded from determinism comparison -- the same rule this repository
+#: applies to the lexicon content fingerprint and to the engine harness's `NON_CONTENT_FIELDS`.
+#: Measured 2026-10-07: two runs 1.2s apart differ in this key and NOTHING else, so comparing whole
+#: provenance dicts fails whenever the two calls straddle a second boundary. That made this test a
+#: time-bomb: it passed 5/5 in isolation and failed inside the full suite, which is how it was found.
+PROVENANCE_METADATA = ("timestamp_utc",)
+
+
+def _provenance_content(provenance: dict) -> dict:
+    """Provenance with its metadata removed -- what determinism actually concerns."""
+    return {k: v for k, v in provenance.items() if k not in PROVENANCE_METADATA}
+
+
 def test_provenance_is_deterministic_over_identical_inputs() -> None:
     first = _run(run_id="RUN-1", observations=VALID_OBSERVATIONS)
     second = _run(run_id="RUN-1", observations=VALID_OBSERVATIONS)
-    assert first["provenance"] == second["provenance"], (
-        "identical inputs produced different provenance; the adapter is not deterministic"
+
+    p1, p2 = first["provenance"], second["provenance"]
+    assert p1 is not None and p2 is not None, "provenance missing; cannot assess determinism"
+
+    assert _provenance_content(p1) == _provenance_content(p2), (
+        "identical inputs produced different provenance CONTENT; the adapter is not deterministic"
     )
+
+    # The exclusion is scoped, not a blanket ignore: the metadata must still be produced and well-formed,
+    # or dropping it from the artifact would silently satisfy this test.
+    for p in (p1, p2):
+        assert "timestamp_utc" in p, "provenance must still record when the run happened"
+        assert str(p["timestamp_utc"]).endswith("Z"), p["timestamp_utc"]
+
+
+def test_provenance_exclusion_covers_only_the_timestamp() -> None:
+    """Counterfactual for the exclusion above: if it swallowed a content key, a real change to that key
+    would go unnoticed and the determinism assertion would be vacuous."""
+    p = _run(run_id="RUN-1", observations=VALID_OBSERVATIONS)["provenance"]
+    assert set(_provenance_content(p)) == {
+        "config_sha256",
+        "inputs_sha256",
+        "operation_id",
+        "repo_commit",
+        "runtime_fingerprint",
+    }, sorted(_provenance_content(p))
 
 
 def test_inputs_hash_changes_when_observations_change() -> None:

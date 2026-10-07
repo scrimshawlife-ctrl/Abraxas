@@ -708,36 +708,50 @@ class TestNOESIS_Q1_Provider:
         assert EvidenceType.LATENT_STRUCTURAL in provider.supported_evidence_types
 
     def test_provider_produces_evidence(self):
-        """NoesisEvidenceProvider should produce valid evidence."""
+        """NoesisEvidenceProvider should produce valid evidence.
+
+        Rewritten 2026-10-07: this test used to subscript the result as a dictionary
+        (`envelope_dict["engine"]`). `produce_evidence` now returns the canonical `EvidenceEnvelope`
+        dataclass -- which is not subscriptable -- because the contract was single-homed onto
+        `abraxas/evidence/contract.py`. Returning a bare dict there was the defect: it satisfied the
+        interface's declared `-> EvidenceEnvelope` return annotation without being one, and every guard
+        in the repository passed it. The assertions below are the same claims against the typed envelope,
+        plus an isinstance check that would have caught the original defect.
+        """
+        from abraxas.evidence.contract import EvidenceEnvelope
+
         provider = NoesisEvidenceProvider()
-        
-        envelope_dict = provider.produce_evidence(
+
+        envelope = provider.produce_evidence(
             request_id="test-provider-001",
             claim="Test latent structure",
             context={}
         )
-        
-        assert envelope_dict["engine"] == "noesis"
-        assert envelope_dict["engine_version"] == "noesis.latent.v1"
-        assert envelope_dict["model_identity"] == "noesis.latent.v1"
-        assert envelope_dict["evidence_type"] == "LATENT_STRUCTURAL"
-        assert "confidence" in envelope_dict
-        assert "provenance" in envelope_dict
-        assert envelope_dict["provenance"]["source"] == "noesis.latent.v1"
-        assert envelope_dict["provenance"]["authority"] == "advisory"
-        assert envelope_dict["provenance"]["semantic_truth"] is False
+
+        assert isinstance(envelope, EvidenceEnvelope), (
+            f"expected the canonical EvidenceEnvelope, got {type(envelope).__name__}"
+        )
+        assert envelope.engine == "noesis"
+        assert envelope.engine_version == "noesis.latent.v1"
+        assert envelope.model_identity == "noesis.latent.v1"
+        assert envelope.evidence_type.value == "LATENT_STRUCTURAL"
+        assert isinstance(envelope.confidence, float)
+        assert isinstance(envelope.provenance, dict)
+        assert envelope.provenance["source"] == "noesis.latent.v1"
+        assert envelope.provenance["authority"] == "advisory"
+        assert envelope.provenance["semantic_truth"] is False
 
     def test_provider_provenance_completeness(self):
         """NoesisEvidenceProvider provenance should be complete."""
         provider = NoesisEvidenceProvider()
-        
-        envelope_dict = provider.produce_evidence(
+
+        envelope = provider.produce_evidence(
             request_id="test-provider-002",
             claim="Test",
             context={}
         )
-        
-        prov = envelope_dict["provenance"]
+
+        prov = envelope.provenance
         required_keys = [
             "source", "method", "structural_coherence", "intervention_sensitivity",
             "rsa_correlation", "geometric_integrity", "manifold_integrity",
