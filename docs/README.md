@@ -21,6 +21,7 @@ Navigation map for canonical governance docs, architecture specs, operator workf
 
 ## Canon / Governance
 
+- [DOCTRINE.md](DOCTRINE.md) — the three settlements (empirical / technical / economic), the LAB / RESEARCH / FIELD evidence environments and their flywheel guard, and the prohibited moves the code enforces. Harvested from the doctrine sibling and adapted to this repository, with every citation verified and gaps marked.
 - [CANONICAL_RUNTIME.md](CANONICAL_RUNTIME.md) — canonical execution and proof lifecycle.
 - [VALIDATION_AND_ATTESTATION.md](VALIDATION_AND_ATTESTATION.md) — runtime/validator closure boundaries.
 - [RELEASE_READINESS.md](RELEASE_READINESS.md) — release readiness model and gates.
