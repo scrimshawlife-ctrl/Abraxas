@@ -70,7 +70,20 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "RELATIONAL_REASONING",
         "abraxas.evidence.provider:create_athanor_adapter",
         "Factory function. AthanorAdapter is built inside it and closes over "
-        "engine_name, so there is no module-level AthanorAdapter attribute.",
+        "engine_name, so there is no module-level AthanorAdapter attribute. "
+        "Technical settlement claimed, and its cited set is the THINNEST of the five -- stated rather than "
+        "implied. There is no athanor-specific spec, fixture or receipt in this tree (its work lives in its "
+        "own repository), so what holds this claim up is the parametrised conformance guard in "
+        "tests/test_engine_manifest_agreement.py together with the survey's measured criteria: determinism, "
+        "replay, provenance and canonical artifacts all present. A claim citing less than it appears to would "
+        "be worse than no claim. Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/provider.py",
+                "tests/test_engine_manifest_agreement.py",
+            ),
+        ),
     ),
     _spec(
         "noesis",
@@ -78,13 +91,39 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "LATENT_STRUCTURAL",
         "abraxas.evidence.verifiers.latent:NoesisEvidenceProvider",
         "Class. Did not subclass EvidenceProvider until the agreement guard "
-        "caught it; the interface is now declared explicitly.",
+        "caught it; the interface is now declared explicitly. Technical settlement claimed on the fullest "
+        "evidence set of the five: the provider, its own specification, its deterministic fixtures, its "
+        "qualification receipt and its Q1 suite are all in-tree and cited. Empirical and economic remain "
+        "unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/verifiers/latent.py",
+                "abraxas/evidence/noesis_latent_v1.spec.md",
+                "abraxas/evidence/test_noesis_q1.py",
+                "abraxas/evidence/noesis_q1_receipt.json",
+            ),
+        ),
     ),
     _spec(
         "trutina",
         LIVE,
         "CALIBRATION",
         "abraxas.evidence.providers.trutina:TrutinaEvidenceProvider",
+        "Technical settlement claimed. Cited set: the provider, its calibration specification, its Q1 suite "
+        "and its qualification receipt. Note what is NOT claimed -- a calibration engine invites an "
+        "empirical-settlement reading, but `technical` says only that it reliably meets its specification; "
+        "whether its calibration is BETTER than an alternative is the empirical question, and it stays "
+        "unsettled until it is measured against one.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/trutina.py",
+                "abraxas/evidence/trutina_calibration_v1.spec.md",
+                "abraxas/evidence/test_trutina_q1.py",
+                "abraxas/evidence/trutina_q1_receipt.json",
+            ),
+        ),
     ),
     _spec(
         "oracle",
@@ -115,7 +154,18 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "PERSISTENT_MEMORY",
         "abraxas.evidence.adapters.cypher:create_cypher_adapter",
         "Factory function. Declared RELATIONAL_REASONING until the evidence-type guard caught it, "
-        "same dataclass-default defect as oracle.",
+        "same dataclass-default defect as oracle. Technical settlement claimed on the narrowest set of the "
+        "five -- the adapter and its behavioural suite -- and it is worth saying why that is enough here and "
+        "would not be elsewhere: Cypher's surface is small and its contract is its behaviour, so there is no "
+        "spec or fixture in this tree for it to be measured against. The engine's own repository holds its "
+        "specification. Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/adapters/cypher.py",
+                "tests/test_cypher_enhanced.py",
+            ),
+        ),
     ),
     _spec(
         "hyperlex",

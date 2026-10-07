@@ -63,7 +63,13 @@ def test_every_engine_in_the_manifest_is_surveyed() -> None:
 #: Engines that DELIBERATELY declare a technical settlement. Each entry is a governance claim — that the
 #: capability reliably meets its specification — and the survey must corroborate it. Adding or removing a
 #: name is an operator decision; the test below fails if the manifest changes without this set changing too.
-DECLARED_TECHNICAL_SETTLEMENTS = {"oracle"}
+#:
+#: All five live engines, claimed 2026-10-07. `oracle` went first, alone, so the first claim would be a
+#: precedent rather than a batch; the other four followed once each was independently corroborated and
+#: individually cited. The evidence sets differ widely — `noesis` and `trutina` cite specs, fixtures and
+#: receipts, `athanor` and `cypher` cite only their implementation and a guard — and each manifest note
+#: states which it is rather than implying a uniform base.
+DECLARED_TECHNICAL_SETTLEMENTS = {"athanor", "cypher", "noesis", "oracle", "trutina"}
 
 
 def test_only_deliberately_declared_engines_claim_technical_settlement() -> None:
