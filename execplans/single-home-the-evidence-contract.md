@@ -59,6 +59,12 @@ This section must always reflect the actual state of the work. Timestamps are UT
       return-type guard over all 5 LIVE engines added and observed failing against the reverted fix.
       Full suite TBD.
 - [ ] Phase 3 -- two new guards in `tests/test_engine_manifest_agreement.py`, each driven to fail.
+      **Extended after Phase 2:** single-home `Decision` as well. It is still a stale duplicate: the
+      contract copy has six members including `REJECT`, the package copy has five and lacks it, and
+      `Decision` is the value the coordination layer uses to fail closed. No file imports it from the
+      package today, so nothing is broken yet -- which is exactly why it should be single-homed before
+      something does. Measured: `abraxas.evidence.Decision is abraxas.evidence.contract.Decision` is
+      `False`; the package copy's members do not include `REJECT`.
 - [ ] Phase 4 -- the three tracked `.bak` files removed from inside the package.
 - [ ] Phase 5 -- execution harness measuring determinism / provenance / canonical artifacts; wired
       into `scripts/survey_engine_settlements.py`.
