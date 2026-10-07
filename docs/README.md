@@ -15,6 +15,7 @@ Navigation map for canonical governance docs, architecture specs, operator workf
 - [SUBSYSTEM_INVENTORY.md](SUBSYSTEM_INVENTORY.md) — subsystem maturity and role map.
 - [RELEASE_READINESS.md](RELEASE_READINESS.md) — readiness criteria and release posture.
 - [TEST_REMEDIATION_2026-10.md](TEST_REMEDIATION_2026-10.md) — test debt 134 -> 3: session record, defect taxonomy, transferable rules, open decisions.
+- [EXECUTION_HISTORY.md](EXECUTION_HISTORY.md) — the single record of the 2026-10-04 "further work plan", consolidated from 36 root-level status documents that each claimed it complete. Records what was verified and what was not.
 - [TEST_DEBT.md](TEST_DEBT.md) — per-failure diagnoses, reverts, Jev rulings and standing test rules.
 
 ---
