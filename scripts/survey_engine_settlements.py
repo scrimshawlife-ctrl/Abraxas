@@ -138,6 +138,7 @@ def _collected_tests_status(name: str) -> str:
 
 def survey() -> List[Dict[str, object]]:
     from abraxas.engines.manifest import ENGINES, LIVE
+    from abraxas.engines.execution_harness import measure as _harness_measure
 
     rows: List[Dict[str, object]] = []
     for spec in ENGINES:
@@ -146,8 +147,13 @@ def survey() -> List[Dict[str, object]]:
             "conforms": _conformance_status(spec.implementation),
             "collected_tests": _collected_tests_status(spec.name),
         }
-        for criterion in RUN_REQUIRED:
-            criteria[criterion] = UNMEASURED
+        if spec.status == LIVE:
+            measured = _harness_measure(spec.name)
+            for criterion in RUN_REQUIRED:
+                criteria[criterion] = measured.get(criterion, UNMEASURED)
+        else:
+            for criterion in RUN_REQUIRED:
+                criteria[criterion] = UNMEASURED
 
         # A settlement needs EVERY criterion present. Unmeasured is not satisfied.
         satisfiable = spec.status == LIVE and all(v == PRESENT for v in criteria.values())

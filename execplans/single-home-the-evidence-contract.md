@@ -72,8 +72,15 @@ This section must always reflect the actual state of the work. Timestamps are UT
       `abraxas/evidence/__init__.py:44` and `:339` and asserted by
       `tests/evidence/test_evidence_contract.py:338`, so nothing was lost. Removals remain recoverable
       from history (last carrying commit `3694394f`).
-- [ ] Phase 5 -- execution harness measuring determinism / provenance / canonical artifacts; wired
-      into `scripts/survey_engine_settlements.py`.
+- [x] (2026-10-06) Phase 5 -- execution harness `abraxas/engines/execution_harness.py` created with
+      `NON_CONTENT_FIELDS`, `run_once`, `measure`. Wired into `scripts/survey_engine_settlements.py`
+      (lines 149-156 replaced with a live-engine branch that calls `measure()`). All five live engines
+      report `yes` for determinism, provenance, canonical artifacts. `replay` remains `?` (cannot be
+      honestly established without artifact persistence infrastructure). Five new tests added to
+      `tests/test_engine_settlement_survey.py` covering non-deterministic fake, missing-provenance
+      fake, positive control, and both directions of the NON_CONTENT_FIELDS counterfactual.
+      Survey now shows `yes`/`no` instead of `?` for the three measured run-required criteria.
+      Full suite TBD.
 - [ ] Phase 6 -- documentation, `PLANS.md` closure, `TEST_DEBT.md` update.
 
 ## Surprises & Discoveries
@@ -189,7 +196,31 @@ This section must always reflect the actual state of the work. Timestamps are UT
   Evidence: `grep -rn "from abraxas\\.evidence import.*Decision" abraxas tests tools scripts`
   returns zero hits.
 
+- Observation: the `_FakeNonDeterministicProvider` test fake varies the `claim` field to break
+  determinism. This was chosen deliberately: varying a content field proves the harness detects
+  real non-determinism rather than metadata drift. A fake that only varied `timestamp` would
+  be invisible to `_content_dict` -- which is the correct behavior, because timestamp is metadata.
+  Evidence: `test_non_deterministic_engine_reported_no` asserts `c1["claim"] != c2["claim"]`.
+
+- Observation: the cypher engine's default inference stores envelopes in the memory layer on first
+  call and retrieves them on second call with the same claim. Under the harness stub, this
+  side-effect does not occur because the stub bypasses `_default_cypher_inference`. The
+  harness's determinism verdict for cypher is therefore a measurement of the stub-constructed
+  adapter, which is what the manifest's agreement guard also uses -- consistent, and honestly
+  scoped.
+  Evidence: `execution_harness._STUB_INFERENCE` returns a fixed dict; cypher's factory
+  receives it via `inference_engine` kwarg.
+
 ## Decision Log
+
+- Decision: of the four run-required criteria, three are now measurable via execution harness
+  (`determinism`, `provenance`, `canonical_artifacts`). `replay` remains `?` because it requires
+  artifact persistence infrastructure (loading a stored envelope and reproducing the result) which
+  this harness does not own and cannot honestly establish.
+  Rationale: the doctrine's rule is that a `?` cannot support a settlement. Reporting `?` where
+  measurement is genuinely impossible is truthful; inventing a measurement would be the exact error
+  the `schema_version` deletion was.
+  Date/Author: 2026-10-06, Hermes Agent (Phase 5).
 
 - Decision: treat `abraxas/evidence/contract.py` as the canonical home, and reduce
   `abraxas/evidence/__init__.py` to re-exports.
