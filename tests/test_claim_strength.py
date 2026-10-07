@@ -8,6 +8,7 @@ literature proposes for evaluation claims (formality, scope, validity window).
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
 
 from abraxas.evidence.claim_strength import (
     FORMALITY_TIERS,
@@ -125,3 +126,82 @@ def test_a_packet_without_claim_strength_declares_none() -> None:
         window_start_utc=None, window_end_utc=None, payload={},
     )
     assert packet.claim_strength is None
+
+
+class TestClaimStrengthDoesNotChangePacketIdentity:
+    """A claim's declared strength must not change the identity of the observation.
+
+    Phase 3 added `claim_strength` to `SourcePacket`, whose `packet_hash()` is derived from
+    `canonical_payload()`. An un-excluded new field would therefore have changed EVERY packet hash
+    in the repository -- silently, because nothing pins one. `canonical_payload()` excludes it.
+
+    That exclusion is currently the only thing holding the property, and no other test in the suite
+    would notice its removal. So the property is asserted here, both directions.
+    """
+
+    BASE: Dict[str, Any] = dict(
+        source_id="s1",
+        observed_at_utc="2026-01-01T00:00:00Z",
+        window_start_utc=None,
+        window_end_utc=None,
+        payload={"x": 1},
+    )
+
+    def test_declaring_claim_strength_does_not_change_the_packet_hash(self) -> None:
+        from abraxas.sources.packets import SourcePacket
+
+        without = SourcePacket(**self.BASE)
+        with_strength = SourcePacket(
+            **self.BASE,
+            claim_strength={
+                "formality": "assessed",
+                "scope": "this sample",
+                "validity_days": 30,
+                "grounding": "field",
+            },
+        )
+        assert without.packet_hash() == with_strength.packet_hash(), (
+            "adding a claim_strength declaration changed the packet hash. Declared strength is "
+            "metadata ABOUT the claim, not part of the observation's identity -- the same "
+            "identity-vs-metadata rule this repo applied to the rune hash and the lexicon content "
+            "fingerprint."
+        )
+
+    def test_claim_strength_is_excluded_from_canonical_payload(self) -> None:
+        from abraxas.sources.packets import SourcePacket
+
+        packet = SourcePacket(**self.BASE, claim_strength={"formality": "automated"})
+        assert "claim_strength" not in packet.canonical_payload()
+        # ...while remaining present on the model, so the declaration is not lost.
+        assert packet.claim_strength == {"formality": "automated"}
+
+    def test_the_exclusion_is_scoped_and_identity_still_tracks_content(self) -> None:
+        """The counterfactual. A blanket exclusion would also satisfy the test above.
+
+        If someone 'fixed' a hash regression by excluding everything, `packet_hash()` would stop
+        tracking the payload entirely -- identity would become a constant. This fails then.
+        """
+        from abraxas.sources.packets import SourcePacket
+
+        a = SourcePacket(**self.BASE)
+        b = SourcePacket(**{**self.BASE, "payload": {"x": 2}})
+        assert a.packet_hash() != b.packet_hash(), (
+            "changing the packet payload did not change its hash -- the exclusion is too broad, "
+            "and identity no longer tracks content"
+        )
+
+    def test_the_exclusion_is_scoped_and_a_grade_still_matters(self) -> None:
+        """Second counterfactual: the DATA GRADE is identity-bearing, unlike claim strength.
+
+        If the exclusion were written as a blanket 'drop metadata' rule, the grade would vanish
+        from the hash too -- and the grade is exactly what the rest of this work made
+        load-bearing.
+        """
+        from abraxas.evidence.data_grade import SIMULATED
+        from abraxas.sources.packets import SourcePacket
+
+        a = SourcePacket(**self.BASE)
+        b = SourcePacket(**{**self.BASE, "data_grade": SIMULATED})
+        assert a.packet_hash() != b.packet_hash(), (
+            "the data grade no longer participates in the packet hash"
+        )
