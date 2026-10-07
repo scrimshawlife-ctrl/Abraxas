@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from abraxas.core.canonical import canonical_json, sha256_hex
-from abraxas.evidence.data_grade import UNDECLARED, normalize_grade
+from abraxas.evidence.data_grade import UNDECLARED, normalize_grade, weakest_grade
 from abraxas.metric_extractors.base import MetricPoint
 from abraxas.schema.tvm import TVMVectorId, _round_float
 
@@ -300,13 +300,12 @@ def compose_frames_by_domain(
 
 
 def _select_data_grade(points: List[MetricPoint]) -> str:
-    priority = {"real": 3, "derived": 2, "simulated": 1}
-    best_grade = "real"
-    best_rank = -1
-    for point in points:
-        grade = normalize_grade(getattr(point, "data_grade", None))
-        rank = priority.get(grade, 0)
-        if rank > best_rank:
-            best_grade = grade
-            best_rank = rank
-    return best_grade
+    """The WEAKEST grade across the frame's points.
+
+    Weakest-link, not best-of: a frame is only as strong as its weakest member. The previous
+    implementation ranked grades and kept the highest, so a single `real` point among twenty
+    `simulated` ones labelled the whole frame `real` -- the inflation the doctrine's evidence
+    qualification exists to prevent.
+    """
+    return weakest_grade(p.data_grade for p in points)
+

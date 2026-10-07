@@ -24,7 +24,7 @@ BASELINE_FAILURES=0
 # passed+skipped+xfailed does NOT reconcile with it (measured twice this session: 3442 against
 # 3440, and 3449 against 3447). Raise the floor when tests are added; never lower it without
 # saying why.
-BASELINE_COLLECTED=3491
+BASELINE_COLLECTED=3496
 OUT="$(mktemp)"
 RETRY="$(mktemp)"
 
