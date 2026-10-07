@@ -42,7 +42,12 @@ def ui_policy(request: Request):
     )
 
 
-def ingest(packet: AbraxasSignalPacket, request: Optional[Request] = None):
+# NOTE: request is annotated as bare `Request`, not `Optional[Request]`. FastAPI special-cases
+# starlette.Request to inject it, but only for the bare type -- wrapping it in Optional makes
+# FastAPI treat it as a Pydantic field and the whole app fails to build (FastAPIError at
+# create_app). The `= None` default is kept so direct callers (the webpanel tests) can call
+# these functions without an HTTP request. Verified: app builds, HTTP injects, direct calls work.
+def ingest(packet: AbraxasSignalPacket, request: Request = None):
     require_token(request)
     return _ingest_packet(packet)
 
@@ -70,22 +75,22 @@ def get_ledger(run_id: str):
     }
 
 
-def ack(run_id: str, ack: HumanAck, request: Optional[Request] = None):
+def ack(run_id: str, ack: HumanAck, request: Request = None):
     require_token(request)
     return _record_ack(run_id, ack)
 
 
-def defer_start(run_id: str, body: DeferralStart, request: Optional[Request] = None):
+def defer_start(run_id: str, body: DeferralStart, request: Request = None):
     require_token(request)
     return _start_deferral(run_id, body)
 
 
-def defer_step(run_id: str, request: Optional[Request] = None):
+def defer_step(run_id: str, request: Request = None):
     require_token(request)
     return _step_deferral(run_id)
 
 
-def defer_stop(run_id: str, request: Optional[Request] = None):
+def defer_stop(run_id: str, request: Request = None):
     require_token(request)
     return _stop_deferral(run_id)
 

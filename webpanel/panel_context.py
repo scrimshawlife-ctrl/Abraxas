@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 import os
 import uuid
 from datetime import datetime, timezone
@@ -69,6 +70,48 @@ def _token_enabled() -> bool:
     return bool(_panel_token())
 
 
+# Hosts that are only reachable from this machine. The whole 127.0.0.0/8 block is
+# loopback, not just 127.0.0.1, and ::1 is its IPv6 equivalent. "localhost" is kept as
+# a name because uvicorn accepts it and it is what a user is most likely to type.
+_LOOPBACK_NAMES = frozenset({"localhost", "::1", "[::1]", ""})
+
+
+def _is_loopback_host(host: str) -> bool:
+    """True when binding this host cannot be reached from another machine."""
+    candidate = (host or "").strip()
+    if candidate in _LOOPBACK_NAMES:
+        return True
+    try:
+        import ipaddress
+
+        return ipaddress.ip_address(candidate).is_loopback
+    except ValueError:
+        return False
+
+
+def ensure_bind_is_safe(host: str) -> None:
+    """Refuse to bind a non-loopback host unless a token is configured.
+
+    The default posture was already correct -- loopback unless ABX_PANEL_HOST says
+    otherwise -- but the LAN opt-in and the token were independent: setting
+    ABX_PANEL_HOST=0.0.0.0 without ABX_PANEL_TOKEN published every mutating route with
+    no credential. A banner warned about it; a warning is not a control.
+
+    Loopback with no token still works, deliberately: this guard must not break the
+    default case. Only the combination is refused.
+    """
+    if _is_loopback_host(host):
+        return
+    if _panel_token():
+        return
+    raise RuntimeError(
+        f"refusing to bind non-loopback host {host!r} without ABX_PANEL_TOKEN set. "
+        "Set ABX_PANEL_TOKEN to a secret, or bind 127.0.0.1. "
+        "Exposing the panel on the network makes every state-changing route reachable "
+        "without a credential."
+    )
+
+
 def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] = None) -> None:
     token = _panel_token()
     if not token:
@@ -76,8 +119,11 @@ def require_token(request: Optional[Request], form: Optional[Mapping[str, Any]] 
     if request is None:
         raise HTTPException(status_code=401, detail="invalid token")
     header_token = request.headers.get("X-ABX-Token")
-    if header_token == token:
+    # compare_digest, not ==: a short-circuiting comparison leaks how many leading
+    # characters were guessed correctly through timing.
+    if isinstance(header_token, str) and secrets.compare_digest(header_token, token):
         return
-    if form is not None and form.get("abx_token") == token:
+    form_token = form.get("abx_token") if form is not None else None
+    if isinstance(form_token, str) and secrets.compare_digest(form_token, token):
         return
     raise HTTPException(status_code=401, detail="invalid token")

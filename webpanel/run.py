@@ -5,6 +5,8 @@ import os
 
 import uvicorn
 
+from webpanel.panel_context import ensure_bind_is_safe
+
 
 def main() -> None:
     host = os.environ.get("ABX_PANEL_HOST", "127.0.0.1")
@@ -13,6 +15,7 @@ def main() -> None:
         port = int(port_raw)
     except ValueError:
         port = 8008
+    ensure_bind_is_safe(host)
     uvicorn.run("webpanel.app:app", host=host, port=port, reload=True)
 
 

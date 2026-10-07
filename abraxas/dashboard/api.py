@@ -321,6 +321,32 @@ async def receive_telemetry(payload: dict):
         print(f"TELEMETRY: {event.get('event')} | {event.get('properties')} | session={event.get('sessionId')}")
     return {"status": "accepted", "count": len(events)}
 
+def _resolve_dashboard_host() -> str:
+    """Loopback unless explicitly overridden.
+
+    This endpoint has no authentication on any of its 15 routes, so binding it to
+    every interface published them to the network. Mirrors
+    webpanel.panel_context.ensure_bind_is_safe deliberately rather than importing it:
+    abraxas/ is the library layer and must not depend on a surface package.
+    """
+    host = os.environ.get("ABX_DASHBOARD_HOST", "127.0.0.1").strip() or "127.0.0.1"
+    loopback_names = {"localhost", "::1", "[::1]", ""}
+    is_loopback = host in loopback_names
+    if not is_loopback:
+        try:
+            import ipaddress
+
+            is_loopback = ipaddress.ip_address(host).is_loopback
+        except ValueError:
+            is_loopback = False
+    if not is_loopback:
+        raise RuntimeError(
+            f"refusing to bind dashboard host {host!r}: this API has no authentication "
+            "on any route. Bind 127.0.0.1, or add auth before exposing it."
+        )
+    return host
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8082)
+    uvicorn.run(app, host=_resolve_dashboard_host(), port=8082)
