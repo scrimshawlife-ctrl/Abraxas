@@ -369,31 +369,30 @@ Hard boundaries: no live autonomy, no Canon mutation, no runtime mutation outsid
 
 [ABX-NOEMA-REP-001](docs/research/persistent-agent-program/spec.md) coordinates Noema evidence with Hyperlexical, Semion, Noesis and Trutina through existing ownership boundaries. Includes a candidate review sidecar and acceptance/task mapping. Advisory specification only; no new subsystem, runtime activation, specialist binding or promotion.
 
-## 🚀 Production Status
+## Status
 
-> **Status**: PRODUCTION READY - All systems operational
+> **Status**: **v2.0.1 — operator-supervised, shadow-only.** All execution remains shadow-only,
+> deterministic, replayable and sandbox-isolated: no live autonomy, no Canon mutation.
 
-- **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE
-- **Tests**: 3,548 passing, 3,559 collected (was reported here as 236 — stale by more than an order of magnitude)
+- **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE — authority is `.abraxas/gates.json`
+  (`gates.CANON_VERSION`), and `pyproject.toml` + `abraxas.__version__` now agree with it
+- **Tests**: 3,797 passed, 9 xfailed, 3,806 collected — ratcheted (local floor 3,779, CI floor 3,850)
 - **Live Data**: PostgreSQL adapter verified
-- **Docker Image**:  built and tested
+- **Docker Image**: `Dockerfile.dashboard-api` → image `abraxas-dashboard-api:2.0.1`
 - **UI**: Built and distributable (`dashboard/frontend/dist/`)
 
-For production deployment details, see:
-- [docs/EXECUTION_HISTORY.md](docs/EXECUTION_HISTORY.md) — the consolidated record of the deployment and live-data work, with every named artifact verified present.
+### What is honestly not ready
 
+This section previously declared **"PRODUCTION READY - All systems operational"**, in a block
+duplicated verbatim twice — a claim that contradicted both the maturity matrix above and the
+package's own `Development Status :: 3 - Alpha` classifier. It has been replaced with measured
+state. Per the matrix above: promotion decision automation is **Partial / gated**, the long-tail
+audit/report script ecosystem is **Experimental**, and release packaging and broader convergence is
+**Planned / evolving**. All engines remain deliberately **`unsettled`** (5 live, 5 planned), and CI
+has only exercised the full `tests/` suite since 2026-10-07 — before that, CI ran a subset that
+excluded 680 files. See [ROADMAP.md](ROADMAP.md) and [KANBAN.md](KANBAN.md) for the blockers.
 
-## 🚀 Production Status
-
-> **Status**: PRODUCTION READY - All systems operational
-
-- **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE
-- **Tests**: 3,548 passing, 3,559 collected (was reported here as 236 — stale by more than an order of magnitude)
-- **Live Data**: PostgreSQL adapter verified
-- **Docker Image**: `abraxas-dashboard-api:2.0.1` built and tested
-- **UI**: Built and distributable (`dashboard/frontend/dist/`)
-
-For production deployment details, see:
+For deployment details, see:
 - [docs/EXECUTION_HISTORY.md](docs/EXECUTION_HISTORY.md) — the consolidated record of the deployment and live-data work, with every named artifact verified present.
 
 ## Project status

@@ -52,6 +52,14 @@ jobs:
       # failures fixed in the 2026-10-08 remediation lived in tests/*.py and were
       # invisible to CI by construction. The suite is green now, so CI can enforce it;
       # a green suite with no guardian rots back. Keep the named files below.
+      # Coverage is measured here because it was measured NOWHERE before. [tool.coverage.run] and
+      # [tool.coverage.report] were fully specified and this job even installed pytest-cov, but no
+      # workflow ever passed --cov -- so `fail_under` was dormant configuration and the real figure
+      # (63% on 2026-10-08) was unknown. It rides the existing run rather than adding a fourth
+      # pytest pass, so the only added cost is instrumentation.
+      #
+      # The floor lives in pyproject.toml, not here, so there is one number. Verified enforced by
+      # pytest-cov, not assumed: a 3-test subset reports 1.09% and exits 1 against the 60 floor.
       - name: Run core tests
         run: |
           python -m pytest tests/ webpanel abraxas/evidence \
@@ -60,7 +68,9 @@ jobs:
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
             tests/test_resonance_narratives_* tests/test_oracle_v2* \
             tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
-            tests/test_ritual_system.py -q --tb=short
+            tests/test_ritual_system.py \
+            -q --tb=short \
+            --cov=abraxas --cov=abx --cov=abx_familiar --cov-report=term-missing:skip-covered
       
       # This step was named "Verify test count" and verified no count at all. It piped
       # `--collect-only -q` into `grep "test session starts"`, and pytest prints that

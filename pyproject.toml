@@ -4,39 +4,53 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "abraxas"
-version = "1.5.0"
+# SINGLE SOURCE OF TRUTH. Canon authority is .abraxas/gates.json CANON_VERSION = "v2.0.1", which
+# the README badge and the CHANGELOG's most recent released milestone agree with. This field said
+# 1.5.0 while all three of those said 2.0.1; abraxas.__version__ now reads back from here, and
+# tests/test_version_single_source.py fails if any of the four drift apart again.
+version = "2.0.1"
 description = "Abraxas - Deterministic Symbolic Intelligence with Predictive Forecasting"
 readme = "README_ORIN.md"
 requires-python = ">=3.8"
+license = {text = "MIT"}
 authors = [
     {name = "Abraxas Team"},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    # 3.12 is what CI actually runs, and it was listed nowhere -- so the one version that is
+    # genuinely exercised was the one version not claimed.
+    "Programming Language :: Python :: 3.12",
 ]
 
 # Core dependencies
 # Note: this list includes both truth-authoritative dependencies and launch-surface
 # dependencies. The governance manifest (.aal/dependency_manifest.v0.yaml) is the
 # canonical source for truth-authority boundaries.
+#
+# EVERY ENTRY NOW CARRIES AN UPPER BOUND. Without one, a major release of any dependency lands
+# silently on the next install: pydantic 3, numpy 3 or cryptography 47 could arrive untested and
+# unbudgeted. The caps were chosen so the versions already installed and passing CI still satisfy
+# them -- an upper bound that forces a resolution change is a different, larger change.
 dependencies = [
-    "pydantic>=2.0.0",
-    "typer>=0.12.0",
-    "jsonschema>=4.22.0",
-    "rich>=13.0.0",
-    "fastapi>=0.111.0",
-    "uvicorn>=0.30.0",
-    "numpy>=1.24.0",
-    "cryptography>=42.0.0",
-    "cbor2>=5.6.0",
-    "msgpack>=1.0.8",
-    "zstandard>=0.23.0",
+    "pydantic>=2.0.0,<3",
+    "typer>=0.12.0,<1",
+    "jsonschema>=4.22.0,<5",
+    "rich>=13.0.0,<15",
+    "fastapi>=0.111.0,<1",
+    "uvicorn>=0.30.0,<1",
+    "numpy>=1.24.0,<3",
+    "cryptography>=42.0.0,<47",
+    "cbor2>=5.6.0,<6",
+    "msgpack>=1.0.8,<2",
+    "zstandard>=0.23.0,<1",
 ]
 
 [project.optional-dependencies]
@@ -221,6 +235,14 @@ source = ["abraxas", "abx", "abx_familiar"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]
+# Measured 63% on 2026-10-08 (74,840 statements, 27,849 missed) across abraxas+abx+abx_familiar.
+# The floor sits ~3 points low so ordinary churn does not trip it; its job is to stop the number
+# drifting DOWN unnoticed, which is what an ungated coverage config does. Raise it deliberately.
+#
+# This was dormant configuration until 2026-10-08: [tool.coverage] was fully specified and CI even
+# installed pytest-cov, but no workflow ever passed --cov, so coverage was never measured anywhere.
+# The floor is only enforced because .github/workflows/ci.yml now runs the suite under --cov.
+fail_under = 60
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
