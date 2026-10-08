@@ -1,5 +1,24 @@
 name: Auto-move Cards on Merge
 
+# Rewritten 2026-10-08 against GitHub PROJECTS V2.
+#
+# The original drove GitHub Projects (classic) through
+# alex-page/github-project-automation-plus@v0.8.0, targeting a project named "Kanban" with
+# To Do / In Progress / Done columns. Projects classic is retired -- the REST endpoint now
+# returns 404 -- and no such project existed, so this workflow had never run successfully.
+# The board it targets now exists for real: GitHub Projects v2 "Kanban", number 7,
+# owner scrimshawlife-ctrl.
+#
+# AUTH -- why this uses a secret and not GITHUB_TOKEN:
+#   GITHUB_TOKEN is scoped to the repository, and GitHub Projects sits OUTSIDE that scope,
+#   so it cannot read or write any Projects v2 API. GitHub's own documentation directs you
+#   to a token carrying explicit Projects permissions. This repository's owner is a USER,
+#   not an organization, and for user-owned projects the only supported credential is a
+#   CLASSIC personal access token with the `project` scope (fine-grained tokens do not
+#   support user-owned projects). Store it as the repository secret PROJECT_TOKEN.
+#   Without it, the job fails with the explicit message below rather than a cryptic
+#   "Could not resolve to a ProjectV2" error.
+
 on:
   pull_request:
     types: [closed]
@@ -10,17 +29,36 @@ jobs:
     name: Auto-move PR to Done
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-      contents: read
     steps:
-      - name: Auto-move to Done column
-        uses: alex-page/github-project-automation-plus@v0.8.0
-        with:
-          project: Kanban
-          column: Done
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-        # Note: Requires GitHub Project (classic) named "Kanban" 
-        # with columns: To Do, In Progress, Done
-        # Enable in repo Settings > Projects > Automation
+      - name: Add the merged PR to Kanban and set Status = Done
+        env:
+          # A classic PAT with the `project` scope. NOT github.token -- see the AUTH note.
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::PROJECT_TOKEN is not set, so this job cannot reach Projects v2."
+            echo "The default GITHUB_TOKEN is repository-scoped and cannot access Projects."
+            echo "Add a CLASSIC personal access token with the 'project' scope as the repository"
+            echo "secret PROJECT_TOKEN (fine-grained tokens do not support user-owned projects)."
+            exit 1
+          fi
+
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          echo "merged PR: $PR_URL"
+
+          # Idempotent: when the PR is already on the board this returns the existing item
+          # rather than creating a duplicate (measured: item-add run twice on one PR returned
+          # the same item id and the board count stayed at 1).
+          ITEM_ID="$(gh project item-add 7 --owner scrimshawlife-ctrl --url "$PR_URL" --format json --jq '.id')"
+          echo "project item: $ITEM_ID"
+
+          # Status is a single-select field on project 7; 98236657 is its "Done" option.
+          gh project item-edit \
+            --id "$ITEM_ID" \
+            --project-id PVT_kwHODd8rms4BmKxM \
+            --field-id PVTSSF_lAHODd8rms4BmKxMzhk01Z4 \
+            --single-select-option-id 98236657
+
+          echo "moved merged PR to Done."
