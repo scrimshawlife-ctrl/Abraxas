@@ -166,5 +166,13 @@ jobs:
       - run: make release-readiness
       - run: make test
       - run: make repo-status
-      - run: make continuity-drift || true
+      # NOT `|| true` any more. This was the one unlabeled swallow in an otherwise strict
+      # gate: the canonical `make repo-guardrails` target runs continuity-drift WITHOUT a
+      # swallow, and the check is deterministic in CI because its inputs
+      # (.abraxas/subsystems/*.yaml + .abraxas/registries/expected_subsystems.yaml) are
+      # TRACKED. It exits 1 exactly when a promoted subsystem's release_readiness is
+      # blocked/partial/attestation_pending -- a real contradiction. Swallowing it made that
+      # undetectable. Steps above that are advisory say so in their names
+      # ("read-only visibility"); this one is a gate.
+      - run: make continuity-drift
       - run: make release-manifest
