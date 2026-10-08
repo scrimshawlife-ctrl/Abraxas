@@ -12,7 +12,7 @@ Abraxas is not a conventional product—it's a **symbolic intelligence instrumen
 
 ---
 
-## ✅ COMPLETE — Q1 2025 Critical Path
+## ✅ COMPLETE — Critical Path (previously labelled "Q1 2025")
 
 **All critical path items delivered** — Abraxas has transitioned from **descriptive → predictive**
 
@@ -90,7 +90,7 @@ Signal → Compression → Forecast → Narrative
 - [x] **Production runs real evidence engines** — mocks are opt-in only.
 - [ ] **Open decisions** — non-censorship scan patterns; EPP dual-fixture. See the kanban.
 
-## 🚀 NEXT — High-Value Extensions (Q2 2025)
+## 🚀 NEXT — High-Value Extensions (previously labelled "Q2 2025"; not yet scheduled)
 
 ### 4. Resonance Narratives
 **Status:** **COMPLETE** — Output layer operational
@@ -138,7 +138,7 @@ Signal → Compression → Forecast → Narrative
 
 ---
 
-## ⏳ LATER — Infrastructure & Scale (Q3-Q4 2025)
+## ⏳ LATER — Infrastructure & Scale (previously labelled "Q3-Q4 2025"; unscheduled)
 
 ### 6. PostgreSQL Migration
 **Status:** In Progress → **DEPRIORITIZED**
@@ -220,7 +220,7 @@ Signal → Compression → Forecast → Narrative
 
 ### v1.5.0 — Predictive Intelligence Layer (2025-12-29)
 
-**Q1 2025 Critical Path Complete** — 4 commits, 12 files, 3,392 lines
+**Critical Path Complete** — 4 commits, 12 files, 3,392 lines
 
 **Commit 1:** Domain Compression Engines (DCE) - Critical Path #1
 - Versioned lexicon framework with lineage tracking

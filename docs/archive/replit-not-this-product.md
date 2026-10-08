@@ -1,3 +1,5 @@
+> ARCHIVED 2026-10-08: describes a DIFFERENT PRODUCT ("Abraxas Mystical Trading Application"). Kept for provenance only. Nothing in this repo referenced it.
+
 # Abraxas Mystical Trading Application
 
 ## Overview

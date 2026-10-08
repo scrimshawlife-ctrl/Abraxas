@@ -1,3 +1,5 @@
+> ARCHIVED 2026-10-08: a PR description for ABX-Runes Coupling Migration phase 1, which reported "50% Complete" on 2026-10-05. Stale as a repo document; kept for provenance. Nothing in this repo referenced it.
+
 # ABX-Runes Coupling Migration - Phase 1 (50% Complete)
 
 ## Summary
