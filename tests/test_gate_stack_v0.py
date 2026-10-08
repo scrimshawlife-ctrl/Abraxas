@@ -108,30 +108,31 @@ def test_banner_rendered_on_run_page():
     show_sections = prefs_show_sections(prefs)
     env = Environment(loader=FileSystemLoader("webpanel/templates"), autoescape=True)
     template = env.get_template("run.html")
+    # Same builder the routes use -- this test previously hand-built a partial context,
+    # the same drift that let the error path ship without `profile_recommendation`.
+    from webpanel.routes.runs_routes import _run_page_context
+
     rendered = template.render(
-        run=run,
-        events=[],
-        chain_valid=True,
-        lineage_ids=[],
-        panel_token="",
-        panel_host="",
-        panel_port="",
-        token_enabled=False,
-        current_policy_hash="hash_b",
-        current_policy_snapshot={},
-        policy_status="CHANGED",
-        policy_diff_keys=[],
-        policy_ack_required=True,
-        policy_current_hash="hash_b",
-        oracle_view=None,
-        oracle_validation={"valid": True, "errors": []},
-        gate_stack=gates,
-        top_gate=gates[0],
-        considerations={},
-        continuity_report=None,
-        continuity_summary_lines=None,
-        prefs=prefs,
-        show_sections=show_sections,
+        _run_page_context(
+            run=run,
+            events=[],
+            chain_valid=True,
+            lineage_ids=[],
+            current_hash="hash_b",
+            current_snapshot={},
+            policy_status="CHANGED",
+            policy_diff_keys=[],
+            policy_ack_required=True,
+            oracle_view=None,
+            oracle_validation={"valid": True, "errors": []},
+            gate_stack=gates,
+            top_gate=gates[0],
+            considerations={},
+            continuity_report=None,
+            continuity_summary_lines=None,
+            prefs=prefs,
+            show_sections=show_sections,
+        )
     )
     assert "Gate:" in rendered
     assert "Policy changed since ingest." in rendered

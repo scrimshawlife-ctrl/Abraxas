@@ -60,28 +60,32 @@ def test_run_template_renders_oracle_section():
     show_sections = prefs_show_sections(prefs)
     env = Environment(loader=FileSystemLoader("webpanel/templates"), autoescape=True)
     template = env.get_template("run.html")
+    # Build the context with the SAME builder the routes use. Previously this test
+    # hand-built a partial dict that mirrored the broken error path -- which is why it
+    # was the only thing that caught the missing `profile_recommendation`. Using the
+    # real builder means the test cannot pass while a route render would fail.
+    from webpanel.routes.runs_routes import _run_page_context
+
     rendered = template.render(
-        run=run,
-        events=[],
-        chain_valid=True,
-        lineage_ids=[],
-        panel_token="",
-        panel_host="",
-        panel_port="",
-        token_enabled=False,
-        current_policy_hash="",
-        current_policy_snapshot={},
-        policy_status="UNKNOWN",
-        policy_diff_keys=[],
-        oracle_view=oracle_view,
-        oracle_validation={"valid": valid, "errors": errors},
-        gate_stack=[],
-        top_gate=None,
-        considerations={},
-        continuity_report=None,
-        continuity_summary_lines=None,
-        prefs=prefs,
-        show_sections=show_sections,
+        _run_page_context(
+            run=run,
+            events=[],
+            chain_valid=True,
+            lineage_ids=[],
+            current_hash="",
+            current_snapshot={},
+            policy_status="UNKNOWN",
+            policy_diff_keys=[],
+            oracle_view=oracle_view,
+            oracle_validation={"valid": valid, "errors": errors},
+            gate_stack=[],
+            top_gate=None,
+            considerations={},
+            continuity_report=None,
+            continuity_summary_lines=None,
+            prefs=prefs,
+            show_sections=show_sections,
+        )
     )
     assert "Oracle (OSLv2)" in rendered
     assert "Download oracle.json" in rendered

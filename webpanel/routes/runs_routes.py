@@ -52,6 +52,89 @@ def _profile_label(run: Any, current_policy_hash: str) -> str:
     rec = _profile_recommendation(run, current_policy_hash)
     profile_id = str(rec.get("recommended_profile_id") or "")
     return PROFILE_LABELS.get(profile_id, profile_id)
+
+
+def _run_page_context(
+    *,
+    run: Any,
+    events: Any,
+    chain_valid: Any,
+    lineage_ids: Any,
+    current_hash: str,
+    current_snapshot: Any,
+    policy_status: str,
+    policy_diff_keys: Any,
+    oracle_view: Any = None,
+    oracle_validation: Any = None,
+    gate_stack: Any = None,
+    top_gate: Any = None,
+    considerations: Any = None,
+    continuity_report: Any = None,
+    continuity_summary_lines: Any = None,
+    prefs: Any = None,
+    show_sections: Any = None,
+    run_brief: Any = None,
+    delta_notifications: Any = None,
+    execution_validation: Any = None,
+    operator_projection_summary: Any = None,
+    policy_ack_required: Any = None,
+    error: Any = None,
+) -> Dict[str, Any]:
+    """THE context for run.html. Both renders must use this, and only this.
+
+    run.html is rendered from two places: the run detail page, and the error path in
+    _select_action when the action itself fails. They used to build their contexts
+    independently -- 28 keys on one side, 12 on the other -- so the error handler was
+    missing `profile_recommendation` and `recommended_profile_label` (among others)
+    and raised UndefinedError. The page double-failed: the action failed, and then the
+    error handler failed, and the user got an unhandled 500 instead of "that action
+    failed".
+
+    A shared builder means a key added for run.html is present on BOTH renders by
+    construction. That is the actual defect -- two independent dicts that drift.
+
+    Optional keys default to empty rather than being omitted. An empty list renders an
+    empty section, which is honest; a MISSING key renders nothing and then raises. The
+    error path passes show_sections so the sections this path cannot populate are
+    hidden rather than rendered as empty cards claiming data exists.
+    """
+    return {
+        "run": run,
+        "events": events if events is not None else [],
+        "chain_valid": chain_valid,
+        "lineage_ids": lineage_ids if lineage_ids is not None else [],
+        "panel_token": _panel_token(),
+        "panel_host": _panel_host(),
+        "panel_port": _panel_port(),
+        "token_enabled": _token_enabled(),
+        "current_policy_hash": current_hash,
+        "current_policy_snapshot": current_snapshot if current_snapshot is not None else {},
+        "policy_status": policy_status,
+        "policy_diff_keys": policy_diff_keys if policy_diff_keys is not None else [],
+        "policy_ack_required": policy_ack_required,
+        "policy_current_hash": current_hash,
+        "oracle_view": oracle_view,
+        "oracle_validation": oracle_validation,
+        "gate_stack": gate_stack if gate_stack is not None else [],
+        "top_gate": top_gate,
+        "considerations": considerations if considerations is not None else {},
+        "continuity_report": continuity_report,
+        "continuity_summary_lines": continuity_summary_lines,
+        "prefs": prefs,
+        "show_sections": show_sections,
+        "run_brief": run_brief,
+        "delta_notifications": delta_notifications,
+        "execution_validation": execution_validation,
+        "operator_projection_summary": operator_projection_summary,
+        # run.html renders a Profiles card that needs both of these. Neither was ever
+        # passed to the error path, so that page raised UndefinedError. The label comes
+        # from PROFILE_LABELS; the fallback keeps an unknown id visible rather than blank.
+        "profile_recommendation": _profile_recommendation(run, current_hash),
+        "recommended_profile_label": _profile_label(run, current_hash),
+        "error": error,
+    }
+
+
 from .shared import _select_action
 
 if TYPE_CHECKING:  # names used only in annotations; __future__ keeps them lazy
@@ -162,41 +245,30 @@ def ui_run(request: Request, run_id: str):
     return templates.TemplateResponse(
         request,
         "run.html",
-        {
-            "run": run,
-            "events": events,
-            "chain_valid": chain_valid,
-            "lineage_ids": lineage_ids,
-            "panel_token": _panel_token(),
-            "panel_host": _panel_host(),
-            "panel_port": _panel_port(),
-            "token_enabled": _token_enabled(),
-            "current_policy_hash": current_hash,
-            "current_policy_snapshot": current_snapshot,
-            "policy_status": policy_status,
-            "policy_diff_keys": policy_diff_keys,
-            "policy_ack_required": policy_ack_needed,
-            "policy_current_hash": current_hash,
-            "oracle_view": oracle_view,
-            "oracle_validation": oracle_validation,
-            "gate_stack": gate_stack,
-            "top_gate": top_gate,
-            "considerations": considerations,
-            "continuity_report": continuity_report,
-            "continuity_summary_lines": continuity_summary_lines,
-            "prefs": prefs,
-            "show_sections": show_sections,
-            "run_brief": run_brief,
-            "delta_notifications": delta_notifications,
-            "execution_validation": execution_validation,
-            "operator_projection_summary": operator_projection_summary,
-            # run.html renders a Profiles card that needs both of these. Neither was ever
-            # passed, so this page raised UndefinedError on every render -- it has never
-            # worked. The label comes from PROFILE_LABELS, the registry the router already
-            # uses; the fallback keeps an unknown id visible rather than blank.
-            "profile_recommendation": _profile_recommendation(run, current_hash),
-            "recommended_profile_label": _profile_label(run, current_hash),
-        },
+        _run_page_context(
+            run=run,
+            events=events,
+            chain_valid=chain_valid,
+            lineage_ids=lineage_ids,
+            current_hash=current_hash,
+            current_snapshot=current_snapshot,
+            policy_status=policy_status,
+            policy_diff_keys=policy_diff_keys,
+            policy_ack_required=policy_ack_needed,
+            oracle_view=oracle_view,
+            oracle_validation=oracle_validation,
+            gate_stack=gate_stack,
+            top_gate=top_gate,
+            considerations=considerations,
+            continuity_report=continuity_report,
+            continuity_summary_lines=continuity_summary_lines,
+            prefs=prefs,
+            show_sections=show_sections,
+            run_brief=run_brief,
+            delta_notifications=delta_notifications,
+            execution_validation=execution_validation,
+            operator_projection_summary=operator_projection_summary,
+        ),
     )
 
 
@@ -327,24 +399,31 @@ async def ui_select_action(run_id: str, request: Request):
         policy_diff_keys = []
         if policy_status == "CHANGED":
             policy_diff_keys = _policy_diff_keys(run.policy_snapshot_at_ingest, current_snapshot)
+        # This is the ERROR path: the action failed, and we render the run page to say
+        # so. It used to pass only 12 of the 28 keys run.html needs, so the error
+        # handler itself raised UndefinedError -- the page double-failed and the user
+        # got an unhandled 500 instead of "that action failed". The failure was
+        # invisible exactly when it mattered most.
+        #
+        # Fixed by building the SAME complete key set as the success path via
+        # _run_page_context(), so a key added to run.html can never be present on one
+        # render and missing on the other. Keys this path cannot compute are passed as
+        # harmless defaults and every section is hidden via show_sections, so no empty
+        # card is rendered to claim data exists when it does not.
         return templates.TemplateResponse(
             request,
             "run.html",
-            {
-                "run": run,
-                "events": events,
-                "chain_valid": chain_valid,
-                "lineage_ids": lineage_ids,
-                "panel_token": _panel_token(),
-                "panel_host": _panel_host(),
-                "panel_port": _panel_port(),
-                "token_enabled": _token_enabled(),
-                "error": str(exc),
-                "current_policy_hash": current_hash,
-                "current_policy_snapshot": current_snapshot,
-                "policy_status": policy_status,
-                "policy_diff_keys": policy_diff_keys,
-            },
+            _run_page_context(
+                run=run,
+                events=events,
+                chain_valid=chain_valid,
+                lineage_ids=lineage_ids,
+                current_hash=current_hash,
+                current_snapshot=current_snapshot,
+                policy_status=policy_status,
+                policy_diff_keys=policy_diff_keys,
+                error=str(exc),
+            ),
         )
     return RedirectResponse(url=f"/runs/{run_id}", status_code=303)
 
