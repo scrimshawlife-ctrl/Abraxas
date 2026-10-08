@@ -122,3 +122,21 @@ Net effect: one fewer workflow, no secret, and no red run on every merge.
 Label a docs-only PR `docs` + `automerge`. If the path gate passes, the workflow arms squash auto-merge. Remove either label to disarm.
 
 Runtime, rune, contract, and governance PRs stay manual.
+
+## Branch protection interacts with this gate
+
+`main` requires branches to be **up to date** before merging
+(`required_status_checks.strict = true`) and permits branch updates
+(`allow_update_branch = true`).
+
+That matters here specifically because an auto-merge performed by `GITHUB_TOKEN` produces
+**no workflow run** on the resulting commit: GitHub suppresses events from the default token.
+Requiring up-to-date branches closes that gap without needing a post-merge trigger — the
+squashed tree is then byte-identical to the tree that already passed the required checks, so
+the merged commit *is* the tested commit. Measured exposure before the change: **1 of the
+last 30 commits** on `main` (`59e09f63`, the first auto-merged PR).
+
+Consequence for this gate: a docs PR that falls behind `main` is reported `BEHIND` and will
+not merge until its branch is current. Use **Update branch** (one click) to bring it up to
+date. Verified: a branch deliberately 4 commits behind reported
+`mergeStateStatus=BEHIND`.
