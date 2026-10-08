@@ -121,18 +121,36 @@ All four were fixed in the reconciliation pass that followed this assessment:
 
 **DECIDED 2026-10-08: beta means (A), the operator-supervised shadow beta.**
 
-(A) is what the system already is by design, and it is reachable in days. The outstanding items
-are release mechanics (done: `v2.1.0` shipped) and CI history (wall-clock, not work).
+## Beta 1 scope declaration (2026-10-08)
 
-(B), a public or live beta, is **governance-gated rather than work-gated**. It requires an
-`empirical` and an `economic` settlement on every engine, and the finding that matters is that
-**the repository has no mechanism to record either**. So (B) does not begin with engineering; it
-begins with defining what those claims mean and who verifies them. That is an operator act, not a
-task, and it is deliberately out of scope here.
+**IN SCOPE:** the operator-supervised shadow beta. The system observes, forecasts and reports; it
+does not autonomously act and does not mutate the canon. Release mechanics are done (`v2.1.0`
+shipped). The remaining gate is CI history, which is wall-clock rather than work.
 
-**[JUDGEMENT]** The package classifier remains `Development Status :: 3 - Alpha` on purpose. A
-scope decision is not a maturity claim, and the stated blocker for declaring beta is CI history.
-The flip criterion is written in `pyproject.toml` next to the classifier.
+**EXPLICITLY OUT OF SCOPE for beta 1:** `empirical` and `economic` settlement on any engine.
+
+Why this is a declaration and not merely a deferral. Both levels are *defined but unimplemented*.
+The doctrine names their criteria (`docs/DOCTRINE.md:49-53`) and the dataclass carries their fields
+(`abraxas/engines/settlement.py:28-41`), but no survey measures them, no harness evaluates them, no
+test corroborates a claim about them, and nothing reads their evidence fields. `technical`
+settlement, by contrast, is fully mechanized and guarded by a corroboration test that refuses any
+claim the survey cannot measure. Declaring a level settled with no mechanism behind it is the exact
+failure the technical-settlement infrastructure exists to prevent, so the honest position is to
+leave both `unsettled` and say so out loud.
+
+**WHO CLOSES IT:** the operator, by defining what evidence constitutes each level and who evaluates
+it. That is a governance act, not an engineering task, and satisfying it means building a second
+measurement pipeline of scope comparable to the technical one.
+
+**WHAT BRINGS IT BACK IN SCOPE:** any beta that a party other than the operator relies on. The
+shadow-only design mitigates the absence of empirical settlement for an operator-supervised beta. It
+does not mitigate it for an unsupervised one.
+
+This is not a maturity claim: the package classifier stays `Development Status :: 3 - Alpha` on
+purpose, and the flip criterion is written in `pyproject.toml` next to the classifier.
+
+**Guard:** `tests/test_beta_scope_declaration.py` fails if this declaration disappears, or if any
+engine declares an `empirical` or `economic` settlement the pipeline cannot measure.
 
 ### Superseded: the earlier framing of this section
 
