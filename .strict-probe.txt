@@ -1,0 +1,1 @@
+probe: strict-up-to-date verification
