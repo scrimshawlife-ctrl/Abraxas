@@ -76,6 +76,12 @@ tools/aatf/.aatf/
 # TimesFM Shadow lab evidence (local only; never commit)
 out/timesfm_shadow/
 
+# Hermes agent workspace (local working docs: plans, scratch). These are never
+# meant for the repo -- committing them would put agent planning artifacts into
+# project history. Not previously ignored, so they were one `git add -A` away
+# from being swept in. .hermes/plans/ holds ~14 planning docs from 2026-10-03 on.
+.hermes/
+
 # MDA run outputs (if placed under sandbox)
 *.invariance_report.json
 *.fusion_graph.json
