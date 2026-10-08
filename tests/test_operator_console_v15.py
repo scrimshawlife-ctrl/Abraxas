@@ -4,6 +4,8 @@ import json
 import os
 from pathlib import Path
 
+from abx.invariance_harness import normalize_for_invariance
+
 import webpanel.operator_console as operator_console
 from webpanel.operator_console import (
     _compute_suggested_next_step,
@@ -1077,7 +1079,15 @@ def test_run_id_propagation_export_status_does_not_mutate_unrelated_state(tmp_pa
         latest_run_id_propagation_export_path="artifacts_seal/abraxas_binding/20260329T000000Z.run_id_propagation.json",
     )
     assert state_view.selected_run_detail == base_view.selected_run_detail
-    assert state_view.runtime_corridor == base_view.runtime_corridor
+    # Compared through the repository's canonical normalization rule set: runtime_corridor
+    # embeds an export preview whose `artifact_id` is minted from datetime.now() at second
+    # resolution on EVERY build, and whose `timestamp` is likewise live. Those are export
+    # identity, not corridor state, so two builds a second apart differ in exactly them --
+    # which made this non-mutation assertion time-dependent (CI failed 2026-10-08 with
+    # runtime_corridor.20261008t072642z vs ...t072643z, one second apart, nothing else
+    # different). `abx/invariance_harness.normalize_for_invariance` already drops volatile
+    # timestamp keys and now also neutralises clock-stamped identifier values.
+    assert normalize_for_invariance(state_view.runtime_corridor) == normalize_for_invariance(base_view.runtime_corridor)
 
 
 def test_pipeline_envelope_persists_canonical_run_id_from_invocation_payload() -> None:
@@ -1254,7 +1264,9 @@ def test_context_restoration_layer_does_not_mutate_unrelated_operator_state(tmp_
         latest_context_export_path="artifacts_seal/abraxas_context/20260329T000000Z.context_restoration.json",
     )
     assert context_view.selected_run_detail == base_view.selected_run_detail
-    assert context_view.runtime_corridor == base_view.runtime_corridor
+    # Same rule as test_run_id_propagation_export_status_does_not_mutate_unrelated_state:
+    # normalize the per-call export identity before comparing corridor state.
+    assert normalize_for_invariance(context_view.runtime_corridor) == normalize_for_invariance(base_view.runtime_corridor)
 
 
 def test_ers_state_and_queue_surfaces_are_deterministic(tmp_path: Path) -> None:
