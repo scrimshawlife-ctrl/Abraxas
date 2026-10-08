@@ -205,6 +205,36 @@ DEC-004 was answered by declining to close it (no Abraxas consumer).
 
 ---
 
+## 6. CI scope — the suite CI never ran (FOUND 2026-10-08, FIXED)
+
+**This is the root cause behind §1. All 7 failures were invisible to CI by
+construction.**
+
+CI's pytest scope was:
+```
+python -m pytest tests/evidence tests/integration tests/chaos webpanel
+```
+**`tests/` was never included. It holds 680 files.** A full-suite pytest command
+appeared in `.github/workflows/ci.yml` **zero times**.
+
+Every one of the 7 tests fixed on 2026-10-08 lives in `tests/*.py` — outside that
+scope. So CI could not have caught them however long they sat there, and the
+`--ignore`-needed collection interrupt (§2) meant even manual full runs were partial.
+
+**Fixed** in `7a3a2abf`: scope widened to `tests/ webpanel abraxas/evidence` in all
+three pytest steps (the count was asserted as exactly 3 so a partial replace could
+not silently land), with the explicitly-named files kept rather than dropped.
+
+**Verified** by running CI's exact command locally first: 3874 passed / 0 failed.
+CI itself watched separately after push — local is not CI, and the local environment
+is part of the measurement.
+
+**The guard against regression:** if CI goes red on something local does not, that is
+a real finding to fix. **It is NOT a reason to narrow the scope back.** Narrowing a
+scan to make it pass is the defect this change removes.
+
+---
+
 ## Cross-cutting finding
 
 **Eight instances this session of something reporting success while failing:**
