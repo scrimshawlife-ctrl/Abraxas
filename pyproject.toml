@@ -105,6 +105,9 @@ dev = [
     # the [server] extra is left free.
     "starlette<1.0",
     "httpx>=0.27.0",
+    # The linter is a DECLARED dev dependency, not a globally-hoped-for binary: CI installs
+    # `.[dev]` and then runs `make lint`, so ruff has to arrive the same way the tests do.
+    "ruff>=0.6",
 ]
 
 # Full installation (server + dev)
@@ -158,6 +161,48 @@ filterwarnings = [
     # (in tests/) errors the run.
     "error::pytest.PytestReturnNotNoneWarning",
 ]
+
+[tool.ruff]
+# A DELIBERATE standard, not "whatever ruff happens to default to". Two scope choices are
+# load-bearing and are recorded here so nobody has to re-derive them:
+#
+#   UP is NOT selected. The `typing.List` -> `list` annotation migration is 6,484 findings on
+#   its own; switching it on would bury every real finding under a migration that deserves its
+#   own scheduled change.
+#   E5 (line length) is NOT selected either -- `line-length` below governs the formatter only.
+#
+# Excluded paths are the tree's generated/rewritten surfaces (out/, data/, .abraxas/, .aal/) and
+# the JS frontend, none of which are Python we own.
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    "out",
+    "data",
+    ".abraxas",
+    ".aal",
+    "frontend",
+    "examples",
+]
+
+[tool.ruff.lint]
+select = [
+    "F",   # pyflakes: real defects -- unused imports/vars, redefinitions, undefined names
+    "E4",  # import conventions
+    "E7",  # statement-level issues
+    "E9",  # runtime errors
+    "W",   # whitespace
+    "I",   # import sorting
+    "B",   # flake8-bugbear: likely-bug patterns
+    "C4",  # comprehension simplifications
+    "SIM", # simplifications
+    "RUF", # ruff's own correctness rules
+]
+
+# NOTHING IS IGNORED HERE ON PURPOSE. This ruleset has pre-existing debt, so the gate is a
+# RATCHET (scripts/lint_ratchet.sh): the recorded per-rule counts may only ever DECREASE.
+# An `ignore` would switch a rule OFF, and then a new violation of it could never fail --
+# the ratchet keeps every rule ACTIVE and fails on any increase. Strictly stronger than an
+# ignore list, and it mirrors the idiom already used by scripts/test_ratchet.sh.
 
 [tool.coverage.run]
 source = ["abraxas", "abx", "abx_familiar"]

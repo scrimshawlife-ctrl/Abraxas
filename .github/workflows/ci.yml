@@ -124,6 +124,14 @@ jobs:
             -W error::DeprecationWarning \
             -W ignore::DeprecationWarning:starlette.testclient
 
+      # Lint is a RATCHET, not a bare `ruff check`. The configured ruleset ([tool.ruff.lint] in
+      # pyproject.toml) carries pre-existing debt, so a gate that is red on day one and stays red
+      # would just be ignored -- and an `ignore` list would switch rules OFF so a new violation
+      # could never fail. `make lint` keeps every rule active and fails only if a recorded
+      # per-rule count grows. Baseline: scripts/lint_baseline.json.
+      - name: Lint (ratchet)
+        run: make lint
+
   health-check:
     name: Health Check
     runs-on: ubuntu-latest

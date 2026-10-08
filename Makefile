@@ -28,6 +28,8 @@ proof-lookup:
 	$(PYTHON) .abraxas/scripts/proof_requirement_lookup.py --subsystem oracle_signal_layer_v2 --change-class forecast_active_change
 governance-lint:
 	$(PYTHON) .abraxas/scripts/governance_lint.py
+lint:
+	bash scripts/lint_ratchet.sh
 
 ts-canonical-check:
 	npx tsc -p tsconfig.canonical.json --noEmit
