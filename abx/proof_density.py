@@ -102,12 +102,15 @@ def compute_proof_density(
                 per_term[term]["fals_tests"] += 1
             # domain extraction (simple)
             if kind == "url":
-                try:
-                    dom = src.split("//", 1)[-1].split("/", 1)[0].lower()
-                    if dom:
-                        per_term[term]["domains"].add(dom)
-                except Exception:
-                    pass
+                # O4: this was wrapped in try/except Exception: pass, which was DEAD CODE.
+                # Nothing here can raise: src is always str (line 95 coerces it), str.split
+                # always returns a non-empty list so [-1]/[0] are safe, .lower() is safe on
+                # str, and per_term is a defaultdict whose factory always supplies a dict
+                # with "domains" -> set() (line 66). A handler that can never fire is worse
+                # than no handler: it reads as error handling and isn't.
+                dom = src.split("//", 1)[-1].split("/", 1)[0].lower()
+                if dom:
+                    per_term[term]["domains"].add(dom)
 
     # summarize
     terms_out = []

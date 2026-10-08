@@ -95,7 +95,11 @@ def main() -> int:
                         end = end.replace(tzinfo=timezone.utc)
                     if end <= now:
                         due += 1
-                except Exception:
+                except ValueError:  # O4: was bare-broad; narrowed to the provable case
+                    # datetime.fromisoformat is the only operation here that can raise,
+                    # and it raises ValueError on an unparseable timestamp. window_end
+                    # comes from arbitrary JSONL, so a truthy non-ISO value reaches this.
+                    # Intent preserved: skip the due-date check when the timestamp is junk.
                     pass
 
     calibration = []

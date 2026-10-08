@@ -33,9 +33,11 @@ def find_latest_slang_drift(out_reports: str) -> Optional[str]:
                 if os.path.getmtime(p) > best_m:
                     best = p
                     best_m = os.path.getmtime(p)
-            except Exception:
+            except OSError:  # O4: was bare-broad; narrowed to the provable case
                 continue
-    except Exception:
+    except OSError:  # O4: was bare-broad; narrowed to the provable case
+        # The only fallible call reachable here is os.path.getmtime(best); the loop
+        # body has its own handler above, so nothing from it propagates this far.
         pass
     return best
 
