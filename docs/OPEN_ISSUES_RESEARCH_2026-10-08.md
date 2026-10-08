@@ -235,6 +235,63 @@ scan to make it pass is the defect this change removes.
 
 ---
 
+## 7. O4 — the corrected inventory (2026-10-08)
+
+**Every number I quoted for this during the session was produced by a scan that
+could only see part of the pattern. Here is the enumeration with the predicate stated.**
+
+The original classifier counted a handler only when its body was a **lone `pass`**.
+That misses `except Exception: continue` and `except Exception: return`, which are
+the same behaviour written differently. Corrected, across `abraxas/ webpanel/ abx/
+abraxas_ase/ scripts/`, excluding tests:
+
+```
+silent broad handlers (no re-raise):  409
+  via `return`   : 226
+  does work      : 113     (no bare pass/continue/return; not silent by construction)
+  via `continue` :  64
+  via `pass`     :   6
+
+handler bodies that RECORD the failure (log/print/warn):  57 of 409   (14%)
+```
+
+**The actionable subset is 68: handlers with no log AND a terminal
+`pass`/`continue`.** They are spread over **238 files**, and reading them shows a
+single repeated idiom:
+
+```python
+for record in records:
+    try:
+        ...
+    except Exception:
+        continue        # skip the malformed record, silently
+```
+
+in `abx/backfill_14d.py`, `abx/claim_timeseries.py`, `abraxas/oracle/v2/collect.py`,
+`abraxas/memetic/*`, `abx/aalmanac*.py` and dozens more.
+
+**How to read this, because the raw number invites the wrong conclusion:**
+
+- **68 is not 68 defects.** `except Exception: continue` over per-record input is
+  often *correct* — one malformed row should not abort the batch. The verdict for
+  each site depends on whether the input is trusted.
+- **`return` (226) is the weakest signal of all.** `except X: return default` is
+  usually a deliberate fallback.
+- **What is defensible to claim:** 68 places where a failure produces no trace at
+  all, in one consistent idiom. That is an *observability* question — whether silent
+  per-record skip is acceptable — not a narrowing question. It needs a policy
+  decision, not a mechanical edit.
+- **21 sites were examined individually across the O4 work** (narrowed, declined, or
+  removed). Those verdicts stand on their own reading and are unaffected by this
+  count. Only the denominator was ever wrong.
+
+**Lesson worth carrying:** a scan's output is a claim about what the scan can see,
+not about the code. State the predicate before quoting the number. I quoted "28"
+repeatedly, then "298", then "409" — each time from a differently-shaped filter,
+without saying so.
+
+---
+
 ## Cross-cutting finding
 
 **Eight instances this session of something reporting success while failing:**
