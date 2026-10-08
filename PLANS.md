@@ -43,11 +43,6 @@ This file is the append-first execution queue for implementation runs.
 - **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.
 - **Definition of done:** explicit go/no-go decision and scoped UI shell task list with canonical-entrypoint signage preserved.
 
-### P1 — Dependency Manifest Identity Key (line number -> (path, symbol))
-- **Status:** IN PROGRESS
-- **Intent:** stop the dependency-manifest guard failing on unrelated line shifts, while keeping it strict about which dependency is used where.
-- **Definition of done:** the guard keys on `(path, symbol)`; a line shift is tolerated and both drift directions still fail; `execplans/dependency-manifest-rekey.md` closed with measurements.
-- **ExecPlan:** `execplans/dependency-manifest-rekey.md`
 
 
 ### P0 — Large-Run Deterministic Convergence Spine
@@ -87,6 +82,8 @@ This file is the append-first execution queue for implementation runs.
    - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
 
 ## Completed
+- 2026-10-08 — Dependency-manifest guard re-keyed from `(path, line)` to `(path, symbol)`, so an unrelated edit above an import no longer invalidates the record; the fixer no longer labels a position-only change `DRIFT` and the stale descriptive line numbers were refreshed (the `(path, symbol)` sets verified byte-identical). Proven by a counterfactual and by both drift directions, and independently by CI: run `37739497321` on `f69d3951` had gone red on this guard alone from a seven-line shift in `abraxas/storage/compress.py`, and `baf45e77` cleared it (`Test Suite` success). Plan `execplans/dependency-manifest-rekey.md`; commits `baf45e77`, `52a694a2`, `61094724`; ratchet green at `failures=0 collected=3797 floor=3779`.
+
 - 2026-10-06 — Closed the last unmeasured settlement criterion: `replay_probe` in `abraxas/engines/execution_harness.py` persists an envelope, reloads it, reproduces the run, and compares against the RELOADED artifact, mirroring the existing `RuneReplayPacket` contract (`core/execution/replay_runner.py`) instead of forcing that type. Replay is distinguished from determinism by a round-trip counterfactual (a tuple reloads as a list). All six technical criteria are now MEASURED for all five live engines, so `scripts/survey_engine_settlements.py` would corroborate a technical settlement for any of them. Settlements deliberately remain `unsettled` by operator decision — the measurement is scoped to one defined input and a `Settlement` cannot carry that qualification. Commit `e74dfa04`.
 - 2026-10-06 — Single-homed the evidence contract, then measured the settlement criteria (`execplans/single-home-the-evidence-contract.md`). `EvidenceEnvelope`, `RelationStep`, `CandidateOutput`, `EvidenceType`, and `Decision` re-export from `abraxas/evidence/contract.py`; `EvidenceProvider` from `abraxas/evidence/provider.py`; a parametrized guard asserts object identity for all six, and a return-type guard asserts every LIVE engine's `produce_evidence` returns that one envelope. `noesis` no longer returns a bare dict. `schema_version` was PROMOTED onto the canonical envelope (an earlier attempt deleted it and silently broke `EvidenceSchemaMigrator` idempotence). Three tracked `.bak` files removed. `abraxas/engines/execution_harness.py` now runs each LIVE engine twice on identical input, so `scripts/survey_engine_settlements.py` reports MEASURED values for determinism, provenance, and canonical artifacts — `replay` is the only criterion still `?`, so the gap to a technical settlement is exactly one named thing. Commits `a79e5098`, `42e1fc78`, `a7b5b542`, `d6a99628`, `52687912`, `086ba50e`, `64741d6e`, `035e4698`, `2a85e43c`.
 - 2026-04-09 — Notion sync wave-state convergence pass: `build_notion_sync_artifact.py` now consumes `notion_next_steps` closure flags and emits `wave_5_completed` only when both gap metrics and ranked/listed next-step closures are satisfied; refreshed sync + next-step artifacts now agree on Wave-5 completion.

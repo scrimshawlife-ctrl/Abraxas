@@ -73,7 +73,13 @@ This section must always reflect the actual state of the work. Timestamps are UT
       baseline=0  collected=3797 floor=3779`, `OK: within baseline`. (The ratchet's scope is
       `tests/ abraxas/evidence/`, which is why 3797 differs from the 3890 CI collects across
       `tests/ webpanel abraxas/evidence`.)
-- [ ] Phase 4d — awaiting CI on `baf45e77` (the re-key that must clear the red) and on `52a694a2`.
+- [x] (2026-10-08 07:55Z) Phase 4d — CI CONFIRMED. Run `37740593956` on `baf45e77`: `Test Suite` **success**
+      (so the line-drift red from `f69d3951` is cleared by the re-key alone), `Validate Configs` success,
+      with `Pipeline Dry Run` and `Health Check` following. `52a694a2` and `61094724` remain queued at the
+      time of writing; both are doc/manifest-only deltas on top of a green tree.
+
+**Plan complete.** The guard is re-keyed, the fixer is honest, the record's line numbers are accurate,
+and CI is green on the commit that carries the change.
 
 ## Surprises & Discoveries
 
