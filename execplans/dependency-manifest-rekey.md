@@ -69,7 +69,11 @@ This section must always reflect the actual state of the work. Timestamps are UT
       alarm on position-only changes; it now uses the same `(path, symbol)` key as the guard, and the
       stale descriptive line numbers were refreshed with `--write` (the `(path, symbol)` sets verified
       byte-identical before and after).
-- [ ] Phase 4c — awaiting confirmation: CI green on `baf45e77`, and `scripts/test_ratchet.sh` green.
+- [x] (2026-10-08 07:45Z) Phase 4c — ratchet GREEN: `3784 passed, 6 skipped, 9 xfailed`, `failures=0
+      baseline=0  collected=3797 floor=3779`, `OK: within baseline`. (The ratchet's scope is
+      `tests/ abraxas/evidence/`, which is why 3797 differs from the 3890 CI collects across
+      `tests/ webpanel abraxas/evidence`.)
+- [ ] Phase 4d — awaiting CI on `baf45e77` (the re-key that must clear the red) and on `52a694a2`.
 
 ## Surprises & Discoveries
 
@@ -196,6 +200,14 @@ accepts (`4 passed`). Both drift directions still fire: an undeclared site fails
 for (which dependency is used where) and silent about what it is not for (where on the page that
 import happens to sit). No manifest entry changed — the symbols were already correct; only the key
 that compares them was wrong.
+
+**The defect demonstrated itself before the fix shipped.** CI run `37739497321` went red on this guard
+alone while the re-key was still in flight, because a sibling commit in this same session narrowed an
+`except` in `abraxas/storage/compress.py` and shifted that file's `zstandard` imports by seven lines.
+The failure was identical in shape to the `fastapi` off-by-two that started this work, produced by a
+different edit within the hour. That is about as direct as evidence gets that the key, and not
+occasional carelessness, was the defect: the record was made stale by an edit that had nothing to do
+with dependencies, twice, by different hands.
 
 **What remains, stated honestly.** The residual limit in the Decision Log is real: the key cannot see a
 second name added to an existing `from m import a, b` line, because the shared scanner attributes one
