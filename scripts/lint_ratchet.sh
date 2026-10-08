@@ -11,6 +11,22 @@
 # BASELINE MAY ONLY EVER DECREASE, PER RULE. Lower a count in the same commit that fixes a
 #   cluster. Never raise one without saying why -- and prefer fixing.
 #
+# THE F401 CLUSTER IS DELIBERATELY NOT SWEEPABLE, and that is MEASURED, not assumed. Three
+#   throwaway-worktree experiments, each against the full suite (the suite is the judge because
+#   no amount of reading exposed any of these):
+#     1. a re-export held by `# noqa: E402`. That marker covers "import not at top", NOT F401, so
+#        `ruff --fix --select F401` deleted it and cost 54 tests' collection.
+#     2. a re-export carrying NO marker at all (abraxas/integrity/composites.py), findable only by
+#        scanning F401 findings for names that other modules import FROM that same module.
+#     3. WITH both marked, the sweep STILL failed: removing fastapi's FileResponse from
+#        abraxas/dashboard/api.py made .aal/dependency_manifest.v0.yaml a FALSE RECORD, which
+#        tests/test_dependency_import_locations.py catches by design.
+#   The third is the stopping point. Landing this sweep would mean rewriting a governed
+#   declaration of where dependencies are used so that it agrees with a cosmetic edit -- changing
+#   an evidence record to flatter a cleanup. Pay F401 down per cluster instead, reconciling the
+#   manifest deliberately in the same change. Assume more invisible obstacles than these three:
+#   every one was found by measurement, never by reading.
+#
 # A rule ABSENT from the baseline is reported but does NOT fail: a ruff upgrade can introduce
 #   new rule codes, and failing on those would break CI for a reason unrelated to this repo.
 #   Triage it and add it deliberately.
