@@ -11,6 +11,78 @@
   <p>Model identity: <code>{{ inference_status.identity }}</code></p>
   <p>{{ inference_status.note }}</p>
 </div>
+{# Engine topology, read from YggdrasilEngineRegistry at render time -- the same
+   honest-by-construction pattern as the Inference card above. The registry is the only
+   source of truth; there is deliberately no engine list in this file, because a second
+   list is how this view would drift from the architecture again.
+
+   PLANNED is rendered plainly distinct from ACTIVE. That distinction is load-bearing: the
+   registry's EngineStatus docstring records that collapsing it made `aether` (zero files,
+   deliberately planned) indistinguishable from `athanor` (a working provider), which the
+   manifest forbids. #}
+<div class="card">
+  <h2>Engine Topology</h2>
+
+  {% if engine_topology and engine_topology.error %}
+    <p class="warn"><b>Registry could not be read:</b> <code>{{ engine_topology.error }}</code></p>
+    <p>This is a failure to inspect the registry, not a statement that no engines exist.</p>
+  {% elif engine_topology %}
+    <p>
+      <b>{{ engine_topology.counts.engines }}</b> engines
+      &middot; {{ engine_topology.counts.active }} active
+      &middot; {{ engine_topology.counts.planned }} planned
+      {% if engine_topology.counts.other %}&middot; {{ engine_topology.counts.other }} unavailable{% endif %}
+      &middot; {{ engine_topology.counts.coordinator }} coordinator
+      &middot; {{ engine_topology.counts.test_double }} test double
+    </p>
+
+    <h3>Needs a model</h3>
+    <p>These have an inference step to serve.</p>
+    <table>
+      <thead><tr><th>Engine</th><th>State</th><th>Evidence type</th></tr></thead>
+      <tbody>
+      {% for row in engine_topology.needs_model %}
+        <tr class="state-{{ row.state }}">
+          <td><code>{{ row.name }}</code></td>
+          <td>{{ row.state }}{% if row.state == "planned" %} <i>(by design &mdash; not built yet)</i>{% endif %}</td>
+          <td>{{ row.evidence_type or "&mdash;"|safe }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3">None registered.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>No model needed</h3>
+    <p>Offline-deterministic by design: these consume inputs supplied to them and never call a model.</p>
+    <table>
+      <thead><tr><th>Engine</th><th>State</th></tr></thead>
+      <tbody>
+      {% for row in engine_topology.no_model %}
+        <tr class="state-{{ row.state }}">
+          <td><code>{{ row.name }}</code></td>
+          <td>{{ row.state }}{% if row.state == "planned" %} <i>(by design &mdash; not built yet)</i>{% endif %}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="2">None registered.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>Not engines</h3>
+    <p>
+      <code>yggdrasil</code> is the coordinator &mdash; it routes to engines and is not itself
+      a target. <code>mock</code> is a test double and carries no production meaning.
+      Neither is counted above.
+    </p>
+    {% for row in engine_topology.non_engines %}
+      <p class="state-{{ row.state }}">
+        <code>{{ row.name }}</code> &mdash; {{ row.kind | replace("_", " ") }}
+      </p>
+    {% endfor %}
+  {% endif %}
+</div>
+
 {% endif %}
 <div class="card">
   <h2>Operator Family Role Law</h2>
@@ -234,7 +306,7 @@
 <div class="card">
   <h2>Manifest Watchlist</h2>
   {% set watchlist = report_manifest_watchlist if report_manifest_watchlist else {} %}
-  <p><b>items:</b> {{ watchlist.items | length if watchlist and watchlist.items else 0 }}</p>
+  <p><b>items:</b> {{ watchlist | length if watchlist else 0 }}</p>
   <table style="width:100%; border-collapse:collapse;">
     <thead>
       <tr>
@@ -245,7 +317,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for item in watchlist.items if watchlist and watchlist.items %}
+      {% for item in watchlist if watchlist %}
       <tr>
         <td>{{ item.artifact_type }}</td>
         <td>{{ item.issue_type }}</td>

@@ -18,6 +18,7 @@ from abx.report_manifest_summary import read_manifest_change_summary
 from abx.report_manifest_watchlist import read_report_manifest_watchlist
 from abx.readiness_comparison import read_latest_comparison
 from abx.reporting_cycle import read_reporting_cycle
+from ..engine_topology import build_engine_topology
 from ..operator_console import (
     build_view_state,
     execute_runtime_adapter,
@@ -1164,6 +1165,7 @@ def ui_operator_console(request: Request):
         "operator_console.html",
         {
             "view": view,
+            "engine_topology": build_engine_topology(),
             "inference_status": inference_status,
             "developer_readiness": developer_readiness,
             "gap_closure_invariance": gap_closure_invariance,
@@ -1503,6 +1505,7 @@ async def ui_run_compliance_probe(request: Request):
         "operator_console.html",
         {
             "view": view_after,
+            "engine_topology": build_engine_topology(),
             "developer_readiness": read_developer_readiness_payload().get("projection", {}),
             "gap_closure_invariance": read_gap_closure_invariance_payload().get("projection", {}),
             "readiness_alignment": read_latest_comparison().get("comparison"),
