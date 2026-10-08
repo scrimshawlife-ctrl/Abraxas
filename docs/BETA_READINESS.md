@@ -70,14 +70,34 @@ is marked **[JUDGEMENT]**.
    numbers** than `v2.0.0` (2026-10-04). All three are ancestors of `main`, so they are harmless but
    ambiguous. Retiring them is an operator action (published tags are history).
 
-### Found during the assessment, outside the blocker list
+### Found during the assessment, since resolved
 
-- **`abraxas/__init__.py` monkeypatches `pathlib.Path.read_text` at import time** to fall back to
-  repo-relative `tests/fixtures/` paths. A shipped library mutating a stdlib method for a test
-  convenience affects every consumer, not just this repo. Should move to a test `conftest.py`.
-- **`replit.md`** describes "a mystical trading application" that does not match this repository.
-- **`ROADMAP.md`** sections are dated Q1–Q4 **2025** while the assessment date is Q4 2026.
-- **`abraxas/evidence/test_hyperlex_q1.py`** is a test module living inside the source package.
+All four were fixed in the reconciliation pass that followed this assessment:
+
+- **`abraxas/__init__.py` monkeypatched `pathlib.Path.read_text` at import time**, shipping a
+  mutated stdlib class to every consumer. Moved to `tests/conftest.py`, where it only affects the
+  test session. `9b771feb`.
+- **`replit.md`** described a different product. Archived to
+  `docs/archive/replit-not-this-product.md`, as was `PR_DESCRIPTION.md`, which still reported a
+  phase as "50% Complete". Both were checked for consumers first: nothing referenced either.
+  `95fe2a1a`.
+- **`ROADMAP.md`** sections were labelled Q1-Q4 2025 while the assessment date is Q4 2026. The
+  labels are removed rather than replaced, because the true quarter is not something the
+  repository states. `95fe2a1a`.
+- **Test modules inside the source package** were distributed to consumers. Measured at 34 across
+  three directories, not the 5 first estimated. **Ratcheted at 34, not fixed**: three mechanisms
+  (a setuptools `exclude`, `include-package-data = false`, and deleting the stale `build/`
+  directory) were each tested against a rebuilt wheel and none moved the count. Root cause is
+  unresolved in setuptools internals and the value at stake is package bloat rather than
+  breakage. `912161f4`.
+
+### Still open, measured and deliberately declined
+
+- **`out/` holds fixtures and run outputs in the same tree.** 178 tracked files, 120 of them dirty
+  after a run, and **61 test files read tracked `out/` files as inputs**. Untracking the outputs
+  would break those tests, and a "a run must not dirty tracked files" guard would fail forever
+  because the files tests assert against are the ones runs rewrite. The real fix is separating
+  fixtures from outputs structurally. Not a hygiene task.
 
 ## The decision that sets the date
 
@@ -90,6 +110,12 @@ autonomy, no Canon mutation"* — and **all ten engines remain deliberately `uns
   beta is days.
 - **Public / live beta** → the gate is the engine settlements. That is a governance decision, not
   an engineering one, and it is the operator's to make.
+
+**Correction to the figures above.** The engine scores read "5 live at 83-93%" when this
+assessment was written. The KANBAN table was a stage behind its own survey: all five live engines
+corroborate all seven integration criteria, so the true figures are **5 live at 90-100%**, 5
+planned at 55-65%. Corrected in `3b47ca13`, and now guarded by
+`tests/test_engine_table_matches_survey.py`.
 
 ## Method
 

@@ -10,12 +10,14 @@
 - [ ] **Multi-domain cascade prediction with live data** — Production deployment & live operation
 
 ## In Progress
-- [ ] **Root-document hygiene follow-up** — 20 root-level `.md` files remain after consolidating 36 status
-      documents into `docs/EXECUTION_HISTORY.md`. The remainder are a mix of substantive subsystem docs
-      (SCO/ORIN/design guides, `QUICKSTART_API.md`) and stale artifacts (`PR_DESCRIPTION.md` says
-      "Phase 1 (50% Complete)"; `replit.md` describes a "mystical trading application" that does not match
-      this repository). Recorded rather than bulk-deleted: deciding these needs someone who knows whether
-      they are still referenced, and `PR_DESCRIPTION.md` may be consumed by tooling.
+- [ ] **Root-document hygiene follow-up** — 17 root-level `.md` files remain after consolidating 36 status
+      documents into `docs/EXECUTION_HISTORY.md`. Two of the stale artifacts named here are **RESOLVED**
+      (2026-10-08): `PR_DESCRIPTION.md` (reported "Phase 1 (50% Complete)") and `replit.md` (described a
+      "mystical trading application" that does not match this repository) both moved to `docs/archive/`
+      with a header naming what they are, after checking that nothing in any `.py`, `.yml`, `.yaml`,
+      `.toml`, `.cfg` or `.sh` referenced either. The remainder are substantive subsystem docs
+      (SCO/ORIN/design guides, `QUICKSTART_API.md`) and were deliberately NOT touched: no reference is
+      evidence that a document is unused, not that it is wrong.
 
 ## Done ✅
 
