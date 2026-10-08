@@ -18,11 +18,16 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
+            // NOTE: no `head:` filter here, deliberately. The API expects "owner:branch";
+            // a bare branch name is SILENTLY IGNORED (measured 2026-10-08: head=definitely-
+            // not-real-xyz returned every open PR, while head=scrimshawlife-ctrl:... returned
+            // 0). It was passed the bare ref, so it filtered nothing -- the author check
+            // below is what actually scopes this. Kept removed rather than left as a no-op
+            // that reads as a filter.
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              head: context.payload.pull_request?.head?.ref || '',
               per_page: 100
             });
             
@@ -66,9 +71,14 @@ jobs:
               per_page: 100
             });
             
+            // GitHub's issues endpoint returns issues AND PULL REQUESTS; every PR carries a
+            // `pull_request` key. Counting the raw list inflates the number and would trip
+            // this limit early once PRs exist. Count only real issues.
+            const realIssues = issues.filter(i => !i.pull_request);
+            
             // WIP limit: max 20 open issues
-            if (issues.length > 20) {
-              core.setFailed(`WIP limit exceeded: ${issues.length} open issues (max 20)`);
+            if (realIssues.length > 20) {
+              core.setFailed(`WIP limit exceeded: ${realIssues.length} open issues (max 20, excluding PRs)`);
             } else {
-              console.log(`✓ Total open issues: ${issues.length}/20`);
+              console.log(`✓ Total open issues: ${realIssues.length}/20`);
             }
