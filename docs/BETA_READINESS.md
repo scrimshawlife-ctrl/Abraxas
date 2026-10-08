@@ -21,7 +21,7 @@ is marked **[JUDGEMENT]**.
 | 5 | Release/version integrity | 🔴 → 🟢 **fixed** | **Five** disagreeing versions: pyproject `1.5.0` · canon `v2.0.1` · README badge `v2.0.1` · README module `v2.0.5` · `abx` `0.1.0-orin-spine`. No `abraxas.__version__` existed at all |
 | 6 | Dependency reproducibility | 🔴 → 🟢 **fixed** | All **11** runtime deps were lower-bound-only; a pydantic/numpy/cryptography major could land on any install |
 | 7 | Claims vs reality | 🔴 → 🟢 **fixed** | README declared "PRODUCTION READY — All systems operational" **twice, verbatim** while the package classifier said `Development Status :: 3 - Alpha`; claimed 3,548 tests vs measured 3,806 |
-| 8 | Observability | 🔴 Weak | `863` bare `print()` vs `156` logging calls — no levels, no routing, no structured logs |
+| 8 | Observability | 🟡 Mixed, not weak | 863 `print()` repo-wide, but the breakdown matters: `abraxas/cli` (322) and `abx` (217) are command-line surfaces where printing IS the output mechanism, and the served surfaces are clean (`abraxas/dashboard` 6, `webpanel` 0, `abraxas/api` 0). The genuine gaps are `abx` (217 prints, **0** logging calls) and `abraxas/zkp` (134 prints, 0) |
 | 9 | Deployment artifacts | 🟢 Adequate | `Dockerfile.dashboard-api` · `dashboard/frontend/dist` · `docs/runbooks/operational_procedures.md` · `.env.example` (17 vars) |
 | 10 | Governance & self-diagnosis | 🟢 **Differentiator** | canon / runes / promotion gates / manifests / ratchets; `abx doctor`, `smoke`, `acceptance` all live |
 
@@ -64,8 +64,11 @@ is marked **[JUDGEMENT]**.
    action.
 7. **Earn CI history.** The full suite has **one day** of genuine CI coverage. A green badge with no
    history is not assurance; keep it green across real merges before declaring beta.
-8. **Observability.** `863` `print()` calls on the served surface. [JUDGEMENT] Not a blocker for an
-   operator-supervised shadow beta; a blocker for anything operated by someone else.
+8. **Observability.** The first version of this entry said "863 `print()` calls on the served
+   surface", which was wrong and is corrected above: the served surface has six. The real gap is
+   `abx` and `abraxas/zkp`, which are 351 prints with zero logging calls between them.
+   [JUDGEMENT] Not a blocker for an operator-supervised shadow beta; a blocker for anything
+   operated by someone else.
 9. **Stale tags.** `v4.0.0` and `v4.0.2` are dated 2026-10-03 — **older commits with higher
    numbers** than `v2.0.0` (2026-10-04). All three are ancestors of `main`, so they are harmless but
    ambiguous. Retiring them is an operator action (published tags are history).
