@@ -10,6 +10,12 @@
 - [ ] **Multi-domain cascade prediction with live data** — Production deployment & live operation
 
 ## In Progress
+- [x] **Sibling-repo harvest (W2) — CLOSED: nothing worth harvesting** (2026-10-08). Measured: **0 of
+      100 sampled commits are shared** with this repo, so the harvest-only rule holds and no history
+      could merge even if it were wanted. 18 files exist only in the sibling and all of them orbit a
+      route-graph pipeline model this repo explicitly rejected; the 2 files that differ are both won
+      by this repo (the binding matrix here is the refined version, the sibling's lifecycle schema is
+      empty). Nothing was taken. Decision made on evidence, not preference.
 - [ ] **Root-document hygiene follow-up** — 17 root-level `.md` files remain after consolidating 36 status
       documents into `docs/EXECUTION_HISTORY.md`. Two of the stale artifacts named here are **RESOLVED**
       (2026-10-08): `PR_DESCRIPTION.md` (reported "Phase 1 (50% Complete)") and `replit.md` (described a

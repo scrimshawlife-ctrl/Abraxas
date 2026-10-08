@@ -104,6 +104,23 @@ All four were fixed in the reconciliation pass that followed this assessment:
 
 ## The decision that sets the date
 
+**DECIDED 2026-10-08: beta means (A), the operator-supervised shadow beta.**
+
+(A) is what the system already is by design, and it is reachable in days. The outstanding items
+are release mechanics (done: `v2.1.0` shipped) and CI history (wall-clock, not work).
+
+(B), a public or live beta, is **governance-gated rather than work-gated**. It requires an
+`empirical` and an `economic` settlement on every engine, and the finding that matters is that
+**the repository has no mechanism to record either**. So (B) does not begin with engineering; it
+begins with defining what those claims mean and who verifies them. That is an operator act, not a
+task, and it is deliberately out of scope here.
+
+**[JUDGEMENT]** The package classifier remains `Development Status :: 3 - Alpha` on purpose. A
+scope decision is not a maturity claim, and the stated blocker for declaring beta is CI history.
+The flip criterion is written in `pyproject.toml` next to the classifier.
+
+### Superseded: the earlier framing of this section
+
 **[JUDGEMENT]** The blockers above are scope-independent. What is *not* is what "beta" means,
 because the system is **shadow-only by design** — README: *"STILL NOT live autonomy… no live
 autonomy, no Canon mutation"* — and **all ten engines remain deliberately `unsettled`** (5 live at
