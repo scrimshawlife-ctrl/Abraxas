@@ -1,6 +1,13 @@
 """Test for PostgreSQLDomainAdapter"""
 import pytest
 import asyncio
+
+# asyncpg is an optional dependency (the [postgres] extra). A missing optional
+# dependency must SKIP this module -- the bare module-scope import used to
+# interrupt collection for the ENTIRE suite, which is why every full run needed
+# --ignore and CI could never see the whole test suite.
+pytest.importorskip("asyncpg")
+
 from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
 from abraxas.adapters.domain_data import DomainSnapshot, DomainTokenState
 from datetime import datetime, timezone

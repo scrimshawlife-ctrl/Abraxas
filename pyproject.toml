@@ -66,6 +66,11 @@ lens = [
 
 # PostgreSQL support
 postgres = [
+    # asyncpg is what abraxas/adapters/postgresql_domain_adapter.py actually
+    # imports (line 5). It was declared NOWHERE before this, so installing the
+    # documented way gave you two drivers the code does not use and omitted the
+    # one it does -- and any test touching the adapter died at import.
+    "asyncpg>=0.29.0",
     "psycopg>=3.1.0",
     "psycopg2-binary>=2.9.0",
 ]
