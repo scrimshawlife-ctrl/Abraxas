@@ -277,6 +277,6 @@ def build_considerations_for_run(
     if ledger_events is not None and hasattr(run, "ledger_events"):
         try:
             delattr(run, "ledger_events")
-        except Exception:
+        except AttributeError:  # O4: was bare-broad; narrowed to the provable case
             pass
     return considerations

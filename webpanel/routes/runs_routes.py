@@ -151,7 +151,7 @@ def ui_run(request: Request, run_id: str):
         try:
             delattr(run, "ledger_events")
             delattr(prev_run, "ledger_events")
-        except Exception:
+        except AttributeError:  # O4: was bare-broad; narrowed to the provable case
             pass
     run_brief = build_run_brief(run, prev_run, current_hash)
     delta_notifications = compute_delta_notifications(run, prev_run, current_hash)

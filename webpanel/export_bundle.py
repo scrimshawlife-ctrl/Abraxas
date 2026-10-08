@@ -160,7 +160,7 @@ def build_bundle(
         try:
             delattr(right_run, "ledger_events")
             delattr(left_run, "ledger_events")
-        except Exception:
+        except AttributeError:  # O4: was bare-broad; narrowed to the provable case
             pass
         continuity_bytes = canonical_json_bytes(continuity)
         files.append(("continuity.json", continuity_bytes))

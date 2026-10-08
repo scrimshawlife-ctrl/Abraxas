@@ -147,7 +147,7 @@ def read_oracle_texts(path: str, max_items: int = 200) -> List[Tuple[str, str]]:
                 if len(out) >= max_items:
                     break
             return out
-    except Exception:
+    except (OSError, ValueError):  # O4: was bare-broad; narrowed to the provable case
         pass
 
     with open(path, "r", encoding="utf-8", errors="ignore") as f:

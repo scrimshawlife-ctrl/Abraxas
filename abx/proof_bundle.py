@@ -60,7 +60,7 @@ def main() -> int:
                         out_reports,
                     ]
                 )
-        except Exception:
+        except (OSError, ValueError):  # O4: was bare-broad; narrowed to the provable case
             pass
 
     if args.include_receipts:
@@ -85,7 +85,7 @@ def main() -> int:
                             out_reports,
                         ]
                     )
-        except Exception:
+        except (OSError, ValueError):  # O4: was bare-broad; narrowed to the provable case
             pass
 
     if args.include_dossier_index or args.include_dossiers or args.include_receipts:

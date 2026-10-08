@@ -210,10 +210,10 @@ def main() -> int:
                 "scenarios": outs,
                 "notes": "Scenario-based TPI outlook (conditions forecast). Not truth prediction.",
             }
-        except Exception:
+        except (OSError, ValueError):  # O4: was bare-broad; narrowed to the provable case
             pass
         _write_json(out_path, enriched)
-    except Exception:
+    except (OSError, ValueError):  # O4: was bare-broad; narrowed to the provable case
         pass
     print(f"[MWR_ENRICH] wrote: {out_path}")
     return 0

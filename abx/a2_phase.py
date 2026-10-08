@@ -71,7 +71,7 @@ def main() -> int:
             if isinstance(claims, dict) and isinstance(claims.get("metrics"), dict):
                 consensus_gap = float(claims.get("metrics", {}).get("consensus_gap") or 0.0)
                 means["consensus_gap_mean"] = consensus_gap
-    except Exception:
+    except (OSError, ValueError):  # O4: was bare-broad; narrowed to the provable case
         pass
     # term consensus handled via load_term_consensus_map below
 
