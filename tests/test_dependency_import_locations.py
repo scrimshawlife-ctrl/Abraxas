@@ -46,25 +46,38 @@ def _scoped() -> dict[str, str]:
 
 
 @lru_cache(maxsize=1)
-def _sites_by_dependency() -> dict[str, set[tuple[str, int]]]:
-    """{dependency: {(path, line)}} -- one scan, shared by every assertion below.
+def _sites_by_dependency() -> dict[str, set[tuple[str, str]]]:
+    """{dependency: {(path, symbol)}} -- one scan, shared by every assertion below.
 
     Cached because the alternative is one full tree walk per dependency per test: measured at ~129s for
     this module before caching, and a gate that slow gets skipped. Caching is honest here because the
-    tree does not change mid-run. Only the SITE is compared -- path and line -- never the declared
-    `symbol`, which is descriptive; pinpointing the site is enough to notice drift and is not brittle to
-    a reworded symbol.
+    tree does not change mid-run.
+
+    The compared key is (path, symbol), NOT (path, line). A line number moves for every unrelated edit
+    above an import, so keying on it made the record look wrong while nothing about the dependency usage
+    had changed -- measured 2026-10-08: `fastapi` declared at `webpanel/panel_context.py:8` with the real
+    import at `:10`, and `webpanel/routes/operator_routes.py:7` against a real `:9`. The path never moves,
+    and the symbol is derived from the text of the import statement, so together they survive a line
+    shift. The manifest still carries `line` for a human to navigate by; it is descriptive, not identity.
+
+    Residual limit, stated rather than implied: the scanner attributes ONE symbol per statement, so
+    `from m import a, b` records `a` and a second name added to that line is invisible here. The shared
+    scanner's own convention is "one entry per import STATEMENT, not per imported name".
     """
     scanned = scan_import_sites()
     return {
-        dep: {(path, line) for path, line, _top_level, _symbol in scanned.get(dep, [])}
+        dep: {(path, symbol) for path, _line, _top_level, symbol in scanned.get(dep, [])}
         for dep in _scoped()
     }
 
 
-def _declared_sites(dep: str) -> set[tuple[str, int]]:
+def _declared_sites(dep: str) -> set[tuple[str, str]]:
+    """{(path, symbol)} declared for `dep`; see `_sites_by_dependency` for why not the line."""
     row = _load_manifest()["dependencies"][dep]
-    return {(str(entry["path"]), int(entry["line"])) for entry in (row.get("import_locations") or [])}
+    return {
+        (str(entry["path"]), str(entry.get("symbol", "")))
+        for entry in (row.get("import_locations") or [])
+    }
 
 
 def test_the_scan_actually_finds_import_sites() -> None:
@@ -102,8 +115,8 @@ def test_every_import_site_is_declared() -> None:
     """No dependency may be used somewhere the manifest does not record."""
     missing: list[str] = []
     for dep in sorted(_scoped()):
-        for path, line in sorted(_sites_by_dependency().get(dep, set()) - _declared_sites(dep)):
-            missing.append(f"{dep}: {path}:{line} uses it but is not declared")
+        for path, symbol in sorted(_sites_by_dependency().get(dep, set()) - _declared_sites(dep)):
+            missing.append(f"{dep}: {path} imports {symbol!r} but is not declared")
 
     assert missing == [], (
         f"{len(missing)} undeclared site(s). Every site belongs in `.aal/dependency_manifest.v0.yaml` "
@@ -116,7 +129,7 @@ def test_every_declared_site_still_uses_its_dependency() -> None:
     """No stale declarations: a declared path that no longer uses the dependency is a false record."""
     stale: list[str] = []
     for dep in sorted(_scoped()):
-        for path, line in sorted(_declared_sites(dep) - _sites_by_dependency().get(dep, set())):
-            stale.append(f"{dep}: {path}:{line} is declared but does not use it")
+        for path, symbol in sorted(_declared_sites(dep) - _sites_by_dependency().get(dep, set())):
+            stale.append(f"{dep}: {path} declares {symbol!r} but no longer imports it")
 
     assert stale == [], "stale declarations:\n  " + "\n  ".join(stale)

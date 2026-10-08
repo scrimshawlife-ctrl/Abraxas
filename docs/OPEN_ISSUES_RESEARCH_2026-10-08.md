@@ -310,7 +310,7 @@ without saying so.
 |**Every one was found by driving it to failure or holding a variable constant.
 |None was found by observing a pass.**
 
-## 8. PytestReturnNotNoneWarning — tests reporting success by return value (NEW, 2026-10-09)
+## 8. PytestReturnNotNoneWarning — tests reporting success by return value (NEW, 2026-10-08)
 
 **Finding:** 6 collected tests ended with `return True` (or `return` in except branches). pytest ignores the return value of a test function, so these lines were dead code — the test passed regardless of what happened inside. The warning was already being emitted (visible in the background suite run).
 
@@ -336,7 +336,7 @@ Expected: `N passed, 0 failed` (no collection interrupt, no warnings).
 
 This closes the remediation campaign. The suite is now green, guarded, and CI exercises the full scope. 
 
-## 9. Follow-up pass (2026-10-09) — Task 4 verified, O4 list closed
+## 9. Follow-up pass (2026-10-08) — Task 4 verified, O4 list closed
 
 **Task 4.0 (`profile_recommendation`) — ALREADY RESOLVED, and now verified.** The decision
 was made correctly: the feature IS intended, so the ROUTE was fixed rather than the

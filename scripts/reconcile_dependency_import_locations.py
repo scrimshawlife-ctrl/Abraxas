@@ -165,7 +165,10 @@ def scan_import_sites() -> dict[str, list[tuple[str, int, bool, str]]]:
 def render_entries(sites: list[tuple[str, int, bool, str]]) -> list[str]:
     """The YAML lines for one dependency's `import_locations`, deterministically ordered."""
     lines: list[str] = []
-    for path, line, top_level, symbol in sorted(sites, key=lambda s: (s[0], s[1])):
+    # Sorted by (path, symbol), NOT (path, line): the line moves on any edit above an import, and
+    # ordering by it would reorder these entries for a change that concerns no entry. The guard keys on
+    # (path, symbol) for the same reason, so this file's ORDER must not depend on line numbers either.
+    for path, line, top_level, symbol in sorted(sites, key=lambda s: (s[0], s[3])):
         lines.append(f"      - path: {path}")
         lines.append(f"        line: {line}")
         lines.append(f"        top_level: {'true' if top_level else 'false'}")

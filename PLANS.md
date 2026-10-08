@@ -43,6 +43,12 @@ This file is the append-first execution queue for implementation runs.
 - **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.
 - **Definition of done:** explicit go/no-go decision and scoped UI shell task list with canonical-entrypoint signage preserved.
 
+### P1 — Dependency Manifest Identity Key (line number -> (path, symbol))
+- **Status:** IN PROGRESS
+- **Intent:** stop the dependency-manifest guard failing on unrelated line shifts, while keeping it strict about which dependency is used where.
+- **Definition of done:** the guard keys on `(path, symbol)`; a line shift is tolerated and both drift directions still fail; `execplans/dependency-manifest-rekey.md` closed with measurements.
+- **ExecPlan:** `execplans/dependency-manifest-rekey.md`
+
 
 ### P0 — Large-Run Deterministic Convergence Spine
 - **Status:** COMPLETE (2026-03-30)
