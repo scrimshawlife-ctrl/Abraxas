@@ -1,0 +1,2 @@
+probe: exercises the PR-triggered workflows (wip-limits, pr-automerge-docs).
+Deleted with this branch.
