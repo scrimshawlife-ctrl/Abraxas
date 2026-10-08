@@ -35,6 +35,44 @@ A PR that adds this workflow cannot auto-merge itself.
 3. Create labels `docs` and `automerge`
 4. Put required status checks on `main` if they are not already required
 
+### Setup status (2026-10-08)
+
+Steps 1 and 3 were outstanding and are now DONE; steps 2 and 4 were already in place.
+
+- **Step 1 — auto-merge: ENABLED.** `allow_auto_merge` was `false`, so `gh pr merge --auto`
+  in the workflow could never complete: GitHub rejects it outright with auto-merge disabled.
+  The workflow was therefore inert even on a correctly labelled, allowlisted PR.
+  Verified: `gh api repos/<owner>/<repo> -q .allow_auto_merge` → `true`.
+- **Step 3 — labels: CREATED.** Neither `docs` nor `automerge` existed (the repo carried only
+  the GitHub defaults plus `codex`). The workflow's gate requires both literal names, so
+  **no PR could ever satisfy it** — the job always took the `skip: missing label docs` path.
+  Both labels now exist with descriptions naming their purpose.
+
+Worth stating plainly, because it is the same failure mode twice: a workflow can be
+registered, "active", and permanently incapable of doing its job — first because a required
+repo setting was off, and again because its gate keys on labels that were never created.
+Neither shows up as a failure; both look like a skip.
+
+## Sibling automation: `auto-move.yml` (Projects v2)
+
+`.github/workflows/auto-move.yml` adds a **merged** PR to the GitHub Projects v2 board
+**Kanban** (owner `scrimshawlife-ctrl`, project number 7) and sets its Status to `Done`.
+It is unrelated to the docs-merge gate above; it fires on any PR merged to `main`.
+
+It previously drove GitHub **Projects (classic)** through
+`alex-page/github-project-automation-plus`, targeting a project named "Kanban" with
+To Do / In Progress / Done columns. Projects classic is retired (the REST endpoint now
+returns 404) and no such project existed, so it had never succeeded. It was rewritten
+against Projects v2 and the board was created.
+
+**Token requirement — this is a hard constraint, not a preference.** The job uses
+`secrets.PROJECT_TOKEN || secrets.ABRAXAS_PAT`, because `GITHUB_TOKEN` is scoped to the
+repository and cannot read or write the Projects v2 API at all. For **user-owned** projects
+— and this owner is a user, not an organization — the only supported credential is a
+**classic** personal access token with the **`project`** scope; fine-grained tokens do not
+support user-owned projects. If neither secret carries that scope, the job fails with a
+message naming the required scope rather than a cryptic `Could not resolve to a ProjectV2`.
+
 ## Usage
 
 Label a docs-only PR `docs` + `automerge`. If the path gate passes, the workflow arms squash auto-merge. Remove either label to disarm.
