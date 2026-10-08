@@ -13,6 +13,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -70,6 +71,23 @@ class TimechainConfig:
     file_storage_path: str = ".abraxas/timechain"
     timeout: float = 10.0
     max_retries: int = 3
+
+
+class TimechainState(str, Enum):
+    """Why Timechain is or isn't in use.
+
+    These three states were previously collapsed into a single boolean, which meant an
+    operator could not tell "we never configured this" from "we configured it and it is
+    down". Those need different responses: the first is the expected steady state for a
+    file-backed deployment; the second is an outage.
+
+    NOT_CONFIGURED  config.enabled is False -- fallback is intended, nothing is wrong
+    UNREACHABLE     enabled, but no service answered -- fallback is masking a failure
+    AVAILABLE       enabled and the endpoint answered
+    """
+    NOT_CONFIGURED = "not_configured"
+    UNREACHABLE = "unreachable"
+    AVAILABLE = "available"
 
 
 class CypherTempreTimechain:
@@ -146,10 +164,23 @@ class CypherTempreTimechain:
             timechain_available = False
             
             if self.config.enabled:
-                timechain_available = self._check_timechain_connection()
-            
+                state = self.connection_state()
+                timechain_available = state is TimechainState.AVAILABLE
+                if state is TimechainState.UNREACHABLE:
+                    # Distinct from "not configured": this is an outage, not a design
+                    # choice. WARNING, not INFO, and it names the endpoint so an operator
+                    # can tell which service is missing.
+                    logger.warning(
+                        "Timechain is ENABLED but unreachable at %s -- falling back to file "
+                        "storage. This is an outage, not the expected steady state.",
+                        self.config.endpoint,
+                    )
+            else:
+                state = TimechainState.NOT_CONFIGURED
+
             if not timechain_available and self.config.fallback_to_file:
-                logger.info("Timechain unavailable, using file storage fallback")
+                if state is TimechainState.NOT_CONFIGURED:
+                    logger.info("Timechain not configured; using file storage (expected)")
                 self._initialized = True
                 return False
             
@@ -161,15 +192,49 @@ class CypherTempreTimechain:
             logger.warning("Timechain unavailable and file fallback disabled")
             return False
     
-    def _check_timechain_connection(self) -> bool:
-        """Check if Timechain is accessible.
-        
-        In production, this would make an actual RPC call to Timechain.
-        For now, we simulate the check.
+    def _probe_endpoint(self) -> bool:
+        """Make one connection attempt against the configured endpoint.
+
+        This is the actual RPC check. Kept separate from connection_state() so the state
+        logic is testable without a network, and so the probe is a single, observable
+        side-effecting unit.
+
+        Returns True only if something answered. Any failure -- refused, timeout, DNS,
+        TLS, malformed URL -- is False, because from here they are the same fact: no
+        usable service. The distinction that matters operationally is reachable vs not.
         """
-        # TODO: Implement actual Timechain RPC connection check
-        # For now, return False to use file fallback
-        return False
+        import urllib.request
+
+        url = self.config.endpoint.rstrip("/") + "/health"
+        req = urllib.request.Request(url, method="GET")
+        if self.config.api_key:
+            req.add_header("Authorization", f"Bearer {self.config.api_key}")
+        try:
+            with urllib.request.urlopen(req, timeout=self.config.timeout) as resp:
+                return 200 <= getattr(resp, "status", 200) < 300
+        except Exception:
+            return False
+
+    def _check_timechain_connection(self) -> bool:
+        """Whether a Timechain service is usable right now.
+
+        Retained for callers that want a plain boolean. Prefer connection_state(), which
+        distinguishes 'not configured' from 'configured and down'.
+        """
+        return self.connection_state() is TimechainState.AVAILABLE
+
+    def connection_state(self) -> TimechainState:
+        """Why Timechain is or isn't in use. Probes at most once per call.
+
+        Replaces the previous `return False` placeholder, which reported the same answer
+        whether the service was absent, down, or never configured -- making the status
+        surface unable to distinguish an expected steady state from an outage.
+        """
+        if not self.config.enabled:
+            return TimechainState.NOT_CONFIGURED
+        if self._probe_endpoint():
+            return TimechainState.AVAILABLE
+        return TimechainState.UNREACHABLE
     
     def store(self, data: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None) -> Tuple[str, str]:
         """Store data in Timechain (or file fallback).
@@ -314,10 +379,16 @@ class CypherTempreTimechain:
         with self._lock:
             is_valid, errors = self.verify_chain()
             
+            # Probe ONCE. The previous implementation called the check twice per status
+            # call -- two network round trips for one answer, with no guarantee the two
+            # agreed. State is computed once and reported from that single result.
+            state = self.connection_state()
+
             return {
                 "initialized": self._initialized,
-                "timechain_available": self._check_timechain_connection() if self.config.enabled else False,
-                "fallback_mode": not self._check_timechain_connection() if self.config.enabled else True,
+                "timechain_state": state.value,
+                "timechain_available": state is TimechainState.AVAILABLE,
+                "fallback_mode": state is not TimechainState.AVAILABLE,
                 "total_blocks": len(self._blocks),
                 "last_block_hash": self._last_hash,
                 "last_block_index": self._index - 1 if self._index > 0 else -1,
