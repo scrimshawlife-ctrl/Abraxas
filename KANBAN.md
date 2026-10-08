@@ -247,11 +247,11 @@ choice, not a measurement — the two ladders are the measurements.
 
 | engine | Abraxas status | own repo | src `.py` | test `.py` | commits | integration | repo | combined |
 |---|---|---|---|---|---|---|---|---|
-| `athanor` | live | yes | 19 | 21 | 221 | 86% (6/7) | 100% (5/5) | **93%** |
-| `trutina` | live | yes | 9 | 10 | 66 | 86% (6/7) | 100% (5/5) | **93%** |
-| `noesis` | live | yes | 46 | 29 | 36 | 86% (6/7) | 100% (5/5) | **93%** |
-| `oracle` | live | yes ‡ | 3 | 1 | 1 | 86% (6/7) | 80% (4/5) | **83%** |
-| `cypher` | live | yes ‡ | 3 | 1 | 1 | 86% (6/7) | 80% (4/5) | **83%** |
+| `athanor` | live | yes | 19 | 21 | 221 | 100% (7/7) | 100% (5/5) | **100%** |
+| `trutina` | live | yes | 9 | 10 | 66 | 100% (7/7) | 100% (5/5) | **100%** |
+| `noesis` | live | yes | 46 | 29 | 36 | 100% (7/7) | 100% (5/5) | **100%** |
+| `oracle` | live | yes ‡ | 3 | 1 | 1 | 100% (7/7) | 80% (4/5) | **90%** |
+| `cypher` | live | yes ‡ | 3 | 1 | 1 | 100% (7/7) | 80% (4/5) | **90%** |
 | `hyperlex` | planned | yes | 86 | 66 | 4 † | 29% (2/7) | 100% (5/5) | **65%** |
 | `semion` | planned | yes | 5 | 4 | 39 | 29% (2/7) | 100% (5/5) | **65%** |
 | `chronos` | planned | yes | 3 | 1 | 3 | 29% (2/7) | 80% (4/5) | **55%** |
