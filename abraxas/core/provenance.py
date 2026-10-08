@@ -112,7 +112,14 @@ def canonical_envelope(
             stderr=subprocess.DEVNULL,
             timeout=2
         ).decode().strip()
-    except Exception:
+    except (subprocess.CalledProcessError, FileNotFoundError,
+            subprocess.TimeoutExpired, UnicodeDecodeError):
+        # O4: was bare-broad; narrowed to the provable set. git may be absent
+        # (FileNotFoundError), may fail (CalledProcessError), may hang past the 2s
+        # timeout (TimeoutExpired), and .decode() may see non-UTF-8 output
+        # (UnicodeDecodeError). Those four exhaust what these two calls can raise, so
+        # every path this used to swallow is still swallowed -- and the intent is now
+        # legible: "git may not be available, and that is fine."
         pass
 
     provenance = {

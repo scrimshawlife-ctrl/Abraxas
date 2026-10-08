@@ -55,7 +55,15 @@ def read_run_stability(artifacts_dir: str, run_id: str) -> Optional[Dict[str, An
                     stability = _read_json(Path(stability_path))
                     if stability.get("schema") == "RunStability.v0":
                         return stability
-        except Exception:
+        except (OSError, ValueError, AttributeError):
+            # O4: was bare-broad; narrowed to the provable set.
+            # OSError: read_text / Path.exists (FileNotFoundError, PermissionError).
+            # ValueError: UnicodeDecodeError, and json.JSONDecodeError which subclasses it.
+            # AttributeError: _read_json is annotated -> Dict but is json.loads(), so a
+            #   syntactically valid non-dict document (a list, a string, a number) makes
+            #   the .get() below raise. Verified: json.loads('[1,2]').get('schema')
+            #   raises AttributeError. Omitting this type would have been a behaviour
+            #   change disguised as a cleanup -- exactly the trap this work avoids.
             # Utility should be non-fatal: return None on malformed refs
             pass
 
@@ -65,7 +73,9 @@ def read_run_stability(artifacts_dir: str, run_id: str) -> Optional[Dict[str, An
             stability = _read_json(direct_path)
             if stability.get("schema") == "RunStability.v0":
                 return stability
-        except Exception:
+        except (OSError, ValueError, AttributeError):
+            # O4: was bare-broad; narrowed to the provable set -- same three types, and
+            # the same reasoning, as the ref path above.
             pass
 
     return None
