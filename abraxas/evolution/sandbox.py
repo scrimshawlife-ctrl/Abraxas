@@ -707,7 +707,7 @@ def _build_portfolio_report(result: SandboxResult, candidate: MetricCandidate) -
         "pass_gate": result.pass_gate,
         "portfolios_tested": result.portfolios_tested,
         "portfolio_score_delta_hash": result.portfolio_score_delta_hash,
-        "target": candidate.target.dict(),
+        "target": candidate.target.model_dump(),  # pydantic v2; .dict() is the v1 API
         "portfolio_results": result.portfolio_results,
         "failure_reasons": result.failure_reasons,
     }
