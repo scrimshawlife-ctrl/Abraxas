@@ -58,10 +58,13 @@ is marked **[JUDGEMENT]**.
 
 ### Open
 
-6. **Ship the security fixes.** They are written and verified — `0.0.0.0` bind → loopback, the
-   **fail-open token comparison**, `eval` on generated content → `ast.literal_eval`, `xml.etree` →
-   `defusedxml` — and they are all in CHANGELOG *Unreleased*. This is a release action, not a code
-   action.
+6. **Ship the security fixes — DONE (2026-10-08).** All four are written, verified and **released in
+   `v2.1.0`**: the `0.0.0.0` bind narrowed to loopback, the **fail-open token comparison** replaced
+   with `secrets.compare_digest`, `eval` on generated content replaced with `ast.literal_eval`, and
+   `xml.etree` replaced with `defusedxml`. Verified by reading the `v2.1.0` section of CHANGELOG.md
+   and matching each fix by name, not by assuming the consolidation picked them up. This item was
+   previously listed as an outstanding release action after it had already shipped, which is the
+   same drift the rest of this document exists to catch.
 7. **Earn CI history.** The full suite has **one day** of genuine CI coverage. A green badge with no
    history is not assurance; keep it green across real merges before declaring beta.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
