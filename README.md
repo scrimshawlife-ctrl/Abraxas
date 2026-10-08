@@ -4,7 +4,7 @@
   <a href="https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml"><img src="https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11%2B-3776ab?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-22c55e" alt="MIT">
-  <img src="https://img.shields.io/badge/status-live%20%C2%B7%20v2.0.1-7c3aed" alt="status">
+  <img src="https://img.shields.io/badge/status-live%20%C2%B7%20v2.1.0-7c3aed" alt="status">
 </p>
 
 # Abraxas
@@ -371,12 +371,12 @@ Hard boundaries: no live autonomy, no Canon mutation, no runtime mutation outsid
 
 ## Status
 
-> **Status**: **v2.0.1 — operator-supervised, shadow-only.** All execution remains shadow-only,
+> **Status**: **v2.1.0 — operator-supervised, shadow-only.** All execution remains shadow-only,
 > deterministic, replayable and sandbox-isolated: no live autonomy, no Canon mutation.
 
-- **Canon State**: PRODUCTION CANON v2.0.1 ACTIVE — authority is `.abraxas/gates.json`
+- **Canon State**: PRODUCTION CANON v2.1.0 ACTIVE — authority is `.abraxas/gates.json`
   (`gates.CANON_VERSION`), and `pyproject.toml` + `abraxas.__version__` now agree with it
-- **Tests**: 3,797 passed, 9 xfailed, 3,806 collected — ratcheted (local floor 3,779, CI floor 3,850)
+- **Tests**: 3,804 passed, 9 xfailed, 3,813 collected — ratcheted (local floor 3,779, CI floor 3,850)
 - **Live Data**: PostgreSQL adapter verified
 - **Docker Image**: `Dockerfile.dashboard-api` → image `abraxas-dashboard-api:2.0.1`
 - **UI**: Built and distributable (`dashboard/frontend/dist/`)

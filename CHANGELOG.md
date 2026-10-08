@@ -6,9 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased] — Security & Behavioural Audit of Webpanel + Dashboard
+## [2.1.0] - 2026-10-08
 
-### Fixed
+> **Consolidated release.** Four separate `[Unreleased]` sections were merged into this one and
+> released. Content is preserved; only the headings changed.
+>
+> **Version-line note.** This file also carries `[2.2.0] - 2026-01-04`, which is a HIGHER number
+> with an EARLIER date than `[v2.0.0] - 2026-10-04` below it. It belongs to an abandoned numbering
+> scheme, the same pattern as the `v4.0.0` and `v4.0.2` git tags, which are also older commits
+> with higher numbers than `v2.0.0`. The current line is canon-authoritative: `.abraxas/gates.json`
+> holds `gates.CANON_VERSION`, and `pyproject.toml`, the README badge and `abraxas.__version__` all
+> agree with it. The stray sections are documented rather than renumbered, because their true
+> history is not something this file records.
+
+### Security & Behavioural Audit of Webpanel + Dashboard
+
+
+#### Fixed
 - **Webpanel app could not be constructed at all** — all 61 routes unreachable. `Optional[Request]`
   dependency annotation.
 - **`GET /runs/{id}` raised on every render** — undefined template variable; label now sourced from
@@ -24,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **13 undefined names (F821)** → `TYPE_CHECKING` imports; ruff clean.
 - **`xml.etree` on third-party-fetched documents** → `defusedxml`.
 
-### Added
+#### Added
 - **`webpanel/` is now covered by CI — for the first time.** 61 routes had never been executed by any
   pipeline, which is why the app could ship unbuildable. `starlette<1.0` pinned in the `[dev]` extra
   only, established by measurement (jinja2 held constant: 0.37.2 → 67 passed, 1.7.0 → 7 failed) after
@@ -33,12 +47,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `defusedxml>=0.7.1`; `httpx>=0.27.0` and `jsonschema>=4.22.0` declared in `[dev]` (the harness had
   depended on them undeclared).
 
-### Verified
+#### Verified
 - CI green on `2b104b0c`: 4/4 workflows, `376 passed`, panel tests named in the run log.
 
-## [Unreleased]
+### Changes (2)
 
-### Fixed
+
+#### Fixed
 - **The evidence contract was defined twice and the copies were not the same object.** `EvidenceEnvelope`,
   `RelationStep`, `CandidateOutput`, `EvidenceType` and `Decision` are now single-homed on
   `abraxas/evidence/contract.py` (and `EvidenceProvider` on `abraxas/evidence/provider.py`), with the
@@ -52,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   than deleted, because the migrator reads it to decide whether migration is needed and writes it so a
   second call is a no-op.
 
-### Added
+#### Added
 - `abraxas/engines/execution_harness.py` — runs each `LIVE` engine twice on identical input and measures
   determinism, provenance, canonical artifacts, and replay. Replay persists an envelope, reloads it,
   reproduces the run, and compares against the reloaded artifact; it mirrors the existing
@@ -65,13 +80,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Guards: object-identity across every contract type (parametrized, one table row per type), a return-type
   check over every live engine, and failure-mode tests for the harness verdict.
 
-### Changed
+#### Changed
 - Every engine remains `unsettled`. The survey would now corroborate a technical settlement for all five
   live engines, but the criteria are measured under one defined input and a `Settlement` cannot carry that
   qualification, so the operator decision is to keep them unset and record the corroboration in
   `docs/ENGINE_TOPOLOGY.md`.
 - 36 root-level status documents consolidated into `docs/EXECUTION_HISTORY.md` and removed; root `.md`
   count 57 → 18.
+
+### Changes (3)
+
+
+#### Added
+- governance: add canon_state + drift_check v0.1
+- governance: add inventory_report v0.1
+- governance: add rune_registry_gate v0.1 (hard fail + scaffolds)
+- governance: add rune_registry_gate v1.0 (hard fail + scaffolds)
+- registry: sync catalog.v0.yaml and repair sdct.digit.v1 module target
+- Kernel routing and deterministic handlers for `weather.generate`, `ser.run`, `daemon.ingest`, and `edge.deploy_orin`
+- Oracle v2 factory wiring for lifecycle, tau, weather registry, integrity composites, and AAlmanac context
+- Kernel and patch registry tests covering new rune routing and proposal-only patch receipts
+- ASE (Anagram Sweep Engine) shadow-lane module with deterministic Tier-1/2 anagram mining, PFDI drift baseline, JSON schemas, CLI, and tests
+- ASE hardening with strict JSONL validation, invariance gate test, CLI state carry-forward, and a shadow-lane adapter hook
+- ASE lexicon automation with deterministic generator, provenance manifest, and CI check gate
+- ASE candidate expansion loop with LPS scoring, lane promotion tooling, and lane-aware Tier-2 hits
+
+#### Changed
+- Kernel seed normalization to handle structured seed payloads deterministically
+- Scenario runner uses caller-provided timestamp when available for deterministic outputs
+- Shadow patch registry now records proposal-only receipts
+- Policy allowlist expanded to include newly routable runes
+
+#### Fixed
+- Shadow detector status typing and DetectorOutput shape used by tests
+- Strict-execution operators now return structured not-computable details when inputs are missing
+
+#### Added - Shadow Detectors v0.1 (2025-12-29)
+- **Shadow Detectors**: Three new observe-only pattern detectors that feed Shadow Structural Metrics as evidence without influencing system decisions
+  - **Compliance vs Remix Detector** (`abraxas/detectors/shadow/compliance_remix.py`):
+    - Detects balance between rote repetition and creative remix/mutation
+    - Subscores: `remix_rate`, `rote_repetition_rate`, `template_phrase_density`, `anchor_stability`
+    - Uses: slang drift metrics, lifecycle states, tau metrics, weather classification, CSP fields, fog types
+  - **Meta-Awareness Detector** (`abraxas/detectors/shadow/meta_awareness.py`):
+    - Detects meta-level discourse about manipulation, algorithms, and epistemic fatigue
+    - Subscores: `manipulation_discourse_score`, `algorithm_awareness_score`, `fatigue_joke_rate`, `predictive_mockery_rate`
+    - Uses: DMX metrics, RDV affect axes, EFTE fatigue metrics, keyword detection, narrative manipulation metrics
+  - **Negative Space / Silence Detector** (`abraxas/detectors/shadow/negative_space.py`):
+    - Detects topic dropout, visibility asymmetry, and abnormal silences
+    - Subscores: `topic_dropout_score`, `visibility_asymmetry_score`, `mention_gap_halflife_score`
+    - Requires: symbol pool history (minimum 3 entries) for baseline comparison
+  - **Detector Infrastructure**:
+    - `abraxas/detectors/shadow/types.py`: Base types (DetectorId, DetectorStatus, DetectorValue, DetectorProvenance)
+    - `abraxas/detectors/shadow/registry.py`: Registry with `compute_all_detectors()` and serialization
+    - `abraxas/detectors/shadow/__init__.py`: Package exports
+  - **Integration Example**: `examples/shadow_detectors_integration.py` with complete usage patterns
+- **Shadow Metrics Integration** (Incremental Patch Only):
+  - Modified SCG, FVC, NOR, PTS, CLIP, SEI to accept optional detector evidence
+  - Added `shadow_detectors` field extraction in all `extract_inputs()` functions
+  - Added `shadow_detector_evidence` to metadata when present
+  - **NO influence** on metric value computation (evidence only)
+  - Total changes: +54 lines across 6 files (minimal diffs)
+- **Comprehensive Test Suite** (22 tests, 100% passing):
+  - `tests/test_shadow_detectors_determinism.py`: Verifies identical outputs for identical inputs (5 tests)
+  - `tests/test_shadow_detectors_missing_inputs.py`: Verifies `not_computable` when required inputs absent (10 tests)
+  - `tests/test_shadow_detectors_bounds.py`: Verifies all values clamped to [0.0, 1.0] (7 tests)
+- **Documentation**:
+  - `docs/detectors/shadow_detectors_v0_1.md`: Complete specification (430 lines)
+  - Input requirements (required vs optional)
+  - Output schemas with provenance tracking
+  - Determinism guarantees and SEED compliance
+  - Integration notes and usage examples
+  - Governance policies and rent-payment gate stubs
+
+#### Technical Details
+- **SHADOW-ONLY Guarantee**: `no_influence_guarantee=True` - never affects forecasts, decisions, or state transitions
+- **Deterministic**: Stable sorting, canonical JSON hashing, SHA-256 provenance
+- **ABX-Runes ϟ₇ Access Control**: Invocation via SSO (Shadow Structural Observer) rune only, direct access forbidden
+- **SEED Compliant**: Full provenance tracking with `inputs_hash`, `config_hash`, `computed_at_utc`
+- **Bounds Enforced**: All values and subscores strictly clamped to [0.0, 1.0] via `clamp01()` utility
+- **No Placeholders**: All inputs from real envelope fields discovered in codebase (slang_drift, lifecycle, weather, DMX, RDV, EFTE, CSP, fog types, symbol pool)
+- **Incremental Patch Only**: Minimal diffs to existing shadow metrics preserving all existing logic
+
+#### Governance
+- **Status**: Emergent Candidate (subject to evolution)
+- **Mode**: `shadow` (observe-only)
+- **No Influence**: `no_influence=True` (guaranteed)
+- **Governance**: `emergent_candidate` (subject to rent-payment gates)
+- **Rent-Payment Gates**: Skeleton only (dormant) - correlation check, stability check, utility check
+
+#### Files Created
+- `abraxas/detectors/shadow/__init__.py`
+- `abraxas/detectors/shadow/types.py` (94 lines)
+- `abraxas/detectors/shadow/compliance_remix.py` (329 lines)
+- `abraxas/detectors/shadow/meta_awareness.py` (378 lines)
+- `abraxas/detectors/shadow/negative_space.py` (337 lines)
+- `abraxas/detectors/shadow/registry.py` (184 lines)
+- `tests/test_shadow_detectors_determinism.py` (171 lines)
+- `tests/test_shadow_detectors_missing_inputs.py` (182 lines)
+- `tests/test_shadow_detectors_bounds.py` (219 lines)
+- `docs/detectors/shadow_detectors_v0_1.md` (430 lines)
+- `examples/shadow_detectors_integration.py` (327 lines)
+
+#### Files Modified
+- `abraxas/shadow_metrics/scg.py` (+9 lines)
+- `abraxas/shadow_metrics/fvc.py` (+9 lines)
+- `abraxas/shadow_metrics/nor.py` (+9 lines)
+- `abraxas/shadow_metrics/pts.py` (+9 lines)
+- `abraxas/shadow_metrics/clip.py` (+9 lines)
+- `abraxas/shadow_metrics/sei.py` (+9 lines)
+
+**Total**: +2,757 insertions across 17 files
+
+### Changes (4)
+
+
+#### Planned
+- Integration of runes into main Abraxas oracle pipelines
+- TypeScript/JavaScript bindings for rune system
+- Web UI for sigil visualization
 
 ## [v2.0.0] - 2026-10-04
 
@@ -141,108 +267,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
-
-### Added
-- governance: add canon_state + drift_check v0.1
-- governance: add inventory_report v0.1
-- governance: add rune_registry_gate v0.1 (hard fail + scaffolds)
-- governance: add rune_registry_gate v1.0 (hard fail + scaffolds)
-- registry: sync catalog.v0.yaml and repair sdct.digit.v1 module target
-- Kernel routing and deterministic handlers for `weather.generate`, `ser.run`, `daemon.ingest`, and `edge.deploy_orin`
-- Oracle v2 factory wiring for lifecycle, tau, weather registry, integrity composites, and AAlmanac context
-- Kernel and patch registry tests covering new rune routing and proposal-only patch receipts
-- ASE (Anagram Sweep Engine) shadow-lane module with deterministic Tier-1/2 anagram mining, PFDI drift baseline, JSON schemas, CLI, and tests
-- ASE hardening with strict JSONL validation, invariance gate test, CLI state carry-forward, and a shadow-lane adapter hook
-- ASE lexicon automation with deterministic generator, provenance manifest, and CI check gate
-- ASE candidate expansion loop with LPS scoring, lane promotion tooling, and lane-aware Tier-2 hits
-
-### Changed
-- Kernel seed normalization to handle structured seed payloads deterministically
-- Scenario runner uses caller-provided timestamp when available for deterministic outputs
-- Shadow patch registry now records proposal-only receipts
-- Policy allowlist expanded to include newly routable runes
-
-### Fixed
-- Shadow detector status typing and DetectorOutput shape used by tests
-- Strict-execution operators now return structured not-computable details when inputs are missing
-
-### Added - Shadow Detectors v0.1 (2025-12-29)
-- **Shadow Detectors**: Three new observe-only pattern detectors that feed Shadow Structural Metrics as evidence without influencing system decisions
-  - **Compliance vs Remix Detector** (`abraxas/detectors/shadow/compliance_remix.py`):
-    - Detects balance between rote repetition and creative remix/mutation
-    - Subscores: `remix_rate`, `rote_repetition_rate`, `template_phrase_density`, `anchor_stability`
-    - Uses: slang drift metrics, lifecycle states, tau metrics, weather classification, CSP fields, fog types
-  - **Meta-Awareness Detector** (`abraxas/detectors/shadow/meta_awareness.py`):
-    - Detects meta-level discourse about manipulation, algorithms, and epistemic fatigue
-    - Subscores: `manipulation_discourse_score`, `algorithm_awareness_score`, `fatigue_joke_rate`, `predictive_mockery_rate`
-    - Uses: DMX metrics, RDV affect axes, EFTE fatigue metrics, keyword detection, narrative manipulation metrics
-  - **Negative Space / Silence Detector** (`abraxas/detectors/shadow/negative_space.py`):
-    - Detects topic dropout, visibility asymmetry, and abnormal silences
-    - Subscores: `topic_dropout_score`, `visibility_asymmetry_score`, `mention_gap_halflife_score`
-    - Requires: symbol pool history (minimum 3 entries) for baseline comparison
-  - **Detector Infrastructure**:
-    - `abraxas/detectors/shadow/types.py`: Base types (DetectorId, DetectorStatus, DetectorValue, DetectorProvenance)
-    - `abraxas/detectors/shadow/registry.py`: Registry with `compute_all_detectors()` and serialization
-    - `abraxas/detectors/shadow/__init__.py`: Package exports
-  - **Integration Example**: `examples/shadow_detectors_integration.py` with complete usage patterns
-- **Shadow Metrics Integration** (Incremental Patch Only):
-  - Modified SCG, FVC, NOR, PTS, CLIP, SEI to accept optional detector evidence
-  - Added `shadow_detectors` field extraction in all `extract_inputs()` functions
-  - Added `shadow_detector_evidence` to metadata when present
-  - **NO influence** on metric value computation (evidence only)
-  - Total changes: +54 lines across 6 files (minimal diffs)
-- **Comprehensive Test Suite** (22 tests, 100% passing):
-  - `tests/test_shadow_detectors_determinism.py`: Verifies identical outputs for identical inputs (5 tests)
-  - `tests/test_shadow_detectors_missing_inputs.py`: Verifies `not_computable` when required inputs absent (10 tests)
-  - `tests/test_shadow_detectors_bounds.py`: Verifies all values clamped to [0.0, 1.0] (7 tests)
-- **Documentation**:
-  - `docs/detectors/shadow_detectors_v0_1.md`: Complete specification (430 lines)
-  - Input requirements (required vs optional)
-  - Output schemas with provenance tracking
-  - Determinism guarantees and SEED compliance
-  - Integration notes and usage examples
-  - Governance policies and rent-payment gate stubs
-
-### Technical Details
-- **SHADOW-ONLY Guarantee**: `no_influence_guarantee=True` - never affects forecasts, decisions, or state transitions
-- **Deterministic**: Stable sorting, canonical JSON hashing, SHA-256 provenance
-- **ABX-Runes ϟ₇ Access Control**: Invocation via SSO (Shadow Structural Observer) rune only, direct access forbidden
-- **SEED Compliant**: Full provenance tracking with `inputs_hash`, `config_hash`, `computed_at_utc`
-- **Bounds Enforced**: All values and subscores strictly clamped to [0.0, 1.0] via `clamp01()` utility
-- **No Placeholders**: All inputs from real envelope fields discovered in codebase (slang_drift, lifecycle, weather, DMX, RDV, EFTE, CSP, fog types, symbol pool)
-- **Incremental Patch Only**: Minimal diffs to existing shadow metrics preserving all existing logic
-
-### Governance
-- **Status**: Emergent Candidate (subject to evolution)
-- **Mode**: `shadow` (observe-only)
-- **No Influence**: `no_influence=True` (guaranteed)
-- **Governance**: `emergent_candidate` (subject to rent-payment gates)
-- **Rent-Payment Gates**: Skeleton only (dormant) - correlation check, stability check, utility check
-
-### Files Created
-- `abraxas/detectors/shadow/__init__.py`
-- `abraxas/detectors/shadow/types.py` (94 lines)
-- `abraxas/detectors/shadow/compliance_remix.py` (329 lines)
-- `abraxas/detectors/shadow/meta_awareness.py` (378 lines)
-- `abraxas/detectors/shadow/negative_space.py` (337 lines)
-- `abraxas/detectors/shadow/registry.py` (184 lines)
-- `tests/test_shadow_detectors_determinism.py` (171 lines)
-- `tests/test_shadow_detectors_missing_inputs.py` (182 lines)
-- `tests/test_shadow_detectors_bounds.py` (219 lines)
-- `docs/detectors/shadow_detectors_v0_1.md` (430 lines)
-- `examples/shadow_detectors_integration.py` (327 lines)
-
-### Files Modified
-- `abraxas/shadow_metrics/scg.py` (+9 lines)
-- `abraxas/shadow_metrics/fvc.py` (+9 lines)
-- `abraxas/shadow_metrics/nor.py` (+9 lines)
-- `abraxas/shadow_metrics/pts.py` (+9 lines)
-- `abraxas/shadow_metrics/clip.py` (+9 lines)
-- `abraxas/shadow_metrics/sei.py` (+9 lines)
-
-**Total**: +2,757 insertions across 17 files
-
 ## [1.4.0] - 2025-12-21
 
 ### Added
@@ -300,9 +324,3 @@ All new runes include provenance sources:
 - EEG phase synchronization (pilot) framing
 - Drift/entropy governance principles (AAL doctrine)
 
-## [Unreleased]
-
-### Planned
-- Integration of runes into main Abraxas oracle pipelines
-- TypeScript/JavaScript bindings for rune system
-- Web UI for sigil visualization

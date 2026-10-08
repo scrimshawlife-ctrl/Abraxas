@@ -8,7 +8,7 @@ name = "abraxas"
 # the README badge and the CHANGELOG's most recent released milestone agree with. This field said
 # 1.5.0 while all three of those said 2.0.1; abraxas.__version__ now reads back from here, and
 # tests/test_version_single_source.py fails if any of the four drift apart again.
-version = "2.0.1"
+version = "2.1.0"
 description = "Abraxas - Deterministic Symbolic Intelligence with Predictive Forecasting"
 readme = "README_ORIN.md"
 requires-python = ">=3.8"
@@ -17,6 +17,10 @@ authors = [
     {name = "Abraxas Team"},
 ]
 classifiers = [
+    # STILL ALPHA, deliberately. The beta SCOPE is decided (operator-supervised shadow, see
+    # docs/BETA_READINESS.md), but a scope decision is not a maturity claim. The stated blocker
+    # for declaring beta is CI history: the full suite has only been exercised by CI since
+    # 2026-10-07. Flip this to "4 - Beta" when that history exists, not before.
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",

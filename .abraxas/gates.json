@@ -37,7 +37,7 @@
       "authorized_at": "2026-10-04T00:00:00Z",
       "authorized_by": "appliedalchemylabs"
     },
-    "CANON_VERSION": "v2.0.1",
+    "CANON_VERSION": "v2.1.0",
     "MUTATION_TIMESTAMP": "2026-10-05T22:43:42.571240Z",
     "MUTATION_RECORD": ".abraxas/canon_mutation_record.json"
   }
