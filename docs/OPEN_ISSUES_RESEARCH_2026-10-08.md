@@ -28,12 +28,31 @@ Regenerate with `python scripts/reconcile_dependency_import_locations.py --write
     fastapi: webpanel/routes/operator_routes.py:9 uses it but is not declared
 ```
 
-**Cause:** `webpanel/` imports `fastapi` at 6 sites, none recorded in
-`.aal/dependency_manifest.v0.yaml`. `webpanel/` sat outside CI scope until
-2026-10-07, so its manifest entries were never checked — this is the drift the
-manifest exists to catch, and CI could not see it until the scope was widened.
+**Cause — more precise than "undeclared imports": the manifest is OFF BY TWO LINES.**
 
-**Fix:** run the reconcile script the test names, then verify both tests pass.
+The two failures are the same root cause seen from opposite directions:
+```
+test_every_import_site_is_declared                 fastapi: webpanel/panel_context.py:10 uses it but is not declared
+test_every_declared_site_still_uses_its_dependency fastapi: webpanel/panel_context.py:8  is declared but does not use it
+```
+**Line 8 is declared; the import is at line 10.** Same for `operator_routes.py`
+(`:7` declared, `:9` actual). The import statements MOVED DOWN two lines, so the
+manifest now points at blank lines while the real imports look undeclared.
+
+**`.aal/dependency_manifest.v0.yaml` is keyed by LINE NUMBER.** Any edit above an
+import invalidates it — including edits that have nothing to do with dependencies.
+This session's `TYPE_CHECKING` import additions to `operator_routes.py` are one
+such edit, though the failure predates them (verified at the parent commit).
+
+**This is fragile by construction, not by accident.** The regenerate script fixes
+it today. It will break again on the next unrelated edit two lines above an import.
+**A durable fix would key the manifest by (file, symbol) or (file, import target)
+rather than line number** — that is a design change, out of scope here, but it is
+the actual defect. Flagging it rather than implying the script is a permanent fix.
+
+**Fix:** run `python scripts/reconcile_dependency_import_locations.py --write`,
+then verify BOTH tests pass (they assert opposite directions, so one passing does
+not imply the other).
 **Risk:** LOW — the script is the test's own prescribed remedy.
 **Trap:** the script regenerates from a scan. Verify it does not DELETE true
 entries for other dependencies. Diff before committing.
