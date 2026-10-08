@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > **Version-line note.** This file also carries `[2.2.0] - 2026-01-04`, which is a HIGHER number
 > with an EARLIER date than `[v2.0.0] - 2026-10-04` below it. It belongs to an abandoned numbering
-> scheme, the same pattern as the `v4.0.0` and `v4.0.2` git tags, which are also older commits
-> with higher numbers than `v2.0.0`. The current line is canon-authoritative: `.abraxas/gates.json`
+> scheme, the same pattern as the `v4.0.0` and `v4.0.2` git tags, which were also older commits
+> with higher numbers than `v2.0.0` and have since been **retired** (2026-10-08). The current line
+> is canon-authoritative: `.abraxas/gates.json`
 > holds `gates.CANON_VERSION`, and `pyproject.toml`, the README badge and `abraxas.__version__` all
 > agree with it. The stray sections are documented rather than renumbered, because their true
 > history is not something this file records.

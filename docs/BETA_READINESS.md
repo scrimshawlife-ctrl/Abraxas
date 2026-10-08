@@ -69,9 +69,12 @@ is marked **[JUDGEMENT]**.
    `abx` and `abraxas/zkp`, which are 351 prints with zero logging calls between them.
    [JUDGEMENT] Not a blocker for an operator-supervised shadow beta; a blocker for anything
    operated by someone else.
-9. **Stale tags.** `v4.0.0` and `v4.0.2` are dated 2026-10-03 — **older commits with higher
-   numbers** than `v2.0.0` (2026-10-04). All three are ancestors of `main`, so they are harmless but
-   ambiguous. Retiring them is an operator action (published tags are history).
+9. **Stale tags — RESOLVED (2026-10-08).** `v4.0.0` and `v4.0.2` were dated 2026-10-03, **older
+   commits with higher numbers** than `v2.0.0` (2026-10-04), from an abandoned numbering scheme.
+   Local and remote tags deleted, after confirming nothing references them: the only consumer
+   declaration in the repo is an unpinned git dependency that resolves to the default branch. The
+   remote now carries `v2.0.0` and `v2.1.0` only, both on the canon line. `v2.0.0` was deliberately
+   KEPT: it is the canon predecessor (`v2.0.0` -> canon `v2.0.1` -> `v2.1.0`), not stray.
 
 ### Found during the assessment, since resolved
 
