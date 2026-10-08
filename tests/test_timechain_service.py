@@ -33,8 +33,27 @@ def server():
     srv = TimechainServer(host="127.0.0.1", port=0, api_key=None)
     t = threading.Thread(target=srv.serve_forever, daemon=True)
     t.start()
+    _wait_until_listening(srv.base_url)  # NOT a sleep: poll until the socket answers
     yield srv
     srv.shutdown()
+
+
+def _wait_until_listening(base_url: str, attempts: int = 50) -> None:
+    """Block until the server actually accepts connections.
+
+    Without this the fixture raced: the thread was started but the socket might not be
+    bound yet, so the first request occasionally hit a closed port and the test failed
+    ~2 runs in 5. A fixed sleep would have hidden it behind a timeout instead of fixing
+    it, and would slow every run. Poll the real readiness signal instead.
+    """
+    import time as _t
+    for _ in range(attempts):
+        try:
+            with urllib.request.urlopen(f"{base_url}/health", timeout=0.5):
+                return
+        except Exception:
+            _t.sleep(0.02)
+    raise RuntimeError(f"server at {base_url} never became ready")
 
 
 def _get(url, key=None):
