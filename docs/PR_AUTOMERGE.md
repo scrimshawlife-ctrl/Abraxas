@@ -123,20 +123,28 @@ Label a docs-only PR `docs` + `automerge`. If the path gate passes, the workflow
 
 Runtime, rune, contract, and governance PRs stay manual.
 
-## Branch protection interacts with this gate
+## Branch protection and this gate
 
-`main` requires branches to be **up to date** before merging
-(`required_status_checks.strict = true`) and permits branch updates
-(`allow_update_branch = true`).
+`main` requires the three status checks above. **`strict` (require branches to be up to date)
+is deliberately OFF**, and `allow_update_branch` is ON.
 
-That matters here specifically because an auto-merge performed by `GITHUB_TOKEN` produces
-**no workflow run** on the resulting commit: GitHub suppresses events from the default token.
-Requiring up-to-date branches closes that gap without needing a post-merge trigger — the
-squashed tree is then byte-identical to the tree that already passed the required checks, so
-the merged commit *is* the tested commit. Measured exposure before the change: **1 of the
-last 30 commits** on `main` (`59e09f63`, the first auto-merged PR).
+`strict` was enabled once and then reverted, because measurement showed it silently breaks
+this gate rather than improving it:
 
-Consequence for this gate: a docs PR that falls behind `main` is reported `BEHIND` and will
-not merge until its branch is current. Use **Update branch** (one click) to bring it up to
-date. Verified: a branch deliberately 4 commits behind reported
-`mergeStateStatus=BEHIND`.
+- A docs-only PR branched 2 commits behind `main` reported `BEHIND`, armed auto-merge
+  successfully (`gate-and-enable` passed), and then **never merged**. GitHub did not update the
+  branch. After every required check had passed (`Test Suite` in 10m40s), the PR still sat at
+  `OPEN / mergeStateStatus=BEHIND` with auto-merge armed, and nothing further was coming.
+- So `strict` turns an unattended auto-merge into one that needs a human to click **Update
+  branch** every time `main` moves — a worse outcome than the gap it closes.
+
+The gap `strict` was meant to close is real, but small and different in shape: an auto-merge
+performed by `GITHUB_TOKEN` produces **no workflow run** on the resulting commit, because GitHub
+suppresses events from the default token. Measured exposure: **1 of the last 30 commits** on
+`main` (`59e09f63`, the first auto-merged PR).
+
+The principled fix for both properties at once is a **merge queue**, available on this public
+repository: the queue runs the required checks on the *merged* result server-side, so the merged
+commit is verified without any post-merge run, and it handles the behind-`main` case natively
+with no PAT. Enabling it requires adding `merge_group:` triggers to the workflows that own the
+required checks (`ci.yml`, `abraxas-repo-guardrails.yml`) first.
