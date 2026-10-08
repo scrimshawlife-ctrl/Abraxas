@@ -107,7 +107,11 @@ dev = [
     "httpx>=0.27.0",
     # The linter is a DECLARED dev dependency, not a globally-hoped-for binary: CI installs
     # `.[dev]` and then runs `make lint`, so ruff has to arrive the same way the tests do.
-    "ruff>=0.6",
+    # BOUNDED, not `>=`: the lint gate is a ratchet against recorded per-rule counts, and rule
+    # codes plus their detection change between ruff minors. An unbounded requirement lets CI
+    # resolve a version whose counts differ from the baseline, failing for a reason that has
+    # nothing to do with this repo. Raise it deliberately and regenerate the baseline.
+    "ruff>=0.16,<0.17",
 ]
 
 # Full installation (server + dev)
@@ -203,6 +207,14 @@ select = [
 # An `ignore` would switch a rule OFF, and then a new violation of it could never fail --
 # the ratchet keeps every rule ACTIVE and fails on any increase. Strictly stronger than an
 # ignore list, and it mirrors the idiom already used by scripts/test_ratchet.sh.
+
+[tool.ruff.lint.per-file-ignores]
+# Typer's API REQUIRES `Option()`/`Argument()` calls in parameter defaults -- it reads them to
+# build the CLI -- so B008 reports the framework's own idiom on these modules and can never be
+# satisfied there. Narrowing it to these files (rather than ignoring B008 everywhere) keeps the
+# rule ACTIVE for genuine mutable-default/side-effect defects, e.g.
+# abraxas/attachments/aalmanac_v1.py:84.
+"abraxas/cli/*" = ["B008"]
 
 [tool.coverage.run]
 source = ["abraxas", "abx", "abx_familiar"]
