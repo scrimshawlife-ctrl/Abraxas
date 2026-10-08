@@ -69,6 +69,25 @@
       </tbody>
     </table>
 
+    <h3>Model requirement not declared</h3>
+    <p>
+      These are not implemented, so the repo cannot say whether they will need a model.
+      Naming one here would be an assertion about code that does not exist.
+    </p>
+    <table>
+      <thead><tr><th>Engine</th><th>State</th></tr></thead>
+      <tbody>
+      {% for row in engine_topology.model_unknown %}
+        <tr class="state-{{ row.state }}">
+          <td><code>{{ row.name }}</code></td>
+          <td>{{ row.state }} <i>(by design &mdash; not built yet)</i></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="2">None.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
     <h3>Not engines</h3>
     <p>
       <code>yggdrasil</code> is the coordinator &mdash; it routes to engines and is not itself

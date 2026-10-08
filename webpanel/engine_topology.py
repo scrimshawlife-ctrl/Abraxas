@@ -28,16 +28,36 @@ logger = logging.getLogger(__name__)
 _COORDINATOR = "yggdrasil"
 _TEST_DOUBLE = "mock"
 
-# Engines that need no model at all. Six of the twelve registered names: they consume inputs
-# supplied to them (latent captures, forecasts, memory, rune/phase logic, sign frames) and
-# have no inference step to serve.
+# Engines KNOWN to need no model: they consume inputs supplied to them (latent captures,
+# forecasts, memory, rune/phase logic, sign frames) and have no inference step to serve.
 #
-# NOTE: the registry does not carry this fact today, so it is stated here and could go
-# stale if an engine gains or loses a model. The honest long-term fix is for the registry
-# to hold it; flagged as an open question rather than silently assumed.
-_NO_MODEL_ENGINES = frozenset(
+# This is a DECLARED fact, not a measured one. The registry does not carry it, so where an
+# engine is not listed here AND is not implemented, the card must say "unknown" rather than
+# "needs a model" -- see _model_requirement. Claiming a model requirement for an engine with
+# no implementation is the same defect class as presenting a planned engine as available.
+_DECLARED_NO_MODEL = frozenset(
     {"noesis", "trutina", "cypher", "chronos", "resonance", "semion"}
 )
+
+# "yes" / "no" / "unknown" -- deliberately three-valued. A boolean forced a confident answer
+# where the repo has no evidence.
+MODEL_YES = "yes"
+MODEL_NO = "no"
+MODEL_UNKNOWN = "unknown"
+
+
+def _model_requirement(engine_name: str, state: str, has_implementation: bool) -> str:
+    """Does this engine need a model? Answer only from what the repo actually knows.
+
+    An engine that is not implemented cannot have a model requirement -- there is no
+    inference step to serve. Saying "yes" there would be an assertion about code that does
+    not exist, so it returns MODEL_UNKNOWN, and the template renders that honestly.
+    """
+    if engine_name in _DECLARED_NO_MODEL:
+        return MODEL_NO
+    if state == "planned" or not has_implementation:
+        return MODEL_UNKNOWN
+    return MODEL_YES
 
 
 def _state_for(status: Any) -> str:
@@ -115,14 +135,30 @@ def build_engine_topology() -> Dict[str, Any]:
                     "evidence_type": str(meta.get("evidence_type") or ""),
                     "manifest_status": str(meta.get("manifest_status") or ""),
                     "implementation": str(meta.get("implementation") or ""),
-                    "needs_model": kind == "engine" and name not in _NO_MODEL_ENGINES,
+                    "model_requirement": (
+                        _model_requirement(name, state, bool(meta.get("implementation")))
+                        if kind == "engine"
+                        else MODEL_NO
+                    ),
+                    # the grouping used by the template: only a declared "yes" or "no" is a
+                    # claim; "unknown" is listed separately rather than folded into either
+                    "needs_model": (
+                        kind == "engine"
+                        and _model_requirement(name, state, bool(meta.get("implementation")))
+                        == MODEL_YES
+                    ),
                 }
             )
     except Exception as exc:
         logger.warning("could not read the engine registry: %s", exc)
         error = f"{type(exc).__name__}: {exc}"
 
+    # ALL engine-kind rows, regardless of model requirement. Counting only the ones with a
+    # declared requirement silently dropped the unknown ones: counts said 8 engines and 3
+    # planned when there are 10 and 5. The card must not lose rows because a fact is
+    # undeclared -- an unknown is still an engine.
     engines = [r for r in rows if r["kind"] == "engine"]
+    undeclared = [r for r in engines if r["model_requirement"] == MODEL_UNKNOWN]
     counts = {
         "total": len(rows),
         "engines": len(engines),
@@ -138,7 +174,8 @@ def build_engine_topology() -> Dict[str, Any]:
         "counts": counts,
         "error": error,
         # grouped views, so the template does not have to sort or filter
-        "needs_model": [r for r in engines if r["needs_model"]],
-        "no_model": [r for r in engines if not r["needs_model"]],
+        "needs_model": [r for r in engines if r["model_requirement"] == MODEL_YES],
+        "no_model": [r for r in engines if r["model_requirement"] == MODEL_NO],
+        "model_unknown": undeclared,
         "non_engines": [r for r in rows if r["kind"] != "engine"],
     }
