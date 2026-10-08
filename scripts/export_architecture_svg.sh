@@ -120,14 +120,28 @@ else:
 path.write_text(ET.tostring(root, encoding="unicode"), encoding="utf-8")
 PY
 
-python - "$TMP_SVG" <<'PY'
-from pathlib import Path
+python - "$TMP_SVG" "$SRC" <<'PY'
+import hashlib
+import re
 import sys
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-if "<!-- ABRAXAS GENERATED ARTIFACT" not in text:
-    text = "<!-- ABRAXAS GENERATED ARTIFACT: derived from docs/assets/architecture/abraxas-architecture-overview.mmd via scripts/export_architecture_svg.sh -->\n" + text
-path.write_text(text, encoding="utf-8")
+from pathlib import Path
+
+svg_path = Path(sys.argv[1])
+src_path = Path(sys.argv[2])
+digest = hashlib.sha256(src_path.read_bytes()).hexdigest()
+
+header = (
+    "<!-- ABRAXAS GENERATED ARTIFACT: derived from "
+    f"{src_path.as_posix()} via scripts/export_architecture_svg.sh "
+    f"source-sha256: {digest} -->"
+)
+
+text = svg_path.read_text(encoding="utf-8")
+# Strip any previous stamp rather than only adding one when absent, so regenerating
+# after a source edit refreshes the hash instead of leaving a stale one behind.
+text = re.sub(r"^<!-- ABRAXAS GENERATED ARTIFACT[^\n]*-->\n", "", text, count=1)
+svg_path.write_text(header + "\n" + text, encoding="utf-8")
+print(header)
 PY
 
 mv "$TMP_SVG" "$SVG_OUT"
