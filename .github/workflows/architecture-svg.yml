@@ -1,6 +1,7 @@
 name: architecture-svg
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - docs/assets/architecture/**

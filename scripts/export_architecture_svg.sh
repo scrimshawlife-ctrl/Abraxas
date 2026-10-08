@@ -27,7 +27,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-npx @mermaid-js/mermaid-cli -i "$SRC" -o "$TMP_SVG" -c "$CONFIG"
+npx --yes @mermaid-js/mermaid-cli@12.0.0 -i "$SRC" -o "$TMP_SVG" -c "$CONFIG"
 
 python - "$TMP_SVG" <<'PY'
 import re
@@ -133,9 +133,9 @@ PY
 )"
 
   if [[ -n "$PNG_WIDTH" ]]; then
-    npx @mermaid-js/mermaid-cli -i "$SRC" -o "$PNG_OUT" -c "$CONFIG" -w "$PNG_WIDTH"
+    npx --yes @mermaid-js/mermaid-cli@12.0.0 -i "$SRC" -o "$PNG_OUT" -c "$CONFIG" -w "$PNG_WIDTH"
   else
-    npx @mermaid-js/mermaid-cli -i "$SRC" -o "$PNG_OUT" -c "$CONFIG"
+    npx --yes @mermaid-js/mermaid-cli@12.0.0 -i "$SRC" -o "$PNG_OUT" -c "$CONFIG"
   fi
 fi
 
