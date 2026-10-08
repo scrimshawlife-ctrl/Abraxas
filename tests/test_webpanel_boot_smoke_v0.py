@@ -13,8 +13,14 @@ def test_webpanel_boot_and_template_compile():
         pytest.skip(f"fastapi TestClient unavailable: {exc}")
 
     from webpanel import app as webpanel_app
+    from webpanel.panel_context import templates_factory
 
-    template = webpanel_app._templates().env.get_template("run.html")
+    # The template store moved to webpanel/panel_context.py as templates_factory();
+    # this test still referenced webpanel_app._templates(), which no longer exists.
+    # The test was the stale side, not the app -- the assertion below (a real GET to
+    # "/" returning 200 with "Run" in the body) is the part that matters and is
+    # unchanged.
+    template = templates_factory().env.get_template("run.html")
     assert template is not None
 
     client = TestClient(webpanel_app.app)
