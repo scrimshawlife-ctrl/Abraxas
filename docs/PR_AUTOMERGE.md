@@ -53,6 +53,38 @@ registered, "active", and permanently incapable of doing its job — first becau
 repo setting was off, and again because its gate keys on labels that were never created.
 Neither shows up as a failure; both look like a skip.
 
+## Known interaction: an auto-merged PR does NOT run `auto-move`
+
+Measured 2026-10-08, and it is a GitHub rule rather than a bug in either workflow:
+
+> Events triggered by the repository's `GITHUB_TOKEN` do not create new workflow runs.
+
+Auto-merge is performed **by `GITHUB_TOKEN`** (the merge on #266 is attributed to
+`app/github-actions`). So when this workflow merges a docs PR, the `pull_request: closed`
+and `push` events it produces are suppressed, and `auto-move.yml` **never fires**. Neither
+does `ci.yml`, `abraxas-repo-guardrails.yml` or `abx_familiar_canary.yml`.
+
+Evidence, same repository, same day:
+
+- PR #266 — merged by `app/github-actions` via auto-merge → merge commit `59e09f63` has
+  **zero** workflow runs of any kind.
+- Main commit `8f933489` — pushed by a personal access token → `CI`,
+  `abraxas-repo-guardrails` and `abx-familiar canary` all ran.
+- PR #265 — **closed** (not merged) by a PAT → `auto-move` did fire (and correctly skipped,
+  because `merged == true` was false).
+
+Two consequences worth deciding on deliberately:
+
+1. **`auto-move` and docs auto-merge cannot both apply to the same PR.** A PR merged by the
+   docs gate will not be added to the Kanban board.
+2. **The merge commit on `main` gets no verification run.** The PR's required checks passed
+   before merging, so the gate held; but the commit that actually lands is not itself
+   re-tested. With `strict: false` on `main` that is accepted today.
+
+If chaining is wanted, the merge must be performed by a non-`GITHUB_TOKEN` actor — i.e. arm
+auto-merge with a PAT secret instead of `secrets.GITHUB_TOKEN`. That is a credential change
+and a decision, not a fix to apply silently.
+
 ## Sibling automation: `auto-move.yml` (Projects v2)
 
 `.github/workflows/auto-move.yml` adds a **merged** PR to the GitHub Projects v2 board
