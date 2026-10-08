@@ -152,11 +152,11 @@ dependencies:
         top_level: true
         symbol: FastAPI
       - path: webpanel/panel_context.py
-        line: 8
+        line: 9
         top_level: true
         symbol: HTTPException
       - path: webpanel/panel_context.py
-        line: 9
+        line: 10
         top_level: true
         symbol: Jinja2Templates
       - path: webpanel/routes/compare_routes.py
@@ -192,11 +192,11 @@ dependencies:
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/operator_routes.py
-        line: 7
+        line: 8
         top_level: true
         symbol: Request
       - path: webpanel/routes/operator_routes.py
-        line: 8
+        line: 9
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/operator_surfaces_routes.py
@@ -208,11 +208,11 @@ dependencies:
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/runs_routes.py
-        line: 5
+        line: 6
         top_level: true
         symbol: HTTPException
       - path: webpanel/routes/runs_routes.py
-        line: 6
+        line: 7
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/shared.py
@@ -243,6 +243,10 @@ dependencies:
         line: 6
         top_level: true
         symbol: TestClient
+      - path: webpanel/test_token_comparison.py
+        line: 18
+        top_level: true
+        symbol: HTTPException
       - path: webpanel/test_token_guard.py
         line: 3
         top_level: true
@@ -266,7 +270,7 @@ dependencies:
         top_level: false
         symbol: jinja2
       - path: webpanel/panel_context.py
-        line: 22
+        line: 23
         top_level: false
         symbol: jinja2
     notes:
@@ -640,7 +644,7 @@ dependencies:
         top_level: false
         symbol: uvicorn
       - path: abraxas/dashboard/api.py
-        line: 325
+        line: 351
         top_level: false
         symbol: uvicorn
       - path: abx/cli.py
