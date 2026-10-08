@@ -43,6 +43,8 @@ def emit(event: dict[str, Any]) -> None:
         LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(LEDGER_PATH, "a", encoding="utf-8") as f:
             f.write(_stable(event) + "\n")
-    except Exception:
-        # Telemetry failures are silent - execution continues
+    except OSError:  # O4: was bare-broad; narrowed to the provable case
+        # Telemetry failures are silent - execution continues. mkdir/open/write can
+        # only raise OSError here, so this still swallows every failure this block
+        # can actually produce. A non-OSError would now surface rather than hide.
         pass

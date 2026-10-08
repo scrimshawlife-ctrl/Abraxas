@@ -400,7 +400,7 @@ def main() -> int:
             try:
                 with open(md_path, "a", encoding="utf-8") as f:
                     f.write(md_add)
-            except Exception:
+            except OSError:  # O4: was bare-broad; narrowed to the provable case
                 pass
     except Exception:
         pass
@@ -437,7 +437,7 @@ def main() -> int:
                 try:
                     with open(md_path, "a", encoding="utf-8") as f:
                         f.write(md_add)
-                except Exception:
+                except OSError:  # O4: was bare-broad; narrowed to the provable case
                     pass
     except Exception:
         pass

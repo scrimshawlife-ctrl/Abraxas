@@ -20,7 +20,11 @@ if __name__ == '__main__':
         import subprocess
         subprocess.run(["python", "scripts/run_readiness_policy_ledger.py"], check=False)
         subprocess.run(["python", "scripts/run_readiness_policy_trends.py"], check=False)
-    except Exception:
+    except (ImportError, OSError):  # O4: was bare-broad; narrowed to the provable set
+        # The plan for this site said ImportError, but reading the body shows two
+        # subprocess.run calls as well -- those raise OSError (missing executable,
+        # permission), not ImportError. Narrowing to ImportError alone would have
+        # been too far and stopped catching a genuinely absent python binary.
         pass
     r = run_self_build_final_stack_runner()
     p = Path('out/registry/self_build_final_stack_result.latest.json')
