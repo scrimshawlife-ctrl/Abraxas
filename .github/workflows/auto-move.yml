@@ -51,17 +51,39 @@ jobs:
           PR_URL="${{ github.event.pull_request.html_url }}"
           echo "merged PR: $PR_URL"
 
+          # A token being PRESENT is not the same as a token being USABLE. Measured
+          # 2026-10-08: GH_TOKEN was non-empty (the ABRAXAS_PAT fallback exists) but
+          # `gh project item-add` failed with gh's symptom "unknown owner type" because the
+          # token cannot resolve the owner -- i.e. it lacks the `project` scope. Without this
+          # the failure is a cryptic one-liner.
+          _scope_hint() {
+            echo "GITHUB_TOKEN cannot be used here: it is repository-scoped and cannot reach the"
+            echo "Projects v2 API at all. A USER-owned project (this owner is a user, not an org)"
+            echo "accepts ONLY a CLASSIC personal access token carrying the 'project' scope;"
+            echo "fine-grained tokens do not support user-owned projects."
+            echo "Set the repository secret PROJECT_TOKEN to such a PAT. The ABRAXAS_PAT fallback"
+            echo "exists but is insufficient as measured on 2026-10-08."
+          }
+
           # Idempotent: when the PR is already on the board this returns the existing item
           # rather than creating a duplicate (measured: item-add run twice on one PR returned
           # the same item id and the board count stayed at 1).
-          ITEM_ID="$(gh project item-add 7 --owner scrimshawlife-ctrl --url "$PR_URL" --format json --jq '.id')"
+          if ! ITEM_ID="$(gh project item-add 7 --owner scrimshawlife-ctrl --url "$PR_URL" --format json --jq '.id' 2>&1)"; then
+            echo "::error::gh project item-add failed: $ITEM_ID"
+            _scope_hint
+            exit 1
+          fi
           echo "project item: $ITEM_ID"
 
           # Status is a single-select field on project 7; 98236657 is its "Done" option.
-          gh project item-edit \
+          if ! gh project item-edit \
             --id "$ITEM_ID" \
             --project-id PVT_kwHODd8rms4BmKxM \
             --field-id PVTSSF_lAHODd8rms4BmKxMzhk01Z4 \
-            --single-select-option-id 98236657
+            --single-select-option-id 98236657 2>&1; then
+            echo "::error::gh project item-edit failed (the item was added but Status was not set)"
+            _scope_hint
+            exit 1
+          fi
 
           echo "moved merged PR to Done."
