@@ -225,29 +225,59 @@ def main() -> int:
 
     original = args.manifest.read_text(encoding="utf-8")
     text = original
-    changed: list[str] = []
+    drift: list[str] = []
+    stale_lines: list[str] = []
 
     for dep in sorted(scoped):
-        want = render_entries(sites.get(dep, []))
+        sites_for_dep = sites.get(dep, [])
+        want = render_entries(sites_for_dep)
         have = declared_entries(manifest, dep)
         if want == have:
             continue
+        # A line number moves on any edit above an import, which is why the guard keys on
+        # (path, symbol). This report must not call a position change "drift": DRIFT means the SET
+        # of sites changed. A position-only change is a stale description, which is worth
+        # refreshing but is not a discrepancy in what the record claims about usage.
+        want_key = {(path, symbol) for path, _line, _top, symbol in sites_for_dep}
+        have_key = {
+            (str(entry["path"]), str(entry.get("symbol", "")))
+            for entry in (manifest["dependencies"][dep].get("import_locations") or [])
+        }
+        if want_key == have_key:
+            stale_lines.append(f"  {dep}: {len(want) // 4} site line(s) moved")
+        else:
+            drift.append(
+                f"  {dep} ({scoped[dep]}): {len(have) // 4} declared -> {len(want) // 4} actual"
+            )
         text = splice_import_locations(text, dep, want)
-        changed.append(f"  {dep} ({scoped[dep]}): {len(have) // 4} declared -> {len(want) // 4} actual")
 
-    if not changed:
-        print("dependency-import-locations: OK (8 locations per entry, all in agreement)")
+    if not drift and not stale_lines:
+        print("dependency-import-locations: OK (every site declared; line numbers current)")
         return 0
 
-    print(f"dependency-import-locations: DRIFT in {len(changed)} dependenc(ies)")
-    for row in changed:
-        print(row)
+    if drift:
+        print(
+            f"dependency-import-locations: DRIFT in {len(drift)} dependenc(ies) -- the SET of sites changed"
+        )
+        for row in drift:
+            print(row)
+    if stale_lines:
+        print(
+            f"dependency-import-locations: {len(stale_lines)} dependenc(ies) with stale line "
+            "numbers (descriptive only)"
+        )
+        for row in stale_lines:
+            print(row)
+
     if args.write:
         args.manifest.write_text(text, encoding="utf-8")
         print(f"\nwrote {args.manifest}")
         return 0
-    print("\n(re-run with --write to apply)")
-    return 1
+    if drift:
+        print("\n(re-run with --write to apply)")
+        return 1
+    print("\n(no site drift; re-run with --write to refresh the descriptive line numbers)")
+    return 0
 
 
 if __name__ == "__main__":

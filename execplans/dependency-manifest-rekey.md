@@ -60,8 +60,16 @@ This section must always reflect the actual state of the work. Timestamps are UT
       `test_every_import_site_is_declared`, and deleting the declared `from fastapi import ...` line from
       `webpanel/panel_context.py` fails `test_every_declared_site_still_uses_its_dependency`. Tree
       restored to `4 passed`.
-- [ ] Phase 4 — register in `PLANS.md` and finish this document. (completed: code and validation;
-      remaining: the ratchet's confirmation and the registry/Outcomes update)
+- [x] (2026-10-08 07:20Z) Phase 4a — registered in `PLANS.md` and this ExecPlan committed and pushed as
+      `baf45e77` (with the guard and fixer changes).
+- [x] (2026-10-08 07:35Z) Phase 4b — CI proved the defect in production: run `37739497321` on
+      `f69d3951` went red on this guard alone (`2 failed, 3879 passed`) because a sibling `except`
+      narrowing in `abraxas/storage/compress.py` shifted the `zstandard` imports by seven lines. The
+      re-key is the fix. While confirming that, the fixer's own `DRIFT` label was found to be a false
+      alarm on position-only changes; it now uses the same `(path, symbol)` key as the guard, and the
+      stale descriptive line numbers were refreshed with `--write` (the `(path, symbol)` sets verified
+      byte-identical before and after).
+- [ ] Phase 4c — awaiting confirmation: CI green on `baf45e77`, and `scripts/test_ratchet.sh` green.
 
 ## Surprises & Discoveries
 
@@ -119,6 +127,31 @@ This section must always reflect the actual state of the work. Timestamps are UT
   bug this plan fixes: an instrument reporting an outcome ("a regression") it has not actually
   established.
   Evidence: preflight passed and the run still produced 3 errors, all one missing import.
+
+- Observation: the brittleness this plan exists to remove was then **demonstrated by CI, not
+  constructed**. Commit `f69d3951` (a sibling change narrowing a broad `except` in
+  `abraxas/storage/compress.py`) expanded one handler into a four-tuple with an explanatory comment,
+  shifting the two `zstandard` imports in that same file down by seven lines. CI run `37739497321`
+  went red with `2 failed, 3879 passed` -- both failures were this guard, reporting
+  `zstandard: abraxas/storage/compress.py:137 is declared but does not use it` against a real `:144`,
+  and `:176` against a real `:183`. Nothing about which dependency is used where had changed; a
+  comment had grown. The preceding commit `8604bf41` passed CI, so the red run is attributable to that
+  one edit. This is the identical failure shape as the 2026-10-08 `fastapi` off-by-two, produced by a
+  different author-in-the-loop within the hour, which is the strongest argument available that the key
+  -- not the occasional carelessness -- was the defect.
+  Evidence: `gh run view 37739497321 --log-failed`; the re-key commit `baf45e77` returns the guard to
+  green with no manifest change.
+
+- Observation: the fixer's own report was misleading in the same way, and fixing the guard exposed it.
+  With the guard re-keyed, `python scripts/reconcile_dependency_import_locations.py` still announced
+  `DRIFT in 4 dependenc(ies)` while printing `cryptography: 4 declared -> 4 actual`,
+  `fastapi: 46 declared -> 46 actual` -- equal counts, so the SET of sites was unchanged and only the
+  line numbers had moved. "DRIFT" there asserts a discrepancy the number underneath it contradicts.
+  The fixer now compares the same `(path, symbol)` key the guard uses: a set change is `DRIFT` and
+  exits 1; a position-only change is reported as stale descriptive data and exits 0.
+  Evidence: before -> `DRIFT in 4 dependenc(ies)` with equal counts; after -> `4 dependenc(ies) with
+  stale line numbers (descriptive only)`, exit 0, and a real added site still reports
+  `DRIFT in 1 dependenc(ies) -- the SET of sites changed` with exit 1.
 
 ## Decision Log
 

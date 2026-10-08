@@ -41,6 +41,10 @@ dependencies:
         top_level: false
         symbol: Ed25519PrivateKey
       - path: shared/signing.py
+        line: 126
+        top_level: false
+        symbol: Ed25519PublicKey
+      - path: shared/signing.py
         line: 104
         top_level: false
         symbol: Encoding
@@ -48,10 +52,6 @@ dependencies:
         line: 125
         top_level: false
         symbol: InvalidSignature
-      - path: shared/signing.py
-        line: 126
-        top_level: false
-        symbol: Ed25519PublicKey
     notes:
       - Signature verification materially affects trust and validator semantics.
     provenance:
@@ -84,13 +84,13 @@ dependencies:
         top_level: true
         symbol: WebSocket
       - path: abraxas/dashboard/api.py
-        line: 13
-        top_level: true
-        symbol: FastAPI
-      - path: abraxas/dashboard/api.py
         line: 14
         top_level: true
         symbol: CORSMiddleware
+      - path: abraxas/dashboard/api.py
+        line: 13
+        top_level: true
+        symbol: FastAPI
       - path: abraxas/dashboard/api.py
         line: 15
         top_level: true
@@ -104,13 +104,13 @@ dependencies:
         top_level: true
         symbol: HTMLResponse
       - path: abraxas/lens/server.py
-        line: 11
-        top_level: true
-        symbol: StaticFiles
-      - path: abraxas/lens/server.py
         line: 12
         top_level: true
         symbol: Jinja2Templates
+      - path: abraxas/lens/server.py
+        line: 11
+        top_level: true
+        symbol: StaticFiles
       - path: abraxas/web/admin_panel.py
         line: 6
         top_level: true
@@ -160,13 +160,13 @@ dependencies:
         top_level: true
         symbol: Jinja2Templates
       - path: webpanel/routes/compare_routes.py
-        line: 3
-        top_level: true
-        symbol: HTTPException
-      - path: webpanel/routes/compare_routes.py
         line: 4
         top_level: true
         symbol: HTMLResponse
+      - path: webpanel/routes/compare_routes.py
+        line: 3
+        top_level: true
+        symbol: HTTPException
       - path: webpanel/routes/export_routes.py
         line: 5
         top_level: true
@@ -184,37 +184,37 @@ dependencies:
         top_level: true
         symbol: RedirectResponse
       - path: webpanel/routes/index_routes.py
+        line: 6
+        top_level: true
+        symbol: HTMLResponse
+      - path: webpanel/routes/index_routes.py
         line: 5
         top_level: true
         symbol: HTTPException
-      - path: webpanel/routes/index_routes.py
-        line: 6
+      - path: webpanel/routes/operator_routes.py
+        line: 9
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/operator_routes.py
         line: 8
         top_level: true
         symbol: Request
-      - path: webpanel/routes/operator_routes.py
-        line: 9
+      - path: webpanel/routes/operator_surfaces_routes.py
+        line: 6
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/operator_surfaces_routes.py
         line: 5
         top_level: true
         symbol: HTTPException
-      - path: webpanel/routes/operator_surfaces_routes.py
-        line: 6
+      - path: webpanel/routes/runs_routes.py
+        line: 7
         top_level: true
         symbol: HTMLResponse
       - path: webpanel/routes/runs_routes.py
         line: 6
         top_level: true
         symbol: HTTPException
-      - path: webpanel/routes/runs_routes.py
-        line: 7
-        top_level: true
-        symbol: HTMLResponse
       - path: webpanel/routes/shared.py
         line: 5
         top_level: true
@@ -483,6 +483,10 @@ dependencies:
     allowed_to_affect_truth: false
     import_locations:
       - path: abraxas/lexicon/pg_registry.py
+        line: 66
+        top_level: false
+        symbol: Json
+      - path: abraxas/lexicon/pg_registry.py
         line: 30
         top_level: false
         symbol: psycopg2
@@ -490,10 +494,6 @@ dependencies:
         line: 65
         top_level: false
         symbol: psycopg2
-      - path: abraxas/lexicon/pg_registry.py
-        line: 66
-        top_level: false
-        symbol: Json
       - path: abraxas/lexicon/pg_registry.py
         line: 104
         top_level: false
@@ -507,6 +507,10 @@ dependencies:
         top_level: false
         symbol: psycopg2
       - path: abraxas/oracle/pg_store.py
+        line: 68
+        top_level: false
+        symbol: Json
+      - path: abraxas/oracle/pg_store.py
         line: 31
         top_level: false
         symbol: psycopg2
@@ -514,10 +518,6 @@ dependencies:
         line: 67
         top_level: false
         symbol: psycopg2
-      - path: abraxas/oracle/pg_store.py
-        line: 68
-        top_level: false
-        symbol: Json
       - path: abraxas/oracle/pg_store.py
         line: 107
         top_level: false
@@ -706,11 +706,11 @@ dependencies:
     allowed_to_affect_truth: true
     import_locations:
       - path: abraxas/storage/compress.py
-        line: 137
+        line: 144
         top_level: false
         symbol: zstd
       - path: abraxas/storage/compress.py
-        line: 176
+        line: 183
         top_level: false
         symbol: zstd
       - path: abraxas/storage/dict_train.py
