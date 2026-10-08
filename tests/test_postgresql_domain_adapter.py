@@ -73,9 +73,19 @@ def test_fetch_historical():
         assert snapshot.domain == "test_domain"
 
 
-@pytest.mark.asyncio
-async def test_async_methods_exist():
-    """Test that async methods exist and are callable (they'll fail without DB but that's ok)"""
+async def _async_methods_exist():
+    """Coroutine body: verify the async methods exist and are callable.
+
+    Driven by the sync wrapper below via asyncio.run -- deliberately NOT a bare
+    `async def test_`. There is no pytest-asyncio in this environment, so such a
+    test is not natively supported by pytest (it fails), and its
+    `@pytest.mark.asyncio` marker is unregistered under --strict-markers (it
+    errors and interrupts collection for the whole suite). This module only
+    became reachable once `asyncpg` was declared in the [postgres] extra, so that
+    breakage was latent: CI installs .[dev,server] (no asyncpg), so the module
+    skipped at importorskip and never collected. __main__ below already drove
+    this coroutine with asyncio.run.
+    """
     adapter = PostgreSQLDomainAdapter("postgresql://test:test@localhost/test", "test_domain")
     
     # Test that methods exist
@@ -111,6 +121,11 @@ async def test_async_methods_exist():
         await adapter.close()
     except Exception:
         pass  # Should not crash
+
+
+def test_async_methods_exist():
+    """Drive the async-method probe to completion; see the helper's note above."""
+    asyncio.run(_async_methods_exist())
 
 
 def test_factory_function_development():

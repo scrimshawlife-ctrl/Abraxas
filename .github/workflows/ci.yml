@@ -38,8 +38,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
-          # Install Abraxas in development mode
-          pip install -e ".[dev,server]"
+          # Install Abraxas in development mode.
+          # `postgres` added 2026-10-08: tests/test_postgresql_domain_adapter.py
+          # importorskip("asyncpg"), so with the extra absent the whole module skipped
+          # and its 7 tests never ran in CI. The extra now declares asyncpg (the driver
+          # the adapter actually imports), and the module's async test is driven with
+          # asyncio.run rather than a bare `async def test_`, so the module collects and
+          # passes with the driver present. Install it here so the module is guarded.
+          pip install -e ".[dev,server,postgres]"
       
       # Scope widened 2026-10-08: this job ran tests/evidence, tests/integration,
       # tests/chaos and webpanel, but never tests/ -- which holds 680 files. All seven
