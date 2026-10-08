@@ -30,7 +30,18 @@ from abraxas.yggdrasil.timechain_service import TimechainServer
 
 @pytest.fixture()
 def server():
-    srv = TimechainServer(host="127.0.0.1", port=0, api_key=None)
+    # difficulty=2 deliberately, NOT the production 4.
+    #
+    # Mining to difficulty 4 needs 4k-56k hashes: measured 0.05s when lucky and 2.25s under
+    # concurrent load, against a 3s client timeout. The tests then failed ~1 run in 4 with
+    # `TimeoutError` -- and it was NOT the lock, NOT keep-alive, and NOT a socket race, all
+    # of which I "fixed" first. It is simply that a variable-duration operation was given a
+    # fixed, too-tight budget.
+    #
+    # difficulty 2 needs ~256x fewer hashes, so the behaviour under test (append, link,
+    # verify, auth) is exercised without racing a hash-rate lottery. The difficulty-4
+    # PROPERTY still has its own dedicated test below, where the cost is the point.
+    srv = TimechainServer(host="127.0.0.1", port=0, api_key=None, difficulty=2)
     t = threading.Thread(target=srv.serve_forever, daemon=True)
     t.start()
     _wait_until_listening(srv.base_url)  # NOT a sleep: poll until the socket answers
@@ -56,20 +67,20 @@ def _wait_until_listening(base_url: str, attempts: int = 50) -> None:
     raise RuntimeError(f"server at {base_url} never became ready")
 
 
-def _get(url, key=None):
+def _get(url, key=None, timeout=3):
     req = urllib.request.Request(url, method="GET")
     if key:
         req.add_header("Authorization", f"Bearer {key}")
-    with urllib.request.urlopen(req, timeout=3) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.status, json.loads(r.read() or b"{}")
 
 
-def _post(url, payload, key=None):
+def _post(url, payload, key=None, timeout=3):
     req = urllib.request.Request(url, data=json.dumps(payload).encode(), method="POST")
     req.add_header("Content-Type", "application/json")
     if key:
         req.add_header("Authorization", f"Bearer {key}")
-    with urllib.request.urlopen(req, timeout=3) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.status, json.loads(r.read() or b"{}")
 
 
@@ -132,12 +143,28 @@ class TestChainBehaviour:
         assert status == 200
         assert v["valid"] is True
 
-    def test_blocks_are_mined_to_the_configured_difficulty(self, server):
-        """difficulty 4 means 4 leading hex zeros on the block hash."""
-        _, created = _post(f"{server.base_url}/blocks", {"data": {"mined": True}})
-        h = created["block"]["hash"]
-        assert h.startswith("0" * 4), f"expected 4 leading zeros, got {h[:12]}"
-        assert created["block"]["difficulty"] == 4
+    def test_blocks_are_mined_to_the_configured_difficulty(self):
+        """difficulty 4 means 4 leading hex zeros on the block hash.
+
+        This one builds its OWN difficulty-4 server and does not share the fast fixture,
+        because here the cost IS the property under test. The client timeout is sized to the
+        measured worst case (2.25s under concurrent load) with headroom, rather than the 3s
+        that made the fast tests flaky.
+        """
+        srv = TimechainServer(host="127.0.0.1", port=0, difficulty=4)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            _wait_until_listening(srv.base_url)
+            # timeout=15, not the default 3: mining to difficulty 4 measured 2.25s under
+            # concurrent load, so a 3s budget is a coin flip. The property being tested is
+            # "4 leading zeros", not "fast" -- size the budget to the operation.
+            _, created = _post(f"{srv.base_url}/blocks", {"data": {"mined": True}}, timeout=15)
+            h = created["block"]["hash"]
+            assert h.startswith("0" * 4), f"expected 4 leading zeros, got {h[:12]}"
+            assert created["block"]["difficulty"] == 4
+            assert srv.verify()[0] is True
+        finally:
+            srv.shutdown()
 
     def test_tampering_is_detected(self, server):
         """The counterfactual for verify(): if a mutated chain still verifies, verify()
@@ -151,7 +178,7 @@ class TestChainBehaviour:
 
 class TestAuth:
     def test_api_key_is_enforced_when_configured(self):
-        srv = TimechainServer(host="127.0.0.1", port=0, api_key="secret")
+        srv = TimechainServer(host="127.0.0.1", port=0, api_key="secret", difficulty=2)
         threading.Thread(target=srv.serve_forever, daemon=True).start()
         try:
             with pytest.raises(urllib.error.HTTPError) as ei:
