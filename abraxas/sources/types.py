@@ -140,4 +140,12 @@ class CandidateSourceRecord(BaseModel):
         return sha256_hex(canonical_json(self.model_dump()))
 
 
-from abraxas.sources.packets import SourcePacket  # noqa: E402
+# Deliberate RE-EXPORT, and the comment matters:
+#   - consumers import SourcePacket FROM this module (tests/test_timesfm_shadow_projection.py,
+#     tests/test_year_run_determinism.py), so removing it breaks them;
+#   - it sits at the bottom because packets.py imports from this module -- a top-level import
+#     would be circular.
+# `# noqa: E402` silenced only the "import not at top" rule, so F401 still read this as dead
+# weight and an automated `--fix` deleted it, taking 54 tests' collection with it. Naming F401
+# allows the import to state its intent instead of looking unused.
+from abraxas.sources.packets import SourcePacket  # noqa: E402,F401
