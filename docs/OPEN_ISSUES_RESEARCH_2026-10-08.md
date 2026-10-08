@@ -336,4 +336,36 @@ Expected: `N passed, 0 failed` (no collection interrupt, no warnings).
 
 This closes the remediation campaign. The suite is now green, guarded, and CI exercises the full scope. 
 
-**Next:** Task 4.0 decision on `profile_recommendation` in the run template, then the remaining 10 O4 judgement calls.
+## 9. Follow-up pass (2026-10-09) — Task 4 verified, O4 list closed
+
+**Task 4.0 (`profile_recommendation`) — ALREADY RESOLVED, and now verified.** The decision
+was made correctly: the feature IS intended, so the ROUTE was fixed rather than the
+template guarded. `webpanel/routes/runs_routes.py` now has a single shared
+`_run_page_context()` builder used by BOTH the run page and the error path, and it passes
+`profile_recommendation` + `recommended_profile_label` (fed by `recommend_profile` from
+`task_router`). The regression test `test_run_template_renders_oracle_section` renders
+through that *same* builder, so test and route cannot drift.
+
+Verified by driving it: deleting the `profile_recommendation` key from the builder makes
+`test_webpanel_oracle_render.py::test_run_template_renders_oracle_section` and
+`test_gate_stack_v0.py::test_banner_rendered_on_run_page` fail with `UndefinedError`;
+restoring it passes. The guard is real.
+
+**O4 judgement calls — closed.** On re-reading, 8 of the 10 listed sites were already
+landed (each carrying its `# O4:` comment), which means the plan's list was stale. In
+particular:
+
+- `governance/production.py:120` (flagged as a "known-bad prior") is now handled
+  *correctly*: deliberately left broad because `cb` is arbitrary user-registered code,
+  but the silent swallow was fixed by recording the failure.
+- `proof_density.py:109` was correctly **removed** as a provably-dead handler.
+
+The 2 genuinely-remaining sites were narrowed this pass (commit `f69d3951`):
+`storage/compress.py:64` → `(OSError, ValueError, KeyError, TypeError)`;
+`slang/seed_hist_v1.py:180` → `(AttributeError, TypeError)`. Both driven: an out-of-set
+`RuntimeError` injected into each try body now propagates. 26 affected tests + a
+62-test broader slice pass. The 2 external-fallback sites (`core_bridge.py:109,170`)
+remain out of scope by prior decision.
+
+**Remaining after this pass:** only the durable manifest re-key (`(file, symbol)`), which
+is a design change deserving its own plan (§1a).
