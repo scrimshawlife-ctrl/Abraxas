@@ -33,15 +33,18 @@ jobs:
       - name: Add the merged PR to Kanban and set Status = Done
         env:
           # A classic PAT with the `project` scope. NOT github.token -- see the AUTH note.
-          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          # PROJECT_TOKEN is preferred; ABRAXAS_PAT (already present) is the fallback, so
+          # this works today if that PAT carries `project` scope, and without a new secret.
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.ABRAXAS_PAT }}
         run: |
           set -euo pipefail
 
           if [ -z "${GH_TOKEN:-}" ]; then
-            echo "::error::PROJECT_TOKEN is not set, so this job cannot reach Projects v2."
+            echo "::error::Neither PROJECT_TOKEN nor ABRAXAS_PAT is set, so this job cannot reach Projects v2."
             echo "The default GITHUB_TOKEN is repository-scoped and cannot access Projects."
             echo "Add a CLASSIC personal access token with the 'project' scope as the repository"
-            echo "secret PROJECT_TOKEN (fine-grained tokens do not support user-owned projects)."
+            echo "secret PROJECT_TOKEN (fine-grained tokens do not support user-owned projects),"
+            echo "or give the existing ABRAXAS_PAT that scope."
             exit 1
           fi
 
