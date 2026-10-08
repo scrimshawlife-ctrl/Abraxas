@@ -6,6 +6,16 @@ SVG_OUT="docs/assets/architecture/abraxas-architecture-overview.svg"
 PNG_OUT="docs/assets/architecture/abraxas-architecture-overview.png"
 CONFIG="docs/assets/architecture/mermaid-export-config.json"
 
+# Chromium on GitHub's ubuntu runners cannot use its sandbox -- unprivileged user
+# namespaces are restricted, and puppeteer dies with "No usable sandbox!" before
+# rendering. Hand it a config that passes --no-sandbox. Left unset locally, where the
+# sandbox works. Expanded unquoted at the call sites on purpose, so an empty value
+# vanishes instead of becoming an empty argument; the path contains no spaces.
+PUPPETEER_OPT=""
+if [[ -n "${CI:-}" ]]; then
+  PUPPETEER_OPT="-p docs/assets/architecture/puppeteer-config.json"
+fi
+
 if ! command -v npx >/dev/null 2>&1; then
   echo "npx is required to export Mermaid diagrams." >&2
   exit 2
@@ -27,7 +37,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-npx --yes @mermaid-js/mermaid-cli@12.0.0 -i "$SRC" -o "$TMP_SVG" -c "$CONFIG"
+npx --yes @mermaid-js/mermaid-cli@12.0.0 $PUPPETEER_OPT -i "$SRC" -o "$TMP_SVG" -c "$CONFIG"
 
 python - "$TMP_SVG" <<'PY'
 import re
@@ -133,9 +143,9 @@ PY
 )"
 
   if [[ -n "$PNG_WIDTH" ]]; then
-    npx --yes @mermaid-js/mermaid-cli@12.0.0 -i "$SRC" -o "$PNG_OUT" -c "$CONFIG" -w "$PNG_WIDTH"
+    npx --yes @mermaid-js/mermaid-cli@12.0.0 $PUPPETEER_OPT -i "$SRC" -o "$PNG_OUT" -c "$CONFIG" -w "$PNG_WIDTH"
   else
-    npx --yes @mermaid-js/mermaid-cli@12.0.0 -i "$SRC" -o "$PNG_OUT" -c "$CONFIG"
+    npx --yes @mermaid-js/mermaid-cli@12.0.0 $PUPPETEER_OPT -i "$SRC" -o "$PNG_OUT" -c "$CONFIG"
   fi
 fi
 
