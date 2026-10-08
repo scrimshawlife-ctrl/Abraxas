@@ -71,7 +71,6 @@ def test_cypher_adapter():
     print(f"   Confidence: {envelope2.confidence:.3f}")
     print(f"   Candidates: {len(envelope2.candidate_outputs)}")
     
-    return True
 
 def test_direct_inference():
     """Test the _default_cypher_inference function directly"""
@@ -101,7 +100,6 @@ def test_direct_inference():
         print(f"   Claim: '{claim[:30]}...' -> Source: {source}")
     
     print("✅ Direct inference test passed!")
-    return True
 
 def test_memory_layer_integration():
     """Test integration with Yggdrasil memory layer"""
@@ -159,14 +157,13 @@ def test_memory_layer_integration():
         memory_layer.shutdown()
         
         print("✅ Memory layer integration test passed!")
-        return True
         
     except ImportError:
         print("   Skipping memory layer test (Yggdrasil not available)")
-        return True
+        return
     except Exception as e:
         print(f"   Memory layer test warning: {e}")
-        return True  # Don't fail the overall test for memory layer issues
+        return  # Don't fail the overall test for memory layer issues
 
 if __name__ == "__main__":
     try:

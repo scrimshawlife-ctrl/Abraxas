@@ -151,6 +151,12 @@ filterwarnings = [
     # Matched on the exact message, not the category, so a NEW deprecation still fails.
     # Later entries take precedence, so this must follow the error above.
     "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+    # A test that returns a value instead of asserting can never fail: pytest ignores
+    # the return and marks it passed. Escalating this warning makes the return-as-signal
+    # idiom fail loudly rather than silently going green. Verified: the 6 collected
+    # offenders across tests/ webpanel/ abraxas/ were removed, and re-injecting one
+    # (in tests/) errors the run.
+    "error::pytest.PytestReturnNotNoneWarning",
 ]
 
 [tool.coverage.run]

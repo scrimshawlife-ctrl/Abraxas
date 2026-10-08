@@ -74,7 +74,6 @@ def test_oracle_adapter():
         print(f"     Confidence: {candidate.confidence:.3f}")
         print(f"     Reasoning: {candidate.reasoning_trace}")
     
-    return True
 
 def test_default_inference_is_model_agnostic():
     """The default path must be the model-agnostic adapter, and must say so honestly.
@@ -115,7 +114,6 @@ def test_default_inference_is_model_agnostic():
         print(f"   Claim: '{claim}' -> {envelope.candidate_outputs[0].answer[:60]}")
 
     print("✅ Default inference path is model-agnostic and honest about it.")
-    return True
 
 
 def test_an_injected_model_keeps_its_own_identity():
@@ -138,7 +136,6 @@ def test_an_injected_model_keeps_its_own_identity():
         "a callable with no declared identity must not be given one"
     )
     print("✅ Injected models keep their own identity; unlabelled ones say so.")
-    return True
 
 if __name__ == "__main__":
     try:
