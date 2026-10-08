@@ -12,6 +12,15 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    # Every step runs under `set -eo pipefail`. Without pipefail a step like
+    # `pytest ... | tail -5` reports TAIL's exit code, which is always 0, so the step
+    # cannot fail no matter what pytest says. This workflow had exactly that bug and
+    # three steps were affected. The flag is set once, here, so a future pipe is covered
+    # by default rather than by remembering.
+    defaults:
+      run:
+        shell: bash -eo pipefail {0}
     
     steps:
       - name: Checkout repository
@@ -52,6 +61,17 @@ jobs:
             tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
             tests/test_ritual_system.py --collect-only -q 2>&1 | grep "test session starts" -A 5
       
+      # This step ran `-q` and nothing else for its whole life: it re-ran the suite and
+      # checked for NO deprecation. It passed while the repo had 28 pydantic class-based
+      # config deprecations and 8 class-scoped fixtures pending removal. Now it actually
+      # checks, and fails if one of OUR deprecations appears.
+      #
+      # The ignore is deliberate and narrow. `anyio` deprecates the `anyio.abc.BlockingPortal`
+      # alias, but the warning is raised at the stacklevel of starlette/testclient.py:45, so
+      # Python attributes it to `starlette.testclient` -- not to anyio, which is why an
+      # `:anyio` filter matches nothing. We do not own that frame and cannot fix it here.
+      # Verified: `-W error` alone gives 8 collection errors, this filter gives 0, and a
+      # deliberately-injected DeprecationWarning in our own test still fails the step.
       - name: Check for deprecation warnings
         run: |
           python -m pytest tests/evidence tests/integration tests/chaos webpanel \
@@ -60,7 +80,9 @@ jobs:
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
             tests/test_resonance_narratives_* tests/test_oracle_v2* \
             tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
-            tests/test_ritual_system.py -q
+            tests/test_ritual_system.py -q \
+            -W error::DeprecationWarning \
+            -W ignore::DeprecationWarning:starlette.testclient
 
   health-check:
     name: Health Check
@@ -142,6 +164,9 @@ jobs:
       - name: Run pipeline dry-run (3 cycles)
         run: |
           mkdir -p /tmp/test_output
+          # `|| true` is deliberate: --mock can exit non-zero on the final cycle and the
+          # real assertion is the "Verify output" step below, which reads the files back.
+          # It is kept, but named here so it is not mistaken for an accidental swallow.
           timeout 20 python scripts/run_production_pipeline.py \
             --mock --domains politics media finance \
             --output /tmp/test_output --interval 5 || true
