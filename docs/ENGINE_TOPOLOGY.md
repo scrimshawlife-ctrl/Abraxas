@@ -297,5 +297,6 @@ kept honest by tests, and can be cited the moment the operator decides the scope
 
 Two tests hold this line: `test_no_criterion_remains_unmeasured_for_live_engines` fails if any criterion
 regresses to `?` (a lost measurement) or `no` (measured and failing), and
-`test_no_engine_currently_claims_technical_settlement` asserts that corroboration is available while no
-settlement has been claimed — so this stays a decision rather than drifting into an unexamined default.
+`test_only_deliberately_declared_engines_claim_technical_settlement` pins the declared set by equality and
+requires every claim to be corroborated (`declared <= satisfiable`), so a settlement cannot be claimed for
+an engine the survey cannot corroborate.
