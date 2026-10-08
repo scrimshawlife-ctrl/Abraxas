@@ -1,0 +1,1 @@
+probe: verifies Projects v2 built-in auto-add. Branch deleted after.
