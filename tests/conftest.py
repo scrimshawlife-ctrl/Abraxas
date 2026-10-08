@@ -9,6 +9,24 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+# ---------------------------------------------------------------------------
+# Fixture-fallback for Path.read_text: when a test chdir's into a tmp_path
+# and calls Path("tests/fixtures/...").read_text(), resolve the path relative
+# to the repo root instead of the (temporary) CWD.
+# ---------------------------------------------------------------------------
+_ORIGINAL_READ_TEXT = Path.read_text
+
+
+def _read_text_with_repo_fixture_fallback(self: Path, *args, **kwargs):
+    if not self.is_absolute() and str(self).startswith("tests/fixtures/") and not self.exists():
+        repo_candidate = REPO_ROOT / self
+        if repo_candidate.exists():
+            return _ORIGINAL_READ_TEXT(repo_candidate, *args, **kwargs)
+    return _ORIGINAL_READ_TEXT(self, *args, **kwargs)
+
+
+Path.read_text = _read_text_with_repo_fixture_fallback
+
 
 def _reset_global_state() -> None:
     """Return process-global mutable state to its pristine, import-time value.
