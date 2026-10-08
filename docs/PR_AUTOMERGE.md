@@ -85,25 +85,37 @@ If chaining is wanted, the merge must be performed by a non-`GITHUB_TOKEN` actor
 auto-merge with a PAT secret instead of `secrets.GITHUB_TOKEN`. That is a credential change
 and a decision, not a fix to apply silently.
 
-## Sibling automation: `auto-move.yml` (Projects v2)
+## Board movement is GitHub's built-in automation — there is no workflow for it
 
-`.github/workflows/auto-move.yml` adds a **merged** PR to the GitHub Projects v2 board
-**Kanban** (owner `scrimshawlife-ctrl`, project number 7) and sets its Status to `Done`.
-It is unrelated to the docs-merge gate above; it fires on any PR merged to `main`.
+`.github/workflows/auto-move.yml` was **DELETED** on 2026-10-08. GitHub Projects v2 automates
+this server-side, with no Actions workflow, no `GITHUB_TOKEN`, and no PAT.
 
-It previously drove GitHub **Projects (classic)** through
-`alex-page/github-project-automation-plus`, targeting a project named "Kanban" with
-To Do / In Progress / Done columns. Projects classic is retired (the REST endpoint now
-returns 404) and no such project existed, so it had never succeeded. It was rewritten
-against Projects v2 and the board was created.
+Two of the board's built-in workflows do all of it (both enabled on Kanban, project 7):
 
-**Token requirement — this is a hard constraint, not a preference.** The job uses
-`secrets.PROJECT_TOKEN || secrets.ABRAXAS_PAT`, because `GITHUB_TOKEN` is scoped to the
-repository and cannot read or write the Projects v2 API at all. For **user-owned** projects
-— and this owner is a user, not an organization — the only supported credential is a
-**classic** personal access token with the **`project`** scope; fine-grained tokens do not
-support user-owned projects. If neither secret carries that scope, the job fails with a
-message naming the required scope rather than a cryptic `Could not resolve to a ProjectV2`.
+- **Auto-add to project** — filter `is:issue,pr is:open`. Adds matching issues and PRs to the
+  board as they are opened or updated.
+- **Pull request merged** — action `Set value: Status: Done`. Moves the item to Done when its
+  pull request is merged. (`Item closed` does the same for closed issues.)
+
+### Why the workflow went away
+
+It existed because the board did not, and it had never once succeeded:
+
+- It drove GitHub **Projects (classic)** through `alex-page/github-project-automation-plus`,
+  targeting a project named "Kanban" with To Do / In Progress / Done columns. Projects classic
+  is retired — the REST endpoint returns 404 — and no such project existed.
+- Rewritten against Projects v2 it then failed on the **token**: `GITHUB_TOKEN` is
+  repository-scoped and cannot reach the Projects v2 API at all, and for a **user-owned**
+  project the only supported credential is a **classic** PAT with the `project` scope
+  (fine-grained tokens do not support user-owned projects). The `ABRAXAS_PAT` fallback was
+  present but insufficient — measured: `gh project item-add` failed with `unknown owner type`.
+
+Requiring a long-lived PAT on a personal account to move a card was the wrong trade, so the
+built-in workflows were enabled instead. Note there is **no API path to do that**: the GraphQL
+schema exposes only `deleteProjectV2Workflow` — no create or enable mutation — so it is a UI
+action (project → ⋯ → Workflows → Auto-add to project → Edit → Save and turn on workflow).
+
+Net effect: one fewer workflow, no secret, and no red run on every merge.
 
 ## Usage
 
