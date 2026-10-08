@@ -21,8 +21,22 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 
-def _read_json(p: Path) -> Dict[str, Any]:
-    """Read JSON file and return dict."""
+def _read_json(p: Path) -> Any:
+    """Read JSON file and return whatever json.loads produces.
+
+    NOT annotated `-> Dict[str, Any]` any more, deliberately. The previous annotation
+    was a lie: the body is a bare json.loads, which returns a list, str, int, float,
+    bool or None just as happily as a dict for syntactically valid input. Callers here
+    do `_read_json(p).get("schema")`, which raises AttributeError on any of those
+    non-dict results -- and their except clauses catch AttributeError for exactly that
+    reason. Demonstrated: json.loads('[1,2]').get('schema') raises AttributeError.
+
+    The annotation is corrected rather than the function tightened on purpose. Making
+    this validate and raise would be a behaviour change for every caller, and the
+    permissive behaviour is what the callers' error handling already accommodates.
+    If you want a typed read that guarantees a mapping, add a separate helper rather
+    than changing this one under its callers.
+    """
     return json.loads(p.read_text(encoding="utf-8"))
 
 

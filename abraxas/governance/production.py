@@ -118,7 +118,23 @@ class EngineRegistry:
                     try:
                         cb(engine_name, self._health[engine_name])
                     except Exception:
-                        pass
+                        # O4: deliberately NOT narrowed. `cb` is arbitrary user-registered
+                        # code from register_callback and can raise literally anything, so
+                        # no specific type is provable. The broad catch is the correct
+                        # observer-pattern idiom -- one bad subscriber must not stop the
+                        # others from being notified -- and health was already committed
+                        # at the top of this method, so nothing can be corrupted here.
+                        #
+                        # What WAS wrong: this swallowed the failure with no trace at all.
+                        # A subscriber that raises on every notification is a real defect
+                        # in someone's code, and it was invisible. Now it is logged with
+                        # exc_info so the traceback survives.
+                        logging.getLogger(__name__).warning(
+                            "engine health callback failed for %r; remaining callbacks "
+                            "will still run",
+                            engine_name,
+                            exc_info=True,
+                        )
     
     def mark_declared_unavailable(self, engine_name: str, reason: str = "") -> None:
         """Record a declared engine that has no implementation.
