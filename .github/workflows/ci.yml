@@ -41,9 +41,14 @@ jobs:
           # Install Abraxas in development mode
           pip install -e ".[dev,server]"
       
+      # Scope widened 2026-10-08: this job ran tests/evidence, tests/integration,
+      # tests/chaos and webpanel, but never tests/ -- which holds 680 files. All seven
+      # failures fixed in the 2026-10-08 remediation lived in tests/*.py and were
+      # invisible to CI by construction. The suite is green now, so CI can enforce it;
+      # a green suite with no guardian rots back. Keep the named files below.
       - name: Run core tests
         run: |
-          python -m pytest tests/evidence tests/integration tests/chaos webpanel \
+          python -m pytest tests/ webpanel abraxas/evidence \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
@@ -53,7 +58,7 @@ jobs:
       
       - name: Verify test count
         run: |
-          python -m pytest tests/evidence tests/integration tests/chaos webpanel \
+          python -m pytest tests/ webpanel abraxas/evidence \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
@@ -74,7 +79,7 @@ jobs:
       # deliberately-injected DeprecationWarning in our own test still fails the step.
       - name: Check for deprecation warnings
         run: |
-          python -m pytest tests/evidence tests/integration tests/chaos webpanel \
+          python -m pytest tests/ webpanel abraxas/evidence \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
