@@ -81,7 +81,10 @@ def compress_cmd(args: argparse.Namespace) -> int:
             lexicon = json.load(file)
 
     response = invoke(
-        rune_id="RUNE.COMPRESSION.DETECT",
+        # The RUNE id, not the capability id: invoke() routes on the id declared in
+        # registry/abx_rune_registry.json. Passing the renamed capability id here raised
+        # "Unknown rune_id", so this command could not run at all.
+        rune_id="compression.detect",
         payload={
             "text_event": args.text,
             "lexicon": lexicon,

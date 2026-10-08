@@ -210,12 +210,23 @@ def invoke(
                 from abraxas.runes.handlers.edge_deploy_orin import plan_edge_deploy
 
                 result = plan_edge_deploy(payload)
-            elif rune_id == "RUNE.COMPRESSION.DETECT":
-                # Use capability contract
+            elif rune_id == "compression.detect":
+                # TWO ids, deliberately different, and conflating them is what broke this:
+                #   rune id       "compression.detect"       -- what registry/abx_rune_registry.json
+                #                                                declares, and what invoke() routes on
+                #   capability id "RUNE.COMPRESSION.DETECT"  -- the renamed RUNE.<PATH> form in
+                #                                                abraxas/runes/registry.json
+                # A rename changed this guard to the CAPABILITY id, which matches no rune, so the
+                # branch became unreachable and `abx compress` raised Unknown rune_id before it
+                # got here at all. Route on the rune id; hand the capability id to invoke_capability.
+                caller_ctx = context or {}
                 ctx = RuneInvocationContext(
-                    run_id=run_id,
+                    # run_id/git_hash were NAMEERRORS here -- undefined in this scope. Prefer the
+                    # caller's id when it supplies one, else identify the invocation by its own
+                    # monotonic start; git_hash comes from the module's existing helper.
+                    run_id=caller_ctx.get("run_id") or f"kernel-{start_ns}",
                     subsystem_id="abx.kernel",
-                    git_hash=git_commit
+                    git_hash=_git_commit(),
                 )
                 result = invoke_capability(
                     "RUNE.COMPRESSION.DETECT",
