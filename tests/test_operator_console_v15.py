@@ -385,26 +385,31 @@ def test_upgraded_domain_logic_workspace_integrity(tmp_path: Path) -> None:
     assert view.domain_logic["updated_domain_logic_workspace_payload"]["motif_export_status"] == "written"
 
 
-def _hardening_without_clock(view) -> dict:
-    """`pipeline_hardening` with its time-derived fields removed.
+_CLOCK_DERIVED_KEYS = frozenset({"timestamp", "artifact_id"})
 
-    `pipeline_review_export_preview` carries an `artifact_id` and a `timestamp` built from
-    `_utc_now()`, which truncates to whole seconds. Two view builds that straddle a second
-    boundary therefore differ, so comparing the raw dicts makes any "this parameter changed
-    nothing unrelated" assertion fail whenever the machine is slow enough -- which a CI runner
-    under coverage instrumentation is.
 
-    Measured 2026-10-08 after CI went red on a docs-only commit: building two states 1.2s apart
-    differs in exactly these two keys, and building them in the same second differs in none. The
-    timestamp itself is correct behaviour for an export PREVIEW, so the assertion is what was
-    wrong, not the builder.
+def _without_clock(value):
+    """Recursively drop keys whose values are derived from the current time.
+
+    `webpanel/operator_console.py` stamps nearly every `*_export_preview` with `_utc_now()`, which
+    truncates to WHOLE SECONDS, and derives an `artifact_id` from the same clock. Two view builds
+    therefore differ whenever they straddle a second boundary. A laptop usually fits both into one
+    second; a CI runner under coverage instrumentation does not, which is why these assertions
+    flaked in CI and never locally.
+
+    Measured 2026-10-08 by building two views 1.2s apart and diffing every field: **16 of 109 view
+    fields** carry such a value, and the only keys involved are `timestamp` and `artifact_id`. The
+    three assertions in this file that compare an affected field are the ones that use this helper;
+    the other fourteen compare fields with no clock in them and are deliberately left raw.
+
+    Dropping those keys keeps what these assertions are FOR -- proving one parameter does not
+    mutate unrelated selected detail -- while removing the accident of when the builds ran.
     """
-    out = dict(view.pipeline_hardening)
-    preview = dict(out.get("pipeline_review_export_preview") or {})
-    preview.pop("artifact_id", None)
-    preview.pop("timestamp", None)
-    out["pipeline_review_export_preview"] = preview
-    return out
+    if isinstance(value, dict):
+        return {k: _without_clock(v) for k, v in value.items() if k not in _CLOCK_DERIVED_KEYS}
+    if isinstance(value, list):
+        return [_without_clock(v) for v in value]
+    return value
 
 
 def test_motif_domain_logic_does_not_mutate_unrelated_selected_detail(tmp_path: Path) -> None:
@@ -417,7 +422,7 @@ def test_motif_domain_logic_does_not_mutate_unrelated_selected_detail(tmp_path: 
         latest_motif_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.abx_motif_recurrence_v4_3.motif_signal.json",
     )
     assert motif_view.selected_run_detail == base_view.selected_run_detail
-    assert _hardening_without_clock(motif_view) == _hardening_without_clock(base_view)
+    assert _without_clock(motif_view.pipeline_hardening) == _without_clock(base_view.pipeline_hardening)
 
 
 def test_instability_drift_signals_and_detector_are_derived(tmp_path: Path) -> None:
@@ -646,7 +651,7 @@ def test_fusion_domain_logic_does_not_mutate_unrelated_state(tmp_path: Path) -> 
         latest_fusion_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.fusion_signal.json",
     )
     assert fusion_view.selected_run_detail == base_view.selected_run_detail
-    assert _hardening_without_clock(fusion_view) == _hardening_without_clock(base_view)
+    assert _without_clock(fusion_view.pipeline_hardening) == _without_clock(base_view.pipeline_hardening)
 
 
 def test_domain_logic_workspace_integrity_with_fusion_included(tmp_path: Path) -> None:
@@ -2767,7 +2772,7 @@ def test_pipeline_final_state_export_status_does_not_mutate_unrelated_state(tmp_
         latest_pipeline_final_state_export_path="artifacts_seal/abraxas_pipeline/20260329T000000Z.pipeline_final_state.json",
     )
     assert state_view.selected_run_detail == base_view.selected_run_detail
-    assert state_view.binding_restoration == base_view.binding_restoration
+    assert _without_clock(state_view.binding_restoration) == _without_clock(base_view.binding_restoration)
 
 
 def test_pipeline_runtime_adapter_allowed_vs_blocked(tmp_path: Path) -> None:
