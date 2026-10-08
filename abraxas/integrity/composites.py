@@ -27,7 +27,10 @@ from typing import Dict, List, Optional
 from abraxas.integrity.dm_metrics import (
     ArtifactIntegrityMetrics,
     ConfidenceLevel,
-    compute_artifact_integrity,
+    # RE-EXPORT: tests/test_sod_outputs.py imports this name FROM this module, so "unused" here
+    # is intended, not dead weight. Without naming F401, an automated sweep deletes it and breaks
+    # that module's collection (measured: 1 collection error / 3 lost tests).
+    compute_artifact_integrity,  # noqa: F401
 )
 
 
