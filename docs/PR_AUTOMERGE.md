@@ -148,3 +148,14 @@ repository: the queue runs the required checks on the *merged* result server-sid
 commit is verified without any post-merge run, and it handles the behind-`main` case natively
 with no PAT. Enabling it requires adding `merge_group:` triggers to the workflows that own the
 required checks (`ci.yml`, `abraxas-repo-guardrails.yml`) first.
+
+**Not adopted — decision, 2026-10-08.** A merge queue was considered and deliberately *not*
+enabled. It is configured as a repository ruleset whose `required_status_checks` rule applies to
+**pushes** as well as merges, and legacy admin bypass (`enforce_admins: false`) does **not** carry
+over to rulesets — so it can block the direct-to-`main` push flow unless `bypass_actors` is set
+explicitly. Weighed against an exposure that is **docs-only by construction** (the allowlist above
+blocks `.github/`, `scripts/`, `abraxas/`, `tests/`, `core/`, `contracts/`, `webpanel/`, `server/`,
+`client/`, `shared/`, `schemas/`), the untested-combination risk here is textual, not semantic.
+
+Revisit this if **code** starts merging through PRs: two individually-green code PRs can compose
+into a red base, which is exactly what a merge queue earns its cost on.
