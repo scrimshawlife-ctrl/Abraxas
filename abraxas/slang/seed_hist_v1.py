@@ -177,7 +177,12 @@ def compute_seed_metrics_v1(packet: SlangPacketV1 | Mapping[str, Any]) -> SlangM
                 else:
                     msgs = [err.get("msg", "") for err in errs]
                     reason = f"missing or invalid fields: {'; '.join(m for m in msgs if m)}"
-            except Exception:
+            except (AttributeError, TypeError):
+                # O4: was bare-broad; narrowed to the provable set. The only fallible
+                # operation here is reading the entries returned by pydantic's
+                # ValidationError.errors(); a shape that is not a list of mappings raises
+                # AttributeError (.get on a non-dict) or TypeError (iterating a
+                # non-iterable). Intent unchanged: fall back to str(exc) as the reason.
                 pass
         if "missing" not in reason.lower():
             reason = f"missing or invalid fields: {reason}"

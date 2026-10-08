@@ -61,7 +61,14 @@ def choose_codec(
     if TUNING_AVAILABLE and load_active_tuning_ir:
         try:
             tuning_ir = load_active_tuning_ir()
-        except Exception:
+        except (OSError, ValueError, KeyError, TypeError):
+            # O4: was bare-broad; narrowed to the provable set. load_active_tuning_ir()
+            # opens the ACTIVE.json pointer (OSError), json.load's it (ValueError via
+            # JSONDecodeError), does Path(pointer["manifest_path"]) (KeyError when the key
+            # is absent, TypeError when it is not a path-like), then PerfTuningIR.load()
+            # re-reads and validates the manifest (OSError, and ValueError -- pydantic's
+            # ValidationError and the hash-mismatch check both subclass ValueError).
+            # Intent unchanged: degrade gracefully to the heuristic codec choice.
             pass  # Graceful degradation if tuning not configured
 
     if force_codec:
