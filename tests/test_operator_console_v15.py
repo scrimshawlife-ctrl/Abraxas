@@ -385,6 +385,28 @@ def test_upgraded_domain_logic_workspace_integrity(tmp_path: Path) -> None:
     assert view.domain_logic["updated_domain_logic_workspace_payload"]["motif_export_status"] == "written"
 
 
+def _hardening_without_clock(view) -> dict:
+    """`pipeline_hardening` with its time-derived fields removed.
+
+    `pipeline_review_export_preview` carries an `artifact_id` and a `timestamp` built from
+    `_utc_now()`, which truncates to whole seconds. Two view builds that straddle a second
+    boundary therefore differ, so comparing the raw dicts makes any "this parameter changed
+    nothing unrelated" assertion fail whenever the machine is slow enough -- which a CI runner
+    under coverage instrumentation is.
+
+    Measured 2026-10-08 after CI went red on a docs-only commit: building two states 1.2s apart
+    differs in exactly these two keys, and building them in the same second differs in none. The
+    timestamp itself is correct behaviour for an export PREVIEW, so the assertion is what was
+    wrong, not the builder.
+    """
+    out = dict(view.pipeline_hardening)
+    preview = dict(out.get("pipeline_review_export_preview") or {})
+    preview.pop("artifact_id", None)
+    preview.pop("timestamp", None)
+    out["pipeline_review_export_preview"] = preview
+    return out
+
+
 def test_motif_domain_logic_does_not_mutate_unrelated_selected_detail(tmp_path: Path) -> None:
     _seed_scopepass(tmp_path)
     base_view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
@@ -395,7 +417,7 @@ def test_motif_domain_logic_does_not_mutate_unrelated_selected_detail(tmp_path: 
         latest_motif_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.abx_motif_recurrence_v4_3.motif_signal.json",
     )
     assert motif_view.selected_run_detail == base_view.selected_run_detail
-    assert motif_view.pipeline_hardening == base_view.pipeline_hardening
+    assert _hardening_without_clock(motif_view) == _hardening_without_clock(base_view)
 
 
 def test_instability_drift_signals_and_detector_are_derived(tmp_path: Path) -> None:
@@ -624,7 +646,7 @@ def test_fusion_domain_logic_does_not_mutate_unrelated_state(tmp_path: Path) -> 
         latest_fusion_export_path="artifacts_seal/abraxas_signals/20260329T000000Z.fusion_signal.json",
     )
     assert fusion_view.selected_run_detail == base_view.selected_run_detail
-    assert fusion_view.pipeline_hardening == base_view.pipeline_hardening
+    assert _hardening_without_clock(fusion_view) == _hardening_without_clock(base_view)
 
 
 def test_domain_logic_workspace_integrity_with_fusion_included(tmp_path: Path) -> None:
