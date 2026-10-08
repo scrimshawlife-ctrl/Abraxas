@@ -62,15 +62,44 @@ jobs:
             tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
             tests/test_ritual_system.py -q --tb=short
       
+      # This step was named "Verify test count" and verified no count at all. It piped
+      # `--collect-only -q` into `grep "test session starts"`, and pytest prints that
+      # session header even when collection FAILS -- while the pipeline returned grep's
+      # status, not pytest's. Measured: a test file with an unimportable module left
+      # this step at exit 0. It now fails on a collection error and asserts a real
+      # floor.
+      #
+      # FLOOR is measured, not invented: CI collected 3890 items on 2026-10-08 (3881
+      # passed + 9 xfailed). It sits about 1% low so ordinary churn does not trip it;
+      # its job is to catch tests disappearing silently. Raise it deliberately when
+      # the suite grows -- a floor nobody updates stops being a guardian.
       - name: Verify test count
         run: |
-          python -m pytest tests/ webpanel abraxas/evidence \
+          set -euo pipefail
+          if ! out=$(python -m pytest tests/ webpanel abraxas/evidence \
             abraxas/evidence/test_hyperlex_q1.py tests/test_hyperlex_instrument_evidence.py \
             abraxas/evidence/test_semion_q1.py abraxas/evidence/test_noesis_q1.py \
             abraxas/evidence/test_trutina_q1.py abraxas/evidence/test_abraxas_q1.py \
             tests/test_resonance_narratives_* tests/test_oracle_v2* \
             tests/test_synchronicity* tests/test_vbm_phase_classifier.py \
-            tests/test_ritual_system.py --collect-only -q 2>&1 | grep "test session starts" -A 5
+            tests/test_ritual_system.py --collect-only -q 2>&1); then
+            printf '%s\n' "$out" | tail -40
+            echo "::error::test collection failed"
+            exit 1
+          fi
+          count=$(printf '%s\n' "$out" | sed -n 's/.*collected \([0-9][0-9]*\) items.*/\1/p' | head -1)
+          if [ -z "$count" ]; then
+            printf '%s\n' "$out" | tail -40
+            echo "::error::could not parse a collected count from pytest output"
+            exit 1
+          fi
+          echo "collected=$count floor=$FLOOR"
+          if [ "$count" -lt "$FLOOR" ]; then
+            echo "::error::collected $count tests, below the floor of $FLOOR -- tests have gone missing"
+            exit 1
+          fi
+        env:
+          FLOOR: 3850
       
       # This step ran `-q` and nothing else for its whole life: it re-ran the suite and
       # checked for NO deprecation. It passed while the repo had 28 pydantic class-based
