@@ -137,8 +137,12 @@ def invoke(
         from pathlib import Path
         try:
             canary_subwords = frozenset(load_canary_words(Path(lanes_dir)))
-        except Exception:
-            pass  # Non-fatal: proceed without canary words
+        except (OSError, ValueError):
+            # O4: was bare-broad; narrowed to the provable set. load_canary_words reads
+            # lanes_dir/canary.txt, so OSError covers the file being absent or unreadable
+            # and ValueError covers a decode/parse failure. Intent is unchanged and was
+            # already stated: non-fatal, proceed without canary words.
+            pass
 
     min_token_len = params.get("min_token_len", 4)
     min_sub_len = params.get("min_sub_len", 3)
