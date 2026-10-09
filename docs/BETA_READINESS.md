@@ -32,14 +32,14 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~55% (streak=3, 2.1h) |
+|| Process assurance (CI history) | ~40% (streak=0 after CI repair push) |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
 ## Blockers
 
 ### Resolved in the 2026-10-09 pass (5 steps)
-- **Earn CI history progress** — Direct push to main (bdb01525). Streak=3 (2.1h). New CI runs triggered (success on new head). Honest update in ci_history.py judgment.
+- **Earn CI history progress** — Direct push (bdb01525) broke CI (missing stub markers + no @nanonets/graft in runner). Fixed markers in adapters + added npm graft install to ci.yml. New push ff47f124. Streak reset to 0. Honest update.
 - **Promotion preflight & artifacts** — Wired, TDD'd, 10 tests pass.
 - **Root doc hygiene** — 2 stale archived, graft clean.
 - **Graft default** — Expanded to promotion, BETA, CI.
@@ -73,7 +73,7 @@ is marked **[JUDGEMENT]**.
    and matching each fix by name, not by assuming the consolidation picked them up. This item was
    previously listed as an outstanding release action after it had already shipped, which is the
    same drift the rest of this document exists to catch.
-7. **Earn CI history — In progress (2026-10-09).** Direct push to main (bdb01525). Streak=3 consecutive (2.1h span per `scripts/ci_history.py`). New CI runs triggered (1 success on new head, others in flight per gh). Judgment: "Green, but under 72 hours of it." Steps executed: promotion, graft, root hygiene, adapters (politics/media/finance + pipeline), direct push for streak growth. More runs needed for 72h target. Real adapters now cover default production domains. Streak time advancing.
+7. **Earn CI history — In progress (2026-10-09).** Direct push (bdb01525) broke CI (missing stub markers in adapters + graft CLI not in runner env). Fixed: added exact "intentional_abstract: ..." markers to politics/media/finance_domain_adapter.py; added Node + `npm install -g @nanonets/graft` to ci.yml. New push ff47f124. Streak reset to 0 (awaiting green runs on new head). Judgment: "A streak of one is not history..." (needs time + merges). Steps: adapters, push, CI repair. More runs for 72h.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
    `print()` calls on the served surface", which was wrong: the served surface has six. The second
    version named `abx` and `abraxas/zkp` as "the real gap", which is also wrong, and measured so:
