@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Test Integrity, Honest Instruments, and Debt Closure
+
+- **AST guard for dead assertions**: Added `tests/test_no_dead_assertions.py`. Catches no-assertion tests, literal `assert True`, and explicit `except: pass` swallows. Narrowed after initial over-report (fixtures, validators). PT009/PT010/PT013 added to `[tool.ruff.lint] select` (0 findings). 5 sites repaired (e.g. `pytest.raises` replacements). Guard 2 passed clean; plants fail as designed.
+- **Self-build statefulness eliminated**: Queue injection seam (`queue: dict | None = None`) added to `self_build_operator_queue.py`, `approval_setter.py`, `multi_apply.py`, `controlled_apply.py`. 7 of 8 xfailed tests updated to synthetic data and xfails removed. Final rollback test fixed with explicit snapshot/ledger cleanup. Cluster: 59 passed / 0 xfailed.
+- **Builder drift xfail made honest**: `tests/test_manifest_integrity.py::test_builder_check_passes` now uses canon `[OK]` expectation with detailed observed output in the assertion message (captures the real `[SIGIL] Missing ...` symptom). Still `xfail(strict=True)` per ruling; failure reports name the actual drift.
+- **Local CI runner (`scripts/ci_local.py`)**: Parses real `.github/workflows/*.yml` for fidelity (no hand-copied steps). Verified guardrails (27/27 pass) and architecture-svg (2/2 pass, including source-hash stamp sync-check).
+- **Sweeps and ratchet**: 0 strict xfails, 0 literal truths, 0 swallows outside guard post-work. Lint ratchet 4713=4713. Bare pytest: 3902 collected.
+- **Docs updated for truth**: KANBAN baseline refreshed to 3902 + live status. TEST_DEBT.md and README.md record exact counts, rulings, and ci_local results. No stale claims.
+
+All work verified with targeted execution, ci_local, and ratchet. Direct provenance in commits.
+
 ## [2.1.0] - 2026-10-08
 
 > **Consolidated release.** Four separate `[Unreleased]` sections were merged into this one and
