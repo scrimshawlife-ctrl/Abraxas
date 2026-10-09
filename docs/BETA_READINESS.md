@@ -168,7 +168,7 @@ literally with the interpreter AGENTS.md names:
 
 Step 4 requires five inputs. Four are produced by steps 2 and 3. The fifth,
 `out/reports/<run_id>.abx_invariance_tracker_rows.json`, is now produced by
-`scripts/produce_minimal_invariance_tracker.py` (see plan 2026-10-08-next-moves) — a minimal
+`scripts/produce_minimal_invariance_rows.py` (see plan 2026-10-08-next-moves) — a minimal
 3-row stub to unblock the stabilization report. The documented path now completes. The silent exit
 is fixed in the same pass.
 
