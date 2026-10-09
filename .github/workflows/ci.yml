@@ -62,6 +62,16 @@ jobs:
           export PATH="$(npm bin -g):$PATH"
           graft build --dir graft || true
 
+      # Graft is the source of truth for open-gap queries (promotion, BETA scorecard, CI guards).
+      # Every gap query goes through graft first; direct greps are only for unindexed files.
+      - name: Run graft-powered gap analysis
+        run: |
+          export PATH="$(npm bin -g):$PATH"
+          which graft || (echo "graft not in PATH"; exit 1)
+          PYTHONPATH=. python3 scripts/graft_gap_analyzer.py --mode binding,residual
+          PYTHONPATH=. python3 scripts/scan_todo_markers.py --repo-root . --out out/reports/todo_markers.ci.json
+          PYTHONPATH=. python3 scripts/graft_combined_gap_report.py
+
       # Scope widened 2026-10-08: this job ran tests/evidence, tests/integration,
       # tests/chaos and webpanel, but never tests/ -- which holds 680 files. All seven
       # failures fixed in the 2026-10-08 remediation lived in tests/*.py and were
@@ -148,16 +158,6 @@ jobs:
             tests/test_ritual_system.py -q \
             -W error::DeprecationWarning \
             -W ignore::DeprecationWarning:starlette.testclient
-
-      # Graft is the source of truth for open-gap queries (promotion, BETA scorecard, CI guards).
-      # Every gap query goes through graft first; direct greps are only for unindexed files.
-      - name: Run graft-powered gap analysis
-        run: |
-          export PATH="$(npm bin -g):$PATH"
-          which graft || (echo "graft not in PATH"; exit 1)
-          PYTHONPATH=. python3 scripts/graft_gap_analyzer.py --mode binding,residual
-          PYTHONPATH=. python3 scripts/scan_todo_markers.py --repo-root . --out out/reports/todo_markers.ci.json
-          PYTHONPATH=. python3 scripts/graft_combined_gap_report.py
 
       # Lint is a RATCHET, not a bare `ruff check`. The configured ruleset ([tool.ruff.lint] in
       # pyproject.toml) carries pre-existing debt, so a gate that is red on day one and stays red
