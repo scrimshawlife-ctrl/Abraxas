@@ -18,6 +18,7 @@ from abraxas.oracle.v2.bundle import run_bundle
 from abraxas.renderers.resonance_narratives import render_narrative_bundle
 from abraxas.ritual import create_ritual_engine
 from abraxas.adapters.domain_data import DomainDataAdapter, MockDomainAdapter
+from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
 
 
 class ProductionPipeline:
@@ -240,6 +241,8 @@ def main():
     for domain in args.domains:
         if args.mock:
             adapters[domain] = MockDomainAdapter(domain)
+        elif domain == "politics":
+            adapters[domain] = PoliticsDomainAdapter(domain=domain)
         else:
             # Debt resolved: real adapters not yet implemented for production.
             # Raise clearly instead of silent mock fallback.

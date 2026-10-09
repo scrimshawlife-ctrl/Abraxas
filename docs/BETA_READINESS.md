@@ -159,6 +159,8 @@ engine declares an `empirical` or `economic` settlement the pipeline cannot meas
 
 Graft gap analysis (2026-10-08): 8 binding + 8 residual hits. 59 TODO + 5 FIXME in 18 files. Real adapters gap now guarded. Graft now primary gap instrument. All recommended slices complete.
 
+Real adapters (2026-10-09): `PoliticsDomainAdapter` implemented (TDD, 3 tests pass). Pipeline uses real adapter for politics domain; other domains still raise NotImplementedError. Stub taxonomy catalogs it as `intentional_abstract: domain_adapter` (5 stubs classified). Combined report stable.
+
 ### Support surface (measured 2026-10-08)
 
 **The documented quickstart does not complete.** README's `## Quickstart` lists four steps. Followed

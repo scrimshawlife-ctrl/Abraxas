@@ -14,7 +14,7 @@ def classify_stub(entry: Dict[str, Any]) -> str:
     marker = str(entry.get("marker") or "").lower()
     file_path = str(entry.get("file") or "")
 
-    if stub_type == "interface":
+    if stub_type in {"interface", "domain_adapter"}:
         return "intentional_abstract"
     if "abraxas/detectors/" in file_path and "subclasses must implement" in marker:
         return "intentional_abstract"
