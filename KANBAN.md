@@ -18,6 +18,7 @@
       empty). Nothing was taken. Decision made on evidence, not preference.
 - [x] Graft index + gap analysis rerun (2026-10-08) — binding clean, residual 8 intentional,
       closure unblocked via minimal producer. Graft now primary memory for future gaps.
+      Follow-up (2026-10-09): `graft_gap_analyzer.py` + `scan_todo_markers.py` live; 55 TODO + 5 FIXME across 16 files (mostly self-referential in planning/scan scripts).
 - [ ] **Root-document hygiene follow-up** — 17 root-level `.md` files remain after consolidating 36 status
       documents into `docs/EXECUTION_HISTORY.md`. Two of the stale artifacts named here are **RESOLVED**
       (2026-10-08): `PR_DESCRIPTION.md` (reported "Phase 1 (50% Complete)") and `replit.md` (described a
