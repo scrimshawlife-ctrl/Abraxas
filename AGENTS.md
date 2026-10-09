@@ -70,6 +70,26 @@ install, which fails 28 test modules to collect with `ModuleNotFoundError` — t
 wrong interpreter, not a broken repo. `scripts/test_ratchet.sh` preflights this and fails
 closed.
 
+## Local CI
+
+`make ci-local` runs every GitHub Actions job locally, executing CI's **own** step definitions from
+`.github/workflows/` rather than a hand-copied command list, so a local pass is a CI pass by
+construction. Run one workflow with `make ci-local WORKFLOW=ci.yml`.
+
+Three things it translates, each one a real failure before it was handled:
+
+- It builds exec-wrappers for `python`, `python3` and `pytest` so CI's commands resolve to the
+  interpreter you name. Wrappers, not symlinks: a symlink breaks virtualenv detection.
+- It puts the interpreter's own bin directory on `PATH`, because tools such as `ruff` live beside it.
+- It merges each job's and step's `env:` block into the step environment. CI's "Verify test count"
+  step takes its floor from `env: FLOOR`, and a runner that ignores that block fails with
+  `FLOOR: unbound variable`, which looks like a repository failure and is not one.
+
+Jobs needing a GitHub event payload (`wip-limits`, `pr-automerge-docs`) are reported SKIPPED rather
+than silently passed, and a step whose required tool is absent is reported rather than assumed fine.
+A skip is always loud, because a check that quietly does not run reads exactly like a check that
+passed.
+
 **Run one writer per working tree at a time.** Concurrent full-suite runs share `out/`,
 `data/`, and `.aal/`, and produce failures and collection-count changes that belong to
 neither run. A test that is never collected emits no `FAILED`/`ERROR` line, so the

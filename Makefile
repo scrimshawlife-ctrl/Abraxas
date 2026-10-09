@@ -31,6 +31,9 @@ governance-lint:
 lint:
 	bash scripts/lint_ratchet.sh
 
+ci-local:
+	$(PYTHON) scripts/ci_local.py $(WORKFLOW)
+
 ts-canonical-check:
 	npx tsc -p tsconfig.canonical.json --noEmit
 release-readiness:
