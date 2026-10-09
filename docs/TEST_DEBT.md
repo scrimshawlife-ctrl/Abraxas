@@ -69,6 +69,10 @@ An `xfail(strict=True)` marker turns into a suite-failing **XPASS** if someone l
 the underlying issue without removing the marker. That is intentional: the debt cannot
 silently disappear.
 
+## Resolved (continued 2026-10-08)
+
+- Added `tests/test_no_dead_assertions.py` AST guard for literal-truth assertions and explicit exception swallows inside tests. PT009/PT010/PT013 added to ruff select (zero findings). 5 stale sites repaired (or marked with intent). Ratchet updated. Commit 2a6bf70a.
+
 ## Resolved
 
 | Date | Commit | Fix | Cleared |
