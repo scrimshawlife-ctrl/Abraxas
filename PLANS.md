@@ -39,12 +39,12 @@ This file is the append-first execution queue for implementation runs.
   - **SLICE-3 (QUEUED):** align final-state-derivable metrics with binding-health derivability semantics to remove contradictory reporting.
 
 ### P2 — Engine Evidence Oracle/Ritual Wiring + Full Planned Dispatch
-- **Status:** ACTIVE (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** wire engine_evidence from _dispatch_to_engines into _build_oracle_envelope (oracle_signal), ritual preconditions, and oracle v2 evidence attachments; extend dispatch to semion/hyperlex for full 5-engine coverage; use to_dict() for proper EvidenceEnvelope serialization.
-- **Current state:** 3 of 5 planned engines dispatched (resonance/chronos/aether). engine_evidence present in cycle output via getattr hack. _build_oracle_envelope does not accept engine_evidence. Ritual preconditions do not consume engine signals. Semion/hyperlex not dispatched.
-- **Definition of done:** all 5 planned engines in dispatch output; engine_evidence under oracle_signal in envelope; ritual preconditions can respond to resonance/chronos signals; serialized engine JSONs appear in oracle evidence dir; 10+ pipeline tests pass.
-- **Plan:** `.hermes/plans/2026-10-09_153431-wire-engine-evidence-oracle-ritual.md`
-- **Closure evidence (when done):** PYTHONPATH=. python -m pytest tests/test_production_pipeline_real_adapters.py -q --tb=no; grep engine_evidence scripts/run_production_pipeline.py; grep semion scripts/run_production_pipeline.py
+- **Current state:** All 5 planned engines dispatched (resonance/chronos/aether/semion/hyperlex). engine_evidence as full to_dict() lists flow into oracle_signal + output. Ritual preconditions accept engine_state + resonance_confidence. 5 engine_*.json files written persistently to output_dir/<cycle>/evidence/ and attached. 11/11 pipeline tests pass.
+- **Definition of done:** Met. See KANBAN step 11 + smoke verification (5 engines, oracle_signal has engine_evidence, SAVED_EVIDENCE_CNT=5).
+- **Plan:** `.hermes/plans/2026-10-09_153431-wire-engine-evidence-oracle-ritual.md` (executed via subs)
+- **Closure evidence:** PYTHONPATH=. python -m pytest tests/test_production_pipeline_real_adapters.py -q --tb=no (11 passed); smoke shows ENGINES 5 + ORACLE_SIGNAL_HAS + SAVED 5; commits ebec926e, 823d15d8, 4823a6e9 + follow-up.
 
 ### P2 — Operator UI Shell Follow-up
 - **Status:** CONDITIONAL

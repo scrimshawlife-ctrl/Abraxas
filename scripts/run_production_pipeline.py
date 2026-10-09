@@ -17,7 +17,6 @@ from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
 from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
 from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
 from abraxas.core.temporal_tau import Observation, TauCalculator
-from abraxas.oracle.v2.bundle import run_bundle
 from abraxas.phase.detector import create_phase_detector
 from abraxas.phase.early_warning import create_early_warning_system
 from abraxas.renderers.resonance_narratives import render_narrative_bundle
@@ -140,22 +139,40 @@ class ProductionPipeline:
         
         # Run oracle bundle with evidence attachment
         import tempfile, os as _os
+        from abraxas.oracle.v2.export import compute_run_id, export_run
+        from abraxas.oracle.v2.orchestrate import attach_v2
+        from abraxas.oracle.v2.render import render_by_mode
+        from abraxas.oracle.v2.evidence_convention import attach_evidence_from_run_dir
+
+        # Persistent evidence for engine_evidence (files must survive temp dirs)
+        run_id_for_ev = f"PROD-CYCLE-{self.cycle_count:06d}"
+        persistent_ev_dir = _os.path.join(self.output_dir, run_id_for_ev, "evidence")
+        _os.makedirs(persistent_ev_dir, exist_ok=True)
+        engine_files: dict = {}
+        for i, ed in enumerate(engine_summaries):
+            fname = f"engine_{ed.get('engine','stub')}_{i}.json"
+            fpath = _os.path.join(persistent_ev_dir, fname)
+            with open(fpath, "w") as f:
+                json.dump(ed, f)
+            engine_files[f"engine_{i}"] = fname
+
         with tempfile.TemporaryDirectory() as td:
-            # Serialize engine evidence to files for bundle attachment
-            engine_files: dict = {}
-            for i, ed in enumerate(engine_summaries):
-                fname = f"engine_{ed.get('engine','stub')}_{i}.json"
-                fpath = _os.path.join(td, fname)
-                with open(fpath, "w") as f:
-                    json.dump(ed, f)
-                engine_files[f"engine_{i}"] = fname
-            bundle_result = run_bundle(
+            attach_v2(
                 envelope=envelope,
                 config_hash="PRODUCTION_CONFIG_HASH",
-                out_dir=td,
                 do_stabilization_tick=True,
-                attach_evidence_files=engine_files,
             )
+            run_id = compute_run_id(envelope)
+            # Attach using persistent files (pointers recorded in envelope)
+            attach_evidence_from_run_dir(
+                envelope=envelope,
+                out_dir=self.output_dir,
+                files=engine_files,
+                compute_hashes=True,
+            )
+            surface = render_by_mode(envelope)
+            manifest = export_run(envelope=envelope, surface=surface, out_dir=td)
+            bundle_result = {"run_id": run_id, "manifest": manifest, "surface": surface}
         
         # 6. Resonance Narrative
         narrative = render_narrative_bundle(envelope)
