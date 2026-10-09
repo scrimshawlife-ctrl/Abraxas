@@ -83,6 +83,15 @@ def main() -> int:
         "invariance_rows": Path("out/reports") / f"{run_id}.abx_invariance_tracker_rows.json",
     }
     missing = [name for name, path in required.items() if not path.exists()]
+    if missing:
+        # Report BEFORE exiting. This script previously returned non-zero with no output at all,
+        # so following the documented quickstart ended in `exit 2` and no explanation. A tool that
+        # fails silently is indistinguishable from a tool that was never run.
+        print(f"[gap-closure-stabilization] cannot build the report for run_id={run_id}.")
+        print("Missing required inputs:")
+        for name in missing:
+            print(f"  - {name}: {required[name].as_posix()}")
+        print("Produce the missing artifacts first; see README Quickstart for the producing steps.")
 
     evidence: dict[str, Any] = {}
     for name, path in required.items():

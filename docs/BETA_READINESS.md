@@ -155,6 +155,29 @@ purpose, and the flip criterion is written in `pyproject.toml` next to the class
 **Guard:** `tests/test_beta_scope_declaration.py` fails if this declaration disappears, or if any
 engine declares an `empirical` or `economic` settlement the pipeline cannot measure.
 
+### Support surface (measured 2026-10-08)
+
+**The documented quickstart does not complete.** README's `## Quickstart` lists four steps. Followed
+literally with the interpreter AGENTS.md names:
+
+1. `pytest tests/gap_closure` -> **17 passed**
+2. `run_gap_closure_cycle.py --run-id ... --mode sandbox --workspace-only` -> **exit 0**, writes the
+   run directory and validator artifact
+3. `validate_gap_closure_artifacts.py --run-id ...` -> **exit 0**
+4. `run_gap_closure_stabilization_report.py --run-id ...` -> **exit 2, no output**
+
+Step 4 requires five inputs. Four are produced by steps 2 and 3. The fifth,
+`out/reports/<run_id>.abx_invariance_tracker_rows.json`, is produced by **no step in the
+quickstart**, so the documented path cannot finish as written. The script computed the missing list
+and then exited non-zero without printing it, so the failure was silent. The silent exit is fixed in
+the same pass; the missing producing step is not, and is listed here rather than guessed at.
+
+**Two lessons recorded, both already paid for once:** a run that exits non-zero with no output is
+indistinguishable from a run that never happened, and a test harness is itself an instrument. My
+first pass at this check passed `--mode sandbox --workspace-only` to all three scripts when the
+README gives those flags only to step 2, then reported steps 3 and 4 as broken. They were not. The
+harness was.
+
 ### Superseded: the earlier framing of this section
 
 **[JUDGEMENT]** The blockers above are scope-independent. What is *not* is what "beta" means,
