@@ -32,14 +32,14 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-| Process assurance (CI history) | ~55% (streak=3, 1.8h) |
+|| Process assurance (CI history) | ~55% (streak=3, 2.0h) |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
 ## Blockers
 
 ### Resolved in the 2026-10-09 pass (5 steps)
-- **Earn CI history progress** — Streak grown to 3 consecutive via monitoring. Honest update in ci_history.py judgment.
+- **Earn CI history progress** — Streak grown to 3 consecutive (now 2.0h) via monitoring. Honest update in ci_history.py judgment.
 - **Promotion preflight & artifacts** — Wired, TDD'd, 10 tests pass.
 - **Root doc hygiene** — 2 stale archived, graft clean.
 - **Graft default** — Expanded to promotion, BETA, CI.
@@ -74,7 +74,7 @@ is marked **[JUDGEMENT]**.
    previously listed as an outstanding release action after it had already shipped, which is the
    same drift the rest of this document exists to catch.
 7. **Earn CI history — In progress (2026-10-09).** Streak grown to 3 consecutive green runs on main
-   (1.8h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." Steps executed: promotion, graft, root hygiene, adapters (politics/media/finance + pipeline), history progress. More runs needed for 72h target. Real adapters now cover default production domains.
+   (2.0h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." Steps executed: promotion, graft, root hygiene, adapters (politics/media/finance + pipeline), history progress. More runs needed for 72h target. Real adapters now cover default production domains. Streak time advancing.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
    `print()` calls on the served surface", which was wrong: the served surface has six. The second
    version named `abx` and `abraxas/zkp` as "the real gap", which is also wrong, and measured so:
