@@ -6,19 +6,19 @@ and decisions, backed by CypherTempre Timechain or file storage.
 
 from __future__ import annotations
 
+import enum
+import json
 import logging
-from typing import Dict, List, Any, Optional
+import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import json
-import os
-import enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 # Import CypherTempre Timechain
 try:
-    from abraxas.yggdrasil.timechain import CypherTempreTimechain, TimechainConfig, get_timechain
+    from abraxas.yggdrasil.timechain import CypherTempreTimechain, TimechainConfig, get_timechain  # noqa: F401
     TIMECHAIN_AVAILABLE = True
 except ImportError:
     TIMECHAIN_AVAILABLE = False

@@ -5,21 +5,20 @@ Single source of truth for all evidence-related types and operations.
 """
 from __future__ import annotations
 
-from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional, Tuple
-from enum import Enum
-import uuid
 import hashlib
 import json
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Literal, Optional, Tuple  # noqa: F401
 
 from abraxas.evidence.contract import (  # canonical home; re-exported
+    CandidateOutput,
+    Decision,
     EvidenceEnvelope,
     EvidenceType,
     RelationStep,
-    CandidateOutput,
-    Decision,
     create_athanor_envelope,
 )
 from abraxas.evidence.provider import EvidenceProvider  # canonical home; re-exported

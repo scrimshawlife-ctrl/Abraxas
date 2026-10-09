@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import json
 import secrets
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 try:
-    from zkpy import Circuit, VerifierKey, ProvingKey, Proof
+    from zkpy import Circuit, Proof, ProvingKey, VerifierKey  # noqa: F401
     ZKPY_AVAILABLE = True
 except ImportError:
     ZKPY_AVAILABLE = False

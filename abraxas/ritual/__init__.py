@@ -21,10 +21,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set  # noqa: F401
 
+from abraxas.core.canonical import canonical_json, sha256_hex
 from abraxas.core.provenance import Provenance
-from abraxas.core.canonical import sha256_hex, canonical_json
 
 
 class RitualType(Enum):
