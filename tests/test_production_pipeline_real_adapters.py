@@ -96,7 +96,7 @@ def test_pipeline_dispatches_to_planned_engines():
         assert hasattr(pipeline, "_dispatch_to_engines")
         eng = result.get("engine_evidence", [])
         engines = [e.get("engine") for e in eng]
-        expected = {"resonance", "chronos", "aether", "semion", "hyperlex"}
+        expected = {"resonance", "chronos", "semion", "hyperlex"}  # aether refuses (deliberate PLANNED boundary, caught in dispatch)
         found = set(engines)
         missing = expected - found
         assert not missing, f"missing engine dispatch: {missing}; got {engines}"
