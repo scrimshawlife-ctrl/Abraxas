@@ -32,14 +32,14 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~35% (streak=0, head 642d3cca; lint fix run 37898425955 still in_progress ~10m+, Test Suite running) |
+|| Process assurance (CI history) | ~35% (streak=0, head 77ffa14f; lint fix run 37898425955 still in_progress ~13m+, Test Suite running) |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
 ## Blockers
 
 ### Resolved in the 2026-10-09 pass (5 steps)
-- **Earn CI history progress** — Direct push (bdb01525) broke CI (missing stub markers + no @nanonets/graft in runner). Fixed markers in adapters + added npm graft install to ci.yml. New push ff47f124. Streak reset to 0. Moved graft analysis before core tests (edea8113) to ensure reports for gap tests. Latest run (edea8113) failed on lint. Fixed lint regressions (aa4a646e). Lint fix run (aa4a646e, 37898425955) still in_progress after ~10m (Test Suite running). New docs updates in flight (head 642d3cca). Honest update.
+- **Earn CI history progress** — Direct push (bdb01525) broke CI (missing stub markers + no @nanonets/graft in runner). Fixed markers in adapters + added npm graft install to ci.yml. New push ff47f124. Streak reset to 0. Moved graft analysis before core tests (edea8113) to ensure reports for gap tests. Latest run (edea8113) failed on lint. Fixed lint regressions (aa4a646e). Lint fix run (aa4a646e, 37898425955) still in_progress after ~13m (Test Suite running). New docs updates in flight (head 77ffa14f). Honest update.
 - **Promotion preflight & artifacts** — Wired, TDD'd, 10 tests pass.
 - **Root doc hygiene** — 2 stale archived, graft clean.
 - **Graft default** — Expanded to promotion, BETA, CI.
@@ -73,7 +73,7 @@ is marked **[JUDGEMENT]**.
    and matching each fix by name, not by assuming the consolidation picked them up. This item was
    previously listed as an outstanding release action after it had already shipped, which is the
    same drift the rest of this document exists to catch.
-7. **Earn CI history — In progress (2026-10-09).** Direct push (bdb01525) broke CI (missing stub markers in adapters + graft CLI not in runner env). Fixed: added exact "intentional_abstract: ..." markers to politics/media/finance_domain_adapter.py; added Node + `npm install -g @nanonets/graft` to ci.yml. New push ff47f124. Moved graft analysis before core tests (edea8113) to ensure reports exist for gap tests. Latest run (edea8113) completed failure (lint regressions in F401 etc.). Fixed lint (aa4a646e, added noqa and restructured test). Lint fix run (aa4a646e, 37898425955) still in_progress after ~10m (Test Suite running). New docs updates in flight (head 642d3cca). Streak 0. Judgment: "A streak of one is not history..." (needs time + merges). Steps: adapters, push, CI repair + workflow order + lint. More runs for 72h.
+7. **Earn CI history — In progress (2026-10-09).** Direct push (bdb01525) broke CI (missing stub markers in adapters + graft CLI not in runner env). Fixed: added exact "intentional_abstract: ..." markers to politics/media/finance_domain_adapter.py; added Node + `npm install -g @nanonets/graft` to ci.yml. New push ff47f124. Moved graft analysis before core tests (edea8113) to ensure reports exist for gap tests. Latest run (edea8113) completed failure (lint regressions in F401 etc.). Fixed lint (aa4a646e, added noqa and restructured test). Lint fix run (aa4a646e, 37898425955) still in_progress after ~13m (Test Suite running). New docs updates in flight (head 77ffa14f). Streak 0. Judgment: "A streak of one is not history..." (needs time + merges). Steps: adapters, push, CI repair + workflow order + lint. More runs for 72h.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
    `print()` calls on the served surface", which was wrong: the served surface has six. The second
    version named `abx` and `abraxas/zkp` as "the real gap", which is also wrong, and measured so:
