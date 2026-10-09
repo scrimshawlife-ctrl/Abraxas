@@ -76,9 +76,8 @@
 - [x] **Test failures 134 → 0** — all closed, zero regressions, zero policy/threshold values
       moved. Passing 3,167 → 3,548 with 3,559 collected. Detail and every diagnosis in
       `docs/TEST_DEBT.md`.
-- [x] **Regression ratchet added** — `scripts/test_ratchet.sh`, now `BASELINE_FAILURES=0` and
-      `BASELINE_COLLECTED=3779`. Failures may not rise and the collected floor may not fall; either
-      change requires a written reason in the commit body.
+- [x] **Regression ratchet added** — `scripts/lint_ratchet.sh` + `test_ratchet.sh`, baseline 4713 (lint), collected floor 3902 (current bare pytest; was 3779). Failures may not rise and the collected floor may not fall; either
+      change requires a written reason in the commit body. Current: guard 2 passed, self-build 59 passed / 0 xfailed, 1 parked xfailed (builder drift, honest symptom reporting). ci_local.py exercises real workflows locally (e.g. guardrails 27/27 pass, architecture-svg 2/2 pass).
 - [x] **Collection-order dependence fixed at root** — the suite imported script files that
       purged `sys.modules` at import time. FIVE of eight root-level `test_*.py` files contained
       ZERO tests; moved to `scripts/smoke/`. Baseline claims now require BOTH collection orders.

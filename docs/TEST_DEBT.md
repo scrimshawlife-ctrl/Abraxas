@@ -73,6 +73,7 @@ silently disappear.
 
 - Added `tests/test_no_dead_assertions.py` AST guard for literal-truth assertions and explicit exception swallows inside tests. PT009/PT010/PT013 added to ruff select (zero findings). 5 stale sites repaired (or marked with intent). Ratchet updated. Commit 2a6bf70a.
 - Implemented queue injection seam (`queue=...`) in `self_build_operator_queue`, `approval_setter`, `multi_apply`, `controlled_apply` (matching the existing seam in `approval_receipt`). Updated 7 of the 8 self_build xfailed tests to use synthetic queues and removed their xfail markers. Fixed the last rollback test with proper snapshot/ledger cleanup in test (now passes, xfail removed). Self-build cluster now 59 passed / 0 xfailed. Manifest integrity still 1 xfailed (builder drift). Overall xfailed reduced. Commits 99320d98, f6916ddc.
+- Clean sweep post-repairs: 0 strict xfail markers, 0 literal `assert True` outside guard/known, 0 explicit `except: pass` swallows. ci_local.py (honest local CI runner parsing real .github/workflows) verified: guardrails 27/27 pass, architecture-svg 2/2 pass (SVG hash-stamp guard). Bare pytest collects 3902; ratchet/guard holding. KANBAN baseline refreshed to current.
 
 ## Resolved
 
