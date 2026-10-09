@@ -95,6 +95,13 @@ This file is the append-first execution queue for implementation runs.
 - **Definition of done:** Met. providers/semion.py and hyperlex.py exist with engine_name and provide; manifest agreement test passes; docs updated.
 - **Closure evidence:** ls abraxas/evidence/providers/ | grep -E "semion|hyperlex"; pytest test_engine_manifest_agreement.py
 
+### P2 — Aether Design (multimodal refusing boundary)
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** align aether (the multimodal handler) to sibling SPEC as deliberate PLANNED refusing boundary that raises AetherNotImplemented (no plausible envelope).
+- **Definition of done:** provider raises on produce/get_model with detailed message; manifest note + settlements cite sibling; tests expect raise for aether; docs updated; pipeline dispatch catches; only aether PLANNED.
+- **Closure evidence:** test_aether_provider.py (3/3), agreement test updated, manifest updated, KANBAN step 14, BETA note.
+- **Plan:** `.hermes/plans/2026-10-09_170000-design-aether-refusing-boundary.md`
+
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete minimal stubs for remaining planned engines per manifest + ENGINE_TOPOLOGY; wire into production registry, yggdrasil, manifest agreement, docs.
