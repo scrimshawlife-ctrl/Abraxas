@@ -245,8 +245,19 @@ ENGINES: Tuple[EngineSpec, ...] = (
         PLANNED,
         "MULTIMODAL_INTEGRATION",
         "abraxas.evidence.providers.aether:create_aether_adapter",
-        "Minimal stub added that returns a planned EvidenceEnvelope (confidence 0.8). See ENGINE_TOPOLOGY.md. Deliberately PLANNED.",
-        settlements=Settlement(technical=SETTLED, technical_evidence=("abraxas/evidence/providers/aether.py", "tests/test_engine_manifest_agreement.py")),
+        "Refuses via AetherNotImplemented on produce_evidence/get_model_identity. "
+        "Deliberate fail-closed test case per sibling /Users/appliedalchemylabs/Aether/SPEC.md §5. "
+        "Lane: SHADOW, advisory only, influence=NONE. Technical settlement on the refusing boundary "
+        "and sibling spec (no real fusion/encoders exist). Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/aether.py",
+                "tests/test_aether_provider.py",
+                "docs/SIBLING_REPOS.md",
+                "/Users/appliedalchemylabs/Aether/SPEC.md",
+            ),
+        ),
     ),
 )
 

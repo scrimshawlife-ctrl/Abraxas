@@ -321,12 +321,12 @@ def test_resonance_provider_minimal():
 
 
 def test_aether_provider_minimal():
-    """Aether must have a minimal provider that returns an EvidenceEnvelope (per manifest design)."""
-    from abraxas.evidence.providers.aether import create_aether_adapter
+    """Aether must raise on produce_evidence (deliberate refusing boundary per sibling SPEC)."""
+    from abraxas.evidence.providers.aether import create_aether_adapter, AetherNotImplemented
     p = create_aether_adapter()
     assert p.engine_name == "aether"
-    env = p.produce_evidence("req1", "test claim", {})
-    assert env.engine == "aether"
+    with pytest.raises(AetherNotImplemented):
+        p.produce_evidence("req1", "test claim", {})
 
 
 def test_planned_providers_are_callable_via_manifest():
@@ -335,6 +335,9 @@ def test_planned_providers_are_callable_via_manifest():
     from importlib import import_module
     for spec in ENGINES:
         if spec.status != PLANNED or not spec.implementation:
+            continue
+        if spec.name == "aether":
+            # aether deliberately raises as the fail-closed case
             continue
         module_path, attr = spec.implementation.split(":", 1)
         target = getattr(import_module(module_path), attr)
