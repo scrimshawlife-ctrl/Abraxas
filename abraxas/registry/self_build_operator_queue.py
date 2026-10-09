@@ -17,7 +17,14 @@ def _approval_id(target_path: str, action: str) -> str:
     return "approval-" + _sha256_text(f"{target_path}:{action}")[:16]
 
 
-def run_self_build_operator_queue() -> dict[str, Any]:
+def run_self_build_operator_queue(queue: dict[str, Any] | None = None) -> dict[str, Any]:
+    # `queue` is an injection seam for tests (matching the pattern in
+    # run_self_build_approval_receipt). When omitted, the live computed queue
+    # is used. This lets the xfailed self_build tests become hermetic instead
+    # of depending on whether NOT_COMPUTABLE targets still exist in the tree.
+    if queue is not None:
+        return queue
+
     dry_run = run_self_build_dry_run()
     safety = run_self_build_safety_gate()
     patch_plan = run_self_build_patch_plan()

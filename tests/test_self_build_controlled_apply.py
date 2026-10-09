@@ -1,18 +1,25 @@
 from __future__ import annotations
 
-import pytest
-
-
-_XFAIL_DRIFT = (
-    "Stateful test: self_build_* scans the live tree for NOT_COMPUTABLE "
-    "artifacts and the pipeline has already upgraded them all (0 remain; 7 "
-    "carry 'upgraded_from: NOT_COMPUTABLE'). Jev ruled leave-as-is (0.84). "
-    "See docs/TEST_DEBT.md."
-)
-
 from abraxas.registry.self_build_approval_setter import run_self_build_approval_setter
 from abraxas.registry.self_build_controlled_apply import run_self_build_controlled_apply
-from abraxas.registry.self_build_operator_queue import run_self_build_operator_queue
+
+# Synthetic queue for hermetic tests (duplicated for this module).
+_SYNTH_QUEUE = {
+    "items": [
+        {
+            "approval_id": "approval-0001",
+            "target_path": "out/test/target1.json",
+            "proposed_action": "upgrade",
+            "expected_result": {"status": "COMPUTABLE"},
+            "approval_status": "PENDING_OPERATOR_APPROVAL",
+            "safety_verified": True,
+            "green_state_preserved_predicted": True,
+            "validation_commands": [],
+            "rollback": "NOT_AVAILABLE",
+        },
+    ],
+    "queue_count": 1,
+}
 
 
 def test_apply_fails_closed() -> None:
@@ -22,11 +29,9 @@ def test_apply_fails_closed() -> None:
     assert result["applied_count"] == 0
 
 
-@pytest.mark.xfail(reason=_XFAIL_DRIFT, strict=True)
 def test_apply_one_item() -> None:
-    queue = run_self_build_operator_queue()
-    first_id = queue["items"][0]["approval_id"]
-    run_self_build_approval_setter([first_id], [])
-    result = run_self_build_controlled_apply()
+    first_id = _SYNTH_QUEUE["items"][0]["approval_id"]
+    run_self_build_approval_setter([first_id], [], queue=_SYNTH_QUEUE)
+    result = run_self_build_controlled_apply(queue=_SYNTH_QUEUE)
     assert result["status"] == "APPLIED"
     assert result["applied_count"] == 1

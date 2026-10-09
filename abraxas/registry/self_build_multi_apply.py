@@ -79,7 +79,7 @@ def _fail_result(status: str, approved_count: int, results: list[dict[str, Any]]
     return payload
 
 
-def run_self_build_multi_apply() -> dict[str, Any]:
+def run_self_build_multi_apply(queue: dict[str, Any] | None = None) -> dict[str, Any]:
     approval_input = load_self_build_approval_input()
     approved_ids = sorted(approval_input["approved_ids"])
 
@@ -91,7 +91,8 @@ def run_self_build_multi_apply() -> dict[str, Any]:
             post_validation={"validator": "NOT_RUN", "operator_health": "NOT_RUN", "invariance": False},
         )
 
-    queue = run_self_build_operator_queue()
+    if queue is None:
+        queue = run_self_build_operator_queue()
     queue_by_id = {item["approval_id"]: item for item in queue["items"]}
 
     unknown_ids = [approval_id for approval_id in approved_ids if approval_id not in queue_by_id]

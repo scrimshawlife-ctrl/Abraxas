@@ -57,11 +57,12 @@ def _upgrade_artifact(path: str) -> tuple[str, str, dict[str, str]]:
     return before_hash, after_hash, before_snapshot
 
 
-def run_self_build_controlled_apply() -> dict[str, Any]:
+def run_self_build_controlled_apply(queue: dict[str, Any] | None = None) -> dict[str, Any]:
     approval_input = load_self_build_approval_input()
     receipt = run_self_build_approval_receipt(
         approval_input["approved_ids"],
         approval_input["rejected_ids"],
+        queue=queue,
     )
     patch_plan = run_self_build_patch_plan()
 

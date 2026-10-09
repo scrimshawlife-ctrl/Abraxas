@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-import pytest
-
-
-_XFAIL_DRIFT = (
-    "Stateful test: self_build_* scans the live tree for NOT_COMPUTABLE "
-    "artifacts and the pipeline has already upgraded them all (0 remain; 7 "
-    "carry 'upgraded_from: NOT_COMPUTABLE'). Jev ruled leave-as-is (0.84). "
-    "See docs/TEST_DEBT.md."
-)
-
 import json
 from pathlib import Path
 
+import pytest
+
 from abraxas.registry.self_build_mutation_ledger import append_mutation_entry, build_mutation_entry, snapshot_before_content
 from abraxas.registry.self_build_rollback_executor import run_self_build_rollback_executor
+
+
+_XFAIL_DRIFT = (
+    "Stateful test for rollback; depends on ledger and snapshot setup that may "
+    "interact with other self_build state. Jev ruled leave-as-is (0.84). "
+    "See docs/TEST_DEBT.md."
+)
 
 
 @pytest.mark.xfail(reason=_XFAIL_DRIFT, strict=True)

@@ -10,8 +10,10 @@ from .self_build_operator_queue import run_self_build_operator_queue
 def run_self_build_approval_setter(
     approved_ids: list[str],
     rejected_ids: list[str],
+    queue: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    queue = run_self_build_operator_queue()
+    if queue is None:
+        queue = run_self_build_operator_queue()
     valid_ids = {item["approval_id"] for item in queue["items"]}
 
     errors: list[str] = []
