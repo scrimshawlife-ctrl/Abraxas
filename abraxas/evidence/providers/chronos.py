@@ -1,4 +1,4 @@
-"""Hyperlex Evidence Provider for LEXICAL_SEMANTIC (planned minimal stub)."""
+"""Chronos Evidence Provider (rune orchestration) — minimal planned stub."""
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -6,24 +6,23 @@ from typing import Any, Dict, List, Optional
 from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 
-
-class HyperlexEvidenceProvider(EvidenceProvider):
-    """Minimal stub for hyperlex (LEXICAL_SEMANTIC)."""
+class ChronosEvidenceProvider(EvidenceProvider):
+    """Minimal stub for chronos rune orchestration."""
 
     @property
     def engine_name(self) -> str:
-        return "hyperlex"
+        return "chronos"
 
     @property
     def engine_version(self) -> str:
-        return "hyperlex.lexical.v0"
+        return "chronos.rune.v0"
 
     @property
     def supported_evidence_types(self) -> List[EvidenceType]:
-        return [EvidenceType.LEXICAL_SEMANTIC]
+        return []  # rune orchestration; see manifest note
 
     def get_model_identity(self) -> str:
-        return "hyperlex.planned-stub"
+        return "chronos.planned-stub"
 
     def produce_evidence(
         self,
@@ -32,31 +31,30 @@ class HyperlexEvidenceProvider(EvidenceProvider):
         context: Dict[str, Any],
         budget: Optional[Dict[str, Any]] = None
     ) -> EvidenceEnvelope:
-        """Stub implementation."""
+        """Stub implementation for planned engine."""
         return EvidenceEnvelope(
-            engine="hyperlex",
+            engine="chronos",
             engine_version=self.engine_version,
             model_identity=self.get_model_identity(),
             request_id=request_id,
             claim=claim,
             candidate_outputs=[
                 CandidateOutput(
-                    answer="planned stub for hyperlex lexical semantic",
+                    answer="planned stub for chronos rune orchestration",
                     confidence=0.0,
-                    reasoning_trace="This is a minimal stub.",
+                    reasoning_trace="This is a minimal stub; full implementation pending.",
                     relation_steps=[]
                 )
             ],
-            evidence_type=EvidenceType.LEXICAL_SEMANTIC,
+            evidence_type=EvidenceType.TEMPORAL_REASONING,
             reasoning_steps=[],
             relations=[],
             confidence=0.0,
             uncertainty=1.0,
             decision_margin=0.0,
             entropy=1.0,
-            provenance={"source": "hyperlex.planned-stub", "status": "planned"},
+            provenance={"source": "chronos.planned-stub", "status": "planned"},
         )
 
-def create_hyperlex_adapter() -> EvidenceProvider:
-    """Factory for manifest."""
-    return HyperlexEvidenceProvider()
+def create_chronos_adapter() -> EvidenceProvider:
+    return ChronosEvidenceProvider()

@@ -12,32 +12,33 @@ multi-engine evidence arbitration system. It implements:
 
 from __future__ import annotations
 
-import sys
+import enum
 import hashlib
 import json
-import time
-import threading
-import enum
-import queue
 import logging
+import queue
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, Callable
 from enum import Enum
-from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
 
+from abraxas.evidence.arbiter.arbiter import DefaultArbitrationPolicy, EvidenceArbiter
 from abraxas.evidence.contract import (
-    EvidenceEnvelope, EvidenceType, CandidateOutput, RelationStep, Decision
+    CandidateOutput,
+    Decision,
+    EvidenceEnvelope,
+    EvidenceType,
 )
-from abraxas.evidence.provider import EvidenceProvider, ProviderRegistry
-from abraxas.evidence.arbiter.arbiter import EvidenceArbiter, DefaultArbitrationPolicy
-from abraxas.evidence.verifiers.relational import RelationalVerifier
-from abraxas.evidence.verifiers.lexical import LexicalConsistencyVerifier
-from abraxas.evidence.verifiers.sign import SignRelationVerifier
-from abraxas.evidence.verifiers.latent import LatentStructureVerifier
+from abraxas.evidence.policy import ArbitrationPolicyConfig, DecisionRecord
+from abraxas.evidence.provider import EvidenceProvider
 from abraxas.evidence.verifiers.calibration import CalibrationVerifier
-from abraxas.evidence.policy import DecisionRecord, ArbitrationPolicyConfig
+from abraxas.evidence.verifiers.latent import LatentStructureVerifier
+from abraxas.evidence.verifiers.lexical import LexicalConsistencyVerifier
+from abraxas.evidence.verifiers.relational import RelationalVerifier
+from abraxas.evidence.verifiers.sign import SignRelationVerifier
 
 logger = logging.getLogger(__name__)
 
@@ -478,7 +479,6 @@ class ProductionOrchestrator:
             self._initialized = True
             return
 
-        from abraxas.evidence.provider import MockEvidenceProvider
 
         # Legacy fabricated-evidence path (tests only).
         engines = [
@@ -505,6 +505,30 @@ class ProductionOrchestrator:
                 'supported_evidence_types': [EvidenceType.SIGN_RELATION],
                 'get_model_identity': lambda self: 'semion.sign.v1',
                 'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.SIGN_RELATION)
+            })(),
+            # Chronos (rune orchestration)
+            type('ChronosProvider', (EvidenceProvider,), {
+                'engine_name': 'chronos',
+                'engine_version': 'chronos.rune.v0',
+                'supported_evidence_types': [EvidenceType.TEMPORAL_REASONING],
+                'get_model_identity': lambda self: 'chronos.planned-stub',
+                'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.TEMPORAL_REASONING)
+            })(),
+            # Resonance (phase)
+            type('ResonanceProvider', (EvidenceProvider,), {
+                'engine_name': 'resonance',
+                'engine_version': 'resonance.phase.v0',
+                'supported_evidence_types': [EvidenceType.RESONANCE_ANALYSIS],
+                'get_model_identity': lambda self: 'resonance.planned-stub',
+                'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.RESONANCE_ANALYSIS)
+            })(),
+            # Aether (multimodal)
+            type('AetherProvider', (EvidenceProvider,), {
+                'engine_name': 'aether',
+                'engine_version': 'aether.multimodal.v0',
+                'supported_evidence_types': [EvidenceType.MULTIMODAL_INTEGRATION],
+                'get_model_identity': lambda self: 'aether.planned-stub',
+                'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.MULTIMODAL_INTEGRATION)
             })(),
             # Noesis (latent structural)
             type('NoesisProvider', (EvidenceProvider,), {
@@ -557,11 +581,14 @@ class ProductionOrchestrator:
         return providers, failures
 
     def _mark_planned_unavailable(self) -> None:
-        """Report every planned engine as UNHEALTHY with its reason."""
-        from abraxas.engines.manifest import PLANNED, ENGINES
+        """Report every planned engine as UNHEALTHY with its reason.
+        Skip the minimal planned stubs we intentionally wired (chronos/resonance/aether + prior semion/hyperlex).
+        """
+        from abraxas.engines.manifest import ENGINES, PLANNED
 
+        STUBBED_PLANNED = {"chronos", "resonance", "aether", "semion", "hyperlex"}
         for spec in ENGINES:
-            if spec.status == PLANNED:
+            if spec.status == PLANNED and spec.name not in STUBBED_PLANNED:
                 self.engine_registry.mark_declared_unavailable(spec.name, spec.note)
 
 
@@ -853,11 +880,11 @@ if __name__ == "__main__":
     print(f"Governance Score: {result['governance_score']:.3f}")
     print(f"Engines Used: {result['engines_used']}")
     print(f"Evidence Count: {result['evidence_count']}")
-    print(f"Gate Results:")
+    print("Gate Results:")
     for gate in result['governance_details']['gate_results']:
         print(f"  {gate['gate']}: passed={gate['passed']}, score={gate['score']:.2f}")
     
-    print(f"\nSystem Status:")
+    print("\nSystem Status:")
     status = orchestrator.get_system_status()
     for name, health in status['engines'].items():
         print(f"  {name}: {health['status']} (latency={health['latency_ms']:.1f}ms)")

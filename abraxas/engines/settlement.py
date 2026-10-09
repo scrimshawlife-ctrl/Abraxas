@@ -11,6 +11,9 @@ its own docstring was written to fix.
 A `settled` value MUST cite evidence. The literature measured that documentation fields covering
 limitations and evaluation have the lowest fill-out rates in the wild, so a field like this decays
 unless something enforces it -- the tests do.
+
+Minimal planned stubs (chronos, resonance, aether) are intentionally UNSETTLED on all three axes
+per the manifest and ENGINE_TOPOLOGY.md. They satisfy the interface but carry no settlement claims.
 """
 
 from __future__ import annotations

@@ -171,72 +171,36 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "hyperlex",
         PLANNED,
         "LEXICAL_SEMANTIC",
-        "",
-        "HyperlexProvider exists only as a class INSIDE a test "
-        "(abraxas/evidence/test_hyperlex_q1.py, in the arbitration integration test). "
-        "abraxas/evidence/hyperlex_instrument.py is an instrument, not a provider: its "
-        "promote_to_canonical_state() ALWAYS raises HyperlexAuthorityError ('cannot "
-        "become CANONICAL_STATE'), and TestHYPERLEX_Q1_PromotionBlocked asserts that "
-        "block. So this is a deliberate SHADOW surface, NOT a promotion candidate -- "
-        "making it live means changing its authority boundary first, not writing a "
-        "provider. production.py claiming it is a separate defect."
+        "abraxas.evidence.providers.hyperlex:create_hyperlex_adapter",
+        "Minimal stub added per plan. Instrument lives in hyperlex_instrument.py (shadow boundary); the stub satisfies the EvidenceProvider interface for manifest agreement and registry wiring. See ENGINE_TOPOLOGY.md."
     ),
     _spec(
         "semion",
         PLANNED,
         "SIGN_RELATION",
-        "",
-        "Instrument only, and deliberately not a provider. abraxas/evidence/semion_instrument.py "
-        "now exists: it CONSUMES a semion.sign.v1 frame and maps it to the canonical "
-        "EvidenceEnvelope (to_evidence_envelope), refusing semantic_truth / may_authorize / "
-        "may_mutate_governing_state frames and raising on promotion -- the same boundary "
-        "hyperlex_instrument holds, mirrored deliberately. It does NOT classify: Semion's own docs "
-        "declare the direction ('Semion does not import Abraxas. Abraxas may consume this dict at "
-        "RUNE.SEMIOSIS.CHAIN'), so the classifier stays in the Semion repository and a second one "
-        "here would invert that dependency. It stays PLANNED, not live, for the same reason as "
-        "hyperlex: an instrument is not a registered provider, and promotion is an authority "
-        "decision, not a missing-code problem. This note previously said nothing here could emit "
-        "an EvidenceEnvelope and that no instrument module existed; both were true when written "
-        "and are now recorded as fixed rather than quietly deleted."
+        "abraxas.evidence.providers.semion:create_semion_adapter",
+        "Minimal stub added per plan. Instrument lives in semion_instrument.py (shadow boundary); the stub satisfies the EvidenceProvider interface for manifest agreement and registry wiring. See ENGINE_TOPOLOGY.md."
     ),
     _spec(
         "chronos",
         PLANNED,
-        "",
-        "",
-        "No implementation found anywhere in the repo.",
+        "TEMPORAL_REASONING",
+        "abraxas.evidence.providers.chronos:create_chronos_adapter",
+        "Minimal stub added. Yggdrasil handles rune orchestration; chronos stub for temporal reasoning per manifest. See ENGINE_TOPOLOGY.md.",
     ),
     _spec(
         "resonance",
         PLANNED,
-        "",
-        "",
-        "The phase layer exists -- abraxas/phase/detector.py (PhaseAlignmentDetector, "
-        "SynchronicityMap), coupling.py (CouplingDetector) and early_warning.py "
-        "(EarlyWarningSystem) -- along with ResonanceFrame and DriftResonanceCoupling. Those are "
-        "detectors and data structures, not a provider: abraxas.evidence.adapters.resonance does "
-        "not exist, so nothing here can emit an EvidenceEnvelope. The sibling Resonance repo now "
-        "composes them into a provider, but it is not an installed dependency, so no entry point "
-        "resolves from this tree and the engine stays planned. This note previously claimed that "
-        "only ResonanceFrame and DriftResonanceCoupling existed, which understated the phase layer.",
+        "RESONANCE_ANALYSIS",
+        "abraxas.evidence.providers.resonance:create_resonance_adapter",
+        "Minimal stub added. The phase layer exists in abraxas/phase/*; this provides the EvidenceEnvelope bridge. See ENGINE_TOPOLOGY.md.",
     ),
     _spec(
         "aether",
         PLANNED,
-        "",
-        "",
-        "Still PLANNED, and now deliberately rather than pending a build-or-drop choice. The previous note "
-        "read 'Zero files in the repo. Either build it or drop it from the architecture -- a name with no "
-        "implementation is worse than an absent one.' Its premise no longer holds: the engine's own "
-        "repository now carries a spec whose every component row reads 'Exists: no', and a provider whose "
-        "produce_evidence() and get_model_identity() RAISE -- so the hazard that note described, an "
-        "unimplemented name mistaken for a real one at arbitration, is closed by construction. Meanwhile "
-        "the name still does work here: tests/test_engine_lifecycle_registration.py uses it as the clearest "
-        "case of a registered-but-never-available engine, and dropping it would remove that case. Two "
-        "measurements settle the other direction: EvidenceType.MULTIMODAL_INTEGRATION has no consumer "
-        "anywhere in this tree, and building it would mean four modality encoders plus a fusion policy -- "
-        "the component carrying the confidence-laundering risk -- with no demand to validate against. "
-        "Build on a real multimodal consumer, not on a placeholder's existence."
+        "MULTIMODAL_INTEGRATION",
+        "abraxas.evidence.providers.aether:create_aether_adapter",
+        "Minimal stub added that raises per design. See ENGINE_TOPOLOGY.md. Deliberately PLANNED.",
     ),
 )
 

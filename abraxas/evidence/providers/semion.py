@@ -1,18 +1,14 @@
 """Semion Evidence Provider for SIGN_RELATION (planned minimal stub)."""
 
 from __future__ import annotations
+from typing import Any, Dict, List, Optional
 
-from typing import Any, Dict, List
-
-from abraxas.evidence.contract import EvidenceType
+from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 
 
 class SemionEvidenceProvider(EvidenceProvider):
-    """Minimal stub for semion (SIGN_RELATION).
-
-    Follows the EvidenceProvider interface for manifest agreement.
-    """
+    """Minimal stub for semion (SIGN_RELATION)."""
 
     @property
     def engine_name(self) -> str:
@@ -26,13 +22,40 @@ class SemionEvidenceProvider(EvidenceProvider):
     def supported_evidence_types(self) -> List[EvidenceType]:
         return [EvidenceType.SIGN_RELATION]
 
-    def provide(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
-        return {
-            "engine": "semion",
-            "status": "planned-stub",
-            "version": self.engine_version,
-        }
+    def get_model_identity(self) -> str:
+        return "semion.planned-stub"
 
+    def produce_evidence(
+        self,
+        request_id: str,
+        claim: str,
+        context: Dict[str, Any],
+        budget: Optional[Dict[str, Any]] = None
+    ) -> EvidenceEnvelope:
+        """Stub implementation."""
+        return EvidenceEnvelope(
+            engine="semion",
+            engine_version=self.engine_version,
+            model_identity=self.get_model_identity(),
+            request_id=request_id,
+            claim=claim,
+            candidate_outputs=[
+                CandidateOutput(
+                    answer="planned stub for semion sign relation",
+                    confidence=0.0,
+                    reasoning_trace="This is a minimal stub.",
+                    relation_steps=[]
+                )
+            ],
+            evidence_type=EvidenceType.SIGN_RELATION,
+            reasoning_steps=[],
+            relations=[],
+            confidence=0.0,
+            uncertainty=1.0,
+            decision_margin=0.0,
+            entropy=1.0,
+            provenance={"source": "semion.planned-stub", "status": "planned"},
+        )
 
 def create_semion_adapter() -> EvidenceProvider:
     """Factory for manifest."""

@@ -1,4 +1,4 @@
-"""Hyperlex Evidence Provider for LEXICAL_SEMANTIC (planned minimal stub)."""
+"""Resonance Evidence Provider (phase detectors) — minimal planned stub."""
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -6,24 +6,23 @@ from typing import Any, Dict, List, Optional
 from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 
-
-class HyperlexEvidenceProvider(EvidenceProvider):
-    """Minimal stub for hyperlex (LEXICAL_SEMANTIC)."""
+class ResonanceEvidenceProvider(EvidenceProvider):
+    """Minimal stub for resonance (phase detectors)."""
 
     @property
     def engine_name(self) -> str:
-        return "hyperlex"
+        return "resonance"
 
     @property
     def engine_version(self) -> str:
-        return "hyperlex.lexical.v0"
+        return "resonance.phase.v0"
 
     @property
     def supported_evidence_types(self) -> List[EvidenceType]:
-        return [EvidenceType.LEXICAL_SEMANTIC]
+        return [EvidenceType.RESONANCE_ANALYSIS]
 
     def get_model_identity(self) -> str:
-        return "hyperlex.planned-stub"
+        return "resonance.planned-stub"
 
     def produce_evidence(
         self,
@@ -32,31 +31,30 @@ class HyperlexEvidenceProvider(EvidenceProvider):
         context: Dict[str, Any],
         budget: Optional[Dict[str, Any]] = None
     ) -> EvidenceEnvelope:
-        """Stub implementation."""
+        """Stub implementation for planned engine."""
         return EvidenceEnvelope(
-            engine="hyperlex",
+            engine="resonance",
             engine_version=self.engine_version,
             model_identity=self.get_model_identity(),
             request_id=request_id,
             claim=claim,
             candidate_outputs=[
                 CandidateOutput(
-                    answer="planned stub for hyperlex lexical semantic",
+                    answer="planned stub for resonance phase analysis",
                     confidence=0.0,
-                    reasoning_trace="This is a minimal stub.",
+                    reasoning_trace="This is a minimal stub; uses abraxas/phase/* layer.",
                     relation_steps=[]
                 )
             ],
-            evidence_type=EvidenceType.LEXICAL_SEMANTIC,
+            evidence_type=EvidenceType.RESONANCE_ANALYSIS,
             reasoning_steps=[],
             relations=[],
             confidence=0.0,
             uncertainty=1.0,
             decision_margin=0.0,
             entropy=1.0,
-            provenance={"source": "hyperlex.planned-stub", "status": "planned"},
+            provenance={"source": "resonance.planned-stub", "status": "planned"},
         )
 
-def create_hyperlex_adapter() -> EvidenceProvider:
-    """Factory for manifest."""
-    return HyperlexEvidenceProvider()
+def create_resonance_adapter() -> EvidenceProvider:
+    return ResonanceEvidenceProvider()
