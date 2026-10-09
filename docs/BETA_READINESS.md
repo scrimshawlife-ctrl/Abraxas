@@ -235,3 +235,11 @@ outside `main`'s history (all three are ancestors).
 - Core debt surface minimal and honest; focus shifts to release engineering / CI history for beta.
 - Root-document hygiene closed (2026-10-09, re-verified): 2 stale root .md (`replit-not-this-product.md`, `pr-description-abx-runes-phase-1.md`) archived to `docs/archive/` with provenance headers; graft + grep cross-checks clean. 18 remaining root .md are substantive subsystem docs. KANBAN item marked done.
 
+## Milestone: Pipeline + Engines Wiring Complete (2026-10-09)
+
+The production pipeline now dispatches all 5 planned engines (resonance, chronos, aether, semion, hyperlex) as callable EvidenceProvider stubs. Engine evidence flws as full to_dict() into oracle_signal.engine_evidence and top-level output. RitualEngine preconditions accept engine_state + resonance_confidence. Five engine_*.json files are serialized persistently to output_dir/<run_id>/evidence/ and attached via attach_evidence_from_run_dir. Evidence attachment survives temp dirs.
+
+**Gate results:** 11/11 pipeline tests pass; broader sweeps green. PostgreSQL Domain Adapter completed (8/8 tests). Manifest agreement 38/38. Planned engines minimal stubs (semion + hyperlex) landed. KANBAN step 11 verified, step 12 captures this milestone closure. PLANS P2 (PostgreSQL Domain Adapter + Planned Engines Minimal Stubs) marked COMPLETE with closure evidence.
+
+**Next:** operator decision on promotion beyond technical settlement; empirical/economic settlement remains out of scope per beta declaration.
+

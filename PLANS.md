@@ -77,16 +77,16 @@ This file is the append-first execution queue for implementation runs.
 - **Closure evidence (when done):** grep for "one_mind_unified_continuity_v0" in KANBAN.md BETA_READINESS.md dual_lane_architecture.md; PR #274 merged or file present; graft ask "one mind" returns the spec.
 
 ### P2 — PostgreSQL Domain Adapter Completion
-- **Status:** NEW (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete postgresql adapter to match politics/media/finance pattern (full ABC, intentional_abstract marker, TDD, optional wiring in pipeline, stub taxonomy).
-- **Definition of done:** marker and methods present; 8/8 tests/test_postgresql_domain_adapter.py pass; pipeline supports --domains postgresql; stub_index updated; re-verified in test sweep.
-- **Closure evidence (when done):** grep "intentional_abstract" abraxas/adapters/postgresql_domain_adapter.py; pytest for postgresql; grep postgresql in stub_index and pipeline.
+- **Definition of done:** Met. marker and methods present; 8/8 tests/test_postgresql_domain_adapter.py pass; pipeline supports --domains postgresql; stub_index updated; re-verified in test sweep.
+- **Closure evidence:** grep "intentional_abstract" abraxas/adapters/postgresql_domain_adapter.py; pytest for postgresql; grep postgresql in stub_index and pipeline.
 
 ### P2 — Planned Engines Minimal Stubs (semion + hyperlex)
-- **Status:** NEW (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** implement minimal EvidenceProvider stubs for first planned engines per manifest.py to enable future wiring without breaking agreement guard.
-- **Definition of done:** providers/semion.py and hyperlex.py exist with engine_name and provide; manifest agreement test passes; docs updated.
-- **Closure evidence (when done):** ls abraxas/evidence/providers/ | grep -E "semion|hyperlex"; pytest test_engine_manifest_agreement.py
+- **Definition of done:** Met. providers/semion.py and hyperlex.py exist with engine_name and provide; manifest agreement test passes; docs updated.
+- **Closure evidence:** ls abraxas/evidence/providers/ | grep -E "semion|hyperlex"; pytest test_engine_manifest_agreement.py
 
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
 - **Status:** COMPLETE (2026-10-09)

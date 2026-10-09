@@ -615,4 +615,6 @@ pipeline had ever tested.
 
 11. **Engine Evidence Wiring to Oracle + Ritual + Full Planned Dispatch** — _dispatch_to_engines now covers all 5 planned stubs (resonance, chronos, aether, semion, hyperlex). engine_evidence flows as full to_dict() into oracle_signal.engine_evidence + top-level output. Ritual preconditions now accept engine_state + resonance_confidence (RitualEngine updated). 5 engine JSONs serialized persistently to output_dir/<run_id>/evidence/ and attached via attach_evidence_from_run_dir. 11/11 pipeline tests pass + broader sweeps green. Evidence attachment survives temp dirs. Plan executed (tasks 1-12). Commit ebec926e + 823d15d8 + 4823a6e9 + follow-up. Re-verified.
 
+12. **Docs Update & Milestone Lock (2026-10-09)** — KANBAN cross-reference closure: step 12 added. PLANS P2 (PostgreSQL Domain Adapter + Planned Engines Minimal Stubs) marked COMPLETE with closure evidence. BETA_READINESS.md updated with milestone language: 11/11 pipeline tests green, 5-engine dispatch complete, engine-evidence-to-oracle wired, ritual preconditions satisfied. Graft + grep verification clean (zero stale references). Milestone recorded at head of main.
+
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.
