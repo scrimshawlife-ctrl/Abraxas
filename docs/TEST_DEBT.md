@@ -84,6 +84,7 @@ silently disappear.
 - Gap closure invariance_rows now produced on demand (minimal 3-row stub, `scripts/produce_minimal_invariance_rows.py`). Graft analyzer added for indexed TODO/gap queries (`scripts/graft_gap_analyzer.py`). Both wired into README quickstart. Plan: 2026-10-08-next-moves. 
 - Graft-powered gap scan (2026-10-09): `scripts/graft_gap_analyzer.py --mode binding,residual` + `scan_todo_markers.py` report 17 files with markers (57 TODO + 5 FIXME); hits concentrated in planning scripts and the gap tools themselves. Binding/residual instruments are the core (8 hits each via graft). Tests for both new tools green (6/6). Combined report artifacts generated. 
 - Concrete debt surfaced by graft: `scripts/run_production_pipeline.py:244` has `# TODO: Implement real adapters` (currently always falls back to MockDomainAdapter even for production). Other TODOs mostly self-referential in scan/planning scripts. 
+- Slice 3 debt closure (2026-10-08): 1 actionable TODO closed — `dashboard/frontend/src/components/ErrorBoundary.tsx:25` replaced with honest gap acknowledgement (no error reporting service configured; errors logged to console). Graft grep confirmed 0 real TODOs/FIXMEs remain in source code. Scan delta: 64→70 TODO, 21→22 files (+6 from the TDD guard test's assertion literals); 5 FIXME unchanged. 
 
 ## Resolved
 
