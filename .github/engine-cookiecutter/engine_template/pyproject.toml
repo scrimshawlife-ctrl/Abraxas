@@ -22,26 +22,30 @@ dependencies = [
     "pydantic>=2.0",
     "numpy>=1.24",
 ]
-optional-dependencies = {
-    "dev" = [
-        "pytest>=7.0",
-        "pytest-cov>=4.0",
-        "ruff>=0.1",
-        "mypy>=1.0",
-        "pre-commit>=3.0",
-    ],
-    "gpu" = [
-        "torch>=2.0",
-        "torchaudio>=2.0",
-    ],
-    "hf" = [
-        "huggingface_hub>=0.20",
-        "safetensors>=0.4",
-    ],
-    "neon" = [
-        "neon-sdk>=0.1",
-    ],
-}
+
+# A multi-line inline table is invalid TOML: inline tables must occupy a single line. This was
+# written as `optional-dependencies = { ... }` spanning lines 25-44, which made the whole file
+# unparseable, and because ruff walks the tree and stops on the first file it cannot parse, that one
+# defect silently disabled linting for this entire repository.
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+    "mypy>=1.0",
+    "pre-commit>=3.0",
+]
+gpu = [
+    "torch>=2.0",
+    "torchaudio>=2.0",
+]
+hf = [
+    "huggingface_hub>=0.20",
+    "safetensors>=0.4",
+]
+neon = [
+    "neon-sdk>=0.1",
+]
 
 [project.urls]
 Homepage = "https://github.com/scrimshawlife-ctrl/engine_template"
@@ -60,7 +64,9 @@ line-length = 100
 target-version = "py311"
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "T20"]
 ignore = ["S101", "TRY003"]
-per-file-ignores = {"tests/*": ["S101", "TRY003"]}
+# TOML inline tables use `=`, not `:`. The colon form was invalid TOML and contributed to the same
+# repository-wide lint failure as the optional-dependencies table above.
+per-file-ignores = {"tests/*" = ["S101", "TRY003"]}
 
 [tool.mypy]
 python_version = "3.11"
