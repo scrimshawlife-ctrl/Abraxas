@@ -605,4 +605,8 @@ pipeline had ever tested.
 
 6. **Shadow lane deepening — One Mind unified continuity (PR #274)** — Added candidate contract `docs/specs/one_mind_unified_continuity_v0.md` (CANON-SHADOW / ADVISORY_ONLY). Covers unified computational self, REQ-01-10, AC-01-09 (NOT_EXECUTED), T-00-09 tasks, architecture merge map to existing vault/Timechain/NOCTIS. Cross-links needed in dual-lane and shadow metrics specs. Advisory only; no impact on production adapters or current beta gates. Track via PLANS and future graft queries.
 
+7. **PostgreSQL Domain Adapter Completion** — Completed postgresql adapter (ABC compliance, intentional_abstract marker, TDD, pipeline support via --domains, stub taxonomy update). 8/8 tests pass. Re-verified.
+
+8. **Planned Engines Minimal Stubs (semion + hyperlex)** — Added minimal EvidenceProvider stubs in abraxas/evidence/providers/ for semion and hyperlex per manifest. Manifest agreement test passes. Foundation for future integration.
+
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.

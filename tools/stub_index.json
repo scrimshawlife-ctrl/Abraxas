@@ -92,6 +92,13 @@
       "type": "domain_adapter",
       "priority": "P2",
       "stub_type": "domain_adapter"
+    },
+    {
+      "file": "abraxas/adapters/postgresql_domain_adapter.py",
+      "marker": "intentional_abstract: returns minimal valid snapshots until live data source is wired",
+      "type": "domain_adapter",
+      "priority": "P2",
+      "stub_type": "domain_adapter"
     }
   ],
   "summary": {

@@ -11,16 +11,17 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, List
 
+from abraxas.adapters.domain_data import DomainDataAdapter, MockDomainAdapter
+from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
+from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
+from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
+from abraxas.core.temporal_tau import Observation, TauCalculator
+from abraxas.oracle.v2.bundle import run_bundle
 from abraxas.phase.detector import create_phase_detector
 from abraxas.phase.early_warning import create_early_warning_system
-from abraxas.core.temporal_tau import TauCalculator, Observation
-from abraxas.oracle.v2.bundle import run_bundle
 from abraxas.renderers.resonance_narratives import render_narrative_bundle
 from abraxas.ritual import create_ritual_engine
-from abraxas.adapters.domain_data import DomainDataAdapter, MockDomainAdapter
-from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
-from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
-from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
 
 
 class ProductionPipeline:
@@ -249,6 +250,8 @@ def main():
             adapters[domain] = MediaDomainAdapter(domain=domain)
         elif domain == "finance":
             adapters[domain] = FinanceDomainAdapter(domain=domain)
+        elif domain == "postgresql":
+            adapters[domain] = PostgreSQLDomainAdapter(dsn="postgresql://test:***@localhost/test", domain_name=domain)
         else:
             # Debt resolved: real adapters not yet implemented for production.
             # Raise clearly instead of silent mock fallback.

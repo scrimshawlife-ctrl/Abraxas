@@ -70,3 +70,15 @@ def test_main_uses_real_adapters_for_all_when_not_mock():
             p.assert_called_once_with(domain="politics")
             m.assert_called_once_with(domain="media")
             f.assert_called_once_with(domain="finance")
+
+
+def test_postgresql_domain_adapter_implements_interface():
+    """Real adapter for postgresql domain must produce valid DomainSnapshot."""
+    from abraxas.adapters.domain_data import DomainSnapshot
+    from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
+    adapter = PostgreSQLDomainAdapter(dsn="dsn", domain_name="postgresql")
+    snap = adapter.fetch_current_state()
+    assert isinstance(snap, DomainSnapshot)
+    assert snap.domain == "postgresql"
+    assert len(snap.tokens) >= 1
+    assert snap.source == "postgresql"
