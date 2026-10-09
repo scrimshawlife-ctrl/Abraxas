@@ -32,7 +32,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~80% (51 consecutive runs, head 07e3be88, 13.9h span; 72h gate relaxed to 24h + explicit clarification that this is CI workflow streak, NOT live app runtime; promotion preflight is the real gate). Full integration beyond stubs: manifest-driven production + yggdrasil wiring for chronos/resonance + semion/hyperlex (aether as deliberate PLANNED refusing multimodal boundary per sibling SPEC); 54/54 agreement post-aether, survey updated, stubs callable for 1-4. Aether design (2026-10-09): raises AetherNotImplemented, PLANNED kept as fail-closed test case. |
+|| Process assurance (CI history) | ~80% (51 consecutive runs, head 07e3be88, 13.9h span; 72h gate relaxed to 24h + explicit clarification that this is CI workflow streak, NOT live app runtime; promotion preflight is the real gate). Full integration beyond stubs: manifest-driven production + yggdrasil wiring for chronos/resonance + semion/hyperlex (aether as deliberate PLANNED refusing multimodal boundary per sibling SPEC); 54/54 agreement post-aether, survey updated, stubs callable for 1-4. Aether design (2026-10-09): raises AetherNotImplemented, PLANNED kept as fail-closed test case. Aether Architecture Unknowns 1-10 (2026-10-09): all 10 unknowns resolved with explicit contracts, governance record (.abraxas/subsystems/aether_multimodal_v0.yaml), docs/aether/ input/fusion constraints, TDD tests (zero-consumer, behavioral absent), legacy cleanup, pipeline specific-except, manifest budget note. 4 engines dispatched (aether excluded as refuses). Tests updated. KANBAN step 15, PLANS P2 COMPLETE. |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
@@ -168,7 +168,7 @@ Graft gap analysis (2026-10-08): 8 binding + 8 residual hits. 59 TODO + 5 FIXME 
 
 Real adapters (2026-10-09, re-verified at 17 runs): `PoliticsDomainAdapter`, `MediaDomainAdapter`, `FinanceDomainAdapter` (TDD, exact intentional_abstract markers). Pipeline dispatches all 3 (scripts/run_production_pipeline.py). Stub taxonomy (tools/stub_index.json) classifies domain_adapter type. 6/6 tests pass. No drift.
 
-**Pipeline dispatch to planned stub engines (2026-10-09):** `_dispatch_to_engines` added to ProductionPipeline, covering resonance/chronos/aether stubs (3 of 5 planned). engine_evidence computed as EvidenceEnvelope list, serialized into cycle output (crude getattr form). TDD test passes. Next: wire engine_evidence into oracle_signal (Tasks 1-9 of `.hermes/plans/2026-10-09_153431-wire-engine-evidence-oracle-ritual.md`), extend to semion/hyperlex, add ritual consumption, evidence file attachment. Pipeline dispatch test count: 8/8 pass (post step 10).
+**Pipeline dispatch to planned stub engines (2026-10-09):** `_dispatch_to_engines` added to ProductionPipeline, covering resonance/chronos/semion/hyperlex (4 engines; aether deliberately refuses via AetherNotImplemented per sibling SPEC and plan 1-10). engine_evidence computed as EvidenceEnvelope list, serialized into cycle output. TDD tests updated for aether exclusion. Aether Architecture Unknowns 1-10 completed (explicit docs, governance record, TDD tests for no-consumer and refusing boundary). KANBAN step 15.
 
 ### Support surface (measured 2026-10-08)
 
