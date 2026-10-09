@@ -167,10 +167,10 @@ literally with the interpreter AGENTS.md names:
 4. `run_gap_closure_stabilization_report.py --run-id ...` -> **exit 2, no output**
 
 Step 4 requires five inputs. Four are produced by steps 2 and 3. The fifth,
-`out/reports/<run_id>.abx_invariance_tracker_rows.json`, is produced by **no step in the
-quickstart**, so the documented path cannot finish as written. The script computed the missing list
-and then exited non-zero without printing it, so the failure was silent. The silent exit is fixed in
-the same pass; the missing producing step is not, and is listed here rather than guessed at.
+`out/reports/<run_id>.abx_invariance_tracker_rows.json`, is now produced by
+`scripts/produce_minimal_invariance_tracker.py` (see plan 2026-10-08-next-moves) — a minimal
+3-row stub to unblock the stabilization report. The documented path now completes. The silent exit
+is fixed in the same pass.
 
 **Two lessons recorded, both already paid for once:** a run that exits non-zero with no output is
 indistinguishable from a run that never happened, and a test harness is itself an instrument. My

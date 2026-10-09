@@ -16,6 +16,8 @@
       route-graph pipeline model this repo explicitly rejected; the 2 files that differ are both won
       by this repo (the binding matrix here is the refined version, the sibling's lifecycle schema is
       empty). Nothing was taken. Decision made on evidence, not preference.
+- [x] Graft index + gap analysis rerun (2026-10-08) — binding clean, residual 8 intentional,
+      closure unblocked via minimal producer. Graft now primary memory for future gaps.
 - [ ] **Root-document hygiene follow-up** — 17 root-level `.md` files remain after consolidating 36 status
       documents into `docs/EXECUTION_HISTORY.md`. Two of the stale artifacts named here are **RESOLVED**
       (2026-10-08): `PR_DESCRIPTION.md` (reported "Phase 1 (50% Complete)") and `replit.md` (described a

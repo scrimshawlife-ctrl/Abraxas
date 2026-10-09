@@ -339,6 +339,14 @@ pip install -e ".[dev]"
 3. `python scripts/validate_gap_closure_artifacts.py --run-id RUN-GAP-FIRST-0001`
 4. `python scripts/run_gap_closure_stabilization_report.py --run-id RUN-GAP-FIRST-0001`
 
+### Gap closure (post-graft)
+
+```bash
+PYTHONPATH=. python3 scripts/produce_minimal_invariance_tracker.py --run-id $(date +%s)
+PYTHONPATH=. python3 scripts/run_gap_closure_stabilization_report.py --run-id $(date +%s)
+PYTHONPATH=. python3 scripts/graft_gap_analyzer.py --mode binding,residual
+```
+
 ---
 
 ## Docs Navigation
