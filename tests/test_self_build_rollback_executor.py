@@ -3,24 +3,25 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from abraxas.registry.self_build_mutation_ledger import append_mutation_entry, build_mutation_entry, snapshot_before_content
 from abraxas.registry.self_build_rollback_executor import run_self_build_rollback_executor
 
 
-_XFAIL_DRIFT = (
-    "Stateful test for rollback; depends on ledger and snapshot setup that may "
-    "interact with other self_build state. Jev ruled leave-as-is (0.84). "
-    "See docs/TEST_DEBT.md."
-)
-
-
-@pytest.mark.xfail(reason=_XFAIL_DRIFT, strict=True)
 def test_rollback_executor_happy_path() -> None:
     target = Path("out/test/rollback_target.latest.json")
+    ledger = Path("out/registry/self_build_mutation_ledger.latest.json")
+    # clean state
+    for p in [target, ledger]:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        if p.exists():
+            p.unlink()
+    # also clean any snapshot for this content (id based on before)
     before_content = '{"status":"NOT_COMPUTABLE"}'
-    target.parent.mkdir(parents=True, exist_ok=True)
+    snap_id = __import__("hashlib").sha256(before_content.encode("utf-8")).hexdigest()
+    snap = Path(f"out/registry/snapshots/{snap_id}.json")
+    if snap.exists():
+        snap.unlink()
+
     target.write_text(before_content, encoding="utf-8")
 
     before_hash = __import__("hashlib").sha256(before_content.encode("utf-8")).hexdigest()
