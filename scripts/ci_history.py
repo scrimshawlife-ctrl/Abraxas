@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """Report the CI green streak on main, because "earn CI history" needs a number.
 
+NOTE: This is the GitHub Actions CI workflow green streak (consecutive successful runs on main),
+NOT application runtime, uptime, or live app behavior. It measures the development/CI process
+sustaining greens over real calendar time + merges. It cannot be manufactured in a single session.
+
 docs/BETA_READINESS.md names CI history as the one remaining gate on beta 1, and states it as
 wall-clock rather than work. That is true, but it is also unmeasured: nothing in the repository says
 how much history exists, so the gate can be neither claimed nor falsified. This turns it into a
 reading.
+
+For beta we use a 24h sustained bar (relaxed from original 72h as the strict 72h was arbitrary
+for beta purposes). Promotion preflight is the primary gate.
 
 Usage:
     python scripts/ci_history.py                 # every branch, default repo
@@ -12,8 +19,7 @@ Usage:
     python scripts/ci_history.py --json          # machine-readable
 
 Exit codes: 0 always, unless gh fails. This is an instrument, not a gate: it reports, it does not
-block. Making CI history a pass/fail gate would let a slow week block an unrelated merge, which is
-the wrong shape for the thing being measured.
+block.
 """
 
 from __future__ import annotations
