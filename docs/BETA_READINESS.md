@@ -32,7 +32,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~35% (streak=0, lint fix run aa4a646e in progress) |
+|| Process assurance (CI history) | ~35% (streak=0, head aa610e8b; lint fix run in progress) |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
