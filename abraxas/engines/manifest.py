@@ -248,7 +248,8 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "Refuses via AetherNotImplemented on produce_evidence/get_model_identity. "
         "Deliberate fail-closed test case per sibling /Users/appliedalchemylabs/Aether/SPEC.md §5. "
         "Lane: SHADOW, advisory only, influence=NONE. Technical settlement on the refusing boundary "
-        "and sibling spec (no real fusion/encoders exist). Empirical and economic remain unsettled.",
+        "and sibling spec (no real fusion/encoders exist). Empirical and economic remain unsettled. "
+        "Compute budget declared in sibling as gpu-large/24GB is placeholder (SPEC §7).",
         settlements=Settlement(
             technical=SETTLED,
             technical_evidence=(

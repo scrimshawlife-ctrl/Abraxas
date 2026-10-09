@@ -21,3 +21,9 @@ def test_aether_interface_conformance():
     provider = create_aether_adapter()
     assert provider.engine_name == "aether"
     assert EvidenceType.MULTIMODAL_INTEGRATION in provider.supported_evidence_types
+
+
+def test_aether_behavioral_verification_deliberately_absent():
+    """Per Aether/SPEC.md §6: behavioral tests (fusion correctness etc.) are absent
+    because the engine does not exist. This test documents the UNKNOWN."""
+    assert True  # placeholder asserting the declared state

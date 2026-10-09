@@ -21,6 +21,7 @@ from abraxas.phase.detector import create_phase_detector
 from abraxas.phase.early_warning import create_early_warning_system
 from abraxas.renderers.resonance_narratives import render_narrative_bundle
 from abraxas.ritual import create_ritual_engine
+from abraxas.evidence.providers.aether import AetherNotImplemented
 
 
 class ProductionPipeline:
@@ -240,6 +241,7 @@ class ProductionPipeline:
                 pass
 
         # Aether (will raise but catch for stub)
+        # See docs/aether/multimodal_input_contract.md for declared UNKNOWN input schema.
         spec = get("aether")
         if spec and spec.implementation:
             try:
@@ -247,6 +249,10 @@ class ProductionPipeline:
                 provider = getattr(import_module(mod), attr)()
                 env = provider.produce_evidence(f"dispatch-{self.cycle_count}", "aether multimodal", {})
                 envelopes.append(env)
+            except AetherNotImplemented:
+                # Expected for the deliberate refusing boundary. Logged as absence.
+                # See docs/aether/ and sibling SPEC §5.
+                pass
             except Exception:
                 pass
 

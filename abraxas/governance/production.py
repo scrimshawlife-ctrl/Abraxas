@@ -522,7 +522,9 @@ class ProductionOrchestrator:
                 'get_model_identity': lambda self: 'resonance.planned-stub',
                 'produce_evidence': lambda self, rid, claim, ctx, budget=None: self._mock_evidence(rid, claim, EvidenceType.RESONANCE_ANALYSIS)
             })(),
-            # Aether (multimodal)
+            # Aether (multimodal) — LEGACY MOCK PATH ONLY
+            # Real path skips planned engines. This mock is for use_mocks=True tests only.
+            # TODO (Aether unknown #9): remove when no tests depend on fabricated aether.
             type('AetherProvider', (EvidenceProvider,), {
                 'engine_name': 'aether',
                 'engine_version': 'aether.multimodal.v0',
