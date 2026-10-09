@@ -347,6 +347,13 @@ PYTHONPATH=. python3 scripts/run_gap_closure_stabilization_report.py --run-id $(
 PYTHONPATH=. python3 scripts/graft_gap_analyzer.py --mode binding,residual
 ```
 
+### Combined graft gap report (permanent)
+
+```bash
+PYTHONPATH=. python3 scripts/graft_gap_analyzer.py --mode binding,residual
+PYTHONPATH=. python3 scripts/scan_todo_markers.py --repo-root . --out out/reports/todo_markers.latest.json
+```
+
 ---
 
 ## Docs Navigation
