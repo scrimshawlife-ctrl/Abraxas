@@ -18,8 +18,9 @@
       empty). Nothing was taken. Decision made on evidence, not preference.
 - [x] Graft index + gap analysis rerun (2026-10-08) — binding clean, residual 8 intentional,
       closure unblocked via minimal producer. Graft now primary memory for future gaps.
-      Follow-up (2026-10-09): `graft_gap_analyzer.py` + `scan_todo_markers.py` live; 55 TODO + 5 FIXME across 16 files (mostly self-referential in planning/scan scripts).
+      Follow-up (2026-10-09): `graft_gap_analyzer.py` + `scan_todo_markers.py` live; broader debt closure complete — 4 TODO + 1 XXX across 4 files (vendor + ignored plans only; core clean).
 - [x] **Slice 1-5 complete (2026-10-08)** — Real adapters gap guarded, graft tools permanent, combined report live, beta docs updated with graft metrics.
+- [x] **Broader debt closure (2026-10-09)** — Context-aware scanner (v1) + graft; eliminated false positives from historical artifacts and loose regex. Debt instruments now honest. See TEST_DEBT.md for details. Combined report stable.
 - [ ] **Root-document hygiene follow-up** — 17 root-level `.md` files remain after consolidating 36 status
       documents into `docs/EXECUTION_HISTORY.md`. Two of the stale artifacts named here are **RESOLVED**
       (2026-10-08): `PR_DESCRIPTION.md` (reported "Phase 1 (50% Complete)") and `replit.md` (described a
@@ -594,3 +595,12 @@ pipeline had ever tested.
 ![CI](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg)
 ![Auto-move](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/auto-move.yml/badge.svg)
 ![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)
+## Next 5 Steps (post broader debt closure, 2026-10-09)
+
+1. **Earn CI history** — Run full green merges; target 72h+ streak per `scripts/ci_history.py`. Update BETA and KANBAN when judgment passes. (Current: 2 consecutive, young.)
+2. **Promotion preflight & artifacts** — Run `scripts/generate_promotion_preflight.py` + `abx promotion` flows; produce validator/attestation for `evaluate_promotion_readiness`. Wire into combined report.
+3. **Root-document hygiene close** — Audit remaining ~17 root .md; archive verified-stale only. Cross-check no code refs (graft + grep).
+4. **Graft surface expansion** — Integrate graft queries into promotion_readiness, BETA scorecard generation, and CI guards. Make graft the default for "open gaps".
+5. **Real adapters / stub taxonomy** — TDD minimal production adapter for one domain (or honest extension of NotImplemented guard); catalog intentional stubs vs debt via updated scan + graft.
+
+See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.

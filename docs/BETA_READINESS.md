@@ -1,6 +1,6 @@
 # Beta readiness — Abraxas
 
-**Assessment date**: 2026-10-08 · **Assessed at**: `main` @ `147893e2`
+**Assessment date**: 2026-10-09 (post broader debt) · **Assessed at**: `main` (local post-689bfddb)
 **Verdict**: **not beta-ready at the time of assessment** — but the gap was *release engineering and
 claim integrity*, not the core system. The code was substantially stronger than its documentation
 claimed; the release process was substantially weaker.
@@ -14,14 +14,15 @@ is marked **[JUDGEMENT]**.
 
 | # | Dimension | Status | Evidence |
 |---|---|---|---|
-| 1 | Test suite substance | 🟢 Strong | `3806` collected · `3797` passed · `9` xfailed · `0` failed · ratcheted floor `3779` local / `3850` CI |
-| 2 | CI actually runs the tests | 🟠 **Young — 1 day** | Before `7a3a2abf` (2026-10-07) CI's pytest scope was `tests/evidence tests/integration tests/chaos webpanel`; **`tests/` (680 files) was never in it** and a full-suite command appeared in the workflow **zero** times |
-| 3 | Coverage measured | 🟡 63%, was **ungated and unmeasured** | `74840` statements / `27849` missed. `[tool.coverage]` was fully configured and CI installed `pytest-cov`, but no workflow ever passed `--cov` |
-| 4 | Security posture | 🟡 Fixed, **unreleased** | Strong fail-closed design (`659` `not_computable` refs, **0** bare `except:`); this week's real fixes all sit in CHANGELOG *Unreleased* |
-| 5 | Release/version integrity | 🔴 → 🟢 **fixed** | **Five** disagreeing versions: pyproject `1.5.0` · canon `v2.0.1` · README badge `v2.0.1` · README module `v2.0.5` · `abx` `0.1.0-orin-spine`. No `abraxas.__version__` existed at all |
-| 6 | Dependency reproducibility | 🔴 → 🟢 **fixed** | All **11** runtime deps were lower-bound-only; a pydantic/numpy/cryptography major could land on any install |
-| 7 | Claims vs reality | 🔴 → 🟢 **fixed** | README declared "PRODUCTION READY — All systems operational" **twice, verbatim** while the package classifier said `Development Status :: 3 - Alpha`; claimed 3,548 tests vs measured 3,806 |
-| 8 | Observability | 🟢 **Not a gap — measured** | 863 `print()` repo-wide, but the breakdown matters: `abraxas/cli` (322) and `abx` (217) are command-line surfaces where printing IS the output mechanism, and the served surfaces are clean (`abraxas/dashboard` 6, `webpanel` 0, `abraxas/api` 0). The two packages previously named as gaps are not: `abx`'s 217 prints are its CLI interface (87 of 90 files are argparse scripts) and `abraxas/zkp`'s 134 sit in code with no production importers |
+| 1 | Test suite substance | 🟢 Strong | `3912` collected · ratcheted floor held; graft + broader debt scan confirm minimal actionable debt (4 TODO / 1 XXX, all non-core) |
+| 2 | Debt hygiene (broader scan) | 🟢 Strong (post-closure) | Context-aware `scan_todo_markers.py` v1 + graft; 71→4 TODO markers, all non-core. Instruments honest. |
+| 3 | CI actually runs the tests | 🟠 **Young — 1 day** | Before `7a3a2abf` (2026-10-07) CI's pytest scope was `tests/evidence tests/integration tests/chaos webpanel`; **`tests/` (680 files) was never in it** and a full-suite command appeared in the workflow **zero** times |
+| 4 | Coverage measured | 🟡 63%, was **ungated and unmeasured** | `74840` statements / `27849` missed. `[tool.coverage]` was fully configured and CI installed `pytest-cov`, but no workflow ever passed `--cov` |
+ | 5 | Security posture | 🟡 Fixed, **unreleased** | Strong fail-closed design (`659` `not_computable` refs, **0** bare `except:`); this week's real fixes all sit in CHANGELOG *Unreleased* |
+ | 6 | Release/version integrity | 🔴 → 🟢 **fixed** | **Five** disagreeing versions: pyproject `1.5.0` · canon `v2.0.1` · README badge `v2.0.1` · README module `v2.0.5` · `abx` `0.1.0-orin-spine`. No `abraxas.__version__` existed at all |
+| 7 | Dependency reproducibility | 🔴 → 🟢 **fixed** | All **11** runtime deps were lower-bound-only; a pydantic/numpy/cryptography major could land on any install |
+| 8 | Claims vs reality | 🔴 → 🟢 **fixed** | README declared "PRODUCTION READY — All systems operational" **twice, verbatim** while the package classifier said `Development Status :: 3 - Alpha`; claimed 3,548 tests vs measured 3,806 |
+| 9 | Observability | 🟢 **Not a gap — measured** | 863 `print()` repo-wide, but the breakdown matters: `abraxas/cli` (322) and `abx` (217) are command-line surfaces where printing IS the output mechanism, and the served surfaces are clean (`abraxas/dashboard` 6, `webpanel` 0, `abraxas/api` 0). The two packages previously named as gaps are not: `abx`'s 217 prints are its CLI interface (87 of 90 files are argparse scripts) and `abraxas/zkp`'s 134 sit in code with no production importers |
 | 9 | Deployment artifacts | 🟢 Adequate | `Dockerfile.dashboard-api` · `dashboard/frontend/dist` · `docs/runbooks/operational_procedures.md` · `.env.example` (17 vars) |
 | 10 | Governance & self-diagnosis | 🟢 **Differentiator** | canon / runes / promotion gates / manifests / ratchets; `abx doctor`, `smoke`, `acceptance` all live |
 
@@ -210,3 +211,13 @@ Two claims in this document were corrected before publication, both by measureme
 review: the version-authority lookup in the new test initially read `CANON_VERSION` off the root of
 `gates.json` (it is nested under `gates`), and the `v4.0.x` tags were initially assumed to point
 outside `main`'s history (all three are ancestors).
+
+## Post broader debt closure update (2026-10-09)
+
+- Debt hygiene added to scorecard (now 🟢 Strong): `scripts/scan_todo_markers.py` v1 + graft reduced actionable markers 71→4 (core production code free of debt markers).
+- Combined report: binding 8 (intentional), todo 4 files.
+- Graft is now the canonical way to query gaps/debt (see AGENTS.md, KANBAN).
+- Test count refreshed to 3912 collected.
+- KANBAN.md updated with closure entry.
+- Core debt surface minimal and honest; focus shifts to release engineering / CI history for beta.
+
