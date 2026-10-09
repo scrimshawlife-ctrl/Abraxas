@@ -1,0 +1,15 @@
+[pawl]
+baseline = "pawl.baseline.json"
+debt_log = "PAWL_DEBT.md"
+lock_in_ci = true
+
+[[suite]]
+name = "core"
+adapter = "pytest"
+command = ["python", "-m", "pytest", "tests/", "abraxas/evidence/", "-q"]
+check_orders = 1
+isolate_max = 10
+
+[preflight]
+python = "python"
+imports = [{ module = "core", expect_under = "core" }]
