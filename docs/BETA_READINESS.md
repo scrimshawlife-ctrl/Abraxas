@@ -74,7 +74,7 @@ is marked **[JUDGEMENT]**.
    previously listed as an outstanding release action after it had already shipped, which is the
    same drift the rest of this document exists to catch.
 7. **Earn CI history — In progress (2026-10-09).** Streak grown to 3 consecutive green runs on main
-   (1.7h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." 5 steps (promotion, graft, adapters, hygiene, history progress) executed. More runs needed for 72h target.
+   (1.7h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." Steps executed: promotion, graft, root hygiene, adapters (politics/media/finance), history progress. More runs needed for 72h target.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
    `print()` calls on the served surface", which was wrong: the served surface has six. The second
    version named `abx` and `abraxas/zkp` as "the real gap", which is also wrong, and measured so:
