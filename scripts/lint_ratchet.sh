@@ -35,6 +35,10 @@
 set -uo pipefail
 
 TARGETS=(abraxas abx abx_familiar scripts tests webpanel)
+# .github/ is deliberately NOT scanned. The engine cookiecutter holds Jinja templates whose .py
+# files contain {{ placeholders }} and are not valid Python until rendered, so scanning them yields
+# invalid-syntax noise that says nothing about this repository. Do not "fix" this by adding .github:
+# measure it first and see the syntax errors for what they are.
 BASELINE="scripts/lint_baseline.json"
 PYTHON="${PYTHON:-python3}"
 
