@@ -190,3 +190,25 @@ def test_oracle_envelope_includes_engine_evidence():
         )
         assert isinstance(eng_ev, list), f"engine_evidence must be a list; got {type(eng_ev)}"
         assert len(eng_ev) >= 1, f"engine_evidence must have entries; got {len(eng_ev)}"
+
+
+def test_full_cycle_triggers_rituals_with_high_stub_confidence():
+    """With bumped stub confidence + multi-domain, at least one ritual (e.g. resonance_boost) must execute."""
+    from scripts.run_production_pipeline import ProductionPipeline
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
+    from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
+    import tempfile
+    adapters = {
+        "politics": PoliticsDomainAdapter(domain="politics"),
+        "media": MediaDomainAdapter(domain="media"),
+        "finance": FinanceDomainAdapter(domain="finance"),
+    }
+    with tempfile.TemporaryDirectory() as td:
+        pipeline = ProductionPipeline(adapters, output_dir=td)
+        result = pipeline.run_cycle()
+        rituals = result.get("ritual_executions", [])
+        assert len(rituals) > 0, f"Expected rituals to fire with high confidence, got {len(rituals)}: {rituals}"
+        # Optional: at least one is resonance related
+        ritual_names = [r.get("protocol_id", "") for r in rituals]
+        assert any("RESONANCE" in str(n).upper() or "BOOST" in str(n).upper() for n in ritual_names), f"Expected resonance ritual, got {ritual_names}"

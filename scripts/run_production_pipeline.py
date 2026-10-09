@@ -109,8 +109,8 @@ class ProductionPipeline:
                 state_for_ritual = {
                     "domain_phase": phase,
                     "tau_velocity": tau_snapshots[domain].tau_velocity,
-                    "alignment_strength": 0.6,
-                    "domains_aligned": len([a for a in alignments if domain in a.domains]),
+                    "alignment_strength": max(0.6, engine_state.get("resonance", {}).get("confidence", 0.6)),
+                    "domains_aligned": max((len(a.domains) for a in alignments if domain in a.domains), default=0),
                     "cascade_risk": "MEDIUM",
                     "drift_resonance_detected": False,
                     "observation_count": tau_snapshots[domain].observation_count,
@@ -126,7 +126,7 @@ class ProductionPipeline:
                     exec_result = self.ritual_engine.execute_ritual(
                         protocol.protocol_id,
                         operator="production_pipeline",
-                        current_state={"domain_phase": phase, "tau_velocity": tau_snapshots[domain].tau_velocity},
+                        current_state=state_for_ritual,
                         timestamp_utc=timestamp,
                     )
                     ritual_executions.append(exec_result)

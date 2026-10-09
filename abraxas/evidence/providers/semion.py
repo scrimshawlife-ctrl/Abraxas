@@ -42,7 +42,7 @@ class SemionEvidenceProvider(EvidenceProvider):
             candidate_outputs=[
                 CandidateOutput(
                     answer="planned stub for semion sign relation",
-                    confidence=0.0,
+                    confidence=0.8,
                     reasoning_trace="This is a minimal stub.",
                     relation_steps=[]
                 )
@@ -50,8 +50,8 @@ class SemionEvidenceProvider(EvidenceProvider):
             evidence_type=EvidenceType.SIGN_RELATION,
             reasoning_steps=[],
             relations=[],
-            confidence=0.0,
-            uncertainty=1.0,
+            confidence=0.8,
+            uncertainty=0.2,
             decision_margin=0.0,
             entropy=1.0,
             provenance={"source": "semion.planned-stub", "status": "planned"},

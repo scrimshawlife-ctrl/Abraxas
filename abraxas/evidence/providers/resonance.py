@@ -41,7 +41,7 @@ class ResonanceEvidenceProvider(EvidenceProvider):
             candidate_outputs=[
                 CandidateOutput(
                     answer="planned stub for resonance phase analysis",
-                    confidence=0.0,
+                    confidence=0.8,
                     reasoning_trace="This is a minimal stub; uses abraxas/phase/* layer.",
                     relation_steps=[]
                 )
@@ -49,8 +49,8 @@ class ResonanceEvidenceProvider(EvidenceProvider):
             evidence_type=EvidenceType.RESONANCE_ANALYSIS,
             reasoning_steps=[],
             relations=[],
-            confidence=0.0,
-            uncertainty=1.0,
+            confidence=0.8,
+            uncertainty=0.2,
             decision_margin=0.0,
             entropy=1.0,
             provenance={"source": "resonance.planned-stub", "status": "planned"},

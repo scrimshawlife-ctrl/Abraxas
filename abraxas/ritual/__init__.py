@@ -260,7 +260,7 @@ def create_default_protocols() -> Dict[str, RitualProtocol]:
                 units="multiplier",
             ),
         ],
-        preconditions={"alignment_strength": ">0.5", "domains_aligned": ">=2"},
+        preconditions={"alignment_strength": ">0.5", "domains_aligned": ">=2", "resonance_confidence": ">0.7"},
         postconditions={"alignment_strength_increase": 0.2},
         duration_hours=24.0,
         cooldown_hours=72.0,
@@ -507,6 +507,13 @@ class RitualEngine:
             if required != actual:
                 failures.append(f"target_domain: expected {required}, got {actual}")
 
+        # Check resonance_confidence from engine evidence
+        if "resonance_confidence" in protocol.preconditions:
+            required = protocol.preconditions["resonance_confidence"]
+            actual = current_state.get("resonance_confidence", 0.0)
+            if required.startswith(">") and actual <= float(required[1:]):
+                failures.append(f"resonance_confidence: expected {required}, got {actual}")
+
         return len(failures) == 0, failures
 
     def execute_ritual(
@@ -517,7 +524,7 @@ class RitualEngine:
         timestamp_utc: Optional[str] = None,
     ) -> RitualExecution:
         """Execute a ritual protocol."""
-        protocol = self._protocols.get(protocol_id)
+        protocol = self.get_protocol(protocol_id)
         if not protocol:
             raise ValueError(f"Unknown protocol: {protocol_id}")
 

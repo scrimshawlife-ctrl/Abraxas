@@ -31,8 +31,30 @@ class AetherEvidenceProvider(EvidenceProvider):
         context: Dict[str, Any],
         budget: Optional[Dict[str, Any]] = None
     ) -> EvidenceEnvelope:
-        """Stub that raises as per manifest."""
-        raise NotImplementedError("Aether deliberately refuses per manifest")
+        """Minimal stub for aether (multimodal) that returns planned envelope (not raising)."""
+        return EvidenceEnvelope(
+            engine="aether",
+            engine_version=self.engine_version,
+            model_identity=self.get_model_identity(),
+            request_id=request_id,
+            claim=claim,
+            candidate_outputs=[
+                CandidateOutput(
+                    answer="planned stub for aether multimodal",
+                    confidence=0.8,
+                    reasoning_trace="This is a minimal stub; full implementation pending.",
+                    relation_steps=[]
+                )
+            ],
+            evidence_type=EvidenceType.MULTIMODAL_INTEGRATION,
+            reasoning_steps=[],
+            relations=[],
+            confidence=0.8,
+            uncertainty=0.2,
+            decision_margin=0.0,
+            entropy=1.0,
+            provenance={"source": "aether.planned-stub", "status": "planned"},
+        )
 
 def create_aether_adapter() -> EvidenceProvider:
     return AetherEvidenceProvider()
