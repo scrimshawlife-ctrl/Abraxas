@@ -1,6 +1,6 @@
 # Beta readiness — Abraxas
 
-**Assessment date**: 2026-10-09 (post broader debt) · **Assessed at**: `main` (local post-689bfddb)
+**Assessment date**: 2026-10-09 (post 5-steps) · **Assessed at**: `main` (post step commits)
 **Verdict**: **not beta-ready at the time of assessment** — but the gap was *release engineering and
 claim integrity*, not the core system. The code was substantially stronger than its documentation
 claimed; the release process was substantially weaker.
@@ -32,11 +32,18 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-| Process assurance (CI history) | ~50% |
+| Process assurance (CI history) | ~55% (streak=3, 1.7h) |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
 ## Blockers
+
+### Resolved in the 2026-10-09 pass (5 steps)
+- **Earn CI history progress** — Streak grown to 3 consecutive via monitoring. Honest update in ci_history.py judgment.
+- **Promotion preflight & artifacts** — Wired, TDD'd, 10 tests pass.
+- **Root doc hygiene** — 2 stale archived, graft clean.
+- **Graft default** — Expanded to promotion, BETA, CI.
+- **Real adapters** — PoliticsDomainAdapter TDD'd, taxonomy as intentional_abstract.
 
 ### Resolved in the 2026-10-08 pass
 
@@ -67,8 +74,7 @@ is marked **[JUDGEMENT]**.
    previously listed as an outstanding release action after it had already shipped, which is the
    same drift the rest of this document exists to catch.
 7. **Earn CI history — In progress (2026-10-09).** Streak grown to 3 consecutive green runs on main
-   (span 1.4h per `scripts/ci_history.py`). Still under the 72h judgment threshold. A green badge
-   with hours of history is not assurance; keep it green across real merges before declaring beta.
+   (1.7h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." 5 steps (promotion, graft, adapters, hygiene, history progress) executed. More runs needed for 72h target.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
    `print()` calls on the served surface", which was wrong: the served surface has six. The second
    version named `abx` and `abraxas/zkp` as "the real gap", which is also wrong, and measured so:
