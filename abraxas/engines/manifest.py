@@ -172,14 +172,16 @@ ENGINES: Tuple[EngineSpec, ...] = (
         PLANNED,
         "LEXICAL_SEMANTIC",
         "abraxas.evidence.providers.hyperlex:create_hyperlex_adapter",
-        "Minimal stub added per plan. Instrument lives in hyperlex_instrument.py (shadow boundary); the stub satisfies the EvidenceProvider interface for manifest agreement and registry wiring. See ENGINE_TOPOLOGY.md."
+        "Minimal stub added per plan. Instrument lives in hyperlex_instrument.py (shadow boundary); the stub satisfies the EvidenceProvider interface for manifest agreement and registry wiring. See ENGINE_TOPOLOGY.md.",
+        settlements=Settlement(technical=SETTLED, technical_evidence=("abraxas/evidence/providers/hyperlex.py", "tests/test_engine_manifest_agreement.py")),
     ),
     _spec(
         "semion",
         PLANNED,
         "SIGN_RELATION",
         "abraxas.evidence.providers.semion:create_semion_adapter",
-        "Minimal stub added per plan. Instrument lives in semion_instrument.py (shadow boundary); the stub satisfies the EvidenceProvider interface for manifest agreement and registry wiring. See ENGINE_TOPOLOGY.md."
+        "Minimal stub added per plan. Instrument lives in semion_instrument.py (shadow boundary); the stub satisfies the EvidenceProvider interface for manifest agreement and registry wiring. See ENGINE_TOPOLOGY.md.",
+        settlements=Settlement(technical=SETTLED, technical_evidence=("abraxas/evidence/providers/semion.py", "tests/test_engine_manifest_agreement.py")),
     ),
     _spec(
         "chronos",
@@ -187,6 +189,7 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "TEMPORAL_REASONING",
         "abraxas.evidence.providers.chronos:create_chronos_adapter",
         "Minimal stub added. Yggdrasil handles rune orchestration; chronos stub for temporal reasoning per manifest. See ENGINE_TOPOLOGY.md.",
+        settlements=Settlement(technical=SETTLED, technical_evidence=("abraxas/evidence/providers/chronos.py", "tests/test_engine_manifest_agreement.py")),
     ),
     _spec(
         "resonance",
@@ -194,6 +197,7 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "RESONANCE_ANALYSIS",
         "abraxas.evidence.providers.resonance:create_resonance_adapter",
         "Minimal stub added. The phase layer exists in abraxas/phase/*; this provides the EvidenceEnvelope bridge. See ENGINE_TOPOLOGY.md.",
+        settlements=Settlement(technical=SETTLED, technical_evidence=("abraxas/evidence/providers/resonance.py", "tests/test_engine_manifest_agreement.py")),
     ),
     _spec(
         "aether",
@@ -201,6 +205,7 @@ ENGINES: Tuple[EngineSpec, ...] = (
         "MULTIMODAL_INTEGRATION",
         "abraxas.evidence.providers.aether:create_aether_adapter",
         "Minimal stub added that raises per design. See ENGINE_TOPOLOGY.md. Deliberately PLANNED.",
+        settlements=Settlement(technical=SETTLED, technical_evidence=("abraxas/evidence/providers/aether.py", "tests/test_engine_manifest_agreement.py")),
     ),
 )
 

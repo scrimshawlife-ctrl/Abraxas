@@ -331,3 +331,40 @@ def test_aether_provider_minimal():
         pass
     else:
         assert False, "Aether should raise NotImplementedError"
+
+
+def test_planned_stub_providers_are_callable_via_manifest():
+    """Planned stubs with declared impl must be instantiable and produce valid envelopes.
+    Note: aether deliberately raises per manifest design.
+    """
+    from abraxas.engines.manifest import ENGINES, PLANNED, get
+    from importlib import import_module
+    for spec in ENGINES:
+        if spec.status != PLANNED or not spec.implementation:
+            continue
+        module_path, attr = spec.implementation.split(":", 1)
+        target = getattr(import_module(module_path), attr)
+        provider = target()
+        assert provider.engine_name == spec.name
+        if spec.name == "aether":
+            try:
+                provider.produce_evidence("req-int", "test claim for " + spec.name, {})
+            except NotImplementedError:
+                pass
+            else:
+                assert False, "Aether should raise"
+            continue
+        env = provider.produce_evidence("req-int", "test claim for " + spec.name, {})
+        assert env.engine == spec.name
+        assert env.request_id == "req-int"
+
+
+def test_yggdrasil_can_resolve_planned_stub_provider():
+    """Yggdrasil coordinator helper resolves planned stubs via manifest."""
+    from abraxas.yggdrasil.coordinator import YggdrasilCoordinator
+    c = YggdrasilCoordinator()
+    c.initialize()
+    p = c._get_provider_for_engine("chronos")
+    assert p is not None
+    env = p.produce_evidence("ygg-req", "chronos test", {})
+    assert env.engine == "chronos"

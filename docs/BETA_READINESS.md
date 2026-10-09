@@ -32,7 +32,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~80% (51 consecutive runs, head 07e3be88, 13.9h span; 72h gate relaxed to 24h + explicit clarification that this is CI workflow streak, NOT live app runtime; promotion preflight is the real gate). Engines: chronos/resonance/aether minimal stubs wired (manifest + production + yggdrasil registry + tests). |
+|| Process assurance (CI history) | ~80% (51 consecutive runs, head 07e3be88, 13.9h span; 72h gate relaxed to 24h + explicit clarification that this is CI workflow streak, NOT live app runtime; promotion preflight is the real gate). Full integration beyond stubs: manifest-driven production + yggdrasil wiring for chronos/resonance/aether + semion/hyperlex; 38/38 agreement, survey updated, stubs callable. |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 

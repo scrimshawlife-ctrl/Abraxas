@@ -81,9 +81,9 @@ This file is the append-first execution queue for implementation runs.
 - **Closure evidence (when done):** ls abraxas/evidence/providers/ | grep -E "semion|hyperlex"; pytest test_engine_manifest_agreement.py
 
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
-- **Status:** NEW (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete minimal stubs for remaining planned engines per manifest + ENGINE_TOPOLOGY; wire into production registry, yggdrasil, manifest agreement, docs.
-- **Definition of done:** providers/chronos.py resonance.py aether.py with full EvidenceProvider interface (produce_evidence + get_model_identity); manifest updated with impl paths; production.py + registry wired; 36/36 manifest tests pass; ENGINE_TOPOLOGY and KANBAN/BETA updated; yggdrasil note for rune orchestration.
+- **Definition of done:** providers/chronos.py resonance.py aether.py with full EvidenceProvider interface (produce_evidence + get_model_identity); manifest updated with impl paths; production.py + registry wired; 38/38 manifest tests pass; ENGINE_TOPOLOGY and KANBAN/BETA updated; yggdrasil note for rune orchestration.
 - **Closure evidence (when done):** PYTHONPATH=. python -m pytest tests/test_engine_manifest_agreement.py -q; python -c "from abraxas.engines.manifest import planned_engines; print(planned_engines())"; grep chronos docs/ENGINE_TOPOLOGY.md; grep "yggdrasil handles rune" abraxas/engines/manifest.py
 
 ### P0 — Large-Run Deterministic Convergence Spine

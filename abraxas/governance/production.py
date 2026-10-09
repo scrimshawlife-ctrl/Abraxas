@@ -556,21 +556,22 @@ class ProductionOrchestrator:
         self._initialized = True
 
     def _build_real_engines(self):
-        """Resolve the manifest's live engines into providers.
+        """Resolve the manifest's live + stubbed planned engines into providers.
 
-        Returns (providers, failures). A live engine that cannot be constructed is
-        reported as a failure rather than crashing initialisation -- and rather
-        than being silently replaced by a mock, which is how five fabricated
-        providers passed for five real engines.
+        Returns (providers, failures). A live (or intentionally stubbed planned)
+        engine that cannot be constructed is reported as a failure rather than
+        crashing initialisation.
+        Planned stubs with impl paths are now resolved via the manifest (beyond
+        legacy type() fakes).
         """
         from importlib import import_module
 
-        from abraxas.engines.manifest import ENGINES, LIVE
+        from abraxas.engines.manifest import ENGINES, LIVE, PLANNED
 
         providers: List[EvidenceProvider] = []
         failures: List[tuple] = []
         for spec in ENGINES:
-            if spec.status != LIVE:
+            if spec.status not in (LIVE, PLANNED) or not spec.implementation:
                 continue
             try:
                 module_path, attribute = spec.implementation.split(":", 1)

@@ -609,6 +609,6 @@ pipeline had ever tested.
 
 8. **Planned Engines Minimal Stubs (semion + hyperlex)** — Added minimal EvidenceProvider stubs in abraxas/evidence/providers/ for semion and hyperlex per manifest. Manifest agreement test passes. Foundation for future integration.
 
-9. **Remaining Planned Engines Stubs (chronos, resonance, aether) + Integrations** — Added minimal EvidenceProvider stubs for chronos/resonance/aether (following trutina pattern, full produce_evidence + get_model_identity). Wired into manifest (implementation paths + evidence_type), production.py legacy block + mark skip, yggdrasil registry (auto via registrable_names), ENGINE_TOPOLOGY.md, settlement.py note. Updated test_planned_engines_declare_no_implementation to allow the 5 planned stubs. All 36 manifest tests pass. Yggdrasil handles rune orchestration (chronos note updated). Re-verified adapters + engines.
+9. **Full Integration Beyond Stubs (chronos, resonance, aether + semion/hyperlex)** — Manifest-driven wiring complete: production _build_real_engines now resolves stubbed planned; yggdrasil helper for resolution; survey updated for technical claims on stubs; tests (manifest agreement 38/38, production wiring, settlement survey) pass. Stubs callable end-to-end. Non-stub planned remain unavailable. Updated KANBAN/BETA/PLANS. Re-verified.
 
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.
