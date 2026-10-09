@@ -216,9 +216,10 @@ outside `main`'s history (all three are ancestors).
 ## Post broader debt closure update (2026-10-09)
 
 - Debt hygiene added to scorecard (now 🟢 Strong): `scripts/scan_todo_markers.py` v1 + graft reduced actionable markers 71→4 (core production code free of debt markers).
+- **Promotion preflight & artifacts complete (Step 2, 2026-10-09):** `scripts/generate_promotion_preflight.py` → `READY_CANDIDATE` (no blockers). `abx promotion-check` → `PROMOTION_READY` (local closure complete, federated incomplete — expected, no remote evidence). `abx promotion-policy` → `BLOCKED` (federation required by default). Artifacts produced: `out/validators/execution-validation-RUN-PROMOTION-20261008.json`, `out/attestation/canonical_proof_RUN-PROMOTION-20261008.json`, `out/attestation/execution-attestation-RUN-PROMOTION-20261008.json`, `out/promotion/promotion-readiness-RUN-PROMOTION-20261008.json`, `out/policy/promotion-policy-RUN-PROMOTION-20261008.json`. Wired into `graft_combined_gap_report.py`;
 - Combined report: binding 8 (intentional), todo 4 files.
-- Graft is now the canonical way to query gaps/debt (see AGENTS.md, KANBAN).
-- Test count refreshed to 3912 collected.
+- Graft is now the default for gap/debt queries across promotion, BETA scorecard, and CI guards (see AGENTS.md, KANBAN, `.github/workflows/ci.yml`). Combined report now includes `graft_promotion_hits` and promotion preflight.
+- Test count refreshed to 3916 collected.
 - KANBAN.md updated with closure entry.
 - Core debt surface minimal and honest; focus shifts to release engineering / CI history for beta.
 - Root-document hygiene closed (2026-10-09): 2 stale root .md archived to `docs/archive/` with provenance headers; graft + grep cross-checks clean. 18 remaining root .md are substantive subsystem docs. KANBAN item marked done.

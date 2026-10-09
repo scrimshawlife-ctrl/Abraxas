@@ -598,9 +598,9 @@ pipeline had ever tested.
 ## Next 5 Steps (post broader debt closure, 2026-10-09)
 
 1. **Earn CI history** — Run full green merges; target 72h+ streak per `scripts/ci_history.py`. Update BETA and KANBAN when judgment passes. (Current: 3 consecutive, 1.4h span, still under 72h threshold — in progress 2026-10-09)
-2. **Promotion preflight & artifacts** — Run `scripts/generate_promotion_preflight.py` + `abx promotion` flows; produce validator/attestation for `evaluate_promotion_readiness`. Wire into combined report.
+2. **Promotion preflight & artifacts** ✅ — `scripts/generate_promotion_preflight.py` produces `READY_CANDIDATE`. `abx promotion-check` and `abx promotion-policy` execute with artifacts in `out/validators/`, `out/attestation/`, `out/promotion/`, `out/policy/`. Combined report (`graft_combined_gap_report.py`) includes `promotion_preflight`. Tests: 10 passed (preflight + readiness + combined). (date: 2026-10-09)
 3. **Root-document hygiene close** ✅ — Archived 2 verified-stale files to `docs/archive/` with provenance headers. Graft + grep cross-check clean: zero code references. KANBAN item closed. Remaining 18 root .md are substantive subsystem docs, deliberately kept.
-4. **Graft surface expansion** — Integrate graft queries into promotion_readiness, BETA scorecard generation, and CI guards. Make graft the default for "open gaps".
+4. **Graft surface expansion** ✅ — Graft is now the default for open-gap queries in promotion, BETA, and CI. `graft_combined_gap_report.py` includes `graft_promotion_hits` and promotion preflight. CI declares graft as source of truth. BETA_READINESS.md updated. (date: 2026-10-09)
 5. **Real adapters / stub taxonomy** — TDD minimal production adapter for one domain (or honest extension of NotImplemented guard); catalog intentional stubs vs debt via updated scan + graft.
 
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.

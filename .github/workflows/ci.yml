@@ -134,10 +134,13 @@ jobs:
             -W error::DeprecationWarning \
             -W ignore::DeprecationWarning:starlette.testclient
 
+      # Graft is the source of truth for open-gap queries (promotion, BETA scorecard, CI guards).
+      # Every gap query goes through graft first; direct greps are only for unindexed files.
       - name: Run graft-powered gap analysis
         run: |
           PYTHONPATH=. python3 scripts/graft_gap_analyzer.py --mode binding,residual
           PYTHONPATH=. python3 scripts/scan_todo_markers.py --repo-root . --out out/reports/todo_markers.ci.json
+          PYTHONPATH=. python3 scripts/graft_combined_gap_report.py
 
       # Lint is a RATCHET, not a bare `ruff check`. The configured ruleset ([tool.ruff.lint] in
       # pyproject.toml) carries pre-existing debt, so a gate that is red on day one and stays red

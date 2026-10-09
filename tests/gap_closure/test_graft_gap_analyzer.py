@@ -145,3 +145,13 @@ def test_graft_gap_analyzer_produces_top_symbols(tmp_path: Path) -> None:
         assert "name" in sym
         assert "kind" in sym
         assert "file" in sym
+
+
+def test_graft_used_in_promotion_preflight() -> None:
+    """TDD: combined report includes graft query output for promotion."""
+    report_path = Path("out/reports/graft_combined_gap_report.latest.json")
+    assert report_path.exists(), f"missing report: {report_path}"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert "graft_promotion_hits" in report, (
+        "combined report must include graft_promotion_hits from graft ask"
+    )
