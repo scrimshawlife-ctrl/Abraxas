@@ -160,7 +160,11 @@ abraxas = "abraxas.plugin:register"
 include = ["abraxas*", "abx*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "webpanel", "abraxas/evidence"]
+# These three paths match what CI collects in .github/workflows/ci.yml, so a bare `pytest` on a
+# developer's machine runs the same set CI does. With only ["tests"] it collected 3,646 while CI
+# collected 3,900: 254 test functions were silently skipped by the obvious command, and nothing said
+# so.
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

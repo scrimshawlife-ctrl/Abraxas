@@ -1,6 +1,6 @@
 # Abraxas Development Roadmap
 
-**Version:** 1.5.0
+**Version:** 2.1.0
 **Last Updated:** 2025-12-29
 **Philosophy:** Ordered by epistemic leverage, not engineering familiarity
 

@@ -77,7 +77,7 @@
       moved. Passing 3,167 → 3,548 with 3,559 collected. Detail and every diagnosis in
       `docs/TEST_DEBT.md`.
 - [x] **Regression ratchet added** — `scripts/test_ratchet.sh`, now `BASELINE_FAILURES=0` and
-      `BASELINE_COLLECTED=3559`. Failures may not rise and the collected floor may not fall; either
+      `BASELINE_COLLECTED=3779`. Failures may not rise and the collected floor may not fall; either
       change requires a written reason in the commit body.
 - [x] **Collection-order dependence fixed at root** — the suite imported script files that
       purged `sys.modules` at import time. FIVE of eight root-level `test_*.py` files contained
