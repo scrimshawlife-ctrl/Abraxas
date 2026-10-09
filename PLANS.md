@@ -38,6 +38,14 @@ This file is the append-first execution queue for implementation runs.
   - **SLICE-2 (QUEUED):** broaden real-case validation set beyond `seal` while preserving deterministic local artifact lineage.
   - **SLICE-3 (QUEUED):** align final-state-derivable metrics with binding-health derivability semantics to remove contradictory reporting.
 
+### P2 — Engine Evidence Oracle/Ritual Wiring + Full Planned Dispatch
+- **Status:** ACTIVE (2026-10-09)
+- **Intent:** wire engine_evidence from _dispatch_to_engines into _build_oracle_envelope (oracle_signal), ritual preconditions, and oracle v2 evidence attachments; extend dispatch to semion/hyperlex for full 5-engine coverage; use to_dict() for proper EvidenceEnvelope serialization.
+- **Current state:** 3 of 5 planned engines dispatched (resonance/chronos/aether). engine_evidence present in cycle output via getattr hack. _build_oracle_envelope does not accept engine_evidence. Ritual preconditions do not consume engine signals. Semion/hyperlex not dispatched.
+- **Definition of done:** all 5 planned engines in dispatch output; engine_evidence under oracle_signal in envelope; ritual preconditions can respond to resonance/chronos signals; serialized engine JSONs appear in oracle evidence dir; 10+ pipeline tests pass.
+- **Plan:** `.hermes/plans/2026-10-09_153431-wire-engine-evidence-oracle-ritual.md`
+- **Closure evidence (when done):** PYTHONPATH=. python -m pytest tests/test_production_pipeline_real_adapters.py -q --tb=no; grep engine_evidence scripts/run_production_pipeline.py; grep semion scripts/run_production_pipeline.py
+
 ### P2 — Operator UI Shell Follow-up
 - **Status:** CONDITIONAL
 - **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.

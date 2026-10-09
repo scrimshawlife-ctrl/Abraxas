@@ -611,6 +611,8 @@ pipeline had ever tested.
 
 9. **Full Integration Beyond Stubs (chronos, resonance, aether + semion/hyperlex)** — Manifest-driven wiring complete: production _build_real_engines now resolves stubbed planned; yggdrasil helper for resolution; survey updated for technical claims on stubs; tests (manifest agreement 38/38, production wiring, settlement survey) pass. Stubs callable end-to-end. Non-stub planned remain unavailable. Updated KANBAN/BETA/PLANS. Re-verified.
 
-10. **More Pipeline Dispatch** — Added _dispatch_to_engines in scripts/run_production_pipeline.py (calls resonance/chronos/aether stubs based on phase/temporal). Integrated engine_evidence into cycle output. TDD test in test_production_pipeline_real_adapters.py passes. Dispatch exercised in run_cycle.
+10. **More Pipeline Dispatch** — Added _dispatch_to_engines in scripts/run_production_pipeline.py (calls resonance/chronos/aether stubs based on phase/tempral). Integrated engine_evidence into cycle output. TDD test in test_production_pipeline_real_adapters.py passes. Dispatch exercised in run_cycle.
+
+11. **Engine Evidence Wiring to Oracle + Ritual + Full Planned Dispatch** — _dispatch_to_engines now covers resonance/chronos/aether (3 of 5 planned). engine_evidence computed as EvidenceEnvelope list and serialized into cycle output. Next: wire engine_evidence into _build_oracle_envelope (oracle_signal), ritual preconditions, and oracle v2 evidence attachments via to_dict + attach_evidence_files; extend dispatch to semion/hyperlex for full 5-engine coverage. Plan: `.hermes/plans/2026-10-09_153431-wire-engine-evidence-oracle-ritual.md` tasks 1-9.
 
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.

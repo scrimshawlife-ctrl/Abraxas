@@ -168,6 +168,8 @@ Graft gap analysis (2026-10-08): 8 binding + 8 residual hits. 59 TODO + 5 FIXME 
 
 Real adapters (2026-10-09, re-verified at 17 runs): `PoliticsDomainAdapter`, `MediaDomainAdapter`, `FinanceDomainAdapter` (TDD, exact intentional_abstract markers). Pipeline dispatches all 3 (scripts/run_production_pipeline.py). Stub taxonomy (tools/stub_index.json) classifies domain_adapter type. 6/6 tests pass. No drift.
 
+**Pipeline dispatch to planned stub engines (2026-10-09):** `_dispatch_to_engines` added to ProductionPipeline, covering resonance/chronos/aether stubs (3 of 5 planned). engine_evidence computed as EvidenceEnvelope list, serialized into cycle output (crude getattr form). TDD test passes. Next: wire engine_evidence into oracle_signal (Tasks 1-9 of `.hermes/plans/2026-10-09_153431-wire-engine-evidence-oracle-ritual.md`), extend to semion/hyperlex, add ritual consumption, evidence file attachment. Pipeline dispatch test count: 8/8 pass (post step 10).
+
 ### Support surface (measured 2026-10-08)
 
 **The documented quickstart does not complete.** README's `## Quickstart` lists four steps. Followed
