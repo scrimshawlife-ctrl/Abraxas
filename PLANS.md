@@ -73,7 +73,7 @@ This file is the append-first execution queue for implementation runs.
 ### P2 — Engines 1-4 Full Sibling Design + Yggdrasil Clean
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** replace the four minimal planned stubs for hyperlex, semion, chronos, resonance with sibling-repo-grounded implementations respecting lane fences and SIBLING_REPOS.md; drop stub allowances in tests and docs; remove STUBBED_PLANNED bypass from production and Yggdrasil.
-- **Definition of done:** Providers reflect sibling-spec contracts (hyperlex/semion consume instruments, chronos composes runes, resonance composes phase layer). Production wiring uniform via manifest; Yggdrasil resolves without stub helper. Tests: "stub" dropped from 4+ files. ENGINE_TOPOLOGY.md updated with sibling-spec labels. KANBAN step 13 recorded. aether untouched.
+- **Definition of done:** Providers reflect sibling-spec contracts (hyperlex/semion consume instruments, chronos composes runes, resonance composes phase layer). Production wiring uniform via manifest; Yggdrasil resolves without stub helper. Tests: "stub" dropped from 4+ files. ENGINE_TOPOLOGY.md updated with sibling-spec labels. KANBAN step 13 recorded. aether handled in separate design as multimodal refusing boundary.
 - **Closure evidence:** tests/test_engine_manifest_agreement.py (54 passed), tests/test_production_engine_wiring.py, tests/test_engine_settlement_survey.py, tests/test_production_pipeline_real_adapters.py (11/12 pass; 1 pre-existing ritual-confidence). Sibling repos: ~/Hyperlex, ~/Semion, ~/Chronos, ~/Resonance all have SPEC.md + implementations.
 - **Plan:** `.hermes/plans/2026-10-09_160500-full-design-integration-engines-1-4-yggdrasil-siblings.md`
 
