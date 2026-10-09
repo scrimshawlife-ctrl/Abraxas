@@ -32,7 +32,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-| Process assurance (CI history) | ~55% (streak=3, 1.7h) |
+| Process assurance (CI history) | ~55% (streak=3, 1.8h) |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
@@ -43,7 +43,7 @@ is marked **[JUDGEMENT]**.
 - **Promotion preflight & artifacts** — Wired, TDD'd, 10 tests pass.
 - **Root doc hygiene** — 2 stale archived, graft clean.
 - **Graft default** — Expanded to promotion, BETA, CI.
-- **Real adapters** — PoliticsDomainAdapter TDD'd, taxonomy as intentional_abstract.
+|- **Real adapters** — PoliticsDomainAdapter, MediaDomainAdapter, FinanceDomainAdapter TDD'd + pipeline wiring; taxonomy as intentional_abstract. 6 tests pass.
 
 ### Resolved in the 2026-10-08 pass
 
@@ -74,7 +74,7 @@ is marked **[JUDGEMENT]**.
    previously listed as an outstanding release action after it had already shipped, which is the
    same drift the rest of this document exists to catch.
 7. **Earn CI history — In progress (2026-10-09).** Streak grown to 3 consecutive green runs on main
-   (1.8h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." Steps executed: promotion, graft, root hygiene, adapters (politics/media/finance), history progress. More runs needed for 72h target.
+   (1.8h span per `scripts/ci_history.py`). Judgment: "Green, but under 72 hours of it." Steps executed: promotion, graft, root hygiene, adapters (politics/media/finance + pipeline), history progress. More runs needed for 72h target. Real adapters now cover default production domains.
 8. **Observability — CORRECTED TWICE (2026-10-08).** The first version of this entry said "863
    `print()` calls on the served surface", which was wrong: the served surface has six. The second
    version named `abx` and `abraxas/zkp` as "the real gap", which is also wrong, and measured so:
