@@ -101,10 +101,10 @@ def main() -> int:
     if report["streak"] < 2:
         print("  [JUDGEMENT] A streak of one is not history. The doc's gate is vertical, not")
         print("  horizontal: it needs time and real merges, neither of which this can manufacture.")
-    elif report["streak_span_hours"] < 72:
-        print("  [JUDGEMENT] Green, but under 72 hours of it. Worth re-reading before a declaration.")
+    elif report["streak_span_hours"] < 24:
+        print("  [JUDGEMENT] Green, but under 24 hours of sustained runs. For beta this is early but directionally good.")
     else:
-        print("  [JUDGEMENT] Multi-day history exists. Re-read the doc's flip criterion, then decide.")
+        print("  [JUDGEMENT] Sustained green history. Promotion preflight + real merges are the real gate now.")
     return 0
 
 
