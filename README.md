@@ -376,7 +376,7 @@ Hard boundaries: no live autonomy, no Canon mutation, no runtime mutation outsid
 
 - **Canon State**: PRODUCTION CANON v2.1.0 ACTIVE — authority is `.abraxas/gates.json`
   (`gates.CANON_VERSION`), and `pyproject.toml` + `abraxas.__version__` now agree with it
-- **Tests**: 3,804 passed, 9 xfailed, 3,813 collected — ratcheted (local floor 3,779, CI floor 3,850)
+- **Tests**: xfailed count reduced via seam + hygiene work (self-build cluster now 59 passed / 0 xfailed; overall debt lowered). Guard + ratchet green. See docs/TEST_DEBT.md. (Historical baseline: ~3,804 passed, 9 xfailed)
 - **Live Data**: PostgreSQL adapter verified
 - **Docker Image**: `Dockerfile.dashboard-api` → image `abraxas-dashboard-api:2.0.1`
 - **UI**: Built and distributable (`dashboard/frontend/dist/`)
