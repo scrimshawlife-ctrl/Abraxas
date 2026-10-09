@@ -208,4 +208,9 @@ class TestRegeneration:
         )
 
         assert result.returncode == 0, f"Builder check failed: {result.stderr}"
-        assert "[OK]" in result.stdout, "Builder check should output [OK]"
+        # Canon expectation: [OK]. The xfail parks the known drift (Jev keep_reverted 0.94).
+        # Failure message now includes observed output so the instrument reports the real symptom (the missing sigil).
+        assert "[OK]" in result.stdout, (
+            "Builder check should output [OK] (canon state). "
+            f"Observed stdout: {result.stdout[-800:]} | stderr: {result.stderr[-200:]}"
+        )
