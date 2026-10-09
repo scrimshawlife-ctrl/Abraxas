@@ -22,7 +22,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
-    // TODO: Send to error reporting service
+    // No error reporting service configured. Errors are logged to console above.
+    // To wire a service (Sentry, Datadog, etc.), add an onError callback prop.
   }
 
   render() {
