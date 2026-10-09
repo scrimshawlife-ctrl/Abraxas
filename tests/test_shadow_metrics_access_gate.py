@@ -63,15 +63,15 @@ def test_shadow_lane_allowed_with_sso_rune():
         mock_registry.return_value = {"runes": [shadow_rune]}
         mock_policy.return_value = {}
 
-        # This would need actual operator implementation
-        # For now, test just verifies authorization check passes
-        # The NotImplemented is expected; the key is that PermissionError was not raised.
-        with pytest.raises(NotImplementedError):
-            invoke(
-                rune_id="test.shadow.metric",
-                payload={},
-                context={"authorized_runes": ["ϟ₇"]}  # With ϟ₇ auth
-            )
+        # Verifies authorization check passes (no PermissionError for authorized shadow lane).
+        # Current kernel returns not_computable envelope for unregistered test rune (no raise).
+        result = invoke(
+            rune_id="test.shadow.metric",
+            payload={},
+            context={"authorized_runes": ["ϟ₇"]}  # With ϟ₇ auth
+        )
+        assert result["result"]["status"] == "not_computable"
+        assert "kernel_route_missing" in str(result["result"].get("not_computable", {}))
 
 
 def test_prediction_lane_no_sso_required():
@@ -98,11 +98,11 @@ def test_prediction_lane_no_sso_required():
         mock_registry.return_value = {"runes": [prediction_rune]}
         mock_policy.return_value = {}
 
-        # Prediction lane should work without ϟ₇
-        # The NotImplemented/KeyError is expected; the key is no PermissionError.
-        with pytest.raises((NotImplementedError, KeyError)):
-            invoke(
-                rune_id="test.prediction.metric",
-                payload={},
-                context={}  # No authorization needed
-            )
+        # Prediction lane should work without ϟ₇ (no PermissionError).
+        # Current kernel returns not_computable envelope for unregistered test rune.
+        result = invoke(
+            rune_id="test.prediction.metric",
+            payload={},
+            context={}  # No authorization needed
+        )
+        assert result["result"]["status"] == "not_computable"
