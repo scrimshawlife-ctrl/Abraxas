@@ -43,6 +43,24 @@ This file is the append-first execution queue for implementation runs.
 - **Intent:** only pursue if current roadmap still requires implementation-shell updates around the canonical Operator Console.
 - **Definition of done:** explicit go/no-go decision and scoped UI shell task list with canonical-entrypoint signage preserved.
 
+### P2 — Beta Adapters TDD + Stub Taxonomy Lock
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** re-verify and lock politics/media/finance domain adapters with exact `intentional_abstract: returns minimal valid snapshots until live data source is wired` markers, TDD coverage, pipeline dispatch.
+- **Definition of done:** markers present in source files and tools/stub_index.json; 6/6 tests/test_production_pipeline_real_adapters.py pass; run_production_pipeline.py dispatches real adapters for these domains; no drift from prior implementation.
+- **Closure evidence:** re-run pytest + grep for marker + stub_index + pipeline source; part of beta readiness pass.
+
+### P2 — Graft Wiring in CI for Beta
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** confirm and lock full graft wiring in CI (setup-node, npm @nanonets/graft, graft build, PATH export, gap analysis before core tests) for use in beta docs and reports.
+- **Definition of done:** .github/workflows/ci.yml contains the steps; graft ask and combined reports run successfully in CI; used for KANBAN/BETA updates.
+- **Closure evidence:** grep in ci.yml for graft/npm; recent CI runs show graft reports; re-verified in beta pass.
+
+### P2 — Root Doc Hygiene for Beta
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** confirm root doc hygiene: 2 stale files archived with provenance, graft + grep cross-checks clean, only substantive docs remain.
+- **Definition of done:** docs/archive/ contains the 2 files; no references in code/docs; 18 remaining root .md are substantive.
+- **Closure evidence:** ls docs/archive/; graft/grep verification; re-verified in beta pass.
+
 
 
 ### P0 — Large-Run Deterministic Convergence Spine
