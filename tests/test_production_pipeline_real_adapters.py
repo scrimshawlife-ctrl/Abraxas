@@ -84,8 +84,8 @@ def test_postgresql_domain_adapter_implements_interface():
     assert snap.source == "postgresql"
 
 
-def test_pipeline_dispatches_to_planned_stub_engines():
-    """ProductionPipeline must dispatch to ALL 5 planned stub engines."""
+def test_pipeline_dispatches_to_planned_engines():
+    """ProductionPipeline must dispatch to ALL 5 planned engines."""
     from scripts.run_production_pipeline import ProductionPipeline
     from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     import tempfile
@@ -192,8 +192,8 @@ def test_oracle_envelope_includes_engine_evidence():
         assert len(eng_ev) >= 1, f"engine_evidence must have entries; got {len(eng_ev)}"
 
 
-def test_full_cycle_triggers_rituals_with_high_stub_confidence():
-    """With bumped stub confidence + multi-domain, at least one ritual (e.g. resonance_boost) must execute."""
+def test_full_cycle_triggers_rituals_with_engine_evidence():
+    """With engine evidence + multi-domain, at least one ritual (e.g. resonance_boost) must execute."""
     from scripts.run_production_pipeline import ProductionPipeline
     from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     from abraxas.adapters.media_domain_adapter import MediaDomainAdapter

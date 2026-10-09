@@ -18,10 +18,10 @@ intended topology:
 | `trutina` | **live** | CALIBRATION | `abraxas.evidence.providers.trutina:TrutinaEvidenceProvider` | none — scores given forecasts |
 | `oracle` | **live** | NARRATIVE_SYNTHESIS | `abraxas.evidence.adapters.oracle:create_oracle_adapter` | **model-agnostic** |
 | `cypher` | **live** | PERSISTENT_MEMORY | `abraxas.evidence.adapters.cypher:create_cypher_adapter` | none — reads the memory layer |
-| `hyperlex` | planned | LEXICAL_SEMANTIC | `abraxas.evidence.providers.hyperlex:create_hyperlex_adapter` (minimal stub) | feature-gated package call |
-| `semion` | planned | SIGN_RELATION | `abraxas.evidence.providers.semion:create_semion_adapter` (minimal stub) | none — consumes a sign frame |
-| `chronos` | planned | TEMPORAL_REASONING | `abraxas.evidence.providers.chronos:create_chronos_adapter` (minimal stub) | none — rune orchestration |
-| `resonance` | planned | RESONANCE_ANALYSIS | `abraxas.evidence.providers.resonance:create_resonance_adapter` (minimal stub) | none — phase detectors |
+| `hyperlex` | **live** | LEXICAL_SEMANTIC | `abraxas.evidence.providers.hyperlex:create_hyperlex_adapter` (sibling-spec + in-tree instrument) | feature-gated package call · `~/Hyperlex/` |
+| `semion` | **live** | SIGN_RELATION | `abraxas.evidence.providers.semion:create_semion_adapter` (sibling-spec + in-tree instrument) | none — consumes a sign frame · `~/Semion/` |
+| `chronos` | **live** | TEMPORAL_REASONING | `abraxas.evidence.providers.chronos:create_chronos_adapter` (sibling-spec + in-tree rune compose) | none — rune orchestration · `~/Chronos/` |
+| `resonance` | **live** | RESONANCE_ANALYSIS | `abraxas.evidence.providers.resonance:create_resonance_adapter` (sibling-spec + in-tree phase compose) | none — phase detectors · `~/Resonance/` |
 | `aether` | planned | MULTIMODAL_INTEGRATION | `abraxas.evidence.providers.aether:create_aether_adapter` (minimal stub that raises) | n/a — refuses |
 
 Implementation paths are copied from the manifest, and

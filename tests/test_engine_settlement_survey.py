@@ -91,7 +91,7 @@ def test_only_deliberately_declared_engines_claim_technical_settlement() -> None
     declared = {r["engine"] for r in rows if r["declared_technical"] == "settled"}
     satisfiable = {r["engine"] for r in rows if r["technical_satisfiable"]}
     live = {r["engine"] for r in rows if r["status"] == LIVE}
-    STUBBED_PLANNED = {"hyperlex", "semion", "chronos", "resonance", "aether"}
+    PLANNED_WITH_PROVIDERS = {"hyperlex", "semion", "chronos", "resonance", "aether"}
 
     assert declared == DECLARED_TECHNICAL_SETTLEMENTS, (
         f"the set of engines claiming technical settlement is {sorted(declared)}, expected "
@@ -102,8 +102,8 @@ def test_only_deliberately_declared_engines_claim_technical_settlement() -> None
         f"{sorted(declared - satisfiable)} claim a technical settlement the survey cannot corroborate. "
         f"A settlement is not a wish: every criterion must measure PRESENT."
     )
-    # Allow stubbed planned in addition to live for full integration
-    expected_satisfiable = live | STUBBED_PLANNED
+    # Allow planned-with-providers in addition to live for full integration
+    expected_satisfiable = live | PLANNED_WITH_PROVIDERS
     assert satisfiable == expected_satisfiable, (
         f"the survey corroborates {sorted(satisfiable)}, expected {sorted(expected_satisfiable)}"
     )
@@ -122,9 +122,9 @@ def test_an_unmeasured_criterion_is_never_treated_as_satisfied() -> None:
         assert isinstance(criteria, dict)
         return any(v == UNMEASURED for v in criteria.values())
 
-    STUBBED_PLANNED = {"hyperlex", "semion", "chronos", "resonance", "aether"}
+    PLANNED_WITH_PROVIDERS = {"hyperlex", "semion", "chronos", "resonance", "aether"}
     unmeasured_but_satisfiable = [
-        r["engine"] for r in rows if _has_unmeasured(r) and r["technical_satisfiable"] and r["engine"] not in STUBBED_PLANNED
+        r["engine"] for r in rows if _has_unmeasured(r) and r["technical_satisfiable"] and r["engine"] not in PLANNED_WITH_PROVIDERS
     ]
     assert unmeasured_but_satisfiable == [], (
         f"{unmeasured_but_satisfiable}: a settlement was certified with an unmeasured criterion"

@@ -1,4 +1,4 @@
-"""Aether Evidence Provider (multimodal) — minimal planned stub that refuses per design."""
+"""Aether Evidence Provider (multimodal) — minimal planned stub that returns a planned EvidenceEnvelope (not raising)."""
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -7,7 +7,7 @@ from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, Evidenc
 from abraxas.evidence.provider import EvidenceProvider
 
 class AetherEvidenceProvider(EvidenceProvider):
-    """Minimal stub for aether (multimodal) that raises per manifest design."""
+    """Minimal stub for aether (multimodal) that returns a planned EvidenceEnvelope."""
 
     @property
     def engine_name(self) -> str:

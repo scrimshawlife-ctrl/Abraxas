@@ -243,3 +243,13 @@ The production pipeline now dispatches all 5 planned engines (resonance, chronos
 
 **Next:** operator decision on promotion beyond technical settlement; empirical/economic settlement remains out of scope per beta declaration.
 
+## Engines 1-4 Full Sibling Design (2026-10-09)
+
+The four planned engines — hyperlex, semion, chronos, resonance — now have sibling-spec + in-tree compose/instrument design per `docs/SIBLING_REPOS.md`:
+- **hyperlex** — consumes `hyperlex_instrument.py` (shadow, feature-gated); sibling at `~/Hyperlex/` (86 src / 66 test .py)
+- **semion** — consumes `semion_instrument.py` (shadow, feature-gated); sibling at `~/Semion/` (121 files / 39 commits)
+- **chronos** — composes `abraxas.runes.operators.chrono_*` (4 runes) per `~/Chronos/SPEC.md`; sibling at `~/Chronos/`
+- **resonance** — composes `abraxas/phase/` detectors per `~/Resonance/SPEC.md`; sibling at `~/Resonance/`
+
+Production wiring: STUBBED_PLANNED bypass removed; all engines register uniformly via manifest. Yggdrasil resolves without `_get_provider_for_engine` stub helper. Tests: "stub" allowances dropped across 4+ test files. aether remains the only genuinely unfinished engine (raises NotImplementedError). KANBAN step 13 recorded. Plan: `.hermes/plans/2026-10-09_160500-full-design-integration-engines-1-4-yggdrasil-siblings.md`.
+
