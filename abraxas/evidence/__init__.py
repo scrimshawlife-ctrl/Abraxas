@@ -1069,11 +1069,11 @@ __all__ = [
     "EvidenceProvider", "ProviderRegistry", "provider_registry",
     # Arbitration
     "ArbitrationPolicy", "ArbitrationPolicyConfig", "EvidenceArbiter",
-    "DecisionRecord", "Decision",
+    "DecisionRecord",
     # Policies
-    "SelectiveComputePolicy", "ArbitrationPolicy", "ArbitrationPolicyConfig",
+    "SelectiveComputePolicy",
     # Failure
-    "FailureType", "classify_failure",
+    "classify_failure",
     # Migration
     "EvidenceSchemaMigrator",
     # Legacy types
@@ -1087,27 +1087,6 @@ __all__ = [
     # Trutina
     "compute_atomic_brier", "compute_brier_series", "to_brier_score_packet",
     "to_brier_ledger_entry", "compute_ledger_hash",
-    # Providers
-    "EvidenceProvider", "ProviderRegistry", "provider_registry",
-    "ArbitrationPolicy", "ArbitrationPolicyConfig", "EvidenceArbiter",
-    "DecisionRecord", "Decision", "SelectiveComputePolicy",
-    # Failure
-    "FailureType", "classify_failure",
-    # Migration
-    "EvidenceSchemaMigrator",
-    # Verifiers
-    "RelationalVerifier", "LexicalConsistencyVerifier", "SignRelationVerifier",
-    "LatentStructureVerifier",
-    # Trutina
-    "compute_atomic_brier", "compute_brier_series", "to_brier_score_packet",
-    "to_brier_ledger_entry", "compute_ledger_hash",
-    # Schema migration
-    "EvidenceSchemaMigrator",
-    # Legacy types
-    "EvidenceThresholdRecord", "BurdenOfProofRecord", "DecisionSufficiencyRecord",
-    "DecisionReadinessRecord", "ConflictingEvidenceRecord", "ProvisionalDecisionRecord",
-    "EvidenceTransitionRecord", "UnmetBurdenRecord", "EvidenceGovernanceErrorRecord",
-    "EvidenceGovernanceScorecard",
 ]
 # NOTE: this module used to print a 10-line banner on import, one line of which
 # claimed "4-engine" arbitration while the rest of the repo said 5. Printing from
