@@ -62,8 +62,8 @@ genuinely open, and the probabilities are close.
 
 | Cluster | Tests | Ruling | Confidence |
 |---|---|---|---|
-| `self_build_*` statefulness | 8 | leave as-is → marked `xfail(strict=True)` | 0.84 |
-| Builder sigil drift | 1 | keep reverted → marked `xfail(strict=True)` | 0.94 |
+|| `self_build_*` statefulness | 0 (was 8) | resolved via injection seam + test hygiene (no more live-state dependence) | 1.0 |
+|| Builder sigil drift | 1 | keep reverted → marked `xfail(strict=True)` | 0.94 |
 
 An `xfail(strict=True)` marker turns into a suite-failing **XPASS** if someone later resolves
 the underlying issue without removing the marker. That is intentional: the debt cannot
