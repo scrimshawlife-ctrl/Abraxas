@@ -82,3 +82,18 @@ def test_postgresql_domain_adapter_implements_interface():
     assert snap.domain == "postgresql"
     assert len(snap.tokens) >= 1
     assert snap.source == "postgresql"
+
+
+def test_pipeline_dispatches_to_planned_stub_engines():
+    """ProductionPipeline must dispatch to planned stub engines (resonance/chronos) for evidence."""
+    from scripts.run_production_pipeline import ProductionPipeline
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    import tempfile
+    adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
+    with tempfile.TemporaryDirectory() as td:
+        pipeline = ProductionPipeline(adapters, output_dir=td)
+        result = pipeline.run_cycle()
+        assert hasattr(pipeline, "_dispatch_to_engines")
+        eng = result.get("engine_evidence", [])
+        engines = [e.get("engine") for e in eng]
+        assert "resonance" in engines or "chronos" in engines, f"expected stub dispatch, got {engines}"

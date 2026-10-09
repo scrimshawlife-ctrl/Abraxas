@@ -82,7 +82,10 @@ class ProductionPipeline:
         # 2. Phase Detection
         alignments = self.phase_detector.detect_alignments(domain_states, timestamp_utc=timestamp)
         sync_map = self.phase_detector.build_synchronicity_map()
-        
+
+        # 2.5 Engine dispatch to planned stubs (more pipeline dispatch)
+        engine_evidence = self._dispatch_to_engines(domain_states, alignments, timestamp)
+
         # 3. Early Warning
         warnings = self.warning_system.generate_warnings(
             tau_snapshots, current_phases, sync_map
@@ -140,11 +143,14 @@ class ProductionPipeline:
             "alignments": [a.to_dict() for a in alignments],
             "warnings": [w.to_dict() for w in warnings],
             "ritual_executions": [r.to_dict() for r in ritual_executions],
+            "engine_evidence": [{"engine": getattr(e, 'engine', str(e)), "request_id": getattr(e, 'request_id', '')} for e in engine_evidence],
             "oracle_bundle": bundle_result,
             "narrative": narrative,
         }
         
         # Save to output dir
+        import os
+        os.makedirs(self.output_dir, exist_ok=True)
         output_path = f"{self.output_dir}/cycle_{self.cycle_count:06d}.json"
         with open(output_path, "w") as f:
             json.dump(output, f, indent=2)
@@ -157,7 +163,53 @@ class ProductionPipeline:
         print(f"  Saved: {output_path}")
         
         return output
-    
+
+    def _dispatch_to_engines(self, domain_states: Dict, alignments: List, timestamp: str) -> List:
+        """Dispatch to planned stub engines for more pipeline integration.
+        Uses manifest to resolve providers for resonance (phase), chronos (temporal), etc.
+        Minimal dispatch for stubs.
+        """
+        envelopes = []
+        from abraxas.engines.manifest import get
+        from importlib import import_module
+
+        # Resonance for phase alignments
+        spec = get("resonance")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"resonance phase alignment dispatch for {len(alignments)} alignments at {timestamp}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"alignments_count": len(alignments)})
+                envelopes.append(env)
+            except Exception:
+                pass  # stub safe
+
+        # Chronos for temporal
+        spec = get("chronos")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"chronos temporal dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
+                envelopes.append(env)
+            except Exception:
+                pass
+
+        # Aether (will raise but catch for stub)
+        spec = get("aether")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", "aether multimodal", {})
+                envelopes.append(env)
+            except Exception:
+                pass
+
+        return envelopes
+
     def _build_oracle_envelope(
         self,
         domain_states: Dict,
