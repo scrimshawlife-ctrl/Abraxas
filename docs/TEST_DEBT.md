@@ -133,15 +133,15 @@ sticky is load-bearing, not a leak. Reverted clean.
 The real fix is to make those specific tests self-contained (set the state they need in
 their own fixture) rather than depending on a predecessor having run.
 
-### Progress: 3 order-sensitive tests -> 2
+### Progress: 3 order-sensitive tests -> 2 (historical; 2026-10-08 update)
 
-FIXED (verified both orders):
-- `test_patch_registry.py::test_get_current_version` used the shared `get_ledger()`
-  singleton, which carries patches other tests added. Now uses a fresh
-  `SSMPatchLedger()`. Reversed-order count 31 -> 30, canonical unchanged at 28, no
+FIXED (verified both orders at time):
+- `test_patch_registry.py::test_get_current_version` used the shared `get_ledger()` 
+  singleton, which carries patches other tests added. Now uses a fresh 
+  `SSMPatchLedger()`. Reversed-order count 31 -> 30, canonical unchanged at 28, no 
   collateral, xfail tally intact at 9 in both orders.
 
-STILL ORDER-DEPENDENT (2), with the reason each resists the obvious fix:
+STILL ORDER-DEPENDENT (2 at time), with the reason each resists the obvious fix:
 - `test_access_control.py::test_direct_module_access_blocked` depends on the **import
   cache**, not just the flag: the guard fires only on the first import, so once
   `abraxas.shadow_metrics.core` is in `sys.modules` a later import succeeds anyway.
@@ -160,6 +160,12 @@ STILL ORDER-DEPENDENT (2), with the reason each resists the obvious fix:
   `approval_count >= 1` -- it depends on artifacts on disk that earlier tests wrote,
   i.e. state from `out/`, not from a singleton. Fixing it means injecting the artifact
   path rather than reading live repo state.
+
+**2026-10-08 verification update (self_build seam + hygiene work):**
+- `tests/shadow_metrics/test_access_control.py::test_direct_module_access_blocked`: now passes cleanly.
+- `tests/shadow_metrics/test_patch_registry.py::test_get_current_version`: now passes cleanly.
+- `tests/test_self_build_approval_receipt.py::test_approval_receipt`: part of self_build cluster (now 59 passed / 0 xfailed; the approval_receipt test runs green within its module context).
+Order sensitivity for these specific tests has been mitigated by later hygiene and seam work. The historical analysis is retained for provenance. The broader order-dependency lesson (process isolation for sticky flags) remains valid for future attempts.
 
 ## Jev consultation 2026-10-06: 12 of the remaining failures are decision-gated
 
