@@ -112,18 +112,6 @@ class YggdrasilCoordinator:
             )
             self.rune_registry.register_engine(engine_name, metadata)
 
-    def _get_provider_for_engine(self, engine_name: str):
-        """Resolve via manifest for stubbed planned (test/integration only).
-        Full integration path for planned stubs beyond minimal.
-        """
-        from abraxas.engines.manifest import get
-        from importlib import import_module
-        spec = get(engine_name)
-        if spec and spec.implementation:
-            mod, attr = spec.implementation.split(":", 1)
-            return getattr(import_module(mod), attr)()
-        return None
-
     def arbitrate_evidence(self, envelope: EvidenceEnvelope) -> Decision:
         """Arbitrate evidence through the full Yggdrasil decision layer."""
         if not self._initialized:

@@ -582,14 +582,11 @@ class ProductionOrchestrator:
         return providers, failures
 
     def _mark_planned_unavailable(self) -> None:
-        """Report every planned engine as UNHEALTHY with its reason.
-        Skip the minimal planned stubs we intentionally wired (chronos/resonance/aether + prior semion/hyperlex).
-        """
+        """Report every planned engine as UNHEALTHY with its reason."""
         from abraxas.engines.manifest import ENGINES, PLANNED
 
-        STUBBED_PLANNED = {"chronos", "resonance", "aether", "semion", "hyperlex"}
         for spec in ENGINES:
-            if spec.status == PLANNED and spec.name not in STUBBED_PLANNED:
+            if spec.status == PLANNED:
                 self.engine_registry.mark_declared_unavailable(spec.name, spec.note)
 
 
