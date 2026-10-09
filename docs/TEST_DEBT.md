@@ -76,7 +76,7 @@ silently disappear.
 - Clean sweep post-repairs: 0 strict xfail markers, 0 literal `assert True` outside guard/known, 0 explicit `except: pass` swallows. ci_local.py (honest local CI runner parsing real .github/workflows) verified: guardrails 27/27 pass, architecture-svg 2/2 pass (SVG hash-stamp guard). Bare pytest collects 3902; ratchet/guard holding. KANBAN baseline refreshed to current.
 - Post-merge CI red (d19c843d): README count guard and 2 shadow access gate tests were stale (expected old NotImplemented/KeyError from pre-kernel-fix invoke). Fixed by restoring explicit "3902 collected" in README status and updating shadow tests to assert on current not_computable envelope result. All 3 tests now pass; CI instrument honest again. PR #272 merge verified.
 - Subsequent CI red on ea01801f: lint ratchet REGRESSION RUF068 0->36 (duplicates in abraxas/evidence/__init__.py __all__ from repeated export sections). Fixed by deduplicating __all__ (37 unique exports). Ratchet back to 4713=4713. Minor ruff warnings on noqa in sources/types.py and cookiecutter template left as non-blocking (scope excludes .github, noqa documents intent).
-- Gap closure invariance_rows now produced on demand (minimal 3-row stub, `scripts/produce_minimal_invariance_tracker.py`). Graft analyzer added for indexed TODO/gap queries (`scripts/graft_gap_analyzer.py`). Both wired into README quickstart. Plan: 2026-10-08-next-moves. 
+- Gap closure invariance_rows now produced on demand (minimal 3-row stub, `scripts/produce_minimal_invariance_rows.py`). Graft analyzer added for indexed TODO/gap queries (`scripts/graft_gap_analyzer.py`). Both wired into README quickstart. Plan: 2026-10-08-next-moves. 
 
 ## Resolved
 
