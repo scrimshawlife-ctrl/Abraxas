@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from abx.oracle_signal_layer_v2 import (
     NOT_COMPUTABLE,
     OracleSignalLayerError,
@@ -83,8 +85,5 @@ def test_validator_summary_hashes_and_counts() -> None:
 def test_invalid_envelope_rejected() -> None:
     bad = _envelope()
     bad["schema_id"] = "wrong"
-    try:
+    with pytest.raises(OracleSignalLayerError):
         run_oracle_signal_layer_v2(bad)
-        assert False, "expected OracleSignalLayerError"
-    except OracleSignalLayerError:
-        assert True

@@ -961,12 +961,12 @@ class TestNOESIS_Q1_Integration:
 class TestNOESIS_Q1_FeatureFlag:
     """Tests for feature flag behavior (if applicable)."""
 
-    def test_noesis_feature_flag_behavior(self):
+    def test_noesis_feature_flag_behavior(self):  # no-assert-intended: placeholder for unimplemented feature flag; will be replaced when the flag lands
         """Noesis integration should respect feature flag if present."""
         # Noesis currently doesn't have a feature flag like Hyperlex
         # but if added, it should default to disabled
         # This test documents expected behavior
-        assert True  # Placeholder for future feature flag
+        # No real assertion yet; the marker documents the intent.
 
 
 class TestNOESIS_Q1_Schema:

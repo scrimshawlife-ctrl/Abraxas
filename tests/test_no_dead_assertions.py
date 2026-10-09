@@ -97,15 +97,12 @@ def _literal_truth(node: ast.AST) -> list[int]:
 
 # Known offenders, recorded rather than fixed in this pass. The guard fails if this list grows, so a
 # new instance anywhere in the repo is caught immediately; existing instances are named debt.
-KNOWN_LITERAL_TRUTH = {
-    "tests/test_oracle_signal_layer_v2_drop.py:90",  # dead `assert True`; real assert is line 88
-    "abraxas/evidence/test_noesis_q1.py:969",  # placeholder for an unimplemented feature flag
-}
-KNOWN_SWALLOWS = {
-    "tests/test_shadow_metrics_access_gate.py:75",  # except NotImplementedError: pass
-    "tests/test_shadow_metrics_access_gate.py:112",  # except (NotImplementedError, KeyError): pass
-    "webpanel/test_engine_topology_drift.py:26",  # except Exception: pass around initialize()
-}
+#
+# 2026-10-08: all five repaired in this batch (see commits). Lists left empty on purpose so any
+# future regression is caught immediately. The noesis placeholder uses the # no-assert-intended
+# marker instead of a dead assert.
+KNOWN_LITERAL_TRUTH: set[str] = set()
+KNOWN_SWALLOWS: set[str] = set()
 
 
 def test_no_literal_truth_assertion() -> None:

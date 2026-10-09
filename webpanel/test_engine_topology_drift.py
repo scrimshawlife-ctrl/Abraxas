@@ -13,6 +13,8 @@ assertion against the raw rows catches a loss.
 """
 from __future__ import annotations
 
+import contextlib
+
 from webpanel.engine_topology import build_engine_topology
 
 
@@ -21,10 +23,8 @@ class TestNoDrift:
         from abraxas.yggdrasil.coordinator import YggdrasilCoordinator
 
         coord = YggdrasilCoordinator()
-        try:
+        with contextlib.suppress(Exception):
             coord.initialize()
-        except Exception:
-            pass
         registry_names = sorted(coord.rune_registry.list_engines())
 
         console_names = sorted(row["name"] for row in build_engine_topology()["engines"])

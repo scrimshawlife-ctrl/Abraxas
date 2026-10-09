@@ -222,6 +222,12 @@ select = [
     "C4",  # comprehension simplifications
     "SIM", # simplifications
     "RUF", # ruff's own correctness rules
+    # PT rules that measure zero findings today (added 2026-10-08). They are free ratchet wins:
+    # PT009 catches `assert True`, PT010 catches `assert False`, PT013 catches wrong pytest.raises usage.
+    # All three were measured at 0 before inclusion. A new finding will fail the ratchet immediately.
+    "PT009",
+    "PT010",
+    "PT013",
 ]
 
 # NOTHING IS IGNORED HERE ON PURPOSE. This ruleset has pre-existing debt, so the gate is a
