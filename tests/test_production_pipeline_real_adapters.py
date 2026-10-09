@@ -35,3 +35,13 @@ def test_main_uses_real_adapter_for_politics_when_not_mock():
              patch("scripts.run_production_pipeline.PoliticsDomainAdapter") as mock_adapter:
             main()
             mock_adapter.assert_called_once_with(domain="politics")
+def test_media_domain_adapter_implements_interface():
+    """Real adapter for media domain must produce valid DomainSnapshot."""
+    from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
+    from abraxas.adapters.domain_data import DomainSnapshot
+    adapter = MediaDomainAdapter(domain="media")
+    snap = adapter.fetch_current_state()
+    assert isinstance(snap, DomainSnapshot)
+    assert snap.domain == "media"
+    assert len(snap.tokens) >= 1
+    assert snap.source == "media-adapter"
