@@ -8,7 +8,7 @@ def test_main_raises_not_implemented_for_unimplemented_domains():
     """Domains without real adapters must still raise NotImplementedError."""
     from scripts.run_production_pipeline import main
     with patch("argparse.ArgumentParser.parse_args") as mock_parse:
-        mock_parse.return_value = type("Args", (), {"domains": ["media", "finance"], "mock": False, "output": "/tmp", "interval": 1})()
+        mock_parse.return_value = type("Args", (), {"domains": ["unknown"], "mock": False, "output": "/tmp", "interval": 1})()
         with patch("scripts.run_production_pipeline.ProductionPipeline"):
             with pytest.raises(NotImplementedError, match="Real adapters"):
                 main()
@@ -45,3 +45,27 @@ def test_media_domain_adapter_implements_interface():
     assert snap.domain == "media"
     assert len(snap.tokens) >= 1
     assert snap.source == "media-adapter"
+
+def test_finance_domain_adapter_implements_interface():
+    """Real adapter for finance domain must produce valid DomainSnapshot."""
+    from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
+    from abraxas.adapters.domain_data import DomainSnapshot
+    adapter = FinanceDomainAdapter(domain="finance")
+    snap = adapter.fetch_current_state()
+    assert isinstance(snap, DomainSnapshot)
+    assert snap.domain == "finance"
+    assert snap.source == "finance-adapter"
+
+def test_main_uses_real_adapters_for_all_when_not_mock():
+    """When --mock false, all domains (politics/media/finance) must use real adapters."""
+    from scripts.run_production_pipeline import main
+    with patch("argparse.ArgumentParser.parse_args") as mock_parse:
+        mock_parse.return_value = type("Args", (), {"domains": ["politics", "media", "finance"], "mock": False, "output": "/tmp", "interval": 1})()
+        with patch("scripts.run_production_pipeline.ProductionPipeline"), \
+             patch("scripts.run_production_pipeline.PoliticsDomainAdapter") as p, \
+             patch("scripts.run_production_pipeline.MediaDomainAdapter") as m, \
+             patch("scripts.run_production_pipeline.FinanceDomainAdapter") as f:
+            main()
+            p.assert_called_once_with(domain="politics")
+            m.assert_called_once_with(domain="media")
+            f.assert_called_once_with(domain="finance")
