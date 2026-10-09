@@ -43,7 +43,7 @@ is marked **[JUDGEMENT]**.
 - **Promotion preflight & artifacts** — Wired, TDD'd, 10 tests pass.
 - **Root doc hygiene** — 2 stale archived (`replit-not-this-product.md`, `pr-description-abx-runes-phase-1.md`), graft + grep clean. Re-verified at streak=26. New P2 task in PLANS.md.
 - **Graft default + wiring** — Expanded to promotion, BETA, CI. Full CI wiring (node + npm @nanonets/graft + build + PATH + gap reports before tests). Re-verified at streak=26. New P2 task in PLANS.md.
-|- **Real adapters** — PoliticsDomainAdapter, MediaDomainAdapter, FinanceDomainAdapter TDD'd (exact "intentional_abstract: returns minimal valid snapshots until live data source is wired" markers in each). Pipeline wired (scripts/run_production_pipeline.py dispatches all 3). Stub taxonomy (tools/stub_index.json) classifies as domain_adapter. 6/6 tests pass. Re-verified at streak=26. New P2 tasks added to PLANS.md.
+|- **Real adapters** — PoliticsDomainAdapter, MediaDomainAdapter, FinanceDomainAdapter TDD'd (exact "intentional_abstract: returns minimal valid snapshots until live data source is wired" markers in each). Pipeline wired (scripts/run_production_pipeline.py dispatches all 3). Stub taxonomy (tools/stub_index.json) classifies as domain_adapter. 6/6 tests pass. Re-verified at streak=26. New P2 tasks added to PLANS.md. **Specs check (2026-10-09)**: 20 files in docs/specs/ reviewed (grep + ls + graft). No mentions of production domain adapters or intentional_abstract markers (specs cover simulation/SOD adapters, metrics governance, FBE, backtest, rent etc.). Production adapters are pipeline impl detail; tracked via PLANS P2. No edits to specs/ required.
 
 ### Resolved in the 2026-10-08 pass
 
