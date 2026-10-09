@@ -611,4 +611,6 @@ pipeline had ever tested.
 
 9. **Full Integration Beyond Stubs (chronos, resonance, aether + semion/hyperlex)** — Manifest-driven wiring complete: production _build_real_engines now resolves stubbed planned; yggdrasil helper for resolution; survey updated for technical claims on stubs; tests (manifest agreement 38/38, production wiring, settlement survey) pass. Stubs callable end-to-end. Non-stub planned remain unavailable. Updated KANBAN/BETA/PLANS. Re-verified.
 
+10. **More Pipeline Dispatch** — Added _dispatch_to_engines in scripts/run_production_pipeline.py (calls resonance/chronos/aether stubs based on phase/temporal). Integrated engine_evidence into cycle output. TDD test in test_production_pipeline_real_adapters.py passes. Dispatch exercised in run_cycle.
+
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.
