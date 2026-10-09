@@ -139,6 +139,10 @@ class EvidenceEnvelope:
         ]
         return cls(**data)
 
+# Aether (MULTIMODAL_INTEGRATION) future envelope note (UNKNOWN until consumer):
+# Per Aether/SPEC.md §4: must carry per-modality provenance, weakest-link confidence,
+# fenced speculative section. See docs/aether/multimodal_input_contract.md
+# Current: no aether envelope is ever produced (raises).
 
 def create_athanor_envelope(
     claim: str,
