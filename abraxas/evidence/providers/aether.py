@@ -1,13 +1,24 @@
-"""Aether Evidence Provider (multimodal) — minimal planned stub that returns a planned EvidenceEnvelope (not raising)."""
+"""Aether Evidence Provider (multimodal) — refuses per sibling Aether/SPEC.md.
 
+This is the deliberate fail-closed boundary. Aether is intentionally PLANNED
+and never available. See /Users/appliedalchemylabs/Aether/SPEC.md and
+docs/SIBLING_REPOS.md.
+"""
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
-from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
+from abraxas.evidence.contract import EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 
+class AetherNotImplemented(NotImplementedError):
+    """Raised by the aether boundary to signal no implementation exists.
+
+    Message must name missing components per sibling SPEC §3/§5.
+    """
+    pass
+
 class AetherEvidenceProvider(EvidenceProvider):
-    """Minimal stub for aether (multimodal) that returns a planned EvidenceEnvelope."""
+    """Refusing implementation for aether (MULTIMODAL_INTEGRATION)."""
 
     @property
     def engine_name(self) -> str:
@@ -22,7 +33,12 @@ class AetherEvidenceProvider(EvidenceProvider):
         return [EvidenceType.MULTIMODAL_INTEGRATION]
 
     def get_model_identity(self) -> str:
-        return "aether.planned-stub"
+        raise AetherNotImplemented(
+            "aether cannot produce model identity: implementation_status=not_implemented. "
+            "Missing: per-modality encoders (text, image, audio, structured) — none exist; "
+            "fusion policy; attribution layer; budget controller. "
+            "See /Users/appliedalchemylabs/Aether/SPEC.md §3."
+        )
 
     def produce_evidence(
         self,
@@ -30,30 +46,14 @@ class AetherEvidenceProvider(EvidenceProvider):
         claim: str,
         context: Dict[str, Any],
         budget: Optional[Dict[str, Any]] = None
-    ) -> EvidenceEnvelope:
-        """Minimal stub for aether (multimodal) that returns planned envelope (not raising)."""
-        return EvidenceEnvelope(
-            engine="aether",
-            engine_version=self.engine_version,
-            model_identity=self.get_model_identity(),
-            request_id=request_id,
-            claim=claim,
-            candidate_outputs=[
-                CandidateOutput(
-                    answer="planned stub for aether multimodal",
-                    confidence=0.8,
-                    reasoning_trace="This is a minimal stub; full implementation pending.",
-                    relation_steps=[]
-                )
-            ],
-            evidence_type=EvidenceType.MULTIMODAL_INTEGRATION,
-            reasoning_steps=[],
-            relations=[],
-            confidence=0.8,
-            uncertainty=0.2,
-            decision_margin=0.0,
-            entropy=1.0,
-            provenance={"source": "aether.planned-stub", "status": "planned"},
+    ) -> "EvidenceEnvelope":
+        """Always raises — the point of this engine per sibling SPEC §5."""
+        raise AetherNotImplemented(
+            "aether cannot produce evidence: implementation_status=not_implemented. "
+            "Missing: per-modality encoders (text, image, audio, structured) — none exist; "
+            "fusion policy; attribution layer; budget controller. "
+            "See /Users/appliedalchemylabs/Aether/SPEC.md §3 and §4 (no confidence laundering, "
+            "per-modality provenance, fail closed on missing modalities)."
         )
 
 def create_aether_adapter() -> EvidenceProvider:
