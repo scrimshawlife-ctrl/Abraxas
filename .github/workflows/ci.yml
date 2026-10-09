@@ -46,7 +46,15 @@ jobs:
           # asyncio.run rather than a bare `async def test_`, so the module collects and
           # passes with the driver present. Install it here so the module is guarded.
           pip install -e ".[dev,server,postgres]"
-      
+
+      - name: Setup Node for graft
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install graft CLI
+        run: npm install -g @nanonets/graft
+
       # Scope widened 2026-10-08: this job ran tests/evidence, tests/integration,
       # tests/chaos and webpanel, but never tests/ -- which holds 680 files. All seven
       # failures fixed in the 2026-10-08 remediation lived in tests/*.py and were

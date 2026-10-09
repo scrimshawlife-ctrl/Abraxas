@@ -2,6 +2,8 @@
 
 Follows DomainDataAdapter interface. Intentionally minimal — stub taxonomy
 classifies this as 'intentional_abstract' until live data sources are wired.
+
+intentional_abstract: returns minimal valid snapshots until live data source is wired
 """
 from __future__ import annotations
 from datetime import datetime, timezone
