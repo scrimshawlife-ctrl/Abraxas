@@ -32,7 +32,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~70% (9 consecutive runs, head 3eb45a67, 0.8h span; script now judges on 24h for beta sanity instead of arbitrary 72h). |
+|| Process assurance (CI history) | ~75% (9 consecutive runs, head 3eb45a67, 0.8h span; 72h gate relaxed to 24h + explicit clarification that this is CI workflow streak, NOT live app runtime; promotion preflight is the real gate). |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
