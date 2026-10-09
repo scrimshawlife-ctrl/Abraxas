@@ -86,6 +86,18 @@ class ProductionPipeline:
         # 2.5 Engine dispatch to planned stubs (more pipeline dispatch)
         engine_evidence = self._dispatch_to_engines(domain_states, alignments, timestamp)
 
+        # 2.6 Build engine state summary for ritual preconditions
+        engine_state = {}
+        engine_summaries = []
+        for e in engine_evidence:
+            ed = e.to_dict() if hasattr(e, 'to_dict') else e
+            engine_summaries.append(ed)
+            engine_state[ed.get("engine", "unknown")] = {
+                "confidence": ed.get("confidence", 0.0),
+                "evidence_type": ed.get("evidence_type", ""),
+                "claim": ed.get("claim", "")[:100],
+            }
+
         # 3. Early Warning
         warnings = self.warning_system.generate_warnings(
             tau_snapshots, current_phases, sync_map
@@ -94,12 +106,11 @@ class ProductionPipeline:
         # 4. Ritual Engine (check if any rituals should fire)
         ritual_executions = []
         for domain, phase in current_phases.items():
-            # Check each protocol's preconditions against current state
             for protocol in self.ritual_engine.list_protocols():
-                met, _ = self.ritual_engine.check_preconditions(protocol, {
+                state_for_ritual = {
                     "domain_phase": phase,
                     "tau_velocity": tau_snapshots[domain].tau_velocity,
-                    "alignment_strength": 0.6,  # Would come from sync map
+                    "alignment_strength": 0.6,
                     "domains_aligned": len([a for a in alignments if domain in a.domains]),
                     "cascade_risk": "MEDIUM",
                     "drift_resonance_detected": False,
@@ -107,7 +118,10 @@ class ProductionPipeline:
                     "confidence": tau_snapshots[domain].confidence.value,
                     "symbolic_state": "coherent",
                     "drift_detected": False,
-                })
+                    "engine_evidence": engine_state,
+                    "resonance_confidence": engine_state.get("resonance", {}).get("confidence", 0.0),
+                }
+                met, _ = self.ritual_engine.check_preconditions(protocol, state_for_ritual)
                 if met:
                     # In production: add cooldown check
                     exec_result = self.ritual_engine.execute_ritual(
@@ -120,17 +134,27 @@ class ProductionPipeline:
         
         # 5. Oracle Bundle (aggregate envelope)
         envelope = self._build_oracle_envelope(
-            domain_states, alignments, warnings, ritual_executions, timestamp
+            domain_states, alignments, warnings, ritual_executions, timestamp,
+            engine_evidence=engine_summaries,
         )
         
-        # Run oracle bundle
-        import tempfile
+        # Run oracle bundle with evidence attachment
+        import tempfile, os as _os
         with tempfile.TemporaryDirectory() as td:
+            # Serialize engine evidence to files for bundle attachment
+            engine_files: dict = {}
+            for i, ed in enumerate(engine_summaries):
+                fname = f"engine_{ed.get('engine','stub')}_{i}.json"
+                fpath = _os.path.join(td, fname)
+                with open(fpath, "w") as f:
+                    json.dump(ed, f)
+                engine_files[f"engine_{i}"] = fname
             bundle_result = run_bundle(
                 envelope=envelope,
                 config_hash="PRODUCTION_CONFIG_HASH",
                 out_dir=td,
                 do_stabilization_tick=True,
+                attach_evidence_files=engine_files,
             )
         
         # 6. Resonance Narrative
@@ -143,8 +167,9 @@ class ProductionPipeline:
             "alignments": [a.to_dict() for a in alignments],
             "warnings": [w.to_dict() for w in warnings],
             "ritual_executions": [r.to_dict() for r in ritual_executions],
-            "engine_evidence": [{"engine": getattr(e, 'engine', str(e)), "request_id": getattr(e, 'request_id', '')} for e in engine_evidence],
+            "engine_evidence": [e.to_dict() for e in engine_evidence],
             "oracle_bundle": bundle_result,
+            "oracle_envelope": envelope,
             "narrative": narrative,
         }
         
@@ -208,6 +233,30 @@ class ProductionPipeline:
             except Exception:
                 pass
 
+        # Semion for sign relation
+        spec = get("semion")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"semion sign relation dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
+                envelopes.append(env)
+            except Exception:
+                pass
+
+        # Hyperlex for lexical semantic
+        spec = get("hyperlex")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"hyperlex lexical semantic dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
+                envelopes.append(env)
+            except Exception:
+                pass
+
         return envelopes
 
     def _build_oracle_envelope(
@@ -217,12 +266,14 @@ class ProductionPipeline:
         warnings: List,
         rituals: List,
         timestamp: str,
+        engine_evidence: List[Dict] | None = None,
     ) -> Dict:
         """Build oracle signal envelope from pipeline state."""
         # Aggregate vital signals across domains
         vital_signals = []
         risk_signals = []
         patterns = []
+        engine_ev = engine_evidence or []
         
         for domain, tokens in domain_states.items():
             for token, phase in tokens.items():
@@ -264,6 +315,7 @@ class ProductionPipeline:
                 "alignments": [a.to_dict() for a in alignments],
                 "warnings": [w.to_dict() for w in warnings],
                 "rituals": [r.to_dict() for r in rituals],
+                "engine_evidence": engine_ev,
             }
         }
     
