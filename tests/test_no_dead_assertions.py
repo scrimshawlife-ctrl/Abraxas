@@ -73,9 +73,12 @@ def _literal_truth(node: ast.AST) -> list[int]:
     """Line numbers of `assert True` / `assert <literal>` with a constant condition."""
     hits: list[int] = []
     for sub in ast.walk(node):
-        if isinstance(sub, ast.Assert) and isinstance(sub.test, ast.Constant):
-            if sub.test.value is True or sub.test.value == 1:
-                hits.append(sub.lineno)
+        if (
+            isinstance(sub, ast.Assert)
+            and isinstance(sub.test, ast.Constant)
+            and (sub.test.value is True or sub.test.value == 1)
+        ):
+            hits.append(sub.lineno)
     return hits
 
 
