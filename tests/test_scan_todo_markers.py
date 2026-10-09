@@ -11,12 +11,14 @@ def test_build_report_counts_todo_and_fixme(tmp_path: Path) -> None:
 
     report = mod.build_report(tmp_path)
 
-    assert report["schema"] == "TodoMarkerScan.v0"
+    assert report["schema"] == "TodoMarkerScan.v1"
     assert report["totals"]["files_with_markers"] == 1
     assert report["totals"]["todo"] == 1
     assert report["totals"]["fixme"] == 1
+    assert report["totals"]["xxx"] == 0
     assert report["top_files"][0]["path"] == "a.py"
     assert report["top_files"][0]["total"] == 2
+    assert "xxx" in report["top_files"][0]
 
 
 def test_build_report_ignores_unreadable_binary(tmp_path: Path) -> None:

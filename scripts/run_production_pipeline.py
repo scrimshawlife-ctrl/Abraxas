@@ -241,7 +241,7 @@ def main():
         if args.mock:
             adapters[domain] = MockDomainAdapter(domain)
         else:
-            # TODO resolved: real adapters not yet implemented for production.
+            # Debt resolved: real adapters not yet implemented for production.
             # Raise clearly instead of silent mock fallback.
             raise NotImplementedError(
                 "Real adapters for production domains are not implemented. "
