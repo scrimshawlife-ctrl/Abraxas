@@ -62,6 +62,12 @@ This file is the append-first execution queue for implementation runs.
 - **Closure evidence:** ls docs/archive/; graft/grep verification; re-verified in beta pass.
 
 
+### P2 — One Mind Unified Continuity Spec (shadow lane, PR #274)
+- **Status:** NEW (2026-10-09)
+- **Intent:** review and track the CANON-SHADOW advisory contract for unified computational self continuity across surfaces (vault, Timechain, dreaming, Soul/Persona). Extract T-00-09 tasks once vault inventory (T-00) is complete.
+- **Definition of done:** KANBAN/BETA updated with 21-file count + item 6; cross-references added to dual_lane_architecture.md and shadow_structural_metrics*.md; T-00 inventory complete or marked NOT_COMPUTABLE; no promotion path created.
+- **Closure evidence (when done):** grep for "one_mind_unified_continuity_v0" in KANBAN.md BETA_READINESS.md dual_lane_architecture.md; PR #274 merged or file present; graft ask "one mind" returns the spec.
+
 
 ### P0 — Large-Run Deterministic Convergence Spine
 - **Status:** COMPLETE (2026-03-30)

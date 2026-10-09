@@ -553,6 +553,9 @@ All changes MUST:
 
 **Violation of these constraints will result in automatic rollback.**
 
+## See also
+- [One Mind unified continuity contract v0](one_mind_unified_continuity_v0.md) — CANON-SHADOW governance for shared computational self, epochs, surface projections and revocation across lanes.
+
 ---
 
 **End of Shadow Structural Metrics Specification v1.0.0**

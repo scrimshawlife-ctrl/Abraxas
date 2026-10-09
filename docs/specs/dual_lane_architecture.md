@@ -393,6 +393,9 @@ The dual-lane architecture ensures that:
 
 This design allows Abraxas to maintain both **high-fidelity forecasting** and **rich diagnostic capabilities** without compromise.
 
+## See also
+- [One Mind unified continuity contract v0](one_mind_unified_continuity_v0.md) — CANON-SHADOW governance for shared computational self, epochs, surface projections and revocation across lanes.
+
 ---
 
 **End of Dual-Lane Architecture Specification**
