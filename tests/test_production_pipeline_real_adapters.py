@@ -164,6 +164,16 @@ def test_full_cycle_engine_evidence_oracle_ritual_integration():
         assert isinstance(rituals, list)
 
 
+def test_aether_dispatch_has_specific_except():
+    """The aether dispatch must catch AetherNotImplemented specifically, not just Exception."""
+    import inspect
+    from scripts.run_production_pipeline import ProductionPipeline
+    src = inspect.getsource(ProductionPipeline._dispatch_to_engines)
+    assert "except AetherNotImplemented" in src, (
+        "aether dispatch must have dedicated except AetherNotImplemented clause"
+    )
+
+
 def test_oracle_envelope_includes_engine_evidence():
     """_build_oracle_envelope must accept engine_evidence and embed it in oracle_signal."""
     from scripts.run_production_pipeline import ProductionPipeline
