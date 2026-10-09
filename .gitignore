@@ -86,3 +86,6 @@ out/timesfm_shadow/
 *.invariance_report.json
 *.fusion_graph.json
 *.dsp.json
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
