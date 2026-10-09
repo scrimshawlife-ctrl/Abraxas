@@ -220,4 +220,5 @@ outside `main`'s history (all three are ancestors).
 - Test count refreshed to 3912 collected.
 - KANBAN.md updated with closure entry.
 - Core debt surface minimal and honest; focus shifts to release engineering / CI history for beta.
+- Root-document hygiene closed (2026-10-09): 2 stale root .md archived to `docs/archive/` with provenance headers; graft + grep cross-checks clean. 18 remaining root .md are substantive subsystem docs. KANBAN item marked done.
 
