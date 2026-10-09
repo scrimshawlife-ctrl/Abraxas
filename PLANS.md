@@ -102,6 +102,13 @@ This file is the append-first execution queue for implementation runs.
 - **Closure evidence:** test_aether_provider.py (3/3), agreement test updated, manifest updated, KANBAN step 14, BETA note.
 - **Plan:** `.hermes/plans/2026-10-09_170000-design-aether-refusing-boundary.md`
 
+### P2 — Aether Architecture Unknowns 1-10 Resolution
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** make all 10 remaining architecture unknowns for Aether explicit, documented, and citeable with minimal contracts, governance record, legacy cleanups, input schemas, and TDD verification hooks — while preserving the refusing AetherNotImplemented boundary and SHADOW/advisory/NONE policy exactly as defined in sibling Aether/SPEC.md.
+- **Definition of done:** 10 unknowns documented: (1) input contract doc, (2) fusion policy constraints doc, (3) governance subsystem record `.abraxas/subsystems/aether_multimodal_v0.yaml`, (4) EvidenceEnvelope future note in contract.py, (5) zero-consumer test `test_aether_no_consumer.py`, (6) dedicated AetherNotImplemented except in pipeline, (7) budget placeholder in manifest note, (8) identity-verify test passes, (9) legacy mock TODO comment in production.py, (10) behavioral-verification-deliberately-absent test. All 59 aether/planned/manifest-agreement tests pass. Full verification block green.
+- **Closure evidence:** test_aether_provider.py (4/4), test_aether_no_consumer.py (1/1), test_engine_manifest_agreement.py (54/54), manifest `get('aether').note` contains "24GB" + "placeholder", subsystem record parses as YAML with "shadow" lane, docs/aether/ contains both contract docs, KANBAN step 15.
+- **Plan:** `.hermes/plans/2026-10-09_164942-aether-architecture-unknowns-1-10.md`
+
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete minimal stubs for remaining planned engines per manifest + ENGINE_TOPOLOGY; wire into production registry, yggdrasil, manifest agreement, docs.
