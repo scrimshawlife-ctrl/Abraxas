@@ -102,6 +102,68 @@ def test_pipeline_dispatches_to_planned_stub_engines():
         assert not missing, f"missing engine dispatch: {missing}; got {engines}"
 
 
+def test_ritual_preconditions_accept_engine_signals():
+    """RitualEngine check_preconditions must accept engine evidence signals (resonance_confidence)."""
+    from abraxas.ritual import create_ritual_engine, RitualProtocol, RitualType
+    engine = create_ritual_engine()
+
+    proto = RitualProtocol(
+        protocol_id="TEST-RESONANCE-001",
+        name="Test Resonance Protocol",
+        ritual_type=RitualType.RESONANCE_AMPLIFICATION,
+        description="Test protocol requiring engine resonance confidence",
+        parameters=[],
+        preconditions={"resonance_confidence": ">0.5"},
+        postconditions={},
+        duration_hours=1.0,
+        cooldown_hours=1.0,
+    )
+
+    # Low confidence -> should fail
+    state_low = {"resonance_confidence": 0.2}
+    met, failures = engine.check_preconditions(proto, state_low)
+    assert not met, f"Should fail with low confidence, got failures={failures}"
+
+    # High confidence -> should pass
+    state_high = {"resonance_confidence": 0.8}
+    met, failures = engine.check_preconditions(proto, state_high)
+    assert met, f"Should pass with high confidence, got failures={failures}"
+
+
+def test_full_cycle_engine_evidence_oracle_ritual_integration():
+    """Full integration: 5 engines -> oracle signal -> ritual wire -> evidence attach."""
+    from scripts.run_production_pipeline import ProductionPipeline
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    import tempfile, json
+
+    adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
+    with tempfile.TemporaryDirectory() as td:
+        pipeline = ProductionPipeline(adapters, output_dir=td)
+        result = pipeline.run_cycle()
+
+        # 1. Five engines dispatched
+        eng = result.get("engine_evidence", [])
+        engines = [e.get("engine") for e in eng]
+        expected = {"resonance", "chronos", "aether", "semion", "hyperlex"}
+        assert set(engines) == expected, f"Expected 5 engines, got {engines}"
+
+        # 2. Each has to_dict shape (evidence_type present)
+        for e in eng:
+            assert "evidence_type" in e, f"Missing evidence_type in {e}"
+            assert "claim" in e, f"Missing claim in {e}"
+
+        # 3. Oracle bundle manifest includes engine_evidence
+        cycle_file = f"{td}/cycle_{result['cycle']:06d}.json"
+        with open(cycle_file) as f:
+            saved = json.load(f)
+        assert "engine_evidence" in saved, "Output must contain engine_evidence"
+        assert len(saved["engine_evidence"]) == 5, f"Expected 5 engine evidence entries"
+
+        # 4. Ritual executions list present
+        rituals = result.get("ritual_executions", [])
+        assert isinstance(rituals, list)
+
+
 def test_oracle_envelope_includes_engine_evidence():
     """_build_oracle_envelope must accept engine_evidence and embed it in oracle_signal."""
     from scripts.run_production_pipeline import ProductionPipeline
