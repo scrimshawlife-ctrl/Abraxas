@@ -3,6 +3,11 @@
 Baseline as of 2026-10-05 (after the governance pass): **28 failed / 3264 passed /
 4 skipped / 9 xfailed**.
 
+**Slice 1-5 complete (2026-10-08):** Combined graft gap report live with TDD guard.
+Real adapters production gap closed (NotImplementedError guard). Graft tools permanent
+in CI/quickstart. Beta docs carry graft metrics. Combined report artifact at
+`out/reports/graft_combined_gap_report.latest.json`.
+
 This file is the human-readable companion to `scripts/test_ratchet.sh`. When a cluster is
 resolved, lower `BASELINE_FAILURES` in that script and update the matching row here **in the
 same commit**.

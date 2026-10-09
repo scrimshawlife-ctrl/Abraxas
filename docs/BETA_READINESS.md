@@ -155,6 +155,8 @@ purpose, and the flip criterion is written in `pyproject.toml` next to the class
 **Guard:** `tests/test_beta_scope_declaration.py` fails if this declaration disappears, or if any
 engine declares an `empirical` or `economic` settlement the pipeline cannot measure.
 
+Graft gap analysis (2026-10-08): 8 binding + 8 residual hits. 59 TODO + 5 FIXME in 18 files. Real adapters gap now guarded. Graft now primary gap instrument. All recommended slices complete.
+
 ### Support surface (measured 2026-10-08)
 
 **The documented quickstart does not complete.** README's `## Quickstart` lists four steps. Followed
