@@ -22,7 +22,9 @@ intended topology:
 | `semion` | **live** | SIGN_RELATION | `abraxas.evidence.providers.semion:create_semion_adapter` (sibling-spec + in-tree instrument) | none — consumes a sign frame · `~/Semion/` |
 | `chronos` | **live** | TEMPORAL_REASONING | `abraxas.evidence.providers.chronos:create_chronos_adapter` (sibling-spec + in-tree rune compose) | none — rune orchestration · `~/Chronos/` |
 | `resonance` | **live** | RESONANCE_ANALYSIS | `abraxas.evidence.providers.resonance:create_resonance_adapter` (sibling-spec + in-tree phase compose) | none — phase detectors · `~/Resonance/` |
-| `aether` | planned | MULTIMODAL_INTEGRATION | `abraxas.evidence.providers.aether:create_aether_adapter` (refuses via AetherNotImplemented per sibling SPEC) | n/a — refuses |
+| `aether` | planned (**in development, multimodal**) | MULTIMODAL_INTEGRATION | `abraxas.evidence.providers.aether:create_aether_adapter` (refuses via AetherNotImplemented per sibling SPEC) | n/a: refuses |
+
+**`aether` is in development as the multimodal engine (2026-10-10).** It is the planned path for image and video meme forecasting and is exempt from the 30-day engine freeze (see [DECISIONS.md](DECISIONS.md)). As of 2026-10-10 its code is a specification and a refusing boundary only: Zero-State-LLC/Aether holds SPEC.md, KANBAN.md and a provider that raises `AetherNotImplemented` (last commit 2026-10-07); no encoder, fusion policy or checkpoint exists yet. The manifest status stays `planned` and the provider keeps refusing until a real implementation passes its own eval against the text-only baseline. The fusion policy in [docs/aether/](aether/) comes before encoders.
 
 Implementation paths are copied from the manifest, and
 `tests/test_engine_manifest_agreement.py` *resolves* each one — so a wrong path fails the
