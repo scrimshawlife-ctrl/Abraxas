@@ -41,8 +41,12 @@ def build_correlation_pointer_block(
     if unresolved_reasons:
         pointer_state = "unresolved"
 
-    return CorrelationPointerBlock(
+    block: CorrelationPointerBlock = CorrelationPointerBlock(
         correlation_pointers=pointers,
         correlation_pointer_state=pointer_state,
         correlation_pointer_unresolved_reasons=unresolved_reasons,
     )
+    # Ensure linkage fields for validator/ledger surfaces (P0 linkage closure)
+    # "correlation" key with ledgerIds style for compatibility with audit
+    block["correlation"] = {"ledgerIds": pointers} if pointers else {"ledgerIds": []}
+    return block

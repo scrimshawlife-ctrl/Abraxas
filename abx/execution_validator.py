@@ -148,6 +148,14 @@ def _extract_phase(payload: dict[str, Any]) -> str | None:
     return None
 
 
+def _surface_rune_info(row: dict[str, Any]) -> dict[str, str | None]:
+    """Minimal surfacing for rune_id and phase (P1 rune-aware validator)."""
+    return {
+        "rune_id": _extract_rune_id(row) or row.get("rune_id"),
+        "phase": _extract_phase(row) or row.get("phase"),
+    }
+
+
 def to_canon_artifact(
     result: ExecutionValidationResult,
     *,

@@ -330,3 +330,14 @@ def _resolve_spec(engine_name: str) -> EngineSpec | None:
         if spec.name == engine_name:
             return spec
     return None
+
+
+def get_synthesis_label(state: str, blocker: str | None = None) -> str:
+    """Tighten synthesis label for exact-match (P1 snapshot refinement).
+    Bound + EXACT_MATCH -> NON_DEGRADED with explicit blocker precedence.
+    """
+    if state == "EXACT_MATCH" and not blocker:
+        return "NON_DEGRADED"
+    if blocker:
+        return "DEGRADED"
+    return "DEGRADED" if state != "EXACT_MATCH" else "NON_DEGRADED"
