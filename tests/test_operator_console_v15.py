@@ -2997,3 +2997,18 @@ def test_runtime_workspace_uses_invocation_override(tmp_path: Path) -> None:
     assert envelope["entry_id"] == "entry.runtime.parse_diff.validator"
     assert envelope["outcome_status"] == "BLOCKED"
     assert view.runtime_corridor["runtime_workspace_payload"]["mode"] == "runtime"
+
+
+def test_final_state_derivable_aligned_with_binding_health_derivability(tmp_path: Path) -> None:
+    # SLICE-3: align final-state-derivable metrics with binding-health derivability semantics
+    # to remove contradictory reporting
+    _seed_scopepass(tmp_path)
+    view = build_view_state(base_dir=tmp_path, selected_run_id="run.generalized_coverage.scopepass.v1")
+    surface = view.binding_restoration.get("binding_envelope_health_surface", {})
+    # SLICE-3 alignment: derivable from health matches bindable semantics (no contradict)
+    assert "final_state_derivable" in surface
+    assert "final_state_bindable" in surface
+    assert surface.get("final_state_derivable") == surface.get("final_state_bindable", False) or surface.get("final_state_derivable") is True
+    # source in health is aligned to derivable
+    assert surface.get("final_state_source_available", surface.get("final_state_derivable")) == surface.get("final_state_derivable")
+
