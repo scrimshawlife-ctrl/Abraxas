@@ -43,6 +43,10 @@ def test_non_stub_planned_engines_are_not_registered_as_providers(orchestrator):
     assert missing == set(), f"planned engines not registered: {missing}"
 
 
+def test_planned_engines_are_not_registered_as_providers(orchestrator):
+    test_non_stub_planned_engines_are_not_registered_as_providers(orchestrator)
+
+
 def test_planned_engines_report_unhealthy_not_healthy(orchestrator):
     """Every planned engine reports UNHEALTHY — no stub bypass."""
     from abraxas.engines.manifest import planned_engines
