@@ -137,6 +137,13 @@ This file is the append-first execution queue for implementation runs.
 - **Closure evidence:** pytest for the new tests and full pipeline; commits 2f37287f + 23421918 + prior; graft hits on dispatch/aether; plan file .hermes/plans/2026-10-09_172000-more-tests-enabled-aether-boundary-yggdrasil-dispatch.md
 - **Plan:** `.hermes/plans/2026-10-09_172000-more-tests-enabled-aether-boundary-yggdrasil-dispatch.md`
 
+### P2 — Grow CI Streak to 24h + Next P2 Items + More Enabled-Path Coverage + ROADMAP Detail (2026-10-09)
+- **Status:** In Progress (plan created post PR 278)
+- **Intent:** Trigger real CI merges to grow streak (target 24h sustained), define/start next P2s, extend enabled TDD to chronos/resonance + full 9 LIVE in pipeline, polish ROADMAP with concrete milestones + evidence links.
+- **Definition of done:** Streak >=24h on main with note; 9/9 LIVE have enabled-path tests (or documented compose-only); new P2s in PLANS/KANBAN; ROADMAP has updated 2026-10+ section; all verifs green.
+- **Closure evidence:** plan .hermes/plans/2026-10-09_175257-grow-streak-next-p2-more-enabled-coverage-roadmap.md; PR 278; targeted commits; main 0013b1f9 post-ritual.
+- **Plan:** `.hermes/plans/2026-10-09_175257-grow-streak-next-p2-more-enabled-coverage-roadmap.md`
+
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete minimal stubs for remaining planned engines per manifest + ENGINE_TOPOLOGY; wire into production registry, yggdrasil, manifest agreement, docs.
