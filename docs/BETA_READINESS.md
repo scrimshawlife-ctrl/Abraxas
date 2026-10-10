@@ -1,5 +1,8 @@
 # Beta readiness — Abraxas
 
+> **Status update (2026-10-10, operator decision, see docs/DECISIONS.md):** Aether is **active, in development** (multimodal), freeze-exempt, and gated by its own eval against the text-only baseline. The code still refuses (`AetherNotImplemented`) until that work lands; earlier "PLANNED refusing boundary" wording below describes the current code boundary, not the project status.
+
+
 **Assessment date**: 2026-10-09 (post P0/P1 + docs/graft/roadmap/board reanalysis + enabled paths/dispatch) · **Assessed at**: `main` (0716e510 post PR 278)
 **Verdict**: **not beta-ready at the time of assessment** — but the gap was *release engineering and
 claim integrity*, not the core system. The code was substantially stronger than its documentation
@@ -32,7 +35,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~85% (53 consecutive runs on main head 24608f3a / 16.4h span; post PR 278/279 main f2f1273f. Streak shows 0 locally (2 in flight noted); 72h gate relaxed to 24h sustained + real merges. Explicit: this streak = GitHub Actions CI workflow greens on main — NOT live app runtime/uptime. Promotion preflight is the real gate). Full integration: 9 LIVE engines (athanor/noesis/trutina/oracle/cypher + hyperlex/semion/chronos/resonance per sibling specs + manifest; hyperlex/semion deepened to real observe/classify on ABX_*_INSTRUMENT=1), aether PLANNED refusing (AetherNotImplemented, MULTIMODAL_INTEGRATION per Aether/SPEC §5). Engine table in KANBAN synced. P0/P1 + snapshot SLICE-1/2/3 COMPLETE. Enabled paths + aether boundary spec + yggdrasil dispatch deepened (plan 2026-10-09_172000). Full enabled coverage test added for all 9 LIVE (chronos/resonance real compose; hyperlex/semion with ABX_*=1 mocks in dispatch test). New P2 plan for streak growth + more coverage + ROADMAP (2026-10-09_175257). Graft index refreshed (build 3907 files). KANBAN step 18 + docs/graft/roadmap/board reanalysis (2026-10-09, main f2f1273f post PR 279; local 8ce5919e). |
+|| Process assurance (CI history) | ~85% (53 consecutive runs on main head 24608f3a / 16.4h span; post PR 278/279 main f2f1273f. Streak shows 0 locally (2 in flight noted); 72h gate relaxed to 24h sustained + real merges. Explicit: this streak = GitHub Actions CI workflow greens on main — NOT live app runtime/uptime. Promotion preflight is the real gate). Full integration: 9 LIVE engines (athanor/noesis/trutina/oracle/cypher + hyperlex/semion/chronos/resonance per sibling specs + manifest; hyperlex/semion deepened to real observe/classify on ABX_*_INSTRUMENT=1), aether ACTIVE, in development; code still refuses (AetherNotImplemented, MULTIMODAL_INTEGRATION per Aether/SPEC §5). Engine table in KANBAN synced. P0/P1 + snapshot SLICE-1/2/3 COMPLETE. Enabled paths + aether boundary spec + yggdrasil dispatch deepened (plan 2026-10-09_172000). Full enabled coverage test added for all 9 LIVE (chronos/resonance real compose; hyperlex/semion with ABX_*=1 mocks in dispatch test). New P2 plan for streak growth + more coverage + ROADMAP (2026-10-09_175257). Graft index refreshed (build 3907 files). KANBAN step 18 + docs/graft/roadmap/board reanalysis (2026-10-09, main f2f1273f post PR 279; local 8ce5919e). |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
