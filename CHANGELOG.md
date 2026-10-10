@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Union ledger dedup attribution** (`abx/task_union_ledger.py`): `task_dedup_dropped` events now record the task that actually lost deduplication as `dropped_task_id`. Previously the event always named the incoming duplicate, so when the incoming task outranked the existing one it was kept but reported as dropped, and the task actually displaced was never named. Downstream consumers of `task_dedup_dropped` will see corrected ids from this change on. Covered by `tests/test_abx_task_union_ledger.py` (12 tests).
+
 ### Test Integrity, Honest Instruments, and Debt Closure
 
 - **AST guard for dead assertions**: Added `tests/test_no_dead_assertions.py`. Catches no-assertion tests, literal `assert True`, and explicit `except: pass` swallows. Narrowed after initial over-report (fixtures, validators). PT009/PT010/PT013 added to `[tool.ruff.lint] select` (0 findings). 5 sites repaired (e.g. `pytest.raises` replacements). Guard 2 passed clean; plants fail as designed.

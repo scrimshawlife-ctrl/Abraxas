@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Tuple
 
 from abx.task_ledger import task_status_change
 
-
 PRIORITY = {
     "VERIFY_MEDIA_ORIGIN": 100,
     "ADD_PRIMARY_ANCHORS": 90,
@@ -140,7 +139,9 @@ def _latest_task_state(events: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]
                     "term": str(e.get("term") or ""),
                     "task_kind": str(e.get("task_kind") or ""),
                     "detail": str(e.get("detail") or ""),
-                    "due_ts": str((e.get("artifacts") or {}).get("due_ts") or cur.get("due_ts") or ""),
+                    "due_ts": str(
+                        (e.get("artifacts") or {}).get("due_ts") or cur.get("due_ts") or ""
+                    ),
                     "ts": str(e.get("ts") or ""),
                     "artifacts": e.get("artifacts") or {},
                 }
@@ -150,9 +151,7 @@ def _latest_task_state(events: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]
             tid = str(e.get("task_id") or "")
             if not tid or tid not in state:
                 continue
-            state[tid]["status"] = str(
-                e.get("to_status") or state[tid].get("status") or ""
-            )
+            state[tid]["status"] = str(e.get("to_status") or state[tid].get("status") or "")
             state[tid]["ts"] = str(e.get("ts") or state[tid].get("ts") or "")
     return state
 
@@ -195,16 +194,17 @@ def main() -> int:
             chosen[key] = dict(t)
             continue
         cur = chosen[key]
-        t_tags = ((t.get("artifacts") or {}).get("front_tags") or [])
-        c_tags = ((cur.get("artifacts") or {}).get("front_tags") or [])
+        t_tags = (t.get("artifacts") or {}).get("front_tags") or []
+        c_tags = (cur.get("artifacts") or {}).get("front_tags") or []
         if _prio(str(t.get("task_kind") or ""), t_tags) > _prio(
             str(cur.get("task_kind") or ""), c_tags
         ):
-            lost = cur
+            dropped_task = cur
             cur = dict(t)
-            cur["detail"] = _merge_detail(t, lost)
+            cur["detail"] = _merge_detail(t, dropped_task)
             chosen[key] = cur
         else:
+            dropped_task = t
             cur["detail"] = _merge_detail(cur, t)
             chosen[key] = cur
 
@@ -220,7 +220,7 @@ def main() -> int:
                     "term": key[1],
                     "task_kind": key[2],
                 },
-                "dropped_task_id": str(t.get("task_id") or ""),
+                "dropped_task_id": str(dropped_task.get("task_id") or ""),
                 "kept_task_id": str(chosen[key].get("task_id") or ""),
                 "notes": "Duplicate task dropped during ledger union; details merged into kept task.",
             },
@@ -231,7 +231,7 @@ def main() -> int:
     def _sort_key(x: Dict[str, Any]) -> tuple:
         cid = str(x.get("claim_id") or "")
         term = str(x.get("term") or "")
-        ft = ((x.get("artifacts") or {}).get("front_tags") or [])
+        ft = (x.get("artifacts") or {}).get("front_tags") or []
         return (-_prio(str(x.get("task_kind") or ""), ft), 0 if cid else 1, term)
 
     tasks = sorted(tasks, key=_sort_key)[: int(args.max)]
