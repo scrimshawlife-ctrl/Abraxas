@@ -130,6 +130,13 @@ This file is the append-first execution queue for implementation runs.
 - **Closure evidence:** test_aether_provider.py (4/4), test_aether_no_consumer.py (1/1), test_engine_manifest_agreement.py (54/54), manifest `get('aether').note` contains "24GB" + "placeholder", subsystem record parses as YAML with "shadow" lane, docs/aether/ contains both contract docs, KANBAN step 15.
 - **Plan:** `.hermes/plans/2026-10-09_164942-aether-architecture-unknowns-1-10.md`
 
+### P2 — Enabled Instrument Paths + Aether Boundary Spec + Yggdrasil Dispatch Deepening (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** Add TDD coverage for feature-gated real paths (ABX_HYPERLEX_INSTRUMENT=1, ABX_SEMION_INSTRUMENT=1) using mocks for sibling instruments. Formalize aether boundary spec test (never returns envelope). Deepen yggdrasil dispatch in pipeline to loop over manifest live_engines(), explicit aether skip, richer context passing. Update pipeline tests, contract to_dict, aether docs for UNKNOWN.
+- **Definition of done:** New tests for enabled paths pass; aether boundary test passes; dispatch covers all live except aether; pipeline tests 14/14 green; docs updated with UNKNOWN + constraints; KANBAN/PLANS updated.
+- **Closure evidence:** pytest for the new tests and full pipeline; commits 2f37287f + 23421918 + prior; graft hits on dispatch/aether; plan file .hermes/plans/2026-10-09_172000-more-tests-enabled-aether-boundary-yggdrasil-dispatch.md
+- **Plan:** `.hermes/plans/2026-10-09_172000-more-tests-enabled-aether-boundary-yggdrasil-dispatch.md`
+
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete minimal stubs for remaining planned engines per manifest + ENGINE_TOPOLOGY; wire into production registry, yggdrasil, manifest agreement, docs.

@@ -169,7 +169,7 @@ Graft gap analysis (2026-10-08): 8 binding + 8 residual hits. 59 TODO + 5 FIXME 
 
 Real adapters (2026-10-09, re-verified at 17 runs): `PoliticsDomainAdapter`, `MediaDomainAdapter`, `FinanceDomainAdapter` (TDD, exact intentional_abstract markers). Pipeline dispatches all 3 (scripts/run_production_pipeline.py). Stub taxonomy (tools/stub_index.json) classifies domain_adapter type. 6/6 tests pass. No drift.
 
-**Pipeline dispatch to planned stub engines (2026-10-09):** `_dispatch_to_engines` added to ProductionPipeline, covering resonance/chronos/semion/hyperlex (4 engines; aether deliberately refuses via AetherNotImplemented per sibling SPEC and plan 1-10). engine_evidence computed as EvidenceEnvelope list, serialized into cycle output. TDD tests updated for aether exclusion. Aether Architecture Unknowns 1-10 completed (explicit docs, governance record, TDD tests for no-consumer and refusing boundary). KANBAN step 15.
+**Pipeline dispatch to planned stub engines (2026-10-09):** `_dispatch_to_engines` added to ProductionPipeline, covering resonance/chronos/semion/hyperlex (4 engines; aether deliberately refuses via AetherNotImplemented per sibling SPEC and plan 1-10). engine_evidence computed as EvidenceEnvelope list, serialized into cycle output. TDD tests updated for aether exclusion. Aether Architecture Unknowns 1-10 completed (explicit docs, governance record, TDD tests for no-consumer and refusing boundary. Further deepened 2026-10-09: dynamic loop over live_engines(), richer ctx, enabled instrument path tests (ABX_*=1), aether boundary spec test (never returns envelope). All pipeline tests 14/14 green. KANBAN step 17.
 
 ### Support surface (measured 2026-10-08)
 
