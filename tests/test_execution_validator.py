@@ -178,3 +178,34 @@ def test_validate_run_surfaces_rune_context_from_json_artifacts(tmp_path: Path) 
     assert result.rune_ids == ["RUNE.DIFF"]
     assert result.phases == ["VALIDATE"]
     assert payload["runeContext"] == {"runeIds": ["RUNE.DIFF"], "phases": ["VALIDATE"]}
+
+
+def test_validate_run_collects_artifacts_beyond_seal(tmp_path: Path) -> None:
+    # SLICE-2: broaden real-case validation set beyond `seal`
+    # Seed artifact in non-seal location (e.g. artifacts/ dir)
+    artifacts_dir = tmp_path / "artifacts" / "run" / "RUN-BEYOND-SEAL-0001"
+    artifacts_dir.mkdir(parents=True, exist_ok=True)
+    (artifacts_dir / "artifact.json").write_text(
+        json.dumps(
+            {
+                "run_id": "RUN-BEYOND-SEAL-0001",
+                "artifact_id": "art.beyond.seal.v1",
+                "rune_id": "RUNE.BEYOND",
+                "phase": "EXEC",
+                "provenance": {"rune_id": "RUNE.BEYOND"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    # Also seed ledger for the run
+    ledger_dir = tmp_path / "out" / "ledger"
+    ledger_dir.mkdir(parents=True, exist_ok=True)
+    (ledger_dir / "beyond.jsonl").write_text(
+        json.dumps({"run_id": "RUN-BEYOND-SEAL-0001", "event_id": "evt-beyond"}) + "\n",
+        encoding="utf-8",
+    )
+
+    result = validate_run("RUN-BEYOND-SEAL-0001", base_dir=tmp_path, checked_at="2026-03-27T00:00:00+00:00")
+    assert result.status == ExecutionValidationStatus.PASS
+    assert "art.beyond.seal.v1" in result.ledger_artifact_ids or any("beyond" in str(a) for a in result.ledger_artifact_ids)
+    assert "RUNE.BEYOND" in result.rune_ids

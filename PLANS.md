@@ -38,10 +38,10 @@ This file is the append-first execution queue for implementation runs.
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** follow up on post-repair validation by tightening runtime/synthesis gating after envelope exact-match restoration.
 - **Definition of done:** bound + exact-match cases consistently map to non-degraded synthesis labels with explicit blocker precedence.
-- **Closure evidence:** tests/test_snapshot_exact_match.py passes; get_synthesis_label added to execution_harness with blocker precedence; SLICE-1 addressed. SLICE-2/3 remain queued for future if needed. Commit 3aa241a0. Plan ref above.
+- **Closure evidence:** tests/test_snapshot_exact_match.py passes; get_synthesis_label added to execution_harness with blocker precedence; SLICE-1 addressed. SLICE-2 completed (broadened artifact globs + TDD test). SLICE-3 still queued. Commit 3aa241a0 + follow-up. Plan ref above.
 - **Current execution slices:**
   - **SLICE-1 (COMPLETE):** runtime/synthesis blocker precedence audit for bound `EXACT_MATCH` cases.
-  - **SLICE-2 (QUEUED):** broaden real-case validation set beyond `seal` while preserving deterministic local artifact lineage.
+  - **SLICE-2 (COMPLETE 2026-10-09):** broaden real-case validation set beyond `seal` (added "artifacts/**/*", "out/artifacts/**/*" to DEFAULT_ARTIFACT_GLOBS in abx/execution_validator.py). TDD test added and passing; full validator tests green. Preserves deterministic lineage (sorted globs, dedup). SLICE-3 still queued.
   - **SLICE-3 (QUEUED):** align final-state-derivable metrics with binding-health derivability semantics to remove contradictory reporting.
 
 ### P2 — Engine Evidence Oracle/Ritual Wiring + Full Planned Dispatch

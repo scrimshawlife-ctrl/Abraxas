@@ -18,7 +18,9 @@ DEFAULT_LEDGER_GLOBS = (
 DEFAULT_ARTIFACT_GLOBS = (
     "out/proof_bundles/**/*",
     "out/reports/*",
+    "artifacts/**/*",
     "artifacts_seal/**/*",
+    "out/artifacts/**/*",
     "out/*/manifest.json",
     "out/*/envelope.json",
     "out/*/surface.json",
