@@ -1,15 +1,17 @@
-<p align="center"><img src="assets/hero.svg" alt="Abraxas — Dynamic Memetic Analysis Engine" width="860"></p>
+<p align="center"><img src="assets/hero.svg" alt="Abraxas: forecasting engine for slang and memes" width="860"></p>
 
 <p align="center">
-  <a href="https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml"><img src="https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/Zero-State-LLC/Abraxas/actions/workflows/ci.yml"><img src="https://github.com/Zero-State-LLC/Abraxas/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11%2B-3776ab?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-22c55e" alt="MIT">
-  <img src="https://img.shields.io/badge/status-live%20%C2%B7%20v2.1.0-7c3aed" alt="status">
+  <img src="https://img.shields.io/badge/status-pre--beta%20%C2%B7%20v2.1.0-7c3aed" alt="status">
 </p>
 
 # Abraxas
 
-Deterministic runtime, proof surfaces, and governance tooling for ABX/Abraxas execution closure.
+Abraxas is a forecasting engine for slang and memes: how they emerge, spread, mutate and die. It records each forecast before the outcome is known and scores it with a Brier score when it settles. Under the hood it is a deterministic runtime with proof surfaces and governance tooling.
+
+**Direction and honest current state:** [docs/DIRECTION.md](docs/DIRECTION.md). Short version: no settled forecast record yet, text inputs only, and the model comes later behind a go/no-go check.
 
 Abraxas combines canonical runtime commands, subsystem governance metadata, validator-facing artifact contracts, and operator scripts in one repository.  
 This front door is intentionally truth-scoped: statuses are split into Implemented, Partial, Experimental, and Planned based on repository evidence.

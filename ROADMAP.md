@@ -1,5 +1,7 @@
 # Abraxas Development Roadmap
 
+> Direction as of 2026-10-10: Abraxas is a forecasting engine for slang and memes, building a pre-registered, Brier-scored forecast record plus audited datasets and evals. See [docs/DIRECTION.md](docs/DIRECTION.md). Sections below record engineering history and may predate this direction.
+
 **Version:** 2.1.0
 **Last Updated:** 2026-10-09
 **Philosophy:** Ordered by epistemic leverage, not engineering familiarity
