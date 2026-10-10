@@ -1,0 +1,51 @@
+{
+  "subsystem_id": "aalmanac_tau",
+  "canon_status": "additive_ambiguity_preservation",
+  "tier": "advisory",
+  "drop_status": "active",
+  "code_authorized": true,
+  "requires_change_class": true,
+  "lane": "forecast-active",
+  "promotion_state": "candidate",
+  "revocation_state": "clear",
+  "release_readiness": "blocked",
+  "allowed_change_classes": [
+    "test_only_coverage"
+  ],
+  "restricted_change_classes": [
+    "authority_surface_drift",
+    "runtime_behavior_change",
+    "canon_mutation",
+    "task_authority_scope_expansion"
+  ],
+  "required_receipts": [
+    "focused_coverage_report",
+    "preflight_eligibility"
+  ],
+  "receipt_overrides": {},
+  "promotion_requirements": [
+    "independent_review",
+    "canonical_owner_mapping",
+    "runtime_behavior_unchanged"
+  ],
+  "revocation_triggers": [
+    "production_source_change",
+    "task_authority_scope_expansion",
+    "canonical_lane_conflict"
+  ],
+  "default_completion_if_no_receipts": "partial",
+  "stop_if_missing": [
+    "focused_coverage_report",
+    "preflight_eligibility",
+    "test_only_scope_acknowledgment"
+  ],
+  "notes": [
+    "Operator authorization in the active session is limited to a test-only coverage drop and this repository-local governance record.",
+    "Authorized change class: test_only_coverage only. Scope files: .abraxas/subsystems/aalmanac_tau.yaml, .abraxas/registries/expected_subsystems.yaml, .abraxas/scripts/preflight.py, tests/test_preflight.py, tests/test_abx_aalmanac_tau.py, and tests/test_governance_summary.py.",
+    "Production files abx/aalmanac_tau.py, abx/cycle_runner.py, abx/task_ledger.py, and abx/task_union_ledger.py are read-only under this authorization; no runtime, ledger, task, forecast, or canon behavior may change.",
+    "This subsystem requires an explicit --change-class for preflight; the preflight path is class-based and does not inspect changed paths, so the exact diff must remain limited to the authorized files.",
+    "The forecast-active lane describes the existing task-producing runtime integration, not this coverage change. Authorization remains limited to test_only_coverage; this record does not change runtime behavior, assert canonical ownership, or promote the runtime.",
+    "Post-review correction authorized in the active session: align this record's lane with the existing runtime and add a governance-summary regression test; production paths remain read-only.",
+    "Repository-local authorization only. The .aal canonical registry and external Notion system of record were not changed."
+  ]
+}
