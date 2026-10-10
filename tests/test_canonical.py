@@ -80,3 +80,16 @@ def test_canonical_json_signature_stability():
 
     # Different input order should produce same signature
     assert sig1 == sig2
+
+
+def test_canonical_json_rejects_non_finite_floats():
+    """NaN/Infinity are not JSON; signatures over them would not reproduce."""
+    import math
+
+    import pytest
+
+    for bad in (math.nan, math.inf, -math.inf):
+        with pytest.raises(ValueError):
+            canonical_json({"value": bad})
+        with pytest.raises(ValueError):
+            canonical_json([1.0, bad])

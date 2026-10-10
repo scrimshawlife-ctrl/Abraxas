@@ -15,8 +15,12 @@ def canonical_json(obj: JsonLike) -> str:
     - UTF-8
     - Sorted keys
     - No whitespace variability
+    - NaN and Infinity rejected (ValueError): they are not valid JSON, and a
+      signature over them could not be reproduced by strict consumers
     """
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return json.dumps(
+        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
 
 
 def sha256_hex(data: Union[str, bytes]) -> str:
