@@ -405,7 +405,7 @@ duplicated verbatim twice — a claim that contradicted both the maturity matrix
 package's own `Development Status :: 3 - Alpha` classifier. It has been replaced with measured
 state. Per the matrix above: promotion decision automation is **Partial / gated**, the long-tail
 audit/report script ecosystem is **Experimental**, and release packaging and broader convergence is
-**Planned / evolving**. All engines remain deliberately **`unsettled`** (9 live, 1 planned: `aether`, deferred from active architecture on 2026-10-10 until image memes are approved; see [docs/ENGINE_TOPOLOGY.md](docs/ENGINE_TOPOLOGY.md)), and CI
+**Planned / evolving**. All engines remain deliberately **`unsettled`** (9 live, 1 planned: `aether`, the multimodal engine, in development and not yet producing evidence; see [docs/ENGINE_TOPOLOGY.md](docs/ENGINE_TOPOLOGY.md)), and CI
 has only exercised the full `tests/` suite since 2026-10-07 — before that, CI ran a subset that
 excluded 680 files. See [ROADMAP.md](ROADMAP.md) and [KANBAN.md](KANBAN.md) for the blockers.
 

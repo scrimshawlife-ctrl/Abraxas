@@ -32,14 +32,16 @@ Memetic operations (campaign or content routing) may be allowed later, under one
 
 ## Freeze and resumption rule
 
-No new engines until 2026-11-09. After that, new engine or capability work may start only if all four hold:
+No new engines until 2026-11-09 (`aether` is exempt). After that, new engine or capability work may start only if all four hold:
 
 1. The S1 gate in [ROADMAP.md](../ROADMAP.md) is passed or on track (forecasts registered, 0 edits, Pawl tamper test green).
 2. It names the forecast type (adoption, lifespan, mutation, crossover) and domain it improves, and a Brier or eval bar, set in advance, that it must beat.
 3. It plugs into an existing slot (the model-agnostic adapter or an evidence provider) where possible instead of adding a top-level engine.
 4. Its output stays shadow and `valid_for_forecast=false` until it beats that bar on settled forecasts.
 
-`aether` (multimodal) is deferred until image memes are approved.
+## Aether: the multimodal path
+
+`aether` is the multimodal engine, in development, and the planned path for image and video meme forecasting. It is exempt from the freeze above. S1 stays text-only. As `aether` matures it may feed meme forecasts, but only where it beats the text-only baseline on its own pre-registered eval; until then its output is shadow and not used for scored forecasts. As of 2026-10-10 its code is a specification and a refusing boundary only: Zero-State-LLC/Aether holds SPEC.md, KANBAN.md and a provider that raises `AetherNotImplemented` (last commit 2026-10-07); no encoder, fusion policy or checkpoint exists yet.
 
 ## Repositories
 

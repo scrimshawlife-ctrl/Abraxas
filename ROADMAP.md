@@ -26,7 +26,7 @@ The CI-streak, enabled-coverage and public-beta milestones that stood here were 
 | S1. Forecast record and evals | Append-only forecast ledger (hash, timestamp, resolution date and rule fixed before the outcome) for adoption, lifespan, mutation and crossover forecasts; meme schema; dataset audit cards; eval registry; ledger taint fields; Pawl protecting the ledger | 300 slang and 300 meme forecasts registered; 0 edited after registration (hash check); one audit card per dataset; Pawl blocks a seeded tamper test in CI; 100 forecasts resolved | Days 0 to 45 |
 | S2. Scored engine | Monthly Brier score vs base rate per domain and forecast type, losses included; 3-model benchmark card; backtests; tainted forecasts scored separately | 300+ resolved; per-domain Brier published monthly; benchmark card rerunnable from hashes; written model go/no-go with its bar set in advance | Days 30 to 90 |
 
-Freeze: no new engines until 2026-11-09. After that, new engine or capability work follows the resumption rule in [docs/DIRECTION.md](docs/DIRECTION.md).
+Freeze: no new engines until 2026-11-09 (`aether`, the multimodal engine in development, is exempt). After that, new engine or capability work follows the resumption rule in [docs/DIRECTION.md](docs/DIRECTION.md).
 
 ---
 
