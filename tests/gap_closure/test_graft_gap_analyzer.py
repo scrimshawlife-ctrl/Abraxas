@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
+
+if shutil.which("graft") is None:
+    pytest.skip("graft binary not installed", allow_module_level=True)
+
 
 
 def test_graft_gap_analyzer_binding_mode(tmp_path: Path) -> None:

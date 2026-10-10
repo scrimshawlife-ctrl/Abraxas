@@ -26,7 +26,9 @@ def test_aether_interface_conformance():
 def test_aether_behavioral_verification_deliberately_absent():
     """Per Aether/SPEC.md §6: behavioral tests (fusion correctness etc.) are absent
     because the engine does not exist. This test documents the UNKNOWN."""
-    assert True  # placeholder asserting the declared state
+    provider = create_aether_adapter()
+    with pytest.raises(AetherNotImplemented):
+        provider.produce_evidence("behavioral-verification", "fusion correctness", {"modalities": {}})
 
 def test_aether_never_returns_envelope_always_raises():
     """Aether boundary must always raise, never return an EvidenceEnvelope.
