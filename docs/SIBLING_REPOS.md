@@ -36,8 +36,8 @@ that had simply never been cloned to the machine doing the measuring. The map be
 | `semion` | `Semion` | instrument `abraxas/evidence/semion_instrument.py` (added 2026-10-07) |
 | `oracle` | `Oracle` | adapter `abraxas/evidence/adapters/oracle.py` + contract + subsystem record |
 | `cypher` | `Cypher` | adapter `abraxas/evidence/adapters/cypher.py` + the memory layer it manages |
-| `chronos` | `Chronos` | the four `chrono_*` runes it composes; no adapter yet |
-| `resonance` | `Resonance` | the phase layer it composes (`abraxas/phase/`); no adapter yet |
+| `chronos` | `Chronos` | adapter `abraxas/evidence/providers/chronos.py` + rune composition (SCAN→ALIGN→OVERLAY→PACKET) |
+| `resonance` | `Resonance` | adapter `abraxas/evidence/providers/resonance.py` + phase detectors (PhaseAlignment + Coupling) |
 | `aether` | `Aether` | nothing — its repository holds a spec and a provider that raises |
 
 ### The rule that keeps this from becoming two implementations

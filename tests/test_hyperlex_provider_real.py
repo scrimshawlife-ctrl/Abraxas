@@ -6,7 +6,7 @@ from abraxas.evidence.providers.hyperlex import create_hyperlex_adapter
 from abraxas.evidence.contract import EvidenceType
 
 def test_hyperlex_provider_uses_instrument_when_enabled(monkeypatch):
-    monkeypatch.setenv("ABX_HYPLEX_INSTRUMENT", "1")
+    monkeypatch.setenv("ABX_HYPERLEX_INSTRUMENT", "1")
     # assume sibling provides observation or use fixture
     provider = create_hyperlex_adapter()
     env = provider.produce_evidence("req1", "test claim", {})

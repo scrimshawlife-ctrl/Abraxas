@@ -5,7 +5,7 @@ import os
 from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 from abraxas.evidence.hyperlex_instrument import (
-    instrument_enabled, adapt_observation, HyperlexAuthorityError
+    instrument_enabled, adapt_observation, observe_text, HyperlexAuthorityError
 )
 
 class HyperlexEvidenceProvider(EvidenceProvider):
@@ -30,25 +30,32 @@ class HyperlexEvidenceProvider(EvidenceProvider):
                 confidence=0.0, uncertainty=1.0,
                 provenance={"status": "instrument_disabled", "source": "hyperlex.planned"}
             )
-        # TODO in later slice: call real sibling via instrument (for now adapt stub observation)
-        # Real call would be: obs = sibling_hyperlex.observe(claim, context); ...
+        # Deepened integration: call real sibling instrument when enabled.
+        # observe_text handles import + real hyperlex.instrument.observe when package present.
         try:
-            # Placeholder observation shape from sibling DESIGN; replace with real sibling call
-            obs = {"observation_id": request_id, "input_hash": claim[:16],
-                   "evidence": {"present": True, "score": 0.75, "abstain": False},
-                   "candidates": [{"concept_id": "lex-1", "score": 0.75, "axis": "lexical", "advisory": True}],
-                   "authority": {"kind": "advisory"}}
+            result = observe_text(claim)
+            if result.get("ok") and "observation" in result:
+                obs = result["observation"]
+            else:
+                # Graceful: instrument disabled or sibling unavailable — return advisory zero-evidence
+                obs = {
+                    "observation_id": request_id,
+                    "input_hash": claim[:16],
+                    "evidence": {"present": False, "score": 0.0, "abstain": True, "reason": result.get("error", "unavailable")},
+                    "candidates": [],
+                    "authority": {"kind": "advisory"},
+                }
             adapted = adapt_observation(obs)
             return EvidenceEnvelope(
                 engine="hyperlex", engine_version=self.engine_version,
                 model_identity=self.get_model_identity(), request_id=request_id, claim=claim,
-                candidate_outputs=[CandidateOutput(answer=str(adapted.get("candidates", [{}])[0].get("concept_id", "lex")),
-                                                   confidence=adapted.get("evidence", {}).get("score", 0.7),
+                candidate_outputs=[CandidateOutput(answer=str(adapted.get("candidates", [{}])[0].get("concept_id", "lex") if adapted.get("candidates") else "hyperlex-no-candidate"),
+                                                   confidence=adapted.get("evidence", {}).get("score", 0.0),
                                                    reasoning_trace="hyperlex instrument", relation_steps=[])],
                 evidence_type=EvidenceType.LEXICAL_SEMANTIC,
-                confidence=adapted.get("evidence", {}).get("score", 0.7),
-                uncertainty=1.0 - adapted.get("evidence", {}).get("score", 0.7),
-                provenance={"source": "hyperlex_instrument", "adapted": True, **adapted.get("provenance", {})}
+                confidence=adapted.get("evidence", {}).get("score", 0.0),
+                uncertainty=1.0 - adapted.get("evidence", {}).get("score", 0.0),
+                provenance={"source": "hyperlex_instrument", "adapted": True, "real_call": result.get("ok", False), **adapted.get("provenance", {})}
             )
         except HyperlexAuthorityError as e:
             return EvidenceEnvelope(confidence=0.0, uncertainty=1.0, provenance={"error": str(e)})
