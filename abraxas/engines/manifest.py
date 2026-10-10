@@ -256,7 +256,6 @@ ENGINES: Tuple[EngineSpec, ...] = (
                 "abraxas/evidence/providers/aether.py",
                 "tests/test_aether_provider.py",
                 "docs/SIBLING_REPOS.md",
-                "/Users/appliedalchemylabs/Aether/SPEC.md",
             ),
         ),
     ),

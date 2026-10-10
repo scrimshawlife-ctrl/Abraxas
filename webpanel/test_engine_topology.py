@@ -88,8 +88,8 @@ class TestCountsAreConsistent:
         assert len(grouped) == len(set(grouped)), "a row appears in two groups"
 
     def test_an_unimplemented_engine_is_unknown_not_modelled(self):
-        """hyperlex is PLANNED with no implementation. Claiming it needs a model would be an
+        """aether is PLANNED with no implementation. Claiming it needs a model would be an
         assertion about code that does not exist."""
         topo = build_engine_topology()
         by_name = {r["name"]: r for r in topo["engines"]}
-        assert by_name["hyperlex"]["model_requirement"] == "unknown"
+        assert by_name["aether"]["model_requirement"] == "unknown"
