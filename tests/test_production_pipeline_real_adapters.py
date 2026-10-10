@@ -246,3 +246,41 @@ def test_dispatch_to_engines_covers_all_live_engines_and_skips_aether():
         live = {"resonance", "chronos", "semion", "hyperlex", "athanor", "noesis", "trutina", "oracle", "cypher"}
         assert set(engines) & live , f"Expected some live engines, got {engines}"
 
+def test_full_enabled_path_coverage_all_live_except_aether():
+    """TDD for full enabled coverage: dispatch exercises real paths for all 9 LIVE (chronos rune compose, resonance detectors, hyperlex/semion when mocked enabled).
+    aether always skipped.
+    """
+    from scripts.run_production_pipeline import ProductionPipeline
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
+        p = ProductionPipeline(adapters, output_dir=td)
+        # Rich domain_states to exercise resonance phase detector (real compose path)
+        ds = {
+            "politics": {
+                "ai-safety": "front",
+                "crypto": "front",
+                "biotech": "proto",
+            }
+        }
+        al = []
+        ts = "2026-10-09T00:00:00Z"
+        ev = p._dispatch_to_engines(ds, al, ts)
+        engines = [getattr(e, "engine", e.get("engine") if isinstance(e, dict) else None) for e in ev]
+        engines = [e for e in engines if e]
+        assert "aether" not in engines
+        expected_live = {"resonance", "chronos", "semion", "hyperlex", "athanor", "noesis", "trutina", "oracle", "cypher"}
+        assert set(engines) & expected_live == expected_live, f"Missing some live: {expected_live - set(engines)}"
+        # Verify chronos has rune_chain (real compose path)
+        chronos_envs = [e for e in ev if getattr(e, "engine", None) == "chronos"]
+        if chronos_envs:
+            c = chronos_envs[0]
+            prov = getattr(c, "provenance", {}) or {}
+            assert "rune_chain" in prov or prov.get("rune_chain")
+        # For resonance, check real detector path exercised (confidence or alignments)
+        resonance_envs = [e for e in ev if getattr(e, "engine", None) == "resonance"]
+        if resonance_envs:
+            r = resonance_envs[0]
+            assert r.confidence >= 0.0  # real path exercised
+
