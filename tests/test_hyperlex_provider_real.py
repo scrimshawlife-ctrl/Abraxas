@@ -1,9 +1,7 @@
 # tests/test_hyperlex_provider_real.py
-import os
-import pytest
-from abraxas.engines.manifest import get
-from abraxas.evidence.providers.hyperlex import create_hyperlex_adapter
 from abraxas.evidence.contract import EvidenceType
+from abraxas.evidence.providers.hyperlex import create_hyperlex_adapter
+
 
 def test_hyperlex_provider_uses_instrument_when_enabled(monkeypatch):
     monkeypatch.setenv("ABX_HYPERLEX_INSTRUMENT", "1")

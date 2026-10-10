@@ -11,10 +11,10 @@ from typing import Any, Dict, List, Optional
 from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 from abraxas.phase import (
-    PhaseAlignmentDetector,
     CouplingDetector,
-    create_phase_detector,
+    PhaseAlignmentDetector,
     create_coupling_detector,
+    create_phase_detector,
 )
 
 
@@ -144,7 +144,7 @@ class ResonanceEvidenceProvider(EvidenceProvider):
                 "method": "phase_alignment_and_coupling",
                 "phase_alignments_detected": num_alignments,
                 "couplings_detected": num_couplings,
-                "aligned_phases": list(set(a.aligned_phase for a in alignments)),
+                "aligned_phases": list({a.aligned_phase for a in alignments}),
                 "cascade_risks": cascade_risks if cascade_risks else ["none"],
                 "domains_analyzed": len(domain_states),
                 "authority": "advisory",

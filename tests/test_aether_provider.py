@@ -1,8 +1,9 @@
 # tests/test_aether_provider.py
 import pytest
-from abraxas.engines.manifest import get
-from abraxas.evidence.providers.aether import create_aether_adapter, AetherNotImplemented
+
 from abraxas.evidence.contract import EvidenceType
+from abraxas.evidence.providers.aether import AetherNotImplemented, create_aether_adapter
+
 
 def test_aether_provider_raises_on_produce_evidence():
     provider = create_aether_adapter()

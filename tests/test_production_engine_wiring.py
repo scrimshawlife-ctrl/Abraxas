@@ -35,7 +35,6 @@ def test_oracle_and_cypher_are_registered(orchestrator):
 
 def test_non_stub_planned_engines_are_not_registered_as_providers(orchestrator):
     """No stub bypass: all engines are registered uniformly via manifest implementation."""
-    from abraxas.engines.manifest import planned_engines
     # All planned engines have implementations; none should be missing from registry.
     planned = set(planned_engines())
     registered = set(orchestrator.engine_registry.names())
@@ -49,7 +48,6 @@ def test_planned_engines_are_not_registered_as_providers(orchestrator):
 
 def test_planned_engines_report_unhealthy_not_healthy(orchestrator):
     """Every planned engine reports UNHEALTHY — no stub bypass."""
-    from abraxas.engines.manifest import planned_engines
     for name in planned_engines():
         health = orchestrator.engine_registry.get_health(name)
         assert health is not None, f"{name} has no health entry at all"

@@ -1,6 +1,6 @@
 # tests/test_rune_artifact_envelope.py
-import pytest
 from abx.execution_validation_types import wrap_in_rune_envelope
+
 
 def test_wrap_in_rune_envelope():
     artifact = {"test": 1}

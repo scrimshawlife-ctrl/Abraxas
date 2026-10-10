@@ -1,13 +1,11 @@
 # tests/test_closure_linkage_audit.py
-import pytest
-from abx.execution_validator import _read_jsonl, DEFAULT_LEDGER_GLOBS
 from pathlib import Path
+
 
 def test_linkage_fields_populated_or_marked_unresolved():
     # Verify that build_correlation_pointer_block always provides linkage fields
     # or explicit unresolved state (per P0 DoD). Uses the updated block.
     from scripts.correlation_pointer_block import build_correlation_pointer_block
-    from pathlib import Path
     # Test with existing-ish path (may trigger unresolved if not present)
     b = build_correlation_pointer_block(root=Path('.'), paths=[Path('out/ledger/some.jsonl')])
     assert 'correlation_pointers' in b

@@ -1,5 +1,4 @@
 # tests/test_correlation_pointer_semantics.py
-import pytest
 
 def test_all_artifacts_have_pointer_set_semantics():
     # Simulate run output; must have present/empty/unresolved

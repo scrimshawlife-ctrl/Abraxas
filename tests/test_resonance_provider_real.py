@@ -7,6 +7,7 @@ PhaseAlignmentDetector and CouplingDetector.
 from __future__ import annotations
 
 import pytest
+
 from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType
 
 
@@ -206,8 +207,8 @@ class TestResonanceProviderFactory:
     """Factory function contract."""
 
     def test_create_resonance_adapter_returns_provider(self):
-        from abraxas.evidence.providers.resonance import create_resonance_adapter
         from abraxas.evidence.provider import EvidenceProvider
+        from abraxas.evidence.providers.resonance import create_resonance_adapter
         provider = create_resonance_adapter()
         assert isinstance(provider, EvidenceProvider)
         assert provider.engine_name == "resonance"

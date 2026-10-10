@@ -11,10 +11,10 @@ from typing import Any, Dict, List, Optional
 from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 from abraxas.runes.operators import (
-    chrono_scan,
     chrono_align,
     chrono_overlay,
     chrono_packet,
+    chrono_scan,
 )
 
 
