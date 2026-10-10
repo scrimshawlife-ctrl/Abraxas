@@ -9,7 +9,7 @@
 
 # Abraxas
 
-Abraxas is a forecasting engine for slang and memes: how they emerge, spread, mutate and die. It records each forecast before the outcome is known and scores it with a Brier score when it settles. Under the hood it is a deterministic runtime with proof surfaces and governance tooling.
+Abraxas is a forecasting engine for slang and memes: how they emerge, spread, mutate and die. The planned workflow is to record each forecast before the outcome is known and score it with a Brier score when it settles; that preregistration and scoring loop is not implemented yet. Under the hood it is a deterministic runtime with proof surfaces and governance tooling.
 
 **Direction and honest current state:** [docs/DIRECTION.md](docs/DIRECTION.md). Short version: no settled forecast record yet, text inputs only, and the model comes later behind a go/no-go check.
 
