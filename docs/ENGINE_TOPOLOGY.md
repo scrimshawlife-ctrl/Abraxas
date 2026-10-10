@@ -22,7 +22,9 @@ intended topology:
 | `semion` | **live** | SIGN_RELATION | `abraxas.evidence.providers.semion:create_semion_adapter` (sibling-spec + in-tree instrument) | none — consumes a sign frame · `~/Semion/` |
 | `chronos` | **live** | TEMPORAL_REASONING | `abraxas.evidence.providers.chronos:create_chronos_adapter` (sibling-spec + in-tree rune compose) | none — rune orchestration · `~/Chronos/` |
 | `resonance` | **live** | RESONANCE_ANALYSIS | `abraxas.evidence.providers.resonance:create_resonance_adapter` (sibling-spec + in-tree phase compose) | none — phase detectors · `~/Resonance/` |
-| `aether` | planned | MULTIMODAL_INTEGRATION | `abraxas.evidence.providers.aether:create_aether_adapter` (refuses via AetherNotImplemented per sibling SPEC) | n/a — refuses |
+| `aether` | planned (**deferred** 2026-10-10) | MULTIMODAL_INTEGRATION | `abraxas.evidence.providers.aether:create_aether_adapter` (refuses via AetherNotImplemented per sibling SPEC) | n/a: refuses |
+
+**`aether` is deferred (2026-10-10).** It is out of the active architecture until image memes are approved as a forecast input (see [DECISIONS.md](DECISIONS.md)). The manifest still lists it as `planned` and the provider still refuses; nothing in code changed. Do not build encoders or fusion for it until that approval exists; if it resumes, the fusion policy in [docs/aether/](aether/) comes first.
 
 Implementation paths are copied from the manifest, and
 `tests/test_engine_manifest_agreement.py` *resolves* each one — so a wrong path fails the
