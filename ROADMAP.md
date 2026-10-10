@@ -13,7 +13,14 @@
 - Docs/roadmap/board/BETA refreshed with current main (0d983992), graft, closures. All per TDD + graft-first.
 - Overall for public beta: ~50–55% (2–3 focused weeks per BETA_READINESS.md). 
 
-**Current Position:** Beta reanalysis complete — core spine + 9 engines + P0/P1 validator/snapshot hygiene locked. Next: sustained CI to 24h + operator-supervised shadow beta.
+**Current Position:** Beta reanalysis complete — core spine + 9 engines + P0/P1 validator/snapshot hygiene locked. Post PR 278 + enabled coverage (f2f1273f): full dispatch, real paths for chronos/resonance. Next: grow CI streak to 24h bar (PR 279 merged), execute new P2 for more enabled coverage + ROADMAP polish (plan 2026-10-09_175257).
+
+## 2026-10+ Next Milestones (post PR 279)
+- Grow CI streak: target 24h sustained greens on main (poll scripts/ci_history.py after merges).
+- More enabled-path TDD: chronos/resonance full rune/phase coverage in pipeline + hyperlex/semion when ABX_*=1; full 9 LIVE exercised.
+- New P2 execution: per .hermes/plans/2026-10-09_175257-grow-streak-next-p2-more-enabled-coverage-roadmap.md (streak + coverage + ROADMAP detail).
+- ROADMAP: concrete evidence links, streak target, operator beta lane.
+- Reanalyze BETA/KANBAN when streak hits 24h or new closures.
 
 ---
 
