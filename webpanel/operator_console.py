@@ -7748,8 +7748,8 @@ def build_view_state(
         binding_envelope_health_surface.get("synthesis_blocked_by_binding", True)
     )
     pipeline_final_state_surface["final_state_source_available"] = bool(
-        pipeline_envelope_linkage.get("final_state_source_available", False)
-    )
+        binding_envelope_health_surface.get("final_state_derivable", False)
+    )  # SLICE-3: align to binding-health derivability to remove contradictory reporting
     pipeline_final_state_surface["final_state_bindable"] = bool(
         binding_envelope_health_surface.get("final_state_bindable", False)
     )

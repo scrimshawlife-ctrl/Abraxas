@@ -632,4 +632,4 @@ See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft 
 - P1 Envelope: wrap_in_rune_envelope in types.
 - P1 Snapshot: get_synthesis_label with EXACT_MATCH + blocker precedence in harness; test passes.
 TDD + graft-first throughout. 5 new tests green. Commit 3aa241a0. Plan: .hermes/plans/2026-10-09_170312-remaining-p0-p1-items.md
-All 5 P0/P1 marked COMPLETE in PLANS.md. SLICE-2 for snapshot completed (broadened artifact globs beyond seal + TDD). SLICE-3 still queued.
+All 5 P0/P1 marked COMPLETE in PLANS.md. SLICE-2 for snapshot completed (broadened artifact globs beyond seal + TDD). SLICE-3 completed (aligned final_state_derivable to binding-health derivability + TDD test).
