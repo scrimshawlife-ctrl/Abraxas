@@ -6,7 +6,7 @@ import json
 import os
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 def _utc_now_iso() -> str:
@@ -46,15 +46,25 @@ def _delta(a: float, b: float) -> float:
 def claim_delta(before: Dict[str, Any], after: Dict[str, Any]) -> Dict[str, float]:
     out = {}
     out["d_CSHL_days"] = _delta(_f(before.get("CSHL_days"), -1.0), _f(after.get("CSHL_days"), -1.0))
-    out["d_TTT_0.8_days"] = _delta(_f(before.get("TTT_0.8_days"), -1.0), _f(after.get("TTT_0.8_days"), -1.0))
+    out["d_TTT_0.8_days"] = _delta(
+        _f(before.get("TTT_0.8_days"), -1.0), _f(after.get("TTT_0.8_days"), -1.0)
+    )
     out["d_flip_rate"] = _delta(_f(before.get("flip_rate"), 0.0), _f(after.get("flip_rate"), 0.0))
-    out["d_CS_latest"] = _delta(_f((before.get("latest") or {}).get("CS_score"), 0.0), _f((after.get("latest") or {}).get("CS_score"), 0.0))
-    out["d_ML_latest"] = _delta(_f((before.get("latest") or {}).get("ML_score"), 0.0), _f((after.get("latest") or {}).get("ML_score"), 0.0))
+    out["d_CS_latest"] = _delta(
+        _f((before.get("latest") or {}).get("CS_score"), 0.0),
+        _f((after.get("latest") or {}).get("CS_score"), 0.0),
+    )
+    out["d_ML_latest"] = _delta(
+        _f((before.get("latest") or {}).get("ML_score"), 0.0),
+        _f((after.get("latest") or {}).get("ML_score"), 0.0),
+    )
     return out
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="WO-81: attribute deltas using attribution graph (task->edges->claim)")
+    ap = argparse.ArgumentParser(
+        description="WO-81: attribute deltas using attribution graph (task->edges->claim)"
+    )
     ap.add_argument("--attr-graph", default="")
     ap.add_argument("--ttt-before", default="")
     ap.add_argument("--ttt-after", default="")
@@ -64,7 +74,9 @@ def main() -> int:
 
     attr_path = args.attr_graph or _latest("out/reports/attribution_graph_*.json")
     if not attr_path:
-        raise SystemExit("No attribution_graph found. Run `python -m abx.attribution_compile` first.")
+        raise SystemExit(
+            "No attribution_graph found. Run `python -m abx.attribution_compile` first."
+        )
 
     ttt_after = args.ttt_after or _latest("out/reports/time_to_truth_*.json")
     ttt_before = args.ttt_before or _prev("out/reports/time_to_truth_*.json")
@@ -93,11 +105,15 @@ def main() -> int:
         meta = t.get("meta") if isinstance(t.get("meta"), dict) else {}
         tk = str(meta.get("task_kind") or "").upper().strip()
         tid = str(t.get("task_id") or "")
-        claims_touched = t.get("claims_touched") if isinstance(t.get("claims_touched"), list) else []
+        claims_touched = (
+            t.get("claims_touched") if isinstance(t.get("claims_touched"), list) else []
+        )
         for cid in claims_touched:
             cid = str(cid or "")
             if cid:
-                claim_to_tasks[cid].append({"task_id": tid, "task_kind": tk, "n_edges": int(t.get("n_edges") or 0)})
+                claim_to_tasks[cid].append(
+                    {"task_id": tid, "task_kind": tk, "n_edges": int(t.get("n_edges") or 0)}
+                )
 
     # Attribution: split delta among tasks touching same claim.
     # Weight by n_edges (more edges -> more credit), deterministic.
@@ -118,13 +134,20 @@ def main() -> int:
             uplift_counts[tk] += 1.0
             for k, v in d.items():
                 uplift_accum[tk][k] += float(v) * w
-            per_task_credit.append({"claim_id": cid, "task_id": x.get("task_id"), "task_kind": tk, "weight": w, "delta": d})
+            per_task_credit.append(
+                {
+                    "claim_id": cid,
+                    "task_id": x.get("task_id"),
+                    "task_kind": tk,
+                    "weight": w,
+                    "delta": d,
+                }
+            )
 
     uplift_table = {}
     for tk, agg in uplift_accum.items():
-        n = float(uplift_counts.get(tk) or 0.0)
-        if n <= 0:
-            continue
+        # Every bucket is created only after its sample count is incremented above.
+        n = float(uplift_counts[tk])
         uplift_table[tk] = {k: float(v / n) for k, v in agg.items()}
         uplift_table[tk]["n_samples"] = float(n)
 
@@ -147,7 +170,12 @@ def main() -> int:
 
     os.makedirs(os.path.dirname(args.uplift_out), exist_ok=True)
     with open(args.uplift_out, "w", encoding="utf-8") as f:
-        json.dump({"version": "uplift_table.v0.2", "ts": _utc_now_iso(), "table": uplift_table}, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {"version": "uplift_table.v0.2", "ts": _utc_now_iso(), "table": uplift_table},
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
     print(f"[ATTR_DELTA] wrote uplift_table: {args.uplift_out}")
     return 0
 
