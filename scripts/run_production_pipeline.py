@@ -84,6 +84,8 @@ class ProductionPipeline:
         sync_map = self.phase_detector.build_synchronicity_map()
 
         # 2.5 Engine dispatch to planned stubs (more pipeline dispatch)
+        # See docs/aether/multimodal_input_contract.md for declared UNKNOWN input schema.
+        # aether deliberately skipped (refusing boundary per sibling SPEC §5).
         engine_evidence = self._dispatch_to_engines(domain_states, alignments, timestamp)
 
         # 2.6 Build engine state summary for ritual preconditions
