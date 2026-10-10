@@ -78,10 +78,18 @@ This file is the append-first execution queue for implementation runs.
 - **Plan:** `.hermes/plans/2026-10-09_160500-full-design-integration-engines-1-4-yggdrasil-siblings.md`
 
 ### P2 — One Mind Unified Continuity Spec (shadow lane, PR #274)
-- **Status:** NEW (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** review and track the CANON-SHADOW advisory contract for unified computational self continuity across surfaces (vault, Timechain, dreaming, Soul/Persona). Extract T-00-09 tasks once vault inventory (T-00) is complete.
 - **Definition of done:** KANBAN/BETA updated with 21-file count + item 6; cross-references added to dual_lane_architecture.md and shadow_structural_metrics*.md; T-00 inventory complete or marked NOT_COMPUTABLE; no promotion path created.
-- **Closure evidence (when done):** grep for "one_mind_unified_continuity_v0" in KANBAN.md BETA_READINESS.md dual_lane_architecture.md; PR #274 merged or file present; graft ask "one mind" returns the spec.
+- **Closure evidence:** 
+  - 21 files in docs/specs/ (ls confirmed).
+  - Cross-refs present in dual_lane_architecture.md:397 and shadow_structural_metrics.md:557.
+  - KANBAN item 6 present with One Mind note.
+  - BETA specs check records 21 files + One Mind (post-PR #274).
+  - graft ask "one mind" returns the spec file.
+  - T-00: vault `Mind/` and full Notion mirror not present in this repo (Abraxas surface); marked NOT_COMPUTABLE per spec guidance. No promotion path created; advisory-only.
+- **Plan reference:** PLANS P2 entry; KANBAN step 6.
+- **Note:** No code changes; pure spec tracking. AC-01-09 remain NOT_EXECUTED.
 
 ### P2 — PostgreSQL Domain Adapter Completion
 - **Status:** COMPLETE (2026-10-09)
