@@ -10,31 +10,37 @@ This file is the append-first execution queue for implementation runs.
 ## Active Queue
 
 ### P0 — Validator Artifact Linkage Closure
-- **Status:** ACTIVE
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** ensure rune execution artifacts link cleanly into validator/ledger surfaces.
 - **Definition of done:** linkage fields populated or explicitly marked unresolved with reasons.
+- **Closure evidence:** tests/test_closure_linkage_audit.py passes; build_correlation_pointer_block now always emits "correlation": {"ledgerIds": ...} + state (present/empty/unresolved); graft + audit confirm. Commit 3aa241a0. Plan: .hermes/plans/2026-10-09_170312-remaining-p0-p1-items.md
+- **Note:** Legacy ledger coverage low but unresolved explicitly marked; future runs will use block.
 
 ### P0 — Proof-Run Correlation Pointer Completion
-- **Status:** ACTIVE
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete correlation pointer propagation across run outputs.
 - **Definition of done:** all execution artifacts include correlation pointer set semantics (present, empty, or unresolved reason).
+- **Closure evidence:** tests/test_correlation_pointer_semantics.py passes; block always returns correlation_pointer_state in set; used in linkage. Commit 3aa241a0. Plan ref above.
 
 ### P1 — Rune-Aware Validator Surfacing
-- **Status:** ACTIVE
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** surface rune_id and phase-aware status in validator-facing summaries.
 - **Definition of done:** validator layer can index or display per-rune execution outcomes.
+- **Closure evidence:** tests/test_rune_aware_validator.py passes; _surface_rune_info added + _extract_* used; existing find_run_evidence already populates rune_ids/phases in results + runeContext in to_canon_artifact. Commit 3aa241a0.
 
 ### P1 — Execution Artifact Generation Integration
-- **Status:** ACTIVE
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** route execution-producing paths through a shared rune artifact envelope.
 - **Definition of done:** new execution paths use wrapper-generated schema-aligned artifacts.
+- **Closure evidence:** tests/test_rune_artifact_envelope.py passes; wrap_in_rune_envelope added to execution_validation_types. Commit 3aa241a0.
 
 ### P1 — Snapshot Lookup + Synthesis Readiness Refinement
-- **Status:** ACTIVE
+- **Status:** COMPLETE (2026-10-09)
 - **Intent:** follow up on post-repair validation by tightening runtime/synthesis gating after envelope exact-match restoration.
 - **Definition of done:** bound + exact-match cases consistently map to non-degraded synthesis labels with explicit blocker precedence.
+- **Closure evidence:** tests/test_snapshot_exact_match.py passes; get_synthesis_label added to execution_harness with blocker precedence; SLICE-1 addressed. SLICE-2/3 remain queued for future if needed. Commit 3aa241a0. Plan ref above.
 - **Current execution slices:**
-  - **SLICE-1 (ACTIVE):** runtime/synthesis blocker precedence audit for bound `EXACT_MATCH` cases (`BLOCKED` vs `NOT_COMPUTABLE` branch boundaries).
+  - **SLICE-1 (COMPLETE):** runtime/synthesis blocker precedence audit for bound `EXACT_MATCH` cases.
   - **SLICE-2 (QUEUED):** broaden real-case validation set beyond `seal` while preserving deterministic local artifact lineage.
   - **SLICE-3 (QUEUED):** align final-state-derivable metrics with binding-health derivability semantics to remove contradictory reporting.
 

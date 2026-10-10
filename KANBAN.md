@@ -624,3 +624,12 @@ pipeline had ever tested.
 15. **Aether Architecture Unknowns 1-10 Resolved (2026-10-09)** — All 10 unknowns documented as explicit contracts, governance record, TDD tests, and legacy cleanup. Created `.abraxas/subsystems/aether_multimodal_v0.yaml` (shadow/advisory/NONE governance record). Created `docs/aether/multimodal_input_contract.md` (input schema unknown) and `docs/aether/fusion_policy_constraints.md` (5 sibling constraints cited). Added `test_aether_no_consumer.py` (zero-consumer assertion) and `test_aether_behavioral_verification_deliberately_absent` (Unknown 10). Contract note added to `EvidenceEnvelope`. Pipeline dispatch gets dedicated `AetherNotImplemented` except + input-contract comment. Manifest note declares budget placeholder (gpu-large/24GB, SPEC §7). Legacy mock in `production.py` tagged with TODO. All 59 aether/planned/manifest-agreement tests pass. Full verification block from plan executed green. Plan: `.hermes/plans/2026-10-09_164942-aether-architecture-unknowns-1-10.md`.
 
 See `docs/BETA_READINESS.md`, `scripts/ci_history.py`, `abx/promotion_*`, graft for tracking.
+
+16. **P0/P1 Closure: Validator Linkage + Pointers + Rune Surfacing + Envelope + Snapshot Refinement (2026-10-09)** ✅ — Completed remaining active P0/P1 items per PLANS Active Queue. 
+- P0 Validator Artifact Linkage: correlation block extended with "correlation":{"ledgerIds":...}; audit test passes (fields or explicit unresolved).
+- P0 Pointer Completion: semantics test + block state (present/empty/unresolved) enforced.
+- P1 Rune-Aware: _surface_rune_info + existing rune_ids/phases in validator results + to_canon_artifact.runeContext.
+- P1 Envelope: wrap_in_rune_envelope in types.
+- P1 Snapshot: get_synthesis_label with EXACT_MATCH + blocker precedence in harness; test passes.
+TDD + graft-first throughout. 5 new tests green. Commit 3aa241a0. Plan: .hermes/plans/2026-10-09_170312-remaining-p0-p1-items.md
+All 5 P0/P1 marked COMPLETE in PLANS.md. SLICE-2/3 for snapshot left queued.
