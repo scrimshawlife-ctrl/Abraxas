@@ -14,6 +14,9 @@ def main() -> int:
     if missing:
         print(f"NOT_ELIGIBLE: missing fields {missing}")
         return 1
+    if data.get("requires_change_class") and not args.change_class:
+        print("NOT_ELIGIBLE: change class required")
+        return 1
     if args.change_class:
         restricted = set(data.get("restricted_change_classes", []))
         allowed = set(data.get("allowed_change_classes", []))
