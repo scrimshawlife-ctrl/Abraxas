@@ -258,3 +258,11 @@ The four planned engines — hyperlex, semion, chronos, resonance — now have s
 
 Production wiring: STUBBED_PLANNED bypass removed; all engines register uniformly via manifest. Yggdrasil resolves without `_get_provider_for_engine` stub helper. Tests: "stub" allowances dropped across 4+ test files. aether remains the only genuinely unfinished engine (raises NotImplementedError). KANBAN step 13 recorded. Plan: `.hermes/plans/2026-10-09_160500-full-design-integration-engines-1-4-yggdrasil-siblings.md`.
 
+## Coverage lift progress — 2026-10-10
+
+**OBSERVED — coverage branch, local only:** the 12-commit module batch adds focused tests for 14 modules, all at 100% scoped coverage (2,000/2,000 statements; 166 tests passed). The configured full local suite completed with 4,158 passed, 1 xfailed, and 14 warnings; overall coverage was 66.16% (75,075 statements, 25,406 missed). On this PR base, `pyproject.toml` sets `fail_under = 60`; the run is not evidence of a GitHub Actions green.
+
+**OBSERVED — lint follow-up:** main CI run [#38026122508](https://github.com/Zero-State-LLC/Abraxas/actions/runs/38026122508) passed tests (3,992 passed, 1 xfailed) but failed `Lint (ratchet)`. This branch's `make lint` reports 4,752 findings against a 4,707 baseline; Ruff passes on the changed Python paths. Keep this coverage batch separate from the ratchet fix in [PR #282](https://github.com/Zero-State-LLC/Abraxas/pull/282), then rebase it after that repair merges.
+
+**Next coverage target:** `abx/aalmanac_tau.py` is 145/145 statements missed (0%) in the latest full local report. Module-scoped results above must not be represented as project-wide coverage.
+

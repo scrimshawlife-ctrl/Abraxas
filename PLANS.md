@@ -189,6 +189,14 @@ This file is the append-first execution queue for implementation runs.
    - `scripts/run_large_run_promotion_barrier.py` → `out/policy/large_run_barrier_<batch_id>.json`
    - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
 
+### P2 — Targeted coverage lift: remaining-module batch (2026-10-10)
+- **Status:** 12-commit module batch verified locally; PR pending.
+- **Scope:** 14 modules (`abx/truth_contamination.py`, `term_claim_binder.py`, `horizon_policy_select.py`, `horizon_policy_select_tc.py`, `signal_roi_scheduler.py`, `term_claims_run.py`, `task_union_ledger.py`, `error_attrib_tasks.py`, `attribution_compile.py`, `attribution_delta.py`, `acquisition_execute.py`, `acquisition_plan.py`, `acquisition_planner.py`, `aalmanac_enrich.py`); 166 focused tests passed, 2,000/2,000 statements covered (100%).
+- **Full local suite:** 4,158 passed, 1 xfailed, 14 warnings; 66.16% (75,075 statements, 25,406 missed). This branch's configured `fail_under` is 60 (`pyproject.toml`); this is local evidence, not a GitHub Actions result.
+- **Production changes:** fixed duplicate-task loser attribution in `task_union_ledger.py`; removed the unreachable zero-count guard in `attribution_delta.py`; retained behavior-preserving Ruff cleanup in `acquisition_plan.py`.
+- **Lint follow-up:** this branch's `make lint` reports 4,752 findings against baseline 4,707; Ruff passes on changed Python paths. Keep the coverage PR focused. Separate ratchet remediation is tracked in PR #282; rebase this batch after that fix merges.
+- **Next target:** `abx/aalmanac_tau.py` (145 statements, 0% in the latest full local report).
+
 ## Completed
 - 2026-10-08 — Dependency-manifest guard re-keyed from `(path, line)` to `(path, symbol)`, so an unrelated edit above an import no longer invalidates the record; the fixer no longer labels a position-only change `DRIFT` and the stale descriptive line numbers were refreshed (the `(path, symbol)` sets verified byte-identical). Proven by a counterfactual and by both drift directions, and independently by CI: run `37739497321` on `f69d3951` had gone red on this guard alone from a seven-line shift in `abraxas/storage/compress.py`, and `baf45e77` cleared it (`Test Suite` success). Plan `execplans/dependency-manifest-rekey.md`; commits `baf45e77`, `52a694a2`, `61094724`; ratchet green at `failures=0 collected=3797 floor=3779`.
 
