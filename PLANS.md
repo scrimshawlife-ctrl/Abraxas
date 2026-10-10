@@ -97,6 +97,13 @@ This file is the append-first execution queue for implementation runs.
 - **Plan reference:** PLANS P2 entry; KANBAN step 6.
 - **Note:** No code changes; pure spec tracking. AC-01-09 remain NOT_EXECUTED.
 
+### P2 — Docs/Graft/Roadmap/Board Reanalysis + Beta Refresh (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** refresh all docs, re-run graft build (3907 files), update KANBAN engine table to match current survey (9 live + aether planned), sync BETA/ROADMAP with streak 53/16.4h (head 10b13c81), main 0d983992, P0/P1/SLICE closures, engine promotions. Reanalyze beta readiness scorecard/process (~85%).
+- **Definition of done:** KANBAN table + streak updated, test_engine_table_matches_survey passes, BETA/ROADMAP/PLANS reflect current state, graft build clean.
+- **Closure evidence:** targeted patches; graft build; pytest test passes; ci_history 53 runs; main 0d983992.
+- **Note:** Part of sustaining beta momentum post P0/P1 + engines.
+
 ### P2 — PostgreSQL Domain Adapter Completion
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete postgresql adapter to match politics/media/finance pattern (full ABC, intentional_abstract marker, TDD, optional wiring in pipeline, stub taxonomy).
