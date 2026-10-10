@@ -209,10 +209,12 @@ class ProductionPipeline:
         
         return output
 
-    def _dispatch_to_engines(self, domain_states: Dict, alignments: List, timestamp: str) -> List:
+    def _dispatch_to_engines(self, domain_states: Dict, alignments: List, timestamp: str,
+                             events: list | None = None) -> List:
         """Dispatch to all live engines via manifest.
         Deepened: dynamic loop over live_engines(), skip aether (refusing boundary),
         pass richer context for phase/temporal/etc.
+        events: optional list of event dicts for chronos rune chain (SCAN→ALIGN→OVERLAY→PACKET).
         """
         envelopes = []
         from abraxas.engines.manifest import live_engines, get
@@ -234,6 +236,9 @@ class ProductionPipeline:
                     "alignments_count": len(alignments),
                     "timestamp": timestamp,
                     "cycle": self.cycle_count,
+                    "events": events,
+                    "source_family": ["chronos"],
+                    "run_id": f"dispatch-{self.cycle_count}-{name}",
                 }
                 claim = f"{name} dispatch cycle {self.cycle_count}"
                 env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, ctx)
