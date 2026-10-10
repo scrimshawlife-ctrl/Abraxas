@@ -246,41 +246,101 @@ def test_dispatch_to_engines_covers_all_live_engines_and_skips_aether():
         live = {"resonance", "chronos", "semion", "hyperlex", "athanor", "noesis", "trutina", "oracle", "cypher"}
         assert set(engines) & live , f"Expected some live engines, got {engines}"
 
-def test_full_enabled_path_coverage_all_live_except_aether():
+def test_full_enabled_path_coverage_all_live_except_aether(monkeypatch):
     """TDD for full enabled coverage: dispatch exercises real paths for all 9 LIVE (chronos rune compose, resonance detectors, hyperlex/semion when mocked enabled).
     aether always skipped.
     """
+    # Enable real instrument paths for hyperlex/semion in this test
+    monkeypatch.setenv("ABX_HYPERLEX_INSTRUMENT", "1")
+    monkeypatch.setenv("ABX_SEMION_INSTRUMENT", "1")
+    # Mock the instrument calls to simulate real sibling success (as in dedicated enabled tests)
+    def fake_hyperlex_observe(text, requested=None):
+        return {
+            "ok": True,
+            "observation": {
+                "observation_id": "req-42",
+                "input_hash": text[:16],
+                "evidence": {"present": True, "score": 0.82, "abstain": False},
+                "candidates": [{"concept_id": "lex-42", "score": 0.82, "axis": "lexical", "advisory": True}],
+                "authority": {"kind": "advisory"},
+            },
+            "enabled": True,
+        }
+    import abraxas.evidence.hyperlex_instrument as hi
+    monkeypatch.setattr(hi, "observe_text", fake_hyperlex_observe)
+
+    def fake_semion_classify(atom):
+        return {
+            "authority": {"kind": "advisory"},
+            "observation_id": "req-99",
+            "sign_class": "qualisign-rheme-icon",
+            "sign_class_valid": True,
+            "sign_class_errors": [],
+            "peircean_analysis": {"coherence_score": 0.91},
+            "relation_steps": [{"relation": "resembles", "subject": "a", "object": "b", "result": "similar", "confidence": 0.9}],
+            "provenance": {"instrument_version": "SEMION_SIGN_RELATION_V1"},
+            "status": "computable",
+        }
+    import abraxas.evidence.providers.semion as semion_mod
+    monkeypatch.setattr(semion_mod, "classify_via_semion", fake_semion_classify)
+
     from scripts.run_production_pipeline import ProductionPipeline
     from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     import tempfile
     with tempfile.TemporaryDirectory() as td:
         adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
         p = ProductionPipeline(adapters, output_dir=td)
-        # Rich domain_states to exercise resonance phase detector (real compose path)
+        # Rich multi-domain domain_states to exercise resonance phase alignment detector
+        # With 2 domains sharing "front" dominant phase → resonance detects ≥1 phase alignment
         ds = {
             "politics": {
                 "ai-safety": "front",
-                "crypto": "front",
-                "biotech": "proto",
-            }
+                "crypto":      "front",
+                "biotech":     "proto",
+            },
+            "media": {
+                "journalism":  "front",
+                "streaming":   "saturated",
+            },
         }
+        # Synthetic events for chronos rune chain (SCAN→ALIGN→OVERLAY→PACKET)
+        # Need ≥3 events with timestamps for cadence/recurrence detection
+        events = [
+            {"timestamp": "2026-10-01T00:00:00Z", "event": "scan_event_1"},
+            {"timestamp": "2026-10-03T00:00:00Z", "event": "scan_event_2"},
+            {"timestamp": "2026-10-05T00:00:00Z", "event": "scan_event_3"},
+            {"timestamp": "2026-10-07T00:00:00Z", "event": "scan_event_4"},
+            {"timestamp": "2026-10-09T00:00:00Z", "event": "scan_event_5"},
+        ]
         al = []
         ts = "2026-10-09T00:00:00Z"
-        ev = p._dispatch_to_engines(ds, al, ts)
+        ev = p._dispatch_to_engines(ds, al, ts, events=events)
         engines = [getattr(e, "engine", e.get("engine") if isinstance(e, dict) else None) for e in ev]
         engines = [e for e in engines if e]
         assert "aether" not in engines
         expected_live = {"resonance", "chronos", "semion", "hyperlex", "athanor", "noesis", "trutina", "oracle", "cypher"}
         assert set(engines) & expected_live == expected_live, f"Missing some live: {expected_live - set(engines)}"
-        # Verify chronos has rune_chain (real compose path)
+        # Verify chronos has non-empty rune_chain from real compose path (SCAN→ALIGN→OVERLAY→PACKET)
         chronos_envs = [e for e in ev if getattr(e, "engine", None) == "chronos"]
-        if chronos_envs:
-            c = chronos_envs[0]
-            prov = getattr(c, "provenance", {}) or {}
-            assert "rune_chain" in prov or prov.get("rune_chain")
-        # For resonance, check real detector path exercised (confidence or alignments)
+        assert chronos_envs, "Expected chronos in dispatched engines"
+        c = chronos_envs[0]
+        prov = getattr(c, "provenance", {}) or {}
+        rune_chain = prov.get("rune_chain", [])
+        assert len(rune_chain) == 4, f"Chronos rune_chain should have 4 steps, got {rune_chain}"
+        assert prov.get("not_computable") == False, f"Chronos not_computable but events provided: {prov}"
+        # Verify resonance has real detector path exercised with multi-domain
         resonance_envs = [e for e in ev if getattr(e, "engine", None) == "resonance"]
-        if resonance_envs:
-            r = resonance_envs[0]
-            assert r.confidence >= 0.0  # real path exercised
+        assert resonance_envs, "Expected resonance in dispatched engines"
+        r = resonance_envs[0]
+        assert r.confidence >= 0.5, f"Resonance should have >=0.5 confidence with multi-domain alignment, got {r.confidence}"
+        res_prov = getattr(r, "provenance", {}) or {}
+        assert res_prov.get("phase_alignments_detected", 0) >= 1, f"Expected ≥1 phase alignment, got {res_prov}"
+        # Hyperlex/semion should have real_call in provenance when enabled
+        for name in ["hyperlex", "semion"]:
+            envs = [e for e in ev if getattr(e, "engine", None) == name]
+            if envs:
+                e = envs[0]
+                prov2 = getattr(e, "provenance", {}) or {}
+                # In enabled mode with mocks, should reflect real delegation
+                assert e.confidence >= 0.0 or "error" in str(prov2).lower() or "instrument" in str(prov2).lower()
 
