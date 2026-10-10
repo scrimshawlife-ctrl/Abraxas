@@ -1,5 +1,8 @@
 # AAL-Core Active Plan Surface
 
+> **Status update (2026-10-10, operator decision, see docs/DECISIONS.md):** Aether is **active, in development** (multimodal), freeze-exempt, and gated by its own eval against the text-only baseline. The code still refuses (`AetherNotImplemented`) until that work lands; earlier "PLANNED refusing boundary" wording below describes the current code boundary, not the project status.
+
+
 This file is the append-first execution queue for implementation runs.
 
 ## Operating Contract
@@ -116,7 +119,7 @@ This file is the append-first execution queue for implementation runs.
 - **Definition of done:** Met. providers/semion.py and hyperlex.py exist with engine_name and provide; manifest agreement test passes; docs updated.
 - **Closure evidence:** ls abraxas/evidence/providers/ | grep -E "semion|hyperlex"; pytest test_engine_manifest_agreement.py
 
-### P2 — Aether Design (multimodal refusing boundary)
+### P2 — Aether Design (multimodal refusing boundary; superseded 2026-10-10: Aether active, in development)
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** align aether (the multimodal handler) to sibling SPEC as deliberate PLANNED refusing boundary that raises AetherNotImplemented (no plausible envelope).
 - **Definition of done:** provider raises on produce/get_model with detailed message; manifest note + settlements cite sibling; tests expect raise for aether; docs updated; pipeline dispatch catches; only aether PLANNED.

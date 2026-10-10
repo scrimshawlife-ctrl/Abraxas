@@ -1,5 +1,8 @@
 # Kanban Board for Abraxas
 
+> **Status update (2026-10-10, operator decision, see docs/DECISIONS.md):** Aether is **active, in development** (multimodal), freeze-exempt, and gated by its own eval against the text-only baseline. The code still refuses (`AetherNotImplemented`) until that work lands; earlier "PLANNED refusing boundary" wording below describes the current code boundary, not the project status.
+
+
 ![CI](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg)
 ![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)
 
@@ -397,7 +400,7 @@ engine exists". Its own `SPEC.md` marks every component `Exists: no`.
 scope (it recorded 63 source modules for `athanor`, where this measures 19 `.py` files under `src/`). The
 ladders are the measurements; the counts are orientation.
 
-9 live engines (athanor through resonance) now sit at full 100% (7/7) integration on the Abraxas ladder (aether remains the deliberate PLANNED refusing boundary per sibling SPEC). All are blocked only by stage 7, which is a **claim** nobody has made, not a capability anybody lacks. Survey re-run 2026-10-09 confirms 9 live + 1 planned, all technical settlement corroborated where measurable.
+9 live engines (athanor through resonance) now sit at full 100% (7/7) integration on the Abraxas ladder (aether is active, in development; its code still refuses per sibling SPEC until the multimodal work lands). All are blocked only by stage 7, which is a **claim** nobody has made, not a capability anybody lacks. Survey re-run 2026-10-09 confirms 9 live + 1 planned, all technical settlement corroborated where measurable.
 
 ### Where each engine actually lives (in-tree footprint in Abraxas)
 
@@ -547,7 +550,7 @@ match is not a component boundary.
   retired once Semion's own qualification gates are settled.
 - **`oracle` / `cypher` / `aether`:** ~~put the directories under version control.~~ **DONE** — all three
   are now version-controlled with remotes, on `main`, with `.gitignore` and reviewed history.
-- **`aether` (the only genuinely unfinished engine):** the manifest poses its own choice — *"Either build
+- **`aether` (active, in development; the only engine whose code still refuses):** the manifest poses its own choice — *"Either build
   it or drop it from the architecture."* The repository is in the honest state for either branch. If
   **building**, the fusion policy comes before the encoders: encoders are mechanical, and the policy is
   where a laundered confidence would hide.
