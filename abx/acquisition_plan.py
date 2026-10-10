@@ -9,9 +9,9 @@ from typing import Any, Dict, List
 
 from abraxas.acquire.decodo_client import build_decodo_query, decodo_status
 from abraxas.acquire.vector_map_schema import default_vector_map_v0_1
-from abx.ml_index import load_ml_map
-from abraxas.runes.invoke import invoke_capability
 from abraxas.runes.ctx import RuneInvocationContext
+from abraxas.runes.invoke import invoke_capability
+from abx.ml_index import load_ml_map
 
 
 def _utc_now_iso() -> str:
@@ -84,7 +84,9 @@ def main() -> int:
     args = p.parse_args()
 
     # Create rune context for capability invocations
-    ctx = RuneInvocationContext(run_id=args.run_id, subsystem_id="abx.acquisition_plan", git_hash="unknown")
+    ctx = RuneInvocationContext(
+        run_id=args.run_id, subsystem_id="abx.acquisition_plan", git_hash="unknown"
+    )
 
     ts = _utc_now_iso()
     a2_path = os.path.join(args.out_reports, f"a2_phase_{args.run_id}.json")
@@ -117,9 +119,9 @@ def main() -> int:
         sd = float(p0.get("source_diversity") or 0.0)
         return (1.2 * mr) + (1.0 * cg) + (0.8 * (1.0 - att)) + (0.6 * (1.0 - sd))
 
-    profs_sorted = sorted(
-        profs, key=lambda x: (-score(x), str(x.get("term") or ""))
-    )[: int(args.max_terms)]
+    profs_sorted = sorted(profs, key=lambda x: (-score(x), str(x.get("term") or "")))[
+        : int(args.max_terms)
+    ]
 
     targets = []
     actions: List[Dict[str, Any]] = []
@@ -132,10 +134,7 @@ def main() -> int:
         if not term:
             continue
         classify_result = invoke_capability(
-            "RUNE.FORECAST.TERM.CLASSIFY",
-            {"profile": p0},
-            ctx=ctx,
-            strict_execution=True
+            "RUNE.FORECAST.TERM.CLASSIFY", {"profile": p0}, ctx=ctx, strict_execution=True
         )
         tcls = classify_result["classification"]
         miss = _missing_signals(p0, dmx_overall)
@@ -149,7 +148,7 @@ def main() -> int:
                 "term_class": tcls,
             },
             ctx=ctx,
-            strict_execution=True
+            strict_execution=True,
         )
         csp = csp_result["csp_result"]
         if float(csp.get("EA") or 0.0) < 0.50:
@@ -165,7 +164,7 @@ def main() -> int:
         term_key = " ".join(term.lower().replace("-", " ").replace("_", " ").split())
         ml = ml_map.get(term_key)
         if isinstance(ml, dict):
-            miss.append(f"ML_BUCKET_{str(ml.get('bucket') or 'UNKNOWN')}")
+            miss.append(f"ML_BUCKET_{ml.get('bucket') or 'UNKNOWN'!s}")
             score = float(ml.get("ml_score") or 0.0)
             if score >= 0.67:
                 miss.append("ML_HIGH_STEERING_RISK")
@@ -173,9 +172,7 @@ def main() -> int:
                 miss.append("ML_MED_STEERING_RISK")
             else:
                 miss.append("ML_LOW_STEERING_RISK")
-        targets.append(
-            {"term": term, "class": tcls, "missing": miss, "csp": csp, "ml": ml or {}}
-        )
+        targets.append({"term": term, "class": tcls, "missing": miss, "csp": csp, "ml": ml or {}})
 
         for ch in channels:
             ch_id = str(ch.get("id"))
@@ -258,7 +255,7 @@ def main() -> int:
                             "channel": ch_id,
                             "mode": "decodo",
                             "action": "blocked_missing_decodo",
-                            "rationale": ["DECODO_UNAVAILABLE", ds.get("reason")] + miss,
+                            "rationale": ["DECODO_UNAVAILABLE", ds.get("reason"), *miss],
                         }
                     )
                     continue
@@ -287,7 +284,7 @@ def main() -> int:
                             "mode": "decodo",
                             "action": "harvest_origin_candidates",
                             "query": {
-                                "q": f"\"{term}\" earliest mention OR first posted OR originally posted",
+                                "q": f'"{term}" earliest mention OR first posted OR originally posted',
                                 "domains": domains,
                             },
                             "rationale": miss,
@@ -300,7 +297,7 @@ def main() -> int:
                             "mode": "decodo",
                             "action": "harvest_template_variants",
                             "query": {
-                                "q": f"\"{term}\" \"copy\" OR \"paste\" OR \"template\" OR \"script\"",
+                                "q": f'"{term}" "copy" OR "paste" OR "template" OR "script"',
                                 "domains": domains,
                             },
                             "rationale": miss,
@@ -313,15 +310,16 @@ def main() -> int:
                             "mode": "decodo",
                             "action": "harvest_counterclaims_primary",
                             "query": {
-                                "q": f"\"{term}\" site:.gov OR site:.edu OR filetype:pdf",
+                                "q": f'"{term}" site:.gov OR site:.edu OR filetype:pdf',
                                 "domains": domains,
                             },
                             "rationale": miss,
                         }
                     )
-                if "ML_LOW_STEERING_RISK" in miss and float(
-                    p0.get("consensus_gap_term") or 0.0
-                ) >= 0.60:
+                if (
+                    "ML_LOW_STEERING_RISK" in miss
+                    and float(p0.get("consensus_gap_term") or 0.0) >= 0.60
+                ):
                     actions.append(
                         {
                             "term": term,
@@ -329,7 +327,7 @@ def main() -> int:
                             "mode": "decodo",
                             "action": "harvest_cross_domain_corroboration",
                             "query": {
-                                "q": f"\"{term}\" analysis OR report OR dataset OR timeline",
+                                "q": f'"{term}" analysis OR report OR dataset OR timeline',
                                 "domains": domains,
                             },
                             "rationale": miss,
