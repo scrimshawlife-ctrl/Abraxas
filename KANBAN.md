@@ -3,6 +3,110 @@
 ![CI](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg)
 ![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)
 
+## Audit Assimilation: Trustworthy Shadow Cycle (2026-10-10 PT)
+
+**Status: partial; remediation pending.** OBSERVED against main `59b82ba6159a958f27966f1e1c6c77ef451278ce`.
+This current queue supersedes conflicting readiness and streak statements in the historical entries below.
+It does not revoke operator authorization or claim a new promotion. No runtime fix is closed by this documentation update.
+
+**Verified CI snapshot:** [main run 38026122508](https://github.com/Zero-State-LLC/Abraxas/actions/runs/38026122508):
+3,992 passed, 1 xfailed, 3,993 collected, 63.50% coverage; workflow FAILED at lint
+(4,757 findings versus baseline 4,707). Health Check and Pipeline Dry Run were skipped.
+The consecutive successful main CI streak is broken. A green test step is not a green workflow.
+
+**Review limits:** source inspection and standard-library probes reproduced the run-directory mismatch,
+temporary-export deletion, and process-dependent scores. The prescribed Hermes interpreter and generated
+Graft graph were unavailable in the review environment; no local full-suite or full pipeline run was claimed.
+Prior to implementation, use Graft context and inspect subsystem code eligibility, registry, and stop conditions.
+
+### Active priority queue
+
+- [ ] **AUD-01 / P0: Persist and verify cycle artifacts.**
+  OBSERVED: `scripts/run_production_pipeline.py:151-177` writes evidence under
+  `PROD-CYCLE-<count>/evidence`, while `abraxas/oracle/v2/evidence_convention.py` resolves
+  a hash-derived export run ID; `attach_evidence_from_files` silently omits nonexistent paths.
+  `export_run` also writes the bundle inside a temporary directory deleted before return.
+  **Acceptance:** use one canonical run identity and durable output root; after `run_cycle` returns,
+  reload the cycle and all manifest/evidence paths, recompute their hashes, and verify correspondence.
+  Missing or corrupt artifacts must yield an explicit unresolved/blocked result.
+  Exercise a restart so cycle counters cannot overwrite a previous run's evidence.
+  Reopens the production runner's artifact-persistence claim in historical step 11.
+
+- [ ] **AUD-02 / P0: Account for every engine attempt and failure.**
+  OBSERVED: `ProductionPipeline._dispatch_to_engines` catches `Exception` and silently drops the engine.
+  **Acceptance:** every manifest-selected engine has an explicit success, disabled, unavailable,
+  refused, or error record with run correlation; inject import and provider failures and verify
+  they remain visible and cannot support a complete/ready claim. Preserve Aether's refusing boundary.
+  Related to existing O4 exception review, but this runner defect is actionable without a repo-wide rewrite.
+
+- [ ] **AUD-03 / P1: Restore semantic replay across processes.**
+  OBSERVED: `_build_oracle_envelope` uses `hash(token)` for SVS/MRS.
+  The same token scored 85, 88, and 87 with PYTHONHASHSEED 1, 2, and 3.
+  **Acceptance:** declare the score's meaning and source; unmeasured scores remain unavailable.
+  If a synthetic deterministic score is retained, label it simulated and use a stable digest.
+  Identical frozen inputs/configuration produce identical semantic output across processes,
+  excluding explicitly declared timestamp/run metadata.
+
+- [ ] **AUD-04 / P1: Distinguish live observations from example adapters.**
+  OBSERVED: politics/media/finance adapters return fixed `*_example` tokens with confidence 0.5
+  even without `--mock`; interface compliance does not establish live ingestion.
+  **Acceptance:** examples carry an explicit simulated grade and require deliberate opt-in;
+  normal observation mode reports unavailable until an authorized source is configured.
+  Source-backed operation records source identity, retrieval time, input hash, and failure state.
+  Keep historical adapter-interface completion separate from live-source completion.
+
+- [ ] **AUD-05 / P1: Refuse calibration without observed forecast/outcome pairs.**
+  OBSERVED: `abraxas/evidence/providers/trutina.py:49-54` substitutes generated data on missing input;
+  pipeline dispatch supplies neither forecasts nor outcomes. Its advisory/shadow flags do not identify
+  this generated-data path.
+  **Acceptance:** absent or unmatched inputs yield NOT_COMPUTABLE/abstention; synthetic calibration
+  requires explicit LAB opt-in and recorded data grade. Verify empty, partial, mismatched,
+  synthetic, and observed inputs without weakening existing calibration assertions.
+
+- [ ] **AUD-06 / P1: Derive ritual and compliance state from evidence.**
+  OBSERVED: runner floors alignment strength at 0.6, uses fixed cascade/symbolic state,
+  initializes compliance GREEN, and passes `PRODUCTION_CONFIG_HASH`; cooldown enforcement is left
+  as a production comment.
+  **Acceptance:** unknown inputs remain explicit and cannot satisfy evidence-dependent preconditions;
+  configuration provenance uses a real digest; compliance is derived through governing validation;
+  cooldown behavior is verified for repeated cycles. Preserve shadow influence constraints.
+
+- [ ] **AUD-07 / P1: Strengthen full-cycle acceptance tests.**
+  INFERRED from `tests/test_production_pipeline_real_adapters.py`: several integration assertions check
+  shape or minimum engine counts, leaving durability and failure accounting unverified.
+  **Acceptance:** one frozen shadow cycle covers AUD-01 through AUD-06, including post-return
+  persistence, restart, corruption, provider failure, missing inputs, and cross-process replay.
+  Distinguish mocked delegation from execution of an available sibling instrument.
+  Do not reduce thresholds, remove assertions, or silently skip unavailable checks.
+
+- [ ] **AUD-08 / P1: Restore complete CI before restarting history.**
+  [PR #282](https://github.com/Zero-State-LLC/Abraxas/pull/282) Test Suite and Health Check passed;
+  [its Pipeline Dry Run failed](https://github.com/Zero-State-LLC/Abraxas/actions/runs/38042682276).
+  The runner imports PostgreSQLDomainAdapter unconditionally, but dry-run installation omits
+  the postgres extra; missing asyncpg is also reported in PR #283.
+  **Acceptance:** resolve dependency/import behavior, verify three durable dry-run outputs,
+  and require all mandatory jobs green at a recorded SHA. Keep lint ratchet enforcement.
+  [PR #283](https://github.com/Zero-State-LLC/Abraxas/pull/283) remains draft and lint-blocked;
+  its 4,158-pass/66.16% figures are author-reported branch measurements, not current main measurements.
+  Integrate branches in dependency order only with operator merge authorization.
+
+- [ ] **AUD-09 / P1: Reconcile readiness and capability claims.**
+  **Acceptance:** refresh BETA_READINESS, ROADMAP, and current board summaries from SHA-bound receipts;
+  retain old entries as historical evidence. Define LIVE as provider implementation availability,
+  separately report actual model/source/instrument execution, and preserve the Alpha classifier
+  until governing criteria are met. Offline Athanor and disabled Hyperlex paths must stay visible.
+  [PR #274](https://github.com/Zero-State-LLC/Abraxas/pull/274) is a draft candidate continuity spec;
+  AC-01 through AC-09 remain NOT_EXECUTED, regardless of historical documentation-completion checks.
+
+- [ ] **AUD-10 / P2: Measure empirical forecast value after cycle integrity.**
+  **Acceptance:** freeze a time-separated observation set, predeclare outcomes and falsification rules,
+  compare forecasts against a simple baseline, measure calibration and abstention, and preserve
+  evaluation provenance. Technical settlement must not imply empirical or economic settlement.
+
+**Execution order:** AUD-08 can proceed independently; then AUD-01/02, AUD-03 through AUD-06,
+AUD-07, AUD-09, and AUD-10. Target milestone: one trustworthy, durable, operator-supervised shadow cycle.
+All remediation acceptance checks above remain NOT_EXECUTED in this assimilation.
+
 ## To Do (Backlog - Deprioritized/Deferred)
 - [ ] **PostgreSQL Migration** — Deprioritized until artifact volume exceeds SQLite comfort (~100k bundles)
 - [ ] **Mobile UI** — Deferred until field deployment requires mobile access
