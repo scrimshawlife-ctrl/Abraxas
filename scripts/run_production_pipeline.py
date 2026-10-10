@@ -208,77 +208,38 @@ class ProductionPipeline:
         return output
 
     def _dispatch_to_engines(self, domain_states: Dict, alignments: List, timestamp: str) -> List:
-        """Dispatch to planned stub engines for more pipeline integration.
-        Uses manifest to resolve providers for resonance (phase), chronos (temporal), etc.
-        Minimal dispatch for stubs.
+        """Dispatch to all live engines via manifest.
+        Deepened: dynamic loop over live_engines(), skip aether (refusing boundary),
+        pass richer context for phase/temporal/etc.
         """
         envelopes = []
-        from abraxas.engines.manifest import get
+        from abraxas.engines.manifest import live_engines, get
         from importlib import import_module
 
-        # Resonance for phase alignments
-        spec = get("resonance")
-        if spec and spec.implementation:
+        for name in live_engines():
+            if name == "aether":
+                # deliberate skip per aether boundary spec
+                continue
+            spec = get(name)
+            if not spec or not spec.implementation:
+                continue
             try:
                 mod, attr = spec.implementation.split(":", 1)
                 provider = getattr(import_module(mod), attr)()
-                claim = f"resonance phase alignment dispatch for {len(alignments)} alignments at {timestamp}"
-                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"alignments_count": len(alignments)})
-                envelopes.append(env)
-            except Exception:
-                pass  # stub safe
-
-        # Chronos for temporal
-        spec = get("chronos")
-        if spec and spec.implementation:
-            try:
-                mod, attr = spec.implementation.split(":", 1)
-                provider = getattr(import_module(mod), attr)()
-                claim = f"chronos temporal dispatch cycle {self.cycle_count}"
-                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
-                envelopes.append(env)
-            except Exception:
-                pass
-
-        # Aether (will raise but catch for stub)
-        # See docs/aether/multimodal_input_contract.md for declared UNKNOWN input schema.
-        spec = get("aether")
-        if spec and spec.implementation:
-            try:
-                mod, attr = spec.implementation.split(":", 1)
-                provider = getattr(import_module(mod), attr)()
-                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", "aether multimodal", {})
+                # richer context
+                ctx = {
+                    "domain_states": domain_states,
+                    "alignments_count": len(alignments),
+                    "timestamp": timestamp,
+                    "cycle": self.cycle_count,
+                }
+                claim = f"{name} dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, ctx)
                 envelopes.append(env)
             except AetherNotImplemented:
-                # Expected for the deliberate refusing boundary. Logged as absence.
-                # See docs/aether/ and sibling SPEC §5.
                 pass
             except Exception:
-                pass
-
-        # Semion for sign relation
-        spec = get("semion")
-        if spec and spec.implementation:
-            try:
-                mod, attr = spec.implementation.split(":", 1)
-                provider = getattr(import_module(mod), attr)()
-                claim = f"semion sign relation dispatch cycle {self.cycle_count}"
-                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
-                envelopes.append(env)
-            except Exception:
-                pass
-
-        # Hyperlex for lexical semantic
-        spec = get("hyperlex")
-        if spec and spec.implementation:
-            try:
-                mod, attr = spec.implementation.split(":", 1)
-                provider = getattr(import_module(mod), attr)()
-                claim = f"hyperlex lexical semantic dispatch cycle {self.cycle_count}"
-                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
-                envelopes.append(env)
-            except Exception:
-                pass
+                pass  # safe for now
 
         return envelopes
 
