@@ -146,8 +146,9 @@ def main() -> int:
 
     uplift_table = {}
     for tk, agg in uplift_accum.items():
-        # Every bucket is created only after its sample count is incremented above.
-        n = float(uplift_counts[tk])
+        n = float(uplift_counts.get(tk) or 0.0)
+        if n <= 0:  # pragma: no cover - defensive; accumulation follows the count increment
+            continue
         uplift_table[tk] = {k: float(v / n) for k, v in agg.items()}
         uplift_table[tk]["n_samples"] = float(n)
 
