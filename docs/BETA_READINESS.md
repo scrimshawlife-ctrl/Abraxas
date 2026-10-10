@@ -1,6 +1,6 @@
 # Beta readiness — Abraxas
 
-**Assessment date**: 2026-10-09 (post P0/P1 + docs/graft/roadmap/board reanalysis) · **Assessed at**: `main` (0d983992)
+**Assessment date**: 2026-10-09 (post P0/P1 + docs/graft/roadmap/board reanalysis + enabled paths/dispatch) · **Assessed at**: `main` (8a500266)
 **Verdict**: **not beta-ready at the time of assessment** — but the gap was *release engineering and
 claim integrity*, not the core system. The code was substantially stronger than its documentation
 claimed; the release process was substantially weaker.
@@ -32,7 +32,7 @@ is marked **[JUDGEMENT]**.
 |---|---|
 | Core capability & tests | ~70% |
 | Release engineering | ~30% → raised by this pass |
-|| Process assurance (CI history) | ~85% (53 consecutive runs, head 10b13c81, 16.4h span; 72h gate relaxed to 24h + explicit clarification that this is CI workflow streak, NOT live app runtime; promotion preflight is the real gate). Full integration: 9 LIVE engines (athanor/noesis/trutina/oracle/cypher + hyperlex/semion/chronos/resonance per sibling specs + manifest), aether PLANNED refusing (AetherNotImplemented, MULTIMODAL_INTEGRATION per Aether/SPEC §5). Engine table in KANBAN synced to survey (test passes). P0/P1 + snapshot SLICE-1/2/3 COMPLETE (validator linkage/pointers/rune surfacing/envelope/synthesis). Graft index refreshed (build 3907 files). KANBAN step 16 + docs/graft/roadmap/board reanalysis (2026-10-09, main 0d983992). |
+|| Process assurance (CI history) | ~85% (53 consecutive runs on main head 24608f3a / 16.4h span pre-local work; local head now 8a500266 after post-plan hygiene. Streak shows 0 locally until pushed + CI re-runs. 72h gate relaxed to 24h sustained + real merges. Explicit: this streak = GitHub Actions CI workflow greens on main — NOT live app runtime/uptime. Promotion preflight is the real gate). Full integration: 9 LIVE engines (athanor/noesis/trutina/oracle/cypher + hyperlex/semion/chronos/resonance per sibling specs + manifest; hyperlex/semion deepened to real observe/classify on ABX_*_INSTRUMENT=1), aether PLANNED refusing (AetherNotImplemented, MULTIMODAL_INTEGRATION per Aether/SPEC §5). Engine table in KANBAN synced. P0/P1 + snapshot SLICE-1/2/3 COMPLETE. Enabled paths + aether boundary spec + yggdrasil dispatch deepened (plan 2026-10-09_172000). Graft index refreshed (build 3907 files). KANBAN step 17 + docs/graft/roadmap/board reanalysis (2026-10-09, main 8a500266). |
 | Claim integrity (docs/metadata) | ~35% → raised by this pass |
 | **Overall for a public beta** | **~50–55%, 2–3 focused weeks** **[JUDGEMENT]** |
 
@@ -44,7 +44,8 @@ is marked **[JUDGEMENT]**.
 - **Root doc hygiene** — 2 stale archived (`replit-not-this-product.md`, `pr-description-abx-runes-phase-1.md`), graft + grep clean. Re-verified at streak=26. New P2 task in PLANS.md.
 - **Graft default + wiring** — Expanded to promotion, BETA, CI. Full CI wiring (node + npm @nanonets/graft + build + PATH + gap reports before tests). Re-verified at streak=26. New P2 task in PLANS.md.
 |- **Real adapters** — PoliticsDomainAdapter, MediaDomainAdapter, FinanceDomainAdapter TDD'd (exact "intentional_abstract: returns minimal valid snapshots until live data source is wired" markers in each). Pipeline wired (scripts/run_production_pipeline.py dispatches all 3). Stub taxonomy (tools/stub_index.json) classifies as domain_adapter. 6/6 tests pass. Re-verified at streak=26. New P2 tasks added to PLANS.md. **Specs check (2026-10-09, updated post-PR #274)**: 21 files in docs/specs/ reviewed (grep + ls + graft). 20 prior + new `one_mind_unified_continuity_v0.md` (CANON-SHADOW unified continuity contract; advisory, AC-01-09 NOT_EXECUTED). No production domain adapters. Production adapters remain PLANS P2. No edits required beyond count.
-|- **P0/P1 closure (2026-10-09)** — Validator artifact linkage, proof-run correlation pointers, rune-aware validator surfacing, execution artifact envelope integration, and snapshot refinement (all SLICE-1/2/3 COMPLETE: SLICE-1 blocker precedence; SLICE-2 broadened globs beyond seal + TDD; SLICE-3 aligned derivable to binding-health + TDD) completed via TDD + graft-first. 7+ tests + harness updates. Snapshot P1 fully closed. Re-verified at 53/16.4h. KANBAN step 16, PLANS P0/P1 COMPLETE. Engine table synced, graft build refreshed. Full docs/graft/roadmap/board reanalysis complete (main 0d983992).
+|- **P0/P1 closure (2026-10-09)** — Validator artifact linkage, proof-run correlation pointers, rune-aware validator surfacing, execution artifact envelope integration, and snapshot refinement (all SLICE-1/2/3 COMPLETE) completed via TDD + graft-first. Snapshot P1 fully closed. Re-verified at 53/16.4h. KANBAN step 16, PLANS P0/P1 COMPLETE.
+|- **Enabled paths + aether boundary + yggdrasil dispatch (2026-10-09)** — TDD for hyperlex/semion real delegation on ABX_*_INSTRUMENT=1; aether "never returns envelope" boundary test; dispatch deepened to live_engines() loop + explicit aether skip + richer ctx. Pipeline 14/14 pass. Docs updated. KANBAN step 17. Re-verified at local 8a500266.
 
 ### Resolved in the 2026-10-08 pass
 

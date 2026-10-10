@@ -4,7 +4,7 @@
 **Last Updated:** 2026-10-09
 **Philosophy:** Ordered by epistemic leverage, not engineering familiarity
 
-## 2026 Beta Readiness Reanalysis (2026-10-09)
+## 2026 Beta Readiness Reanalysis (2026-10-09, refreshed post-dispatch) — local head 8a500266 (CI main 24608f3a)
 - Graft index refreshed (build: 3907 files, 22100 nodes).
 - Engine topology: 9 LIVE (athanor, noesis, trutina, oracle, cypher, hyperlex, semion, chronos, resonance — sibling-spec grounded), 1 PLANNED (aether: refuses via AetherNotImplemented per sibling SPEC §5, MULTIMODAL_INTEGRATION).
 - KANBAN engine table synced to survey; test_engine_table_matches_survey now passes.
