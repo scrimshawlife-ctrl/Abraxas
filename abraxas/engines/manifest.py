@@ -172,7 +172,7 @@ ENGINES: Tuple[EngineSpec, ...] = (
         LIVE,
         "LEXICAL_SEMANTIC",
         "abraxas.evidence.providers.hyperlex:create_hyperlex_adapter",
-        "Real factory consuming hyperlex_instrument (shadow boundary, feature-gated). Authority: advisory, influence_policy=NONE, no semantic_truth. Per sibling /Users/appliedalchemylabs/Hyperlex/DESIGN.md, /Users/appliedalchemylabs/Hyperlex/SPEC.md and docs/SIBLING_REPOS.md. Technical settlement cited on the provider, its instrument, the integration doc, and the sibling contract. Empirical and economic remain unsettled.",
+        "Real factory consuming hyperlex_instrument (shadow boundary, feature-gated). observe_text now delegates to real sibling when ABX_HYPERLEX_INSTRUMENT=1 + package present (deepened 2026-10). Authority: advisory, influence_policy=NONE, no semantic_truth. Per sibling /Users/appliedalchemylabs/Hyperlex/DESIGN.md, /Users/appliedalchemylabs/Hyperlex/SPEC.md and docs/SIBLING_REPOS.md. Technical settlement cited on the provider, its instrument, the integration doc, and the sibling contract. Empirical and economic remain unsettled.",
         settlements=Settlement(
             technical=SETTLED,
             technical_evidence=(
@@ -189,7 +189,7 @@ ENGINES: Tuple[EngineSpec, ...] = (
         LIVE,
         "SIGN_RELATION",
         "abraxas.evidence.providers.semion:create_semion_adapter",
-        "Real factory consuming semion_instrument (shadow boundary, feature-gated). Authority: advisory, influence_policy=NONE. Per sibling /Users/appliedalchemylabs/Semion/ARCHITECTURE.md and docs/SIBLING_REPOS.md. Semion states its own direction: 'Semion does not import Abraxas. Abraxas may consume this dict.' Technical settlement cited on the provider and its instrument. Empirical and economic remain unsettled.",
+        "Real factory consuming semion_instrument (shadow boundary, feature-gated). classify_via_semion + to_evidence_envelope now delegate to real sibling when ABX_SEMION_INSTRUMENT=1 + package present (deepened 2026-10). Authority: advisory, influence_policy=NONE. Per sibling /Users/appliedalchemylabs/Semion/ARCHITECTURE.md and docs/SIBLING_REPOS.md. Semion states its own direction: 'Semion does not import Abraxas. Abraxas may consume this dict.' Technical settlement cited on the provider and its instrument. Empirical and economic remain unsettled.",
         settlements=Settlement(
             technical=SETTLED,
             technical_evidence=(

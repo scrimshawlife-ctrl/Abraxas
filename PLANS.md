@@ -97,6 +97,13 @@ This file is the append-first execution queue for implementation runs.
 - **Plan reference:** PLANS P2 entry; KANBAN step 6.
 - **Note:** No code changes; pure spec tracking. AC-01-09 remain NOT_EXECUTED.
 
+### P2 — Docs/Graft/Roadmap/Board Reanalysis + Beta Refresh (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** refresh all docs, re-run graft build (3907 files), update KANBAN engine table to match current survey (9 live + aether planned), sync BETA/ROADMAP with streak 53/16.4h (head 10b13c81), main 0d983992, P0/P1/SLICE closures, engine promotions. Reanalyze beta readiness scorecard/process (~85%).
+- **Definition of done:** KANBAN table + streak updated, test_engine_table_matches_survey passes, BETA/ROADMAP/PLANS reflect current state, graft build clean.
+- **Closure evidence:** targeted patches; graft build; pytest test passes; ci_history 53 runs; main 0d983992.
+- **Note:** Part of sustaining beta momentum post P0/P1 + engines.
+
 ### P2 — PostgreSQL Domain Adapter Completion
 - **Status:** COMPLETE (2026-10-09)
 - **Intent:** complete postgresql adapter to match politics/media/finance pattern (full ABC, intentional_abstract marker, TDD, optional wiring in pipeline, stub taxonomy).
@@ -122,6 +129,13 @@ This file is the append-first execution queue for implementation runs.
 - **Definition of done:** 10 unknowns documented: (1) input contract doc, (2) fusion policy constraints doc, (3) governance subsystem record `.abraxas/subsystems/aether_multimodal_v0.yaml`, (4) EvidenceEnvelope future note in contract.py, (5) zero-consumer test `test_aether_no_consumer.py`, (6) dedicated AetherNotImplemented except in pipeline, (7) budget placeholder in manifest note, (8) identity-verify test passes, (9) legacy mock TODO comment in production.py, (10) behavioral-verification-deliberately-absent test. All 59 aether/planned/manifest-agreement tests pass. Full verification block green.
 - **Closure evidence:** test_aether_provider.py (4/4), test_aether_no_consumer.py (1/1), test_engine_manifest_agreement.py (54/54), manifest `get('aether').note` contains "24GB" + "placeholder", subsystem record parses as YAML with "shadow" lane, docs/aether/ contains both contract docs, KANBAN step 15.
 - **Plan:** `.hermes/plans/2026-10-09_164942-aether-architecture-unknowns-1-10.md`
+
+### P2 — Enabled Instrument Paths + Aether Boundary Spec + Yggdrasil Dispatch Deepening (2026-10-09)
+- **Status:** COMPLETE (2026-10-09)
+- **Intent:** Add TDD coverage for feature-gated real paths (ABX_HYPERLEX_INSTRUMENT=1, ABX_SEMION_INSTRUMENT=1) using mocks for sibling instruments. Formalize aether boundary spec test (never returns envelope). Deepen yggdrasil dispatch in pipeline to loop over manifest live_engines(), explicit aether skip, richer context passing. Update pipeline tests, contract to_dict, aether docs for UNKNOWN.
+- **Definition of done:** New tests for enabled paths pass; aether boundary test passes; dispatch covers all live except aether; pipeline tests 14/14 green; docs updated with UNKNOWN + constraints; KANBAN/PLANS updated.
+- **Closure evidence:** pytest for the new tests and full pipeline; commits 2f37287f + 23421918 + prior; graft hits on dispatch/aether; plan file .hermes/plans/2026-10-09_172000-more-tests-enabled-aether-boundary-yggdrasil-dispatch.md
+- **Plan:** `.hermes/plans/2026-10-09_172000-more-tests-enabled-aether-boundary-yggdrasil-dispatch.md`
 
 ### P2 — Remaining Planned Engines Stubs + Integrations (chronos, resonance, aether)
 - **Status:** COMPLETE (2026-10-09)

@@ -12,7 +12,9 @@ from abraxas.evidence.semion_instrument import (
     MODEL_IDENTITY,
     SemionAuthorityError,
     adapt_observation,
+    classify_via_semion,
     instrument_enabled,
+    to_evidence_envelope,
 )
 
 
@@ -52,94 +54,13 @@ class SemionEvidenceProvider(EvidenceProvider):
                 uncertainty=1.0,
                 provenance={"status": "disabled"},
             )
-        # Real: obs = semion.classify(claim, context) from sibling Semion repo
-        # Placeholder observation shape from ARCHITECTURE / semion_q1_fixtures
+        # Deepened integration: delegate to instrument's live classify + envelope builder.
+        # classify_via_semion imports semion.classify from sibling when ABX_SEMION_INSTRUMENT=1 and package present.
         try:
-            obs = {
-                "authority": {
-                    "kind": "advisory",
-                    "source": "semion",
-                    "semantic_truth": False,
-                    "may_authorize": False,
-                    "may_mutate_governing_state": False,
-                    "role": "OBSERVATION",
-                },
-                "observation_id": request_id,
-                "sign_class": "qualisign-rheme-icon",
-                "sign_class_valid": True,
-                "sign_class_errors": [],
-                "interpretant_coherence": 1.0,
-                "representamen_object_alignment": 1.0,
-                "relation_steps": [
-                    {
-                        "relation": "resembles",
-                        "subject": "sign_a",
-                        "object": "sign_b",
-                        "result": "similar",
-                        "confidence": 0.9,
-                        "metadata": {},
-                    }
-                ],
-                "peircean_analysis": {
-                    "existence": "qualisign",
-                    "thirdness": "rheme",
-                    "relation": "icon",
-                    "valid_combination": True,
-                    "coherence_score": 0.95,
-                },
-                "provenance": {
-                    "instrument_version": "SEMION_SIGN_RELATION_V1",
-                    "contract_version": "semion.sign.v1",
-                },
-            }
-            adapted = adapt_observation(obs)
-
-            peircean = adapted.get("peircean_analysis") or {}
-            confidence = float(peircean.get("coherence_score") or 0.0)
-
-            steps = [
-                RelationStep(
-                    relation=str(step.get("relation")),
-                    subject=str(step.get("subject")),
-                    object=str(step.get("object")),
-                    result=str(step.get("result")),
-                    confidence=float(step.get("confidence") or 0.0),
-                    metadata=dict(step.get("metadata") or {}),
-                )
-                for step in adapted.get("relation_steps") or []
-            ]
-
-            return EvidenceEnvelope(
-                engine="semion",
-                engine_version=self.engine_version,
-                model_identity=self.get_model_identity(),
-                request_id=request_id,
-                claim=claim,
-                candidate_outputs=[
-                    CandidateOutput(
-                        answer=str(adapted.get("sign_class", "sign")),
-                        confidence=confidence,
-                        reasoning_trace="semion instrument: " + str(adapted.get("sign_class", "")),
-                        relation_steps=steps,
-                    )
-                ],
-                evidence_type=EvidenceType.SIGN_RELATION,
-                reasoning_steps=[],
-                relations=[str(step.get("relation")) for step in adapted.get("relation_steps") or []],
-                confidence=confidence,
-                uncertainty=1.0 - confidence,
-                decision_margin=0.0,
-                entropy=0.0,
-                provenance={
-                    "source": "semion_instrument",
-                    "contract": CONTRACT_VERSION,
-                    "lane": adapted.get("lane"),
-                    "influence_policy": adapted.get("influence_policy"),
-                    "sign_class": adapted.get("sign_class"),
-                    "sign_class_valid": adapted.get("sign_class_valid"),
-                    "status": adapted.get("status"),
-                },
-            )
+            atom = {"text": claim, "request_id": request_id, **{k: v for k, v in context.items() if isinstance(k, str)}}
+            raw = classify_via_semion(atom)
+            env = to_evidence_envelope(raw, request_id=request_id, claim=claim)
+            return env
         except SemionAuthorityError as e:
             return EvidenceEnvelope(
                 engine="semion",
@@ -151,7 +72,21 @@ class SemionEvidenceProvider(EvidenceProvider):
                 evidence_type=EvidenceType.SIGN_RELATION,
                 confidence=0.0,
                 uncertainty=1.0,
-                provenance={"error": str(e)},
+                provenance={"error": str(e), "status": "authority_violation"},
+            )
+        except Exception as e:
+            # ImportError, classify failure, etc. -> zero evidence envelope (shadow lane)
+            return EvidenceEnvelope(
+                engine="semion",
+                engine_version=self.engine_version,
+                model_identity=self.get_model_identity(),
+                request_id=request_id,
+                claim=claim,
+                candidate_outputs=[],
+                evidence_type=EvidenceType.SIGN_RELATION,
+                confidence=0.0,
+                uncertainty=1.0,
+                provenance={"error": str(e), "status": "classify_failed"},
             )
 
 

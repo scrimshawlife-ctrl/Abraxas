@@ -1,8 +1,19 @@
 # Abraxas Development Roadmap
 
 **Version:** 2.1.0
-**Last Updated:** 2025-12-29
+**Last Updated:** 2026-10-09
 **Philosophy:** Ordered by epistemic leverage, not engineering familiarity
+
+## 2026 Beta Readiness Reanalysis (2026-10-09, refreshed post-dispatch) — local head 8a500266 (CI main 24608f3a)
+- Graft index refreshed (build: 3907 files, 22100 nodes).
+- Engine topology: 9 LIVE (athanor, noesis, trutina, oracle, cypher, hyperlex, semion, chronos, resonance — sibling-spec grounded), 1 PLANNED (aether: refuses via AetherNotImplemented per sibling SPEC §5, MULTIMODAL_INTEGRATION).
+- KANBAN engine table synced to survey; test_engine_table_matches_survey now passes.
+- P0/P1 items + snapshot SLICE-1/2/3 COMPLETE (validator artifact linkage, correlation pointers, rune-aware surfacing, rune envelope, exact-match synthesis with blocker precedence; SLICE-2 broadened globs, SLICE-3 binding health alignment).
+- CI streak: 53 consecutive runs / 16.4h (head 10b13c81). Process assurance ~85%. Promotion preflight READY_CANDIDATE.
+- Docs/roadmap/board/BETA refreshed with current main (0d983992), graft, closures. All per TDD + graft-first.
+- Overall for public beta: ~50–55% (2–3 focused weeks per BETA_READINESS.md). 
+
+**Current Position:** Beta reanalysis complete — core spine + 9 engines + P0/P1 validator/snapshot hygiene locked. Next: sustained CI to 24h + operator-supervised shadow beta.
 
 ---
 

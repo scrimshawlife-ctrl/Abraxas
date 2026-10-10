@@ -18,4 +18,4 @@ promotion_requirements:
 revocation_triggers:
   - "shadow_leakage_into_forecast"
   - "fabricated_confidence_laundering"
-notes: "Deliberate PLANNED refusing boundary. See /Users/appliedalchemylabs/Aether/SPEC.md §4,§5 and docs/SIBLING_REPOS.md. No implementation. No governance record existed before this file."
+notes: "Deliberate PLANNED refusing boundary. See /Users/appliedalchemylabs/Aether/SPEC.md §4,§5 and docs/SIBLING_REPOS.md. No implementation. Dispatch in pipeline explicitly skips with dedicated except AetherNotImplemented. No governance record existed before this file. 2026-10-09: covered in yggdrasil dispatch deepening."

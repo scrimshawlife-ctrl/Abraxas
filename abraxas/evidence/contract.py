@@ -110,7 +110,10 @@ class EvidenceEnvelope:
             "claim": self.claim,
             "candidate_outputs": [c.__dict__ for c in self.candidate_outputs],
             "evidence_type": self.evidence_type.value,
-            "reasoning_steps": [s.__dict__ for s in self.reasoning_steps],
+            "reasoning_steps": [
+                (s.__dict__ if hasattr(s, "__dict__") else {"step": s})
+                for s in (self.reasoning_steps or [])
+            ],
             "relations": self.relations,
             "intermediate_states": self.intermediate_states,
             "confidence": self.confidence,
