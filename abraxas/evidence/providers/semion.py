@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType, RelationStep
+from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
 from abraxas.evidence.semion_instrument import (
-    CONTRACT_VERSION,
     ENGINE_VERSION,
     MODEL_IDENTITY,
     SemionAuthorityError,
-    adapt_observation,
+    adapt_observation,  # noqa: F401 -- retained as the provider's test seam
     classify_via_semion,
     instrument_enabled,
     to_evidence_envelope,

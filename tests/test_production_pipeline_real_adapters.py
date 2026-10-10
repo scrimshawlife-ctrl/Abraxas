@@ -86,9 +86,10 @@ def test_postgresql_domain_adapter_implements_interface():
 
 def test_pipeline_dispatches_to_planned_engines():
     """ProductionPipeline must dispatch to ALL 5 planned engines."""
-    from scripts.run_production_pipeline import ProductionPipeline
-    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     import tempfile
+
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    from scripts.run_production_pipeline import ProductionPipeline
     adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
     with tempfile.TemporaryDirectory() as td:
         pipeline = ProductionPipeline(adapters, output_dir=td)
@@ -103,7 +104,7 @@ def test_pipeline_dispatches_to_planned_engines():
 
 def test_ritual_preconditions_accept_engine_signals():
     """RitualEngine check_preconditions must accept engine evidence signals (resonance_confidence)."""
-    from abraxas.ritual import create_ritual_engine, RitualProtocol, RitualType
+    from abraxas.ritual import RitualProtocol, RitualType, create_ritual_engine
     engine = create_ritual_engine()
 
     proto = RitualProtocol(
@@ -131,9 +132,11 @@ def test_ritual_preconditions_accept_engine_signals():
 
 def test_full_cycle_engine_evidence_oracle_ritual_integration():
     """Full integration: 4 engines (aether refuses) -> oracle signal -> ritual wire -> evidence attach."""
-    from scripts.run_production_pipeline import ProductionPipeline
+    import json
+    import tempfile
+
     from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
-    import tempfile, json
+    from scripts.run_production_pipeline import ProductionPipeline
 
     adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
     with tempfile.TemporaryDirectory() as td:
@@ -168,6 +171,7 @@ def test_full_cycle_engine_evidence_oracle_ritual_integration():
 def test_aether_dispatch_has_specific_except():
     """The aether dispatch must catch AetherNotImplemented specifically, not just Exception."""
     import inspect
+
     from scripts.run_production_pipeline import ProductionPipeline
     src = inspect.getsource(ProductionPipeline._dispatch_to_engines)
     assert "except AetherNotImplemented" in src, (
@@ -177,9 +181,10 @@ def test_aether_dispatch_has_specific_except():
 
 def test_oracle_envelope_includes_engine_evidence():
     """_build_oracle_envelope must accept engine_evidence and embed it in oracle_signal."""
-    from scripts.run_production_pipeline import ProductionPipeline
-    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     import tempfile
+
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    from scripts.run_production_pipeline import ProductionPipeline
     adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
     with tempfile.TemporaryDirectory() as td:
         pipeline = ProductionPipeline(adapters, output_dir=td)
@@ -192,7 +197,6 @@ def test_oracle_envelope_includes_engine_evidence():
             f"_build_oracle_envelope must accept engine_evidence; got {params}"
         )
         # Verify engine_evidence reaches oracle output via envelope
-        oracle_bundle = result.get("oracle_bundle", {})
         oracle_envelope = result.get("oracle_envelope", {})
         oracle_signal = oracle_envelope.get("oracle_signal", {})
         eng_ev = oracle_signal.get("engine_evidence")
@@ -205,11 +209,12 @@ def test_oracle_envelope_includes_engine_evidence():
 
 def test_full_cycle_triggers_rituals_with_engine_evidence():
     """With engine evidence + multi-domain, at least one ritual (e.g. resonance_boost) must execute."""
-    from scripts.run_production_pipeline import ProductionPipeline
-    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
-    from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
-    from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
     import tempfile
+
+    from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
+    from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    from scripts.run_production_pipeline import ProductionPipeline
     adapters = {
         "politics": PoliticsDomainAdapter(domain="politics"),
         "media": MediaDomainAdapter(domain="media"),
@@ -230,9 +235,10 @@ def test_full_cycle_triggers_rituals_with_engine_evidence():
             assert any("RESONANCE" in str(n).upper() or "BOOST" in str(n).upper() for n in ritual_names), f"Expected resonance ritual, got {ritual_names}"
 
 def test_dispatch_to_engines_covers_all_live_engines_and_skips_aether():
-    from scripts.run_production_pipeline import ProductionPipeline
-    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     import tempfile
+
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    from scripts.run_production_pipeline import ProductionPipeline
     with tempfile.TemporaryDirectory() as td:
         adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
         p = ProductionPipeline(adapters, output_dir=td)
@@ -284,9 +290,10 @@ def test_full_enabled_path_coverage_all_live_except_aether(monkeypatch):
     import abraxas.evidence.providers.semion as semion_mod
     monkeypatch.setattr(semion_mod, "classify_via_semion", fake_semion_classify)
 
-    from scripts.run_production_pipeline import ProductionPipeline
-    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
     import tempfile
+
+    from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+    from scripts.run_production_pipeline import ProductionPipeline
     with tempfile.TemporaryDirectory() as td:
         adapters = {"politics": PoliticsDomainAdapter(domain="politics")}
         p = ProductionPipeline(adapters, output_dir=td)
@@ -327,7 +334,7 @@ def test_full_enabled_path_coverage_all_live_except_aether(monkeypatch):
         prov = getattr(c, "provenance", {}) or {}
         rune_chain = prov.get("rune_chain", [])
         assert len(rune_chain) == 4, f"Chronos rune_chain should have 4 steps, got {rune_chain}"
-        assert prov.get("not_computable") == False, f"Chronos not_computable but events provided: {prov}"
+        assert not prov.get("not_computable"), f"Chronos not_computable but events provided: {prov}"
         # Verify resonance has real detector path exercised with multi-domain
         resonance_envs = [e for e in ev if getattr(e, "engine", None) == "resonance"]
         assert resonance_envs, "Expected resonance in dispatched engines"

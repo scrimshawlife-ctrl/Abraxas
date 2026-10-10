@@ -1,12 +1,17 @@
 """Hyperlex Evidence Provider (LEXICAL_SEMANTIC) — consumes sibling instrument per SIBLING_REPOS."""
 from __future__ import annotations
+
 from typing import Any, Dict, List, Optional
-import os
+
 from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
-from abraxas.evidence.provider import EvidenceProvider
 from abraxas.evidence.hyperlex_instrument import (
-    instrument_enabled, adapt_observation, observe_text, HyperlexAuthorityError
+    HyperlexAuthorityError,
+    adapt_observation,
+    instrument_enabled,
+    observe_text,
 )
+from abraxas.evidence.provider import EvidenceProvider
+
 
 class HyperlexEvidenceProvider(EvidenceProvider):
     @property

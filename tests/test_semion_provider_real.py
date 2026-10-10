@@ -1,9 +1,7 @@
 # tests/test_semion_provider_real.py
 """Semion provider real test — mirrors test_hyperlex_provider_real.py pattern."""
-import os
-import pytest
-from abraxas.evidence.providers.semion import create_semion_adapter
 from abraxas.evidence.contract import EvidenceType
+from abraxas.evidence.providers.semion import create_semion_adapter
 
 
 def test_semion_provider_uses_instrument_when_enabled(monkeypatch):
@@ -29,8 +27,8 @@ def test_semion_provider_disabled_returns_zero_confidence():
 
 def test_semion_provider_authority_violation_handled(monkeypatch):
     """Authority violations are caught and returned as zero-confidence error envelope."""
-    from abraxas.evidence import semion_instrument
     import abraxas.evidence.providers.semion as semion_provider
+    from abraxas.evidence import semion_instrument
 
     monkeypatch.setenv("ABX_SEMION_INSTRUMENT", "1")
 
@@ -66,7 +64,7 @@ def test_semion_produce_evidence_uses_real_classify_when_enabled(monkeypatch):
     monkeypatch.setattr(semion_mod, "classify_via_semion", fake_classify)
 
     # Also mock to_evidence_envelope to return a proper envelope for the test
-    from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType, CandidateOutput
+    from abraxas.evidence.contract import CandidateOutput, EvidenceEnvelope, EvidenceType
     def fake_to_env(raw, request_id, claim):
         return EvidenceEnvelope(
             engine="semion",

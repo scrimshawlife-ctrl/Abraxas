@@ -322,7 +322,7 @@ def test_resonance_provider_minimal():
 
 def test_aether_provider_minimal():
     """Aether must raise on produce_evidence (deliberate refusing boundary per sibling SPEC)."""
-    from abraxas.evidence.providers.aether import create_aether_adapter, AetherNotImplemented
+    from abraxas.evidence.providers.aether import AetherNotImplemented, create_aether_adapter
     p = create_aether_adapter()
     assert p.engine_name == "aether"
     with pytest.raises(AetherNotImplemented):
@@ -331,8 +331,9 @@ def test_aether_provider_minimal():
 
 def test_planned_providers_are_callable_via_manifest():
     """Planned engines with declared impl must be instantiable and produce valid envelopes."""
-    from abraxas.engines.manifest import ENGINES, PLANNED, get
     from importlib import import_module
+
+    from abraxas.engines.manifest import ENGINES, PLANNED
     for spec in ENGINES:
         if spec.status != PLANNED or not spec.implementation:
             continue

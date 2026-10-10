@@ -34,7 +34,7 @@ def test_pipeline_produces_a_decision(pipeline_result):
 def test_evidence_comes_from_real_engines(pipeline_result):
     used = set(pipeline_result["engines_used"])
     assert used, "no engines contributed evidence"
-    from abraxas.engines.manifest import live_engines, planned_engines
+    from abraxas.engines.manifest import planned_engines
     STUBBED = {"chronos", "resonance", "aether", "semion", "hyperlex"}
     allowed = set(live_engines()) | (set(planned_engines()) & STUBBED)
     assert used <= allowed, (

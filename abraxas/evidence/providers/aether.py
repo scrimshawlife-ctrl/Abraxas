@@ -5,10 +5,12 @@ and never available. See /Users/appliedalchemylabs/Aether/SPEC.md and
 docs/SIBLING_REPOS.md.
 """
 from __future__ import annotations
+
 from typing import Any, Dict, List, Optional
 
-from abraxas.evidence.contract import EvidenceType
+from abraxas.evidence.contract import EvidenceEnvelope, EvidenceType
 from abraxas.evidence.provider import EvidenceProvider
+
 
 class AetherNotImplemented(NotImplementedError):
     """Raised by the aether boundary to signal no implementation exists.
