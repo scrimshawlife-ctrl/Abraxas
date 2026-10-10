@@ -3,10 +3,10 @@
 > Direction as of 2026-10-10: Abraxas is a forecasting engine for slang and memes, building a pre-registered, Brier-scored forecast record plus audited datasets and evals. See [docs/DIRECTION.md](docs/DIRECTION.md). Sections below record engineering history and may predate this direction.
 
 **Version:** 2.1.0
-**Last Updated:** 2026-10-09
+**Last Updated:** 2026-10-10
 **Philosophy:** Ordered by epistemic leverage, not engineering familiarity
 
-## 2026 Beta Readiness Reanalysis (2026-10-09, post PR 278) — main 0716e510 (CI main 0716e510)
+## 2026 Beta Readiness Reanalysis (2026-10-09, post PR 278; historical, beta milestone superseded 2026-10-10), main 0716e510 (CI main 0716e510)
 - Graft index refreshed (build: 3907 files, 22100 nodes).
 - Engine topology: 9 LIVE (athanor, noesis, trutina, oracle, cypher, hyperlex, semion, chronos, resonance — sibling-spec grounded), 1 PLANNED (aether: refuses via AetherNotImplemented per sibling SPEC §5, MULTIMODAL_INTEGRATION).
 - KANBAN engine table synced to survey; test_engine_table_matches_survey now passes.
@@ -17,12 +17,16 @@
 
 **Current Position:** Beta reanalysis complete — core spine + 9 engines + P0/P1 validator/snapshot hygiene locked. Post PR 278 + enabled coverage (f2f1273f): full dispatch, real paths for chronos/resonance. Next: grow CI streak to 24h bar (PR 279 merged), execute new P2 for more enabled coverage + ROADMAP polish (plan 2026-10-09_175257).
 
-## 2026-10+ Next Milestones (post PR 279)
-- Grow CI streak: target 24h sustained greens on main (poll scripts/ci_history.py after merges).
-- More enabled-path TDD: chronos/resonance full rune/phase coverage in pipeline + hyperlex/semion when ABX_*=1; full 9 LIVE exercised.
-- New P2 execution: per .hermes/plans/2026-10-09_175257-grow-streak-next-p2-more-enabled-coverage-roadmap.md (streak + coverage + ROADMAP detail).
-- ROADMAP: concrete evidence links, streak target, operator beta lane.
-- Reanalyze BETA/KANBAN when streak hits 24h or new closures.
+## Next milestones (replaced 2026-10-10): S1 and S2 gates
+
+The CI-streak, enabled-coverage and public-beta milestones that stood here were replaced on 2026-10-10 (decision D-2026-10-10, see [docs/DECISIONS.md](docs/DECISIONS.md)). Keeping CI green stays a working rule, not a roadmap goal. Day counts start 2026-10-10.
+
+| Stage | What it delivers | Gate (all must pass) | Window |
+|---|---|---|---|
+| S1. Forecast record and evals | Append-only forecast ledger (hash, timestamp, resolution date and rule fixed before the outcome) for adoption, lifespan, mutation and crossover forecasts; meme schema; dataset audit cards; eval registry; ledger taint fields; Pawl protecting the ledger | 300 slang and 300 meme forecasts registered; 0 edited after registration (hash check); one audit card per dataset; Pawl blocks a seeded tamper test in CI; 100 forecasts resolved | Days 0 to 45 |
+| S2. Scored engine | Monthly Brier score vs base rate per domain and forecast type, losses included; 3-model benchmark card; backtests; tainted forecasts scored separately | 300+ resolved; per-domain Brier published monthly; benchmark card rerunnable from hashes; written model go/no-go with its bar set in advance | Days 30 to 90 |
+
+Freeze: no new engines until 2026-11-09. After that, new engine or capability work follows the resumption rule in [docs/DIRECTION.md](docs/DIRECTION.md).
 
 ---
 
