@@ -27,3 +27,15 @@ def test_aether_behavioral_verification_deliberately_absent():
     """Per Aether/SPEC.md §6: behavioral tests (fusion correctness etc.) are absent
     because the engine does not exist. This test documents the UNKNOWN."""
     assert True  # placeholder asserting the declared state
+
+def test_aether_never_returns_envelope_always_raises():
+    """Aether boundary must always raise, never return an EvidenceEnvelope.
+    This enforces the refusing spec per sibling Aether/SPEC.md §5."""
+    provider = create_aether_adapter()
+    with pytest.raises(AetherNotImplemented) as exc:
+        provider.produce_evidence("r1", "claim", {"modalities": {"text": "foo"}})
+    msg = str(exc.value)
+    assert "not_implemented" in msg.lower()
+    assert "per-modality provenance" in msg or "fail closed" in msg
+    # Explicitly ensure no envelope was returned (the raise is the contract)
+    assert "EvidenceEnvelope" not in str(type(exc.value))
