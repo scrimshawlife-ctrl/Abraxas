@@ -1,6 +1,6 @@
 # Direction: a forecasting engine for slang and memes
 
-Status date: 2026-10-10. This page states where Abraxas is going and what exists today. It claims nothing beyond the repository.
+Status date: 2026-10-10. Decisions behind this page: [DECISIONS.md](DECISIONS.md). This page states where Abraxas is going and what exists today. It claims nothing beyond the repository.
 
 ## What Abraxas is for
 
@@ -25,6 +25,25 @@ A meme is treated as an evolving information structure: unit, carrier, hook, pay
 4. A model later, and only if a go/no-go check passes: enough settled examples and a bar set in advance.
 
 The code stays MIT. The forecast record and datasets are kept private; scores are published.
+
+## Taint rule for memetic operations
+
+Memetic operations (campaign or content routing) may be allowed later, under one rule. Any forecast that a campaign run by us or our partners could have influenced is flagged as tainted in the ledger, scored separately, and never counts as independent confirmation of a forecast or a method. Operations stay off until the ledger has taint fields (at minimum: tainted yes or no, the campaign or intervention reference, and when the exposure started).
+
+## Freeze and resumption rule
+
+No new engines until 2026-11-09. After that, new engine or capability work may start only if all four hold:
+
+1. The S1 gate in [ROADMAP.md](../ROADMAP.md) is passed or on track (forecasts registered, 0 edits, Pawl tamper test green).
+2. It names the forecast type (adoption, lifespan, mutation, crossover) and domain it improves, and a Brier or eval bar, set in advance, that it must beat.
+3. It plugs into an existing slot (the model-agnostic adapter or an evidence provider) where possible instead of adding a top-level engine.
+4. Its output stays shadow and `valid_for_forecast=false` until it beats that bar on settled forecasts.
+
+`aether` (multimodal) is deferred until image memes are approved.
+
+## Repositories
+
+This repository (Zero-State-LLC/Abraxas) is canonical for code, runtime and the forecast record. [Abraxas-v2.0](https://github.com/Zero-State-LLC/Abraxas-v2.0) is doctrine only (settlement doctrine, LAB/RESEARCH/FIELD separation); its rules may be carried over as text, not as code.
 
 ## Planned NVIDIA path
 
