@@ -15,7 +15,6 @@ from abraxas.adapters.domain_data import DomainDataAdapter, MockDomainAdapter
 from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
 from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
 from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
-from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
 from abraxas.core.temporal_tau import Observation, TauCalculator
 from abraxas.evidence.providers.aether import AetherNotImplemented
 from abraxas.phase.detector import create_phase_detector
@@ -349,7 +348,11 @@ def main():
         elif domain == "finance":
             adapters[domain] = FinanceDomainAdapter(domain=domain)
         elif domain == "postgresql":
-            adapters[domain] = PostgreSQLDomainAdapter(dsn="postgresql://test:***@localhost/test", domain_name=domain)
+            from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
+
+            adapters[domain] = PostgreSQLDomainAdapter(
+                dsn="postgresql://test:***@localhost/test", domain_name=domain
+            )
         else:
             # Debt resolved: real adapters not yet implemented for production.
             # Raise clearly instead of silent mock fallback.

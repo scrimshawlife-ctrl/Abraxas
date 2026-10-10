@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -36,6 +40,59 @@ def test_main_uses_real_adapter_for_politics_when_not_mock():
              patch("scripts.run_production_pipeline.PoliticsDomainAdapter") as mock_adapter:
             main()
             mock_adapter.assert_called_once_with(domain="politics")
+
+
+def test_mock_pipeline_does_not_require_postgres_driver(tmp_path: Path) -> None:
+    """Mock mode must not import the optional PostgreSQL driver."""
+    code = textwrap.dedent(
+        f"""
+        import importlib.abc
+        import sys
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        class BlockAsyncpg(importlib.abc.MetaPathFinder):
+            def find_spec(self, fullname, path=None, target=None):
+                if fullname == "asyncpg":
+                    raise ModuleNotFoundError("asyncpg blocked by regression test")
+                return None
+
+        sys.meta_path.insert(0, BlockAsyncpg())
+
+        import scripts.run_production_pipeline as runner
+
+        class NoopPipeline:
+            def __init__(self, **kwargs):
+                pass
+
+            def run_forever(self):
+                pass
+
+        runner.ProductionPipeline = NoopPipeline
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=SimpleNamespace(
+                domains=["politics", "media", "finance"],
+                mock=True,
+                output={str(tmp_path)!r},
+                interval=1,
+            ),
+        ):
+            runner.main()
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        f"mock pipeline required asyncpg:\nstdout={result.stdout}\nstderr={result.stderr}"
+    )
+
+
 def test_media_domain_adapter_implements_interface():
     """Real adapter for media domain must produce valid DomainSnapshot."""
     from abraxas.adapters.domain_data import DomainSnapshot
