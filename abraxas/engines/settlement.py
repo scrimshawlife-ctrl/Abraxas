@@ -11,6 +11,8 @@ its own docstring was written to fix.
 A `settled` value MUST cite evidence. The literature measured that documentation fields covering
 limitations and evaluation have the lowest fill-out rates in the wild, so a field like this decays
 unless something enforces it -- the tests do.
+
+aether is deliberately the refusing PLANNED case (see sibling SPEC §5). chronos/resonance now have real providers; aether remains the fail-closed example. They are intentionally UNSETTLED on empirical/economic.
 """
 
 from __future__ import annotations

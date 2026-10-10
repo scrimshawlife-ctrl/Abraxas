@@ -38,3 +38,12 @@ __all__ = [
     "ExecutionValidationResult",
     "ExecutionValidationStatus",
 ]
+
+
+def wrap_in_rune_envelope(artifact: dict, rune_id: str) -> dict:
+    """Shared rune artifact envelope (P1 execution artifact generation integration)."""
+    return {
+        "rune_id": rune_id,
+        "payload": artifact,
+        "schema": "rune_execution_artifact.v1",
+    }

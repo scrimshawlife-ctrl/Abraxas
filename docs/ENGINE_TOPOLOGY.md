@@ -12,17 +12,17 @@ Yggdrasil's coordinator declared this set (`default_engines`). It is the archite
 intended topology:
 
 | Engine | Status | Evidence type | Implementation | Inference |
-|---|---|---|---|---|
+|---:|---|---|---|---|
 | `athanor` | **live** | RELATIONAL_REASONING | `abraxas.evidence.provider:create_athanor_adapter` | **model-agnostic** |
 | `noesis` | **live** | LATENT_STRUCTURAL | `abraxas.evidence.verifiers.latent:NoesisEvidenceProvider` | none — consumes supplied captures |
 | `trutina` | **live** | CALIBRATION | `abraxas.evidence.providers.trutina:TrutinaEvidenceProvider` | none — scores given forecasts |
 | `oracle` | **live** | NARRATIVE_SYNTHESIS | `abraxas.evidence.adapters.oracle:create_oracle_adapter` | **model-agnostic** |
 | `cypher` | **live** | PERSISTENT_MEMORY | `abraxas.evidence.adapters.cypher:create_cypher_adapter` | none — reads the memory layer |
-| `hyperlex` | planned | LEXICAL_SEMANTIC | test-local class only | feature-gated package call |
-| `semion` | planned | SIGN_RELATION | test-local class only; an instrument now exists (`abraxas/evidence/semion_instrument.py`) | none — consumes a sign frame |
-| `chronos` | planned | — | none found | none — rune orchestration |
-| `resonance` | planned | — | none found | none — phase detectors |
-| `aether` | planned | — | none in this repo; its own repository carries a spec plus a provider that RAISES | n/a — refuses |
+| `hyperlex` | **live** | LEXICAL_SEMANTIC | `abraxas.evidence.providers.hyperlex:create_hyperlex_adapter` (sibling-spec + in-tree instrument) | feature-gated package call · `~/Hyperlex/` |
+| `semion` | **live** | SIGN_RELATION | `abraxas.evidence.providers.semion:create_semion_adapter` (sibling-spec + in-tree instrument) | none — consumes a sign frame · `~/Semion/` |
+| `chronos` | **live** | TEMPORAL_REASONING | `abraxas.evidence.providers.chronos:create_chronos_adapter` (sibling-spec + in-tree rune compose) | none — rune orchestration · `~/Chronos/` |
+| `resonance` | **live** | RESONANCE_ANALYSIS | `abraxas.evidence.providers.resonance:create_resonance_adapter` (sibling-spec + in-tree phase compose) | none — phase detectors · `~/Resonance/` |
+| `aether` | planned | MULTIMODAL_INTEGRATION | `abraxas.evidence.providers.aether:create_aether_adapter` (refuses via AetherNotImplemented per sibling SPEC) | n/a — refuses |
 
 Implementation paths are copied from the manifest, and
 `tests/test_engine_manifest_agreement.py` *resolves* each one — so a wrong path fails the
@@ -94,7 +94,7 @@ through the injection point: a callable that declares its own `model_identity` a
 
 Two ideas that used to be one object. The registry now separates them:
 
-| | Meaning | Where |
+|  Meaning | Where |
 |---|---|---|
 | **addressable** | the name is registered, so topology and tooling can see it | `registry.is_engine_registered` |
 | **available** | a real `EvidenceProvider` exists and it may produce evidence | `registry.is_engine_available` |

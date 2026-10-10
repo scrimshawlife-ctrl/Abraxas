@@ -1,6 +1,7 @@
 """Test for PostgreSQLDomainAdapter"""
-import pytest
 import asyncio
+
+import pytest
 
 # asyncpg is an optional dependency (the [postgres] extra). A missing optional
 # dependency must SKIP this module -- the bare module-scope import used to
@@ -8,9 +9,10 @@ import asyncio
 # --ignore and CI could never see the whole test suite.
 pytest.importorskip("asyncpg")
 
-from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
-from abraxas.adapters.domain_data import DomainSnapshot, DomainTokenState
 from datetime import datetime, timezone
+
+from abraxas.adapters.domain_data import DomainSnapshot, DomainTokenState
+from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
 
 
 def test_adapter_instantiation():
@@ -164,6 +166,15 @@ def test_factory_function_production():
         for var in ['ABRAXAS_ENV', 'ABRAXAS_POSTGRES_DSN', 'ABRAXAS_DOMAIN_NAME']:
             if var in os.environ:
                 del os.environ[var]
+
+
+def test_postgresql_is_intentional_abstract():
+    """Ensure postgresql follows the intentional_abstract pattern like other domains."""
+    adapter = PostgreSQLDomainAdapter("postgresql://test:***@localhost/test", "test_domain")
+    # Marker must be present as class attr or doc for taxonomy
+    assert hasattr(adapter, "intentional_abstract") or "intentional_abstract" in (adapter.__doc__ or "")
+    state = adapter.fetch_current_state()
+    assert state.source == "postgresql"
 
 
 if __name__ == "__main__":

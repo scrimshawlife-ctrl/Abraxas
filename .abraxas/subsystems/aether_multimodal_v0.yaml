@@ -1,0 +1,21 @@
+subsystem_id: aether_multimodal_v0
+canon_status: additive_ambiguity_preservation
+tier: advisory
+drop_status: active
+code_authorized: false
+lane: shadow
+promotion_state: candidate
+revocation_state: clear
+release_readiness: blocked
+allowed_change_classes: ["additive_patch"]
+restricted_change_classes: ["authority_surface_drift", "forecast_active_change"]
+required_receipts: []
+receipt_overrides: {}
+promotion_requirements:
+  - "shadow_only_until_explicit_promotion"
+  - "no_forecast_influence"
+  - "fusion_policy_before_encoders"
+revocation_triggers:
+  - "shadow_leakage_into_forecast"
+  - "fabricated_confidence_laundering"
+notes: "Deliberate PLANNED refusing boundary. See /Users/appliedalchemylabs/Aether/SPEC.md §4,§5 and docs/SIBLING_REPOS.md. No implementation. No governance record existed before this file."

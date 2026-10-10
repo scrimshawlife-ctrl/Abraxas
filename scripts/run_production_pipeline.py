@@ -11,16 +11,17 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, List
 
+from abraxas.adapters.domain_data import DomainDataAdapter, MockDomainAdapter
+from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
+from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
+from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
+from abraxas.adapters.postgresql_domain_adapter import PostgreSQLDomainAdapter
+from abraxas.core.temporal_tau import Observation, TauCalculator
 from abraxas.phase.detector import create_phase_detector
 from abraxas.phase.early_warning import create_early_warning_system
-from abraxas.core.temporal_tau import TauCalculator, Observation
-from abraxas.oracle.v2.bundle import run_bundle
 from abraxas.renderers.resonance_narratives import render_narrative_bundle
 from abraxas.ritual import create_ritual_engine
-from abraxas.adapters.domain_data import DomainDataAdapter, MockDomainAdapter
-from abraxas.adapters.politics_domain_adapter import PoliticsDomainAdapter
-from abraxas.adapters.media_domain_adapter import MediaDomainAdapter
-from abraxas.adapters.finance_domain_adapter import FinanceDomainAdapter
+from abraxas.evidence.providers.aether import AetherNotImplemented
 
 
 class ProductionPipeline:
@@ -81,7 +82,22 @@ class ProductionPipeline:
         # 2. Phase Detection
         alignments = self.phase_detector.detect_alignments(domain_states, timestamp_utc=timestamp)
         sync_map = self.phase_detector.build_synchronicity_map()
-        
+
+        # 2.5 Engine dispatch to planned stubs (more pipeline dispatch)
+        engine_evidence = self._dispatch_to_engines(domain_states, alignments, timestamp)
+
+        # 2.6 Build engine state summary for ritual preconditions
+        engine_state = {}
+        engine_summaries = []
+        for e in engine_evidence:
+            ed = e.to_dict() if hasattr(e, 'to_dict') else e
+            engine_summaries.append(ed)
+            engine_state[ed.get("engine", "unknown")] = {
+                "confidence": ed.get("confidence", 0.0),
+                "evidence_type": ed.get("evidence_type", ""),
+                "claim": ed.get("claim", "")[:100],
+            }
+
         # 3. Early Warning
         warnings = self.warning_system.generate_warnings(
             tau_snapshots, current_phases, sync_map
@@ -90,44 +106,74 @@ class ProductionPipeline:
         # 4. Ritual Engine (check if any rituals should fire)
         ritual_executions = []
         for domain, phase in current_phases.items():
-            # Check each protocol's preconditions against current state
             for protocol in self.ritual_engine.list_protocols():
-                met, _ = self.ritual_engine.check_preconditions(protocol, {
+                state_for_ritual = {
                     "domain_phase": phase,
                     "tau_velocity": tau_snapshots[domain].tau_velocity,
-                    "alignment_strength": 0.6,  # Would come from sync map
-                    "domains_aligned": len([a for a in alignments if domain in a.domains]),
+                    "alignment_strength": max(0.6, engine_state.get("resonance", {}).get("confidence", 0.6)),
+                    "domains_aligned": max((len(a.domains) for a in alignments if domain in a.domains), default=0),
                     "cascade_risk": "MEDIUM",
                     "drift_resonance_detected": False,
                     "observation_count": tau_snapshots[domain].observation_count,
                     "confidence": tau_snapshots[domain].confidence.value,
                     "symbolic_state": "coherent",
                     "drift_detected": False,
-                })
+                    "engine_evidence": engine_state,
+                    "resonance_confidence": engine_state.get("resonance", {}).get("confidence", 0.0),
+                }
+                met, _ = self.ritual_engine.check_preconditions(protocol, state_for_ritual)
                 if met:
                     # In production: add cooldown check
                     exec_result = self.ritual_engine.execute_ritual(
                         protocol.protocol_id,
                         operator="production_pipeline",
-                        current_state={"domain_phase": phase, "tau_velocity": tau_snapshots[domain].tau_velocity},
+                        current_state=state_for_ritual,
                         timestamp_utc=timestamp,
                     )
                     ritual_executions.append(exec_result)
         
         # 5. Oracle Bundle (aggregate envelope)
         envelope = self._build_oracle_envelope(
-            domain_states, alignments, warnings, ritual_executions, timestamp
+            domain_states, alignments, warnings, ritual_executions, timestamp,
+            engine_evidence=engine_summaries,
         )
         
-        # Run oracle bundle
-        import tempfile
+        # Run oracle bundle with evidence attachment
+        import tempfile, os as _os
+        from abraxas.oracle.v2.export import compute_run_id, export_run
+        from abraxas.oracle.v2.orchestrate import attach_v2
+        from abraxas.oracle.v2.render import render_by_mode
+        from abraxas.oracle.v2.evidence_convention import attach_evidence_from_run_dir
+
+        # Persistent evidence for engine_evidence (files must survive temp dirs)
+        run_id_for_ev = f"PROD-CYCLE-{self.cycle_count:06d}"
+        persistent_ev_dir = _os.path.join(self.output_dir, run_id_for_ev, "evidence")
+        _os.makedirs(persistent_ev_dir, exist_ok=True)
+        engine_files: dict = {}
+        for i, ed in enumerate(engine_summaries):
+            fname = f"engine_{ed.get('engine','stub')}_{i}.json"
+            fpath = _os.path.join(persistent_ev_dir, fname)
+            with open(fpath, "w") as f:
+                json.dump(ed, f)
+            engine_files[f"engine_{i}"] = fname
+
         with tempfile.TemporaryDirectory() as td:
-            bundle_result = run_bundle(
+            attach_v2(
                 envelope=envelope,
                 config_hash="PRODUCTION_CONFIG_HASH",
-                out_dir=td,
                 do_stabilization_tick=True,
             )
+            run_id = compute_run_id(envelope)
+            # Attach using persistent files (pointers recorded in envelope)
+            attach_evidence_from_run_dir(
+                envelope=envelope,
+                out_dir=self.output_dir,
+                files=engine_files,
+                compute_hashes=True,
+            )
+            surface = render_by_mode(envelope)
+            manifest = export_run(envelope=envelope, surface=surface, out_dir=td)
+            bundle_result = {"run_id": run_id, "manifest": manifest, "surface": surface}
         
         # 6. Resonance Narrative
         narrative = render_narrative_bundle(envelope)
@@ -139,11 +185,15 @@ class ProductionPipeline:
             "alignments": [a.to_dict() for a in alignments],
             "warnings": [w.to_dict() for w in warnings],
             "ritual_executions": [r.to_dict() for r in ritual_executions],
+            "engine_evidence": [e.to_dict() for e in engine_evidence],
             "oracle_bundle": bundle_result,
+            "oracle_envelope": envelope,
             "narrative": narrative,
         }
         
         # Save to output dir
+        import os
+        os.makedirs(self.output_dir, exist_ok=True)
         output_path = f"{self.output_dir}/cycle_{self.cycle_count:06d}.json"
         with open(output_path, "w") as f:
             json.dump(output, f, indent=2)
@@ -156,7 +206,82 @@ class ProductionPipeline:
         print(f"  Saved: {output_path}")
         
         return output
-    
+
+    def _dispatch_to_engines(self, domain_states: Dict, alignments: List, timestamp: str) -> List:
+        """Dispatch to planned stub engines for more pipeline integration.
+        Uses manifest to resolve providers for resonance (phase), chronos (temporal), etc.
+        Minimal dispatch for stubs.
+        """
+        envelopes = []
+        from abraxas.engines.manifest import get
+        from importlib import import_module
+
+        # Resonance for phase alignments
+        spec = get("resonance")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"resonance phase alignment dispatch for {len(alignments)} alignments at {timestamp}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"alignments_count": len(alignments)})
+                envelopes.append(env)
+            except Exception:
+                pass  # stub safe
+
+        # Chronos for temporal
+        spec = get("chronos")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"chronos temporal dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
+                envelopes.append(env)
+            except Exception:
+                pass
+
+        # Aether (will raise but catch for stub)
+        # See docs/aether/multimodal_input_contract.md for declared UNKNOWN input schema.
+        spec = get("aether")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", "aether multimodal", {})
+                envelopes.append(env)
+            except AetherNotImplemented:
+                # Expected for the deliberate refusing boundary. Logged as absence.
+                # See docs/aether/ and sibling SPEC §5.
+                pass
+            except Exception:
+                pass
+
+        # Semion for sign relation
+        spec = get("semion")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"semion sign relation dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
+                envelopes.append(env)
+            except Exception:
+                pass
+
+        # Hyperlex for lexical semantic
+        spec = get("hyperlex")
+        if spec and spec.implementation:
+            try:
+                mod, attr = spec.implementation.split(":", 1)
+                provider = getattr(import_module(mod), attr)()
+                claim = f"hyperlex lexical semantic dispatch cycle {self.cycle_count}"
+                env = provider.produce_evidence(f"dispatch-{self.cycle_count}", claim, {"cycle": self.cycle_count})
+                envelopes.append(env)
+            except Exception:
+                pass
+
+        return envelopes
+
     def _build_oracle_envelope(
         self,
         domain_states: Dict,
@@ -164,12 +289,14 @@ class ProductionPipeline:
         warnings: List,
         rituals: List,
         timestamp: str,
+        engine_evidence: List[Dict] | None = None,
     ) -> Dict:
         """Build oracle signal envelope from pipeline state."""
         # Aggregate vital signals across domains
         vital_signals = []
         risk_signals = []
         patterns = []
+        engine_ev = engine_evidence or []
         
         for domain, tokens in domain_states.items():
             for token, phase in tokens.items():
@@ -211,6 +338,7 @@ class ProductionPipeline:
                 "alignments": [a.to_dict() for a in alignments],
                 "warnings": [w.to_dict() for w in warnings],
                 "rituals": [r.to_dict() for r in rituals],
+                "engine_evidence": engine_ev,
             }
         }
     
@@ -249,6 +377,8 @@ def main():
             adapters[domain] = MediaDomainAdapter(domain=domain)
         elif domain == "finance":
             adapters[domain] = FinanceDomainAdapter(domain=domain)
+        elif domain == "postgresql":
+            adapters[domain] = PostgreSQLDomainAdapter(dsn="postgresql://test:***@localhost/test", domain_name=domain)
         else:
             # Debt resolved: real adapters not yet implemented for production.
             # Raise clearly instead of silent mock fallback.

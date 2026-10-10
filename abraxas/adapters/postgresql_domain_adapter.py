@@ -1,12 +1,25 @@
-"""Production DomainDataAdapter - connects to PostgreSQL for live data."""
-from abraxas.adapters.domain_data import DomainDataAdapter, DomainSnapshot, DomainTokenState
-from typing import Any, Dict, List
-import asyncio
-import asyncpg
+"""Production DomainDataAdapter - connects to PostgreSQL for live data.
+
+Follows DomainDataAdapter interface. Intentionally minimal — stub taxonomy
+classifies this as 'intentional_abstract' until live data sources are wired.
+
+intentional_abstract: returns minimal valid snapshots until live data source is wired
+"""
 from datetime import datetime, timezone
+from typing import Any, Dict, List
+
+import asyncpg
+
+from abraxas.adapters.domain_data import DomainDataAdapter, DomainSnapshot, DomainTokenState
+
 
 class PostgreSQLDomainAdapter(DomainDataAdapter):
-    """Production adapter - connects to PostgreSQL for artifact metadata."""
+    """Production adapter - connects to PostgreSQL for artifact metadata.
+
+    Returns minimal valid snapshots until a live data source is wired.
+
+    intentional_abstract: returns minimal valid snapshots until live data source is wired
+    """
     
     def __init__(self, dsn: str, domain_name: str = "production"):
         self.dsn = dsn

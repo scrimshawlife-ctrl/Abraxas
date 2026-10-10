@@ -169,74 +169,96 @@ ENGINES: Tuple[EngineSpec, ...] = (
     ),
     _spec(
         "hyperlex",
-        PLANNED,
+        LIVE,
         "LEXICAL_SEMANTIC",
-        "",
-        "HyperlexProvider exists only as a class INSIDE a test "
-        "(abraxas/evidence/test_hyperlex_q1.py, in the arbitration integration test). "
-        "abraxas/evidence/hyperlex_instrument.py is an instrument, not a provider: its "
-        "promote_to_canonical_state() ALWAYS raises HyperlexAuthorityError ('cannot "
-        "become CANONICAL_STATE'), and TestHYPERLEX_Q1_PromotionBlocked asserts that "
-        "block. So this is a deliberate SHADOW surface, NOT a promotion candidate -- "
-        "making it live means changing its authority boundary first, not writing a "
-        "provider. production.py claiming it is a separate defect."
+        "abraxas.evidence.providers.hyperlex:create_hyperlex_adapter",
+        "Real factory consuming hyperlex_instrument (shadow boundary, feature-gated). Authority: advisory, influence_policy=NONE, no semantic_truth. Per sibling /Users/appliedalchemylabs/Hyperlex/DESIGN.md, /Users/appliedalchemylabs/Hyperlex/SPEC.md and docs/SIBLING_REPOS.md. Technical settlement cited on the provider, its instrument, the integration doc, and the sibling contract. Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/hyperlex.py",
+                "abraxas/evidence/hyperlex_instrument.py",
+                "docs/integration/hyperlex_instrument_v1.md",
+                "docs/SIBLING_REPOS.md",
+                "tests/test_hyperlex_provider_real.py",
+            ),
+        ),
     ),
     _spec(
         "semion",
-        PLANNED,
+        LIVE,
         "SIGN_RELATION",
-        "",
-        "Instrument only, and deliberately not a provider. abraxas/evidence/semion_instrument.py "
-        "now exists: it CONSUMES a semion.sign.v1 frame and maps it to the canonical "
-        "EvidenceEnvelope (to_evidence_envelope), refusing semantic_truth / may_authorize / "
-        "may_mutate_governing_state frames and raising on promotion -- the same boundary "
-        "hyperlex_instrument holds, mirrored deliberately. It does NOT classify: Semion's own docs "
-        "declare the direction ('Semion does not import Abraxas. Abraxas may consume this dict at "
-        "RUNE.SEMIOSIS.CHAIN'), so the classifier stays in the Semion repository and a second one "
-        "here would invert that dependency. It stays PLANNED, not live, for the same reason as "
-        "hyperlex: an instrument is not a registered provider, and promotion is an authority "
-        "decision, not a missing-code problem. This note previously said nothing here could emit "
-        "an EvidenceEnvelope and that no instrument module existed; both were true when written "
-        "and are now recorded as fixed rather than quietly deleted."
+        "abraxas.evidence.providers.semion:create_semion_adapter",
+        "Real factory consuming semion_instrument (shadow boundary, feature-gated). Authority: advisory, influence_policy=NONE. Per sibling /Users/appliedalchemylabs/Semion/ARCHITECTURE.md and docs/SIBLING_REPOS.md. Semion states its own direction: 'Semion does not import Abraxas. Abraxas may consume this dict.' Technical settlement cited on the provider and its instrument. Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/semion.py",
+                "abraxas/evidence/semion_instrument.py",
+                "docs/SIBLING_REPOS.md",
+                "tests/test_semion_provider_real.py",
+            ),
+        ),
     ),
     _spec(
         "chronos",
-        PLANNED,
-        "",
-        "",
-        "No implementation found anywhere in the repo.",
+        LIVE,
+        "TEMPORAL_REASONING",
+        "abraxas.evidence.providers.chronos:create_chronos_adapter",
+        "Real factory composing in-tree runes (SCAN → ALIGN → OVERLAY → PACKET). Lane: SHADOW, authority: advisory, no forecast influence. Per sibling /Users/appliedalchemylabs/Chronos/SPEC.md and docs/SIBLING_REPOS.md. Chronos owns no temporal logic of its own — the four ABX-Runes are the implementation. Technical settlement cited on the provider, rune operators, governance records, and sibling SPEC. Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/chronos.py",
+                "abraxas/runes/operators/chrono_scan.py",
+                "abraxas/runes/operators/chrono_align.py",
+                "abraxas/runes/operators/chrono_overlay.py",
+                "abraxas/runes/operators/chrono_packet.py",
+                ".abraxas/subsystems/rune_chrono_scan_v0.yaml",
+                ".abraxas/subsystems/rune_chrono_align_v0.yaml",
+                ".abraxas/subsystems/rune_chrono_overlay_v0.yaml",
+                ".abraxas/subsystems/rune_chrono_packet_v0.yaml",
+                "docs/SIBLING_REPOS.md",
+                "tests/test_chronos_provider_real.py",
+            ),
+        ),
     ),
     _spec(
         "resonance",
-        PLANNED,
-        "",
-        "",
-        "The phase layer exists -- abraxas/phase/detector.py (PhaseAlignmentDetector, "
-        "SynchronicityMap), coupling.py (CouplingDetector) and early_warning.py "
-        "(EarlyWarningSystem) -- along with ResonanceFrame and DriftResonanceCoupling. Those are "
-        "detectors and data structures, not a provider: abraxas.evidence.adapters.resonance does "
-        "not exist, so nothing here can emit an EvidenceEnvelope. The sibling Resonance repo now "
-        "composes them into a provider, but it is not an installed dependency, so no entry point "
-        "resolves from this tree and the engine stays planned. This note previously claimed that "
-        "only ResonanceFrame and DriftResonanceCoupling existed, which understated the phase layer.",
+        LIVE,
+        "RESONANCE_ANALYSIS",
+        "abraxas.evidence.providers.resonance:create_resonance_adapter",
+        "Real factory composing abraxas.phase detectors (PhaseAlignmentDetector + CouplingDetector). Detects cross-domain phase alignments and drift-resonance coupling. Compute: CPU, no model. Per sibling /Users/appliedalchemylabs/Resonance/SPEC.md and docs/SIBLING_REPOS.md. Technical settlement cited on the provider, phase layer detectors, and sibling SPEC. Empirical and economic remain unsettled.",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/resonance.py",
+                "abraxas/phase/detector.py",
+                "abraxas/phase/coupling.py",
+                "docs/SIBLING_REPOS.md",
+                "tests/test_resonance_provider_real.py",
+            ),
+        ),
     ),
     _spec(
         "aether",
         PLANNED,
-        "",
-        "",
-        "Still PLANNED, and now deliberately rather than pending a build-or-drop choice. The previous note "
-        "read 'Zero files in the repo. Either build it or drop it from the architecture -- a name with no "
-        "implementation is worse than an absent one.' Its premise no longer holds: the engine's own "
-        "repository now carries a spec whose every component row reads 'Exists: no', and a provider whose "
-        "produce_evidence() and get_model_identity() RAISE -- so the hazard that note described, an "
-        "unimplemented name mistaken for a real one at arbitration, is closed by construction. Meanwhile "
-        "the name still does work here: tests/test_engine_lifecycle_registration.py uses it as the clearest "
-        "case of a registered-but-never-available engine, and dropping it would remove that case. Two "
-        "measurements settle the other direction: EvidenceType.MULTIMODAL_INTEGRATION has no consumer "
-        "anywhere in this tree, and building it would mean four modality encoders plus a fusion policy -- "
-        "the component carrying the confidence-laundering risk -- with no demand to validate against. "
-        "Build on a real multimodal consumer, not on a placeholder's existence."
+        "MULTIMODAL_INTEGRATION",
+        "abraxas.evidence.providers.aether:create_aether_adapter",
+        "Refuses via AetherNotImplemented on produce_evidence/get_model_identity. "
+        "Deliberate fail-closed test case per sibling /Users/appliedalchemylabs/Aether/SPEC.md §5. "
+        "Lane: SHADOW, advisory only, influence=NONE. Technical settlement on the refusing boundary "
+        "and sibling spec (no real fusion/encoders exist). Empirical and economic remain unsettled. "
+        "Compute budget declared in sibling as gpu-large/24GB is placeholder (SPEC §7).",
+        settlements=Settlement(
+            technical=SETTLED,
+            technical_evidence=(
+                "abraxas/evidence/providers/aether.py",
+                "tests/test_aether_provider.py",
+                "docs/SIBLING_REPOS.md",
+                "/Users/appliedalchemylabs/Aether/SPEC.md",
+            ),
+        ),
     ),
 )
 
