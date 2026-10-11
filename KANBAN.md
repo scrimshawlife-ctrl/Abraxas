@@ -6,6 +6,13 @@
 ![CI](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/ci.yml/badge.svg)
 ![WIP Limits](https://github.com/scrimshawlife-ctrl/Abraxas/actions/workflows/wip-limits.yml/badge.svg)
 
+## Latest merge receipt — PR #283 (2026-10-11)
+
+- Product merge SHA: `2f428bc5e1b17964e32d0a20cbd83a75adecfdf9` (merged 2026-10-11T01:28:29Z); default branch is `main`.
+- Final PR head `21695923f061dbdffb3b1b695d532369ed0d9ac5`: independent approval and all 10 GitHub checks passed. The PR Pipeline Dry Run verified the structure of `cycle_000001.json` through `cycle_000003.json`.
+- Main push CI run `38101952939` for the product merge SHA is still in progress as of this receipt; do not treat the main-run gate or CI streak as complete yet.
+- The AUD queue below remains the 2026-10-10 assimilation snapshot except where explicitly reconciled; its other findings are not revalidated against this newer SHA.
+
 ## Audit Assimilation: Trustworthy Shadow Cycle (2026-10-10 PT)
 
 **Status: partial; remediation pending.** OBSERVED against main `59b82ba6159a958f27966f1e1c6c77ef451278ce`.
@@ -89,17 +96,14 @@ Prior to implementation, use Graft context and inspect subsystem code eligibilit
   the postgres extra; missing asyncpg is also reported in PR #283.
   **Acceptance:** resolve dependency/import behavior, verify three durable dry-run outputs,
   and require all mandatory jobs green at a recorded SHA. Keep lint ratchet enforcement.
-  [PR #283](https://github.com/Zero-State-LLC/Abraxas/pull/283) remains draft and lint-blocked;
-  its 4,158-pass/66.16% figures are author-reported branch measurements, not current main measurements.
-  Integrate branches in dependency order only with operator merge authorization.
+  [PR #283](https://github.com/Zero-State-LLC/Abraxas/pull/283) merged to main at product SHA `2f428bc5e1b17964e32d0a20cbd83a75adecfdf9` (final head `21695923f061dbdffb3b1b695d532369ed0d9ac5`); all 10 PR checks passed, including the Pipeline Dry Run output-structure assertions. The main push CI run `38101952939` is still in progress, so keep AUD-08 open until that run completes. The 4,158-pass/66.16% figures are historical branch measurements, not current main measurements.
 
 - [ ] **AUD-09 / P1: Reconcile readiness and capability claims.**
   **Acceptance:** refresh BETA_READINESS, ROADMAP, and current board summaries from SHA-bound receipts;
   retain old entries as historical evidence. Define LIVE as provider implementation availability,
   separately report actual model/source/instrument execution, and preserve the Alpha classifier
   until governing criteria are met. Offline Athanor and disabled Hyperlex paths must stay visible.
-  [PR #274](https://github.com/Zero-State-LLC/Abraxas/pull/274) is a draft candidate continuity spec;
-  AC-01 through AC-09 remain NOT_EXECUTED, regardless of historical documentation-completion checks.
+  [PR #274](https://github.com/Zero-State-LLC/Abraxas/pull/274) is CLOSED as an unmerged draft; AC-01 through AC-09 remain NOT_EXECUTED and the draft is not active.
 
 - [ ] **AUD-10 / P2: Measure empirical forecast value after cycle integrity.**
   **Acceptance:** freeze a time-separated observation set, predeclare outcomes and falsification rules,
