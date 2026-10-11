@@ -258,3 +258,10 @@ The four planned engines — hyperlex, semion, chronos, resonance — now have s
 
 Production wiring: STUBBED_PLANNED bypass removed; all engines register uniformly via manifest. Yggdrasil resolves without `_get_provider_for_engine` stub helper. Tests: "stub" allowances dropped across 4+ test files. aether remains the only genuinely unfinished engine (raises NotImplementedError). KANBAN step 13 recorded. Plan: `.hermes/plans/2026-10-09_160500-full-design-integration-engines-1-4-yggdrasil-siblings.md`.
 
+## S1/S2 groundwork: test coverage — 2026-10-10
+
+Context: milestones are now the S1 (forecast record and evals) and S2 (scored engine) gates in [ROADMAP.md](../ROADMAP.md) (decision D-2026-10-10, [DECISIONS.md](DECISIONS.md)). `aether` is the multimodal engine and is in active development; the "only genuinely unfinished engine" wording above describes its 2026-10-09 code state (spec plus refusing boundary), not its status.
+
+**OBSERVED — local, module-scoped:** PR #283 adds 154 focused tests for 13 `abx/` modules on the acquisition, attribution and term-claim path, at 100% scoped coverage (1,849/1,849 statements). `abx/task_union_ledger.py` and its 12 tests, including the dedup-attribution fix, landed separately as PR #287. Local `make lint`: 4,672 findings vs the 4,677 baseline. The last full local suite (pre-#284 base): 4,158 passed, 1 xfailed; 66.16% overall. These are module-scoped and historical local results; they must not be represented as project-wide coverage. `pyproject.toml` sets `fail_under = 60`.
+
+**Follow-up:** refresh the Pawl baseline (tightening only) so the new test ids are protected. Separate local branch `coverage/aalmanac-tau` adds 12 tests for `abx/aalmanac_tau.py` (145/145 statements).

@@ -189,6 +189,15 @@ This file is the append-first execution queue for implementation runs.
    - `scripts/run_large_run_promotion_barrier.py` → `out/policy/large_run_barrier_<batch_id>.json`
    - `scripts/run_large_run_convergence.py` → `out/reports/large_run_convergence_<batch_id>.json`
 
+### P2 — Targeted coverage lift: remaining-module batch (2026-10-10)
+- **Status:** PR #283, rebased onto `main` after the `task_union_ledger.py` fix and its tests were split out and merged as PR #287 (`ae8124c997706701b5c6907b14d91d0c01f76c9a`). Merge gated on green checks on the final pushed head; approved by Danny 2026-10-10.
+- **Scope:** 13 modules (`abx/truth_contamination.py`, `term_claim_binder.py`, `horizon_policy_select.py`, `horizon_policy_select_tc.py`, `signal_roi_scheduler.py`, `term_claims_run.py`, `error_attrib_tasks.py`, `attribution_compile.py`, `attribution_delta.py`, `acquisition_execute.py`, `acquisition_plan.py`, `acquisition_planner.py`, `aalmanac_enrich.py`); 154 focused tests passed, 1,849/1,849 statements covered (100%, module-scoped). `task_union_ledger.py` and its 12 tests landed separately in PR #287.
+- **Full local suite (pre-#284 merge):** 4,158 passed, 1 xfailed, 14 warnings; 66.16% (75,075 statements, 25,406 missed). Historical local run on the prior base, not a current-head or GitHub Actions result.
+- **Production changes in this PR:** restored the defensive zero-count guard in `attribution_delta.py` (coverage-excluded because the aggregate bucket is only created after its count increments); behavior-preserving Ruff cleanup in `acquisition_plan.py` and `attribution_delta.py`. The dedup-attribution behaviour fix is PR #287, not this PR.
+- **Lint/CI:** PR #282 merged as `81678caa63d4a7b98c0a900e4f6abad20c19b3e7`; PR #284 merged as `9402167187c4e1912eb23799b0a9962bc152e823` (defers the optional PostgreSQL adapter import so mock runs do not require `asyncpg`). Local `make lint` on the coverage branch: 4,672 findings vs baseline 4,677; four rule families improved.
+- **Follow-up:** Pawl baseline refresh (tightening only) so the new test ids are protected.
+- **Stacked follow-on:** `coverage/aalmanac-tau` adds 12 tests for `abx/aalmanac_tau.py` and covers 145/145 statements (100%); it is separate from PR #283.
+
 ## Completed
 - 2026-10-08 — Dependency-manifest guard re-keyed from `(path, line)` to `(path, symbol)`, so an unrelated edit above an import no longer invalidates the record; the fixer no longer labels a position-only change `DRIFT` and the stale descriptive line numbers were refreshed (the `(path, symbol)` sets verified byte-identical). Proven by a counterfactual and by both drift directions, and independently by CI: run `37739497321` on `f69d3951` had gone red on this guard alone from a seven-line shift in `abraxas/storage/compress.py`, and `baf45e77` cleared it (`Test Suite` success). Plan `execplans/dependency-manifest-rekey.md`; commits `baf45e77`, `52a694a2`, `61094724`; ratchet green at `failures=0 collected=3797 floor=3779`.
 
