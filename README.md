@@ -13,6 +13,8 @@ Abraxas is a forecasting engine for slang and memes: how they emerge, spread, mu
 
 **Direction and honest current state:** [docs/DIRECTION.md](docs/DIRECTION.md). Short version: no settled forecast record yet, text inputs only, and the model comes later behind a go/no-go check.
 
+**Default branch:** `main`. Base new work on `origin/main` and submit changes through pull requests.
+
 Abraxas combines canonical runtime commands, subsystem governance metadata, validator-facing artifact contracts, and operator scripts in one repository.  
 This front door is intentionally truth-scoped: statuses are split into Implemented, Partial, Experimental, and Planned based on repository evidence.
 
