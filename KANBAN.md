@@ -10,7 +10,8 @@
 
 - Product merge SHA: `2f428bc5e1b17964e32d0a20cbd83a75adecfdf9` (merged 2026-10-11T01:28:29Z); default branch is `main`.
 - Final PR head `21695923f061dbdffb3b1b695d532369ed0d9ac5`: independent approval and all 10 GitHub checks passed. The PR Pipeline Dry Run verified the structure of `cycle_000001.json` through `cycle_000003.json`.
-- Main push CI run `38101952939` for the product merge SHA is still in progress as of this receipt; do not treat the main-run gate or CI streak as complete yet.
+- Main push CI run [38101952939](https://github.com/Zero-State-LLC/Abraxas/actions/runs/38101952939) completed successfully at the product merge SHA: Test Suite, Validate Configs, Health Check, and Pipeline Dry Run all passed. Its output verification created `cycle_000001.json`–`cycle_000003.json` and confirmed each contains `cycle`, `oracle_bundle`, and `narrative`.
+- **Evidence boundary:** the dry-run log reported Timechain at `localhost:8332` unreachable and fell back to file storage. This verifies CI-local outputs, not Timechain-backed persistence or runtime uptime. This receipt records one green main run; it does not claim the broader CI-streak threshold is met.
 - The AUD queue below remains the 2026-10-10 assimilation snapshot except where explicitly reconciled; its other findings are not revalidated against this newer SHA.
 
 ## Audit Assimilation: Trustworthy Shadow Cycle (2026-10-10 PT)
@@ -89,14 +90,10 @@ Prior to implementation, use Graft context and inspect subsystem code eligibilit
   Distinguish mocked delegation from execution of an available sibling instrument.
   Do not reduce thresholds, remove assertions, or silently skip unavailable checks.
 
-- [ ] **AUD-08 / P1: Restore complete CI before restarting history.**
-  [PR #282](https://github.com/Zero-State-LLC/Abraxas/pull/282) Test Suite and Health Check passed;
-  [its Pipeline Dry Run failed](https://github.com/Zero-State-LLC/Abraxas/actions/runs/38042682276).
-  The runner imports PostgreSQLDomainAdapter unconditionally, but dry-run installation omits
-  the postgres extra; missing asyncpg is also reported in PR #283.
-  **Acceptance:** resolve dependency/import behavior, verify three durable dry-run outputs,
-  and require all mandatory jobs green at a recorded SHA. Keep lint ratchet enforcement.
-  [PR #283](https://github.com/Zero-State-LLC/Abraxas/pull/283) merged to main at product SHA `2f428bc5e1b17964e32d0a20cbd83a75adecfdf9` (final head `21695923f061dbdffb3b1b695d532369ed0d9ac5`); all 10 PR checks passed, including the Pipeline Dry Run output-structure assertions. The main push CI run `38101952939` is still in progress, so keep AUD-08 open until that run completes. The 4,158-pass/66.16% figures are historical branch measurements, not current main measurements.
+- [x] **AUD-08 / P1: Restore complete CI before restarting history.**
+  [PR #282](https://github.com/Zero-State-LLC/Abraxas/pull/282) had Test Suite and Health Check pass, but its Pipeline Dry Run failed because the dry-run environment omitted the PostgreSQL extra.
+  **Completion evidence:** [PR #283](https://github.com/Zero-State-LLC/Abraxas/pull/283) merged at product SHA `2f428bc5e1b17964e32d0a20cbd83a75adecfdf9` (final head `21695923f061dbdffb3b1b695d532369ed0d9ac5`); all 10 PR checks passed. Main push run [38101952939](https://github.com/Zero-State-LLC/Abraxas/actions/runs/38101952939) completed all four jobs successfully on that SHA. Pipeline Dry Run generated and structurally validated `cycle_000001.json` through `cycle_000003.json`; required guardrails passed on the PR checks.
+  **Evidence boundary:** CI logged that Timechain was unreachable and fell back to local file storage. The run verifies CI-local output files, not Timechain-backed durability or runtime uptime. Historical 4,158-pass/66.16% branch figures are not current main measurements.
 
 - [ ] **AUD-09 / P1: Reconcile readiness and capability claims.**
   **Acceptance:** refresh BETA_READINESS, ROADMAP, and current board summaries from SHA-bound receipts;
@@ -110,9 +107,9 @@ Prior to implementation, use Graft context and inspect subsystem code eligibilit
   compare forecasts against a simple baseline, measure calibration and abstention, and preserve
   evaluation provenance. Technical settlement must not imply empirical or economic settlement.
 
-**Execution order:** AUD-08 can proceed independently; then AUD-01/02, AUD-03 through AUD-06,
+**Execution order:** AUD-08 is complete; then AUD-01/02, AUD-03 through AUD-06,
 AUD-07, AUD-09, and AUD-10. Target milestone: one trustworthy, durable, operator-supervised shadow cycle.
-All remediation acceptance checks above remain NOT_EXECUTED in this assimilation.
+AUD-08 is complete as recorded above; acceptance checks for AUD-01 through AUD-07 and AUD-09/10 remain NOT_EXECUTED in this assimilation.
 
 ## To Do (Backlog - Deprioritized/Deferred)
 - [ ] **PostgreSQL Migration** — Deprioritized until artifact volume exceeds SQLite comfort (~100k bundles)
